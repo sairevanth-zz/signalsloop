@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link';
 
 export default function DebugPage() {
   const [status, setStatus] = useState('Loading...');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [posts, setPosts] = useState<any[]>([]);
 
   useEffect(() => {
@@ -61,7 +63,8 @@ export default function DebugPage() {
         setPosts(postsData || []);
         
       } catch (error) {
-        setStatus(`❌ Error: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        setStatus(`❌ Error: ${errorMessage}`);
         console.error('Debug error:', error);
       }
     };
@@ -100,12 +103,12 @@ export default function DebugPage() {
         )}
         
         <div className="mt-6">
-          <a 
+          <Link 
             href="/test-project/board" 
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
             Go to Real Board Page
-          </a>
+          </Link>
         </div>
       </div>
     </div>

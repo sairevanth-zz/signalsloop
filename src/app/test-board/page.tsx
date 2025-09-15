@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link';
 
 export default function TestBoardPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -66,7 +68,8 @@ export default function TestBoardPage() {
         
       } catch (error) {
         console.error('❌ Error:', error);
-        setError(`Error: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        setError(`Error: ${errorMessage}`);
       } finally {
         setLoading(false);
       }
@@ -99,7 +102,8 @@ export default function TestBoardPage() {
       }
     } catch (error) {
       console.error('Vote error:', error);
-      alert(`Vote error: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Vote error: ${errorMessage}`);
     }
   };
 
@@ -169,18 +173,18 @@ export default function TestBoardPage() {
         )}
         
         <div className="mt-8">
-          <a 
+          <Link 
             href="/test-project/board" 
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mr-4"
           >
             Go to Real Board
-          </a>
-          <a 
+          </Link>
+          <Link 
             href="/env-test" 
             className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
           >
             Check Environment Variables
-          </a>
+          </Link>
         </div>
       </div>
     </div>
