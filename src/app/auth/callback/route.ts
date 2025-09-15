@@ -7,11 +7,11 @@ export async function GET(request: NextRequest) {
   console.log('Auth callback called with code:', code ? 'present' : 'missing');
 
   if (code) {
-    // Redirect to app with the code - let the client handle the auth exchange
-    const redirectUrl = new URL('/app', requestUrl.origin);
+    // Redirect to auth test page for debugging
+    const redirectUrl = new URL('/auth-test', requestUrl.origin);
     redirectUrl.searchParams.set('auth_code', code);
     
-    console.log('Redirecting to app with auth code');
+    console.log('Redirecting to auth-test with auth code');
     return NextResponse.redirect(redirectUrl.toString());
   }
 

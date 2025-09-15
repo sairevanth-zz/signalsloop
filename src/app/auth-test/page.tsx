@@ -1,0 +1,113 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+
+export default function AuthTestPage() {
+  const searchParams = useSearchParams();
+  const [status, setStatus] = useState('Checking authentication...');
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const testAuth = async () => {
+      try {
+        // Check for auth code
+        const authCode = searchParams.get('auth_code');
+        if (authCode) {
+          setStatus(`Found auth code: ${authCode.substring(0, 20)}...`);
+          
+          // Create Supabase client
+          const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+          );
+
+          // Exchange code for session
+          const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+          
+          if (error) {
+            setStatus(`Auth error: ${error.message}`);
+            return;
+          }
+
+          if (data.session && data.user) {
+            setStatus('Authentication successful!');
+            setUser(data.user);
+          } else {
+            setStatus('No session created');
+          }
+        } else {
+          setStatus('No auth code found');
+        }
+
+        // Also check current auth state
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUser(user);
+          setStatus('Already authenticated');
+        }
+
+      } catch (error) {
+        setStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    };
+
+    testAuth();
+  }, [searchParams]);
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-2xl font-bold mb-6">Auth Test Page</h1>
+        
+        <div className="bg-white p-6 rounded-lg shadow mb-6">
+          <h2 className="text-lg font-semibold mb-4">Status</h2>
+          <p className="text-gray-700">{status}</p>
+        </div>
+
+        {user && (
+          <div className="bg-green-50 p-6 rounded-lg shadow mb-6">
+            <h2 className="text-lg font-semibold mb-4">User Info</h2>
+            <p><strong>Email:</strong> {user.email}</p>
+            <p><strong>ID:</strong> {user.id}</p>
+            <p><strong>Created:</strong> {new Date(user.created_at).toLocaleString()}</p>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <Link href="/login" className="block">
+            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              Go to Login
+            </button>
+          </Link>
+          
+          <Link href="/app" className="block">
+            <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+              Go to App Dashboard
+            </button>
+          </Link>
+
+          <Link href="/" className="block">
+            <button className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+              Go to Home
+            </button>
+          </Link>
+        </div>
+
+        <div className="mt-8 bg-yellow-50 p-4 rounded">
+          <h3 className="font-semibold mb-2">Debug Info:</h3>
+          <p><strong>Current URL:</strong> {typeof window !== 'undefined' ? window.location.href : 'N/A'}</p>
+          <p><strong>Auth Code:</strong> {searchParams.get('auth_code') || 'None'}</p>
+          <p><strong>Environment:</strong> {typeof window !== 'undefined' ? window.location.origin : 'N/A'}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
