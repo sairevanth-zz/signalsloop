@@ -123,16 +123,18 @@ function AppDashboardContent() {
     }
   }, []);
 
-  // Handle auth code from magic link
+  // Handle auth code and hash-based auth from magic link
   useEffect(() => {
-    const handleAuthCode = async () => {
-      const authCode = searchParams.get('auth_code');
+    const handleAuth = async () => {
+      if (!supabase) return;
       
-      if (authCode && supabase) {
-        console.log('Processing auth code:', authCode);
-        setStatus('Exchanging authorization code...');
-        
-        try {
+      try {
+        // Check for auth code in URL params
+        const authCode = searchParams.get('auth_code');
+        if (authCode) {
+          console.log('Processing auth code:', authCode);
+          setStatus('Exchanging authorization code...');
+          
           const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
           
           if (error) {
@@ -148,16 +150,52 @@ function AppDashboardContent() {
             // Clear the auth code from URL
             router.replace('/app');
           }
-        } catch (error) {
-          console.error('Auth code exchange exception:', error);
-          toast.error('Authentication failed');
-          router.replace('/login');
+        } else {
+          // Check for hash-based auth (access_token in URL hash)
+          const hash = window.location.hash;
+          if (hash && hash.includes('access_token')) {
+            console.log('Processing hash-based auth');
+            setStatus('Processing authentication...');
+            
+            // Parse the hash to extract access_token
+            const hashParams = new URLSearchParams(hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            const refreshToken = hashParams.get('refresh_token');
+            
+            if (accessToken) {
+              // Set the session using the tokens from hash
+              const { data, error } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken || ''
+              });
+              
+              if (error) {
+                console.error('Hash auth error:', error);
+                toast.error(`Authentication failed: ${error.message}`);
+                router.replace('/login');
+                return;
+              }
+
+              if (data.session && data.user) {
+                console.log('Hash-based auth successful, user:', data.user.email);
+                toast.success('Successfully logged in!');
+                // Clear the hash from URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                // Clear any auth code from URL as well
+                router.replace('/app');
+              }
+            }
+          }
         }
+      } catch (error) {
+        console.error('Auth processing exception:', error);
+        toast.error('Authentication failed');
+        router.replace('/login');
       }
     };
 
     if (supabase) {
-      handleAuthCode();
+      handleAuth();
     }
   }, [supabase, searchParams, router]);
 

@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function AuthTestPage() {
+function AuthTestContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState('Checking authentication...');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
@@ -141,5 +142,20 @@ export default function AuthTestPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthTestPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading auth test...</p>
+        </div>
+      </div>
+    }>
+      <AuthTestContent />
+    </Suspense>
   );
 }
