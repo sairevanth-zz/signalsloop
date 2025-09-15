@@ -169,8 +169,7 @@ export default function DemoBoard() {
 
   const handlePostClick = (postId: string) => {
     console.log('Post clicked:', postId);
-    alert(`Post clicked! ID: ${postId}`);
-    // Navigate to the demo post details page
+    // Navigate directly to the demo post details page
     router.push(`/demo/post/${postId}`);
   };
 
