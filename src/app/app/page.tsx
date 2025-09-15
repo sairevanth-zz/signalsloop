@@ -45,14 +45,26 @@ export default function AppDashboard() {
     try {
       setLoading(true);
 
+      // Wait a bit for auth state to be established
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       
-      if (!user) {
+      if (userError) {
+        console.error('Error getting user:', userError);
+        toast.error('Authentication error. Please try logging in again.');
         router.push('/login');
         return;
       }
 
+      if (!user) {
+        console.log('No user found, redirecting to login');
+        router.push('/login');
+        return;
+      }
+
+      console.log('User found:', user.email);
       setUser(user);
 
       // Get user's projects
@@ -72,6 +84,7 @@ export default function AppDashboard() {
 
       if (error) {
         console.error('Error loading projects:', error);
+        toast.error('Failed to load your projects');
         return;
       }
 
@@ -88,6 +101,7 @@ export default function AppDashboard() {
       })) || [];
 
       setProjects(transformedProjects);
+      console.log('Projects loaded:', transformedProjects.length);
 
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -109,9 +123,28 @@ export default function AppDashboard() {
 
   useEffect(() => {
     if (supabase) {
+      // Set up auth state listener
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (event: any, session: any) => {
+          console.log('Auth state changed:', event, session?.user?.email);
+          if (event === 'SIGNED_IN' && session) {
+            loadUserAndProjects();
+          } else if (event === 'SIGNED_OUT') {
+            router.push('/login');
+          }
+        }
+      );
+
+      // Initial load
       loadUserAndProjects();
+
+      // Cleanup subscription
+      return () => {
+        subscription.unsubscribe();
+      };
     }
-  }, [supabase, loadUserAndProjects]);
+  }, [supabase, loadUserAndProjects, router]);
 
   const handleSignOut = async () => {
     if (!supabase) return;
