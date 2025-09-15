@@ -304,7 +304,11 @@ export default function BoardPage() {
             </div>
           ) : (
             filteredPosts.map((post) => (
-              <Card key={post.id} className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card 
+                key={post.id} 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => router.push(`/${params.slug}/post/${post.id}`)}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
                     {/* Vote Button */}
