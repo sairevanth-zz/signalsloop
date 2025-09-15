@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -377,7 +378,7 @@ export default function ProjectWizard() {
 
         <div className="text-center mt-6 text-sm text-gray-500">
           <p>
-            Need help? <a href="/support" className="text-blue-600 hover:underline">Contact support</a>
+            Need help? <Link href="/support" className="text-blue-600 hover:underline">Contact support</Link>
           </p>
         </div>
       </div>
