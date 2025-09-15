@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ import {
   Copy
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Project {
   id: string;
@@ -30,14 +30,16 @@ interface Project {
   votes_count?: number;
 }
 
-export default function AppDashboard() {
+function AppDashboardContent() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [supabase, setSupabase] = useState<any>(null);
+  const [status, setStatus] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const loadUserAndProjects = useCallback(async () => {
     if (!supabase) return;
@@ -120,6 +122,44 @@ export default function AppDashboard() {
       setSupabase(client);
     }
   }, []);
+
+  // Handle auth code from magic link
+  useEffect(() => {
+    const handleAuthCode = async () => {
+      const authCode = searchParams.get('auth_code');
+      
+      if (authCode && supabase) {
+        console.log('Processing auth code:', authCode);
+        setStatus('Exchanging authorization code...');
+        
+        try {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+          
+          if (error) {
+            console.error('Auth code exchange error:', error);
+            toast.error(`Authentication failed: ${error.message}`);
+            router.replace('/login');
+            return;
+          }
+
+          if (data.session && data.user) {
+            console.log('Auth successful, user:', data.user.email);
+            toast.success('Successfully logged in!');
+            // Clear the auth code from URL
+            router.replace('/app');
+          }
+        } catch (error) {
+          console.error('Auth code exchange exception:', error);
+          toast.error('Authentication failed');
+          router.replace('/login');
+        }
+      }
+    };
+
+    if (supabase) {
+      handleAuthCode();
+    }
+  }, [supabase, searchParams, router]);
 
   useEffect(() => {
     if (supabase) {
@@ -410,5 +450,20 @@ export default function AppDashboard() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function AppDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    }>
+      <AppDashboardContent />
+    </Suspense>
   );
 }
