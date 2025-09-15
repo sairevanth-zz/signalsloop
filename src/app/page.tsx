@@ -45,7 +45,7 @@ export default function Homepage() {
               <Link href="/login">
                 <Button variant="ghost">Sign In</Button>
               </Link>
-              <Link href="/login">
+              <Link href="/app/create">
                 <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                   Start Free Trial
                 </Button>
@@ -75,7 +75,7 @@ export default function Homepage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/login">
+            <Link href="/app/create">
               <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-3">
                 Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -270,7 +270,7 @@ export default function Homepage() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/login" className="block mt-8">
+                <Link href="/app/create" className="block mt-8">
                   <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                     Start Free Trial
                   </Button>
@@ -290,7 +290,7 @@ export default function Homepage() {
           <p className="text-xl mb-8 opacity-90">
             Join 100+ companies using SignalLoop to build better products
           </p>
-          <Link href="/login">
+          <Link href="/app/create">
             <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3">
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
