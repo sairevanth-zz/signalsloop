@@ -20,7 +20,7 @@ import {
   AlertCircle,
   Zap
 } from 'lucide-react';
-import VoteButton from '@/components/VoteButton';
+// import VoteButton from '@/components/VoteButton';
 import { toast } from 'sonner';
 
 interface DemoPost {
@@ -326,29 +326,35 @@ export default function DemoBoard() {
                   </div>
 
                   <div onClick={(e) => e.stopPropagation()}>
-                    <VoteButton
-                      postId={post.id}
-                      initialVoteCount={post.vote_count}
-                      initialUserVoted={post.user_voted}
-                      onVoteChange={(newCount, userVoted) => {
+                    <button
+                      onClick={() => {
                         setPosts(prev => prev.map(p =>
                           p.id === post.id
-                            ? { ...p, vote_count: newCount, user_voted: userVoted }
+                            ? { 
+                                ...p, 
+                                vote_count: p.user_voted ? p.vote_count - 1 : p.vote_count + 1,
+                                user_voted: !p.user_voted
+                              }
                             : p
                         ));
+                        toast.success(post.user_voted ? 'Vote removed!' : 'Vote added!');
                       }}
-                      onShowNotification={(message, type) => {
-                        if (type === 'success') {
-                          toast.success(message);
-                        } else if (type === 'error') {
-                          toast.error(message);
-                        } else {
-                          toast.info(message);
-                        }
-                      }}
-                      size="md"
-                      variant="default"
-                    />
+                      className={`flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors ${
+                        post.user_voted 
+                          ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' 
+                          : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
+                      }`}
+                    >
+                      <svg className="w-4 h-4 mb-1" fill={post.user_voted ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                      </svg>
+                      <span className="font-medium text-sm">{post.vote_count}</span>
+                      {post.user_voted && (
+                        <div className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                          <span>Voted</span>
+                        </div>
+                      )}
+                    </button>
                   </div>
                 </div>
               </CardContent>
