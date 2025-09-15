@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,7 @@ interface DemoPost {
 }
 
 export default function DemoBoard() {
+  const router = useRouter();
   const [posts, setPosts] = useState<DemoPost[]>([
     {
       id: '1',
@@ -165,6 +167,11 @@ export default function DemoBoard() {
     toast.success('Post submitted successfully!');
   };
 
+  const handlePostClick = (postId: string) => {
+    toast.info('This is a demo! In a real app, this would open the post details page.');
+    // In a real app, this would navigate to: router.push(`/demo/post/${postId}`);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -178,20 +185,23 @@ export default function DemoBoard() {
       {/* Header */}
       <header className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">SignalLoop Demo</h1>
-              <p className="text-gray-600 mt-1">See how feedback boards work in action</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <Badge variant="outline" className="text-blue-600 border-blue-200">
-                Demo Mode
-              </Badge>
-              <Button asChild>
-                <Link href="/app/create">Create Your Own</Link>
-              </Button>
-            </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">SignalLoop Demo</h1>
+            <p className="text-gray-600 mt-1">See how feedback boards work in action</p>
           </div>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" asChild>
+              <Link href="/">← Back to Home</Link>
+            </Button>
+            <Badge variant="outline" className="text-blue-600 border-blue-200">
+              Demo Mode
+            </Badge>
+            <Button asChild>
+              <Link href="/app/create">Create Your Own</Link>
+            </Button>
+          </div>
+        </div>
         </div>
       </header>
 
@@ -282,7 +292,7 @@ export default function DemoBoard() {
         {/* Posts List */}
         <div className="space-y-4">
           {filteredPosts.map((post) => (
-            <Card key={post.id} className="hover:shadow-md transition-shadow">
+            <Card key={post.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handlePostClick(post.id)}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
@@ -315,29 +325,31 @@ export default function DemoBoard() {
                     </div>
                   </div>
 
-                  <VoteButton
-                    postId={post.id}
-                    initialVoteCount={post.vote_count}
-                    initialUserVoted={post.user_voted}
-                    onVoteChange={(newCount, userVoted) => {
-                      setPosts(prev => prev.map(p =>
-                        p.id === post.id
-                          ? { ...p, vote_count: newCount, user_voted: userVoted }
-                          : p
-                      ));
-                    }}
-                    onShowNotification={(message, type) => {
-                      if (type === 'success') {
-                        toast.success(message);
-                      } else if (type === 'error') {
-                        toast.error(message);
-                      } else {
-                        toast.info(message);
-                      }
-                    }}
-                    size="md"
-                    variant="default"
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <VoteButton
+                      postId={post.id}
+                      initialVoteCount={post.vote_count}
+                      initialUserVoted={post.user_voted}
+                      onVoteChange={(newCount, userVoted) => {
+                        setPosts(prev => prev.map(p =>
+                          p.id === post.id
+                            ? { ...p, vote_count: newCount, user_voted: userVoted }
+                            : p
+                        ));
+                      }}
+                      onShowNotification={(message, type) => {
+                        if (type === 'success') {
+                          toast.success(message);
+                        } else if (type === 'error') {
+                          toast.error(message);
+                        } else {
+                          toast.info(message);
+                        }
+                      }}
+                      size="md"
+                      variant="default"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -357,6 +369,9 @@ export default function DemoBoard() {
             </Button>
             <p className="text-gray-600 mt-2">
               This is a demo. <Link href="/app/create" className="text-blue-600 hover:underline">Create your own board</Link> to get started.
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              Want to see real data? <Link href="/test-project/board" className="text-blue-600 hover:underline">View the test board</Link> with actual database posts.
             </p>
           </div>
         )}
