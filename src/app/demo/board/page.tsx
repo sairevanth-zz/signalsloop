@@ -21,7 +21,7 @@ import {
   Zap
 } from 'lucide-react';
 // import VoteButton from '@/components/VoteButton';
-import { toast } from 'sonner';
+// import { toast } from 'sonner';
 
 interface DemoPost {
   id: string;
@@ -145,7 +145,7 @@ export default function DemoBoard() {
 
   const handleSubmitPost = () => {
     if (!newPost.title.trim() || !newPost.description.trim()) {
-      toast.error('Please fill in both title and description');
+      alert('Please fill in both title and description');
       return;
     }
 
@@ -164,10 +164,12 @@ export default function DemoBoard() {
     setPosts(prev => [post, ...prev]);
     setNewPost({ title: '', description: '' });
     setShowNewPostForm(false);
-    toast.success('Post submitted successfully!');
+    alert('Post submitted successfully!');
   };
 
   const handlePostClick = (postId: string) => {
+    console.log('Post clicked:', postId);
+    alert(`Post clicked! ID: ${postId}`);
     // Navigate to the demo post details page
     router.push(`/demo/post/${postId}`);
   };
@@ -292,7 +294,7 @@ export default function DemoBoard() {
         {/* Posts List */}
         <div className="space-y-4">
           {filteredPosts.map((post) => (
-            <Card key={post.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handlePostClick(post.id)}>
+            <Card key={post.id} className="hover:shadow-md hover:bg-blue-50 transition-all cursor-pointer border-2 hover:border-blue-200" onClick={() => handlePostClick(post.id)}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
@@ -337,7 +339,7 @@ export default function DemoBoard() {
                               }
                             : p
                         ));
-                        toast.success(post.user_voted ? 'Vote removed!' : 'Vote added!');
+                        alert(post.user_voted ? 'Vote removed!' : 'Vote added!');
                       }}
                       className={`flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors ${
                         post.user_voted 
