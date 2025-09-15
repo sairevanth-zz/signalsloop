@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code');
 
   console.log('Auth callback called with code:', code ? 'present' : 'missing');
+  console.log('Full URL:', requestUrl.toString());
 
   if (code) {
     // Redirect to auth test page for debugging
@@ -15,6 +16,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(redirectUrl.toString());
   }
 
-  // No code parameter, redirect to login
-  return NextResponse.redirect(`${requestUrl.origin}/login?error=no_code`);
+  // No code parameter - this might be a hash-based flow
+  // Redirect to a client-side handler that can process the hash
+  console.log('No code found, redirecting to auth-test for hash processing');
+  const redirectUrl = new URL('/auth-test', requestUrl.origin);
+  redirectUrl.hash = requestUrl.hash; // Pass the hash (access_token) to the client
+  return NextResponse.redirect(redirectUrl.toString());
 }

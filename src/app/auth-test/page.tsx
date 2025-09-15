@@ -13,17 +13,17 @@ export default function AuthTestPage() {
   useEffect(() => {
     const testAuth = async () => {
       try {
-        // Check for auth code
+        // Create Supabase client
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+
+        // Check for auth code in URL params
         const authCode = searchParams.get('auth_code');
         if (authCode) {
           setStatus(`Found auth code: ${authCode.substring(0, 20)}...`);
           
-          // Create Supabase client
-          const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-          );
-
           // Exchange code for session
           const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
           
@@ -39,19 +39,51 @@ export default function AuthTestPage() {
             setStatus('No session created');
           }
         } else {
-          setStatus('No auth code found');
+          // Check for hash-based auth (access_token in URL hash)
+          const hash = window.location.hash;
+          if (hash && hash.includes('access_token')) {
+            setStatus('Found access_token in hash, processing...');
+            
+            // Parse the hash to extract access_token
+            const hashParams = new URLSearchParams(hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            const refreshToken = hashParams.get('refresh_token');
+            
+            if (accessToken) {
+              // Set the session using the tokens from hash
+              const { data, error } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken || ''
+              });
+              
+              if (error) {
+                setStatus(`Hash auth error: ${error.message}`);
+                return;
+              }
+
+              if (data.session && data.user) {
+                setStatus('Hash-based authentication successful!');
+                setUser(data.user);
+                // Clear the hash from URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+              } else {
+                setStatus('No session created from hash');
+              }
+            } else {
+              setStatus('No access_token found in hash');
+            }
+          } else {
+            setStatus('No auth code or hash found');
+          }
         }
 
         // Also check current auth state
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
-
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setUser(user);
-          setStatus('Already authenticated');
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (currentUser && !user) { // Only update if we don't already have user
+          setUser(currentUser);
+          if (!authCode && !window.location.hash.includes('access_token')) {
+            setStatus('Already authenticated');
+          }
         }
 
       } catch (error) {
