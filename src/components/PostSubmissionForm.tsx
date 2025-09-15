@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,12 +55,7 @@ export default function PostSubmissionForm({
   boardId, 
   onPostSubmitted 
 }: PostSubmissionFormProps) {
-  const supabase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    ? createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      )
-    : null;
+  const supabase = getSupabaseClient();
   
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -119,11 +114,10 @@ export default function PostSubmissionForm({
       const { error } = await supabase
         .from('posts')
         .insert({
+          project_id: projectId,
+          board_id: boardId,
           title: formData.title.trim(),
           description: formData.description.trim(),
-          type: formData.type,
-          priority: formData.priority,
-          board_id: boardId,
           author_email: formData.email.trim() || session?.user?.email || null,
           status: 'open'
         })
@@ -131,6 +125,7 @@ export default function PostSubmissionForm({
         .single();
 
       if (error) {
+        console.error('Error submitting post:', error);
         throw error;
       }
 
