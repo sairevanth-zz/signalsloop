@@ -69,7 +69,7 @@ export default function ProjectWizard() {
     if (!slug) return false;
     
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('projects')
         .select('slug')
         .eq('slug', slug)
@@ -135,8 +135,8 @@ export default function ProjectWizard() {
       // Success! Redirect to the board
       router.push(`/${projectData.slug}/board`);
       
-    } catch (err: any) {
-      setError(err.message || 'Failed to create project. Please try again.');
+    } catch (err) {
+      setError((err as Error).message || 'Failed to create project. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -169,7 +169,7 @@ export default function ProjectWizard() {
             <span className="text-xl font-bold text-gray-900">SignalLoop</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create your feedback board</h1>
-          <p className="text-gray-600">Let's set up your project in just a few steps</p>
+          <p className="text-gray-600">Let&apos;s set up your project in just a few steps</p>
         </div>
 
         {/* Progress Bar */}
@@ -188,7 +188,7 @@ export default function ProjectWizard() {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FolderPlus className="h-8 w-8 text-blue-600" />
                 </div>
-                <CardTitle>What's your project name?</CardTitle>
+                <CardTitle>What&apos;s your project name?</CardTitle>
                 <CardDescription>
                   This will be the main title for your feedback board
                 </CardDescription>
@@ -314,9 +314,9 @@ export default function ProjectWizard() {
                   <h4 className="font-medium text-blue-900 mb-2">What happens next?</h4>
                   <ul className="text-sm text-blue-800 space-y-1">
                     <li>• Your feedback board will be created and ready to use</li>
-                    <li>• You'll get a 2-line widget code to embed anywhere</li>
+                    <li>• You&apos;ll get a 2-line widget code to embed anywhere</li>
                     <li>• Users can start submitting feedback immediately</li>
-                    <li>• You'll have full admin controls to moderate posts</li>
+                    <li>• You&apos;ll have full admin controls to moderate posts</li>
                   </ul>
                 </div>
               </div>

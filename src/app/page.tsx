@@ -6,7 +6,6 @@ import {
   MessageSquare, 
   TrendingUp, 
   Code, 
-  Users, 
   CheckCircle, 
   Star,
   ArrowRight,
@@ -145,7 +144,7 @@ export default function Homepage() {
                 </div>
                 <CardTitle>Public Roadmap</CardTitle>
                 <CardDescription>
-                  Show users what you're working on. Transparent progress updates 
+                  Show users what you&apos;re working on. Transparent progress updates 
                   build trust and reduce support tickets.
                 </CardDescription>
               </CardHeader>

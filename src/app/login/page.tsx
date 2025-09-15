@@ -41,7 +41,7 @@ export default function LoginPage() {
       } else {
         setIsSuccess(true);
       }
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
@@ -87,7 +87,7 @@ export default function LoginPage() {
                 </Alert>
                 
                 <div className="text-sm text-gray-600 space-y-2">
-                  <p>Can't find the email? Check your spam folder.</p>
+                  <p>Can&apos;t find the email? Check your spam folder.</p>
                   <p>Still having trouble? <Link href="/support" className="text-blue-600 hover:underline">Contact support</Link></p>
                 </div>
                 
@@ -137,7 +137,7 @@ export default function LoginPage() {
           <CardHeader className="text-center">
             <CardTitle>Sign in with magic link</CardTitle>
             <CardDescription>
-              No password needed. We'll send you a secure link to sign in.
+              No password needed. We&apos;ll send you a secure link to sign in.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -156,7 +156,7 @@ export default function LoginPage() {
                   className="w-full"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && email && validateEmail(email)) {
-                      handleLogin(e as any);
+                      handleLogin(e as React.FormEvent<HTMLInputElement>);
                     }
                   }}
                 />
