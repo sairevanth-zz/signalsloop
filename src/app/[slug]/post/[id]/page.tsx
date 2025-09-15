@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
-  ThumbsUp, 
   MessageSquare, 
   Calendar, 
   User, 
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import VoteButton from '@/components/VoteButton';
 
 interface Post {
   id: string;
@@ -89,7 +89,6 @@ export default function PostDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [commenting, setCommenting] = useState(false);
-  const [voting, setVoting] = useState(false);
   
   // Comment form state
   const [commentForm, setCommentForm] = useState({
@@ -180,48 +179,6 @@ export default function PostDetailPage() {
     loadPostData();
   }, [loadPostData]);
 
-  // Handle voting
-  const handleVote = async () => {
-    if (!post || voting || !supabase) return;
-
-    try {
-      setVoting(true);
-
-      // Generate voter hash (simplified - in production, use better logic)
-      const voterHash = `temp_${Date.now()}_${Math.random()}`;
-
-      const { error } = await supabase
-        .from('votes')
-        .insert([{
-          post_id: post.id,
-          voter_hash: voterHash
-        }]);
-
-      if (error) {
-        if (error.code === '23505') { // Unique constraint violation
-          toast.error('You have already voted on this post');
-        } else {
-          toast.error('Error recording vote');
-        }
-        return;
-      }
-
-      // Update local state
-      setPost(prev => prev ? {
-        ...prev,
-        vote_count: prev.vote_count + 1,
-        user_voted: true
-      } : null);
-
-      toast.success('Vote recorded!');
-
-    } catch (error) {
-      console.error('Error voting:', error);
-      toast.error('Error recording vote');
-    } finally {
-      setVoting(false);
-    }
-  };
 
   // Handle comment submission
   const handleCommentSubmit = async () => {
@@ -364,22 +321,26 @@ export default function PostDetailPage() {
                   {statusConfig[post.status].label}
                 </Badge>
                 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleVote}
-                  disabled={voting || post.user_voted}
-                  className={`flex items-center gap-2 ${
-                    post.user_voted ? 'text-blue-600 border-blue-600' : ''
-                  }`}
-                >
-                  {voting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <ThumbsUp className="w-4 h-4" />
-                  )}
-                  <span>{post.vote_count}</span>
-                </Button>
+                <VoteButton
+                  postId={post.id}
+                  initialVoteCount={post.vote_count}
+                  initialUserVoted={post.user_voted}
+                  onVoteChange={(newCount, userVoted) => {
+                    // Update the post in the local state
+                    setPost(prev => prev ? { ...prev, vote_count: newCount, user_voted: userVoted } : null);
+                  }}
+                  onShowNotification={(message, type) => {
+                    if (type === 'success') {
+                      toast.success(message);
+                    } else if (type === 'error') {
+                      toast.error(message);
+                    } else {
+                      toast.info(message);
+                    }
+                  }}
+                  size="md"
+                  variant="compact"
+                />
               </div>
             </div>
           </CardHeader>

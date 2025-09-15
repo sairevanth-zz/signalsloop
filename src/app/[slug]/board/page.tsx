@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Search, 
   Plus, 
-  ThumbsUp, 
   MessageSquare, 
   Calendar,
   User
@@ -25,6 +24,7 @@ import {
 import { toast } from 'sonner';
 import Link from 'next/link';
 import PostSubmissionForm from '@/components/PostSubmissionForm';
+import VoteButton from '@/components/VoteButton';
 
 interface Post {
   id: string;
@@ -178,17 +178,6 @@ export default function BoardPage() {
     post.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Handle voting
-  const handleVote = async () => {
-    try {
-      // TODO: Implement voting logic
-      // For now, just show success message
-      toast.success('Vote recorded!');
-    } catch (error) {
-      console.error('Error voting:', error);
-      toast.error('Error recording vote');
-    }
-  };
 
   if (loading) {
     return (
@@ -319,21 +308,31 @@ export default function BoardPage() {
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
                     {/* Vote Button */}
-                    <div className="flex flex-col items-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleVote();
+                    <div className="flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+                      <VoteButton
+                        postId={post.id}
+                        initialVoteCount={post.vote_count}
+                        initialUserVoted={post.user_voted}
+                        onVoteChange={(newCount, userVoted) => {
+                          // Update the post in the local state
+                          setPosts(prev => prev.map(p => 
+                            p.id === post.id 
+                              ? { ...p, vote_count: newCount, user_voted: userVoted }
+                              : p
+                          ));
                         }}
-                        className={`flex flex-col h-auto py-2 px-3 ${
-                          post.user_voted ? 'text-blue-600' : 'text-gray-500'
-                        }`}
-                      >
-                        <ThumbsUp className="w-5 h-5 mb-1" />
-                        <span className="text-sm font-medium">{post.vote_count}</span>
-                      </Button>
+                        onShowNotification={(message, type) => {
+                          if (type === 'success') {
+                            toast.success(message);
+                          } else if (type === 'error') {
+                            toast.error(message);
+                          } else {
+                            toast.info(message);
+                          }
+                        }}
+                        size="md"
+                        variant="default"
+                      />
                     </div>
 
                     {/* Post Content */}
