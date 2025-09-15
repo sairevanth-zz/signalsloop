@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SignalLoop Test</title>
+</head>
+<body>
+    <h1>SignalLoop Frontend Test</h1>
+    <div id="status">Loading...</div>
+    <div id="posts"></div>
+
+    <script type="module">
+        // Test Supabase connection directly
+        const supabaseUrl = 'https://tucshvkwjkwhxyulpieo.supabase.co/';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1Y3Nodmt3amt3aHh5dWxwaWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NzUzNzgsImV4cCI6MjA3MzQ1MTM3OH0.p9Q3B2uA3ClLO43CI852eNlPYbh1CYnmn1hxqcbWBS4';
+
+        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
+        
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        async function testConnection() {
+            try {
+                document.getElementById('status').innerHTML = 'Testing connection...';
+                
+                // Test project fetch
+                const { data: project, error: projectError } = await supabase
+                    .from('projects')
+                    .select('*')
+                    .eq('slug', 'test-project')
+                    .single();
+                
+                if (projectError) {
+                    document.getElementById('status').innerHTML = `❌ Project Error: ${projectError.message}`;
+                    return;
+                }
+                
+                document.getElementById('status').innerHTML = `✅ Project found: ${project.name}`;
+                
+                // Test posts fetch
+                const { data: posts, error: postsError } = await supabase
+                    .from('posts')
+                    .select('*')
+                    .eq('project_id', project.id);
+                
+                if (postsError) {
+                    document.getElementById('status').innerHTML += `<br>❌ Posts Error: ${postsError.message}`;
+                    return;
+                }
+                
+                document.getElementById('status').innerHTML += `<br>✅ Found ${posts.length} posts`;
+                
+                // Display posts
+                let postsHtml = '<h2>Posts:</h2>';
+                posts.forEach(post => {
+                    postsHtml += `
+                        <div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                            <h3>${post.title}</h3>
+                            <p>${post.description}</p>
+                            <p><strong>Status:</strong> ${post.status}</p>
+                            <p><strong>Author:</strong> ${post.author_email}</p>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('posts').innerHTML = postsHtml;
+                
+            } catch (error) {
+                document.getElementById('status').innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+        
+        testConnection();
+    </script>
+</body>
+</html>
