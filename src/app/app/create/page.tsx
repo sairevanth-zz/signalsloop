@@ -31,11 +31,13 @@ export default function ProjectWizard() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Initialize Supabase client
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  // Initialize Supabase client safely
+  const supabase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ? createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      )
+    : null;
   const [projectData, setProjectData] = useState<ProjectData>({
     name: '',
     slug: '',
@@ -67,7 +69,7 @@ export default function ProjectWizard() {
   };
 
   const checkSlugAvailability = async (slug: string) => {
-    if (!slug) return false;
+    if (!slug || !supabase) return false;
     
     try {
       const { data } = await supabase
@@ -83,6 +85,11 @@ export default function ProjectWizard() {
   };
 
   const createProject = async () => {
+    if (!supabase) {
+      setError('Database connection not available. Please refresh the page.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 

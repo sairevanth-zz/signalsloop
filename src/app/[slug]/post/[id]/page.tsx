@@ -76,15 +76,18 @@ const statusConfig = {
 export default function PostDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ? createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      )
+    : null;
   
   const [project, setProject] = useState<Project | null>(null);
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [commenting, setCommenting] = useState(false);
   const [voting, setVoting] = useState(false);
   
@@ -95,6 +98,12 @@ export default function PostDetailPage() {
   });
 
   const loadPostData = useCallback(async () => {
+    if (!supabase) {
+      setError('Database connection not available. Please refresh the page.');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -173,7 +182,7 @@ export default function PostDetailPage() {
 
   // Handle voting
   const handleVote = async () => {
-    if (!post || voting) return;
+    if (!post || voting || !supabase) return;
 
     try {
       setVoting(true);
@@ -216,7 +225,7 @@ export default function PostDetailPage() {
 
   // Handle comment submission
   const handleCommentSubmit = async () => {
-    if (!post || !commentForm.body.trim() || commenting) return;
+    if (!post || !commentForm.body.trim() || commenting || !supabase) return;
 
     try {
       setCommenting(true);
@@ -311,6 +320,13 @@ export default function PostDetailPage() {
           <span>→</span>
           <span>Feedback</span>
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800">{error}</p>
+          </div>
+        )}
 
         {/* Back Button */}
         <div className="mb-6">

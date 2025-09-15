@@ -15,15 +15,22 @@ export default function LoginPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
   
-  // Initialize Supabase client
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  // Initialize Supabase client safely
+  const supabase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ? createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      )
+    : null;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
+
+    if (!supabase) {
+      setError('Authentication service not available. Please refresh the page.');
+      return;
+    }
 
     setIsLoading(true);
     setError('');

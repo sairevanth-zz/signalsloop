@@ -55,10 +55,12 @@ export default function PostSubmissionForm({
   boardId, 
   onPostSubmitted 
 }: PostSubmissionFormProps) {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ? createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      )
+    : null;
   
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -99,6 +101,11 @@ export default function PostSubmissionForm({
     e.preventDefault();
     
     if (!validateForm()) {
+      return;
+    }
+
+    if (!supabase) {
+      setErrors({ title: 'Database connection not available. Please refresh the page.' });
       return;
     }
 

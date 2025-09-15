@@ -55,14 +55,17 @@ const statusConfig = {
 export default function BoardPage() {
   const params = useParams();
   const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ? createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      )
+    : null;
   
   const [project, setProject] = useState<Project | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('votes');
@@ -70,6 +73,12 @@ export default function BoardPage() {
   const [boardId, setBoardId] = useState<string | null>(null);
 
   const loadProjectAndPosts = useCallback(async () => {
+    if (!supabase) {
+      setError('Database connection not available. Please refresh the page.');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -201,6 +210,13 @@ export default function BoardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800">{error}</p>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
