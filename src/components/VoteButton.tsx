@@ -301,17 +301,6 @@ export function VoteStats({ postId, onShowNotification }: VoteStatsProps) {
   }, [supabase, postId, onShowNotification]);
 
   useEffect(() => {
-    // Initialize Supabase client safely
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
-      setSupabase(client);
-    }
-  }, []);
-
-  useEffect(() => {
     if (supabase) {
       loadVoteStats();
     }
@@ -389,17 +378,6 @@ export function useVoteRateLimit(voterHash: string) {
       console.error('Error checking rate limit:', error);
     }
   }, [supabase, voterHash]);
-
-  useEffect(() => {
-    // Initialize Supabase client safely
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
-      setSupabase(client);
-    }
-  }, []);
 
   useEffect(() => {
     if (voterHash && supabase) {

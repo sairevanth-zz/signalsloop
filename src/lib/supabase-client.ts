@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let supabaseClient: any = null;
 
 export const getSupabaseClient = () => {

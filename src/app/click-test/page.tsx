@@ -83,8 +83,8 @@ export default function ClickTestPage() {
           <ol className="list-decimal list-inside space-y-1">
             <li>Click on the colored cards above</li>
             <li>You should see an alert and the statistics should update</li>
-            <li>If clicking works here but not on the demo board, there's a specific issue with the demo board</li>
-            <li>If clicking doesn't work here either, there's a broader JavaScript issue</li>
+            <li>If clicking works here but not on the demo board, there&apos;s a specific issue with the demo board</li>
+            <li>If clicking doesn&apos;t work here either, there&apos;s a broader JavaScript issue</li>
           </ol>
         </div>
       </div>

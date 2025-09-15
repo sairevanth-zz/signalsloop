@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+// import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, User, Clock, MessageSquare } from 'lucide-react';
 
@@ -74,6 +74,7 @@ export default function DemoPostPage() {
   const [voteCount, setVoteCount] = useState(0);
   const [userVoted, setUserVoted] = useState(false);
   const [newComment, setNewComment] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [comments, setComments] = useState<any[]>([]);
   const [message, setMessage] = useState('');
 
