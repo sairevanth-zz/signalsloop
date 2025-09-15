@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ApiKeySettings } from '@/components/ApiKeySettings';
 import BoardSettings from '@/components/BoardSettings';
@@ -157,10 +158,26 @@ export default function SettingsPage() {
           </TabsList>
 
           <TabsContent value="api-keys" className="mt-6">
-            <ApiKeySettings 
-              projectId={project.id} 
-              projectSlug={project.slug}
-            />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">API Keys</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Manage API keys for embedding widgets
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => router.push(`/${projectSlug}/settings/testing`)}
+                  variant="outline"
+                >
+                  Test Widget
+                </Button>
+              </div>
+              <ApiKeySettings 
+                projectId={project.id} 
+                projectSlug={project.slug}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="board" className="mt-6">

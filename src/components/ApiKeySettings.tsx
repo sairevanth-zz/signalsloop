@@ -200,14 +200,6 @@ export function ApiKeySettings({ projectId, projectSlug }: ApiKeySettingsProps) 
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">API Keys</h3>
-          <p className="text-sm text-muted-foreground">
-            Manage API keys for embedding widgets
-          </p>
-        </div>
-      </div>
 
       <Tabs defaultValue="keys" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
