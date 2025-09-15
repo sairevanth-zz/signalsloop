@@ -1,4 +1,8 @@
+'use client';
+
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +17,17 @@ import {
 } from 'lucide-react';
 
 export default function Homepage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if there's an access_token in the hash (magic link redirect)
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token')) {
+      console.log('Found access_token in hash, redirecting to app');
+      // Redirect to app with the hash
+      router.push(`/app${hash}`);
+    }
+  }, [router]);
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
