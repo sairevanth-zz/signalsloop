@@ -168,8 +168,8 @@ export default function DemoBoard() {
   };
 
   const handlePostClick = (postId: string) => {
-    toast.info('This is a demo! In a real app, this would open the post details page.');
-    // In a real app, this would navigate to: router.push(`/demo/post/${postId}`);
+    // Navigate to the demo post details page
+    router.push(`/demo/post/${postId}`);
   };
 
   const formatDate = (dateString: string) => {

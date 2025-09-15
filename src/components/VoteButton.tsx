@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, Loader2, CheckCircle } from 'lucide-react';
 
@@ -79,12 +79,9 @@ export function VoteButton({
 
   // Initialize Supabase client and voter hash
   useEffect(() => {
-    // Initialize Supabase client safely
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
+    // Use centralized Supabase client
+    const client = getSupabaseClient();
+    if (client) {
       setSupabase(client);
     }
 
