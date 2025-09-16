@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -43,6 +43,7 @@ interface ApiKeySettingsProps {
 }
 
 export function ApiKeySettings({ projectId, projectSlug }: ApiKeySettingsProps) {
+  console.log('ApiKeySettings received:', { projectId, projectSlug });
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -72,6 +73,7 @@ export function ApiKeySettings({ projectId, projectSlug }: ApiKeySettingsProps) 
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      console.log('API keys loaded:', data);
       setApiKeys(data || []);
     } catch (error) {
       console.error('Error loading API keys:', error);
@@ -83,11 +85,8 @@ export function ApiKeySettings({ projectId, projectSlug }: ApiKeySettingsProps) 
 
   // Initialize Supabase client safely
   useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
+    const client = getSupabaseClient();
+    if (client) {
       setSupabase(client);
     }
   }, []);
