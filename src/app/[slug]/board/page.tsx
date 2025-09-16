@@ -18,7 +18,9 @@ import {
   LogOut,
   Settings,
   Home,
-  Map
+  Map,
+  Sparkles,
+  Brain
 } from 'lucide-react';
 import {
   Select,
@@ -275,6 +277,14 @@ export default function BoardPage() {
                   <Button variant="outline" className="flex items-center gap-1">
                     <Settings className="w-4 h-4" />
                     Settings
+                  </Button>
+                </Link>
+              )}
+              {user && posts.length > 0 && (
+                <Link href={`/${params.slug}/ai-insights`}>
+                  <Button variant="outline" className="flex items-center gap-1 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
+                    <Brain className="w-4 h-4" />
+                    AI Insights
                   </Button>
                 </Link>
               )}
