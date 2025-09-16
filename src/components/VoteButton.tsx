@@ -55,8 +55,7 @@ export function VoteButton({
   const [userVoted, setUserVoted] = useState(initialUserVoted);
   const [loading, setLoading] = useState(false);
   const [voterHash, setVoterHash] = useState<string>('');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [supabase, setSupabase] = useState<any>(null);
+  const supabase = getSupabaseClient();
 
   const checkUserVoteStatus = useCallback(async (hash: string) => {
     if (!supabase) return;
@@ -79,12 +78,6 @@ export function VoteButton({
 
   // Initialize Supabase client and voter hash
   useEffect(() => {
-    // Use centralized Supabase client
-    const client = getSupabaseClient();
-    if (client) {
-      setSupabase(client);
-    }
-
     // Generate voter hash
     const hash = generateVoterHash();
     setVoterHash(hash);
