@@ -29,7 +29,7 @@ export default function MobileDemoPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600">
-                On mobile devices, you'll see a hamburger menu that opens a slide-out navigation panel.
+                On mobile devices, you&apos;ll see a hamburger menu that opens a slide-out navigation panel.
               </p>
             </CardContent>
           </Card>
@@ -45,7 +45,7 @@ export default function MobileDemoPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600">
-                On desktop (lg and above), you'll see a fixed sidebar with navigation links.
+                On desktop (lg and above), you&apos;ll see a fixed sidebar with navigation links.
               </p>
             </CardContent>
           </Card>
