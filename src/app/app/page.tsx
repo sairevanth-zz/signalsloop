@@ -509,11 +509,11 @@ export default function AppPage() {
                     return (
                       <div key={category} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Badge className={`${categoryColors[category as keyof typeof categoryColors]} text-sm`}>
+                          <Badge className={`${categoryColors[category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800 border-gray-200'} text-sm`}>
                             {category}
                           </Badge>
                           <span className="text-sm text-gray-600">
-                            {categoryDescriptions[category as keyof typeof categoryDescriptions]}
+                            {categoryDescriptions[category as keyof typeof categoryDescriptions] || 'Feedback category'}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -546,7 +546,7 @@ export default function AppPage() {
                         <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
                           {post.title}
                         </h4>
-                        <Badge className={`${categoryColors[post.ai_category as keyof typeof categoryColors]} text-xs ml-2 flex-shrink-0`}>
+                        <Badge className={`${categoryColors[post.ai_category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800 border-gray-200'} text-xs ml-2 flex-shrink-0`}>
                           {post.ai_category}
                         </Badge>
                       </div>
