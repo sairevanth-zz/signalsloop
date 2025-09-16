@@ -123,10 +123,12 @@ export default function AppPage() {
     }
   }, [user, supabase]);
 
-  const loadAIInsights = async (projectIds: string[]) => {
-    if (projectIds.length === 0) return;
-    
-    try {
+        const loadAIInsights = async (projectIds: string[]) => {
+          if (projectIds.length === 0) return;
+
+          console.log('🤖 Loading AI insights for projects:', projectIds);
+
+          try {
       // Get recent posts from all projects
       const { data: posts, error: postsError } = await supabase
         .from('posts')
@@ -146,9 +148,14 @@ export default function AppPage() {
         return;
       }
 
-      if (!posts || posts.length === 0) return;
+            if (!posts || posts.length === 0) {
+              console.log('🤖 No posts found for AI insights');
+              return;
+            }
 
-      // Call AI categorization API instead of direct function call
+            console.log('🤖 Found posts for AI insights:', posts.length, posts);
+
+            // Call AI categorization API instead of direct function call
       const postsWithCategories = await Promise.all(
         posts.map(async (post: PostWithProject) => {
           try {
@@ -709,20 +716,17 @@ export default function AppPage() {
                           <Map className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
                         </Button>
                       </Link>
-                             {/* AI Analysis button temporarily disabled for debugging */}
-                             {false && (
-                               <Link href="/ai-test">
-                                 <Button
-                                   variant="outline"
-                                   size="sm"
-                                   className="bg-gradient-to-r from-purple-50 to-blue-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-blue-100 transition-all duration-200 hover:scale-105"
-                                   title="AI Analysis"
-                                   disabled={!project.posts_count || project.posts_count === 0}
-                                 >
-                                   <Sparkles className="w-4 h-4 text-purple-600 transition-transform duration-200 group-hover:scale-110" />
-                                 </Button>
-                               </Link>
-                             )}
+                             <Link href="/ai-test">
+                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 className="bg-gradient-to-r from-purple-50 to-blue-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-blue-100 transition-all duration-200 hover:scale-105"
+                                 title="AI Analysis"
+                                 disabled={!project.posts_count || project.posts_count === 0}
+                               >
+                                 <Sparkles className="w-4 h-4 text-purple-600 transition-transform duration-200 group-hover:scale-110" />
+                               </Button>
+                             </Link>
                       <Link href={`/${project.slug}/settings`}>
                         <Button 
                           variant="outline" 
