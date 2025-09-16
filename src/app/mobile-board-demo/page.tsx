@@ -93,7 +93,6 @@ export default function MobileBoardDemoPage() {
   };
 
   const handleNewPost = () => {
-    setShowNewPostForm(true);
     // In a real app, this would open a modal or navigate to a form
     alert('This would open the new post form!');
   };
