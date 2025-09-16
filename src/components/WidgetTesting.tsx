@@ -179,7 +179,7 @@ export function WidgetTesting({ projectSlug, apiKey }: WidgetTestingProps) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SignalSloop Widget Test</title>
+    <title>SignalsLoop Widget Test</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -209,7 +209,7 @@ export function WidgetTesting({ projectSlug, apiKey }: WidgetTestingProps) {
 <body>
     <div class="container">
         <h1>🚀 Welcome to Our App</h1>
-        <p>This is a test page for the SignalSloop feedback widget.</p>
+        <p>This is a test page for the SignalsLoop feedback widget.</p>
         
         <div class="feature">
             <h3>✨ Amazing Features</h3>
@@ -229,7 +229,7 @@ export function WidgetTesting({ projectSlug, apiKey }: WidgetTestingProps) {
         <p><strong>Try it out:</strong> Look for the feedback widget button and test the complete flow!</p>
     </div>
 
-    <!-- SignalSloop Widget -->
+    <!-- SignalsLoop Widget -->
     ${generateTestCode()}
 </body>
 </html>`;

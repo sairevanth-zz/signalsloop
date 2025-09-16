@@ -22,7 +22,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 const demoProject = {
   id: '00000000-0000-0000-0000-000000000001',
   owner_id: '00000000-0000-0000-0000-000000000001', 
-  name: 'SignalSloop Demo',
+  name: 'SignalsLoop Demo',
   slug: 'demo',
   plan: 'free',
   created_at: new Date().toISOString()

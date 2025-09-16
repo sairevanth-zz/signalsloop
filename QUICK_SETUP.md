@@ -1,7 +1,7 @@
-# 🚀 SignalSloop Quick Setup Guide
+# 🚀 SignalsLoop Quick Setup Guide
 
 ## The Problem
-Your SignalSloop app is currently not functional because it needs a Supabase database with proper tables and authentication setup.
+Your SignalsLoop app is currently not functional because it needs a Supabase database with proper tables and authentication setup.
 
 ## 🎯 Solution (15 minutes setup)
 
@@ -22,7 +22,7 @@ Your SignalSloop app is currently not functional because it needs a Supabase dat
 3. Copy the entire contents of `supabase-setup.sql` (in this repository)
 4. Paste it into the SQL Editor
 5. Click **"Run"** 
-6. You should see: `"SignalSloop database setup completed successfully!"`
+6. You should see: `"SignalsLoop database setup completed successfully!"`
 
 ### Step 3: Configure Environment Variables (3 minutes)
 1. In Supabase dashboard, go to **Settings** → **API**
@@ -75,7 +75,7 @@ After setup, test these features:
 
 ## 🎉 What Works After Setup
 
-Once configured, your SignalSloop app will have:
+Once configured, your SignalsLoop app will have:
 
 ✅ **Full Project Management**
 - Create unlimited projects
@@ -128,4 +128,4 @@ If you run into issues:
 3. Make sure the SQL script ran completely without errors
 4. Check the browser console for any JavaScript errors
 
-Your SignalSloop app will be fully functional after this setup! 🎉
+Your SignalsLoop app will be fully functional after this setup! 🎉

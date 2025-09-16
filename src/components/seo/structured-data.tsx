@@ -14,7 +14,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
         return {
           "@context": "https://schema.org",
           "@type": "Organization",
-          "name": "SignalSloop",
+          "name": "SignalsLoop",
           "url": "https://signalsloop.com",
           "logo": "https://signalsloop.com/logo.png",
           "description": "Simple feedback boards and public roadmaps for SaaS products",
@@ -33,7 +33,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
         return {
           "@context": "https://schema.org",
           "@type": "SoftwareApplication",
-          "name": data.name || "SignalSloop",
+          "name": data.name || "SignalsLoop",
           "description": data.description || "Simple feedback boards and public roadmaps for SaaS products",
           "url": data.url || "https://signalsloop.com",
           "applicationCategory": "BusinessApplication",
@@ -51,7 +51,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           },
           "author": {
             "@type": "Organization",
-            "name": "SignalSloop"
+            "name": "SignalsLoop"
           }
         };
 
@@ -64,11 +64,11 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           "image": data.image,
           "author": {
             "@type": "Person",
-            "name": data.author || "SignalSloop"
+            "name": data.author || "SignalsLoop"
           },
           "publisher": {
             "@type": "Organization",
-            "name": "SignalSloop",
+            "name": "SignalsLoop",
             "logo": {
               "@type": "ImageObject",
               "url": "https://signalsloop.com/logo.png"

@@ -75,7 +75,7 @@ export default function DebugPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">SignalSloop Debug Page</h1>
+        <h1 className="text-2xl font-bold mb-4">SignalsLoop Debug Page</h1>
         
         <div className="bg-white p-4 rounded-lg shadow mb-6">
           <h2 className="text-lg font-semibold mb-2">Status:</h2>

@@ -1,7 +1,7 @@
-# SignalSloop Database Setup Guide
+# SignalsLoop Database Setup Guide
 
 ## 🚨 Current Issue
-The SignalSloop app is not functional because it requires a Supabase database with specific tables and configurations. This guide will help you set up the complete database schema.
+The SignalsLoop app is not functional because it requires a Supabase database with specific tables and configurations. This guide will help you set up the complete database schema.
 
 ## 📋 Prerequisites
 1. A Supabase account (free at [supabase.com](https://supabase.com))
@@ -423,4 +423,4 @@ INSERT INTO votes (post_id, ip_address)
 VALUES ((SELECT id FROM posts WHERE title = 'Test Post'), '127.0.0.1');
 ```
 
-Once you complete this setup, SignalSloop will be fully functional with working database operations!
+Once you complete this setup, SignalsLoop will be fully functional with working database operations!

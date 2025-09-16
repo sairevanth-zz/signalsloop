@@ -16,14 +16,14 @@ interface MetaHeadProps {
 }
 
 export function MetaHead({
-  title = 'SignalSloop - Simple Feedback Boards & Public Roadmaps',
+  title = 'SignalsLoop - Simple Feedback Boards & Public Roadmaps',
   description = 'Collect user feedback, let users vote on features, and show progress with public roadmaps. 2-line install widget for any website.',
   image = '/og-default.png',
   type = 'website',
   publishedTime,
   modifiedTime,
   author,
-  siteName = 'SignalSloop',
+  siteName = 'SignalsLoop',
   noIndex = false
 }: MetaHeadProps) {
   const pathname = usePathname();
@@ -79,7 +79,7 @@ export function MetaHead({
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            "name": "SignalSloop",
+            "name": "SignalsLoop",
             "description": "Simple feedback boards and public roadmaps for SaaS products",
             "url": baseUrl,
             "applicationCategory": "BusinessApplication",
@@ -105,9 +105,9 @@ export function MetaHead({
 // Hook for dynamic page titles
 export function usePageTitle(baseTitle: string, projectName?: string) {
   if (projectName) {
-    return `${baseTitle} - ${projectName} | SignalSloop`;
+    return `${baseTitle} - ${projectName} | SignalsLoop`;
   }
-  return `${baseTitle} | SignalSloop`;
+  return `${baseTitle} | SignalsLoop`;
 }
 
 // Utility to generate Open Graph image URL

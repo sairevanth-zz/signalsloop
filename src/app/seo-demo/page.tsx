@@ -33,11 +33,11 @@ export default function SEODemoPage() {
         type="article"
         publishedTime="2024-01-15T10:30:00Z"
         modifiedTime="2024-01-15T15:45:00Z"
-        author="SignalSloop Team"
+        author="SignalsLoop Team"
       />
 
       <StructuredData {...StructuredDataUtils.createSoftwareData(
-        'SignalSloop SEO Demo',
+        'SignalsLoop SEO Demo',
         'Comprehensive SEO components for better search engine optimization',
         'https://signalsloop.com/seo-demo'
       )} />

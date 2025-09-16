@@ -19,8 +19,8 @@ export async function POST(request: NextRequest) {
     
     // Create a test product and price
     const product = await stripe.products.create({
-      name: 'SignalSloop Pro (Test)',
-      description: 'Test subscription for SignalSloop Pro',
+      name: 'SignalsLoop Pro (Test)',
+      description: 'Test subscription for SignalsLoop Pro',
     });
 
     const price = await stripe.prices.create({

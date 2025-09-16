@@ -41,7 +41,7 @@ export async function GET(
 
     if (keyError || !apiKeyData) {
       return new NextResponse(
-        `console.error('SignalSloop: Invalid API key');`,
+        `console.error('SignalsLoop: Invalid API key');`,
         {
           status: 404,
           headers: {
@@ -82,7 +82,7 @@ export async function GET(
     console.error('Error generating widget script:', error);
     
     return new NextResponse(
-      `console.error('SignalSloop: Widget failed to load');`,
+      `console.error('SignalsLoop: Widget failed to load');`,
       {
         status: 500,
         headers: {
@@ -118,8 +118,8 @@ function generateWidgetScript(config: WidgetConfig): string {
   'use strict';
   
   // Prevent multiple widget loads
-  if (window.SignalSloopWidget) {
-    console.warn('SignalSloop widget already loaded');
+  if (window.SignalsLoopWidget) {
+    console.warn('SignalsLoop widget already loaded');
     return;
   }
 
@@ -340,7 +340,7 @@ function generateWidgetScript(config: WidgetConfig): string {
   // Simple event tracking
   function trackEvent(eventName) {
     try {
-      // Send to SignalSloop analytics
+      // Send to SignalsLoop analytics
       fetch('${process.env.NEXT_PUBLIC_SITE_URL || 'https://signalsloop.com'}/api/track', {
         method: 'POST',
         headers: {
@@ -374,14 +374,14 @@ function generateWidgetScript(config: WidgetConfig): string {
     trackEvent('widget_loaded');
 
     // Add to global scope for API access
-    window.SignalSloopWidget = {
+    window.SignalsLoopWidget = {
       open: openWidget,
       close: closeWidget,
       config: CONFIG,
       version: '1.0.0'
     };
 
-    console.log('SignalSloop widget loaded for', CONFIG.projectName);
+    console.log('SignalsLoop widget loaded for', CONFIG.projectName);
   }
 
   // Wait for DOM to be ready

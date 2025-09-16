@@ -111,7 +111,7 @@ export function StripeSettingsComponent({ projectId }: StripeSettingsComponentPr
       setProducts([
         {
           id: 'price_sample_pro',
-          name: 'SignalSloop Pro',
+          name: 'SignalsLoop Pro',
           price: 19,
           currency: 'usd',
           interval: 'month',
@@ -463,7 +463,7 @@ export function StripeSettingsComponent({ projectId }: StripeSettingsComponentPr
                   <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
                     <li>Go to Stripe Dashboard → Products</li>
                     <li>Click &quot;Add product&quot;</li>
-                    <li>Name: &quot;SignalSloop Pro&quot;, Price: $19/month</li>
+                    <li>Name: &quot;SignalsLoop Pro&quot;, Price: $19/month</li>
                     <li>Save and copy the Price ID (starts with price_)</li>
                   </ol>
                 </AlertDescription>

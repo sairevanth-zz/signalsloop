@@ -1,4 +1,4 @@
--- SignalSloop Database Setup Script
+-- SignalsLoop Database Setup Script
 -- Run this in your Supabase SQL Editor
 
 -- 1. Projects Table
@@ -339,4 +339,4 @@ CREATE TRIGGER trigger_update_comment_count
   FOR EACH ROW EXECUTE FUNCTION update_post_comment_count();
 
 -- Success message
-SELECT 'SignalSloop database setup completed successfully!' as message;
+SELECT 'SignalsLoop database setup completed successfully!' as message;

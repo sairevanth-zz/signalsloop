@@ -464,7 +464,7 @@ export function ApiKeySettings({ projectId, projectSlug }: ApiKeySettingsProps) 
                 <h4 className="font-medium mb-2">Pro Features:</h4>
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   <li>• Custom CSS styling</li>
-                  <li>• Remove &quot;Powered by SignalSloop&quot;</li>
+                  <li>• Remove &quot;Powered by SignalsLoop&quot;</li>
                   <li>• Custom domain embedding</li>
                   <li>• Advanced positioning options</li>
                 </ul>

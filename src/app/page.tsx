@@ -37,7 +37,7 @@ export default function Homepage() {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-sm">S</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">SignalSloop</span>
+              <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
             </div>
             
             <nav className="hidden md:flex items-center space-x-8">
@@ -278,7 +278,7 @@ export default function Homepage() {
                     "Manual categorization only",
                     "Basic organization",
                     "Community support",
-                    "SignalSloop branding"
+                    "SignalsLoop branding"
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
@@ -348,7 +348,7 @@ export default function Homepage() {
             Ready to start collecting smarter feedback?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Join 100+ companies using SignalSloop&apos;s AI-powered feedback boards to build better products
+            Join 100+ companies using SignalsLoop&apos;s AI-powered feedback boards to build better products
           </p>
           <Link href="/app/create">
             <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3">
@@ -368,7 +368,7 @@ export default function Homepage() {
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-sm">S</span>
                 </div>
-                <span className="text-xl font-bold">SignalSloop</span>
+                <span className="text-xl font-bold">SignalsLoop</span>
               </div>
               <p className="text-gray-400">
                 Simple feedback boards and public roadmaps for indie makers.
@@ -405,7 +405,7 @@ export default function Homepage() {
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 SignalSloop. All rights reserved.</p>
+            <p>&copy; 2024 SignalsLoop. All rights reserved.</p>
           </div>
         </div>
       </footer>
