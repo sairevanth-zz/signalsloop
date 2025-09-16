@@ -19,7 +19,7 @@ import {
   Copy
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface Project {
   id: string;

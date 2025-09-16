@@ -32,17 +32,8 @@ export async function GET(request: NextRequest) {
 
       if (data.session && data.user) {
         // Create response with redirect
-        const response = NextResponse.redirect(new URL(next, request.url));
-        
-        // Set the auth cookies in the response
-        const { name: accessTokenName, value: accessTokenValue, options: accessTokenOptions } = 
-          supabase.auth.getSession() as any;
-        
-        if (accessTokenName && accessTokenValue) {
-          response.cookies.set(accessTokenName, accessTokenValue, accessTokenOptions);
-        }
-
-        return response;
+        // Cookies are automatically set by Supabase SSR
+        return NextResponse.redirect(new URL(next, request.url));
       }
     } catch (error) {
       console.error('Auth callback exception:', error);
