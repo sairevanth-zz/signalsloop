@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AdminDashboard from '@/components/AdminDashboard';
+import { MobileLayout } from '@/components/ui/mobile-layout';
 
 export default function AdminTestPage() {
   const [projectSlug, setProjectSlug] = useState('');
@@ -20,36 +21,36 @@ export default function AdminTestPage() {
 
   if (showDashboard) {
     return (
-      <div>
-        <div className="p-4 bg-blue-50 border-b">
+      <MobileLayout title="Admin Dashboard" showNavigation={true}>
+        <div className="p-4 bg-blue-50 border-b rounded-lg mb-6">
           <button 
             onClick={() => setShowDashboard(false)}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 mb-2"
           >
             ← Back to Setup
           </button>
-          <span className="ml-4 text-blue-800">
+          <div className="text-blue-800 text-sm">
             Testing Admin Dashboard for project: <strong>{projectSlug}</strong>
-          </span>
+          </div>
         </div>
         <AdminDashboard 
           projectSlug={projectSlug} 
           onShowNotification={handleNotification}
         />
-      </div>
+      </MobileLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">
+    <MobileLayout title="Admin Test" showNavigation={true}>
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8">
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-6">
             🧪 Admin Dashboard Test
           </h1>
           
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            <h2 className="text-lg lg:text-xl font-semibold text-gray-800 mb-4">
               Test AI Analytics Features
             </h2>
             <p className="text-gray-600 mb-4">
@@ -57,7 +58,7 @@ export default function AdminTestPage() {
               The dashboard will show:
             </p>
             
-            <ul className="list-disc list-inside text-gray-600 mb-6 space-y-2">
+            <ul className="list-disc list-inside text-gray-600 mb-6 space-y-2 text-sm lg:text-base">
               <li><strong>AI Stats Cards:</strong> Total AI categorized posts, time saved, top category, success rate</li>
               <li><strong>Interactive Charts:</strong> Pie chart and bar chart showing category breakdown</li>
               <li><strong>Analytics Tracking:</strong> Console logs showing PostHog-ready events</li>
@@ -90,7 +91,7 @@ export default function AdminTestPage() {
             🚀 Launch Admin Dashboard
           </button>
 
-          <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="mt-6 lg:mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <h3 className="font-semibold text-yellow-800 mb-2">📋 Prerequisites:</h3>
             <ul className="text-sm text-yellow-700 space-y-1">
               <li>• Make sure you have a Supabase database set up</li>
@@ -100,7 +101,7 @@ export default function AdminTestPage() {
             </ul>
           </div>
 
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mt-4 lg:mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h3 className="font-semibold text-blue-800 mb-2">🎯 What to Test:</h3>
             <ul className="text-sm text-blue-700 space-y-1">
               <li>• AI Insights section with stats cards</li>
@@ -112,6 +113,6 @@ export default function AdminTestPage() {
           </div>
         </div>
       </div>
-    </div>
+    </MobileLayout>
   );
 }
