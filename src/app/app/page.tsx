@@ -82,9 +82,7 @@ export default function AppPage() {
           name,
           slug,
           plan,
-          created_at,
-          posts(count),
-          votes(count)
+          created_at
         `)
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false });
@@ -98,8 +96,8 @@ export default function AppPage() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const projectsWithCounts = data?.map((project: any) => ({
           ...project,
-          posts_count: project.posts?.[0]?.count || 0,
-          votes_count: project.votes?.[0]?.count || 0
+          posts_count: 0, // We'll add this back later if needed
+          votes_count: 0  // We'll add this back later if needed
         })) || [];
         
         console.log('Projects with counts:', projectsWithCounts);
