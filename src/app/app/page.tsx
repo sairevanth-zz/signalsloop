@@ -480,7 +480,8 @@ export default function AppPage() {
           </div>
         </div>
 
-        {/* AI Insights Section */}
+        {/* AI Insights Section - Temporarily disabled for debugging */}
+        {/* 
         {aiInsights && aiInsights.totalPosts > 0 && (
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-6">
@@ -494,73 +495,9 @@ export default function AppPage() {
                 <p className="text-gray-600">Smart analysis of your feedback patterns</p>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Category Breakdown */}
-              <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Brain className="w-5 h-5 text-purple-600" />
-                  Feedback Categories
-                </h3>
-                <div className="space-y-3">
-                  {aiInsights.topCategories.map((category) => {
-                    const count = aiInsights.categoryBreakdown[category];
-                    const percentage = Math.round((count / aiInsights.totalPosts) * 100);
-                    return (
-                      <div key={category} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Badge className={`${categoryColors[category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800 border-gray-200'} text-sm`}>
-                            {category}
-                          </Badge>
-                          <span className="text-sm text-gray-600">
-                            {categoryDescriptions[category as keyof typeof categoryDescriptions] || 'Feedback category'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-500"
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                          <span className="text-sm font-medium text-gray-700 w-12 text-right">
-                            {count} ({percentage}%)
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Recent Posts with AI Categories */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-blue-600" />
-                  Recent Feedback
-                </h3>
-                <div className="space-y-3">
-                  {aiInsights.recentPosts.map((post) => (
-                    <div key={post.id} className="p-3 bg-white/60 rounded-lg border border-white/20">
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
-                          {post.title}
-                        </h4>
-                        <Badge className={`${categoryColors[post.ai_category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800 border-gray-200'} text-xs ml-2 flex-shrink-0`}>
-                          {post.ai_category}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>{post.project_slug}</span>
-                        <span>{Math.round((post.ai_confidence || 0) * 100)}% confidence</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
         )}
+        */}
 
         {/* Create New Project */}
         <div className="mb-8">
