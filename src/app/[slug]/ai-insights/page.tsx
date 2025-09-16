@@ -32,7 +32,8 @@ interface Post {
   created_at: string;
   vote_count: number;
   comment_count: number;
-  ai_category?: string;
+  category?: string;
+  ai_categorized?: boolean;
   ai_confidence?: number;
   ai_reasoning?: string;
 }
@@ -141,7 +142,8 @@ export default function AIInsightsPage() {
           created_at,
           vote_count:votes(count),
           comment_count:comments(count),
-          ai_category,
+          category,
+          ai_categorized,
           ai_confidence,
           ai_reasoning
         `)
@@ -173,12 +175,12 @@ export default function AIInsightsPage() {
       // Process posts and categorize them if they don't have AI categories
       const postsWithCategories = await Promise.all(
         posts.map(async (post: Record<string, unknown>) => {
-          let aiCategory = post.ai_category;
+          let aiCategory = post.category;
           let aiConfidence = post.ai_confidence;
           let aiReasoning = post.ai_reasoning;
 
           // If post doesn't have AI categorization, categorize it now
-          if (!aiCategory) {
+          if (!aiCategory || !post.ai_categorized) {
             try {
               const response = await fetch('/api/ai/categorize', {
                 method: 'POST',
@@ -216,7 +218,8 @@ export default function AIInsightsPage() {
             created_at: post.created_at as string,
             vote_count: (post.vote_count as Array<{count: number}>)?.[0]?.count || 0,
             comment_count: (post.comment_count as Array<{count: number}>)?.[0]?.count || 0,
-            ai_category: aiCategory,
+            category: aiCategory,
+            ai_categorized: true,
             ai_confidence: aiConfidence,
             ai_reasoning: aiReasoning
           };
@@ -230,8 +233,8 @@ export default function AIInsightsPage() {
 
       postsWithCategories.forEach(post => {
         // Category breakdown
-        if (post.ai_category) {
-          categoryBreakdown[post.ai_category] = (categoryBreakdown[post.ai_category] || 0) + 1;
+        if (post.category) {
+          categoryBreakdown[post.category] = (categoryBreakdown[post.category] || 0) + 1;
         }
 
         // Status breakdown
@@ -544,8 +547,8 @@ export default function AIInsightsPage() {
                           {post.title}
                         </h4>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <Badge className={`${categoryColors[post.ai_category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800 border-gray-200'} text-xs`}>
-                            {post.ai_category}
+                          <Badge className={`${categoryColors[post.category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800 border-gray-200'} text-xs`}>
+                            {post.category}
                           </Badge>
                           <Badge variant="outline" className="text-xs">
                             {Math.round((post.ai_confidence || 0) * 100)}% confidence

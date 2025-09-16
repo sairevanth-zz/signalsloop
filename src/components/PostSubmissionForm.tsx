@@ -166,7 +166,8 @@ export default function PostSubmissionForm({
           description: formData.description.trim(),
           author_email: formData.email.trim() || session?.user?.email || null,
           status: 'open',
-          ai_category: aiCategory?.category || null,
+          category: aiCategory?.category || null,
+          ai_categorized: !!aiCategory,
           ai_confidence: aiCategory?.confidence || null,
           ai_reasoning: aiCategory?.reasoning || null
         })
