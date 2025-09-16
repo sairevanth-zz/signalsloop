@@ -57,8 +57,24 @@ export default function AuthDebugPage() {
     });
   }, []);
 
-  const testMagicLink = async () => {
-    addLog('📧 Testing magic link...');
+  const testAppAccess = async () => {
+    addLog('🔍 Testing app access...');
+    
+    try {
+      const response = await fetch('/app');
+      addLog(`📡 App response status: ${response.status}`);
+      addLog(`📡 App response URL: ${response.url}`);
+      
+      if (response.redirected) {
+        addLog(`🔄 Redirected to: ${response.url}`);
+      }
+    } catch (error) {
+      addLog(`❌ App access error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const signOut = async () => {
+    addLog('🚪 Signing out...');
     
     try {
       const { getSupabaseClient } = await import('@/lib/supabase-client');
@@ -69,26 +85,17 @@ export default function AuthDebugPage() {
         return;
       }
 
-      const testEmail = 'test@example.com';
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      
-      addLog(`📧 Email: ${testEmail}`);
-      addLog(`🔗 Redirect: ${redirectUrl}`);
-
-      const { error } = await supabase.auth.signInWithOtp({
-        email: testEmail,
-        options: {
-          emailRedirectTo: redirectUrl
-        }
-      });
-
+      const { error } = await supabase.auth.signOut();
       if (error) {
-        addLog(`❌ Magic link error: ${error.message}`);
+        addLog(`❌ Sign out error: ${error.message}`);
       } else {
-        addLog('✅ Magic link sent successfully');
+        addLog('✅ Signed out successfully');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1000);
       }
     } catch (error) {
-      addLog(`❌ Test error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      addLog(`❌ Sign out error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -100,12 +107,20 @@ export default function AuthDebugPage() {
         {/* Test Actions */}
         <div className="bg-white p-6 rounded-lg shadow mb-8">
           <h2 className="text-xl font-semibold mb-4">Test Actions</h2>
-          <button
-            onClick={testMagicLink}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Send Test Magic Link
-          </button>
+          <div className="space-x-4">
+            <button
+              onClick={testAppAccess}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Test App Access
+            </button>
+            <button
+              onClick={signOut}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
 
         {/* Debug Logs */}
