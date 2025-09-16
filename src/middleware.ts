@@ -53,8 +53,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Redirect authenticated users away from auth routes
-  if (isAuthRoute && user && request.nextUrl.pathname === '/login') {
+  // Redirect authenticated users away from login page only
+  if (user && request.nextUrl.pathname === '/login') {
     return NextResponse.redirect(new URL('/app', request.url))
   }
 
