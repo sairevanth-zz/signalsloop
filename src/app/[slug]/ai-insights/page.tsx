@@ -91,7 +91,7 @@ const statusConfig = {
 export default function AIInsightsPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useAuth(); // eslint-disable-line @typescript-eslint/no-unused-vars
   const supabase = getSupabaseClient();
   
   const [project, setProject] = useState<Project | null>(null);
@@ -172,7 +172,7 @@ export default function AIInsightsPage() {
 
       // Process posts and categorize them if they don't have AI categories
       const postsWithCategories = await Promise.all(
-        posts.map(async (post: any) => {
+        posts.map(async (post: Record<string, unknown>) => {
           let aiCategory = post.ai_category;
           let aiConfidence = post.ai_confidence;
           let aiReasoning = post.ai_reasoning;
@@ -208,14 +208,14 @@ export default function AIInsightsPage() {
           }
 
           return {
-            id: post.id,
-            title: post.title,
-            description: post.description,
-            author_email: post.author_email,
-            status: post.status,
-            created_at: post.created_at,
-            vote_count: post.vote_count?.[0]?.count || 0,
-            comment_count: post.comment_count?.[0]?.count || 0,
+            id: post.id as string,
+            title: post.title as string,
+            description: post.description as string,
+            author_email: post.author_email as string,
+            status: post.status as 'open' | 'planned' | 'in_progress' | 'done' | 'declined',
+            created_at: post.created_at as string,
+            vote_count: (post.vote_count as Array<{count: number}>)?.[0]?.count || 0,
+            comment_count: (post.comment_count as Array<{count: number}>)?.[0]?.count || 0,
             ai_category: aiCategory,
             ai_confidence: aiConfidence,
             ai_reasoning: aiReasoning

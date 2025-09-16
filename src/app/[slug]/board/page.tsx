@@ -19,7 +19,6 @@ import {
   Settings,
   Home,
   Map,
-  Sparkles,
   Brain
 } from 'lucide-react';
 import {
