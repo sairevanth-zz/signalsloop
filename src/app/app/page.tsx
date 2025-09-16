@@ -117,17 +117,52 @@ function AppDashboardContent() {
   }, [supabase, router]);
 
 
-  // Simple auth state check - the auth callback should handle session establishment
+  // Handle magic link authentication directly
   useEffect(() => {
-    if (supabase) {
-      // Wait a moment for any auth state to be established
-      const timer = setTimeout(() => {
-        loadUserAndProjects();
-      }, 500);
+    if (!supabase) return;
 
-      return () => clearTimeout(timer);
-    }
-  }, [supabase, loadUserAndProjects]);
+    const handleMagicLinkAuth = async () => {
+      // Check if we have an auth code in the URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const authCode = urlParams.get('code');
+      
+      if (authCode) {
+        console.log('🔑 Found auth code, exchanging for session...');
+        setStatus('Authenticating...');
+        
+        try {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+          
+          if (error) {
+            console.error('❌ Auth code exchange failed:', error);
+            toast.error('Authentication failed. Please try again.');
+            router.push('/login');
+            return;
+          }
+          
+          if (data.session && data.user) {
+            console.log('✅ Magic link auth successful:', data.user.email);
+            toast.success('Successfully logged in!');
+            // Clear the auth code from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            // Load user and projects
+            loadUserAndProjects();
+            return;
+          }
+        } catch (error) {
+          console.error('❌ Auth exception:', error);
+          toast.error('Authentication failed');
+          router.push('/login');
+          return;
+        }
+      }
+      
+      // No auth code, check for existing session
+      loadUserAndProjects();
+    };
+
+    handleMagicLinkAuth();
+  }, [supabase, loadUserAndProjects, router]);
 
   useEffect(() => {
     if (supabase) {

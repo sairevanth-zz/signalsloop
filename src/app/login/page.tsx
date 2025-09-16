@@ -36,9 +36,8 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      console.log('🔗 Sending magic link with redirect URL:', redirectUrl);
-      console.log('📧 Email:', email);
+      const redirectUrl = `${window.location.origin}/app`;
+      console.log('🔗 Sending magic link directly to app:', redirectUrl);
       
       const { error } = await supabase.auth.signInWithOtp({
         email,
