@@ -66,7 +66,7 @@ export function VoteButton({
         .from('votes')
         .select('id')
         .eq('post_id', postId)
-        .eq('voter_hash', hash)
+        .eq('ip_address', hash)
         .single();
 
       if (!error && data) {
@@ -110,7 +110,7 @@ export function VoteButton({
           .from('votes')
           .delete()
           .eq('post_id', postId)
-          .eq('voter_hash', voterHash);
+          .eq('ip_address', voterHash);
 
         if (error) {
           console.error('Error removing vote:', error);
@@ -132,7 +132,7 @@ export function VoteButton({
           .from('votes')
           .insert([{
             post_id: postId,
-            voter_hash: voterHash,
+            ip_address: voterHash,
             created_at: new Date().toISOString()
           }]);
 
@@ -347,7 +347,7 @@ export function useVoteRateLimit(voterHash: string) {
       const { data, error } = await supabase
         .from('votes')
         .select('created_at')
-        .eq('voter_hash', voterHash)
+        .eq('ip_address', voterHash)
         .gte('created_at', oneHourAgo.toISOString())
         .order('created_at', { ascending: false });
 

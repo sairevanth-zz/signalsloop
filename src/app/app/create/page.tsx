@@ -141,7 +141,12 @@ export default function ProjectWizard() {
       if (memberError) throw memberError;
 
       // Success! Redirect to the board
-      router.push(`/${projectData.slug}/board`);
+      // Use production URL if in production environment
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? (process.env.NEXT_PUBLIC_SITE_URL || 'https://signalsloop.vercel.app')
+        : window.location.origin;
+      
+      window.location.href = `${baseUrl}/${projectData.slug}/board`;
       
     } catch (err) {
       setError((err as Error).message || 'Failed to create project. Please try again.');
