@@ -36,14 +36,10 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const redirectUrl = 'https://signalsloop.vercel.app/auth/callback';
-      console.log('Sending magic link with redirect URL:', redirectUrl);
-      console.log('Current window location:', window.location.href);
-      
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: redirectUrl
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
 

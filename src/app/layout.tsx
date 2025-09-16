@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import RedirectInterceptor from "./redirect-interceptor";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,68 +25,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              console.log('🚨 EMERGENCY REDIRECT INTERCEPTOR LOADED');
-              
-              // Intercept ALL redirects to localhost immediately
-              const originalReplace = window.location.replace;
-              const originalAssign = window.location.assign;
-              
-              window.location.replace = function(url) {
-                if (typeof url === 'string' && (url.includes('localhost:3000') || url.includes('127.0.0.1:3000'))) {
-                  const productionUrl = url.replace(/localhost:3000|127\\.0\\.0\\.1:3000/g, 'signalsloop.vercel.app');
-                  console.log('🚨 EMERGENCY: Intercepted localhost redirect:', url);
-                  console.log('🚨 EMERGENCY: Redirecting to production:', productionUrl);
-                  return originalReplace.call(this, productionUrl);
-                }
-                return originalReplace.call(this, url);
-              };
-              
-              window.location.assign = function(url) {
-                if (typeof url === 'string' && (url.includes('localhost:3000') || url.includes('127.0.0.1:3000'))) {
-                  const productionUrl = url.replace(/localhost:3000|127\\.0\\.0\\.1:3000/g, 'signalsloop.vercel.app');
-                  console.log('🚨 EMERGENCY: Intercepted localhost assign:', url);
-                  console.log('🚨 EMERGENCY: Assigning to production:', productionUrl);
-                  return originalAssign.call(this, productionUrl);
-                }
-                return originalAssign.call(this, url);
-              };
-              
-              // Also intercept href assignments
-              const originalHrefDescriptor = Object.getOwnPropertyDescriptor(window.location, 'href') || 
-                                            Object.getOwnPropertyDescriptor(Location.prototype, 'href');
-              
-              if (originalHrefDescriptor) {
-                Object.defineProperty(window.location, 'href', {
-                  get: originalHrefDescriptor.get,
-                  set: function(url) {
-                    if (typeof url === 'string' && (url.includes('localhost:3000') || url.includes('127.0.0.1:3000'))) {
-                      const productionUrl = url.replace(/localhost:3000|127\\.0\\.0\\.1:3000/g, 'signalsloop.vercel.app');
-                      console.log('🚨 EMERGENCY: Intercepted localhost href assignment:', url);
-                      console.log('🚨 EMERGENCY: Setting href to production:', productionUrl);
-                      return originalHrefDescriptor.set?.call(this, productionUrl);
-                    }
-                    return originalHrefDescriptor.set?.call(this, url);
-                  },
-                  configurable: true
-                });
-              }
-              
-              console.log('🚨 EMERGENCY REDIRECT INTERCEPTOR ACTIVATED');
-              
-              window.addEventListener('load', function() {
-                console.log('Page fully loaded - redirect interceptor is active');
-              });
-            `,
-          }}
-        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <RedirectInterceptor />
         {children}
       </body>
     </html>
