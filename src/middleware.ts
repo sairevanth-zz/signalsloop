@@ -33,8 +33,17 @@ export async function middleware(request: NextRequest) {
 
   // Refresh session if expired - required for Server Components
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+  
+  const user = session?.user
+
+  // Debug logging for middleware
+  console.log('🔍 Middleware Debug:', {
+    pathname: request.nextUrl.pathname,
+    hasUser: !!user,
+    userEmail: user?.email
+  })
 
   // Protected routes that require authentication
   const protectedRoutes = ['/app', '/app/create', '/billing']
@@ -48,6 +57,7 @@ export async function middleware(request: NextRequest) {
 
   // Redirect unauthenticated users from protected routes
   if (isProtectedRoute && !user) {
+    console.log('❌ Redirecting to login - no user found')
     const redirectUrl = new URL('/login', request.url)
     redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
