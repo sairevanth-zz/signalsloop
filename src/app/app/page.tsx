@@ -99,8 +99,18 @@ function AppDashboardContent() {
 
   // Redirect to login if not authenticated
   useEffect(() => {
+    console.log('🔍 App page auth check:', {
+      authLoading,
+      hasUser: !!user,
+      userEmail: user?.email,
+      currentUrl: window.location.href
+    });
+
     if (!authLoading && !user) {
+      console.log('❌ No user found, redirecting to login');
       router.push('/login');
+    } else if (!authLoading && user) {
+      console.log('✅ User authenticated:', user.email);
     }
   }, [authLoading, user, router]);
 
