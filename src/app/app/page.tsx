@@ -646,17 +646,20 @@ export default function AppPage() {
                           <Map className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
                         </Button>
                       </Link>
-                      <Link href="/ai-test">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="bg-gradient-to-r from-purple-50 to-blue-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-blue-100 transition-all duration-200 hover:scale-105"
-                          title="AI Analysis"
-                          disabled={!project.posts_count || project.posts_count === 0}
-                        >
-                          <Sparkles className="w-4 h-4 text-purple-600 transition-transform duration-200 group-hover:scale-110" />
-                        </Button>
-                      </Link>
+                             {/* AI Analysis button temporarily disabled for debugging */}
+                             {false && (
+                               <Link href="/ai-test">
+                                 <Button
+                                   variant="outline"
+                                   size="sm"
+                                   className="bg-gradient-to-r from-purple-50 to-blue-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-blue-100 transition-all duration-200 hover:scale-105"
+                                   title="AI Analysis"
+                                   disabled={!project.posts_count || project.posts_count === 0}
+                                 >
+                                   <Sparkles className="w-4 h-4 text-purple-600 transition-transform duration-200 group-hover:scale-110" />
+                                 </Button>
+                               </Link>
+                             )}
                       <Link href={`/${project.slug}/settings`}>
                         <Button 
                           variant="outline" 
