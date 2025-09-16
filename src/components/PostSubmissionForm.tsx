@@ -156,28 +156,28 @@ export default function PostSubmissionForm({
       // Get current user session
       const { data: { session } } = await supabase.auth.getSession();
       
-      // Create the post with AI categorization data
-      const { error } = await supabase
-        .from('posts')
-        .insert({
+      // Create the post using the API route (includes automatic AI categorization)
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           project_id: projectId,
           board_id: boardId,
           title: formData.title.trim(),
           description: formData.description.trim(),
-          author_email: formData.email.trim() || session?.user?.email || null,
-          status: 'open',
-          category: aiCategory?.category || null,
-          ai_categorized: !!aiCategory,
-          ai_confidence: aiCategory?.confidence || null,
-          ai_reasoning: aiCategory?.reasoning || null
-        })
-        .select()
-        .single();
+          author_email: formData.email.trim() || session?.user?.email || null
+        }),
+      });
 
-      if (error) {
-        console.error('Error submitting post:', error);
-        throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit post');
       }
+
+      const result = await response.json();
+      console.log('Post created successfully:', result);
 
       // Show success state
       setIsSuccess(true);

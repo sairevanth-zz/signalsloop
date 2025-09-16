@@ -192,23 +192,28 @@ export default function WidgetFrame({ apiKey }: WidgetFrameProps) {
         throw new Error('Board not found');
       }
 
-      // Create post
-      const { data: newPost, error } = await supabase
-        .from('posts')
-        .insert([{
+      // Create post using the API route (includes automatic AI categorization)
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          project_id: project?.id,
           board_id: boardData.id,
           title: formData.title.trim(),
           description: formData.description.trim() || null,
-          author_email: formData.author_email.trim() || null,
-          status: 'open',
-          created_at: new Date().toISOString()
-        }])
-        .select()
-        .single();
+          author_email: formData.author_email.trim() || null
+        }),
+      });
 
-      if (error) {
-        throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit post');
       }
+
+      const result = await response.json();
+      const newPost = result.post;
 
       // Add to local state
       setPosts(prev => [{ 
