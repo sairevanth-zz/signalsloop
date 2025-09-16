@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { useAuth } from '@/hooks/useAuth';
+import { categorizeFeedback, categoryColors, categoryDescriptions } from '@/lib/ai-categorization';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,7 +19,10 @@ import {
   Map,
   TrendingUp,
   Crown,
-  BarChart3
+  BarChart3,
+  Sparkles,
+  Brain,
+  Zap
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -33,10 +37,38 @@ interface Project {
   votes_count?: number;
 }
 
+interface RecentPost {
+  id: string;
+  title: string;
+  content?: string;
+  project_slug: string;
+  ai_category?: string;
+  ai_confidence?: number;
+}
+
+interface AIInsights {
+  totalPosts: number;
+  totalVotes: number;
+  categoryBreakdown: Record<string, number>;
+  topCategories: string[];
+  recentPosts: RecentPost[];
+}
+
+interface PostWithProject {
+  id: string;
+  title: string;
+  content?: string;
+  project_id: string;
+  projects: {
+    slug: string;
+  };
+}
+
 export default function AppPage() {
   const { user, loading } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
+  const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
   const supabase = getSupabaseClient();
   const router = useRouter();
 
@@ -69,6 +101,93 @@ export default function AppPage() {
       }
     }
   }, [user, supabase]);
+
+  const loadAIInsights = async (projectIds: string[]) => {
+    if (projectIds.length === 0) return;
+    
+    // setAiLoading(true);
+    try {
+      // Get recent posts from all projects
+      const { data: posts, error: postsError } = await supabase
+        .from('posts')
+        .select(`
+          id,
+          title,
+          content,
+          project_id,
+          projects!inner(slug)
+        `)
+        .in('project_id', projectIds)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (postsError) {
+        console.error('Error fetching posts for AI insights:', postsError);
+        return;
+      }
+
+      if (!posts || posts.length === 0) return;
+
+      // Categorize posts with AI
+      const postsWithCategories = await Promise.all(
+        posts.map(async (post: PostWithProject) => {
+          try {
+            const result = await categorizeFeedback(post.title, post.content);
+            return {
+              ...post,
+              ai_category: result.category,
+              ai_confidence: result.confidence,
+              project_slug: post.projects.slug
+            };
+          } catch (error) {
+            console.error('AI categorization error:', error);
+            return {
+              ...post,
+              ai_category: 'Other',
+              ai_confidence: 0,
+              project_slug: post.projects.slug
+            };
+          }
+        })
+      );
+
+      // Calculate category breakdown
+      const categoryBreakdown: Record<string, number> = {};
+      postsWithCategories.forEach(post => {
+        if (post.ai_category) {
+          categoryBreakdown[post.ai_category] = (categoryBreakdown[post.ai_category] || 0) + 1;
+        }
+      });
+
+      // Get top categories
+      const topCategories = Object.entries(categoryBreakdown)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 3)
+        .map(([category]) => category);
+
+      // Get total votes for these posts
+      const postIds = posts.map((p: PostWithProject) => p.id);
+      const { data: votes } = await supabase
+        .from('votes')
+        .select('post_id')
+        .in('post_id', postIds);
+
+      const totalVotes = votes?.length || 0;
+
+      setAiInsights({
+        totalPosts: posts.length,
+        totalVotes,
+        categoryBreakdown,
+        topCategories,
+        recentPosts: postsWithCategories.slice(0, 5) as RecentPost[]
+      });
+
+    } catch (error) {
+      console.error('Error loading AI insights:', error);
+    } finally {
+      // setAiLoading(false);
+    }
+  };
 
   const loadProjects = async () => {
     if (!supabase || !user) return;
@@ -148,6 +267,15 @@ export default function AppPage() {
       
       console.log('Projects with counts:', projectsWithCounts);
       setProjects(projectsWithCounts);
+      
+      // Load AI insights for projects with posts
+      const projectsWithPosts = projectsWithCounts
+        .filter((p: Project) => (p.posts_count || 0) > 0)
+        .map((p: Project) => p.id);
+      
+      if (projectsWithPosts.length > 0) {
+        await loadAIInsights(projectsWithPosts);
+      }
 
     } catch (error) {
       console.error('Error loading projects:', error);
@@ -311,6 +439,88 @@ export default function AppPage() {
           </div>
         </div>
 
+        {/* AI Insights Section */}
+        {aiInsights && aiInsights.totalPosts > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  AI Insights
+                </h2>
+                <p className="text-gray-600">Smart analysis of your feedback patterns</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Category Breakdown */}
+              <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-purple-600" />
+                  Feedback Categories
+                </h3>
+                <div className="space-y-3">
+                  {aiInsights.topCategories.map((category) => {
+                    const count = aiInsights.categoryBreakdown[category];
+                    const percentage = Math.round((count / aiInsights.totalPosts) * 100);
+                    return (
+                      <div key={category} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Badge className={`${categoryColors[category as keyof typeof categoryColors]} text-sm`}>
+                            {category}
+                          </Badge>
+                          <span className="text-sm text-gray-600">
+                            {categoryDescriptions[category as keyof typeof categoryDescriptions]}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-500"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-medium text-gray-700 w-12 text-right">
+                            {count} ({percentage}%)
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Recent Posts with AI Categories */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-blue-600" />
+                  Recent Feedback
+                </h3>
+                <div className="space-y-3">
+                  {aiInsights.recentPosts.map((post) => (
+                    <div key={post.id} className="p-3 bg-white/60 rounded-lg border border-white/20">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
+                          {post.title}
+                        </h4>
+                        <Badge className={`${categoryColors[post.ai_category as keyof typeof categoryColors]} text-xs ml-2 flex-shrink-0`}>
+                          {post.ai_category}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>{post.project_slug}</span>
+                        <span>{Math.round((post.ai_confidence || 0) * 100)}% confidence</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Create New Project */}
         <div className="mb-8">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
@@ -456,6 +666,17 @@ export default function AppPage() {
                           title="View Roadmap"
                         >
                           <Map className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                        </Button>
+                      </Link>
+                      <Link href="/ai-test">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="bg-gradient-to-r from-purple-50 to-blue-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-blue-100 transition-all duration-200 hover:scale-105"
+                          title="AI Analysis"
+                          disabled={!project.posts_count || project.posts_count === 0}
+                        >
+                          <Sparkles className="w-4 h-4 text-purple-600 transition-transform duration-200 group-hover:scale-110" />
                         </Button>
                       </Link>
                       <Link href={`/${project.slug}/settings`}>
