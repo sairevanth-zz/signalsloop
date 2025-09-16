@@ -21,7 +21,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -36,7 +35,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { 
   Settings, 
-  Filter, 
   Search, 
   ThumbsUp, 
   MessageSquare, 
@@ -44,16 +42,15 @@ import {
   User,
   Edit,
   Trash2,
-  Tag,
-  Copy,
   CheckCircle,
-  AlertCircle,
   Clock,
   TrendingUp,
-  Users,
   BarChart3,
-  Loader2
+  Brain,
+  Zap,
+  Target
 } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface AdminPost {
   id: string;
@@ -86,10 +83,15 @@ interface AdminDashboardProps {
 }
 
 // Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
+const getSupabaseClient = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  );
+};
 
 const statusConfig = {
   open: { 
@@ -119,6 +121,32 @@ const statusConfig = {
   }
 };
 
+// Category colors for charts
+const categoryColors: Record<string, string> = {
+  'Bug': '#ef4444',
+  'Feature Request': '#3b82f6',
+  'Improvement': '#f59e0b',
+  'UI/UX': '#8b5cf6',
+  'Integration': '#6366f1',
+  'Performance': '#10b981',
+  'Documentation': '#f97316',
+  'Other': '#6b7280'
+};
+
+const getCategoryColor = (category: string): string => {
+  return categoryColors[category] || '#6b7280';
+};
+
+// Analytics tracking function (placeholder for PostHog)
+const trackEvent = (eventName: string, properties?: Record<string, unknown>) => {
+  // TODO: Replace with PostHog tracking
+  console.log('Analytics Event:', eventName, properties);
+  
+  // For now, just log to console
+  // In production, this would send to PostHog:
+  // posthog.capture(eventName, properties);
+};
+
 export default function AdminDashboard({ projectSlug, onShowNotification }: AdminDashboardProps) {
   const [project, setProject] = useState<Project | null>(null);
   const [posts, setPosts] = useState<AdminPost[]>([]);
@@ -137,9 +165,20 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
     totalVotes: 0
   });
 
+  // AI Analytics
+  const [aiStats, setAiStats] = useState({
+    totalAiCategorized: 0,
+    categoryBreakdown: {} as Record<string, number>,
+    timeSavedMinutes: 0,
+    mostCommonCategory: '',
+    aiSuccessRate: 0
+  });
+
   // Moderation state
   const [editingPost, setEditingPost] = useState<AdminPost | null>(null);
   const [bulkAction, setBulkAction] = useState<string>('');
+  
+  const supabase = getSupabaseClient();
 
   useEffect(() => {
     loadDashboardData();
@@ -150,6 +189,12 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
   }, [posts, searchTerm, statusFilter, sortBy]);
 
   const loadDashboardData = async () => {
+    if (!supabase) {
+      console.error('Supabase client not available');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -198,6 +243,10 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
         tags: [], // TODO: Add tags functionality
         duplicate_of: post.duplicate_of,
         board_id: post.board_id,
+        category: post.category,
+        ai_categorized: post.ai_categorized,
+        ai_confidence: post.ai_confidence,
+        ai_reasoning: post.ai_reasoning,
         board_name: post.boards?.name || 'Unknown'
       })) || [];
 
@@ -216,9 +265,65 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
         totalVotes
       });
 
+      // Calculate AI analytics
+      const aiCategorizedPosts = processedPosts.filter(p => p.ai_categorized);
+      const totalAiCategorized = aiCategorizedPosts.length;
+      
+      // Category breakdown
+      const categoryBreakdown: Record<string, number> = {};
+      aiCategorizedPosts.forEach(post => {
+        if (post.category) {
+          categoryBreakdown[post.category] = (categoryBreakdown[post.category] || 0) + 1;
+        }
+      });
+
+      // Most common category
+      const mostCommonCategory = Object.entries(categoryBreakdown)
+        .sort(([,a], [,b]) => b - a)[0]?.[0] || 'None';
+
+      // Time saved (2 minutes per categorized post)
+      const timeSavedMinutes = totalAiCategorized * 2;
+
+      // AI success rate (posts with AI categorization vs total posts)
+      const aiSuccessRate = totalPosts > 0 ? (totalAiCategorized / totalPosts) * 100 : 0;
+
+      setAiStats({
+        totalAiCategorized,
+        categoryBreakdown,
+        timeSavedMinutes,
+        mostCommonCategory,
+        aiSuccessRate
+      });
+
+      // Track AI analytics events
+      if (totalAiCategorized > 0) {
+        trackEvent('ai_categorization_success', {
+          total_categorized: totalAiCategorized,
+          success_rate: aiSuccessRate,
+          time_saved_minutes: timeSavedMinutes,
+          most_common_category: mostCommonCategory,
+          category_breakdown: categoryBreakdown
+        });
+      }
+
+      // Track category filter usage if any filters are applied
+      if (statusFilter !== 'all' || searchTerm) {
+        trackEvent('category_filter_used', {
+          status_filter: statusFilter,
+          has_search: !!searchTerm,
+          search_length: searchTerm.length
+        });
+      }
+
     } catch (error) {
       console.error('Error loading dashboard:', error);
       onShowNotification?.('Something went wrong', 'error');
+      
+      // Track AI categorization failure
+      trackEvent('ai_categorization_failed', {
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+        project_slug: projectSlug
+      });
     } finally {
       setLoading(false);
     }
@@ -260,6 +365,11 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
   };
 
   const handleStatusChange = async (postId: string, newStatus: string) => {
+    if (!supabase) {
+      console.error('Supabase client not available');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('posts')
@@ -288,6 +398,11 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
   };
 
   const handleBulkStatusChange = async () => {
+    if (!supabase) {
+      console.error('Supabase client not available');
+      return;
+    }
+
     if (!bulkAction || selectedPosts.length === 0) return;
 
     try {
@@ -321,6 +436,11 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
   };
 
   const handleDeletePost = async (postId: string) => {
+    if (!supabase) {
+      console.error('Supabase client not available');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('posts')
@@ -464,6 +584,153 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* AI Insights Section */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <Brain className="w-6 h-6 text-purple-600" />
+            <h2 className="text-2xl font-bold text-gray-900">AI Insights</h2>
+            <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+              🤖 Powered by AI
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* AI Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <Brain className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">AI Categorized</p>
+                      <p className="text-2xl font-bold text-gray-900">{aiStats.totalAiCategorized}</p>
+                      <p className="text-xs text-gray-500">posts this month</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Time Saved</p>
+                      <p className="text-2xl font-bold text-gray-900">{aiStats.timeSavedMinutes}</p>
+                      <p className="text-xs text-gray-500">minutes</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Target className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Top Category</p>
+                      <p className="text-lg font-bold text-gray-900">{aiStats.mostCommonCategory}</p>
+                      <p className="text-xs text-gray-500">
+                        {aiStats.categoryBreakdown[aiStats.mostCommonCategory] || 0} posts
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <BarChart3 className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">AI Success Rate</p>
+                      <p className="text-2xl font-bold text-gray-900">{aiStats.aiSuccessRate.toFixed(1)}%</p>
+                      <p className="text-xs text-gray-500">of all posts</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Category Breakdown Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Category Breakdown
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {Object.keys(aiStats.categoryBreakdown).length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={Object.entries(aiStats.categoryBreakdown).map(([category, count]) => ({
+                          name: category,
+                          value: count,
+                          fill: getCategoryColor(category)
+                        }))}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        dataKey="value"
+                        label={(entry) => `${entry.name} (${((Number(entry.percent) || 0) * 100).toFixed(0)}%)`}
+                      >
+                        {Object.entries(aiStats.categoryBreakdown).map(([category], index) => (
+                          <Cell key={`cell-${index}`} fill={getCategoryColor(category)} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-gray-500">
+                    <div className="text-center">
+                      <Brain className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                      <p>No AI categorization data yet</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Category Distribution Bar Chart */}
+          {Object.keys(aiStats.categoryBreakdown).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Posts by Category
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={Object.entries(aiStats.categoryBreakdown).map(([category, count]) => ({
+                    category,
+                    posts: count,
+                    fill: getCategoryColor(category)
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="category" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="posts" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Filters and Bulk Actions */}

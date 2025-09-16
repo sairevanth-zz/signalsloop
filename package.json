@@ -29,6 +29,7 @@
     "openai": "^5.20.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "recharts": "^3.2.1",
     "resend": "^6.0.3",
     "sonner": "^2.0.7",
     "stripe": "^18.5.0",

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -64,9 +64,21 @@ const statusConfig = {
   declined: { label: 'Declined', color: 'bg-red-100 text-red-800 border-red-200' }
 };
 
+const categoryConfig = {
+  'Bug': { icon: '🐛', color: 'bg-red-100 text-red-800 border-red-200' },
+  'Feature Request': { icon: '✨', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+  'Improvement': { icon: '⚡', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+  'UI/UX': { icon: '🎨', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+  'Integration': { icon: '🔗', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
+  'Performance': { icon: '🚀', color: 'bg-green-100 text-green-800 border-green-200' },
+  'Documentation': { icon: '📚', color: 'bg-orange-100 text-orange-800 border-orange-200' },
+  'Other': { icon: '📝', color: 'bg-gray-100 text-gray-800 border-gray-200' }
+};
+
 export default function BoardPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, signOut } = useAuth();
   const supabase = getSupabaseClient();
   
@@ -76,9 +88,61 @@ export default function BoardPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('votes');
   const [showPostForm, setShowPostForm] = useState(false);
   const [boardId, setBoardId] = useState<string | null>(null);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+
+  // Initialize filters from URL parameters
+  useEffect(() => {
+    const status = searchParams.get('status') || 'all';
+    const category = searchParams.get('category') || 'all';
+    const sort = searchParams.get('sort') || 'votes';
+    const search = searchParams.get('search') || '';
+
+    setStatusFilter(status);
+    setCategoryFilter(category);
+    setSortBy(sort);
+    setSearchTerm(search);
+  }, [searchParams]);
+
+  // Update URL when filters change
+  const updateURL = useCallback((updates: Record<string, string>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === 'all' || value === 'votes' || value === '') {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+
+    const newURL = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+    window.history.replaceState({}, '', newURL);
+  }, [searchParams]);
+
+  // Filter change handlers
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    updateURL({ status: value });
+  };
+
+  const handleCategoryFilterChange = (value: string) => {
+    setCategoryFilter(value);
+    updateURL({ category: value });
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+    updateURL({ sort: value });
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    updateURL({ search: value });
+  };
 
   const handleSignOut = async () => {
     try {
@@ -144,6 +208,11 @@ export default function BoardPage() {
         postsQuery = postsQuery.eq('status', statusFilter);
       }
 
+      // Apply category filter
+      if (categoryFilter !== 'all') {
+        postsQuery = postsQuery.eq('category', categoryFilter);
+      }
+
       // Apply sorting
       if (sortBy === 'votes') {
         postsQuery = postsQuery.order('vote_count', { ascending: false });
@@ -180,13 +249,32 @@ export default function BoardPage() {
 
       setPosts(processedPosts);
 
+      // Calculate category counts for all posts (not filtered)
+      const allPostsQuery = supabase
+        .from('posts')
+        .select('category')
+        .eq('board_id', boardData.id)
+        .is('duplicate_of', null);
+
+      const { data: allPostsData } = await allPostsQuery;
+      
+      const counts: Record<string, number> = {};
+      allPostsData?.forEach((post: Record<string, unknown>) => {
+        const category = post.category as string;
+        if (category) {
+          counts[category] = (counts[category] || 0) + 1;
+        }
+      });
+      
+      setCategoryCounts(counts);
+
     } catch (error) {
       console.error('Error:', error);
       toast.error('Something went wrong');
     } finally {
       setLoading(false);
     }
-  }, [params.slug, statusFilter, sortBy, supabase, router]);
+  }, [params.slug, statusFilter, categoryFilter, sortBy, supabase, router]);
 
   // Load project and posts
   useEffect(() => {
@@ -309,20 +397,45 @@ export default function BoardPage() {
 
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Search feedback..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10"
               />
             </div>
 
+            {/* Category Filter */}
+            <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  <div className="flex items-center gap-2">
+                    <span>📋</span>
+                    <span>All Categories</span>
+                    <span className="text-gray-500 text-sm">({Object.values(categoryCounts).reduce((a, b) => a + b, 0)})</span>
+                  </div>
+                </SelectItem>
+                {Object.entries(categoryConfig).map(([category, config]) => (
+                  <SelectItem key={category} value={category}>
+                    <div className="flex items-center gap-2">
+                      <span>{config.icon}</span>
+                      <span>{category}</span>
+                      <span className="text-gray-500 text-sm">({categoryCounts[category] || 0})</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -337,7 +450,7 @@ export default function BoardPage() {
             </Select>
 
             {/* Sort */}
-            <Select value={sortBy} onValueChange={setSortBy}>
+            <Select value={sortBy} onValueChange={handleSortChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>

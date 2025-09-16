@@ -73,18 +73,18 @@ export default function Homepage() {
       <section className="py-20 px-4">
         <div className="container mx-auto text-center">
           <Badge variant="secondary" className="mb-4">
-            🚀 The simple alternative to expensive feedback tools
+            🤖 AI-powered alternative to expensive feedback tools
           </Badge>
           
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Simple Feedback Boards &<br />
+            AI-Powered Feedback Boards &<br />
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Public Roadmaps
+              Smart Roadmaps
             </span>
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Collect user feedback and show progress with a 2-line embeddable widget. 
+            Collect user feedback with AI-powered categorization and show progress with a 2-line embeddable widget. 
             <strong> 75% cheaper than Canny</strong>, infinitely easier to set up.
           </p>
           
@@ -120,6 +120,43 @@ export default function Homepage() {
                 <p className="text-gray-500">Product Screenshot Goes Here</p>
                 <p className="text-sm text-gray-400">Feedback board, voting, roadmap preview</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Features Highlight Section */}
+      <section className="py-16 px-4 bg-gradient-to-r from-purple-50 to-blue-50">
+        <div className="container mx-auto">
+          <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4 bg-purple-100 text-purple-700 border-purple-200">
+              🤖 Powered by AI
+            </Badge>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Smart feedback organization that actually works
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Stop manually tagging and organizing feedback. Our AI automatically categorizes every post so you can focus on what matters.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="text-center bg-white rounded-lg p-6 shadow-sm border border-purple-100">
+              <div className="text-4xl mb-4">🤖</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">AI Smart Categorization</h3>
+              <p className="text-gray-600">Automatically organizes every post into relevant categories like Bug, Feature Request, UI/UX, and more.</p>
+            </div>
+            
+            <div className="text-center bg-white rounded-lg p-6 shadow-sm border border-blue-100">
+              <div className="text-4xl mb-4">⚡</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Instant Organization</h3>
+              <p className="text-gray-600">No more manual tagging or endless sorting. Every piece of feedback is instantly categorized and ready to review.</p>
+            </div>
+            
+            <div className="text-center bg-white rounded-lg p-6 shadow-sm border border-green-100">
+              <div className="text-4xl mb-4">🎯</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Smart Filtering</h3>
+              <p className="text-gray-600">Find what matters fast with AI-powered category filters and intelligent search across all your feedback.</p>
             </div>
           </div>
         </div>
@@ -218,10 +255,10 @@ export default function Homepage() {
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Simple, honest pricing
+              AI-powered pricing that scales with you
             </h2>
             <p className="text-xl text-gray-600">
-              Start free, upgrade when you need more. No hidden fees.
+              Start free with manual organization, upgrade to unlock AI-powered categorization and smart features. No hidden fees.
             </p>
           </div>
           
@@ -238,6 +275,8 @@ export default function Homepage() {
                     "1 feedback board",
                     "50 posts maximum", 
                     "Public boards only",
+                    "Manual categorization only",
+                    "Basic organization",
                     "Community support",
                     "SignalLoop branding"
                   ].map((feature) => (
@@ -259,6 +298,9 @@ export default function Homepage() {
               <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600">
                 Most Popular
               </Badge>
+              <Badge className="absolute -top-3 right-4 bg-purple-600">
+                🤖 Powered by AI
+              </Badge>
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Pro</CardTitle>
                 <div className="text-4xl font-bold text-gray-900 my-4">
@@ -272,6 +314,10 @@ export default function Homepage() {
                     "Unlimited boards",
                     "Unlimited posts", 
                     "Private boards",
+                    "🤖 AI Smart Categorization",
+                    "🔍 AI Duplicate Detection (coming soon)",
+                    "🎯 AI Priority Scoring (coming soon)",
+                    "Smart filtering & search",
                     "Custom domain",
                     "Remove branding",
                     "Priority email support",
@@ -299,10 +345,10 @@ export default function Homepage() {
       <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="container mx-auto text-center">
           <h2 className="text-4xl font-bold mb-4">
-            Ready to start collecting better feedback?
+            Ready to start collecting smarter feedback?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Join 100+ companies using SignalLoop to build better products
+            Join 100+ companies using SignalLoop&apos;s AI-powered feedback boards to build better products
           </p>
           <Link href="/app/create">
             <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3">
