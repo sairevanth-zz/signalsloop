@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +31,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import VoteButton from '@/components/VoteButton'; // Import our voting component
+import { toast } from 'sonner';
 
 interface RoadmapPost {
   id: string;
@@ -52,18 +54,7 @@ interface Project {
   description?: string;
 }
 
-interface PublicRoadmapProps {
-  projectSlug: string;
-  onNavigateToPost?: (postId: string) => void;
-  onNavigateToBoard?: () => void;
-  onShowNotification?: (message: string, type: 'success' | 'error' | 'info') => void;
-}
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
+// Page component (client-side) using route params and router navigation
 
 const statusColumns = {
   open: {
@@ -100,12 +91,11 @@ const statusColumns = {
   }
 };
 
-export default function PublicRoadmap({ 
-  projectSlug, 
-  onNavigateToPost, 
-  onNavigateToBoard,
-  onShowNotification 
-}: PublicRoadmapProps) {
+export default function PublicRoadmapPage() {
+  const params = useParams();
+  const router = useRouter();
+  const supabase = getSupabaseClient();
+  const projectSlug = String(params?.slug || '');
   const [project, setProject] = useState<Project | null>(null);
   const [posts, setPosts] = useState<Record<string, RoadmapPost[]>>({
     open: [],
@@ -129,11 +119,19 @@ export default function PublicRoadmap({
 
   useEffect(() => {
     loadRoadmapData();
-  }, [projectSlug]);
+  }, [projectSlug, supabase]);
 
-  const loadRoadmapData = async () => {
+  const loadRoadmapData = useCallback(async () => {
     try {
       setLoading(true);
+      if (!supabase) {
+        toast.error('Database connection not available. Please refresh the page.');
+        return;
+      }
+      if (!projectSlug) {
+        toast.error('Missing project identifier');
+        return;
+      }
 
       // Get project
       const { data: projectData, error: projectError } = await supabase
@@ -143,7 +141,7 @@ export default function PublicRoadmap({
         .single();
 
       if (projectError || !projectData) {
-        onShowNotification?.('Project not found', 'error');
+        toast.error('Project not found');
         return;
       }
 
@@ -157,7 +155,7 @@ export default function PublicRoadmap({
         .single();
 
       if (boardError || !boardData) {
-        onShowNotification?.('Board not found', 'error');
+        toast.error('Board not found');
         return;
       }
 
@@ -202,7 +200,7 @@ export default function PublicRoadmap({
           continue;
         }
 
-        postsByStatus[status] = statusPosts?.map(post => ({
+        postsByStatus[status] = statusPosts?.map((post: any) => ({
           id: post.id,
           title: post.title,
           description: post.description,
@@ -242,11 +240,11 @@ export default function PublicRoadmap({
 
     } catch (error) {
       console.error('Error loading roadmap:', error);
-      onShowNotification?.('Something went wrong', 'error');
+      toast.error('Something went wrong loading the roadmap');
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectSlug, supabase]);
 
   const filteredPosts = (statusPosts: RoadmapPost[]) => {
     return statusPosts.filter(post => {
@@ -289,10 +287,10 @@ export default function PublicRoadmap({
   };
 
   const handleVoteChange = (postId: string, newCount: number, userVoted: boolean) => {
-    setPosts(prev => {
-      const updated = { ...prev };
-      Object.keys(updated).forEach(status => {
-        updated[status] = updated[status].map(post =>
+    setPosts((prev: Record<string, RoadmapPost[]>) => {
+      const updated: Record<string, RoadmapPost[]> = { ...prev };
+      Object.keys(updated).forEach((statusKey: string) => {
+        updated[statusKey] = updated[statusKey].map((post: RoadmapPost) =>
           post.id === postId ? { ...post, vote_count: newCount } : post
         );
       });
@@ -330,7 +328,7 @@ export default function PublicRoadmap({
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                <button onClick={onNavigateToBoard} className="hover:text-gray-900">
+                <button onClick={() => router.push(`/${projectSlug}/board`)} className="hover:text-gray-900">
                   {project?.name}
                 </button>
                 <span>→</span>
@@ -345,11 +343,11 @@ export default function PublicRoadmap({
             </div>
             
             <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={onNavigateToBoard}>
+              <Button variant="outline" onClick={() => router.push(`/${projectSlug}/board`)}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Board
               </Button>
-              <Button onClick={onNavigateToBoard} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={() => router.push(`/${projectSlug}/board`)} className="bg-blue-600 hover:bg-blue-700">
                 Submit Feedback
               </Button>
             </div>
@@ -387,7 +385,7 @@ export default function PublicRoadmap({
                 <Input
                   placeholder="Search roadmap..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -457,7 +455,7 @@ export default function PublicRoadmap({
                       <Card 
                         key={post.id} 
                         className="hover:shadow-md transition-shadow cursor-pointer bg-white"
-                        onClick={() => onNavigateToPost?.(post.id)}
+                        onClick={() => router.push(`/${projectSlug}/post/${post.id}`)}
                       >
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">
@@ -466,7 +464,11 @@ export default function PublicRoadmap({
                               postId={post.id}
                               initialVoteCount={post.vote_count}
                               onVoteChange={(count, voted) => handleVoteChange(post.id, count, voted)}
-                              onShowNotification={onShowNotification}
+                              onShowNotification={(message, type) => {
+                                if (type === 'success') toast.success(message);
+                                else if (type === 'error') toast.error(message);
+                                else toast.info(message);
+                              }}
                               size="sm"
                               variant="compact"
                             />
@@ -526,7 +528,7 @@ export default function PublicRoadmap({
                       variant="outline" 
                       size="sm" 
                       className="w-full mt-3"
-                      onClick={onNavigateToBoard}
+                      onClick={() => router.push(`/${projectSlug}/board`)}
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
                       View All Ideas
