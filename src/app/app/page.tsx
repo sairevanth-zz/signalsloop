@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { useAuth } from '@/hooks/useAuth';
-import { categorizeFeedback, categoryColors, categoryDescriptions } from '@/lib/ai-categorization';
+import { categoryColors, categoryDescriptions } from '@/lib/ai-categorization';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -105,7 +105,6 @@ export default function AppPage() {
   const loadAIInsights = async (projectIds: string[]) => {
     if (projectIds.length === 0) return;
     
-    // setAiLoading(true);
     try {
       // Get recent posts from all projects
       const { data: posts, error: postsError } = await supabase
@@ -128,17 +127,37 @@ export default function AppPage() {
 
       if (!posts || posts.length === 0) return;
 
-      // Categorize posts with AI
+      // Call AI categorization API instead of direct function call
       const postsWithCategories = await Promise.all(
         posts.map(async (post: PostWithProject) => {
           try {
-            const result = await categorizeFeedback(post.title, post.content);
-            return {
-              ...post,
-              ai_category: result.category,
-              ai_confidence: result.confidence,
-              project_slug: post.projects.slug
-            };
+            const response = await fetch('/api/ai/categorize', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                title: post.title,
+                description: post.content
+              }),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              return {
+                ...post,
+                ai_category: data.result?.category || 'Other',
+                ai_confidence: data.result?.confidence || 0,
+                project_slug: post.projects.slug
+              };
+            } else {
+              return {
+                ...post,
+                ai_category: 'Other',
+                ai_confidence: 0,
+                project_slug: post.projects.slug
+              };
+            }
           } catch (error) {
             console.error('AI categorization error:', error);
             return {
@@ -184,8 +203,6 @@ export default function AppPage() {
 
     } catch (error) {
       console.error('Error loading AI insights:', error);
-    } finally {
-      // setAiLoading(false);
     }
   };
 
@@ -268,13 +285,16 @@ export default function AppPage() {
       console.log('Projects with counts:', projectsWithCounts);
       setProjects(projectsWithCounts);
       
-      // Load AI insights for projects with posts
+      // Load AI insights for projects with posts (optional, non-blocking)
       const projectsWithPosts = projectsWithCounts
         .filter((p: Project) => (p.posts_count || 0) > 0)
         .map((p: Project) => p.id);
       
       if (projectsWithPosts.length > 0) {
-        await loadAIInsights(projectsWithPosts);
+        // Load AI insights asynchronously without blocking the main flow
+        loadAIInsights(projectsWithPosts).catch(error => {
+          console.error('AI insights failed to load:', error);
+        });
       }
 
     } catch (error) {
