@@ -51,6 +51,23 @@ export default function AppPage() {
     }
   }, [user, loading, router, supabase]);
 
+  // Check for refresh parameter and reload projects
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('refresh')) {
+        // Remove the refresh parameter from URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+        
+        // Reload projects if user is authenticated
+        if (user && supabase) {
+          loadProjects();
+        }
+      }
+    }
+  }, [user, supabase]);
+
   const loadProjects = async () => {
     if (!supabase || !user) return;
 

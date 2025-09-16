@@ -172,8 +172,8 @@ export default function ProjectWizard() {
         console.log('API key created successfully');
       }
 
-      // Success! Redirect to dashboard to show the new project
-      router.push('/app');
+      // Success! Redirect to dashboard with cache-busting to show the new project
+      router.push('/app?refresh=' + Date.now());
       
     } catch (err) {
       console.error('Project creation error:', err);
