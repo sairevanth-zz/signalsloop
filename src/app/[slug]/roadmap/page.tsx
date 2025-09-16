@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -15,20 +15,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { 
-  ThumbsUp, 
   MessageSquare, 
   Calendar, 
-  User, 
-  ArrowLeft,
   Search,
-  Filter,
   Clock,
   CheckCircle,
   Target,
   Zap,
   TrendingUp,
-  AlertCircle,
-  ExternalLink
+  ExternalLink,
+  ArrowLeft
 } from 'lucide-react';
 import VoteButton from '@/components/VoteButton'; // Import our voting component
 
@@ -295,7 +291,7 @@ export default function PublicRoadmap({
     });
   };
 
-  const handleVoteChange = (postId: string, newCount: number, userVoted: boolean) => {
+  const handleVoteChange = (postId: string, newCount: number) => {
     setPosts(prev => {
       const updated = { ...prev };
       Object.keys(updated).forEach(status => {
@@ -504,7 +500,7 @@ export default function PublicRoadmap({
                             <VoteButton
                               postId={post.id}
                               initialVoteCount={post.vote_count}
-                              onVoteChange={(count, voted) => handleVoteChange(post.id, count, voted)}
+                              onVoteChange={(count) => handleVoteChange(post.id, count)}
                               onShowNotification={onShowNotification}
                               size="sm"
                               variant="compact"

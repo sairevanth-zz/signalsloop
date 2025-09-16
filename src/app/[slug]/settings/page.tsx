@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ApiKeySettings } from '@/components/ApiKeySettings';
@@ -14,8 +13,7 @@ import {
   Key, 
   Settings, 
   Shield,
-  Users,
-  ArrowLeft
+  Users
 } from 'lucide-react';
 
 interface Project {

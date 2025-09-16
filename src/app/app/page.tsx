@@ -12,7 +12,6 @@ import {
   Plus, 
   Settings, 
   Eye, 
-  LogOut,
   Users,
   MessageSquare,
   Copy,
@@ -35,7 +34,7 @@ interface Project {
 }
 
 export default function AppPage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const supabase = getSupabaseClient();
@@ -158,15 +157,6 @@ export default function AppPage() {
     }
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      router.push('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast.error('Failed to sign out');
-    }
-  };
 
   const copyEmbedCode = (slug: string) => {
     const embedCode = `<script src="https://signalsloop.com/embed/${slug}.js"></script>`;
@@ -511,3 +501,4 @@ export default function AppPage() {
       </main>
     </div>
   );
+}
