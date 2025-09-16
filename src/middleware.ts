@@ -17,31 +17,36 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value)
             response.cookies.set(name, value, options)
-          )
+          })
         },
       },
     }
   )
 
-  // Refresh session if expired - required for Server Components
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Refresh the session
+  await supabase.auth.getSession()
+
+  // Try both getSession and getUser for compatibility
+  const [
+    { data: { session } },
+    { data: { user: userFromGetUser } }
+  ] = await Promise.all([
+    supabase.auth.getSession(),
+    supabase.auth.getUser()
+  ])
   
-  const user = session?.user
+  const user = session?.user || userFromGetUser
 
   // Debug logging for middleware
   console.log('🔍 Middleware Debug:', {
     pathname: request.nextUrl.pathname,
-    hasUser: !!user,
+    hasSession: !!session,
+    hasUserFromSession: !!session?.user,
+    hasUserFromGetUser: !!userFromGetUser,
+    finalUser: !!user,
     userEmail: user?.email
   })
 
