@@ -20,7 +20,7 @@ import {
   Settings,
   Home,
   Map,
-  Brain
+  Sparkles
 } from 'lucide-react';
 import {
   Select,
@@ -33,6 +33,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import PostSubmissionForm from '@/components/PostSubmissionForm';
 import VoteButton from '@/components/VoteButton';
+import { AIInsightsModal } from '@/components/AIInsightsModal';
 
 interface Post {
   id: string;
@@ -91,6 +92,7 @@ export default function BoardPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('votes');
   const [showPostForm, setShowPostForm] = useState(false);
+  const [showAIInsights, setShowAIInsights] = useState(false);
   const [boardId, setBoardId] = useState<string | null>(null);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
@@ -377,12 +379,14 @@ export default function BoardPage() {
                 </Link>
               )}
               {user && posts.length > 0 && (
-                <Link href={`/${params?.slug}/ai-insights`}>
-                  <Button variant="outline" className="flex items-center gap-1 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
-                    <Brain className="w-4 h-4" />
-                    AI Insights
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAIInsights(true)}
+                  className="flex items-center gap-1 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  AI Insights
+                </Button>
               )}
               <Button 
                 onClick={() => setShowPostForm(true)}
@@ -606,6 +610,15 @@ export default function BoardPage() {
           projectId={project.id}
           boardId={boardId}
           onPostSubmitted={loadProjectAndPosts}
+        />
+      )}
+
+      {/* AI Insights Modal */}
+      {showAIInsights && (
+        <AIInsightsModal
+          projectSlug={params?.slug as string}
+          isOpen={showAIInsights}
+          onClose={() => setShowAIInsights(false)}
         />
       )}
     </div>
