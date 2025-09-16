@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,12 +54,6 @@ interface Project {
   description?: string;
 }
 
-interface PublicRoadmapProps {
-  projectSlug: string;
-  onNavigateToPost?: (postId: string) => void;
-  onNavigateToBoard?: () => void;
-  onShowNotification?: (message: string, type: 'success' | 'error' | 'info') => void;
-}
 
 // We'll get the Supabase client inside the component
 
@@ -97,12 +92,11 @@ const statusColumns = {
   }
 };
 
-export default function PublicRoadmap({ 
-  projectSlug, 
-  onNavigateToPost, 
-  onNavigateToBoard,
-  onShowNotification 
-}: PublicRoadmapProps) {
+export default function PublicRoadmap() {
+  const params = useParams();
+  const projectSlug = params?.slug as string;
+  const router = useRouter();
+  
   const [project, setProject] = useState<Project | null>(null);
   const [posts, setPosts] = useState<Record<string, RoadmapPost[]>>({
     open: [],
@@ -142,7 +136,7 @@ export default function PublicRoadmap({
         .single();
 
       if (projectError || !projectData) {
-        onShowNotification?.('Project not found', 'error');
+        console.error('Project not found');
         return;
       }
 
@@ -156,7 +150,7 @@ export default function PublicRoadmap({
         .single();
 
       if (boardError || !boardData) {
-        onShowNotification?.('Board not found', 'error');
+        console.error('Board not found');
         return;
       }
 
@@ -249,7 +243,7 @@ export default function PublicRoadmap({
 
     } catch (error) {
       console.error('Error loading roadmap:', error);
-      onShowNotification?.('Something went wrong', 'error');
+      console.error('Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -341,7 +335,7 @@ export default function PublicRoadmap({
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                <button onClick={onNavigateToBoard} className="hover:text-gray-900">
+                <button onClick={() => router.push(`/${projectSlug}/board`)} className="hover:text-gray-900">
                   {project?.name}
                 </button>
                 <span>→</span>
@@ -358,11 +352,11 @@ export default function PublicRoadmap({
             </div>
             
             <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={onNavigateToBoard}>
+              <Button variant="outline" onClick={() => router.push(`/${projectSlug}/board`)}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Board
               </Button>
-              <Button onClick={onNavigateToBoard} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              <Button onClick={() => router.push(`/${projectSlug}/board`)} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                 Submit Feedback
               </Button>
             </div>
@@ -495,7 +489,7 @@ export default function PublicRoadmap({
                       <Card 
                         key={post.id} 
                         className="hover:shadow-lg transition-all duration-200 cursor-pointer bg-white/90 backdrop-blur-sm border-white/20 hover:scale-[1.02]"
-                        onClick={() => onNavigateToPost?.(post.id)}
+                        onClick={() => router.push(`/${projectSlug}/post/${post.id}`)}
                       >
                         <CardContent className="p-5">
                           <div className="flex items-start gap-3">
@@ -504,7 +498,7 @@ export default function PublicRoadmap({
                               postId={post.id}
                               initialVoteCount={post.vote_count}
                               onVoteChange={(count) => handleVoteChange(post.id, count)}
-                              onShowNotification={onShowNotification}
+                              onShowNotification={(message, type) => console.log(`${type}: ${message}`)}
                               size="sm"
                               variant="compact"
                             />
@@ -571,7 +565,7 @@ export default function PublicRoadmap({
                       variant="outline" 
                       size="sm" 
                       className="w-full mt-3"
-                      onClick={onNavigateToBoard}
+                      onClick={() => router.push(`/${projectSlug}/board`)}
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
                       View All Ideas

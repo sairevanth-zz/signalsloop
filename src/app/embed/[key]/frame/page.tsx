@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,9 +29,6 @@ import {
   Heart
 } from 'lucide-react';
 
-interface WidgetFrameProps {
-  apiKey: string;
-}
 
 interface Post {
   id: string;
@@ -76,7 +74,10 @@ const statusConfig = {
   declined: { label: 'Declined', color: 'bg-red-100 text-red-800' }
 };
 
-export default function WidgetFrame({ apiKey }: WidgetFrameProps) {
+export default function WidgetFrame() {
+  const params = useParams();
+  const apiKey = params?.key as string;
+  
   const [project, setProject] = useState<Project | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);

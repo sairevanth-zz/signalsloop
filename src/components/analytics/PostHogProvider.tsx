@@ -21,7 +21,7 @@ export function PostHogProvider({ children }: PostHogProviderProps) {
     if (user?.id) {
       analytics.identify(user.id, {
         email: user.email,
-        plan: user.plan || 'free',
+        plan: (user as any).plan || 'free',
         created_at: user.created_at,
       });
     }

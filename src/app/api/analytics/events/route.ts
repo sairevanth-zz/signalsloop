@@ -5,7 +5,7 @@ const POSTHOG_API_URL = 'https://app.posthog.com/api/projects';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const timeRange = searchParams.get('timeRange') || '7d';
-  const projectId = searchParams.get('projectId');
+  // const projectId = searchParams.get('projectId');
 
   if (!process.env.POSTHOG_PERSONAL_API_KEY) {
     // Return mock data if no PostHog API key
@@ -60,10 +60,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function processPostHogData(data: any) {
-  if (!data.result?.[0]?.data) return [];
+function processPostHogData(data: unknown) {
+  const typedData = data as { result?: Array<{ data?: Array<[string, number]> }> };
+  if (!typedData.result?.[0]?.data) return [];
   
-  return data.result[0].data.map((point: any) => ({
+  return typedData.result[0].data.map((point) => ({
     date: point[0],
     value: point[1],
     label: new Date(point[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })

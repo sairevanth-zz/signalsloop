@@ -8,10 +8,17 @@ import { Badge } from '@/components/ui/badge';
 import { Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
-export default function CSVImportDemo() {
-  const [importResults, setImportResults] = useState<any>(null);
+interface ImportResults {
+  successCount: number;
+  errorCount: number;
+  errors: string[];
+  createdPosts: any[];
+}
 
-  const handleImportComplete = (results: any) => {
+export default function CSVImportDemo() {
+  const [importResults, setImportResults] = useState<ImportResults | null>(null);
+
+  const handleImportComplete = (results: ImportResults) => {
     setImportResults(results);
     console.log('Import completed:', results);
   };
@@ -123,23 +130,23 @@ export default function CSVImportDemo() {
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div className="p-3 bg-green-50 rounded-lg">
                       <div className="text-lg font-bold text-green-600">
-                        {importResults.successCount}
+                        {importResults?.successCount || 0}
                       </div>
                       <div className="text-xs text-green-800">Successful</div>
                     </div>
                     <div className="p-3 bg-red-50 rounded-lg">
                       <div className="text-lg font-bold text-red-600">
-                        {importResults.errorCount}
+                        {importResults?.errorCount || 0}
                       </div>
                       <div className="text-xs text-red-800">Errors</div>
                     </div>
                   </div>
                   
-                  {importResults.errors.length > 0 && (
+                  {importResults?.errors && importResults.errors.length > 0 && (
                     <div>
                       <h4 className="font-medium text-sm text-red-800 mb-2">Errors:</h4>
                       <div className="max-h-32 overflow-y-auto bg-red-50 rounded p-2">
-                        {importResults.errors.slice(0, 5).map((error: any, index: number) => (
+                        {importResults.errors.slice(0, 5).map((error: {row: number, message: string}, index: number) => (
                           <div key={index} className="text-xs text-red-700 mb-1">
                             Row {error.row}: {error.message}
                           </div>
@@ -153,11 +160,11 @@ export default function CSVImportDemo() {
                     </div>
                   )}
 
-                  {importResults.createdPosts.length > 0 && (
+                  {importResults?.createdPosts && importResults.createdPosts.length > 0 && (
                     <div>
                       <h4 className="font-medium text-sm text-green-800 mb-2">Created Posts:</h4>
                       <div className="max-h-32 overflow-y-auto bg-green-50 rounded p-2">
-                        {importResults.createdPosts.slice(0, 5).map((post: any, index: number) => (
+                        {importResults.createdPosts.slice(0, 5).map((post: {title: string}, index: number) => (
                           <div key={index} className="text-xs text-green-700 mb-1">
                             • {post.title}
                           </div>

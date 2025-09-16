@@ -1,5 +1,4 @@
 import posthog from 'posthog-js';
-import React, { useEffect } from 'react';
 
 // Initialize PostHog (call this in your _app.tsx)
 export const initializePostHog = () => {
@@ -21,14 +20,14 @@ export const initializePostHog = () => {
 // Event tracking functions
 export const analytics = {
   // User lifecycle events
-  signup: (properties?: Record<string, any>) => {
+  signup: (properties?: Record<string, unknown>) => {
     posthog.capture('signup', {
       timestamp: new Date().toISOString(),
       ...properties
     });
   },
 
-  createProject: (projectId: string, properties?: Record<string, any>) => {
+  createProject: (projectId: string, properties?: Record<string, unknown>) => {
     posthog.capture('create_project', {
       project_id: projectId,
       timestamp: new Date().toISOString(),
@@ -37,7 +36,7 @@ export const analytics = {
   },
 
   // Engagement events
-  viewBoard: (projectSlug: string, boardId: string, properties?: Record<string, any>) => {
+  viewBoard: (projectSlug: string, boardId: string, properties?: Record<string, unknown>) => {
     posthog.capture('view_board', {
       project_slug: projectSlug,
       board_id: boardId,
@@ -46,7 +45,7 @@ export const analytics = {
     });
   },
 
-  submitPost: (postId: string, projectId: string, source: 'web' | 'widget', properties?: Record<string, any>) => {
+  submitPost: (postId: string, projectId: string, source: 'web' | 'widget', properties?: Record<string, unknown>) => {
     posthog.capture('submit_post', {
       post_id: postId,
       project_id: projectId,
@@ -56,7 +55,7 @@ export const analytics = {
     });
   },
 
-  vote: (postId: string, projectId: string, properties?: Record<string, any>) => {
+  vote: (postId: string, projectId: string, properties?: Record<string, unknown>) => {
     posthog.capture('vote', {
       post_id: postId,
       project_id: projectId,
@@ -65,7 +64,7 @@ export const analytics = {
     });
   },
 
-  addComment: (postId: string, commentId: string, properties?: Record<string, any>) => {
+  addComment: (postId: string, commentId: string, properties?: Record<string, unknown>) => {
     posthog.capture('add_comment', {
       post_id: postId,
       comment_id: commentId,
@@ -75,7 +74,7 @@ export const analytics = {
   },
 
   // Admin events
-  statusChange: (postId: string, oldStatus: string, newStatus: string, properties?: Record<string, any>) => {
+  statusChange: (postId: string, oldStatus: string, newStatus: string, properties?: Record<string, unknown>) => {
     posthog.capture('status_change', {
       post_id: postId,
       old_status: oldStatus,
@@ -85,7 +84,7 @@ export const analytics = {
     });
   },
 
-  postModerated: (postId: string, action: string, properties?: Record<string, any>) => {
+  postModerated: (postId: string, action: string, properties?: Record<string, unknown>) => {
     posthog.capture('post_moderated', {
       post_id: postId,
       action,
@@ -95,7 +94,7 @@ export const analytics = {
   },
 
   // Widget events
-  widgetOpen: (projectId: string, domain: string, properties?: Record<string, any>) => {
+  widgetOpen: (projectId: string, domain: string, properties?: Record<string, unknown>) => {
     posthog.capture('widget_open', {
       project_id: projectId,
       domain,
@@ -104,7 +103,7 @@ export const analytics = {
     });
   },
 
-  widgetSubmit: (postId: string, projectId: string, domain: string, properties?: Record<string, any>) => {
+  widgetSubmit: (postId: string, projectId: string, domain: string, properties?: Record<string, unknown>) => {
     posthog.capture('widget_submit', {
       post_id: postId,
       project_id: projectId,
@@ -115,7 +114,7 @@ export const analytics = {
   },
 
   // Business events
-  startCheckout: (projectId: string, plan: string, properties?: Record<string, any>) => {
+  startCheckout: (projectId: string, plan: string, properties?: Record<string, unknown>) => {
     posthog.capture('start_checkout', {
       project_id: projectId,
       plan,
@@ -124,7 +123,7 @@ export const analytics = {
     });
   },
 
-  purchase: (projectId: string, plan: string, amount: number, properties?: Record<string, any>) => {
+  purchase: (projectId: string, plan: string, amount: number, properties?: Record<string, unknown>) => {
     posthog.capture('purchase', {
       project_id: projectId,
       plan,
@@ -135,7 +134,7 @@ export const analytics = {
   },
 
   // Custom domain events
-  domainAdded: (projectId: string, domain: string, properties?: Record<string, any>) => {
+  domainAdded: (projectId: string, domain: string, properties?: Record<string, unknown>) => {
     posthog.capture('domain_added', {
       project_id: projectId,
       domain,
@@ -145,7 +144,7 @@ export const analytics = {
   },
 
   // Import events
-  dataImported: (projectId: string, rowCount: number, successCount: number, properties?: Record<string, any>) => {
+  dataImported: (projectId: string, rowCount: number, successCount: number, properties?: Record<string, unknown>) => {
     posthog.capture('data_imported', {
       project_id: projectId,
       row_count: rowCount,
@@ -157,7 +156,7 @@ export const analytics = {
   },
 
   // User identification
-  identify: (userId: string, properties?: Record<string, any>) => {
+  identify: (userId: string, properties?: Record<string, unknown>) => {
     posthog.identify(userId, {
       timestamp: new Date().toISOString(),
       ...properties
@@ -165,7 +164,7 @@ export const analytics = {
   },
 
   // Page tracking
-  page: (pageName: string, properties?: Record<string, any>) => {
+  page: (pageName: string, properties?: Record<string, unknown>) => {
     posthog.capture('$pageview', {
       page_name: pageName,
       timestamp: new Date().toISOString(),
@@ -175,7 +174,7 @@ export const analytics = {
 };
 
 // React hook for tracking events
-import { useCallback } from 'react';
+import React from 'react';
 import { useRouter } from 'next/router';
 
 export const useAnalytics = () => {

@@ -9,7 +9,7 @@ import {
   BarChart3, 
   Users, 
   MessageSquare, 
-  Vote, 
+  // Vote, 
   CreditCard, 
   Upload,
   Globe,

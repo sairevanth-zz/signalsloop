@@ -7,7 +7,9 @@ export const useAnalytics = () => {
 
   // Track page views automatically on route changes
   useEffect(() => {
-    analytics.page(pathname);
+    if (pathname) {
+      analytics.page(pathname);
+    }
   }, [pathname]);
 
   // Return analytics object for manual tracking
@@ -16,7 +18,7 @@ export const useAnalytics = () => {
 
 // Hook for tracking specific events
 export const useEventTracking = () => {
-  const trackEvent = useCallback((eventName: string, properties?: Record<string, any>) => {
+  const trackEvent = useCallback((eventName: string, properties?: Record<string, unknown>) => {
     analytics.page(eventName, properties);
   }, []);
 

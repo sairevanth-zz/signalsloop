@@ -96,10 +96,10 @@ export default function BoardPage() {
 
   // Initialize filters from URL parameters
   useEffect(() => {
-    const status = searchParams.get('status') || 'all';
-    const category = searchParams.get('category') || 'all';
-    const sort = searchParams.get('sort') || 'votes';
-    const search = searchParams.get('search') || '';
+    const status = searchParams?.get('status') || 'all';
+    const category = searchParams?.get('category') || 'all';
+    const sort = searchParams?.get('sort') || 'votes';
+    const search = searchParams?.get('search') || '';
 
     setStatusFilter(status);
     setCategoryFilter(category);
@@ -167,7 +167,7 @@ export default function BoardPage() {
       const { data: projectData, error: projectError } = await supabase
         .from('projects')
         .select('*')
-        .eq('slug', params.slug)
+        .eq('slug', params?.slug as string)
         .single();
 
       if (projectError) {
@@ -274,7 +274,7 @@ export default function BoardPage() {
     } finally {
       setLoading(false);
     }
-  }, [params.slug, statusFilter, categoryFilter, sortBy, supabase, router]);
+  }, [params?.slug, statusFilter, categoryFilter, sortBy, supabase, router]);
 
   // Load project and posts
   useEffect(() => {
@@ -362,14 +362,14 @@ export default function BoardPage() {
             </div>
             
             <div className="flex gap-2">
-              <Link href={`/${params.slug}/roadmap`}>
+              <Link href={`/${params?.slug}/roadmap`}>
                 <Button variant="outline" className="flex items-center gap-1">
                   <Map className="w-4 h-4" />
                   Roadmap
                 </Button>
               </Link>
               {user && (
-                <Link href={`/${params.slug}/settings`}>
+                <Link href={`/${params?.slug}/settings`}>
                   <Button variant="outline" className="flex items-center gap-1">
                     <Settings className="w-4 h-4" />
                     Settings
@@ -377,7 +377,7 @@ export default function BoardPage() {
                 </Link>
               )}
               {user && posts.length > 0 && (
-                <Link href={`/${params.slug}/ai-insights`}>
+                <Link href={`/${params?.slug}/ai-insights`}>
                   <Button variant="outline" className="flex items-center gap-1 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
                     <Brain className="w-4 h-4" />
                     AI Insights
@@ -491,7 +491,7 @@ export default function BoardPage() {
               <Card 
                 key={post.id} 
                 className="hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => router.push(`/${params.slug}/post/${post.id}`)}
+                onClick={() => router.push(`/${params?.slug}/post/${post.id}`)}
               >
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">

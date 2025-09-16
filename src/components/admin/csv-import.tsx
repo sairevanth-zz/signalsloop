@@ -140,7 +140,7 @@ export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportPro
           }
           
           if (mapping.dbField === 'votes') {
-            value = parseInt(value) || 0;
+            value = parseInt(String(value)) || 0;
           }
           
           processedRow[mapping.dbField] = value;
@@ -200,7 +200,7 @@ export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportPro
                 }
                 
                 if (mapping.dbField === 'votes') {
-                  value = Math.min(Math.max(parseInt(value) || 0, 0), 1000);
+                  value = Math.min(Math.max(parseInt(String(value)) || 0, 0), 1000);
                 }
                 
                 postData[mapping.dbField] = value;
