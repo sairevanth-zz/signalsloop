@@ -34,7 +34,7 @@ interface Post {
 
 interface Comment {
   id: number;
-  body: string;
+  content: string; // Changed from 'body' to 'content'
   author_email?: string;
   created_at: string;
 }
@@ -186,7 +186,7 @@ export default function PostDetailPage() {
         .from('comments')
         .insert([{
           post_id: post.id,
-          body: commentForm.body.trim(),
+          content: commentForm.body.trim(), // Changed from 'body' to 'content'
           author_email: commentForm.author_email.trim() || null
         }])
         .select()
@@ -394,7 +394,7 @@ export default function PostDetailPage() {
                             {new Date(comment.created_at).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-sm whitespace-pre-wrap">{comment.body}</p>
+                        <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
                       </div>
                     </div>
                   </div>
