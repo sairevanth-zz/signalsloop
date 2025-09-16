@@ -34,31 +34,20 @@ export async function GET(request: NextRequest) {
     );
 
     try {
-      console.log('🔄 Starting auth code exchange...');
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       
       if (error) {
-        console.error('❌ Auth callback error:', error);
+        console.error('Auth callback error:', error);
         return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url));
       }
 
-      console.log('✅ Auth exchange successful:', {
-        hasSession: !!data.session,
-        hasUser: !!data.user,
-        userId: data.user?.id,
-        userEmail: data.user?.email,
-        sessionExpires: data.session?.expires_at
-      });
-
       if (data.session && data.user) {
-        console.log('🔄 Redirecting to:', next);
         return NextResponse.redirect(new URL(next, request.url));
       } else {
-        console.error('❌ No session or user after exchange');
         return NextResponse.redirect(new URL('/login?error=no_session', request.url));
       }
     } catch (error) {
-      console.error('❌ Auth callback exception:', error);
+      console.error('Auth callback exception:', error);
       return NextResponse.redirect(new URL('/login?error=authentication_failed', request.url));
     }
   }

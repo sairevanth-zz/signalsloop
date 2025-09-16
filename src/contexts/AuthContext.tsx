@@ -28,22 +28,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Get initial session
     const getInitialSession = async () => {
       try {
-        console.log('🔍 AuthContext: Getting initial session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          console.error('❌ Error getting session:', error);
+          console.error('Error getting session:', error);
         } else {
-          console.log('✅ AuthContext: Initial session:', {
-            hasSession: !!session,
-            hasUser: !!session?.user,
-            userEmail: session?.user?.email,
-            expiresAt: session?.expires_at
-          });
           setSession(session);
           setUser(session?.user ?? null);
         }
       } catch (error) {
-        console.error('❌ Error in getInitialSession:', error);
+        console.error('Error in getInitialSession:', error);
       } finally {
         setLoading(false);
       }
@@ -54,12 +47,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: string, session: Session | null) => {
-        console.log('🔄 AuthContext: Auth state changed:', {
-          event,
-          hasSession: !!session,
-          hasUser: !!session?.user,
-          userEmail: session?.user?.email
-        });
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);

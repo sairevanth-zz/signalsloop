@@ -17,7 +17,7 @@ import {
   MessageSquare,
   Rocket
 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface ProjectData {
   name: string;
@@ -31,13 +31,7 @@ export default function ProjectWizard() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Initialize Supabase client safely
-  const supabase = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    ? createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      )
-    : null;
+  const supabase = getSupabaseClient();
   const [projectData, setProjectData] = useState<ProjectData>({
     name: '',
     slug: '',
