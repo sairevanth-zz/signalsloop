@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation email
     const emailData = await resend.emails.send({
-      from: 'SignalLoop <notifications@signalsloop.com>',
+      from: 'SignalSloop <notifications@signalsloop.com>',
       to: [email],
       subject: '✅ Thanks for your feedback!',
       html: `
@@ -146,17 +146,17 @@ export async function POST(request: NextRequest) {
               
               <p>Thanks for helping us improve!</p>
               
-              <p>Best regards,<br>The SignalLoop Team</p>
+              <p>Best regards,<br>The SignalSloop Team</p>
             </div>
             
             <div class="footer">
               <p>
-                This email was sent because you submitted feedback on SignalLoop.<br>
+                This email was sent because you submitted feedback on SignalSloop.<br>
                 <a href="mailto:support@signalsloop.com">Contact Support</a> | 
                 <a href="${postUrl}">View Feedback</a>
               </p>
               <p style="margin-top: 20px;">
-                <strong>SignalLoop</strong> - Simple Feedback Boards & Public Roadmaps
+                <strong>SignalSloop</strong> - Simple Feedback Boards & Public Roadmaps
               </p>
             </div>
           </div>
@@ -173,7 +173,7 @@ Our team will review it and you'll get notified of any status changes.
 View your feedback: ${postUrl}
 
 Thanks for helping us improve!
-The SignalLoop Team
+The SignalSloop Team
       `.trim()
     });
 

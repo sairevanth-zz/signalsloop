@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SignalLoop",
+  title: "SignalSloop",
   description: "Feedback and feature request management",
 };
 

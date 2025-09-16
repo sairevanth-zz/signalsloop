@@ -100,7 +100,7 @@ function BillingSuccessContent() {
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-sm">S</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">SignalLoop</span>
+            <span className="text-xl font-bold text-gray-900">SignalSloop</span>
           </div>
         </div>
 
@@ -112,7 +112,7 @@ function BillingSuccessContent() {
             </div>
             <CardTitle className="text-3xl text-green-600 mb-2">Payment Successful!</CardTitle>
             <p className="text-gray-600 text-lg">
-              Welcome to SignalLoop Pro! Your subscription is now active.
+              Welcome to SignalSloop Pro! Your subscription is now active.
             </p>
           </CardHeader>
           
@@ -125,7 +125,7 @@ function BillingSuccessContent() {
                     <Crown className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">SignalLoop Pro</h3>
+                    <h3 className="font-semibold text-lg">SignalSloop Pro</h3>
                     <p className="text-sm text-gray-600">Monthly Subscription</p>
                   </div>
                 </div>
@@ -201,7 +201,7 @@ function BillingSuccessContent() {
             <div className="text-center pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-600">
                 Need help getting started?{' '}
-                <a href="mailto:support@signalloop.com" className="text-blue-600 hover:underline">
+                <a href="mailto:support@signalsloop.com" className="text-blue-600 hover:underline">
                   Contact our support team
                 </a>
               </p>

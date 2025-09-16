@@ -121,7 +121,7 @@ async function testDatabase() {
         .insert({
           project_id: testProject.id,
           board_id: testBoard.id,
-          title: 'Welcome to SignalLoop!',
+          title: 'Welcome to SignalSloop!',
           description: 'This is a sample post to test the functionality. You can vote on this post and add comments.',
           author_email: 'test@example.com',
           status: 'open'

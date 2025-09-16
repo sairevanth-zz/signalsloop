@@ -6,7 +6,7 @@
 
 1. **Go to Vercel Dashboard**
    - Visit [vercel.com/dashboard](https://vercel.com/dashboard)
-   - Select your SignalLoop project
+   - Select your SignalSloop project
 
 2. **Navigate to Settings**
    - Click on your project

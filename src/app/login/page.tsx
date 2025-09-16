@@ -65,7 +65,7 @@ export default function LoginPage() {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-sm">S</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">SignalLoop</span>
+              <span className="text-xl font-bold text-gray-900">SignalSloop</span>
             </div>
           </div>
 
@@ -84,7 +84,7 @@ export default function LoginPage() {
                 <Alert className="border-blue-200 bg-blue-50">
                   <Mail className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Click the link in your email</strong> to sign in to SignalLoop. 
+                    <strong>Click the link in your email</strong> to sign in to SignalSloop. 
                     The link will expire in 1 hour.
                   </AlertDescription>
                 </Alert>
@@ -130,10 +130,10 @@ export default function LoginPage() {
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-sm">S</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">SignalLoop</span>
+            <span className="text-xl font-bold text-gray-900">SignalSloop</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
-          <p className="text-gray-600">Sign in to your SignalLoop account</p>
+          <p className="text-gray-600">Sign in to your SignalSloop account</p>
         </div>
 
         <Card className="border-0 shadow-xl">
@@ -192,7 +192,7 @@ export default function LoginPage() {
             
             <div className="mt-6 text-center text-sm text-gray-600">
               <p>
-                New to SignalLoop?{' '}
+                New to SignalSloop?{' '}
                 <span className="font-medium">Just enter your email above</span> to create an account.
               </p>
             </div>

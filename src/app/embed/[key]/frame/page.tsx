@@ -241,7 +241,7 @@ export default function WidgetFrame() {
 
       // Send message to parent window
       window.parent.postMessage({
-        type: 'signalloop_submitted',
+        type: 'signalsloop_submitted',
         post: newPost
       }, '*');
 
@@ -303,7 +303,7 @@ export default function WidgetFrame() {
   };
 
   const closeWidget = () => {
-    window.parent.postMessage({ type: 'signalloop_close' }, '*');
+    window.parent.postMessage({ type: 'signalsloop_close' }, '*');
   };
 
   const formatRelativeTime = (dateString: string) => {

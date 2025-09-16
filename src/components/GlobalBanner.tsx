@@ -71,7 +71,7 @@ export default function GlobalBanner({
               </div>
               <div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  SignalLoop
+                  SignalSloop
                 </span>
                 <p className="text-sm text-gray-600">Feedback Management</p>
               </div>

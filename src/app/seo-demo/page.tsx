@@ -33,13 +33,13 @@ export default function SEODemoPage() {
         type="article"
         publishedTime="2024-01-15T10:30:00Z"
         modifiedTime="2024-01-15T15:45:00Z"
-        author="SignalLoop Team"
+        author="SignalSloop Team"
       />
 
       <StructuredData {...StructuredDataUtils.createSoftwareData(
-        'SignalLoop SEO Demo',
+        'SignalSloop SEO Demo',
         'Comprehensive SEO components for better search engine optimization',
-        'https://signalloop.com/seo-demo'
+        'https://signalsloop.com/seo-demo'
       )} />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -212,7 +212,7 @@ export default function SEODemoPage() {
                         {pageTitle}
                       </div>
                       <div className="text-green-700 text-sm">
-                        https://signalloop.com/seo-demo
+                        https://signalsloop.com/seo-demo
                       </div>
                       <div className="text-gray-600 text-sm">
                         Demo of SEO components including meta tags, structured data, and Open Graph images

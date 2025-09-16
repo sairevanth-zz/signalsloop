@@ -208,7 +208,7 @@ export default function ProjectWizard() {
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-sm">S</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">SignalLoop</span>
+            <span className="text-xl font-bold text-gray-900">SignalSloop</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create your feedback board</h1>
           <p className="text-gray-600">Let&apos;s set up your project in just a few steps</p>
@@ -286,7 +286,7 @@ export default function ProjectWizard() {
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <p className="text-sm text-gray-600 mb-2">Your board URL will be:</p>
                     <p className="font-mono text-sm bg-white p-2 rounded border">
-                      signalloop.com/<span className="text-blue-600">{projectData.slug || 'your-project'}</span>/board
+                      signalsloop.com/<span className="text-blue-600">{projectData.slug || 'your-project'}</span>/board
                     </p>
                   </div>
                 )}
@@ -347,7 +347,7 @@ export default function ProjectWizard() {
                   <div>
                     <h3 className="font-medium text-gray-900 mb-1">Public URL</h3>
                     <p className="text-blue-600 font-mono text-sm">
-                      signalloop.com/{projectData.slug}/board
+                      signalsloop.com/{projectData.slug}/board
                     </p>
                   </div>
                 </div>

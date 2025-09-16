@@ -38,7 +38,7 @@ export function MobileLayout({ children, title, showNavigation = true }: MobileL
           <div className="fixed inset-0 bg-black bg-opacity-25" onClick={toggleMenu} />
           <nav className="fixed top-0 right-0 bottom-0 flex flex-col w-5/6 max-w-sm py-6 overflow-y-auto bg-white border-l">
             <div className="flex items-center justify-between px-6 pb-6">
-              <span className="text-lg font-semibold text-gray-900">SignalLoop</span>
+              <span className="text-lg font-semibold text-gray-900">SignalSloop</span>
               <button onClick={toggleMenu} className="p-1 text-gray-600">
                 <X className="w-6 h-6" />
               </button>
@@ -90,7 +90,7 @@ export function MobileLayout({ children, title, showNavigation = true }: MobileL
         <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
           <div className="flex flex-col flex-grow pt-5 bg-white border-r overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-6">
-              <span className="text-xl font-semibold text-gray-900">SignalLoop</span>
+              <span className="text-xl font-semibold text-gray-900">SignalSloop</span>
             </div>
             
             <div className="flex-grow mt-8 px-6">

@@ -14,18 +14,18 @@ export function StructuredData({ type, data }: StructuredDataProps) {
         return {
           "@context": "https://schema.org",
           "@type": "Organization",
-          "name": "SignalLoop",
-          "url": "https://signalloop.com",
-          "logo": "https://signalloop.com/logo.png",
+          "name": "SignalSloop",
+          "url": "https://signalsloop.com",
+          "logo": "https://signalsloop.com/logo.png",
           "description": "Simple feedback boards and public roadmaps for SaaS products",
           "sameAs": [
-            "https://twitter.com/signalloop",
-            "https://github.com/signalloop"
+            "https://twitter.com/signalsloop",
+            "https://github.com/signalsloop"
           ],
           "contactPoint": {
             "@type": "ContactPoint",
             "contactType": "customer service",
-            "email": "support@signalloop.com"
+            "email": "support@signalsloop.com"
           }
         };
 
@@ -33,9 +33,9 @@ export function StructuredData({ type, data }: StructuredDataProps) {
         return {
           "@context": "https://schema.org",
           "@type": "SoftwareApplication",
-          "name": data.name || "SignalLoop",
+          "name": data.name || "SignalSloop",
           "description": data.description || "Simple feedback boards and public roadmaps for SaaS products",
-          "url": data.url || "https://signalloop.com",
+          "url": data.url || "https://signalsloop.com",
           "applicationCategory": "BusinessApplication",
           "operatingSystem": "Web Browser",
           "offers": {
@@ -51,7 +51,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           },
           "author": {
             "@type": "Organization",
-            "name": "SignalLoop"
+            "name": "SignalSloop"
           }
         };
 
@@ -64,14 +64,14 @@ export function StructuredData({ type, data }: StructuredDataProps) {
           "image": data.image,
           "author": {
             "@type": "Person",
-            "name": data.author || "SignalLoop"
+            "name": data.author || "SignalSloop"
           },
           "publisher": {
             "@type": "Organization",
-            "name": "SignalLoop",
+            "name": "SignalSloop",
             "logo": {
               "@type": "ImageObject",
-              "url": "https://signalloop.com/logo.png"
+              "url": "https://signalsloop.com/logo.png"
             }
           },
           "datePublished": data.publishedTime,

@@ -32,9 +32,9 @@ export function WidgetDocumentation() {
     }
   };
 
-  const installationCode = `<script src="https://signalloop.com/embed/YOUR_API_KEY.js"></script>`;
+  const installationCode = `<script src="https://signalsloop.com/embed/YOUR_API_KEY.js"></script>`;
   
-  const customizationCode = `<script src="https://signalloop.com/embed/YOUR_API_KEY.js?position=bottom-left&color=%23ff6b6b&text=Send%20Feedback"></script>`;
+  const customizationCode = `<script src="https://signalsloop.com/embed/YOUR_API_KEY.js?position=bottom-left&color=%23ff6b6b&text=Send%20Feedback"></script>`;
 
   const htmlExampleCode = `<!DOCTYPE html>
 <html>
@@ -45,8 +45,8 @@ export function WidgetDocumentation() {
     <h1>Welcome to My App</h1>
     <p>Your amazing content here...</p>
     
-    <!-- SignalLoop Widget - Add this before closing body tag -->
-    <script src="https://signalloop.com/embed/YOUR_API_KEY.js"></script>
+    <!-- SignalSloop Widget - Add this before closing body tag -->
+    <script src="https://signalsloop.com/embed/YOUR_API_KEY.js"></script>
 </body>
 </html>`;
 
@@ -55,9 +55,9 @@ import { useEffect } from 'react';
 
 export default function App({ Component, pageProps }) {
   useEffect(() => {
-    // Load SignalLoop widget
+    // Load SignalSloop widget
     const script = document.createElement('script');
-    script.src = 'https://signalloop.com/embed/YOUR_API_KEY.js';
+    script.src = 'https://signalsloop.com/embed/YOUR_API_KEY.js';
     script.async = true;
     document.body.appendChild(script);
 
@@ -80,9 +80,9 @@ export default function Document() {
       <body>
         <Main />
         <NextScript />
-        {/* SignalLoop Widget */}
+        {/* SignalSloop Widget */}
         <script 
-          src="https://signalloop.com/embed/YOUR_API_KEY.js"
+          src="https://signalsloop.com/embed/YOUR_API_KEY.js"
           async
         />
       </body>
@@ -100,8 +100,8 @@ export default function Document() {
   <body>
     <div id="app"></div>
     
-    <!-- SignalLoop Widget -->
-    <script src="https://signalloop.com/embed/YOUR_API_KEY.js"></script>
+    <!-- SignalSloop Widget -->
+    <script src="https://signalsloop.com/embed/YOUR_API_KEY.js"></script>
   </body>
 </html>`;
 
@@ -111,7 +111,7 @@ export default function Document() {
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold">Widget Installation Guide</h1>
         <p className="text-xl text-muted-foreground">
-          Add the SignalLoop feedback widget to your website in 2 minutes
+          Add the SignalSloop feedback widget to your website in 2 minutes
         </p>
         <div className="flex justify-center gap-2">
           <Badge variant="secondary">⚡ 2-minute setup</Badge>
@@ -137,7 +137,7 @@ export default function Document() {
               <div>
                 <h4 className="font-medium">Get API Key</h4>
                 <p className="text-sm text-muted-foreground">
-                  Create an API key in your SignalLoop settings
+                  Create an API key in your SignalSloop settings
                 </p>
               </div>
             </div>
@@ -364,7 +364,7 @@ export default function Document() {
             <div>
               <h4 className="font-medium mb-2">Pro Features:</h4>
               <ul className="text-sm space-y-1 text-muted-foreground">
-                <li>• Remove &quot;Powered by SignalLoop&quot;</li>
+                <li>• Remove &quot;Powered by SignalSloop&quot;</li>
                 <li>• Custom CSS styling</li>
                 <li>• Custom domain embedding</li>
                 <li>• Advanced positioning</li>

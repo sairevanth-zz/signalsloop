@@ -6,8 +6,8 @@ export default function TermsOfService() {
   return (
     <>
       <MetaHead
-        title="Terms of Service - SignalLoop"
-        description="SignalLoop's terms of service outlining the rules and guidelines for using our feedback management platform."
+        title="Terms of Service - SignalSloop"
+        description="SignalSloop's terms of service outlining the rules and guidelines for using our feedback management platform."
         noIndex={true}
       />
       
@@ -16,7 +16,7 @@ export default function TermsOfService() {
         <header className="bg-white shadow-sm">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <Link href="/" className="text-blue-600 hover:text-blue-800 font-medium">
-              ← Back to SignalLoop
+              ← Back to SignalSloop
             </Link>
           </div>
         </header>
@@ -35,7 +35,7 @@ export default function TermsOfService() {
               <section className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  By accessing or using SignalLoop's feedback management service ("Service"), you agree to be 
+                  By accessing or using SignalSloop's feedback management service ("Service"), you agree to be 
                   bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Service.
                 </p>
               </section>
@@ -43,7 +43,7 @@ export default function TermsOfService() {
               <section className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">2. Description of Service</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  SignalLoop provides a feedback management platform that allows users to:
+                  SignalSloop provides a feedback management platform that allows users to:
                 </p>
                 <ul className="list-disc pl-6 mb-4 text-gray-700">
                   <li>Create feedback boards and collect user input</li>
@@ -128,7 +128,7 @@ export default function TermsOfService() {
               <section className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">10. Limitation of Liability</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, SIGNALLOOP SHALL NOT BE LIABLE FOR ANY 
+                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, SIGNALSLOOP SHALL NOT BE LIABLE FOR ANY 
                   INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT 
                   NOT LIMITED TO LOSS OF PROFITS, DATA, OR USE.
                 </p>
@@ -148,7 +148,7 @@ export default function TermsOfService() {
                 <p className="text-gray-700 leading-relaxed">
                   Questions about these Terms should be sent to:
                   <br />
-                  <strong>Email:</strong> legal@signalloop.com
+                  <strong>Email:</strong> legal@signalsloop.com
                   <br />
                   <strong>Address:</strong> [Your Business Address]
                 </p>

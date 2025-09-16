@@ -156,7 +156,7 @@ const FEATURES: FeatureConfig[] = [
   {
     id: 'remove_branding',
     name: 'Remove Branding',
-    description: 'Hide "Powered by SignalLoop" from your widget',
+    description: 'Hide "Powered by SignalSloop" from your widget',
     icon: <Palette className="h-4 w-4" />,
     proOnly: true,
     category: 'customization'

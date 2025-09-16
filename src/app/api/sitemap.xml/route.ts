@@ -15,7 +15,7 @@ function getSupabaseClient() {
 }
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://signalloop.com';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://signalsloop.com';
   
   try {
     // Get public projects for dynamic URLs

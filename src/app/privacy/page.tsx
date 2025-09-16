@@ -6,8 +6,8 @@ export default function PrivacyPolicy() {
   return (
     <>
       <MetaHead
-        title="Privacy Policy - SignalLoop"
-        description="SignalLoop's privacy policy explaining how we collect, use, and protect your data."
+        title="Privacy Policy - SignalSloop"
+        description="SignalSloop's privacy policy explaining how we collect, use, and protect your data."
         noIndex={true}
       />
       
@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
         <header className="bg-white shadow-sm">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <Link href="/" className="text-blue-600 hover:text-blue-800 font-medium">
-              ← Back to SignalLoop
+              ← Back to SignalSloop
             </Link>
           </div>
         </header>
@@ -35,9 +35,9 @@ export default function PrivacyPolicy() {
               <section className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  SignalLoop ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy 
+                  SignalSloop ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy 
                   explains how we collect, use, disclose, and safeguard your information when you use our 
-                  feedback management service at signalloop.com.
+                  feedback management service at signalsloop.com.
                 </p>
               </section>
 
@@ -158,7 +158,7 @@ export default function PrivacyPolicy() {
                 <p className="text-gray-700 leading-relaxed">
                   If you have questions about this Privacy Policy, please contact us at:
                   <br />
-                  <strong>Email:</strong> privacy@signalloop.com
+                  <strong>Email:</strong> privacy@signalsloop.com
                   <br />
                   <strong>Address:</strong> [Your Business Address]
                 </p>

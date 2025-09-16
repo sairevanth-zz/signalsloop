@@ -101,9 +101,9 @@ async function createSampleData() {
         {
           project_id: project.id,
           board_id: board.id,
-          title: 'Welcome to SignalLoop! 🎉',
+          title: 'Welcome to SignalSloop! 🎉',
           description: 'This is a sample post to test the functionality. You can vote on this post and add comments below. Try clicking the vote button and adding a comment!',
-          author_email: 'demo@signalLoop.com',
+          author_email: 'demo@signalsloop.com',
           status: 'open'
         },
         {

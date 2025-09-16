@@ -177,7 +177,7 @@ export function ApiKeySettings({ projectId, projectSlug }: ApiKeySettingsProps) 
   };
 
   const getEmbedCode = (apiKey: string) => {
-    const domain = typeof window !== 'undefined' ? window.location.origin : 'https://signalloop.com';
+    const domain = typeof window !== 'undefined' ? window.location.origin : 'https://signalsloop.com';
     return `<script src="${domain}/embed/${apiKey}.js"></script>`;
   };
 
@@ -464,7 +464,7 @@ export function ApiKeySettings({ projectId, projectSlug }: ApiKeySettingsProps) 
                 <h4 className="font-medium mb-2">Pro Features:</h4>
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   <li>• Custom CSS styling</li>
-                  <li>• Remove &quot;Powered by SignalLoop&quot;</li>
+                  <li>• Remove &quot;Powered by SignalSloop&quot;</li>
                   <li>• Custom domain embedding</li>
                   <li>• Advanced positioning options</li>
                 </ul>

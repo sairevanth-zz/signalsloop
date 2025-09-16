@@ -168,7 +168,7 @@ export function WidgetTesting({ projectSlug, apiKey }: WidgetTestingProps) {
     if (customSettings.text !== 'Feedback') params.append('text', encodeURIComponent(customSettings.text));
     
     const queryString = params.toString() ? '?' + params.toString() : '';
-    return `<script src="https://signalloop.com/embed/${apiKey}.js${queryString}"></script>`;
+    return `<script src="https://signalsloop.com/embed/${apiKey}.js${queryString}"></script>`;
   };
 
   const downloadTestHtml = () => {
@@ -179,7 +179,7 @@ export function WidgetTesting({ projectSlug, apiKey }: WidgetTestingProps) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SignalLoop Widget Test</title>
+    <title>SignalSloop Widget Test</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -209,7 +209,7 @@ export function WidgetTesting({ projectSlug, apiKey }: WidgetTestingProps) {
 <body>
     <div class="container">
         <h1>🚀 Welcome to Our App</h1>
-        <p>This is a test page for the SignalLoop feedback widget.</p>
+        <p>This is a test page for the SignalSloop feedback widget.</p>
         
         <div class="feature">
             <h3>✨ Amazing Features</h3>
@@ -229,7 +229,7 @@ export function WidgetTesting({ projectSlug, apiKey }: WidgetTestingProps) {
         <p><strong>Try it out:</strong> Look for the feedback widget button and test the complete flow!</p>
     </div>
 
-    <!-- SignalLoop Widget -->
+    <!-- SignalSloop Widget -->
     ${generateTestCode()}
 </body>
 </html>`;
@@ -238,7 +238,7 @@ export function WidgetTesting({ projectSlug, apiKey }: WidgetTestingProps) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'signalloop-widget-test.html';
+    a.download = 'signalsloop-widget-test.html';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

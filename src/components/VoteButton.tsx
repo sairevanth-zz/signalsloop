@@ -21,7 +21,7 @@ const generateVoterHash = (): string => {
   if (typeof window === 'undefined') return '';
   
   // Try to get existing hash from localStorage first
-  const existingHash = localStorage.getItem('signalloop_voter_hash');
+  const existingHash = localStorage.getItem('signalsloop_voter_hash');
   if (existingHash) {
     return existingHash;
   }
@@ -37,7 +37,7 @@ const generateVoterHash = (): string => {
   const hash = btoa(fingerprint).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
   
   // Store for future use
-  localStorage.setItem('signalloop_voter_hash', hash);
+  localStorage.setItem('signalsloop_voter_hash', hash);
   
   return hash;
 };

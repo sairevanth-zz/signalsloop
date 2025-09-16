@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://signalloop.com';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://signalsloop.com';
   
   const robotsTxt = `User-agent: *
 Allow: /

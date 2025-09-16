@@ -254,7 +254,7 @@ export function BillingDashboard({
       { name: '50 posts maximum', included: true },
       { name: 'Public boards only', included: true },
       { name: 'Community support', included: true },
-      { name: 'SignalLoop branding', included: true },
+      { name: 'SignalSloop branding', included: true },
       { name: 'Basic widget', included: true },
       { name: 'Private boards', included: false },
       { name: 'Custom domain', included: false },
@@ -297,7 +297,7 @@ export function BillingDashboard({
             Billing & Subscription
           </h2>
           <p className="text-muted-foreground">
-            Manage your SignalLoop subscription and billing details
+            Manage your SignalSloop subscription and billing details
           </p>
         </div>
         <Badge 
@@ -327,7 +327,7 @@ export function BillingDashboard({
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-lg">
-                {billingInfo.plan === 'pro' ? 'SignalLoop Pro' : 'SignalLoop Free'}
+                {billingInfo.plan === 'pro' ? 'SignalSloop Pro' : 'SignalSloop Free'}
               </h3>
               <p className="text-muted-foreground">
                 {billingInfo.plan === 'pro' 
@@ -550,7 +550,7 @@ export function BillingDashboard({
               {/* Sample billing history */}
               <div className="flex items-center justify-between p-3 border rounded">
                 <div>
-                  <div className="font-medium">SignalLoop Pro - Monthly</div>
+                  <div className="font-medium">SignalSloop Pro - Monthly</div>
                   <div className="text-sm text-muted-foreground">
                     December 15, 2024
                   </div>
@@ -566,7 +566,7 @@ export function BillingDashboard({
               
               <div className="flex items-center justify-between p-3 border rounded">
                 <div>
-                  <div className="font-medium">SignalLoop Pro - Monthly</div>
+                  <div className="font-medium">SignalSloop Pro - Monthly</div>
                   <div className="text-sm text-muted-foreground">
                     November 15, 2024
                   </div>

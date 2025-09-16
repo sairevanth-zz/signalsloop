@@ -41,7 +41,7 @@ export async function GET(
 
     if (keyError || !apiKeyData) {
       return new NextResponse(
-        `console.error('SignalLoop: Invalid API key');`,
+        `console.error('SignalSloop: Invalid API key');`,
         {
           status: 404,
           headers: {
@@ -82,7 +82,7 @@ export async function GET(
     console.error('Error generating widget script:', error);
     
     return new NextResponse(
-      `console.error('SignalLoop: Widget failed to load');`,
+      `console.error('SignalSloop: Widget failed to load');`,
       {
         status: 500,
         headers: {
@@ -118,14 +118,14 @@ function generateWidgetScript(config: WidgetConfig): string {
   'use strict';
   
   // Prevent multiple widget loads
-  if (window.SignalLoopWidget) {
-    console.warn('SignalLoop widget already loaded');
+  if (window.SignalSloopWidget) {
+    console.warn('SignalSloop widget already loaded');
     return;
   }
 
   // Widget configuration
   const CONFIG = ${JSON.stringify(config)};
-  const WIDGET_ID = 'signalloop-widget-' + Math.random().toString(36).substr(2, 9);
+  const WIDGET_ID = 'signalsloop-widget-' + Math.random().toString(36).substr(2, 9);
   const IFRAME_URL = '${process.env.NEXT_PUBLIC_SITE_URL || 'https://signalsloop.com'}/embed/' + CONFIG.apiKey + '/frame';
 
   // Position configurations
@@ -340,7 +340,7 @@ function generateWidgetScript(config: WidgetConfig): string {
   // Simple event tracking
   function trackEvent(eventName) {
     try {
-      // Send to SignalLoop analytics
+      // Send to SignalSloop analytics
       fetch('${process.env.NEXT_PUBLIC_SITE_URL || 'https://signalsloop.com'}/api/track', {
         method: 'POST',
         headers: {
@@ -374,14 +374,14 @@ function generateWidgetScript(config: WidgetConfig): string {
     trackEvent('widget_loaded');
 
     // Add to global scope for API access
-    window.SignalLoopWidget = {
+    window.SignalSloopWidget = {
       open: openWidget,
       close: closeWidget,
       config: CONFIG,
       version: '1.0.0'
     };
 
-    console.log('SignalLoop widget loaded for', CONFIG.projectName);
+    console.log('SignalSloop widget loaded for', CONFIG.projectName);
   }
 
   // Wait for DOM to be ready
@@ -397,9 +397,9 @@ function generateWidgetScript(config: WidgetConfig): string {
       return;
     }
 
-    if (event.data.type === 'signalloop_close') {
+    if (event.data.type === 'signalsloop_close') {
       closeWidget();
-    } else if (event.data.type === 'signalloop_submitted') {
+    } else if (event.data.type === 'signalsloop_submitted') {
       // Show success message or perform action
       trackEvent('feedback_submitted');
       // Optional: Keep modal open or close it

@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    const title = searchParams.get('title') || 'SignalLoop';
+    const title = searchParams.get('title') || 'SignalSloop';
     const subtitle = searchParams.get('subtitle') || 'Simple feedback boards & public roadmaps';
     const votes = searchParams.get('votes');
     const status = searchParams.get('status');
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
                 color: '#1F2937',
               }}
             >
-              SignalLoop
+              SignalSloop
             </span>
           </div>
 

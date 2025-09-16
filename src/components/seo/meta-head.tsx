@@ -16,18 +16,18 @@ interface MetaHeadProps {
 }
 
 export function MetaHead({
-  title = 'SignalLoop - Simple Feedback Boards & Public Roadmaps',
+  title = 'SignalSloop - Simple Feedback Boards & Public Roadmaps',
   description = 'Collect user feedback, let users vote on features, and show progress with public roadmaps. 2-line install widget for any website.',
   image = '/og-default.png',
   type = 'website',
   publishedTime,
   modifiedTime,
   author,
-  siteName = 'SignalLoop',
+  siteName = 'SignalSloop',
   noIndex = false
 }: MetaHeadProps) {
   const pathname = usePathname();
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://signalloop.com';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://signalsloop.com';
   const fullUrl = `${baseUrl}${pathname}`;
   const fullImageUrl = image.startsWith('http') ? image : `${baseUrl}${image}`;
 
@@ -58,8 +58,8 @@ export function MetaHead({
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={fullImageUrl} />
-      <meta name="twitter:creator" content="@signalloop" />
-      <meta name="twitter:site" content="@signalloop" />
+      <meta name="twitter:creator" content="@signalsloop" />
+      <meta name="twitter:site" content="@signalsloop" />
       
       {/* Article specific */}
       {type === 'article' && publishedTime && (
@@ -79,7 +79,7 @@ export function MetaHead({
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            "name": "SignalLoop",
+            "name": "SignalSloop",
             "description": "Simple feedback boards and public roadmaps for SaaS products",
             "url": baseUrl,
             "applicationCategory": "BusinessApplication",
@@ -105,9 +105,9 @@ export function MetaHead({
 // Hook for dynamic page titles
 export function usePageTitle(baseTitle: string, projectName?: string) {
   if (projectName) {
-    return `${baseTitle} - ${projectName} | SignalLoop`;
+    return `${baseTitle} - ${projectName} | SignalSloop`;
   }
-  return `${baseTitle} | SignalLoop`;
+  return `${baseTitle} | SignalSloop`;
 }
 
 // Utility to generate Open Graph image URL
@@ -118,7 +118,7 @@ export function generateOGImage(params: {
   status?: string;
   type?: string;
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://signalloop.com';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://signalsloop.com';
   const searchParams = new URLSearchParams();
   
   searchParams.set('title', params.title.substring(0, 60));

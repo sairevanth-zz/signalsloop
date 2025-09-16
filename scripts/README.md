@@ -1,13 +1,13 @@
 # Demo Data Seeder
 
-This script populates your SignalLoop database with realistic demo data for testing and demonstration purposes.
+This script populates your SignalSloop database with realistic demo data for testing and demonstration purposes.
 
 ## What it creates
 
 The seeder creates a complete demo environment with:
 
 ### 🏢 **Demo Project**
-- **Project Name**: "SignalLoop Demo"
+- **Project Name**: "SignalSloop Demo"
 - **Slug**: `demo`
 - **Plan**: Free tier
 - **ID**: `00000000-0000-0000-0000-000000000001`
