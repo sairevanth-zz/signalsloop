@@ -28,6 +28,7 @@
     "micro": "^10.0.1",
     "next": "15.5.3",
     "openai": "^5.20.3",
+    "posthog-js": "^1.266.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-dropzone": "^14.3.8",
