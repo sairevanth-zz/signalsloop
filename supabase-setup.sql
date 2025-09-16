@@ -9,6 +9,11 @@ CREATE TABLE IF NOT EXISTS projects (
   owner_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   plan VARCHAR(20) DEFAULT 'free' CHECK (plan IN ('free', 'pro')),
   stripe_customer_id VARCHAR(255),
+  subscription_status VARCHAR(50) CHECK (subscription_status IN ('active', 'canceled', 'past_due', 'incomplete', 'incomplete_expired', 'trialing', 'unpaid')),
+  subscription_id VARCHAR(255),
+  current_period_end TIMESTAMP WITH TIME ZONE,
+  cancel_at_period_end BOOLEAN DEFAULT false,
+  downgraded_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -126,7 +131,23 @@ CREATE TABLE IF NOT EXISTS stripe_settings (
 
 CREATE INDEX IF NOT EXISTS idx_stripe_settings_project ON stripe_settings(project_id);
 
--- 9. Changelog Entries Table
+-- 9. Billing Events Table
+CREATE TABLE IF NOT EXISTS billing_events (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  event_type VARCHAR(100) NOT NULL,
+  stripe_customer_id VARCHAR(255),
+  stripe_subscription_id VARCHAR(255),
+  amount INTEGER, -- Amount in cents
+  currency VARCHAR(3) DEFAULT 'usd',
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_billing_events_customer ON billing_events(stripe_customer_id);
+CREATE INDEX IF NOT EXISTS idx_billing_events_type ON billing_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_billing_events_created ON billing_events(created_at DESC);
+
+-- 10. Changelog Entries Table
 CREATE TABLE IF NOT EXISTS changelog_entries (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
@@ -165,6 +186,7 @@ ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE stripe_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE billing_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE changelog_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rate_limit_violations ENABLE ROW LEVEL SECURITY;
 
@@ -263,6 +285,16 @@ CREATE POLICY "Project owners can delete API keys" ON api_keys
     EXISTS (
       SELECT 1 FROM projects 
       WHERE projects.id = api_keys.project_id 
+      AND projects.owner_id = auth.uid()
+    )
+  );
+
+-- Billing Events Policies
+CREATE POLICY "Project owners can view their billing events" ON billing_events
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM projects 
+      WHERE projects.stripe_customer_id = billing_events.stripe_customer_id 
       AND projects.owner_id = auth.uid()
     )
   );
