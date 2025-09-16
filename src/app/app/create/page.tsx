@@ -107,6 +107,7 @@ export default function ProjectWizard() {
       }
 
       // Create project
+      console.log('Creating project:', { name: projectData.name, slug: projectData.slug, owner_id: user.id });
       const { data: project, error: projectError } = await supabase
         .from('projects')
         .insert({
@@ -117,9 +118,14 @@ export default function ProjectWizard() {
         .select()
         .single();
 
-      if (projectError) throw projectError;
+      if (projectError) {
+        console.error('Project creation error:', projectError);
+        throw projectError;
+      }
+      console.log('Project created successfully:', project);
 
       // Create default board
+      console.log('Creating board:', { project_id: project.id, name: projectData.boardName });
       const { error: boardError } = await supabase
         .from('boards')
         .insert({
@@ -127,9 +133,14 @@ export default function ProjectWizard() {
           name: projectData.boardName
         });
 
-      if (boardError) throw boardError;
+      if (boardError) {
+        console.error('Board creation error:', boardError);
+        throw boardError;
+      }
+      console.log('Board created successfully');
 
       // Add user as project owner in members table
+      console.log('Creating member:', { project_id: project.id, user_id: user.id, role: 'owner' });
       const { error: memberError } = await supabase
         .from('members')
         .insert({
@@ -138,17 +149,24 @@ export default function ProjectWizard() {
           role: 'owner'
         });
 
-      if (memberError) throw memberError;
+      if (memberError) {
+        console.error('Member creation error:', memberError);
+        throw memberError;
+      }
+      console.log('Member created successfully');
 
       // Success! Redirect to the board
-      // Use production URL if in production environment
-      const baseUrl = process.env.NODE_ENV === 'production' 
-        ? (process.env.NEXT_PUBLIC_SITE_URL || 'https://signalsloop.vercel.app')
+      // Check if we're on Vercel production domain
+      const isProduction = window.location.hostname === 'signalsloop.vercel.app';
+      const baseUrl = isProduction 
+        ? 'https://signalsloop.vercel.app'
         : window.location.origin;
       
+      console.log('Redirecting to:', `${baseUrl}/${projectData.slug}/board`);
       window.location.href = `${baseUrl}/${projectData.slug}/board`;
       
     } catch (err) {
+      console.error('Project creation error:', err);
       setError((err as Error).message || 'Failed to create project. Please try again.');
     } finally {
       setIsLoading(false);

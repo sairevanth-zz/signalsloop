@@ -114,6 +114,7 @@ export function VoteButton({
 
         if (error) {
           console.error('Error removing vote:', error);
+          console.error('Vote removal details:', { postId, voterHash, error });
           onShowNotification?.('Error removing vote', 'error');
           return;
         }
@@ -142,6 +143,7 @@ export function VoteButton({
             setUserVoted(true); // Update local state to match database
           } else {
             console.error('Error adding vote:', error);
+            console.error('Vote addition details:', { postId, voterHash, error });
             onShowNotification?.('Error recording vote', 'error');
           }
           return;
