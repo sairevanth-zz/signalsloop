@@ -360,10 +360,44 @@ export default function AppPage() {
   };
 
 
-  const copyEmbedCode = (slug: string) => {
-    const embedCode = `<script src="https://signalsloop.com/embed/${slug}.js"></script>`;
-    navigator.clipboard.writeText(embedCode);
-    toast.success('Embed code copied to clipboard!');
+  const copyEmbedCode = async (projectSlug: string, projectId: string) => {
+    try {
+      // Find the project to get its ID
+      const project = projects.find(p => p.slug === projectSlug);
+      if (!project) {
+        toast.error('Project not found');
+        return;
+      }
+
+      // Fetch API keys for this project
+      const { data: apiKeys, error } = await supabase
+        .from('api_keys')
+        .select('key_hash')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('Error fetching API keys:', error);
+        toast.error('Failed to fetch API key');
+        return;
+      }
+
+      if (!apiKeys || apiKeys.length === 0) {
+        toast.error('No API key found. Please create an API key in project settings first.');
+        return;
+      }
+
+      // Decode the API key and generate embed code
+      const apiKey = atob(apiKeys[0].key_hash);
+      const embedCode = `<script src="https://signalsloop.com/embed/${apiKey}.js"></script>`;
+      
+      await navigator.clipboard.writeText(embedCode);
+      toast.success('Embed code copied to clipboard!');
+    } catch (error) {
+      console.error('Error copying embed code:', error);
+      toast.error('Failed to copy embed code');
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -769,7 +803,7 @@ export default function AppPage() {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      onClick={() => copyEmbedCode(project.slug)}
+                      onClick={() => copyEmbedCode(project.slug, project.id)}
                       className="w-full text-xs bg-gray-50/80 hover:bg-gray-100/80 border border-gray-200/50"
                     >
                       <Copy className="w-3 h-3 mr-1" />
