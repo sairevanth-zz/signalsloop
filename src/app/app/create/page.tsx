@@ -178,10 +178,8 @@ export default function ProjectWizard() {
         console.log('API key created successfully');
       }
 
-      // Success! Redirect to the board
-      // Check if we're on Vercel production domain
-      // Redirect to the new project's board
-      window.location.href = `/${projectData.slug}/board`;
+      // Success! Redirect to dashboard to show the new project
+      router.push('/app');
       
     } catch (err) {
       console.error('Project creation error:', err);

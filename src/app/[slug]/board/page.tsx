@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,10 @@ import {
   Plus, 
   MessageSquare, 
   Calendar,
-  User
+  User,
+  LogOut,
+  Settings,
+  Home
 } from 'lucide-react';
 import {
   Select,
@@ -55,6 +59,7 @@ const statusConfig = {
 export default function BoardPage() {
   const params = useParams();
   const router = useRouter();
+  const { user, signOut } = useAuth();
   const supabase = getSupabaseClient();
   
   const [project, setProject] = useState<Project | null>(null);
@@ -66,6 +71,15 @@ export default function BoardPage() {
   const [sortBy, setSortBy] = useState('votes');
   const [showPostForm, setShowPostForm] = useState(false);
   const [boardId, setBoardId] = useState<string | null>(null);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   const loadProjectAndPosts = useCallback(async () => {
     if (!supabase) {
@@ -203,12 +217,34 @@ export default function BoardPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-            <Link href="/" className="hover:text-gray-900">Home</Link>
-            <span>→</span>
-            <span>{project?.name}</span>
-            <span>→</span>
-            <span>Feedback Board</span>
+          <div className="flex items-center justify-between mb-4">
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Link href="/app" className="hover:text-gray-900 flex items-center gap-1">
+                <Home className="w-4 h-4" />
+                Dashboard
+              </Link>
+              <span>→</span>
+              <span>{project?.name}</span>
+              <span>→</span>
+              <span>Feedback Board</span>
+            </div>
+            
+            {/* User Actions */}
+            {user && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">{user.email}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSignOut}
+                  className="flex items-center gap-1"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </Button>
+              </div>
+            )}
           </div>
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -221,13 +257,23 @@ export default function BoardPage() {
               </p>
             </div>
             
-            <Button 
-              onClick={() => setShowPostForm(true)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Submit Feedback
-            </Button>
+            <div className="flex gap-2">
+              {user && (
+                <Link href={`/${params.slug}/settings`}>
+                  <Button variant="outline" className="flex items-center gap-1">
+                    <Settings className="w-4 h-4" />
+                    Settings
+                  </Button>
+                </Link>
+              )}
+              <Button 
+                onClick={() => setShowPostForm(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Submit Feedback
+              </Button>
+            </div>
           </div>
         </div>
 
