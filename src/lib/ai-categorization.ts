@@ -1,9 +1,14 @@
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI client only when API key is available
+const getOpenAIClient = (): OpenAI | null => {
+  if (!process.env.OPENAI_API_KEY) {
+    return null;
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+};
 
 // Get the OpenAI model from environment variables with fallback
 const getOpenAIModel = (): string => {
@@ -46,8 +51,9 @@ export async function categorizeFeedback(
   description?: string
 ): Promise<CategorizationResult> {
   try {
-    // Check if OpenAI API key is configured
-    if (!process.env.OPENAI_API_KEY) {
+    // Check if OpenAI client is available
+    const openai = getOpenAIClient();
+    if (!openai) {
       console.warn('OpenAI API key not configured. Returning default category.');
       return {
         category: 'Other',
