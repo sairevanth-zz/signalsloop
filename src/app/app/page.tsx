@@ -104,6 +104,7 @@ function AppDashboardContent() {
 
       setProjects(transformedProjects);
       console.log('Projects loaded:', transformedProjects.length);
+      console.log('Projects data:', transformedProjects);
 
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -206,6 +207,7 @@ function AppDashboardContent() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (event: any, session: any) => {
           console.log('Auth state changed:', event, session?.user?.email);
+          console.log('Session data:', session);
           if (event === 'SIGNED_IN' && session) {
             loadUserAndProjects();
           } else if (event === 'SIGNED_OUT') {
