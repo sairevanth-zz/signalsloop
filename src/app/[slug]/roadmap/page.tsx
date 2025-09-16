@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import GlobalBanner from '@/components/GlobalBanner';
+import { CategoryBadge } from '@/components/CategoryBadge';
 import {
   Select,
   SelectContent,
@@ -40,6 +41,9 @@ interface RoadmapPost {
   category?: string;
   estimated_completion?: string;
   completion_date?: string;
+  ai_categorized?: boolean;
+  ai_confidence?: number;
+  ai_reasoning?: string;
 }
 
 interface Project {
@@ -517,6 +521,18 @@ export default function PublicRoadmap({
                                 </p>
                               )}
 
+                              {/* AI Category Badge */}
+                              {post.category && (
+                                <div className="mb-3">
+                                  <CategoryBadge 
+                                    category={post.category} 
+                                    aiCategorized={post.ai_categorized}
+                                    confidence={post.ai_confidence}
+                                    size="sm"
+                                  />
+                                </div>
+                              )}
+
                               <div className="flex items-center gap-3 text-xs text-gray-500">
                                 <div className="flex items-center gap-1">
                                   <MessageSquare className="w-3 h-3" />
@@ -533,11 +549,6 @@ export default function PublicRoadmap({
                                   </span>
                                 </div>
 
-                                {post.category && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {post.category}
-                                  </Badge>
-                                )}
                               </div>
 
                               {/* Estimated completion for planned/in-progress */}

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import GlobalBanner from '@/components/GlobalBanner';
+import { CategoryBadge } from '@/components/CategoryBadge';
 import { 
   ArrowLeft,
   Brain,
@@ -58,28 +59,6 @@ interface AIInsights {
   };
 }
 
-// AI categorization data - defined locally to avoid client-side import issues
-const categoryColors = {
-  'Bug': 'bg-red-100 text-red-800 border-red-200',
-  'Feature Request': 'bg-blue-100 text-blue-800 border-blue-200',
-  'Improvement': 'bg-green-100 text-green-800 border-green-200',
-  'UI/UX': 'bg-purple-100 text-purple-800 border-purple-200',
-  'Integration': 'bg-orange-100 text-orange-800 border-orange-200',
-  'Performance': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  'Documentation': 'bg-indigo-100 text-indigo-800 border-indigo-200',
-  'Other': 'bg-gray-100 text-gray-800 border-gray-200'
-};
-
-const categoryDescriptions = {
-  'Bug': 'Reports of broken functionality, errors, or unexpected behavior',
-  'Feature Request': 'Requests for new features or functionality',
-  'Improvement': 'Suggestions to enhance existing features',
-  'UI/UX': 'Issues or suggestions related to user interface or user experience',
-  'Integration': 'Requests or issues related to third-party integrations',
-  'Performance': 'Issues or suggestions related to speed, efficiency, or resource usage',
-  'Documentation': 'Requests for better documentation or help content',
-  'Other': 'Anything that doesn\'t fit the above categories'
-};
 
 const statusConfig = {
   open: { label: 'Open', color: 'bg-blue-100 text-blue-800 border-blue-200' },
@@ -470,9 +449,11 @@ export default function AIInsightsPage() {
                         <div key={category} className="space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <Badge className={`${categoryColors[category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800 border-gray-200'} text-sm`}>
-                                {category}
-                              </Badge>
+                              <CategoryBadge 
+                                category={category} 
+                                aiCategorized={true}
+                                size="sm"
+                              />
                               <span className="text-sm font-medium">{count} posts</span>
                             </div>
                             <span className="text-sm text-gray-600">{percentage}%</span>
@@ -483,9 +464,6 @@ export default function AIInsightsPage() {
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
-                          <p className="text-xs text-gray-600">
-                            {categoryDescriptions[category as keyof typeof categoryDescriptions] || 'Feedback category'}
-                          </p>
                         </div>
                       );
                     })}
@@ -547,12 +525,13 @@ export default function AIInsightsPage() {
                           {post.title}
                         </h4>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <Badge className={`${categoryColors[post.category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800 border-gray-200'} text-xs`}>
-                            {post.category}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {Math.round((post.ai_confidence || 0) * 100)}% confidence
-                          </Badge>
+                          <CategoryBadge 
+                            category={post.category} 
+                            aiCategorized={post.ai_categorized}
+                            confidence={post.ai_confidence}
+                            size="sm"
+                            showConfidence={true}
+                          />
                         </div>
                       </div>
                       

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import GlobalBanner from '@/components/GlobalBanner';
+import { CategoryBadge } from '@/components/CategoryBadge';
 import { 
   Search, 
   Plus, 
@@ -43,6 +44,10 @@ interface Post {
   vote_count: number;
   comment_count: number;
   user_voted: boolean;
+  category?: string | null;
+  ai_categorized?: boolean;
+  ai_confidence?: number;
+  ai_reasoning?: string;
 }
 
 interface Project {
@@ -166,7 +171,11 @@ export default function BoardPage() {
         created_at: post.created_at as string,
         vote_count: (post.vote_count as Array<{count: number}>)?.[0]?.count || 0,
         comment_count: (post.comment_count as Array<{count: number}>)?.[0]?.count || 0,
-        user_voted: false // TODO: Check if current user voted
+        user_voted: false, // TODO: Check if current user voted
+        category: post.category as string | null,
+        ai_categorized: post.ai_categorized as boolean,
+        ai_confidence: post.ai_confidence as number,
+        ai_reasoning: post.ai_reasoning as string
       })) || [];
 
       setPosts(processedPosts);
@@ -407,13 +416,27 @@ export default function BoardPage() {
                         <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
                           {post.title}
                         </h3>
-                        <Badge 
-                          variant="outline" 
-                          className={statusConfig[post.status].color}
-                        >
-                          {statusConfig[post.status].label}
-                        </Badge>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <Badge 
+                            variant="outline" 
+                            className={statusConfig[post.status].color}
+                          >
+                            {statusConfig[post.status].label}
+                          </Badge>
+                        </div>
                       </div>
+
+                      {/* AI Category Badge */}
+                      {post.category && (
+                        <div className="mb-2">
+                          <CategoryBadge 
+                            category={post.category} 
+                            aiCategorized={post.ai_categorized}
+                            confidence={post.ai_confidence}
+                            size="sm"
+                          />
+                        </div>
+                      )}
 
                       {post.description && (
                         <p className="text-gray-600 line-clamp-3 mb-3">

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { CategoryBadge } from '@/components/CategoryBadge';
 import {
   Select,
   SelectContent,
@@ -66,6 +67,10 @@ interface AdminPost {
   tags?: string[];
   duplicate_of?: string;
   board_id: string;
+  category?: string | null;
+  ai_categorized?: boolean;
+  ai_confidence?: number;
+  ai_reasoning?: string;
   board_name: string;
 }
 
@@ -598,6 +603,18 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
                             <p className="text-gray-600 line-clamp-2 mb-3">
                               {post.description}
                             </p>
+                          )}
+
+                          {/* AI Category Badge */}
+                          {post.category && (
+                            <div className="mb-3">
+                              <CategoryBadge 
+                                category={post.category} 
+                                aiCategorized={post.ai_categorized}
+                                confidence={post.ai_confidence}
+                                size="sm"
+                              />
+                            </div>
                           )}
 
                           <div className="flex items-center gap-4 text-sm text-gray-500">

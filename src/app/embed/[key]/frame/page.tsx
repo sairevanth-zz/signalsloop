@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CategoryBadge } from '@/components/CategoryBadge';
 import {
   Select,
   SelectContent,
@@ -40,6 +41,10 @@ interface Post {
   created_at: string;
   vote_count: number;
   user_voted?: boolean;
+  category?: string | null;
+  ai_categorized?: boolean;
+  ai_confidence?: number;
+  ai_reasoning?: string;
 }
 
 interface Project {
@@ -440,6 +445,18 @@ export default function WidgetFrame({ apiKey }: WidgetFrameProps) {
                             {statusConfig[post.status].label}
                           </Badge>
                         </div>
+
+                        {/* AI Category Badge */}
+                        {post.category && (
+                          <div className="mb-2">
+                            <CategoryBadge 
+                              category={post.category} 
+                              aiCategorized={post.ai_categorized}
+                              confidence={post.ai_confidence}
+                              size="sm"
+                            />
+                          </div>
+                        )}
 
                         {post.description && (
                           <p className={`text-sm line-clamp-2 mb-2 ${
