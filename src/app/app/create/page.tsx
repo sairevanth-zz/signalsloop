@@ -180,12 +180,21 @@ export default function ProjectWizard() {
 
       // Success! Redirect to the board
       // Check if we're on Vercel production domain
-      const isProduction = window.location.hostname === 'signalsloop.vercel.app';
+      const currentHostname = window.location.hostname;
+      const currentOrigin = window.location.origin;
+      const isProduction = currentHostname === 'signalsloop.vercel.app';
       const baseUrl = isProduction 
         ? 'https://signalsloop.vercel.app'
-        : window.location.origin;
+        : currentOrigin;
       
-      console.log('Redirecting to:', `${baseUrl}/${projectData.slug}/board`);
+      console.log('Redirect debug:', {
+        currentHostname,
+        currentOrigin,
+        isProduction,
+        baseUrl,
+        finalUrl: `${baseUrl}/${projectData.slug}/board`
+      });
+      
       window.location.href = `${baseUrl}/${projectData.slug}/board`;
       
     } catch (err) {
