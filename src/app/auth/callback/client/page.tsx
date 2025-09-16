@@ -7,42 +7,38 @@ export default function AuthCallbackClient() {
   const router = useRouter();
 
   useEffect(() => {
-    // Force redirect to production URL regardless of what Supabase sends
-    const isProduction = window.location.hostname === 'signalsloop.vercel.app';
+    // AGGRESSIVE FIX: Force redirect to production URL no matter what
+    console.log('🚨 AUTH CALLBACK CLIENT - Current location:', window.location.href);
+    console.log('🚨 AUTH CALLBACK CLIENT - Hostname:', window.location.hostname);
     
-    if (isProduction) {
-      // We're already on production, just redirect to app
-      const hash = window.location.hash;
-      const searchParams = window.location.search;
-      
-      let redirectUrl = 'https://signalsloop.vercel.app/app';
-      
-      if (searchParams.includes('code=')) {
-        // Code-based flow
-        redirectUrl += searchParams;
-      } else if (hash.includes('access_token')) {
-        // Hash-based flow
-        redirectUrl += hash;
-      }
-      
-      console.log('Auth callback client redirecting to:', redirectUrl);
-      window.location.href = redirectUrl;
-    } else {
-      // We're on localhost, force redirect to production
-      const hash = window.location.hash;
-      const searchParams = window.location.search;
-      
-      let redirectUrl = 'https://signalsloop.vercel.app/app';
-      
-      if (searchParams.includes('code=')) {
-        redirectUrl += searchParams;
-      } else if (hash.includes('access_token')) {
-        redirectUrl += hash;
-      }
-      
-      console.log('Force redirecting from localhost to production:', redirectUrl);
-      window.location.href = redirectUrl;
+    // Always redirect to production app, regardless of current location
+    const hash = window.location.hash;
+    const searchParams = window.location.search;
+    
+    let redirectUrl = 'https://signalsloop.vercel.app/app';
+    
+    if (searchParams.includes('code=')) {
+      // Code-based flow
+      redirectUrl += searchParams;
+    } else if (hash.includes('access_token')) {
+      // Hash-based flow
+      redirectUrl += hash;
     }
+    
+    console.log('🚨 AUTH CALLBACK CLIENT - Force redirecting to:', redirectUrl);
+    
+    // Use multiple methods to ensure redirect happens
+    setTimeout(() => {
+      window.location.href = redirectUrl;
+    }, 100);
+    
+    setTimeout(() => {
+      window.location.replace(redirectUrl);
+    }, 200);
+    
+    setTimeout(() => {
+      window.location.assign(redirectUrl);
+    }, 300);
   }, [router]);
 
   return (
