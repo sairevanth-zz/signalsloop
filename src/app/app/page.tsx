@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,8 +35,7 @@ function AppDashboardContent() {
   const [user, setUser] = useState<any>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [supabase, setSupabase] = useState<any>(null);
+  const supabase = getSupabaseClient();
   const [status, setStatus] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -51,22 +50,25 @@ function AppDashboardContent() {
       await new Promise(resolve => setTimeout(resolve, 100));
 
       // Get current user
+      console.log('🔍 Checking for authenticated user...');
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
       if (userError) {
-        console.error('Error getting user:', userError);
+        console.error('❌ Error getting user:', userError);
         toast.error('Authentication error. Please try logging in again.');
         router.push('/login');
         return;
       }
 
       if (!user) {
-        console.log('No user found, redirecting to login');
+        console.log('❌ No user found, redirecting to login');
+        console.log('🔍 Current URL:', window.location.href);
+        console.log('🔍 Auth state:', await supabase.auth.getSession());
         router.push('/login');
         return;
       }
 
-      console.log('User found:', user.email);
+      console.log('✅ User found:', user.email);
       setUser(user);
 
       // Get user's projects
@@ -114,91 +116,18 @@ function AppDashboardContent() {
     }
   }, [supabase, router]);
 
+
+  // Simple auth state check - the auth callback should handle session establishment
   useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
-      setSupabase(client);
-    }
-  }, []);
-
-  // Handle auth code and hash-based auth from magic link
-  useEffect(() => {
-    const handleAuth = async () => {
-      if (!supabase) return;
-      
-      try {
-        // Check for auth code in URL params
-        const authCode = searchParams.get('auth_code');
-        if (authCode) {
-          console.log('Processing auth code:', authCode);
-          setStatus('Exchanging authorization code...');
-          
-          const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
-          
-          if (error) {
-            console.error('Auth code exchange error:', error);
-            toast.error(`Authentication failed: ${error.message}`);
-            router.replace('/login');
-            return;
-          }
-
-          if (data.session && data.user) {
-            console.log('Auth successful, user:', data.user.email);
-            toast.success('Successfully logged in!');
-            // Clear the auth code from URL
-            router.replace('/app');
-          }
-        } else {
-          // Check for hash-based auth (access_token in URL hash)
-          const hash = window.location.hash;
-          if (hash && hash.includes('access_token')) {
-            console.log('Processing hash-based auth');
-            setStatus('Processing authentication...');
-            
-            // Parse the hash to extract access_token
-            const hashParams = new URLSearchParams(hash.substring(1));
-            const accessToken = hashParams.get('access_token');
-            const refreshToken = hashParams.get('refresh_token');
-            
-            if (accessToken) {
-              // Set the session using the tokens from hash
-              const { data, error } = await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken || ''
-              });
-              
-              if (error) {
-                console.error('Hash auth error:', error);
-                toast.error(`Authentication failed: ${error.message}`);
-                router.replace('/login');
-                return;
-              }
-
-              if (data.session && data.user) {
-                console.log('Hash-based auth successful, user:', data.user.email);
-                toast.success('Successfully logged in!');
-                // Clear the hash from URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-                // Clear any auth code from URL as well
-                router.replace('/app');
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Auth processing exception:', error);
-        toast.error('Authentication failed');
-        router.replace('/login');
-      }
-    };
-
     if (supabase) {
-      handleAuth();
+      // Wait a moment for any auth state to be established
+      const timer = setTimeout(() => {
+        loadUserAndProjects();
+      }, 500);
+
+      return () => clearTimeout(timer);
     }
-  }, [supabase, searchParams, router]);
+  }, [supabase, loadUserAndProjects]);
 
   useEffect(() => {
     if (supabase) {

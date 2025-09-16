@@ -34,17 +34,23 @@ export async function GET(request: NextRequest) {
     );
     
     try {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      console.log('🔄 Exchanging code for session...');
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       
       if (error) {
-        console.error('Auth callback error:', error);
+        console.error('❌ Auth callback error:', error);
         return NextResponse.redirect(new URL('/login?error=auth_callback_error', request.url));
       }
+      
+      console.log('✅ Auth successful:', {
+        user: data.user?.email,
+        session: !!data.session
+      });
       
       // Successful authentication - redirect to app
       return NextResponse.redirect(new URL('/app', request.url));
     } catch (error) {
-      console.error('Auth callback exception:', error);
+      console.error('❌ Auth callback exception:', error);
       return NextResponse.redirect(new URL('/login?error=auth_callback_exception', request.url));
     }
   }
