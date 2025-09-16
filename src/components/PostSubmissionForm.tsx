@@ -15,7 +15,9 @@ import {
   MessageSquare,
   Lightbulb,
   Bug,
-  Star
+  Star,
+  Sparkles,
+  Brain
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -33,6 +35,12 @@ interface FormData {
   type: 'feature' | 'bug' | 'improvement' | 'general';
   priority: 'low' | 'medium' | 'high';
   email: string;
+}
+
+interface AICategory {
+  category: string;
+  confidence: number;
+  reasoning?: string;
 }
 
 const postTypes = [
@@ -68,6 +76,44 @@ export default function PostSubmissionForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [aiCategory, setAiCategory] = useState<AICategory | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showAICategory, setShowAICategory] = useState(false);
+
+  const categorizeWithAI = async () => {
+    if (!formData.title.trim()) {
+      toast.error('Please enter a title before analyzing');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch('/api/ai/categorize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAiCategory(data.result);
+        setShowAICategory(true);
+        toast.success('AI analysis complete!');
+      } else {
+        toast.error('AI analysis failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('AI categorization error:', error);
+      toast.error('AI analysis unavailable. Please try again later.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<FormData> = {};
@@ -110,7 +156,7 @@ export default function PostSubmissionForm({
       // Get current user session
       const { data: { session } } = await supabase.auth.getSession();
       
-      // Create the post
+      // Create the post with AI categorization data
       const { error } = await supabase
         .from('posts')
         .insert({
@@ -119,7 +165,10 @@ export default function PostSubmissionForm({
           title: formData.title.trim(),
           description: formData.description.trim(),
           author_email: formData.email.trim() || session?.user?.email || null,
-          status: 'open'
+          status: 'open',
+          ai_category: aiCategory?.category || null,
+          ai_confidence: aiCategory?.confidence || null,
+          ai_reasoning: aiCategory?.reasoning || null
         })
         .select()
         .single();
@@ -144,6 +193,8 @@ export default function PostSubmissionForm({
           email: ''
         });
         setErrors({});
+        setAiCategory(null);
+        setShowAICategory(false);
         onClose();
         onPostSubmitted?.();
       }, 2000);
@@ -274,6 +325,63 @@ export default function PostSubmissionForm({
                   <p className="text-xs text-gray-500 mt-1">
                     {formData.description.length}/500 characters
                   </p>
+                </div>
+
+                {/* AI Analysis Section */}
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Brain className="h-4 w-4 text-purple-600" />
+                      <span className="text-sm font-medium text-gray-700">AI Analysis</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={categorizeWithAI}
+                      disabled={isAnalyzing || !formData.title.trim()}
+                      className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          Analyze
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  {showAICategory && aiCategory && (
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-purple-900">
+                          Suggested Category
+                        </span>
+                        <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
+                          {Math.round(aiCategory.confidence * 100)}% confidence
+                        </span>
+                      </div>
+                      <div className="text-sm text-purple-800 mb-2">
+                        <strong>{aiCategory.category}</strong>
+                      </div>
+                      {aiCategory.reasoning && (
+                        <p className="text-xs text-purple-700">
+                          {aiCategory.reasoning}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  
+                  {!showAICategory && (
+                    <p className="text-xs text-gray-500">
+                      Get AI-powered category suggestions for your feedback
+                    </p>
+                  )}
                 </div>
 
                 {/* Priority */}
