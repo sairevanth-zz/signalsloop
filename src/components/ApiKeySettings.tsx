@@ -255,7 +255,10 @@ export function ApiKeySettings({ projectId, projectSlug }: ApiKeySettingsProps) 
                 <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
               </CardContent>
             </Card>
-          ) : (console.log('Rendering API keys tab, apiKeys:', apiKeys, 'length:', apiKeys.length), apiKeys.length === 0) ? (
+          ) : (() => {
+            console.log('Rendering API keys tab, apiKeys:', apiKeys, 'length:', apiKeys.length);
+            return apiKeys.length === 0;
+          })() ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <Key className="h-12 w-12 text-muted-foreground mb-4" />
@@ -326,7 +329,10 @@ export function ApiKeySettings({ projectId, projectSlug }: ApiKeySettingsProps) 
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {console.log('Rendering embed tab, apiKeys:', apiKeys, 'length:', apiKeys.length)}
+              {(() => {
+                console.log('Rendering embed tab, apiKeys:', apiKeys, 'length:', apiKeys.length);
+                return null;
+              })()}
               {apiKeys.length === 0 ? (
                 <div className="text-center py-8">
                   <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
