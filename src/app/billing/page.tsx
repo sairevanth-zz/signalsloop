@@ -97,22 +97,24 @@ export default function BillingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <p className="ml-3 text-gray-700">Loading billing information...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading billing information...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-lg shadow-md">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
           <p className="text-gray-700">{error}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 shadow-lg"
           >
             Reload Page
           </button>
@@ -123,8 +125,8 @@ export default function BillingPage() {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-lg shadow-md">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Project Not Found</h2>
           <p className="text-gray-700">The project you are looking for does not exist or you do not have access.</p>
         </div>
@@ -133,12 +135,14 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="py-8 px-4">
-      <BillingDashboard 
-        projectId={project.id} 
-        projectSlug={project.slug}
-        stripeSettings={stripeSettings}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="py-8 px-4">
+        <BillingDashboard 
+          projectId={project.id} 
+          projectSlug={project.slug}
+          stripeSettings={stripeSettings}
+        />
+      </div>
     </div>
   );
 }
