@@ -36,6 +36,7 @@ export default function LoginPage() {
     setError('');
 
     try {
+      console.log('Sending magic link with redirect URL:', 'https://signalsloop.vercel.app/auth/callback');
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {

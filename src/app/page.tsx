@@ -24,8 +24,20 @@ export default function Homepage() {
     const hash = window.location.hash;
     if (hash && hash.includes('access_token')) {
       console.log('Found access_token in hash, redirecting to app');
-      // Redirect to app with the hash
-      router.push(`/app${hash}`);
+      // Force production URL redirect
+      const isProduction = window.location.hostname === 'signalsloop.vercel.app';
+      const baseUrl = isProduction 
+        ? 'https://signalsloop.vercel.app'
+        : window.location.origin;
+      
+      console.log('Homepage redirect debug:', {
+        hostname: window.location.hostname,
+        isProduction,
+        baseUrl,
+        finalUrl: `${baseUrl}/app${hash}`
+      });
+      
+      window.location.href = `${baseUrl}/app${hash}`;
     }
   }, [router]);
   return (
