@@ -8,8 +8,8 @@ export async function GET(request: NextRequest) {
   console.log('Full URL:', requestUrl.toString());
 
   if (code) {
-    // Redirect to app with auth code
-    const redirectUrl = new URL('/app', requestUrl.origin);
+    // Redirect to app with auth code - always use production URL
+    const redirectUrl = new URL('/app', 'https://signalsloop.vercel.app');
     redirectUrl.searchParams.set('auth_code', code);
     
     console.log('Redirecting to app with auth code');
@@ -17,9 +17,9 @@ export async function GET(request: NextRequest) {
   }
 
   // No code parameter - this might be a hash-based flow
-  // Redirect to app which can process the hash
+  // Redirect to app which can process the hash - always use production URL
   console.log('No code found, redirecting to app for hash processing');
-  const redirectUrl = new URL('/app', requestUrl.origin);
+  const redirectUrl = new URL('/app', 'https://signalsloop.vercel.app');
   redirectUrl.hash = requestUrl.hash; // Pass the hash (access_token) to the client
   return NextResponse.redirect(redirectUrl.toString());
 }
