@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -31,45 +32,17 @@ interface Project {
 }
 
 function AppDashboardContent() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [user, setUser] = useState<any>(null);
+  const { user, loading: authLoading, signOut } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = getSupabaseClient();
-  const [status, setStatus] = useState('');
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const loadUserAndProjects = useCallback(async () => {
-    if (!supabase) return;
+    if (!supabase || !user) return;
 
     try {
       setLoading(true);
-
-      // Wait a bit for auth state to be established
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Get current user
-      console.log('🔍 Checking for authenticated user...');
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError) {
-        console.error('❌ Error getting user:', userError);
-        toast.error('Authentication error. Please try logging in again.');
-        router.push('/login');
-        return;
-      }
-
-      if (!user) {
-        console.log('❌ No user found, redirecting to login');
-        console.log('🔍 Current URL:', window.location.href);
-        console.log('🔍 Auth state:', await supabase.auth.getSession());
-        router.push('/login');
-        return;
-      }
-
-      console.log('✅ User found:', user.email);
-      setUser(user);
 
       // Get user's projects
       const { data: projectsData, error } = await supabase
@@ -117,84 +90,23 @@ function AppDashboardContent() {
   }, [supabase, router]);
 
 
-  // Handle magic link authentication directly
+  // Load projects when user is available
   useEffect(() => {
-    if (!supabase) return;
-
-    const handleMagicLinkAuth = async () => {
-      // Check if we have an auth code in the URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const authCode = urlParams.get('code');
-      
-      if (authCode) {
-        console.log('🔑 Found auth code, exchanging for session...');
-        setStatus('Authenticating...');
-        
-        try {
-          const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
-          
-          if (error) {
-            console.error('❌ Auth code exchange failed:', error);
-            toast.error('Authentication failed. Please try again.');
-            router.push('/login');
-            return;
-          }
-          
-          if (data.session && data.user) {
-            console.log('✅ Magic link auth successful:', data.user.email);
-            toast.success('Successfully logged in!');
-            // Clear the auth code from URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-            // Load user and projects
-            loadUserAndProjects();
-            return;
-          }
-        } catch (error) {
-          console.error('❌ Auth exception:', error);
-          toast.error('Authentication failed');
-          router.push('/login');
-          return;
-        }
-      }
-      
-      // No auth code, check for existing session
+    if (!authLoading && user) {
       loadUserAndProjects();
-    };
-
-    handleMagicLinkAuth();
-  }, [supabase, loadUserAndProjects, router]);
-
-  useEffect(() => {
-    if (supabase) {
-      // Set up auth state listener
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (event: any, session: any) => {
-          console.log('Auth state changed:', event, session?.user?.email);
-          console.log('Session data:', session);
-          if (event === 'SIGNED_IN' && session) {
-            loadUserAndProjects();
-          } else if (event === 'SIGNED_OUT') {
-            router.push('/login');
-          }
-        }
-      );
-
-      // Initial load
-      loadUserAndProjects();
-
-      // Cleanup subscription
-      return () => {
-        subscription.unsubscribe();
-      };
     }
-  }, [supabase, loadUserAndProjects, router]);
+  }, [authLoading, user, loadUserAndProjects]);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [authLoading, user, router]);
 
   const handleSignOut = async () => {
-    if (!supabase) return;
-
     try {
-      await supabase.auth.signOut();
+      await signOut();
       router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
