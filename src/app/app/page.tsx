@@ -90,6 +90,7 @@ export default function AppPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
+  const [aiAvailable, setAiAvailable] = useState(false);
   const supabase = getSupabaseClient();
   const router = useRouter();
 
@@ -127,6 +128,31 @@ export default function AppPage() {
           if (projectIds.length === 0) return;
 
           console.log('🤖 Loading AI insights for projects:', projectIds);
+
+          // Check if OpenAI API key is available
+          try {
+            const response = await fetch('/api/ai/categorize', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                title: 'Test',
+                description: 'Test'
+              }),
+            });
+
+            if (!response.ok) {
+              console.log('🤖 OpenAI API key not available, skipping AI insights');
+              setAiAvailable(false);
+              return;
+            }
+            setAiAvailable(true);
+          } catch (error) {
+            console.log('🤖 OpenAI API key not available, skipping AI insights');
+            setAiAvailable(false);
+            return;
+          }
 
           try {
       // Get recent posts from all projects
@@ -721,8 +747,8 @@ export default function AppPage() {
                                  variant="outline"
                                  size="sm"
                                  className="bg-gradient-to-r from-purple-50 to-blue-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-blue-100 transition-all duration-200 hover:scale-105"
-                                 title="AI Analysis"
-                                 disabled={!project.posts_count || project.posts_count === 0}
+                                 title={!aiAvailable ? "AI features not available" : "AI Analysis"}
+                                 disabled={!project.posts_count || project.posts_count === 0 || !aiAvailable}
                                >
                                  <Sparkles className="w-4 h-4 text-purple-600 transition-transform duration-200 group-hover:scale-110" />
                                </Button>
