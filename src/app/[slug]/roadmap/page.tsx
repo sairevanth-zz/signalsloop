@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import GlobalBanner from '@/components/GlobalBanner';
 import {
   Select,
   SelectContent,
@@ -330,6 +331,11 @@ export default function PublicRoadmap({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <GlobalBanner 
+        showBackButton={true} 
+        backUrl={`/${projectSlug}/board`} 
+        backLabel="Back to Board" 
+      />
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">

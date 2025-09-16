@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import GlobalBanner from '@/components/GlobalBanner';
 import { 
   Search, 
   Plus, 
@@ -207,7 +208,12 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <GlobalBanner 
+        showBackButton={true} 
+        backUrl="/app" 
+        backLabel="Back to Dashboard" 
+      />
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Error Display */}
         {error && (
