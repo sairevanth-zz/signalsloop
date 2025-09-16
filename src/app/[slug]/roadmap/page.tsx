@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -59,11 +59,7 @@ interface PublicRoadmapProps {
   onShowNotification?: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
+// We'll get the Supabase client inside the component
 
 const statusColumns = {
   open: {
@@ -127,6 +123,8 @@ export default function PublicRoadmap({
     completedThisMonth: 0
   });
 
+  const supabase = getSupabaseClient();
+
   useEffect(() => {
     loadRoadmapData();
   }, [projectSlug]);
@@ -168,11 +166,7 @@ export default function PublicRoadmap({
       for (const status of statusKeys) {
         let query = supabase
           .from('posts')
-          .select(`
-            *,
-            vote_count:votes(count),
-            comment_count:comments(count)
-          `)
+          .select('*')
           .eq('board_id', boardData.id)
           .eq('status', status)
           .is('duplicate_of', null);
@@ -202,15 +196,27 @@ export default function PublicRoadmap({
           continue;
         }
 
-        postsByStatus[status] = statusPosts?.map(post => ({
+        postsByStatus[status] = statusPosts?.map((post: {
+          id: string;
+          title: string;
+          description?: string;
+          author_email?: string;
+          status: string;
+          created_at: string;
+          vote_count?: number;
+          comment_count?: number;
+          category?: string;
+          estimated_completion?: string;
+          completion_date?: string;
+        }) => ({
           id: post.id,
           title: post.title,
           description: post.description,
           author_email: post.author_email,
           status: post.status,
           created_at: post.created_at,
-          vote_count: post.vote_count?.[0]?.count || 0,
-          comment_count: post.comment_count?.[0]?.count || 0,
+          vote_count: post.vote_count || 0,
+          comment_count: post.comment_count || 0,
           category: post.category,
           estimated_completion: post.estimated_completion,
           completion_date: post.completion_date
@@ -323,7 +329,7 @@ export default function PublicRoadmap({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -336,10 +342,12 @@ export default function PublicRoadmap({
                 <span>→</span>
                 <span>Roadmap</span>
               </div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Product Roadmap
+              <h1 className="text-4xl font-bold text-gray-900">
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Product Roadmap
+                </span>
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 mt-2 text-lg">
                 See what we&apos;re building and what&apos;s coming next
               </p>
             </div>
@@ -349,38 +357,63 @@ export default function PublicRoadmap({
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Board
               </Button>
-              <Button onClick={onNavigateToBoard} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={onNavigateToBoard} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                 Submit Feedback
               </Button>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            <div className="bg-white rounded-lg p-4 border">
-              <div className="text-2xl font-bold text-blue-600">{stats.totalIdeas}</div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="text-2xl font-bold text-blue-600">{stats.totalIdeas}</div>
+              </div>
               <div className="text-sm text-gray-600">Ideas</div>
             </div>
-            <div className="bg-white rounded-lg p-4 border">
-              <div className="text-2xl font-bold text-yellow-600">{stats.planned}</div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                  <Target className="w-4 h-4 text-yellow-600" />
+                </div>
+                <div className="text-2xl font-bold text-yellow-600">{stats.planned}</div>
+              </div>
               <div className="text-sm text-gray-600">Planned</div>
             </div>
-            <div className="bg-white rounded-lg p-4 border">
-              <div className="text-2xl font-bold text-orange-600">{stats.inProgress}</div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-orange-600" />
+                </div>
+                <div className="text-2xl font-bold text-orange-600">{stats.inProgress}</div>
+              </div>
               <div className="text-sm text-gray-600">In Progress</div>
             </div>
-            <div className="bg-white rounded-lg p-4 border">
-              <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                </div>
+                <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+              </div>
               <div className="text-sm text-gray-600">Completed</div>
             </div>
-            <div className="bg-white rounded-lg p-4 border">
-              <div className="text-2xl font-bold text-purple-600">{stats.completedThisMonth}</div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-4 h-4 text-purple-600" />
+                </div>
+                <div className="text-2xl font-bold text-purple-600">{stats.completedThisMonth}</div>
+              </div>
               <div className="text-sm text-gray-600">This Month</div>
             </div>
           </div>
 
           {/* Filters */}
-          <div className="bg-white rounded-lg p-4 border mb-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-lg mb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -425,9 +458,9 @@ export default function PublicRoadmap({
             const statusPosts = filteredPosts(posts[status] || []);
             
             return (
-              <div key={status} className={`rounded-lg border-2 ${config.color} min-h-96`}>
+              <div key={status} className={`rounded-xl border-2 ${config.color} min-h-96 shadow-lg backdrop-blur-sm`}>
                 {/* Column Header */}
-                <div className={`p-4 rounded-t-lg border-b ${config.headerColor}`}>
+                <div className={`p-6 rounded-t-xl border-b ${config.headerColor}`}>
                   <div className="flex items-center gap-2 mb-2">
                     {config.icon}
                     <h3 className="font-semibold text-lg">{config.title}</h3>
@@ -439,7 +472,7 @@ export default function PublicRoadmap({
                 </div>
 
                 {/* Posts */}
-                <div className="p-4 space-y-3">
+                <div className="p-6 space-y-4">
                   {statusPosts.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                       <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -456,10 +489,10 @@ export default function PublicRoadmap({
                     statusPosts.map((post) => (
                       <Card 
                         key={post.id} 
-                        className="hover:shadow-md transition-shadow cursor-pointer bg-white"
+                        className="hover:shadow-lg transition-all duration-200 cursor-pointer bg-white/90 backdrop-blur-sm border-white/20 hover:scale-[1.02]"
                         onClick={() => onNavigateToPost?.(post.id)}
                       >
-                        <CardContent className="p-4">
+                        <CardContent className="p-5">
                           <div className="flex items-start gap-3">
                             {/* Vote Button (compact for roadmap) */}
                             <VoteButton
@@ -539,7 +572,7 @@ export default function PublicRoadmap({
         </div>
 
         {/* Legend */}
-        <div className="mt-8 bg-white rounded-lg border p-6">
+        <div className="mt-12 bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-8">
           <h3 className="font-semibold text-gray-900 mb-4">How our roadmap works</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
             <div>

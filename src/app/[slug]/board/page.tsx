@@ -16,7 +16,8 @@ import {
   User,
   LogOut,
   Settings,
-  Home
+  Home,
+  Map
 } from 'lucide-react';
 import {
   Select,
@@ -258,6 +259,12 @@ export default function BoardPage() {
             </div>
             
             <div className="flex gap-2">
+              <Link href={`/${params.slug}/roadmap`}>
+                <Button variant="outline" className="flex items-center gap-1">
+                  <Map className="w-4 h-4" />
+                  Roadmap
+                </Button>
+              </Link>
               {user && (
                 <Link href={`/${params.slug}/settings`}>
                   <Button variant="outline" className="flex items-center gap-1">

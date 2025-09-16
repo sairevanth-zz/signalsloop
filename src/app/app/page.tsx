@@ -16,7 +16,8 @@ import {
   Calendar,
   Users,
   MessageSquare,
-  Copy
+  Copy,
+  Map
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -298,6 +299,11 @@ export default function AppPage() {
                         <Button variant="outline" size="sm" className="w-full">
                           <Eye className="w-4 h-4 mr-1" />
                           View Board
+                        </Button>
+                      </Link>
+                      <Link href={`/${project.slug}/roadmap`}>
+                        <Button variant="outline" size="sm">
+                          <Map className="w-4 h-4" />
                         </Button>
                       </Link>
                       <Link href={`/${project.slug}/settings`}>
