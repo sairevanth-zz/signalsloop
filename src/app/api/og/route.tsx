@@ -8,26 +8,21 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     
     const title = searchParams.get('title') || 'SignalLoop';
-    const subtitle = searchParams.get('subtitle') || 'Simple Feedback Boards & Public Roadmaps';
+    const subtitle = searchParams.get('subtitle') || 'Simple feedback boards & public roadmaps';
     const votes = searchParams.get('votes');
     const status = searchParams.get('status');
+    const type = searchParams.get('type') || 'default'; // 'post', 'board', 'roadmap', 'default'
 
-    // Status colors mapping
+    // Color schemes for different statuses
     const statusColors = {
-      open: '#3B82F6',
-      planned: '#F59E0B', 
-      in_progress: '#8B5CF6',
-      done: '#10B981',
-      declined: '#6B7280'
+      open: '#3B82F6', // blue
+      planned: '#F59E0B', // yellow  
+      in_progress: '#8B5CF6', // purple
+      done: '#10B981', // green
+      declined: '#6B7280' // gray
     };
 
-    const statusLabels = {
-      open: 'Open',
-      planned: 'Planned',
-      in_progress: 'In Progress',
-      done: 'Done',
-      declined: 'Declined'
-    };
+    const bgColor = status ? statusColors[status as keyof typeof statusColors] || '#3B82F6' : '#3B82F6';
 
     return new ImageResponse(
       (
@@ -39,40 +34,42 @@ export async function GET(request: NextRequest) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#ffffff',
-            backgroundImage: 'linear-gradient(45deg, #f8fafc 0%, #e2e8f0 100%)',
+            backgroundColor: '#fff',
+            backgroundImage: `linear-gradient(135deg, ${bgColor}22 0%, ${bgColor}11 100%)`,
+            padding: '40px',
           }}
         >
-          {/* Header */}
+          {/* Logo and Brand */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
               marginBottom: '40px',
             }}
           >
             <div
               style={{
-                fontSize: '48px',
-                fontWeight: 'bold',
-                color: '#1e293b',
+                width: '60px',
+                height: '60px',
+                borderRadius: '15px',
+                background: `linear-gradient(135deg, ${bgColor} 0%, ${bgColor}CC 100%)`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 marginRight: '20px',
               }}
             >
-              📢
+              <span style={{ fontSize: '28px', color: '#fff', fontWeight: 'bold' }}>SL</span>
             </div>
-            <div
+            <span
               style={{
-                fontSize: '48px',
-                fontWeight: 'bold',
-                background: 'linear-gradient(45deg, #3b82f6, #8b5cf6)',
-                backgroundClip: 'text',
-                color: 'transparent',
+                fontSize: '24px',
+                fontWeight: '600',
+                color: '#1F2937',
               }}
             >
               SignalLoop
-            </div>
+            </span>
           </div>
 
           {/* Main Content */}
@@ -81,82 +78,108 @@ export async function GET(request: NextRequest) {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              maxWidth: '900px',
-              padding: '0 40px',
+              textAlign: 'center',
+              maxWidth: '800px',
             }}
           >
-            {/* Title */}
-            <div
+            <h1
               style={{
-                fontSize: title.length > 50 ? '36px' : '48px',
-                fontWeight: 'bold',
-                color: '#1e293b',
-                textAlign: 'center',
-                lineHeight: '1.2',
+                fontSize: title.length > 40 ? '48px' : '56px',
+                fontWeight: '800',
+                color: '#1F2937',
                 marginBottom: '20px',
+                lineHeight: '1.2',
               }}
             >
               {title}
-            </div>
-
-            {/* Subtitle */}
-            <div
+            </h1>
+            
+            <p
               style={{
                 fontSize: '24px',
-                color: '#64748b',
-                textAlign: 'center',
-                lineHeight: '1.4',
+                color: '#6B7280',
                 marginBottom: '30px',
+                lineHeight: '1.4',
               }}
             >
               {subtitle}
-            </div>
+            </p>
 
-            {/* Status and Votes */}
-            {(status || votes) && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '20px',
-                }}
-              >
-                {status && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      backgroundColor: statusColors[status as keyof typeof statusColors] || '#6B7280',
-                      color: 'white',
-                      padding: '8px 16px',
-                      borderRadius: '20px',
-                      fontSize: '18px',
-                      fontWeight: '600',
-                    }}
-                  >
-                    {statusLabels[status as keyof typeof statusLabels] || status}
-                  </div>
-                )}
-                
-                {votes && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      backgroundColor: '#f1f5f9',
-                      color: '#475569',
-                      padding: '8px 16px',
-                      borderRadius: '20px',
-                      fontSize: '18px',
-                      fontWeight: '600',
-                    }}
-                  >
-                    👍 {votes} votes
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Badges/Stats */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '20px',
+                alignItems: 'center',
+              }}
+            >
+              {votes && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    backgroundColor: '#F3F4F6',
+                    borderRadius: '25px',
+                    padding: '12px 20px',
+                  }}
+                >
+                  <span style={{ fontSize: '18px', marginRight: '8px' }}>👍</span>
+                  <span style={{ fontSize: '18px', fontWeight: '600', color: '#1F2937' }}>
+                    {votes} votes
+                  </span>
+                </div>
+              )}
+              
+              {status && (
+                <div
+                  style={{
+                    backgroundColor: bgColor,
+                    color: '#fff',
+                    borderRadius: '25px',
+                    padding: '12px 20px',
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    textTransform: 'capitalize',
+                  }}
+                >
+                  {status.replace('_', ' ')}
+                </div>
+              )}
+              
+              {type === 'board' && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    backgroundColor: '#F3F4F6',
+                    borderRadius: '25px',
+                    padding: '12px 20px',
+                  }}
+                >
+                  <span style={{ fontSize: '18px', marginRight: '8px' }}>💬</span>
+                  <span style={{ fontSize: '18px', fontWeight: '600', color: '#1F2937' }}>
+                    Feedback Board
+                  </span>
+                </div>
+              )}
+
+              {type === 'roadmap' && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    backgroundColor: '#F3F4F6',
+                    borderRadius: '25px',
+                    padding: '12px 20px',
+                  }}
+                >
+                  <span style={{ fontSize: '18px', marginRight: '8px' }}>🗺️</span>
+                  <span style={{ fontSize: '18px', fontWeight: '600', color: '#1F2937' }}>
+                    Public Roadmap
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Footer */}
@@ -166,12 +189,11 @@ export async function GET(request: NextRequest) {
               bottom: '40px',
               display: 'flex',
               alignItems: 'center',
-              color: '#94a3b8',
-              fontSize: '20px',
+              color: '#9CA3AF',
+              fontSize: '16px',
             }}
           >
-            <div style={{ marginRight: '8px' }}>🤖</div>
-            AI-Powered Feedback Boards & Smart Roadmaps
+            <span>🚀 Simple feedback boards & public roadmaps</span>
           </div>
         </div>
       ),
@@ -181,7 +203,7 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (e: unknown) {
-    console.log(`${(e as Error).message}`);
+    console.log(`Failed to generate OG image: ${(e as Error).message}`);
     return new Response(`Failed to generate the image`, {
       status: 500,
     });

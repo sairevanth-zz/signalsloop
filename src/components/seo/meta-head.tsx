@@ -111,18 +111,31 @@ export function usePageTitle(baseTitle: string, projectName?: string) {
 }
 
 // Utility to generate Open Graph image URL
-export function generateOGImage(
+export function generateOGImage(params: {
+  title: string;
+  subtitle?: string;
+  votes?: number;
+  status?: string;
+  type?: string;
+}) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://signalloop.com';
+  const searchParams = new URLSearchParams();
+  
+  searchParams.set('title', params.title.substring(0, 60));
+  if (params.subtitle) searchParams.set('subtitle', params.subtitle.substring(0, 80));
+  if (params.votes) searchParams.set('votes', params.votes.toString());
+  if (params.status) searchParams.set('status', params.status);
+  if (params.type) searchParams.set('type', params.type);
+  
+  return `${baseUrl}/api/og?${searchParams.toString()}`;
+}
+
+// Legacy function for backward compatibility
+export function generateOGImageLegacy(
   title: string, 
   subtitle?: string, 
   votes?: number,
   status?: string
 ) {
-  const params = new URLSearchParams({
-    title: title.substring(0, 60),
-    ...(subtitle && { subtitle: subtitle.substring(0, 80) }),
-    ...(votes && { votes: votes.toString() }),
-    ...(status && { status })
-  });
-  
-  return `/api/og?${params.toString()}`;
+  return generateOGImage({ title, subtitle, votes, status });
 }

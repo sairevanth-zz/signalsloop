@@ -15,7 +15,13 @@ export default function SEODemoPage() {
   const [demoVotes, setDemoVotes] = useState('42');
   const [demoStatus, setDemoStatus] = useState('in_progress');
 
-  const ogImageUrl = generateOGImage(demoTitle, demoDescription, parseInt(demoVotes), demoStatus);
+  const ogImageUrl = generateOGImage({
+    title: demoTitle,
+    subtitle: demoDescription,
+    votes: parseInt(demoVotes),
+    status: demoStatus,
+    type: 'post'
+  });
   const pageTitle = usePageTitle('SEO Demo');
 
   return (
