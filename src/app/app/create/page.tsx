@@ -94,11 +94,9 @@ export default function ProjectWizard() {
     setError('');
 
     try {
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        throw new Error('You must be logged in to create a project');
-      }
+      // Get current user (optional for anonymous creation)
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('User session:', user ? 'logged in' : 'anonymous');
 
       // Check slug availability one more time
       const isAvailable = await checkSlugAvailability(projectData.slug);
@@ -107,14 +105,16 @@ export default function ProjectWizard() {
       }
 
       // Create project
-      console.log('Creating project:', { name: projectData.name, slug: projectData.slug, owner_id: user.id });
+      const projectDataToInsert = {
+        name: projectData.name,
+        slug: projectData.slug,
+        owner_id: user?.id || null // Allow null for anonymous users
+      };
+      console.log('Creating project:', projectDataToInsert);
+      
       const { data: project, error: projectError } = await supabase
         .from('projects')
-        .insert({
-          name: projectData.name,
-          slug: projectData.slug,
-          owner_id: user.id
-        })
+        .insert(projectDataToInsert)
         .select()
         .single();
 
@@ -139,21 +139,25 @@ export default function ProjectWizard() {
       }
       console.log('Board created successfully');
 
-      // Add user as project owner in members table
-      console.log('Creating member:', { project_id: project.id, user_id: user.id, role: 'owner' });
-      const { error: memberError } = await supabase
-        .from('members')
-        .insert({
-          project_id: project.id,
-          user_id: user.id,
-          role: 'owner'
-        });
+      // Add user as project owner in members table (only if logged in)
+      if (user) {
+        console.log('Creating member:', { project_id: project.id, user_id: user.id, role: 'owner' });
+        const { error: memberError } = await supabase
+          .from('members')
+          .insert({
+            project_id: project.id,
+            user_id: user.id,
+            role: 'owner'
+          });
 
-      if (memberError) {
-        console.error('Member creation error:', memberError);
-        throw memberError;
+        if (memberError) {
+          console.error('Member creation error:', memberError);
+          throw memberError;
+        }
+        console.log('Member created successfully');
+      } else {
+        console.log('Anonymous user - skipping member creation');
       }
-      console.log('Member created successfully');
 
       // Success! Redirect to the board
       // Check if we're on Vercel production domain

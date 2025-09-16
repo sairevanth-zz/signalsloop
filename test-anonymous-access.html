@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Anonymous Access</title>
+</head>
+<body>
+    <h1>Testing Anonymous Access to Project Creation</h1>
+    
+    <h2>Test Links:</h2>
+    <ul>
+        <li><a href="https://signalsloop.vercel.app/app/create" target="_blank">Production Create Page</a></li>
+        <li><a href="http://localhost:3000/app/create" target="_blank">Local Create Page</a></li>
+    </ul>
+    
+    <h2>Expected Behavior:</h2>
+    <ul>
+        <li>✅ Should load the project creation form</li>
+        <li>✅ Should allow creating projects without login</li>
+        <li>✅ Should redirect to production URL after creation</li>
+        <li>✅ Should create projects with owner_id = null for anonymous users</li>
+    </ul>
+    
+    <h2>Test Steps:</h2>
+    <ol>
+        <li>Click the production link above</li>
+        <li>Try to create a project without logging in</li>
+        <li>Check browser console for any errors</li>
+        <li>Verify the project gets created</li>
+        <li>Check if redirect goes to production URL</li>
+    </ol>
+    
+    <script>
+        console.log('Test page loaded');
+        
+        // Test if we can access the create page
+        fetch('https://signalsloop.vercel.app/app/create')
+            .then(response => {
+                console.log('Create page response:', response.status);
+                if (response.ok) {
+                    console.log('✅ Create page is accessible');
+                } else {
+                    console.log('❌ Create page returned:', response.status);
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error accessing create page:', error);
+            });
+    </script>
+</body>
+</html>
