@@ -159,6 +159,25 @@ export default function ProjectWizard() {
         console.log('Anonymous user - skipping member creation');
       }
 
+      // Generate API key for widget embedding
+      console.log('Creating API key for project:', project.id);
+      const apiKey = 'sk_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const { error: apiKeyError } = await supabase
+        .from('api_keys')
+        .insert({
+          project_id: project.id,
+          name: 'Default Widget Key',
+          key_hash: btoa(apiKey),
+          usage_count: 0
+        });
+
+      if (apiKeyError) {
+        console.error('API key creation error:', apiKeyError);
+        // Don't throw error - project creation should still succeed
+      } else {
+        console.log('API key created successfully');
+      }
+
       // Success! Redirect to the board
       // Check if we're on Vercel production domain
       const isProduction = window.location.hostname === 'signalsloop.vercel.app';
