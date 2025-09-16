@@ -75,7 +75,8 @@ export default function AppPage() {
       setProjectsLoading(true);
       console.log('Loading projects for user:', user.id, user.email);
       
-      const { data, error } = await supabase
+      // First, get all projects
+      const { data: projects, error: projectsError } = await supabase
         .from('projects')
         .select(`
           id,
@@ -87,22 +88,65 @@ export default function AppPage() {
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false });
 
-      console.log('Projects query result:', { data, error });
+      console.log('Projects query result:', { projects, projectsError });
 
-      if (error) {
-        console.error('Error loading projects:', error);
+      if (projectsError) {
+        console.error('Error loading projects:', projectsError);
         toast.error('Failed to load projects');
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const projectsWithCounts = data?.map((project: any) => ({
-          ...project,
-          posts_count: 0, // We'll add this back later if needed
-          votes_count: 0  // We'll add this back later if needed
-        })) || [];
-        
-        console.log('Projects with counts:', projectsWithCounts);
-        setProjects(projectsWithCounts);
+        return;
       }
+
+      if (!projects || projects.length === 0) {
+        setProjects([]);
+        return;
+      }
+
+      // Get project IDs for counting
+      const projectIds = projects.map((p: Project) => p.id);
+
+      // Count posts per project
+      const { data: postsCounts, error: postsError } = await supabase
+        .from('posts')
+        .select('project_id')
+        .in('project_id', projectIds);
+
+      console.log('Posts counts result:', { postsCounts, postsError });
+
+      // Count votes per project (through posts)
+      const { data: votesCounts, error: votesError } = await supabase
+        .from('votes')
+        .select('post_id, posts!inner(project_id)')
+        .in('posts.project_id', projectIds);
+
+      console.log('Votes counts result:', { votesCounts, votesError });
+
+      // Calculate counts per project
+      const postsCountByProject: Record<string, number> = {};
+      const votesCountByProject: Record<string, number> = {};
+
+      // Count posts
+      postsCounts?.forEach((post: { project_id: string }) => {
+        postsCountByProject[post.project_id] = (postsCountByProject[post.project_id] || 0) + 1;
+      });
+
+      // Count votes
+      votesCounts?.forEach((vote: { posts: { project_id: string } }) => {
+        const projectId = vote.posts?.project_id;
+        if (projectId) {
+          votesCountByProject[projectId] = (votesCountByProject[projectId] || 0) + 1;
+        }
+      });
+
+      // Combine projects with counts
+      const projectsWithCounts = projects.map((project: Project) => ({
+        ...project,
+        posts_count: postsCountByProject[project.id] || 0,
+        votes_count: votesCountByProject[project.id] || 0
+      }));
+      
+      console.log('Projects with counts:', projectsWithCounts);
+      setProjects(projectsWithCounts);
+
     } catch (error) {
       console.error('Error loading projects:', error);
       toast.error('Failed to load projects');
