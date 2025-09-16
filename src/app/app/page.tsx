@@ -73,6 +73,8 @@ export default function AppPage() {
 
     try {
       setProjectsLoading(true);
+      console.log('Loading projects for user:', user.id, user.email);
+      
       const { data, error } = await supabase
         .from('projects')
         .select(`
@@ -87,6 +89,8 @@ export default function AppPage() {
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false });
 
+      console.log('Projects query result:', { data, error });
+
       if (error) {
         console.error('Error loading projects:', error);
         toast.error('Failed to load projects');
@@ -97,6 +101,8 @@ export default function AppPage() {
           posts_count: project.posts?.[0]?.count || 0,
           votes_count: project.votes?.[0]?.count || 0
         })) || [];
+        
+        console.log('Projects with counts:', projectsWithCounts);
         setProjects(projectsWithCounts);
       }
     } catch (error) {

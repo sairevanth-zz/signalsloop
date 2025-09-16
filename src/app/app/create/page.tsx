@@ -173,6 +173,7 @@ export default function ProjectWizard() {
       }
 
       // Success! Redirect to dashboard with cache-busting to show the new project
+      console.log('Project created successfully, redirecting to dashboard...');
       router.push('/app?refresh=' + Date.now());
       
     } catch (err) {
