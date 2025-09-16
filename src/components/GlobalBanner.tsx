@@ -39,21 +39,28 @@ export default function GlobalBanner({
     return '/'; // Homepage if not logged in
   };
 
+  const getBackButtonDestination = () => {
+    if (user) {
+      return '/app'; // Always go to dashboard if logged in
+    }
+    return backUrl || '/'; // Use provided backUrl if not logged in
+  };
+
   return (
     <header className={`bg-white/80 backdrop-blur-sm border-b border-white/20 shadow-lg ${className}`}>
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           {/* Left side - Back button or Logo */}
           <div className="flex items-center space-x-4">
-            {showBackButton && backUrl ? (
-              <Link href={backUrl}>
+            {showBackButton ? (
+              <Link href={getBackButtonDestination()}>
                 <Button 
                   variant="outline" 
                   size="sm"
                   className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  {backLabel}
+                  {user ? 'Back to Dashboard' : (backLabel || 'Back')}
                 </Button>
               </Link>
             ) : null}

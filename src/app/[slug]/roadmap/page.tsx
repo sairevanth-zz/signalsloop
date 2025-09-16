@@ -329,7 +329,6 @@ export default function PublicRoadmap({
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <GlobalBanner 
         showBackButton={true} 
-        backUrl={`/${projectSlug}/board`} 
         backLabel="Back to Board" 
       />
       <div className="max-w-7xl mx-auto px-4 py-8">

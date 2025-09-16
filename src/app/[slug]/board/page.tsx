@@ -211,7 +211,6 @@ export default function BoardPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <GlobalBanner 
         showBackButton={true} 
-        backUrl="/app" 
         backLabel="Back to Dashboard" 
       />
       <div className="max-w-6xl mx-auto px-4 py-8">
