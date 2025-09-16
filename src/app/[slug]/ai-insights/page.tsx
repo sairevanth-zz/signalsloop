@@ -33,7 +33,7 @@ interface Post {
   created_at: string;
   vote_count: number;
   comment_count: number;
-  category?: string;
+  category?: string | null;
   ai_categorized?: boolean;
   ai_confidence?: number;
   ai_reasoning?: string;
@@ -104,7 +104,7 @@ export default function AIInsightsPage() {
           return;
         }
         setAiAvailable(true);
-      } catch (error) {
+      } catch {
         console.log('🤖 OpenAI API key not available, skipping AI insights');
         setAiAvailable(false);
         return;

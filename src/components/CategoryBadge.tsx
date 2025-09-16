@@ -13,7 +13,7 @@ export type FeedbackCategory =
   | 'Other';
 
 export interface CategoryBadgeProps {
-  category: FeedbackCategory | string | null;
+  category: FeedbackCategory | string | null | undefined;
   aiCategorized?: boolean;
   confidence?: number;
   size?: 'sm' | 'md' | 'lg';
