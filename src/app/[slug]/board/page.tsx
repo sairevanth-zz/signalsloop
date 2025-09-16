@@ -182,7 +182,7 @@ export default function BoardPage() {
   }, [loadProjectAndPosts]);
 
   // Filter posts by search term
-  const filteredPosts = posts.filter(post =>
+  const filteredPosts = posts.filter((post: Post) =>
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     post.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -266,6 +266,11 @@ export default function BoardPage() {
                   </Button>
                 </Link>
               )}
+              <Link href={`/${params.slug}/roadmap`}>
+                <Button variant="outline" className="flex items-center gap-1">
+                  View Roadmap
+                </Button>
+              </Link>
               <Button 
                 onClick={() => setShowPostForm(true)}
                 className="bg-blue-600 hover:bg-blue-700"
@@ -286,7 +291,7 @@ export default function BoardPage() {
               <Input
                 placeholder="Search feedback..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
