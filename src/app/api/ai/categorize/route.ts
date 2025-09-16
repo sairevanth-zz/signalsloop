@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { categorizeFeedback, batchCategorizeFeedback } from '@/lib/ai-categorization';
+import { categorizeFeedback, batchCategorizeFeedback, getCurrentModel } from '@/lib/ai-categorization';
 
 /**
  * POST /api/ai/categorize
@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.json({
         success: true,
-        result
+        result,
+        model: getCurrentModel()
       });
     }
     
@@ -51,7 +52,8 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.json({
         success: true,
-        results
+        results,
+        model: getCurrentModel()
       });
     }
 
@@ -89,6 +91,7 @@ export async function GET() {
       'Performance': 'Issues or suggestions related to speed, efficiency, or resource usage',
       'Documentation': 'Requests for better documentation or help content',
       'Other': 'Anything that doesn\'t fit the above categories'
-    }
+    },
+    model: getCurrentModel()
   });
 }

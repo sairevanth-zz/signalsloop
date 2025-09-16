@@ -5,6 +5,19 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Get the OpenAI model from environment variables with fallback
+const getOpenAIModel = (): string => {
+  return process.env.OPENAI_MODEL || 'gpt-4';
+};
+
+/**
+ * Get the currently configured OpenAI model
+ * @returns string - The model name being used
+ */
+export const getCurrentModel = (): string => {
+  return getOpenAIModel();
+};
+
 // Define the categories for feedback posts
 export type FeedbackCategory = 
   | 'Bug'
@@ -23,7 +36,7 @@ export interface CategorizationResult {
 }
 
 /**
- * Categorizes a feedback post using OpenAI GPT-4
+ * Categorizes a feedback post using OpenAI (configurable model)
  * @param title - The title of the feedback post
  * @param description - The description/content of the feedback post
  * @returns Promise<CategorizationResult> - The AI-determined category and confidence
@@ -71,7 +84,7 @@ export async function categorizeFeedback(
 
     // Call OpenAI API
     const response = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: getOpenAIModel(),
       messages: [
         {
           role: 'system',

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,12 +16,37 @@ interface CategorizationResult {
   reasoning?: string;
 }
 
+interface ApiResponse {
+  success: boolean;
+  result?: CategorizationResult;
+  model?: string;
+  error?: string;
+}
+
 export default function AITestPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [result, setResult] = useState<CategorizationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentModel, setCurrentModel] = useState<string>('gpt-4');
+
+  // Fetch current model on page load
+  useEffect(() => {
+    const fetchCurrentModel = async () => {
+      try {
+        const response = await fetch('/api/ai/categorize');
+        const data = await response.json();
+        if (data.success && data.model) {
+          setCurrentModel(data.model);
+        }
+      } catch (error) {
+        console.error('Failed to fetch current model:', error);
+      }
+    };
+    
+    fetchCurrentModel();
+  }, []);
 
   const handleCategorize = async () => {
     if (!title.trim()) {
@@ -45,7 +70,7 @@ export default function AITestPage() {
         }),
       });
 
-      const data = await response.json();
+      const data: ApiResponse = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to categorize feedback');
@@ -53,6 +78,9 @@ export default function AITestPage() {
 
       if (data.success && data.result) {
         setResult(data.result);
+        if (data.model) {
+          setCurrentModel(data.model);
+        }
       } else {
         throw new Error('Invalid response format');
       }
@@ -106,6 +134,11 @@ export default function AITestPage() {
               <p className="text-gray-600 mt-1">
                 Test the AI-powered feedback categorization system
               </p>
+              <div className="mt-2">
+                <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+                  Using: {currentModel}
+                </Badge>
+              </div>
             </div>
           </div>
         </div>
