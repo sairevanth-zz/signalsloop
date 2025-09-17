@@ -361,12 +361,9 @@ export default function AppPage() {
 
 
   const copyEmbedCode = async (projectSlug: string, projectId: string) => {
-    console.log('Copy embed code clicked for:', { projectSlug, projectId });
-    
     try {
       // Find the project to get its ID
       const project = projects.find(p => p.slug === projectSlug);
-      console.log('Found project:', project);
       
       if (!project) {
         toast.error('Project not found');
@@ -374,15 +371,12 @@ export default function AppPage() {
       }
 
       // Fetch API keys for this project
-      console.log('Fetching API keys for project ID:', projectId);
       const { data: apiKeys, error } = await supabase
         .from('api_keys')
         .select('key_hash')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false })
         .limit(1);
-
-      console.log('API keys result:', { apiKeys, error });
 
       if (error) {
         console.error('Error fetching API keys:', error);
@@ -399,10 +393,38 @@ export default function AppPage() {
       const apiKey = atob(apiKeys[0].key_hash);
       const embedCode = `<script src="https://signalsloop.com/embed/${apiKey}.js"></script>`;
       
-      console.log('Generated embed code:', embedCode);
-      
-      await navigator.clipboard.writeText(embedCode);
-      toast.success('Embed code copied to clipboard!');
+      // Try modern clipboard API first
+      try {
+        await navigator.clipboard.writeText(embedCode);
+        toast.success('Embed code copied to clipboard!');
+      } catch (clipboardError) {
+        console.error('Modern clipboard failed, trying fallback:', clipboardError);
+        
+        // Fallback method for older browsers or when clipboard API fails
+        try {
+          const textArea = document.createElement('textarea');
+          textArea.value = embedCode;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          textArea.style.top = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textArea);
+          
+          if (successful) {
+            toast.success('Embed code copied to clipboard!');
+          } else {
+            throw new Error('execCommand failed');
+          }
+        } catch (fallbackError) {
+          console.error('Fallback clipboard method failed:', fallbackError);
+          // Show the embed code in a modal or alert as last resort
+          toast.error('Could not copy to clipboard. Embed code: ' + embedCode);
+        }
+      }
     } catch (error) {
       console.error('Error copying embed code:', error);
       toast.error('Failed to copy embed code');
