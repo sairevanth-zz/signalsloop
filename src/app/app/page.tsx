@@ -702,8 +702,6 @@ export default function AppPage() {
             </div>
           </div>
         )}
-          </>
-        )}
 
         {/* Create New Project */}
         <div className="mb-8">
