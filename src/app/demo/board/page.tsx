@@ -20,7 +20,6 @@ import {
   AlertCircle,
   Zap
 } from 'lucide-react';
-import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface DemoPost {
   id: string;
@@ -38,7 +37,6 @@ export default function DemoBoard() {
   const router = useRouter();
   const [posts, setPosts] = useState<DemoPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const supabase = getSupabaseClient();
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('votes');
@@ -46,63 +44,17 @@ export default function DemoBoard() {
   const [showNewPostForm, setShowNewPostForm] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', description: '' });
 
-  // Load demo data from database
+  // Load demo data from API
   useEffect(() => {
     const loadDemoData = async () => {
-      if (!supabase) {
-        setLoading(false);
-        return;
-      }
-
       try {
-        // Fetch demo posts from the seeded demo project
-        const { data: postsData, error: postsError } = await supabase
-          .from('posts')
-          .select(`
-            id,
-            title,
-            description,
-            status,
-            author_email,
-            created_at
-          `)
-          .eq('board_id', '00000000-0000-0000-0000-000000000001')
-          .order('created_at', { ascending: false });
-
-        if (postsError) {
-          console.error('Error fetching demo posts:', postsError);
-          setLoading(false);
-          return;
+        const response = await fetch('/api/demo/posts');
+        if (!response.ok) {
+          throw new Error('Failed to fetch demo posts');
         }
-
-        // Fetch vote counts for each post
-        const postsWithVotes = await Promise.all(
-          (postsData || []).map(async (post) => {
-            const { data: votesData } = await supabase
-              .from('votes')
-              .select('id')
-              .eq('post_id', post.id);
-
-            const { data: commentsData } = await supabase
-              .from('comments')
-              .select('id')
-              .eq('post_id', post.id);
-
-            return {
-              id: post.id,
-              title: post.title,
-              description: post.description,
-              status: post.status as 'open' | 'planned' | 'in_progress' | 'done',
-              vote_count: votesData?.length || 0,
-              user_voted: false, // Demo mode - no real voting
-              author: post.author_email?.split('@')[0] || 'Demo User',
-              created_at: post.created_at,
-              comments_count: commentsData?.length || 0
-            };
-          })
-        );
-
-        setPosts(postsWithVotes);
+        
+        const data = await response.json();
+        setPosts(data.posts || []);
       } catch (error) {
         console.error('Error loading demo data:', error);
       } finally {
@@ -111,7 +63,7 @@ export default function DemoBoard() {
     };
 
     loadDemoData();
-  }, [supabase]);
+  }, []);
 
   const statusOptions = [
     { value: 'all', label: 'All Status', icon: Filter },
