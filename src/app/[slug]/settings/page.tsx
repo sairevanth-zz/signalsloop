@@ -297,55 +297,92 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">CSV Import</h3>
-                  <p className="text-gray-600">Import posts and votes from CSV files</p>
+                  <p className="text-gray-600">
+                    {project?.plan === 'pro' 
+                      ? 'Import posts and votes from CSV files into your project'
+                      : 'CSV import is available for Pro users'
+                    }
+                  </p>
                 </div>
+                {project?.plan === 'free' && (
+                  <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-lg px-3 py-1">
+                    <span className="text-sm font-medium text-yellow-800">Pro Feature</span>
+                  </div>
+                )}
               </div>
               
-              <div className="space-y-6">
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
-                  <h4 className="font-medium text-blue-900 mb-4 flex items-center">
-                    <Upload className="w-5 h-5 mr-2" />
-                    Import Posts & Votes
-                  </h4>
-                  <p className="text-sm text-blue-700 mb-4">
-                    Upload CSV files to import posts and votes into your board. Supports bulk operations and data validation.
+              {project?.plan === 'pro' ? (
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+                    <h4 className="font-medium text-blue-900 mb-4 flex items-center">
+                      <Upload className="w-5 h-5 mr-2" />
+                      Import Posts & Votes
+                    </h4>
+                    <p className="text-sm text-blue-700 mb-4">
+                      Upload CSV files to import posts and votes into <strong>{project.name}</strong>. Supports bulk operations and data validation.
+                    </p>
+                    <div className="flex gap-3">
+                      <Button 
+                        onClick={() => window.open('/csv-import-demo', '_blank')}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Import CSV
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => window.open('/api/admin/validate-csv', '_blank')}
+                      >
+                        Validate CSV
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
+                      <h5 className="font-medium text-gray-900 mb-2">Supported Formats</h5>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• CSV files with headers</li>
+                        <li>• UTF-8 encoding</li>
+                        <li>• Max file size: 10MB</li>
+                      </ul>
+                    </div>
+                    <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
+                      <h5 className="font-medium text-gray-900 mb-2">Import Features</h5>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• Bulk post creation</li>
+                        <li>• Vote seeding</li>
+                        <li>• Data validation</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-8 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Upload className="h-8 w-8 text-yellow-600" />
+                  </div>
+                  <h4 className="text-xl font-semibold text-yellow-900 mb-2">CSV Import - Pro Feature</h4>
+                  <p className="text-yellow-700 mb-6 max-w-md mx-auto">
+                    Import posts and votes from CSV files. Bulk operations, data validation, and automated processing.
                   </p>
-                  <div className="flex gap-3">
-                    <Button 
-                      onClick={() => window.open('/csv-import-demo', '_blank')}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Open CSV Import
-                    </Button>
+                  <Button 
+                    onClick={() => window.open('/billing', '_blank')}
+                    className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white"
+                  >
+                    Upgrade to Pro
+                  </Button>
+                  <div className="mt-4">
                     <Button 
                       variant="outline"
-                      onClick={() => window.open('/api/admin/validate-csv', '_blank')}
+                      onClick={() => window.open('/csv-import-demo', '_blank')}
+                      className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
                     >
-                      Validate CSV
+                      View Demo
                     </Button>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
-                    <h5 className="font-medium text-gray-900 mb-2">Supported Formats</h5>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• CSV files with headers</li>
-                      <li>• UTF-8 encoding</li>
-                      <li>• Max file size: 10MB</li>
-                    </ul>
-                  </div>
-                  <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
-                    <h5 className="font-medium text-gray-900 mb-2">Import Features</h5>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Bulk post creation</li>
-                      <li>• Vote seeding</li>
-                      <li>• Data validation</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </TabsContent>
 
@@ -354,63 +391,100 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">Analytics Dashboard</h3>
-                  <p className="text-gray-600">View detailed analytics and insights for your project</p>
+                  <p className="text-gray-600">
+                    {project?.plan === 'pro' 
+                      ? 'View detailed analytics and insights for your project'
+                      : 'Advanced analytics is available for Pro users'
+                    }
+                  </p>
                 </div>
+                {project?.plan === 'free' && (
+                  <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-lg px-3 py-1">
+                    <span className="text-sm font-medium text-yellow-800">Pro Feature</span>
+                  </div>
+                )}
               </div>
               
-              <div className="space-y-6">
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
-                  <h4 className="font-medium text-green-900 mb-4 flex items-center">
-                    <BarChart3 className="w-5 h-5 mr-2" />
-                    PostHog Analytics
-                  </h4>
-                  <p className="text-sm text-green-700 mb-4">
-                    Track user behavior, post engagement, and project metrics with our integrated analytics dashboard.
+              {project?.plan === 'pro' ? (
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
+                    <h4 className="font-medium text-green-900 mb-4 flex items-center">
+                      <BarChart3 className="w-5 h-5 mr-2" />
+                      {project.name} Analytics
+                    </h4>
+                    <p className="text-sm text-green-700 mb-4">
+                      Track user behavior, post engagement, and project metrics for <strong>{project.name}</strong> with our integrated analytics dashboard.
+                    </p>
+                    <div className="flex gap-3">
+                      <Button 
+                        onClick={() => window.open('/analytics-demo', '_blank')}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        View Analytics
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => window.open('/posthog-demo', '_blank')}
+                      >
+                        PostHog Demo
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
+                      <h5 className="font-medium text-gray-900 mb-2">User Tracking</h5>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• Page views</li>
+                        <li>• User sessions</li>
+                        <li>• Event tracking</li>
+                      </ul>
+                    </div>
+                    <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
+                      <h5 className="font-medium text-gray-900 mb-2">Post Metrics</h5>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• Vote counts</li>
+                        <li>• Comment activity</li>
+                        <li>• Category breakdown</li>
+                      </ul>
+                    </div>
+                    <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
+                      <h5 className="font-medium text-gray-900 mb-2">AI Insights</h5>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• Categorization stats</li>
+                        <li>• Confidence scores</li>
+                        <li>• Time saved</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-8 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <BarChart3 className="h-8 w-8 text-yellow-600" />
+                  </div>
+                  <h4 className="text-xl font-semibold text-yellow-900 mb-2">Advanced Analytics - Pro Feature</h4>
+                  <p className="text-yellow-700 mb-6 max-w-md mx-auto">
+                    Track user behavior, post engagement, and project metrics with detailed analytics and AI insights.
                   </p>
-                  <div className="flex gap-3">
-                    <Button 
-                      onClick={() => window.open('/analytics-demo', '_blank')}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <BarChart3 className="w-4 h-4 mr-2" />
-                      View Analytics
-                    </Button>
+                  <Button 
+                    onClick={() => window.open('/billing', '_blank')}
+                    className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white"
+                  >
+                    Upgrade to Pro
+                  </Button>
+                  <div className="mt-4">
                     <Button 
                       variant="outline"
-                      onClick={() => window.open('/posthog-demo', '_blank')}
+                      onClick={() => window.open('/analytics-demo', '_blank')}
+                      className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
                     >
-                      PostHog Demo
+                      View Demo
                     </Button>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
-                    <h5 className="font-medium text-gray-900 mb-2">User Tracking</h5>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Page views</li>
-                      <li>• User sessions</li>
-                      <li>• Event tracking</li>
-                    </ul>
-                  </div>
-                  <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
-                    <h5 className="font-medium text-gray-900 mb-2">Post Metrics</h5>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Vote counts</li>
-                      <li>• Comment activity</li>
-                      <li>• Category breakdown</li>
-                    </ul>
-                  </div>
-                  <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
-                    <h5 className="font-medium text-gray-900 mb-2">AI Insights</h5>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Categorization stats</li>
-                      <li>• Confidence scores</li>
-                      <li>• Time saved</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </TabsContent>
 
@@ -419,79 +493,116 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">Admin Tools</h3>
-                  <p className="text-gray-600">Additional tools and utilities for project management</p>
+                  <p className="text-gray-600">
+                    {project?.plan === 'pro' 
+                      ? 'Additional tools and utilities for project management'
+                      : 'Admin tools are available for Pro users'
+                    }
+                  </p>
                 </div>
+                {project?.plan === 'free' && (
+                  <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-lg px-3 py-1">
+                    <span className="text-sm font-medium text-yellow-800">Pro Feature</span>
+                  </div>
+                )}
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6">
-                  <h4 className="font-medium text-purple-900 mb-3 flex items-center">
-                    <Wrench className="w-5 h-5 mr-2" />
-                    SEO Tools
-                  </h4>
-                  <p className="text-sm text-purple-700 mb-4">
-                    Optimize your project's search engine visibility and social media sharing.
-                  </p>
-                  <Button 
-                    onClick={() => window.open('/seo-demo', '_blank')}
-                    variant="outline"
-                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                  >
-                    SEO Demo
-                  </Button>
-                </div>
+              {project?.plan === 'pro' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6">
+                    <h4 className="font-medium text-purple-900 mb-3 flex items-center">
+                      <Wrench className="w-5 h-5 mr-2" />
+                      SEO Tools
+                    </h4>
+                    <p className="text-sm text-purple-700 mb-4">
+                      Optimize <strong>{project.name}</strong>'s search engine visibility and social media sharing.
+                    </p>
+                    <Button 
+                      onClick={() => window.open('/seo-demo', '_blank')}
+                      variant="outline"
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                    >
+                      SEO Tools
+                    </Button>
+                  </div>
 
-                <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-6">
-                  <h4 className="font-medium text-orange-900 mb-3 flex items-center">
-                    <BarChart3 className="w-5 h-5 mr-2" />
-                    Open Graph
-                  </h4>
-                  <p className="text-sm text-orange-700 mb-4">
-                    Generate dynamic Open Graph images for better social media sharing.
-                  </p>
-                  <Button 
-                    onClick={() => window.open('/og-demo', '_blank')}
-                    variant="outline"
-                    className="border-orange-300 text-orange-700 hover:bg-orange-50"
-                  >
-                    OG Demo
-                  </Button>
-                </div>
+                  <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-6">
+                    <h4 className="font-medium text-orange-900 mb-3 flex items-center">
+                      <BarChart3 className="w-5 h-5 mr-2" />
+                      Open Graph
+                    </h4>
+                    <p className="text-sm text-orange-700 mb-4">
+                      Generate dynamic Open Graph images for <strong>{project.name}</strong> social media sharing.
+                    </p>
+                    <Button 
+                      onClick={() => window.open('/og-demo', '_blank')}
+                      variant="outline"
+                      className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                    >
+                      OG Generator
+                    </Button>
+                  </div>
 
-                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg p-6">
-                  <h4 className="font-medium text-indigo-900 mb-3 flex items-center">
-                    <Settings className="w-5 h-5 mr-2" />
-                    Demo Board
-                  </h4>
-                  <p className="text-sm text-indigo-700 mb-4">
-                    View the demo board with realistic data and interactive features.
-                  </p>
-                  <Button 
-                    onClick={() => window.open('/demo/board', '_blank')}
-                    variant="outline"
-                    className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
-                  >
-                    View Demo
-                  </Button>
-                </div>
+                  <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg p-6">
+                    <h4 className="font-medium text-indigo-900 mb-3 flex items-center">
+                      <Settings className="w-5 h-5 mr-2" />
+                      Project Board
+                    </h4>
+                    <p className="text-sm text-indigo-700 mb-4">
+                      View <strong>{project.name}</strong> board with all posts and interactive features.
+                    </p>
+                    <Button 
+                      onClick={() => window.open(`/${project.slug}/board`, '_blank')}
+                      variant="outline"
+                      className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                    >
+                      View Board
+                    </Button>
+                  </div>
 
-                <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-lg p-6">
-                  <h4 className="font-medium text-teal-900 mb-3 flex items-center">
-                    <Key className="w-5 h-5 mr-2" />
-                    API Testing
-                  </h4>
-                  <p className="text-sm text-teal-700 mb-4">
-                    Test API endpoints and validate data import/export functionality.
+                  <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-lg p-6">
+                    <h4 className="font-medium text-teal-900 mb-3 flex items-center">
+                      <Key className="w-5 h-5 mr-2" />
+                      API Testing
+                    </h4>
+                    <p className="text-sm text-teal-700 mb-4">
+                      Test API endpoints and validate data import/export for <strong>{project.name}</strong>.
+                    </p>
+                    <Button 
+                      onClick={() => window.open('/api/analytics/events', '_blank')}
+                      variant="outline"
+                      className="border-teal-300 text-teal-700 hover:bg-teal-50"
+                    >
+                      API Test
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-8 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Wrench className="h-8 w-8 text-yellow-600" />
+                  </div>
+                  <h4 className="text-xl font-semibold text-yellow-900 mb-2">Admin Tools - Pro Feature</h4>
+                  <p className="text-yellow-700 mb-6 max-w-md mx-auto">
+                    Access advanced admin tools including SEO optimization, Open Graph generation, and API testing.
                   </p>
                   <Button 
-                    onClick={() => window.open('/api/analytics/events', '_blank')}
-                    variant="outline"
-                    className="border-teal-300 text-teal-700 hover:bg-teal-50"
+                    onClick={() => window.open('/billing', '_blank')}
+                    className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white"
                   >
-                    API Test
+                    Upgrade to Pro
                   </Button>
+                  <div className="mt-4">
+                    <Button 
+                      variant="outline"
+                      onClick={() => window.open('/seo-demo', '_blank')}
+                      className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                    >
+                      View Demo
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
