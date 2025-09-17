@@ -61,7 +61,7 @@ interface Project {
 interface RecentPost {
   id: string;
   title: string;
-  content?: string;
+  description?: string;
   project_slug: string;
   ai_category?: string;
   ai_confidence?: number;
@@ -78,7 +78,7 @@ interface AIInsights {
 interface PostWithProject {
   id: string;
   title: string;
-  content?: string;
+  description?: string;
   project_id: string;
   projects: {
     slug: string;
@@ -161,7 +161,7 @@ export default function AppPage() {
         .select(`
           id,
           title,
-          content,
+          description,
           project_id,
           projects!inner(slug)
         `)
@@ -192,7 +192,7 @@ export default function AppPage() {
               },
               body: JSON.stringify({
                 title: post.title,
-                description: post.content
+                description: post.description
               }),
             });
 
