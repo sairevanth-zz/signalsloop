@@ -361,21 +361,28 @@ export default function AppPage() {
 
 
   const copyEmbedCode = async (projectSlug: string, projectId: string) => {
+    console.log('Copy embed code clicked for:', { projectSlug, projectId });
+    
     try {
       // Find the project to get its ID
       const project = projects.find(p => p.slug === projectSlug);
+      console.log('Found project:', project);
+      
       if (!project) {
         toast.error('Project not found');
         return;
       }
 
       // Fetch API keys for this project
+      console.log('Fetching API keys for project ID:', projectId);
       const { data: apiKeys, error } = await supabase
         .from('api_keys')
         .select('key_hash')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false })
         .limit(1);
+
+      console.log('API keys result:', { apiKeys, error });
 
       if (error) {
         console.error('Error fetching API keys:', error);
@@ -391,6 +398,8 @@ export default function AppPage() {
       // Decode the API key and generate embed code
       const apiKey = atob(apiKeys[0].key_hash);
       const embedCode = `<script src="https://signalsloop.com/embed/${apiKey}.js"></script>`;
+      
+      console.log('Generated embed code:', embedCode);
       
       await navigator.clipboard.writeText(embedCode);
       toast.success('Embed code copied to clipboard!');
