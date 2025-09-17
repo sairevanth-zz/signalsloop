@@ -10,6 +10,15 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get('next') ?? '/app';
   const error = searchParams.get('error');
 
+  // Debug logging
+  console.log('Auth callback received:', {
+    url: request.url,
+    origin,
+    code: code ? `${code.substring(0, 10)}...` : 'none',
+    error,
+    searchParams: Object.fromEntries(searchParams.entries())
+  });
+
   // Handle OAuth errors
   if (error) {
     console.error('OAuth error:', error);
@@ -91,5 +100,6 @@ export async function GET(request: NextRequest) {
   }
 
   // Return the user to an error page with instructions
+  console.error('No code provided in callback URL');
   return NextResponse.redirect(`${origin}/login?error=no_code_provided`);
 }
