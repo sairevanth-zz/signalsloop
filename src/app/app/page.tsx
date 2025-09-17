@@ -563,7 +563,7 @@ export default function AppPage() {
         </div>
 
         {/* AI Insights Toggle and Section */}
-        {projectsWithCounts.filter(p => (p.posts_count || 0) > 0).length > 0 && (
+        {projects.filter(p => (p.posts_count || 0) > 0).length > 0 && (
           <>
             {/* AI Insights Toggle Button */}
             {!showAIInsights && (
@@ -573,7 +573,7 @@ export default function AppPage() {
                     setShowAIInsights(true);
                     setLoadingAIInsights(true);
                     // Load AI insights when user explicitly requests them
-                    const projectsWithPosts = projectsWithCounts
+                    const projectsWithPosts = projects
                       .filter(p => (p.posts_count || 0) > 0)
                       .map(p => p.id);
                     if (projectsWithPosts.length > 0) {
