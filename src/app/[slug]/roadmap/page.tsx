@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import GlobalBanner from '@/components/GlobalBanner';
 import { CategoryBadge } from '@/components/CategoryBadge';
+import RoadmapPhaseManager from '@/components/RoadmapPhaseManager';
+import DragDropRoadmap from '@/components/DragDropRoadmap';
 import {
   Select,
   SelectContent,
@@ -108,6 +110,7 @@ export default function PublicRoadmap() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [timeFilter, setTimeFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'view' | 'manage'>('view');
 
   // Stats
   const [stats, setStats] = useState({
@@ -301,6 +304,68 @@ export default function PublicRoadmap() {
     });
   };
 
+  const handlePostUpdate = (postId: string, updates: any) => {
+    setPosts(prev => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach(status => {
+        updated[status] = updated[status].map(post =>
+          post.id === postId ? { ...post, ...updates } : post
+        );
+      });
+      return updated;
+    });
+  };
+
+  const handleBulkUpdate = (postIds: string[], updates: any) => {
+    setPosts(prev => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach(status => {
+        updated[status] = updated[status].map(post =>
+          postIds.includes(post.id) ? { ...post, ...updates } : post
+        );
+      });
+      return updated;
+    });
+  };
+
+  const handlePostMove = async (postId: string, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/posts/${postId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to move post');
+      }
+
+      // Update local state
+      setPosts(prev => {
+        const updated = { ...prev };
+        
+        // Remove post from current status
+        Object.keys(updated).forEach(status => {
+          updated[status] = updated[status].filter(post => post.id !== postId);
+        });
+        
+        // Find the post and add it to new status
+        const postToMove = Object.values(prev).flat().find(post => post.id === postId);
+        if (postToMove) {
+          updated[newStatus] = [...(updated[newStatus] || []), { ...postToMove, status: newStatus }];
+        }
+        
+        return updated;
+      });
+    } catch (error) {
+      console.error('Move post error:', error);
+      // You could add toast notification here
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -352,6 +417,30 @@ export default function PublicRoadmap() {
             </div>
             
             <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-lg p-1 border border-white/20">
+                <Button
+                  variant={viewMode === 'view' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('view')}
+                  className={viewMode === 'view' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                >
+                  View
+                </Button>
+                <Button
+                  variant={viewMode === 'manage' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('manage')}
+                  className={viewMode === 'manage' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                >
+                  Manage
+                </Button>
+              </div>
+              <RoadmapPhaseManager
+                posts={posts}
+                onPostUpdate={handlePostUpdate}
+                onBulkUpdate={handleBulkUpdate}
+                projectSlug={projectSlug}
+              />
               <Button variant="outline" onClick={() => router.push(`/${projectSlug}/board`)}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Board
@@ -452,7 +541,15 @@ export default function PublicRoadmap() {
         </div>
 
         {/* Roadmap Columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {viewMode === 'manage' ? (
+          <DragDropRoadmap
+            posts={posts}
+            onPostMove={handlePostMove}
+            onVoteChange={handleVoteChange}
+            projectSlug={projectSlug}
+          />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {Object.entries(statusColumns).map(([status, config]) => {
             const statusPosts = filteredPosts(posts[status] || []);
             
@@ -575,7 +672,8 @@ export default function PublicRoadmap() {
               </div>
             );
           })}
-        </div>
+          </div>
+        )}
 
         {/* Legend */}
         <div className="mt-12 bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-8">
