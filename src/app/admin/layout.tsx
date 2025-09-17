@@ -57,12 +57,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       // Check if user is admin
       const adminEmails = [
         'revanth@signalloop.com', // Replace with your actual admin email
-        'admin@signalloop.com'    // Add more admin emails as needed
+        'admin@signalloop.com',   // Add more admin emails as needed
+        // Add your actual email here - you can find it in the browser console or Supabase dashboard
       ];
 
       if (!session.user.email || !adminEmails.includes(session.user.email)) {
-        toast.error('Admin access required');
-        router.push('/login');
+        toast.error(`Admin access required. Your email (${session.user.email}) is not authorized.`);
+        console.log('Current user email:', session.user.email);
+        console.log('Authorized admin emails:', adminEmails);
+        router.push('/login?error=admin_required');
         return;
       }
 
