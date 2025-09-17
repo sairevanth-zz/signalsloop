@@ -671,7 +671,6 @@ export default function AppPage() {
               </div>
             </div>
           </div>
-            )}
           </>
         )}
 
