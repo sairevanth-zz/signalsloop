@@ -25,6 +25,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.2",
+    "file-saver": "^2.0.5",
     "lucide-react": "^0.544.0",
     "micro": "^10.0.1",
     "next": "15.5.3",
@@ -38,7 +39,8 @@
     "resend": "^6.0.3",
     "sonner": "^2.0.7",
     "stripe": "^18.5.0",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

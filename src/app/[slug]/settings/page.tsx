@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ApiKeySettings } from '@/components/ApiKeySettings';
 import BoardSettings from '@/components/BoardSettings';
 import GlobalBanner from '@/components/GlobalBanner';
+import FeedbackExport from '@/components/FeedbackExport';
 import { toast } from 'sonner';
 import { useParams, useRouter } from 'next/navigation';
 import { 
@@ -575,6 +576,25 @@ export default function SettingsPage() {
                     >
                       API Test
                     </Button>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg p-6">
+                    <h4 className="font-medium text-emerald-900 mb-3 flex items-center">
+                      <Upload className="w-5 h-5 mr-2" />
+                      Data Export
+                    </h4>
+                    <p className="text-sm text-emerald-700 mb-4">
+                      Export feedback data from <strong>{project.name}</strong> to CSV or Excel for analysis in external tools.
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      <FeedbackExport
+                        projectSlug={project.slug}
+                        projectName={project.name}
+                        totalPosts={0} // We don't have this data in settings context
+                        totalComments={0}
+                        totalVotes={0}
+                      />
+                    </div>
                   </div>
                 </div>
               ) : (

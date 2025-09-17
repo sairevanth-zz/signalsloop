@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import GlobalBanner from '@/components/GlobalBanner';
 import { CategoryBadge } from '@/components/CategoryBadge';
 import BoardShare from '@/components/BoardShare';
+import FeedbackExport from '@/components/FeedbackExport';
 import { 
   Search, 
   Plus, 
@@ -395,6 +396,14 @@ export default function BoardPage() {
                   )}
                 </DialogContent>
               </Dialog>
+              
+              <FeedbackExport
+                projectSlug={params?.slug as string}
+                projectName={project?.name || ''}
+                totalPosts={posts.length}
+                totalComments={posts.reduce((sum, post) => sum + (post.comment_count || 0), 0)}
+                totalVotes={posts.reduce((sum, post) => sum + (post.vote_count || 0), 0)}
+              />
               
               <Link href={`/${params?.slug}/roadmap`}>
                 <Button variant="outline" className="flex items-center gap-1">

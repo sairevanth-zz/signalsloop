@@ -31,6 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import GlobalBanner from '@/components/GlobalBanner';
 import BoardShare from '@/components/BoardShare';
+import FeedbackExport from '@/components/FeedbackExport';
 import { 
   Plus, 
   Settings, 
@@ -913,6 +914,15 @@ export default function AppPage() {
                       <Copy className="w-3 h-3 mr-1" />
                       Copy Embed Code
                     </Button>
+
+                    {/* Export Data */}
+                    <FeedbackExport
+                      projectSlug={project.slug}
+                      projectName={project.name}
+                      totalPosts={project.posts_count || 0}
+                      totalComments={0} // We don't have this data in the dashboard context
+                      totalVotes={project.votes_count || 0}
+                    />
                   </div>
                 </div>
               </div>
