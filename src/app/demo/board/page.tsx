@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,8 +20,7 @@ import {
   AlertCircle,
   Zap
 } from 'lucide-react';
-// import VoteButton from '@/components/VoteButton';
-// import { toast } from 'sonner';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface DemoPost {
   id: string;
@@ -37,69 +36,89 @@ interface DemoPost {
 
 export default function DemoBoard() {
   const router = useRouter();
-  const [posts, setPosts] = useState<DemoPost[]>([
-    {
-      id: '1',
-      title: 'Dark mode support',
-      description: 'Add a dark mode toggle to the application. Many users have requested this feature.',
-      status: 'done',
-      vote_count: 127,
-      user_voted: false,
-      author: 'Sarah Chen',
-      created_at: '2024-01-15T10:30:00Z',
-      comments_count: 23
-    },
-    {
-      id: '2',
-      title: 'Mobile app for iOS',
-      description: 'Create a native iOS app to complement the web platform.',
-      status: 'in_progress',
-      vote_count: 89,
-      user_voted: true,
-      author: 'Mike Johnson',
-      created_at: '2024-01-20T14:15:00Z',
-      comments_count: 15
-    },
-    {
-      id: '3',
-      title: 'Advanced search filters',
-      description: 'Add filters for date range, author, and status to help users find relevant posts.',
-      status: 'planned',
-      vote_count: 45,
-      user_voted: false,
-      author: 'Alex Rivera',
-      created_at: '2024-01-25T09:45:00Z',
-      comments_count: 8
-    },
-    {
-      id: '4',
-      title: 'Export data to CSV',
-      description: 'Allow users to export their feedback data for analysis.',
-      status: 'open',
-      vote_count: 32,
-      user_voted: false,
-      author: 'Emma Wilson',
-      created_at: '2024-02-01T16:20:00Z',
-      comments_count: 5
-    },
-    {
-      id: '5',
-      title: 'Integration with Slack',
-      description: 'Send notifications to Slack channels when new feedback is submitted.',
-      status: 'open',
-      vote_count: 67,
-      user_voted: false,
-      author: 'David Kim',
-      created_at: '2024-02-05T11:10:00Z',
-      comments_count: 12
-    }
-  ]);
+  const [posts, setPosts] = useState<DemoPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const supabase = getSupabaseClient();
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('votes');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewPostForm, setShowNewPostForm] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', description: '' });
+
+  // Load demo data from database
+  useEffect(() => {
+    const loadDemoData = async () => {
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch demo posts from the seeded demo project
+        const { data: postsData, error: postsError } = await supabase
+          .from('posts')
+          .select(`
+            id,
+            title,
+            description,
+            status,
+            author_email,
+            created_at,
+            boards!inner(
+              project_id,
+              projects!inner(
+                id,
+                slug
+              )
+            )
+          `)
+          .eq('boards.projects.slug', 'demo')
+          .order('created_at', { ascending: false });
+
+        if (postsError) {
+          console.error('Error fetching demo posts:', postsError);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch vote counts for each post
+        const postsWithVotes = await Promise.all(
+          (postsData || []).map(async (post) => {
+            const { data: votesData } = await supabase
+              .from('votes')
+              .select('id')
+              .eq('post_id', post.id);
+
+            const { data: commentsData } = await supabase
+              .from('comments')
+              .select('id')
+              .eq('post_id', post.id);
+
+            return {
+              id: post.id,
+              title: post.title,
+              description: post.description,
+              status: post.status as 'open' | 'planned' | 'in_progress' | 'done',
+              vote_count: votesData?.length || 0,
+              user_voted: false, // Demo mode - no real voting
+              author: post.author_email?.split('@')[0] || 'Demo User',
+              created_at: post.created_at,
+              comments_count: commentsData?.length || 0
+            };
+          })
+        );
+
+        setPosts(postsWithVotes);
+      } catch (error) {
+        console.error('Error loading demo data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDemoData();
+  }, [supabase]);
 
   const statusOptions = [
     { value: 'all', label: 'All Status', icon: Filter },
@@ -292,7 +311,17 @@ export default function DemoBoard() {
 
         {/* Posts List */}
         <div className="space-y-4">
-          {filteredPosts.map((post) => (
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading demo data...</p>
+            </div>
+          ) : filteredPosts.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-600">No posts found. Try adjusting your filters.</p>
+            </div>
+          ) : (
+            filteredPosts.map((post) => (
             <Card key={post.id} className="hover:shadow-md hover:bg-blue-50 transition-all cursor-pointer border-2 hover:border-blue-200" onClick={() => handlePostClick(post.id)}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
@@ -360,7 +389,8 @@ export default function DemoBoard() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+          ))
+          )}
         </div>
 
         {/* Call to Action */}
@@ -375,10 +405,10 @@ export default function DemoBoard() {
               Submit Your Feedback
             </Button>
             <p className="text-gray-600 mt-2">
-              This is a demo. <Link href="/app/create" className="text-blue-600 hover:underline">Create your own board</Link> to get started.
+              This demo shows real data from our seeded demo project. <Link href="/app/create" className="text-blue-600 hover:underline">Create your own board</Link> to get started.
             </p>
             <p className="text-sm text-gray-500 mt-2">
-              Want to see real data? <Link href="/test-project/board" className="text-blue-600 hover:underline">View the test board</Link> with actual database posts.
+              All posts, votes, and comments above are real data stored in our database.
             </p>
           </div>
         )}
