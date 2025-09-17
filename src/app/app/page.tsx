@@ -91,6 +91,7 @@ export default function AppPage() {
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
   const [aiAvailable, setAiAvailable] = useState(false);
+  const [showAIInsights, setShowAIInsights] = useState(false);
   const supabase = getSupabaseClient();
   const router = useRouter();
 
@@ -362,36 +363,22 @@ export default function AppPage() {
 
   const copyEmbedCode = async (projectSlug: string, projectId: string) => {
     try {
-      // Find the project to get its ID
-      const project = projects.find(p => p.slug === projectSlug);
-      
-      if (!project) {
-        toast.error('Project not found');
+      // Use the new API endpoint
+      const response = await fetch('/api/embed/copy-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ projectId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to get embed code');
         return;
       }
 
-      // Fetch API keys for this project
-      const { data: apiKeys, error } = await supabase
-        .from('api_keys')
-        .select('key_hash')
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (error) {
-        console.error('Error fetching API keys:', error);
-        toast.error('Failed to fetch API key');
-        return;
-      }
-
-      if (!apiKeys || apiKeys.length === 0) {
-        toast.error('No API key found. Please create an API key in project settings first.');
-        return;
-      }
-
-      // Decode the API key and generate embed code
-      const apiKey = atob(apiKeys[0].key_hash);
-      const embedCode = `<script src="https://signalsloop.com/embed/${apiKey}.js"></script>`;
+      const { embedCode } = await response.json();
       
       // Try modern clipboard API first
       try {
@@ -578,20 +565,46 @@ export default function AppPage() {
           </div>
         </div>
 
-        {/* AI Insights Section - Re-enabling with error handling */}
+        {/* AI Insights Toggle and Section */}
         {aiInsights && aiInsights.totalPosts > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
+          <>
+            {/* AI Insights Toggle Button */}
+            {!showAIInsights && (
+              <div className="mb-8 flex justify-center">
+                <Button
+                  onClick={() => setShowAIInsights(true)}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg"
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  View AI Insights
+                </Button>
               </div>
-              <div>
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  AI Insights
-                </h2>
-                <p className="text-gray-600">Smart analysis of your feedback patterns</p>
-              </div>
-            </div>
+            )}
+
+            {/* AI Insights Content */}
+            {showAIInsights && (
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                        AI Insights
+                      </h2>
+                      <p className="text-gray-600">Smart analysis of your feedback patterns</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAIInsights(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    ✕
+                  </Button>
+                </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Category Breakdown */}
@@ -658,6 +671,8 @@ export default function AppPage() {
               </div>
             </div>
           </div>
+            )}
+          </>
         )}
 
         {/* Create New Project */}
