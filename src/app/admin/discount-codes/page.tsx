@@ -1,0 +1,458 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  Percent, 
+  Plus, 
+  Edit,
+  Trash2,
+  Copy,
+  CheckCircle,
+  XCircle,
+  Calendar,
+  Users
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { getSupabaseClient } from '@/lib/supabase-client';
+
+interface DiscountCode {
+  id: string;
+  code: string;
+  description?: string;
+  discount_type: 'percentage' | 'fixed_amount';
+  discount_value: number;
+  min_amount: number;
+  max_discount?: number;
+  usage_limit?: number;
+  usage_count: number;
+  valid_from: string;
+  valid_until?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export default function AdminDiscountCodesPage() {
+  const [codes, setCodes] = useState<DiscountCode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  
+  // Form state
+  const [code, setCode] = useState('');
+  const [description, setDescription] = useState('');
+  const [discountType, setDiscountType] = useState<'percentage' | 'fixed_amount'>('percentage');
+  const [discountValue, setDiscountValue] = useState('');
+  const [minAmount, setMinAmount] = useState('');
+  const [maxDiscount, setMaxDiscount] = useState('');
+  const [usageLimit, setUsageLimit] = useState('');
+  const [validUntil, setValidUntil] = useState('');
+
+  const supabase = getSupabaseClient();
+
+  useEffect(() => {
+    loadDiscountCodes();
+  }, []);
+
+  const loadDiscountCodes = async () => {
+    if (!supabase) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('discount_codes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading discount codes:', error);
+        toast.error('Failed to load discount codes');
+        return;
+      }
+
+      setCodes(data || []);
+    } catch (error) {
+      console.error('Error loading discount codes:', error);
+      toast.error('Failed to load discount codes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createDiscountCode = async () => {
+    if (!code || !discountValue) {
+      toast.error('Please fill in required fields');
+      return;
+    }
+
+    setCreateLoading(true);
+    try {
+      const { error } = await supabase
+        .from('discount_codes')
+        .insert({
+          code: code.toUpperCase(),
+          description: description || null,
+          discount_type: discountType,
+          discount_value: parseFloat(discountValue),
+          min_amount: parseFloat(minAmount) || 0,
+          max_discount: maxDiscount ? parseFloat(maxDiscount) : null,
+          usage_limit: usageLimit ? parseInt(usageLimit) : null,
+          valid_until: validUntil || null,
+          is_active: true
+        });
+
+      if (error) {
+        console.error('Error creating discount code:', error);
+        toast.error('Failed to create discount code');
+        return;
+      }
+
+      toast.success('Discount code created successfully!');
+      
+      // Reset form
+      setCode('');
+      setDescription('');
+      setDiscountValue('');
+      setMinAmount('');
+      setMaxDiscount('');
+      setUsageLimit('');
+      setValidUntil('');
+      setShowCreateForm(false);
+      
+      // Reload codes
+      loadDiscountCodes();
+
+    } catch (error) {
+      console.error('Error creating discount code:', error);
+      toast.error('Failed to create discount code');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const toggleCodeStatus = async (id: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('discount_codes')
+        .update({ is_active: !currentStatus })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error updating discount code:', error);
+        toast.error('Failed to update discount code');
+        return;
+      }
+
+      toast.success('Discount code status updated');
+      loadDiscountCodes();
+    } catch (error) {
+      console.error('Error updating discount code:', error);
+      toast.error('Failed to update discount code');
+    }
+  };
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast.success('Code copied to clipboard!');
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin: Discount Codes</h1>
+          <p className="text-gray-600">
+            Create and manage discount codes for promotions and partnerships
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Codes</p>
+                  <p className="text-2xl font-bold">{codes.length}</p>
+                </div>
+                <Percent className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Active Codes</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {codes.filter(c => c.is_active).length}
+                  </p>
+                </div>
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Usage</p>
+                  <p className="text-2xl font-bold text-purple-600">
+                    {codes.reduce((sum, c) => sum + c.usage_count, 0)}
+                  </p>
+                </div>
+                <Users className="h-8 w-8 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Expired Codes</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {codes.filter(c => c.valid_until && new Date(c.valid_until) < new Date()).length}
+                  </p>
+                </div>
+                <XCircle className="h-8 w-8 text-red-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Create Code Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Create Discount Code
+            </CardTitle>
+            <CardDescription>
+              Create a new discount code for promotions
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!showCreateForm ? (
+              <Button onClick={() => setShowCreateForm(true)} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Create New Code
+              </Button>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="code">Code *</Label>
+                    <Input
+                      id="code"
+                      placeholder="e.g., WELCOME20"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value.toUpperCase())}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="description">Description</Label>
+                    <Input
+                      id="description"
+                      placeholder="e.g., Welcome discount for new users"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="discount-type">Discount Type</Label>
+                    <Select value={discountType} onValueChange={(value: 'percentage' | 'fixed_amount') => setDiscountType(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="percentage">Percentage</SelectItem>
+                        <SelectItem value="fixed_amount">Fixed Amount</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="discount-value">Discount Value *</Label>
+                    <Input
+                      id="discount-value"
+                      type="number"
+                      placeholder={discountType === 'percentage' ? '20' : '50'}
+                      value={discountValue}
+                      onChange={(e) => setDiscountValue(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="min-amount">Minimum Amount</Label>
+                    <Input
+                      id="min-amount"
+                      type="number"
+                      placeholder="0"
+                      value={minAmount}
+                      onChange={(e) => setMinAmount(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="max-discount">Max Discount</Label>
+                    <Input
+                      id="max-discount"
+                      type="number"
+                      placeholder="No limit"
+                      value={maxDiscount}
+                      onChange={(e) => setMaxDiscount(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="usage-limit">Usage Limit</Label>
+                    <Input
+                      id="usage-limit"
+                      type="number"
+                      placeholder="No limit"
+                      value={usageLimit}
+                      onChange={(e) => setUsageLimit(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="valid-until">Valid Until</Label>
+                    <Input
+                      id="valid-until"
+                      type="date"
+                      value={validUntil}
+                      onChange={(e) => setValidUntil(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={createDiscountCode}
+                    disabled={createLoading || !code || !discountValue}
+                    className="flex items-center gap-2"
+                  >
+                    {createLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4" />
+                        Create Code
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowCreateForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Codes List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Discount Codes</CardTitle>
+            <CardDescription>
+              Manage existing discount codes
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {codes.map((discountCode) => (
+                <div key={discountCode.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-semibold text-lg">{discountCode.code}</h3>
+                      <Badge variant={discountCode.is_active ? 'default' : 'secondary'}>
+                        {discountCode.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                      <Badge variant="outline">
+                        {discountCode.discount_type === 'percentage' ? 
+                          `${discountCode.discount_value}%` : 
+                          `$${discountCode.discount_value}`
+                        }
+                      </Badge>
+                    </div>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      {discountCode.description && (
+                        <p><strong>Description:</strong> {discountCode.description}</p>
+                      )}
+                      <p><strong>Usage:</strong> {discountCode.usage_count} / {discountCode.usage_limit || '∞'}</p>
+                      <p><strong>Min Amount:</strong> ${discountCode.min_amount}</p>
+                      {discountCode.max_discount && (
+                        <p><strong>Max Discount:</strong> ${discountCode.max_discount}</p>
+                      )}
+                      <p><strong>Valid Until:</strong> {discountCode.valid_until ? formatDate(discountCode.valid_until) : 'No expiry'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyCode(discountCode.code)}
+                      className="flex items-center gap-1"
+                    >
+                      <Copy className="h-3 w-3" />
+                      Copy
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={discountCode.is_active ? 'destructive' : 'default'}
+                      onClick={() => toggleCodeStatus(discountCode.id, discountCode.is_active)}
+                    >
+                      {discountCode.is_active ? 'Deactivate' : 'Activate'}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
