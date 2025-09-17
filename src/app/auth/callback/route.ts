@@ -8,11 +8,19 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/app';
+  const error = searchParams.get('error');
+
+  // Handle OAuth errors
+  if (error) {
+    console.error('OAuth error:', error);
+    return NextResponse.redirect(`${origin}/login?error=oauth_error&details=${error}`);
+  }
 
   if (code) {
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
     
     try {
+      console.log('Exchanging code for session:', code.substring(0, 10) + '...');
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       
       if (error) {

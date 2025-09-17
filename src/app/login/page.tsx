@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,34 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
+  
+  // Check for OAuth errors in URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorParam = urlParams.get('error');
+    const detailsParam = urlParams.get('details');
+    
+    if (errorParam) {
+      let errorMessage = 'Authentication failed. Please try again.';
+      
+      if (errorParam === 'oauth_error') {
+        errorMessage = 'Google authentication failed. Please try again.';
+      } else if (errorParam === 'auth_callback_error') {
+        errorMessage = 'Authentication callback failed. Please try again.';
+      } else if (errorParam === 'no_code_provided') {
+        errorMessage = 'No authentication code received. Please try again.';
+      }
+      
+      if (detailsParam) {
+        errorMessage += ` (${detailsParam})`;
+      }
+      
+      setError(errorMessage);
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
   
   const supabase = getSupabaseClient();
 
