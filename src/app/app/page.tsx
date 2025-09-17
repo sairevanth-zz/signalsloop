@@ -92,6 +92,7 @@ export default function AppPage() {
   const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
   const [aiAvailable, setAiAvailable] = useState(false);
   const [showAIInsights, setShowAIInsights] = useState(false);
+  const [loadingAIInsights, setLoadingAIInsights] = useState(false);
   const supabase = getSupabaseClient();
   const router = useRouter();
 
@@ -345,12 +346,8 @@ export default function AppPage() {
         .filter((p: Project) => (p.posts_count || 0) > 0)
         .map((p: Project) => p.id);
       
-      if (projectsWithPosts.length > 0) {
-        // Load AI insights asynchronously without blocking the main flow
-        loadAIInsights(projectsWithPosts).catch(error => {
-          console.error('AI insights failed to load:', error);
-        });
-      }
+      // AI insights are no longer auto-loaded to prevent unnecessary API costs
+      // They will only load when user explicitly requests them via the AI insights button
 
     } catch (error) {
       console.error('Error loading projects:', error);
@@ -566,13 +563,30 @@ export default function AppPage() {
         </div>
 
         {/* AI Insights Toggle and Section */}
-        {aiInsights && aiInsights.totalPosts > 0 && (
+        {projectsWithCounts.filter(p => (p.posts_count || 0) > 0).length > 0 && (
           <>
             {/* AI Insights Toggle Button */}
             {!showAIInsights && (
               <div className="mb-8 flex justify-center">
                 <Button
-                  onClick={() => setShowAIInsights(true)}
+                  onClick={async () => {
+                    setShowAIInsights(true);
+                    setLoadingAIInsights(true);
+                    // Load AI insights when user explicitly requests them
+                    const projectsWithPosts = projectsWithCounts
+                      .filter(p => (p.posts_count || 0) > 0)
+                      .map(p => p.id);
+                    if (projectsWithPosts.length > 0) {
+                      try {
+                        await loadAIInsights(projectsWithPosts);
+                      } catch (error) {
+                        console.error('AI insights failed to load:', error);
+                        toast.error('Failed to load AI insights');
+                      } finally {
+                        setLoadingAIInsights(false);
+                      }
+                    }
+                  }}
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg"
                 >
                   <Sparkles className="w-5 h-5 mr-2" />
@@ -581,8 +595,21 @@ export default function AppPage() {
               </div>
             )}
 
+            {/* AI Insights Loading State */}
+            {showAIInsights && loadingAIInsights && (
+              <div className="mb-8">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-8">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading AI Insights</h3>
+                    <p className="text-gray-600">Analyzing your feedback posts with AI...</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* AI Insights Content */}
-            {showAIInsights && (
+            {showAIInsights && !loadingAIInsights && aiInsights && aiInsights.totalPosts > 0 && (
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
@@ -599,7 +626,10 @@ export default function AppPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setShowAIInsights(false)}
+                    onClick={() => {
+                      setShowAIInsights(false);
+                      setAiInsights(null);
+                    }}
                     className="text-gray-500 hover:text-gray-700"
                   >
                     ✕
