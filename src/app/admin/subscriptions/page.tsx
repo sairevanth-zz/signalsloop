@@ -16,10 +16,14 @@ import {
   Search,
   Plus,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Shield,
+  LogOut,
+  Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface Project {
   id: string;
@@ -45,6 +49,7 @@ interface SubscriptionGift {
 }
 
 export default function AdminSubscriptionsPage() {
+  const { user, loading: authLoading, error: authError, signOut } = useAdminAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [gifts, setGifts] = useState<SubscriptionGift[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,8 +57,8 @@ export default function AdminSubscriptionsPage() {
   const [showGiftForm, setShowGiftForm] = useState(false);
   const [giftLoading, setGiftLoading] = useState(false);
   
-  // Gift form state
-  const [selectedProject, setSelectedProject] = useState('');
+  // Gift form state - Updated to use email instead of project
+  const [giftEmail, setGiftEmail] = useState('');
   const [giftDuration, setGiftDuration] = useState('1');
   const [giftReason, setGiftReason] = useState('');
 
@@ -103,27 +108,51 @@ export default function AdminSubscriptionsPage() {
   };
 
   const giftSubscription = async () => {
-    if (!selectedProject || !giftDuration) {
-      toast.error('Please select a project and duration');
+    if (!giftEmail || !giftDuration) {
+      toast.error('Please enter email and duration');
       return;
     }
 
     setGiftLoading(true);
     try {
-      // Find the project
-      const project = projects.find(p => p.slug === selectedProject);
-      if (!project) {
-        toast.error('Project not found');
+      // Find user by email first
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', giftEmail)
+        .single();
+
+      if (userError || !userData) {
+        toast.error('User not found. Please make sure they have an account.');
+        setGiftLoading(false);
+        return;
+      }
+
+      // Find their projects
+      const { data: userProjects, error: projectsError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('owner_id', userData.id);
+
+      if (projectsError) {
+        console.error('Error finding user projects:', projectsError);
+        toast.error('Failed to find user projects');
+        setGiftLoading(false);
+        return;
+      }
+
+      if (!userProjects || userProjects.length === 0) {
+        toast.error('User has no projects yet');
+        setGiftLoading(false);
         return;
       }
 
       // Calculate expiry date
       const durationMonths = parseInt(giftDuration);
-      const currentExpiry = project.current_period_end ? new Date(project.current_period_end) : new Date();
-      const newExpiry = new Date(currentExpiry);
+      const newExpiry = new Date();
       newExpiry.setMonth(newExpiry.getMonth() + durationMonths);
 
-      // Update the project
+      // Update all user's projects to Pro
       const { error } = await supabase
         .from('projects')
         .update({
@@ -132,7 +161,7 @@ export default function AdminSubscriptionsPage() {
           current_period_end: newExpiry.toISOString(),
           updated_at: new Date().toISOString()
         })
-        .eq('slug', selectedProject);
+        .eq('owner_id', userData.id);
 
       if (error) {
         console.error('Error gifting subscription:', error);
@@ -140,21 +169,21 @@ export default function AdminSubscriptionsPage() {
         return;
       }
 
-      // Log the gift (you might want to create a gifts table)
+      // Log the gift
       console.log('Gift given:', {
-        project_slug: selectedProject,
-        project_name: project.name,
-        owner_email: project.owner_email,
+        user_email: giftEmail,
+        user_id: userData.id,
+        projects_upgraded: userProjects.length,
         duration_months: durationMonths,
         reason: giftReason,
         gifted_at: new Date().toISOString(),
         expires_at: newExpiry.toISOString()
       });
 
-      toast.success(`Successfully gifted ${durationMonths} month${durationMonths > 1 ? 's' : ''} of Pro to ${project.name}!`);
+      toast.success(`Successfully gifted ${durationMonths} month${durationMonths > 1 ? 's' : ''} of Pro to ${giftEmail} (${userProjects.length} project${userProjects.length > 1 ? 's' : ''} upgraded)!`);
       
       // Reset form
-      setSelectedProject('');
+      setGiftEmail('');
       setGiftDuration('1');
       setGiftReason('');
       setShowGiftForm(false);
@@ -176,6 +205,36 @@ export default function AdminSubscriptionsPage() {
     project.owner_email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Authentication check
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (authError || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <Alert className="max-w-md">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {authError || 'Admin access required. Please log in with an admin account.'}
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -193,10 +252,24 @@ export default function AdminSubscriptionsPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin: Subscription Management</h1>
-          <p className="text-gray-600">
-            Manage Pro subscriptions, gift subscriptions, and track user accounts
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin: Subscription Management</h1>
+              <p className="text-gray-600">
+                Manage Pro subscriptions, gift subscriptions, and track user accounts
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Shield className="h-4 w-4" />
+                <span>Logged in as: {user.email}</span>
+              </div>
+              <Button variant="outline" size="sm" onClick={signOut} className="flex items-center gap-2">
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -275,19 +348,21 @@ export default function AdminSubscriptionsPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="project-select">Select Project</Label>
-                    <Select value={selectedProject} onValueChange={setSelectedProject}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a project" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {projects.map((project) => (
-                          <SelectItem key={project.slug} value={project.slug}>
-                            {project.name} ({project.owner_email}) - {project.plan}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="gift-email">User Email Address *</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        id="gift-email"
+                        type="email"
+                        placeholder="user@example.com"
+                        value={giftEmail}
+                        onChange={(e) => setGiftEmail(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Enter the email address of the user to gift Pro access to
+                    </p>
                   </div>
                   
                   <div>
@@ -320,7 +395,7 @@ export default function AdminSubscriptionsPage() {
                 <div className="flex gap-2">
                   <Button 
                     onClick={giftSubscription}
-                    disabled={giftLoading || !selectedProject}
+                    disabled={giftLoading || !giftEmail}
                     className="flex items-center gap-2"
                   >
                     {giftLoading ? (

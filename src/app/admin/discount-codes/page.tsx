@@ -17,10 +17,15 @@ import {
   CheckCircle,
   XCircle,
   Calendar,
-  Users
+  Users,
+  Shield,
+  LogOut,
+  AlertCircle,
+  Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface DiscountCode {
   id: string;
@@ -36,9 +41,11 @@ interface DiscountCode {
   valid_until?: string;
   is_active: boolean;
   created_at: string;
+  target_email?: string; // New field for email-specific codes
 }
 
 export default function AdminDiscountCodesPage() {
+  const { user, loading: authLoading, error: authError, signOut } = useAdminAuth();
   const [codes, setCodes] = useState<DiscountCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -53,6 +60,7 @@ export default function AdminDiscountCodesPage() {
   const [maxDiscount, setMaxDiscount] = useState('');
   const [usageLimit, setUsageLimit] = useState('');
   const [validUntil, setValidUntil] = useState('');
+  const [targetEmail, setTargetEmail] = useState(''); // New field for email-specific codes
 
   const supabase = getSupabaseClient();
 
@@ -103,6 +111,7 @@ export default function AdminDiscountCodesPage() {
           max_discount: maxDiscount ? parseFloat(maxDiscount) : null,
           usage_limit: usageLimit ? parseInt(usageLimit) : null,
           valid_until: validUntil || null,
+          target_email: targetEmail || null, // Add target email field
           is_active: true
         });
 
@@ -122,6 +131,7 @@ export default function AdminDiscountCodesPage() {
       setMaxDiscount('');
       setUsageLimit('');
       setValidUntil('');
+      setTargetEmail('');
       setShowCreateForm(false);
       
       // Reload codes
@@ -169,6 +179,36 @@ export default function AdminDiscountCodesPage() {
     });
   };
 
+  // Authentication check
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (authError || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <Alert className="max-w-md">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {authError || 'Admin access required. Please log in with an admin account.'}
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -186,10 +226,24 @@ export default function AdminDiscountCodesPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin: Discount Codes</h1>
-          <p className="text-gray-600">
-            Create and manage discount codes for promotions and partnerships
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin: Discount Codes</h1>
+              <p className="text-gray-600">
+                Create and manage discount codes for promotions and partnerships
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Shield className="h-4 w-4" />
+                <span>Logged in as: {user.email}</span>
+              </div>
+              <Button variant="outline" size="sm" onClick={signOut} className="flex items-center gap-2">
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Stats */}
@@ -327,7 +381,37 @@ export default function AdminDiscountCodesPage() {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="target-email">Target Email (Optional)</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        id="target-email"
+                        type="email"
+                        placeholder="user@example.com"
+                        value={targetEmail}
+                        onChange={(e) => setTargetEmail(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Leave empty for public codes, or specify an email for user-specific codes
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="valid-until">Valid Until</Label>
+                    <Input
+                      id="valid-until"
+                      type="date"
+                      value={validUntil}
+                      onChange={(e) => setValidUntil(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="max-discount">Max Discount</Label>
                     <Input
@@ -347,16 +431,6 @@ export default function AdminDiscountCodesPage() {
                       placeholder="No limit"
                       value={usageLimit}
                       onChange={(e) => setUsageLimit(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="valid-until">Valid Until</Label>
-                    <Input
-                      id="valid-until"
-                      type="date"
-                      value={validUntil}
-                      onChange={(e) => setValidUntil(e.target.value)}
                     />
                   </div>
                 </div>
@@ -419,6 +493,9 @@ export default function AdminDiscountCodesPage() {
                     <div className="text-sm text-gray-600 space-y-1">
                       {discountCode.description && (
                         <p><strong>Description:</strong> {discountCode.description}</p>
+                      )}
+                      {discountCode.target_email && (
+                        <p><strong>Target Email:</strong> {discountCode.target_email}</p>
                       )}
                       <p><strong>Usage:</strong> {discountCode.usage_count} / {discountCode.usage_limit || '∞'}</p>
                       <p><strong>Min Amount:</strong> ${discountCode.min_amount}</p>

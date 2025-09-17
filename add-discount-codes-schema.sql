@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS discount_codes (
   max_discount DECIMAL(10,2),
   usage_limit INTEGER,
   usage_count INTEGER DEFAULT 0,
+  target_email VARCHAR(255), -- Email-specific discount codes
   valid_from TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   valid_until TIMESTAMP WITH TIME ZONE,
   is_active BOOLEAN DEFAULT true,
@@ -84,6 +85,7 @@ DECLARE
   usage_count INTEGER;
   discount_amount DECIMAL(10,2);
   final_discount DECIMAL(10,2);
+  user_email VARCHAR(255);
 BEGIN
   -- Get the discount code
   SELECT * INTO discount_record FROM discount_codes 
@@ -93,6 +95,14 @@ BEGIN
   
   IF NOT FOUND THEN
     RETURN json_build_object('valid', false, 'error', 'Invalid or expired discount code');
+  END IF;
+  
+  -- Get user email for email-specific code validation
+  SELECT email INTO user_email FROM users WHERE id = p_user_id;
+  
+  -- Check if code is email-specific and if user email matches
+  IF discount_record.target_email IS NOT NULL AND discount_record.target_email != user_email THEN
+    RETURN json_build_object('valid', false, 'error', 'This discount code is not valid for your account');
   END IF;
   
   -- Check usage limit
