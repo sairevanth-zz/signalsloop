@@ -12,6 +12,7 @@ import {
   useSensor,
   useSensors,
   closestCorners,
+  DragOverEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -20,6 +21,9 @@ import {
 import {
   useSortable,
 } from '@dnd-kit/sortable';
+import {
+  useDroppable,
+} from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { 
   MessageSquare, 
@@ -187,6 +191,72 @@ function SortablePost({ post, onVoteChange }: SortablePostProps) {
   );
 }
 
+interface DroppableColumnProps {
+  status: string;
+  config: any;
+  statusPosts: RoadmapPost[];
+  onVoteChange: (postId: string, newCount: number) => void;
+}
+
+function DroppableColumn({ status, config, statusPosts, onVoteChange }: DroppableColumnProps) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: status,
+  });
+
+  return (
+    <div 
+      ref={setNodeRef}
+      className={`rounded-xl border-2 ${config.color} min-h-96 shadow-lg backdrop-blur-sm transition-colors ${
+        isOver ? 'ring-2 ring-blue-500 ring-opacity-50' : ''
+      }`}
+    >
+      {/* Column Header */}
+      <div className={`p-6 rounded-t-xl border-b ${config.headerColor}`}>
+        <div className="flex items-center gap-2 mb-2">
+          {config.icon}
+          <h3 className="font-semibold text-gray-900">{config.title}</h3>
+          <Badge variant="secondary" className="ml-auto">
+            {statusPosts.length}
+          </Badge>
+        </div>
+        <p className="text-sm text-gray-600">
+          {config.description}
+        </p>
+      </div>
+
+      {/* Column Content */}
+      <div className="p-6 space-y-4">
+        <SortableContext items={statusPosts.map(post => post.id)} strategy={verticalListSortingStrategy}>
+          {statusPosts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                {config.icon}
+              </div>
+              <p className="text-sm">
+                {status === 'open' ? 'No ideas yet' :
+                 status === 'planned' ? 'Nothing planned' :
+                 status === 'in_progress' ? 'Nothing in progress' :
+                 'Nothing completed'}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Drag posts here to move them
+              </p>
+            </div>
+          ) : (
+            statusPosts.map((post) => (
+              <SortablePost
+                key={post.id}
+                post={post}
+                onVoteChange={onVoteChange}
+              />
+            ))
+          )}
+        </SortableContext>
+      </div>
+    </div>
+  );
+}
+
 export default function DragDropRoadmap({ 
   posts, 
   onPostMove, 
@@ -210,9 +280,12 @@ export default function DragDropRoadmap({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     
+    console.log('Drag end:', { activeId: active.id, overId: over?.id });
+    
     if (active.id !== over?.id && over?.id) {
       // Find which column the item was dropped on
       const targetStatus = over.id as string;
+      console.log('Moving post', active.id, 'to status', targetStatus);
       onPostMove(active.id as string, targetStatus);
     }
     
@@ -235,51 +308,13 @@ export default function DragDropRoadmap({
           const statusPosts = posts[status] || [];
           
           return (
-            <div key={status} className={`rounded-xl border-2 ${config.color} min-h-96 shadow-lg backdrop-blur-sm`}>
-              {/* Column Header */}
-              <div className={`p-6 rounded-t-xl border-b ${config.headerColor}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  {config.icon}
-                  <h3 className="font-semibold text-gray-900">{config.title}</h3>
-                  <Badge variant="secondary" className="ml-auto">
-                    {statusPosts.length}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-600">
-                  {config.description}
-                </p>
-              </div>
-
-              {/* Column Content */}
-              <div className="p-6 space-y-4">
-                <SortableContext items={statusPosts.map(post => post.id)} strategy={verticalListSortingStrategy}>
-                  {statusPosts.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        {config.icon}
-                      </div>
-                      <p className="text-sm">
-                        {status === 'open' ? 'No ideas yet' :
-                         status === 'planned' ? 'Nothing planned' :
-                         status === 'in_progress' ? 'Nothing in progress' :
-                         'Nothing completed'}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Drag posts here to move them
-                      </p>
-                    </div>
-                  ) : (
-                    statusPosts.map((post) => (
-                      <SortablePost
-                        key={post.id}
-                        post={post}
-                        onVoteChange={onVoteChange}
-                      />
-                    ))
-                  )}
-                </SortableContext>
-              </div>
-            </div>
+            <DroppableColumn
+              key={status}
+              status={status}
+              config={config}
+              statusPosts={statusPosts}
+              onVoteChange={onVoteChange}
+            />
           );
         })}
       </div>

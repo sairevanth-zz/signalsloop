@@ -169,7 +169,10 @@ export default function RoadmapPhaseManager({
       }
 
       const result = await response.json();
+      
+      // Update local state immediately
       onPostUpdate(postId, updates);
+      
       toast.success('Post updated successfully');
     } catch (error) {
       console.error('Update error:', error);

@@ -31,6 +31,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import VoteButton from '@/components/VoteButton'; // Import our voting component
+import { toast } from 'sonner';
 
 interface RoadmapPost {
   id: string;
@@ -343,6 +344,8 @@ export default function PublicRoadmap() {
         throw new Error(errorData.error || 'Failed to move post');
       }
 
+      const result = await response.json();
+
       // Update local state
       setPosts(prev => {
         const updated = { ...prev };
@@ -360,9 +363,38 @@ export default function PublicRoadmap() {
         
         return updated;
       });
+
+      // Update stats
+      setStats(prevStats => {
+        const newStats = { ...prevStats };
+        
+        // Find the old status of the post
+        let oldStatus = '';
+        Object.entries(posts).forEach(([status, statusPosts]) => {
+          if (statusPosts.find(post => post.id === postId)) {
+            oldStatus = status;
+          }
+        });
+
+        // Update counts
+        if (oldStatus === 'open') newStats.totalIdeas--;
+        if (oldStatus === 'planned') newStats.planned--;
+        if (oldStatus === 'in_progress') newStats.inProgress--;
+        if (oldStatus === 'done') newStats.completed--;
+
+        if (newStatus === 'open') newStats.totalIdeas++;
+        if (newStatus === 'planned') newStats.planned++;
+        if (newStatus === 'in_progress') newStats.inProgress++;
+        if (newStatus === 'done') newStats.completed++;
+
+        return newStats;
+      });
+
+      toast.success('Post moved successfully!');
+
     } catch (error) {
       console.error('Move post error:', error);
-      // You could add toast notification here
+      toast.error('Failed to move post. Please try again.');
     }
   };
 
