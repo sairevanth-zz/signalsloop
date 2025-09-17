@@ -13,7 +13,10 @@ import {
   Key, 
   Settings, 
   Shield,
-  Users
+  Users,
+  Upload,
+  BarChart3,
+  Wrench
 } from 'lucide-react';
 
 interface Project {
@@ -153,7 +156,7 @@ export default function SettingsPage() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-2 mb-6">
-            <TabsList className="grid w-full grid-cols-4 bg-transparent">
+            <TabsList className="grid w-full grid-cols-7 bg-transparent">
               <TabsTrigger 
                 value="api-keys" 
                 className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
@@ -181,6 +184,27 @@ export default function SettingsPage() {
               >
                 <Shield className="w-4 h-4" />
                 Billing
+              </TabsTrigger>
+              <TabsTrigger 
+                value="csv-import" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
+              >
+                <Upload className="w-4 h-4" />
+                CSV Import
+              </TabsTrigger>
+              <TabsTrigger 
+                value="analytics" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
+              >
+                <BarChart3 className="w-4 h-4" />
+                Analytics
+              </TabsTrigger>
+              <TabsTrigger 
+                value="tools" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
+              >
+                <Wrench className="w-4 h-4" />
+                Tools
               </TabsTrigger>
             </TabsList>
           </div>
@@ -263,6 +287,209 @@ export default function SettingsPage() {
                       Upgrade to Pro
                     </Button>
                   )}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="csv-import" className="mt-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">CSV Import</h3>
+                  <p className="text-gray-600">Import posts and votes from CSV files</p>
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+                  <h4 className="font-medium text-blue-900 mb-4 flex items-center">
+                    <Upload className="w-5 h-5 mr-2" />
+                    Import Posts & Votes
+                  </h4>
+                  <p className="text-sm text-blue-700 mb-4">
+                    Upload CSV files to import posts and votes into your board. Supports bulk operations and data validation.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={() => window.open('/csv-import-demo', '_blank')}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Open CSV Import
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => window.open('/api/admin/validate-csv', '_blank')}
+                    >
+                      Validate CSV
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-medium text-gray-900 mb-2">Supported Formats</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• CSV files with headers</li>
+                      <li>• UTF-8 encoding</li>
+                      <li>• Max file size: 10MB</li>
+                    </ul>
+                  </div>
+                  <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-medium text-gray-900 mb-2">Import Features</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Bulk post creation</li>
+                      <li>• Vote seeding</li>
+                      <li>• Data validation</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Analytics Dashboard</h3>
+                  <p className="text-gray-600">View detailed analytics and insights for your project</p>
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
+                  <h4 className="font-medium text-green-900 mb-4 flex items-center">
+                    <BarChart3 className="w-5 h-5 mr-2" />
+                    PostHog Analytics
+                  </h4>
+                  <p className="text-sm text-green-700 mb-4">
+                    Track user behavior, post engagement, and project metrics with our integrated analytics dashboard.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={() => window.open('/analytics-demo', '_blank')}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      View Analytics
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => window.open('/posthog-demo', '_blank')}
+                    >
+                      PostHog Demo
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-medium text-gray-900 mb-2">User Tracking</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Page views</li>
+                      <li>• User sessions</li>
+                      <li>• Event tracking</li>
+                    </ul>
+                  </div>
+                  <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-medium text-gray-900 mb-2">Post Metrics</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Vote counts</li>
+                      <li>• Comment activity</li>
+                      <li>• Category breakdown</li>
+                    </ul>
+                  </div>
+                  <div className="bg-white/60 border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-medium text-gray-900 mb-2">AI Insights</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Categorization stats</li>
+                      <li>• Confidence scores</li>
+                      <li>• Time saved</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tools" className="mt-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Admin Tools</h3>
+                  <p className="text-gray-600">Additional tools and utilities for project management</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6">
+                  <h4 className="font-medium text-purple-900 mb-3 flex items-center">
+                    <Wrench className="w-5 h-5 mr-2" />
+                    SEO Tools
+                  </h4>
+                  <p className="text-sm text-purple-700 mb-4">
+                    Optimize your project's search engine visibility and social media sharing.
+                  </p>
+                  <Button 
+                    onClick={() => window.open('/seo-demo', '_blank')}
+                    variant="outline"
+                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                  >
+                    SEO Demo
+                  </Button>
+                </div>
+
+                <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-6">
+                  <h4 className="font-medium text-orange-900 mb-3 flex items-center">
+                    <BarChart3 className="w-5 h-5 mr-2" />
+                    Open Graph
+                  </h4>
+                  <p className="text-sm text-orange-700 mb-4">
+                    Generate dynamic Open Graph images for better social media sharing.
+                  </p>
+                  <Button 
+                    onClick={() => window.open('/og-demo', '_blank')}
+                    variant="outline"
+                    className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                  >
+                    OG Demo
+                  </Button>
+                </div>
+
+                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg p-6">
+                  <h4 className="font-medium text-indigo-900 mb-3 flex items-center">
+                    <Settings className="w-5 h-5 mr-2" />
+                    Demo Board
+                  </h4>
+                  <p className="text-sm text-indigo-700 mb-4">
+                    View the demo board with realistic data and interactive features.
+                  </p>
+                  <Button 
+                    onClick={() => window.open('/demo/board', '_blank')}
+                    variant="outline"
+                    className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                  >
+                    View Demo
+                  </Button>
+                </div>
+
+                <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-lg p-6">
+                  <h4 className="font-medium text-teal-900 mb-3 flex items-center">
+                    <Key className="w-5 h-5 mr-2" />
+                    API Testing
+                  </h4>
+                  <p className="text-sm text-teal-700 mb-4">
+                    Test API endpoints and validate data import/export functionality.
+                  </p>
+                  <Button 
+                    onClick={() => window.open('/api/analytics/events', '_blank')}
+                    variant="outline"
+                    className="border-teal-300 text-teal-700 hover:bg-teal-50"
+                  >
+                    API Test
+                  </Button>
                 </div>
               </div>
             </div>
