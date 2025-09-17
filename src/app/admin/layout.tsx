@@ -56,7 +56,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
       // Check if user is admin
       const adminEmails = [
-        'revanth@signalloop.com', // Replace with your actual admin email
+        'sai.chandupatla@gmail.com', // Replace with your actual admin email
         'admin@signalloop.com',   // Add more admin emails as needed
         // Add your actual email here - you can find it in the browser console or Supabase dashboard
       ];
