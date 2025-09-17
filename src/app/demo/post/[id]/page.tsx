@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -10,83 +10,71 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, User, Clock, MessageSquare } from 'lucide-react';
 
-// Demo post data
-const demoPosts = {
-  '1': {
-    id: '1',
-    title: 'Dark mode support',
-    description: 'Add a dark mode toggle to the application. Many users have requested this feature.',
-    status: 'done',
-    vote_count: 127,
-    user_voted: false,
-    author: 'Sarah Chen',
-    created_at: '2024-01-15T10:30:00Z',
-    comments: [
-      {
-        id: '1',
-        body: 'This would be amazing! I work late hours and the bright interface strains my eyes.',
-        author: 'John Doe',
-        created_at: '2024-01-16T09:15:00Z'
-      },
-      {
-        id: '2', 
-        body: 'Completely agree! Dark mode is essential for modern applications.',
-        author: 'Jane Smith',
-        created_at: '2024-01-16T14:22:00Z'
-      },
-      {
-        id: '3',
-        body: 'I\'ve been waiting for this feature for months. Please prioritize this!',
-        author: 'Mike Johnson',
-        created_at: '2024-01-17T11:45:00Z'
-      }
-    ]
-  },
-  '2': {
-    id: '2',
-    title: 'Mobile app for iOS',
-    description: 'Create a native iOS app to complement the web platform.',
-    status: 'in_progress',
-    vote_count: 89,
-    user_voted: true,
-    author: 'Mike Johnson',
-    created_at: '2024-01-20T16:45:00Z',
-    comments: [
-      {
-        id: '4',
-        body: 'This would be perfect for on-the-go feedback management!',
-        author: 'Alice Brown',
-        created_at: '2024-01-21T10:30:00Z'
-      },
-      {
-        id: '5',
-        body: 'Please make sure it has all the same features as the web version.',
-        author: 'Bob Wilson',
-        created_at: '2024-01-21T15:12:00Z'
-      }
-    ]
-  }
-};
+interface DemoPost {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  vote_count: number;
+  user_voted: boolean;
+  author: string;
+  created_at: string;
+  comments_count: number;
+}
+
+interface DemoComment {
+  id: string;
+  body: string;
+  author: string;
+  created_at: string;
+}
 
 export default function DemoPostPage() {
   const params = useParams();
   const postId = params.id as string;
+  const [post, setPost] = useState<DemoPost | null>(null);
+  const [loading, setLoading] = useState(true);
   const [voteCount, setVoteCount] = useState(0);
   const [userVoted, setUserVoted] = useState(false);
   const [newComment, setNewComment] = useState('');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<DemoComment[]>([]);
   const [message, setMessage] = useState('');
 
-  const post = demoPosts[postId as keyof typeof demoPosts];
+  useEffect(() => {
+    const loadPostData = async () => {
+      try {
+        // Fetch the post data
+        const postsResponse = await fetch('/api/demo/posts');
+        if (!postsResponse.ok) {
+          throw new Error('Failed to fetch posts');
+        }
+        
+        const postsData = await postsResponse.json();
+        const foundPost = postsData.posts?.find((p: DemoPost) => p.id === postId);
+        
+        if (foundPost) {
+          setPost(foundPost);
+          setVoteCount(foundPost.vote_count);
+          setUserVoted(foundPost.user_voted);
+          
+          // Fetch comments for this post
+          const commentsResponse = await fetch(`/api/demo/posts/${postId}/comments`);
+          if (commentsResponse.ok) {
+            const commentsData = await commentsResponse.json();
+            setComments(commentsData.comments || []);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading post data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  React.useEffect(() => {
-    if (post) {
-      setVoteCount(post.vote_count);
-      setUserVoted(post.user_voted);
-      setComments(post.comments || []);
+    if (postId) {
+      loadPostData();
     }
-  }, [post]);
+  }, [postId]);
 
   const handleVote = () => {
     if (userVoted) {
@@ -102,24 +90,38 @@ export default function DemoPostPage() {
     setTimeout(() => setMessage(''), 3000);
   };
 
-  const handleCommentSubmit = () => {
+  const handleCommentSubmit = async () => {
     if (!newComment.trim()) {
       setMessage('Please enter a comment!');
       setTimeout(() => setMessage(''), 3000);
       return;
     }
 
-    const comment = {
-      id: Date.now().toString(),
-      body: newComment,
-      author: 'Demo User',
-      created_at: new Date().toISOString()
-    };
+    try {
+      const response = await fetch(`/api/demo/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: newComment.trim()
+        })
+      });
 
-    setComments(prev => [comment, ...prev]);
-    setNewComment('');
-    setMessage('Comment added!');
-    setTimeout(() => setMessage(''), 3000);
+      if (!response.ok) {
+        throw new Error('Failed to add comment');
+      }
+
+      const data = await response.json();
+      setComments(prev => [data.comment, ...prev]);
+      setNewComment('');
+      setMessage('Comment added!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      setMessage('Failed to add comment. Please try again.');
+      setTimeout(() => setMessage(''), 3000);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -138,6 +140,19 @@ export default function DemoPostPage() {
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading post...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!post) {
     return (
