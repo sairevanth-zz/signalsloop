@@ -64,16 +64,9 @@ export default function DemoBoard() {
             description,
             status,
             author_email,
-            created_at,
-            boards!inner(
-              project_id,
-              projects!inner(
-                id,
-                slug
-              )
-            )
+            created_at
           `)
-          .eq('boards.projects.slug', 'demo')
+          .eq('board_id', '00000000-0000-0000-0000-000000000001')
           .order('created_at', { ascending: false });
 
         if (postsError) {
