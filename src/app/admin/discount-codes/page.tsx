@@ -45,7 +45,6 @@ interface DiscountCode {
 }
 
 export default function AdminDiscountCodesPage() {
-  const { user, loading: authLoading, error: authError, signOut } = useAdminAuth();
   const [codes, setCodes] = useState<DiscountCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -179,75 +178,26 @@ export default function AdminDiscountCodesPage() {
     });
   };
 
-  // Authentication check
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (authError || !user) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <Alert className="max-w-md">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {authError || 'Admin access required. Please log in with an admin account.'}
-              </AlertDescription>
-            </Alert>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin: Discount Codes</h1>
-              <p className="text-gray-600">
-                Create and manage discount codes for promotions and partnerships
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Shield className="h-4 w-4" />
-                <span>Logged in as: {user.email}</span>
-              </div>
-              <Button variant="outline" size="sm" onClick={signOut} className="flex items-center gap-2">
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Discount Codes</h1>
+        <p className="text-gray-600">
+          Create and manage discount codes for promotions and partnerships
+        </p>
+      </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -303,8 +253,8 @@ export default function AdminDiscountCodesPage() {
           </Card>
         </div>
 
-        {/* Create Code Section */}
-        <Card className="mb-8">
+      {/* Create Code Section */}
+      <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-5 w-5" />
@@ -465,8 +415,8 @@ export default function AdminDiscountCodesPage() {
           </CardContent>
         </Card>
 
-        {/* Codes List */}
-        <Card>
+      {/* Codes List */}
+      <Card>
           <CardHeader>
             <CardTitle>Discount Codes</CardTitle>
             <CardDescription>
@@ -529,7 +479,6 @@ export default function AdminDiscountCodesPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }
