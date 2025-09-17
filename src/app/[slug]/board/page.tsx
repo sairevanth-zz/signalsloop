@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import GlobalBanner from '@/components/GlobalBanner';
 import { CategoryBadge } from '@/components/CategoryBadge';
+import BoardShare from '@/components/BoardShare';
 import { 
   Search, 
   Plus, 
@@ -20,7 +21,8 @@ import {
   Settings,
   Home,
   Map,
-  Sparkles
+  Sparkles,
+  Share2
 } from 'lucide-react';
 import {
   Select,
@@ -29,6 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from 'sonner';
 import Link from 'next/link';
 import PostSubmissionForm from '@/components/PostSubmissionForm';
@@ -93,6 +102,7 @@ export default function BoardPage() {
   const [sortBy, setSortBy] = useState('votes');
   const [showPostForm, setShowPostForm] = useState(false);
   const [showAIInsights, setShowAIInsights] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [boardId, setBoardId] = useState<string | null>(null);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
@@ -364,6 +374,28 @@ export default function BoardPage() {
             </div>
             
             <div className="flex gap-2">
+              <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100">
+                    <Share2 className="w-4 h-4" />
+                    Share
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Share {project?.name} Board</DialogTitle>
+                  </DialogHeader>
+                  {project && (
+                    <BoardShare
+                      projectSlug={params?.slug as string}
+                      projectName={project.name}
+                      boardUrl={`${window.location.origin}/${params?.slug}/board`}
+                      isPublic={true}
+                    />
+                  )}
+                </DialogContent>
+              </Dialog>
+              
               <Link href={`/${params?.slug}/roadmap`}>
                 <Button variant="outline" className="flex items-center gap-1">
                   <Map className="w-4 h-4" />

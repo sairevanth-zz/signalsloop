@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import GlobalBanner from '@/components/GlobalBanner';
+import BoardShare from '@/components/BoardShare';
 import { 
   Plus, 
   Settings, 
@@ -43,10 +44,18 @@ import {
   BarChart3,
   Sparkles,
   Brain,
-  Zap
+  Zap,
+  Share2
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface Project {
   id: string;
@@ -93,6 +102,8 @@ export default function AppPage() {
   const [aiAvailable, setAiAvailable] = useState(false);
   const [showAIInsights, setShowAIInsights] = useState(false);
   const [loadingAIInsights, setLoadingAIInsights] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const supabase = getSupabaseClient();
   const router = useRouter();
 
@@ -847,6 +858,18 @@ export default function AppPage() {
                           View Board
                         </Button>
                       </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedProject(project);
+                          setShareModalOpen(true);
+                        }}
+                        className="bg-green-50/80 border-green-200 text-green-700 hover:bg-green-100/80 transition-all duration-200 hover:scale-105"
+                        title="Share Board"
+                      >
+                        <Share2 className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                      </Button>
                       <Link href={`/${project.slug}/roadmap`}>
                         <Button 
                           variant="outline" 
@@ -908,6 +931,23 @@ export default function AppPage() {
             </Button>
           </Link>
         </div>
+
+        {/* Share Modal */}
+        <Dialog open={shareModalOpen} onOpenChange={setShareModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Share {selectedProject?.name} Board</DialogTitle>
+            </DialogHeader>
+            {selectedProject && (
+              <BoardShare
+                projectSlug={selectedProject.slug}
+                projectName={selectedProject.name}
+                boardUrl={`${window.location.origin}/${selectedProject.slug}/board`}
+                isPublic={true}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
