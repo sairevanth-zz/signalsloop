@@ -360,6 +360,8 @@ export default function AppPage() {
 
   const copyEmbedCode = async (projectSlug: string, projectId: string) => {
     try {
+      console.log('🔗 Copying embed code for project:', projectSlug, projectId);
+      
       // Use the new API endpoint
       const response = await fetch('/api/embed/copy-code', {
         method: 'POST',
@@ -369,13 +371,16 @@ export default function AppPage() {
         body: JSON.stringify({ projectId }),
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.error || 'Failed to get embed code');
+        console.error('🔗 API error:', data.error);
+        toast.error(data.error || 'Failed to get embed code');
         return;
       }
 
-      const { embedCode } = await response.json();
+      const { embedCode } = data;
+      console.log('🔗 Generated embed code:', embedCode);
       
       // Try modern clipboard API first
       try {
