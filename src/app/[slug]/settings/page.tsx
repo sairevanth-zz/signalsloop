@@ -8,6 +8,7 @@ import { ApiKeySettings } from '@/components/ApiKeySettings';
 import BoardSettings from '@/components/BoardSettings';
 import GlobalBanner from '@/components/GlobalBanner';
 import FeedbackExport from '@/components/FeedbackExport';
+import GiftSubscriptionManager from '@/components/GiftSubscriptionManager';
 import { toast } from 'sonner';
 import { useParams, useRouter } from 'next/navigation';
 import { 
@@ -17,7 +18,8 @@ import {
   Users,
   Upload,
   BarChart3,
-  Wrench
+  Wrench,
+  Gift
 } from 'lucide-react';
 
 interface Project {
@@ -157,7 +159,7 @@ export default function SettingsPage() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-2 mb-6">
-            <TabsList className="grid w-full grid-cols-7 bg-transparent">
+            <TabsList className="grid w-full grid-cols-8 bg-transparent">
               <TabsTrigger 
                 value="api-keys" 
                 className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
@@ -206,6 +208,13 @@ export default function SettingsPage() {
               >
                 <Wrench className="w-4 h-4" />
                 Tools
+              </TabsTrigger>
+              <TabsTrigger 
+                value="gifts" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
+              >
+                <Gift className="w-4 h-4" />
+                Gift Pro
               </TabsTrigger>
             </TabsList>
           </div>
@@ -620,6 +629,57 @@ export default function SettingsPage() {
                     >
                       View Demo
                     </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="gifts" className="mt-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Gift Pro Subscriptions</h3>
+                  <p className="text-gray-600">
+                    {project?.plan === 'pro' 
+                      ? 'Send Pro subscription gifts to your team or users'
+                      : 'Gift Pro subscriptions are available for Pro users'
+                    }
+                  </p>
+                </div>
+                {project?.plan === 'free' && (
+                  <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-lg px-3 py-1">
+                    <span className="text-sm font-medium text-yellow-800">Pro Feature</span>
+                  </div>
+                )}
+              </div>
+              
+              {project?.plan === 'pro' ? (
+                <GiftSubscriptionManager 
+                  projectId={project.id}
+                  projectName={project.name}
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Gift className="h-8 w-8 text-yellow-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Gift Pro Subscriptions
+                  </h3>
+                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                    Upgrade to Pro to gift Pro subscriptions to your team members, customers, or anyone else who needs access to your project.
+                  </p>
+                  <div className="space-y-3">
+                    <Button 
+                      onClick={() => window.open('/billing', '_blank')}
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                    >
+                      Upgrade to Pro
+                    </Button>
+                    <p className="text-sm text-gray-500">
+                      Try the <Button variant="link" className="p-0 h-auto text-blue-600" onClick={() => window.open('/demo/gift-management', '_blank')}>demo</Button> to see how it works
+                    </p>
                   </div>
                 </div>
               )}
