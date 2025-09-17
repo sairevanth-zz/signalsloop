@@ -15,19 +15,7 @@ import {
   BarChart3,
   PieChart
 } from 'lucide-react';
-import { getSupabaseClient } from '@/lib/supabase-client';
 
-interface Post {
-  id: string;
-  title: string;
-  description: string;
-  category: string | null;
-  ai_categorized: boolean;
-  ai_confidence: number | null;
-  votes: number;
-  status: string;
-  created_at: string;
-}
 
 interface AIInsights {
   totalPosts: number;
@@ -66,95 +54,18 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
       setLoading(true);
       setError(null);
 
-      const supabase = getSupabaseClient();
-      if (!supabase) {
-        throw new Error('Supabase client not available');
+      console.log('Loading AI insights for project:', projectSlug);
+
+      // Use the new API endpoint for better reliability
+      const response = await fetch(`/api/ai/insights?projectSlug=${encodeURIComponent(projectSlug)}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}`);
       }
 
-      // First, get the project ID
-      const { data: project, error: projectError } = await supabase
-        .from('projects')
-        .select('id')
-        .eq('slug', projectSlug)
-        .single();
-
-      if (projectError || !project) {
-        throw new Error('Project not found');
-      }
-
-      // Get all posts for this project
-      const { data: posts, error: postsError } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('project_id', project.id)
-        .order('created_at', { ascending: false });
-
-      if (postsError) {
-        throw new Error('Failed to fetch posts');
-      }
-
-      const typedPosts = posts as Post[];
-      const totalPosts = typedPosts.length;
-      const categorizedPosts = typedPosts.filter(p => p.ai_categorized).length;
-      const categorizationRate = totalPosts > 0 ? (categorizedPosts / totalPosts) * 100 : 0;
-
-      // Calculate category breakdown
-      const categoryCounts = typedPosts.reduce((acc, post) => {
-        if (post.category) {
-          acc[post.category] = (acc[post.category] || 0) + 1;
-        }
-        return acc;
-      }, {} as Record<string, number>);
-
-      const categoryBreakdown = Object.entries(categoryCounts)
-        .map(([category, count]) => ({
-          category,
-          count,
-          percentage: totalPosts > 0 ? (count / totalPosts) * 100 : 0
-        }))
-        .sort((a, b) => b.count - a.count);
-
-      const topCategory = categoryBreakdown[0]?.category || 'None';
-
-      // Calculate average confidence
-      const confidenceValues = typedPosts
-        .filter(p => p.ai_confidence !== null)
-        .map(p => p.ai_confidence!);
-      const averageConfidence = confidenceValues.length > 0 
-        ? confidenceValues.reduce((sum, conf) => sum + conf, 0) / confidenceValues.length 
-        : 0;
-
-      // Estimate time saved (2 minutes per categorized post)
-      const timeSaved = categorizedPosts * 2;
-
-      // Generate recent trends (last 7 days)
-      const now = new Date();
-      const recentTrends = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
-        
-        const dayPosts = typedPosts.filter(p => 
-          p.created_at.startsWith(dateStr)
-        );
-        
-        return {
-          date: dateStr,
-          total: dayPosts.length,
-          categorized: dayPosts.filter(p => p.ai_categorized).length
-        };
-      }).reverse();
-
-      const insightsData: AIInsights = {
-        totalPosts,
-        categorizedPosts,
-        categorizationRate,
-        topCategory,
-        categoryBreakdown,
-        timeSaved,
-        averageConfidence,
-        recentTrends
-      };
+      const insightsData = await response.json();
+      console.log('AI insights loaded successfully:', insightsData);
 
       setInsights(insightsData);
     } catch (err) {
@@ -201,6 +112,12 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
             <div>
               <p className="font-semibold">Error loading AI insights</p>
               <p className="text-sm">{error}</p>
+              <button 
+                onClick={loadAIInsights}
+                className="mt-2 text-xs bg-red-100 hover:bg-red-200 px-2 py-1 rounded transition-colors"
+              >
+                Try Again
+              </button>
             </div>
           </div>
         </CardContent>
@@ -214,7 +131,12 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
         <CardContent className="pt-6">
           <div className="flex items-center gap-3 text-gray-600">
             <AlertCircle className="w-5 h-5" />
-            <p>No insights available</p>
+            <div>
+              <p>No insights available</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Start adding posts to see AI-powered insights and categorization
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

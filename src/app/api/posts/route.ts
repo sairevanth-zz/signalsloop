@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase-client';
+import { getSupabaseServerClient } from '@/lib/supabase-client';
 import { categorizeFeedback } from '@/lib/ai-categorization';
 
 export async function POST(request: NextRequest) {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServerClient();
     if (!supabase) {
       return NextResponse.json(
         { error: 'Database connection not available' },
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServerClient();
     if (!supabase) {
       return NextResponse.json(
         { error: 'Database connection not available' },
