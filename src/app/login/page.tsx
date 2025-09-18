@@ -39,7 +39,7 @@ export default function LoginPage() {
       }
       
       if (detailsParam) {
-        errorMessage += ` (${detailsParam})`;
+        errorMessage += ' (' + detailsParam + ')';
       }
       
       setError(errorMessage);
@@ -80,7 +80,7 @@ export default function LoginPage() {
 
       if (error) {
         console.error('Google OAuth error:', error);
-        setError(`Google authentication failed. Please try again. (${error.message})`);
+        setError('Google authentication failed. Please try again. (' + error.message + ')');
         toast.error('Google login failed');
       } else {
         console.log('OAuth initiated successfully:', data);
@@ -89,7 +89,7 @@ export default function LoginPage() {
     } catch (error) {
       console.error('Google login error:', error);
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-      setError(`Google authentication failed. Please try again. (${errorMessage})`);
+      setError('Google authentication failed. Please try again. (' + errorMessage + ')');
       toast.error('Google login failed');
     } finally {
       setIsGoogleLoading(false);
