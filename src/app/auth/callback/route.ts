@@ -49,9 +49,6 @@ export async function GET(request: NextRequest) {
         
         console.log('Is new user:', isNewUser, 'Time difference:', Date.now() - userCreatedAt.getTime());
         
-        // Let Supabase triggers handle user record creation automatically
-        // No need to manually check or create user records
-
         // For new users, redirect to welcome page first
         if (isNewUser) {
           console.log('New user detected, redirecting to welcome page');
