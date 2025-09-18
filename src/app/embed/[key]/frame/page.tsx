@@ -636,21 +636,23 @@ export default function WidgetFrame() {
         )}
       </div>
 
-      {/* Footer */}
-      <div className={`border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} p-3`}>
-        <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-          <Heart className="w-3 h-3" />
-          <span>Powered by</span>
-          <a 
-            href="https://signalsloop.com" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-700 font-medium"
-          >
-            SignalsLoop
-          </a>
+      {/* Footer - Only show branding for free accounts */}
+      {project && project.plan === 'free' && (
+        <div className={`border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} p-3`}>
+          <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+            <Heart className="w-3 h-3" />
+            <span>Powered by</span>
+            <a 
+              href="https://signalsloop.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              SignalsLoop
+            </a>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

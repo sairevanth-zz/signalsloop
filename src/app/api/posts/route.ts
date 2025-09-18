@@ -49,35 +49,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Now attempt AI categorization in the background
-    // This doesn't block the response to the user
-    categorizeFeedback(title, description)
-      .then(async (aiResult) => {
-        try {
-          // Update the post with AI categorization results
-          const { error: updateError } = await supabase
-            .from('posts')
-            .update({
-              category: aiResult.category,
-              ai_categorized: true,
-              ai_confidence: aiResult.confidence,
-              ai_reasoning: aiResult.reasoning
-            })
-            .eq('id', newPost.id);
+    // Check if project has Pro plan for AI categorization
+    const { data: projectData, error: projectError } = await supabase
+      .from('projects')
+      .select('plan')
+      .eq('id', project_id)
+      .single();
 
-          if (updateError) {
+    // Only attempt AI categorization for Pro accounts
+    if (!projectError && projectData && projectData.plan === 'pro') {
+      // Now attempt AI categorization in the background
+      // This doesn't block the response to the user
+      categorizeFeedback(title, description)
+        .then(async (aiResult) => {
+          try {
+            // Update the post with AI categorization results
+            const { error: updateError } = await supabase
+              .from('posts')
+              .update({
+                category: aiResult.category,
+                ai_categorized: true,
+                ai_confidence: aiResult.confidence,
+                ai_reasoning: aiResult.reasoning
+              })
+              .eq('id', newPost.id);
+
+            if (updateError) {
+              console.error('Error updating post with AI categorization:', updateError);
+            } else {
+              console.log(`✅ Post ${newPost.id} categorized as: ${aiResult.category} (${Math.round(aiResult.confidence * 100)}% confidence)`);
+            }
+          } catch (updateError) {
             console.error('Error updating post with AI categorization:', updateError);
-          } else {
-            console.log(`✅ Post ${newPost.id} categorized as: ${aiResult.category} (${Math.round(aiResult.confidence * 100)}% confidence)`);
           }
-        } catch (updateError) {
-          console.error('Error updating post with AI categorization:', updateError);
-        }
-      })
-      .catch((aiError) => {
-        console.error('AI categorization failed for post:', newPost.id, aiError);
-        // Don't throw - this is a background process
-      });
+        })
+        .catch((aiError) => {
+          console.error('AI categorization failed for post:', newPost.id, aiError);
+          // Don't throw - this is a background process
+        });
+    } else {
+      console.log(`Post ${newPost.id} created for free account - skipping AI categorization`);
+    }
 
     // Return the post immediately (without AI categorization)
     return NextResponse.json({

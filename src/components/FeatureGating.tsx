@@ -16,7 +16,8 @@ import {
   Palette,
   Code,
   CheckCircle,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 
 interface UserPlan {
@@ -200,6 +201,14 @@ const FEATURES: FeatureConfig[] = [
     icon: <Users className="h-4 w-4" />,
     proOnly: true,
     category: 'support'
+  },
+  {
+    id: 'ai_categorization',
+    name: 'AI Categorization',
+    description: 'Automatically categorize feedback using AI',
+    icon: <Sparkles className="h-4 w-4" />,
+    proOnly: true,
+    category: 'analytics'
   }
 ];
 

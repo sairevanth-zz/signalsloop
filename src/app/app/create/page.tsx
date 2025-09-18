@@ -93,6 +93,33 @@ export default function ProjectWizard() {
       const { data: { user } } = await supabase.auth.getUser();
       console.log('User session:', user ? 'logged in' : 'anonymous');
 
+      // Check board limits for authenticated users
+      if (user) {
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('plan')
+          .eq('id', user.id)
+          .single();
+
+        if (!userError && userData) {
+          const userPlan = userData.plan || 'free';
+          
+          // Check existing project count for free users
+          if (userPlan === 'free') {
+            const { data: existingProjects, error: countError } = await supabase
+              .from('projects')
+              .select('id', { count: 'exact' })
+              .eq('owner_id', user.id);
+
+            if (!countError && existingProjects && existingProjects.length >= 1) {
+              setError('Free accounts are limited to 1 project. Upgrade to Pro to create unlimited projects.');
+              setIsLoading(false);
+              return;
+            }
+          }
+        }
+      }
+
       // Check slug availability one more time
       const isAvailable = await checkSlugAvailability(projectData.slug);
       if (!isAvailable) {
