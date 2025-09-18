@@ -296,16 +296,6 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <p className="text-xs font-medium text-gray-600 mb-2">Debug Info:</p>
-              <div className="space-y-1 text-xs text-gray-500">
-                <p>Origin: {typeof window !== 'undefined' ? window.location.origin : 'N/A'}</p>
-                <p>Redirect URL: {typeof window !== 'undefined' ? window.location.origin + '/auth/callback' : 'N/A'}</p>
-                <p>Supabase URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Missing'}</p>
-                <p>Supabase Key: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Missing'}</p>
-                <p>Client Side: {isClient ? 'Yes' : 'No'}</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
