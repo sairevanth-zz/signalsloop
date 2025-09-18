@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE!;
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -29,8 +28,6 @@ export async function GET(request: NextRequest) {
   if (code) {
     // Use anon key for auth operations
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    // Use service key for database operations
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
     
     try {
       console.log('Exchanging code for session:', code.substring(0, 10) + '...');
@@ -53,24 +50,7 @@ export async function GET(request: NextRequest) {
         console.log('Is new user:', isNewUser, 'Time difference:', Date.now() - userCreatedAt.getTime());
         
         // Let Supabase triggers handle user record creation automatically
-        // We'll just check if the user record exists for logging purposes
-        try {
-          const { data: userRecord, error: userError } = await supabaseAdmin
-            .from('users')
-            .select('*')
-            .eq('id', data.user.id)
-            .single();
-
-          if (userError && userError.code !== 'PGRST116') {
-            console.log('User record check error (this might be normal for new users):', userError.message);
-          } else if (userRecord) {
-            console.log('User record exists:', userRecord.email);
-          } else {
-            console.log('User record does not exist yet (trigger should create it)');
-          }
-        } catch (error) {
-          console.log('Error checking user record:', error);
-        }
+        // No need to manually check or create user records
 
         // For new users, redirect to welcome page first
         if (isNewUser) {
