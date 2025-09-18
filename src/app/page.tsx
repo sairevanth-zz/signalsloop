@@ -88,9 +88,6 @@ export default function Homepage() {
               <Link href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Pricing
               </Link>
-              <Link href="#docs" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Docs
-              </Link>
               <Link href="/demo/board" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Demo
               </Link>
