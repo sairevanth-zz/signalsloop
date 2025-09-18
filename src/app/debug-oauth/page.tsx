@@ -77,11 +77,31 @@ export default function DebugOAuth() {
     addLog('Testing callback URL...');
     
     try {
-      const response = await fetch('/auth/callback?test=1');
-      const text = await response.text();
-      addLog(`Callback response: ${response.status} - ${text.substring(0, 200)}`);
+      const response = await fetch('/api/test-callback?test=1');
+      const data = await response.json();
+      addLog(`API Callback test: ${response.status} - ${JSON.stringify(data)}`);
     } catch (error) {
-      addLog(`Callback test error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      addLog(`API Callback test error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const testActualCallback = async () => {
+    if (!isClient) return;
+    
+    addLog('Testing actual auth callback route...');
+    
+    try {
+      const response = await fetch('/auth/callback?test=1');
+      addLog(`Auth callback response: ${response.status} - ${response.statusText}`);
+      
+      if (response.redirected) {
+        addLog(`Redirected to: ${response.url}`);
+      } else {
+        const text = await response.text();
+        addLog(`Response body: ${text.substring(0, 200)}...`);
+      }
+    } catch (error) {
+      addLog(`Auth callback test error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -119,6 +139,7 @@ export default function DebugOAuth() {
           onClick={testCallback}
           style={{
             padding: '10px 20px',
+            marginRight: '10px',
             backgroundColor: '#34a853',
             color: 'white',
             border: 'none',
@@ -126,7 +147,21 @@ export default function DebugOAuth() {
             cursor: 'pointer'
           }}
         >
-          Test Callback
+          Test API Callback
+        </button>
+        
+        <button 
+          onClick={testActualCallback}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#ff6b35',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Test Auth Callback
         </button>
       </div>
 
