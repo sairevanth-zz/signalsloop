@@ -61,21 +61,31 @@ export default function LoginPage() {
     setError('');
 
     try {
+      console.log('Starting Google OAuth with redirectTo:', `${window.location.origin}/auth/callback?next=/app`);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=/app`
+          redirectTo: `${window.location.origin}/auth/callback?next=/app`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
 
       if (error) {
-        setError(error.message);
+        console.error('Google OAuth error:', error);
+        setError(`Google authentication failed. Please try again. (${error.message})`);
         toast.error('Google login failed');
       } else {
+        console.log('OAuth initiated successfully:', data);
         toast.success('Redirecting to Google...');
       }
     } catch (error) {
-      setError('Something went wrong with Google login. Please try again.');
+      console.error('Google login error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      setError(`Google authentication failed. Please try again. (${errorMessage})`);
       toast.error('Google login failed');
     } finally {
       setIsGoogleLoading(false);
@@ -316,10 +326,13 @@ export default function LoginPage() {
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to homepage
           </Link>
-          <div>
+          <div className="space-y-1">
             <Link href="/auth-debug" className="inline-flex items-center text-blue-600 hover:text-blue-700 transition-colors text-sm">
               🔧 Authentication Debug Tool
             </Link>
+            <div className="text-xs text-gray-500">
+              Debug Info: Redirect URL: {typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : 'Unknown'}
+            </div>
           </div>
         </div>
         
