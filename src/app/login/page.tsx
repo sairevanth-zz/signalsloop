@@ -52,7 +52,10 @@ export default function LoginPage() {
   const supabase = getSupabaseClient();
 
   const handleGoogleLogin = async () => {
+    console.log('handleGoogleLogin called');
+    
     if (!supabase) {
+      console.error('Supabase client not available');
       setError('Authentication service not available. Please refresh the page.');
       return;
     }
@@ -61,12 +64,13 @@ export default function LoginPage() {
     setError('');
 
     try {
-      console.log('Starting Google OAuth with redirectTo:', `${window.location.origin}/auth/callback?next=/app`);
+      const redirectUrl = window.location.origin + '/auth/callback?next=/app';
+      console.log('Starting Google OAuth with redirectTo:', redirectUrl);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=/app`,
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -331,7 +335,7 @@ export default function LoginPage() {
               🔧 Authentication Debug Tool
             </Link>
             <div className="text-xs text-gray-500">
-              Debug Info: Redirect URL: {typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : 'Unknown'}
+              Debug Info: Redirect URL: {typeof window !== 'undefined' ? window.location.origin + '/auth/callback' : 'Unknown'}
             </div>
           </div>
         </div>
