@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE!;
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -26,7 +27,10 @@ export async function GET(request: NextRequest) {
   }
 
   if (code) {
+    // Use anon key for auth operations
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // Use service key for database operations
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
     
     try {
       console.log('Exchanging code for session:', code.substring(0, 10) + '...');
@@ -40,58 +44,32 @@ export async function GET(request: NextRequest) {
       if (data.user) {
         console.log('User authenticated:', data.user.email);
         console.log('User metadata:', data.user.user_metadata);
+        console.log('User created at:', data.user.created_at);
         
         // Check if this is a new user (created_at is very recent)
         const userCreatedAt = new Date(data.user.created_at);
         const isNewUser = (Date.now() - userCreatedAt.getTime()) < 60000; // Within last minute
         
-        // The trigger should automatically handle user creation
-        // But let's check if the user record exists and update if needed
-        const { data: userRecord, error: userError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        if (userError && userError.code !== 'PGRST116') {
-          console.error('Error checking user record:', userError);
-        }
-
-        // If user record doesn't exist, create it manually
-        if (!userRecord && data.user.email) {
-          const { error: insertError } = await supabase
+        console.log('Is new user:', isNewUser, 'Time difference:', Date.now() - userCreatedAt.getTime());
+        
+        // Let Supabase triggers handle user record creation automatically
+        // We'll just check if the user record exists for logging purposes
+        try {
+          const { data: userRecord, error: userError } = await supabaseAdmin
             .from('users')
-            .insert({
-              id: data.user.id,
-              email: data.user.email,
-              full_name: data.user.user_metadata?.full_name || data.user.email.split('@')[0],
-              avatar_url: data.user.user_metadata?.avatar_url || '',
-              google_id: data.user.user_metadata?.provider_id || data.user.id,
-              provider: 'google'
-            });
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
 
-          if (insertError) {
-            console.error('Error creating user record:', insertError);
+          if (userError && userError.code !== 'PGRST116') {
+            console.log('User record check error (this might be normal for new users):', userError.message);
+          } else if (userRecord) {
+            console.log('User record exists:', userRecord.email);
           } else {
-            console.log('User record created:', data.user.email);
+            console.log('User record does not exist yet (trigger should create it)');
           }
-        } else if (userRecord) {
-          // Update existing user record with latest Google data
-          const { error: updateError } = await supabase
-            .from('users')
-            .update({ 
-              full_name: data.user.user_metadata?.full_name || userRecord.full_name,
-              avatar_url: data.user.user_metadata?.avatar_url || userRecord.avatar_url,
-              google_id: data.user.user_metadata?.provider_id || data.user.id,
-              provider: 'google'
-            })
-            .eq('id', data.user.id);
-
-          if (updateError) {
-            console.error('Error updating user record:', updateError);
-          } else {
-            console.log('User record updated:', data.user.email);
-          }
+        } catch (error) {
+          console.log('Error checking user record:', error);
         }
 
         // For new users, redirect to welcome page first
