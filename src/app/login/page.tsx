@@ -229,13 +229,17 @@ export default function LoginPage() {
   // Don't render until client-side
   if (!isClient) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-        <Card className="border-0 shadow-xl">
-          <CardContent className="p-8 text-center">
-            <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Loading...</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen w-screen bg-black relative overflow-hidden flex items-center justify-center">
+        {/* Background gradient effect */}
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-500/40 via-purple-700/50 to-black" />
+        
+        {/* Loading card */}
+        <div className="relative bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/[0.05] shadow-2xl">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-white/70 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-white/60">Loading...</p>
+          </div>
+        </div>
       </div>
     );
   }
