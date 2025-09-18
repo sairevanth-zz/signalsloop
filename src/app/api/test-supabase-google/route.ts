@@ -11,19 +11,38 @@ export async function GET(request: NextRequest) {
       }, { status: 500 });
     }
 
-    // Test if we can get the Google provider configuration
-    // This will help identify if the provider is properly configured
-    const { data, error } = await supabase.auth.getProviders();
+    // Test basic Supabase connection and try to get user session
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    // Check environment variables
+    const envCheck = {
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE,
+      hasGoogleClientId: !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...',
+      googleClientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.substring(0, 20) + '...'
+    };
     
     return NextResponse.json({
       success: true,
-      providers: data,
-      error: error?.message || null,
+      environment: envCheck,
+      supabase: {
+        connected: !sessionError,
+        error: sessionError?.message || null,
+        hasSession: !!sessionData.session
+      },
       recommendations: [
-        'Check that Google provider is enabled in Supabase Dashboard',
-        'Verify Google Client ID and Client Secret are set in Supabase',
-        'Ensure redirect URIs match between Google Cloud Console and Supabase',
-        'Make sure the Google provider is not disabled in Supabase'
+        '1. Go to Supabase Dashboard → Authentication → Providers',
+        '2. Enable Google provider and add your Client ID and Client Secret',
+        '3. Set redirect URL to: https://signalsloop.vercel.app/auth/callback',
+        '4. Verify Google Cloud Console has correct redirect URIs',
+        '5. Make sure Google provider is not disabled in Supabase'
+      ],
+      nextSteps: [
+        'Check Supabase Dashboard for Google provider configuration',
+        'Verify Google Client Secret is added to Supabase (not just Client ID)',
+        'Ensure redirect URIs match between Google Cloud Console and Supabase'
       ]
     });
 
