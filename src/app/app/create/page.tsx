@@ -42,20 +42,43 @@ export default function ProjectWizard() {
   const totalSteps = 3;
   const progress = (currentStep / totalSteps) * 100;
 
-  // Auto-generate slug from project name
-  const generateSlug = (name: string) => {
-    return name
+  // Auto-generate slug from project name with user context
+  const generateSlug = async (name: string) => {
+    const baseSlug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
-      .substring(0, 50);
+      .substring(0, 40); // Leave room for user suffix
+
+    if (!supabase) return baseSlug;
+
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // For authenticated users, add user context to make slug unique
+        const userSlug = user.email?.split('@')[0] || user.id.substring(0, 8);
+        const fullSlug = `${baseSlug}-${userSlug}`;
+        return fullSlug.substring(0, 50);
+      } else {
+        // For anonymous users, add random suffix
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const fullSlug = `${baseSlug}-${randomSuffix}`;
+        return fullSlug.substring(0, 50);
+      }
+    } catch {
+      // Fallback if anything fails
+      return baseSlug;
+    }
   };
 
-  const handleNameChange = (name: string) => {
+  const handleNameChange = async (name: string) => {
+    const slug = await generateSlug(name);
     setProjectData(prev => ({
       ...prev,
       name,
-      slug: generateSlug(name)
+      slug
     }));
   };
 
@@ -67,13 +90,14 @@ export default function ProjectWizard() {
     if (!slug || !supabase) return false;
     
     try {
+      // Check global uniqueness (slugs are now generated to be unique)
       const { data } = await supabase
         .from('projects')
         .select('slug')
         .eq('slug', slug)
         .single();
       
-      return !data; // true if slug is available (no existing project)
+      return !data; // true if slug is available
     } catch {
       return true; // assume available if check fails
     }
@@ -314,7 +338,10 @@ export default function ProjectWizard() {
                   <Input
                     id="projectName"
                     value={projectData.name}
-                    onChange={(e) => handleNameChange(e.target.value)}
+                    onChange={(e) => {
+                      const name = e.target.value;
+                      handleNameChange(name);
+                    }}
                     placeholder="e.g., My Awesome App"
                     className="text-lg"
                   />
@@ -355,17 +382,22 @@ export default function ProjectWizard() {
                 
                 <div>
                   <label htmlFor="projectSlug" className="block text-sm font-medium text-gray-700 mb-2">
-                    Project URL Slug (optional)
+                    Project URL
                   </label>
-                  <Input
-                    id="projectSlug"
-                    value={projectData.slug}
-                    onChange={(e) => setProjectData(prev => ({ ...prev, slug: e.target.value }))}
-                    placeholder="my-awesome-app"
-                    className="font-mono"
-                  />
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-500 font-mono">signalsloop.com/</span>
+                    <Input
+                      id="projectSlug"
+                      value={projectData.slug}
+                      onChange={(e) => setProjectData(prev => ({ ...prev, slug: e.target.value }))}
+                      placeholder="my-awesome-app"
+                      className="font-mono flex-1"
+                    />
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Letters, numbers, and hyphens only. Must be 3-50 characters.
+                    Letters, numbers, and hyphens only. Must be 3-50 characters. 
+                    <br />
+                    <span className="text-blue-600">Your URL is automatically made unique by adding your username.</span>
                   </p>
                 </div>
               </div>
