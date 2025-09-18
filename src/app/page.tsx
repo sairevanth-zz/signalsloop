@@ -128,7 +128,7 @@ export default function Homepage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/app/create">
+            <Link href="/login">
               <GradientButton className="text-lg px-8 py-3 gap-2">
                 Start Free Trial
                 <ArrowRight className="h-5 w-5" />
@@ -419,7 +419,7 @@ export default function Homepage() {
           <p className="text-xl mb-8 opacity-90">
             Join 100+ companies using SignalsLoop&apos;s AI-powered feedback boards to build better products
           </p>
-          <Link href="/app/create">
+          <Link href="/login">
             <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3">
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
