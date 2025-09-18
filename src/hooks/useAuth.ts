@@ -7,7 +7,7 @@ import type { User } from '@supabase/supabase-js';
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = getSupabaseClient();
+  const [supabase, setSupabase] = useState<any>(null);
 
   useEffect(() => {
     // Only run on client side to prevent hydration mismatches
@@ -16,7 +16,11 @@ export function useAuth() {
       return;
     }
 
-    if (!supabase) {
+    // Initialize Supabase client on client side only
+    const client = getSupabaseClient();
+    setSupabase(client);
+
+    if (!client) {
       setLoading(false);
       return;
     }
@@ -25,7 +29,7 @@ export function useAuth() {
     const getInitialSession = async () => {
       try {
         console.log('Getting initial session...');
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error } = await client.auth.getSession();
         
         if (error) {
           console.error('Error getting session:', error);
@@ -45,14 +49,14 @@ export function useAuth() {
 
     // Listen for auth changes
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: any, session: any) => {
+    const { data: { subscription } } = client.auth.onAuthStateChange((event: any, session: any) => {
       console.log('Auth state changed:', event, session?.user?.email || 'no user');
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase]);
+  }, []);
 
   const signOut = async () => {
     if (supabase) {
