@@ -82,6 +82,31 @@ export default function DebugOAuth() {
     }
   };
 
+  const testSession = async () => {
+    if (!isClient) return;
+    
+    addLog('Testing current session...');
+    
+    try {
+      const response = await fetch('/api/debug-session');
+      const data = await response.json();
+      
+      if (response.ok) {
+        if (data.session) {
+          addLog(`SUCCESS: Session found for user ${data.session.user.email}`);
+          addLog(`Session expires at: ${data.session.expires_at}`);
+        } else {
+          addLog(`NO SESSION: ${data.error || 'No session found'}`);
+        }
+        addLog(`Headers: ${JSON.stringify(data.headers)}`);
+      } else {
+        addLog(`ERROR: ${data.error}`);
+      }
+    } catch (error) {
+      addLog(`Session test error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
   if (!isClient) {
     return (
       <div style={{ padding: '20px', fontFamily: 'monospace', textAlign: 'center' }}>
@@ -131,6 +156,7 @@ export default function DebugOAuth() {
           onClick={testActualCallback}
           style={{
             padding: '10px 20px',
+            marginRight: '10px',
             backgroundColor: '#ff6b35',
             color: 'white',
             border: 'none',
@@ -139,6 +165,20 @@ export default function DebugOAuth() {
           }}
         >
           Test Auth Callback
+        </button>
+        
+        <button 
+          onClick={testSession}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#8b5cf6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Test Session
         </button>
       </div>
 

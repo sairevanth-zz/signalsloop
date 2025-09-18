@@ -111,11 +111,30 @@ export default function AppPage() {
   useEffect(() => {
     console.log('App page auth check:', { user: !!user, loading, userEmail: user?.email });
     
-    // Redirect to login if not authenticated
+    // Give a moment for session to be established after OAuth redirect
     if (!loading && !user) {
-      console.log('Redirecting to login - no user found');
-      router.push('/login');
-      return;
+      console.log('No user found, checking if this is an OAuth redirect...');
+      
+      // Check if we just came from OAuth (no referrer or came from Google/Supabase)
+      const isOAuthRedirect = !document.referrer || 
+        document.referrer.includes('google.com') || 
+        document.referrer.includes('supabase.co');
+      
+      if (isOAuthRedirect) {
+        console.log('OAuth redirect detected, waiting for session...');
+        // Wait a bit longer for session to be established
+        setTimeout(() => {
+          if (!user) {
+            console.log('Still no user after OAuth redirect, redirecting to login');
+            router.push('/login');
+          }
+        }, 2000);
+        return;
+      } else {
+        console.log('Not an OAuth redirect, redirecting to login immediately');
+        router.push('/login');
+        return;
+      }
     }
 
     // Load projects if user is authenticated
