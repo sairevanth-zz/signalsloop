@@ -174,23 +174,18 @@ export const analytics = {
 };
 
 // React hook for tracking events
-import React from 'react';
-import { useRouter } from 'next/router';
+import React, { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 export const useAnalytics = () => {
-  const router = useRouter();
+  const pathname = usePathname();
 
   // Track page views automatically
   useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      analytics.page(url);
-    };
-
-    router.events.on('routeChangeComplete', handleRouteChange);
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange);
-    };
-  }, [router]);
+    if (typeof window !== 'undefined') {
+      analytics.page(pathname);
+    }
+  }, [pathname]);
 
   // Return analytics object for manual tracking
   return analytics;

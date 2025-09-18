@@ -10,6 +10,12 @@ export function useAuth() {
   const supabase = getSupabaseClient();
 
   useEffect(() => {
+    // Only run on client side to prevent hydration mismatches
+    if (typeof window === 'undefined') {
+      setLoading(false);
+      return;
+    }
+
     if (!supabase) {
       setLoading(false);
       return;
