@@ -109,7 +109,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const redirectUrl = `${window.location.origin}/app`;
+      const redirectUrl = window.location.origin + '/app';
       
       const { error } = await supabase.auth.signInWithOtp({
         email,
