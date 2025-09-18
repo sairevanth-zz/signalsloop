@@ -115,11 +115,21 @@ export default function AppPage() {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const hasAuthParams = urlParams.has('access_token') || urlParams.has('refresh_token') || urlParams.has('code');
+      const authSuccess = urlParams.get('auth') === 'success';
       
       if (hasAuthParams) {
         console.log('OAuth parameters detected in URL:', Object.fromEntries(urlParams.entries()));
         console.log('Waiting for session to be established from URL parameters...');
         // Don't redirect immediately, let Supabase handle the session from URL
+        return;
+      }
+      
+      if (authSuccess) {
+        console.log('Auth success parameter detected, session should be established');
+        // Clean up the URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+        // Don't redirect, let the useAuth hook handle the session
         return;
       }
     }
