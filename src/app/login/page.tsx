@@ -28,34 +28,38 @@ export default function LoginPage() {
         if (accessToken) {
           console.log('Access token found, setting session and redirecting to /app');
           
-          // Set the session in Supabase client
-          try {
-            const { createClient } = await import('@supabase/supabase-js');
-            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-            const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-            
-            if (supabaseUrl && supabaseKey) {
-              const supabase = createClient(supabaseUrl, supabaseKey);
+          // Set the session in Supabase client (async function)
+          const setSession = async () => {
+            try {
+              const { createClient } = await import('@supabase/supabase-js');
+              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+              const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
               
-              // Set the session with the tokens
-              const { data, error } = await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken || ''
-              });
-              
-              if (error) {
-                console.error('Error setting session:', error);
-              } else {
-                console.log('Session set successfully:', data.user?.email);
+              if (supabaseUrl && supabaseKey) {
+                const supabase = createClient(supabaseUrl, supabaseKey);
+                
+                // Set the session with the tokens
+                const { data, error } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken || ''
+                });
+                
+                if (error) {
+                  console.error('Error setting session:', error);
+                } else {
+                  console.log('Session set successfully:', data.user?.email);
+                }
               }
+            } catch (error) {
+              console.error('Error processing OAuth tokens:', error);
             }
-          } catch (error) {
-            console.error('Error processing OAuth tokens:', error);
-          }
+            
+            // Clean up the URL and redirect to app
+            window.history.replaceState({}, document.title, window.location.pathname);
+            window.location.href = '/app';
+          };
           
-          // Clean up the URL and redirect to app
-          window.history.replaceState({}, document.title, window.location.pathname);
-          window.location.href = '/app';
+          setSession();
           return;
         }
       }
