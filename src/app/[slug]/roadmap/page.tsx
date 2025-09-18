@@ -100,6 +100,19 @@ export default function PublicRoadmap() {
   const projectSlug = params?.slug as string;
   const router = useRouter();
   
+  // Ensure we have the required params before rendering
+  if (!projectSlug) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading Roadmap...</h3>
+          <p className="text-gray-600">Please wait while we load the project roadmap</p>
+        </div>
+      </div>
+    );
+  }
+  
   const [project, setProject] = useState<Project | null>(null);
   const [posts, setPosts] = useState<Record<string, RoadmapPost[]>>({
     open: [],
@@ -294,15 +307,25 @@ export default function PublicRoadmap() {
   };
 
   const handleVoteChange = (postId: string, newCount: number) => {
-    setPosts(prev => {
-      const updated = { ...prev };
-      Object.keys(updated).forEach(status => {
-        updated[status] = updated[status].map(post =>
-          post.id === postId ? { ...post, vote_count: newCount } : post
-        );
+    try {
+      if (!postId || typeof newCount !== 'number') {
+        console.error('Invalid parameters for handleVoteChange:', { postId, newCount });
+        return;
+      }
+      
+      setPosts(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(status => {
+          updated[status] = updated[status].map(post =>
+            post.id === postId ? { ...post, vote_count: newCount } : post
+          );
+        });
+        return updated;
       });
-      return updated;
-    });
+    } catch (error) {
+      console.error('Error in handleVoteChange:', error);
+      toast.error('Failed to update vote count');
+    }
   };
 
   const handlePostUpdate = (postId: string, updates: any) => {
@@ -614,11 +637,18 @@ export default function PublicRoadmap() {
                       </p>
                     </div>
                   ) : (
-                    statusPosts.map((post) => (
+                    statusPosts.filter(post => post && post.id && post.title).map((post) => (
                       <Card 
                         key={post.id} 
                         className="hover:shadow-lg transition-all duration-200 cursor-pointer bg-white/90 backdrop-blur-sm border-white/20 hover:scale-[1.02]"
-                        onClick={() => router.push(`/${projectSlug}/post/${post.id}`)}
+                        onClick={() => {
+                          if (projectSlug && post.id) {
+                            router.push(`/${projectSlug}/post/${post.id}`);
+                          } else {
+                            console.error('Missing projectSlug or post.id:', { projectSlug, postId: post.id });
+                            toast.error('Unable to open post. Please try again.');
+                          }
+                        }}
                       >
                         <CardContent className="p-5">
                           <div className="flex items-start gap-3">
@@ -626,8 +656,23 @@ export default function PublicRoadmap() {
                             <VoteButton
                               postId={post.id}
                               initialVoteCount={post.vote_count}
-                              onVoteChange={(count) => handleVoteChange(post.id, count)}
-                              onShowNotification={(message, type) => console.log(`${type}: ${message}`)}
+                              onVoteChange={(count) => {
+                                try {
+                                  handleVoteChange(post.id, count);
+                                } catch (error) {
+                                  console.error('Error handling vote change:', error);
+                                  toast.error('Failed to update vote');
+                                }
+                              }}
+                              onShowNotification={(message, type) => {
+                                if (type === 'success') {
+                                  toast.success(message);
+                                } else if (type === 'error') {
+                                  toast.error(message);
+                                } else {
+                                  toast.info(message);
+                                }
+                              }}
                               size="sm"
                               variant="compact"
                             />
