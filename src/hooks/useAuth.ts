@@ -18,7 +18,15 @@ export function useAuth() {
     // Get initial session
     const getInitialSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Getting initial session...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+        } else {
+          console.log('Session retrieved:', session?.user?.email || 'no user');
+        }
+        
         setUser(session?.user ?? null);
       } catch (error) {
         console.error('Error getting session:', error);
@@ -32,6 +40,7 @@ export function useAuth() {
     // Listen for auth changes
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: any, session: any) => {
+      console.log('Auth state changed:', event, session?.user?.email || 'no user');
       setUser(session?.user ?? null);
       setLoading(false);
     });

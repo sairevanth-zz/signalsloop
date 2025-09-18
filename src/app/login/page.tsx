@@ -34,6 +34,8 @@ export default function LoginPage() {
         errorMessage = 'No authentication code received. Please try again.';
       } else if (errorParam === 'admin_required') {
         errorMessage = 'Admin access required. Please contact the administrator to get admin access.';
+      } else if (errorParam === 'unexpected_error') {
+        errorMessage = 'An unexpected error occurred during authentication. Please try again.';
       }
       
       if (detailsParam) {

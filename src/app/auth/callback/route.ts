@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Redirect to the intended destination or dashboard
+      console.log('Redirecting to:', `${origin}${next}`);
       return NextResponse.redirect(`${origin}${next}`);
     } catch (error) {
       console.error('Unexpected error in auth callback:', error);

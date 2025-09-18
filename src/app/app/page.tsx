@@ -109,14 +109,22 @@ export default function AppPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to login if not authenticated
+    console.log('App page auth check:', { user: !!user, loading, userEmail: user?.email });
+    
+    // Redirect to login if not authenticated (but give it more time for OAuth redirects)
     if (!loading && !user) {
-      router.push('/login');
-      return;
+      // Add a small delay to handle OAuth redirect timing issues
+      const timer = setTimeout(() => {
+        console.log('Redirecting to login - no user found');
+        router.push('/login');
+      }, 1000);
+      
+      return () => clearTimeout(timer);
     }
 
     // Load projects if user is authenticated
     if (user && supabase) {
+      console.log('Loading projects for user:', user.email);
       loadProjects();
     }
   }, [user, loading, router, supabase]);
