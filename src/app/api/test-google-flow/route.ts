@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const supabase = createClient(supabaseUrl, supabaseKey);
     
     // Test the OAuth URL generation
-    const redirectUrl = `${request.nextUrl.origin}/auth/callback?next=/app`;
+    const redirectUrl = `${request.nextUrl.origin}/app`;
     
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
