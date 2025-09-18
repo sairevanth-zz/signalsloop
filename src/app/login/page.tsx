@@ -311,11 +311,16 @@ export default function LoginPage() {
           </CardContent>
         </Card>
         
-        <div className="text-center mt-6">
+        <div className="text-center mt-6 space-y-2">
           <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors">
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to homepage
           </Link>
+          <div>
+            <Link href="/auth-debug" className="inline-flex items-center text-blue-600 hover:text-blue-700 transition-colors text-sm">
+              🔧 Authentication Debug Tool
+            </Link>
+          </div>
         </div>
         
         <div className="text-center mt-8 text-xs text-gray-500">
