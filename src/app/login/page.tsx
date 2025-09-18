@@ -1,14 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { getSupabaseClient } from '@/lib/supabase-client';
+import { createClient } from '@supabase/supabase-js';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -16,8 +9,7 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
-  
-  // Check for OAuth errors in URL params
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const errorParam = urlParams.get('error');
@@ -43,17 +35,27 @@ export default function LoginPage() {
       }
       
       setError(errorMessage);
-      
-      // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
-  
-  const supabase = getSupabaseClient();
+
+  // Create Supabase client directly to avoid any hook issues
+  const getSupabaseClient = () => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Missing Supabase environment variables');
+      return null;
+    }
+    
+    return createClient(supabaseUrl, supabaseKey);
+  };
 
   const handleGoogleLogin = async () => {
     console.log('handleGoogleLogin called');
     
+    const supabase = getSupabaseClient();
     if (!supabase) {
       console.error('Supabase client not available');
       setError('Authentication service not available. Please refresh the page.');
@@ -66,6 +68,8 @@ export default function LoginPage() {
     try {
       const redirectUrl = window.location.origin + '/auth/callback?next=/app';
       console.log('Starting Google OAuth with redirectTo:', redirectUrl);
+      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+      console.log('Supabase Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -81,16 +85,13 @@ export default function LoginPage() {
       if (error) {
         console.error('Google OAuth error:', error);
         setError('Google authentication failed. Please try again. (' + error.message + ')');
-        toast.error('Google login failed');
       } else {
         console.log('OAuth initiated successfully:', data);
-        toast.success('Redirecting to Google...');
       }
     } catch (error) {
       console.error('Google login error:', error);
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       setError('Google authentication failed. Please try again. (' + errorMessage + ')');
-      toast.error('Google login failed');
     } finally {
       setIsGoogleLoading(false);
     }
@@ -99,7 +100,8 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-
+    
+    const supabase = getSupabaseClient();
     if (!supabase) {
       setError('Authentication service not available. Please refresh the page.');
       return;
@@ -123,232 +125,206 @@ export default function LoginPage() {
       } else {
         setIsSuccess(true);
       }
-    } catch {
+    } catch (error) {
       setError('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
-            </div>
-          </div>
-
-          <Card className="border-0 shadow-xl">
-            <CardHeader className="text-center pb-2">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-8 w-8 text-green-600" />
-              </div>
-              <CardTitle className="text-2xl">Check your email!</CardTitle>
-              <CardDescription className="text-lg">
-                We sent a magic link to <strong>{email}</strong>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <div className="space-y-4">
-                <Alert className="border-blue-200 bg-blue-50">
-                  <Mail className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>Click the link in your email</strong> to sign in to SignalsLoop. 
-                    The link will expire in 1 hour.
-                  </AlertDescription>
-                </Alert>
-                
-                <div className="text-sm text-gray-600 space-y-2">
-                  <p>Can&apos;t find the email? Check your spam folder.</p>
-                  <p>Still having trouble? <Link href="/support" className="text-blue-600 hover:underline">Contact support</Link></p>
-                </div>
-                
-                <div className="pt-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setIsSuccess(false);
-                      setEmail('');
-                    }}
-                    className="w-full"
-                  >
-                    Try a different email
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <div className="text-center mt-6">
-            <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors">
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to homepage
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">S</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
-          <p className="text-gray-600">Sign in to your SignalsLoop account</p>
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      backgroundColor: '#f5f5f5',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '400px',
+        padding: '2rem',
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#1f2937' }}>
+            SignalsLoop
+          </h1>
+          <p style={{ color: '#6b7280' }}>Sign in to your account</p>
         </div>
 
-        <Card className="border-0 shadow-xl">
-          <CardHeader className="text-center">
-            <CardTitle>Sign in with magic link</CardTitle>
-            <CardDescription>
-              No password needed. We&apos;ll send you a secure link to sign in.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email address
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com"
-                  disabled={isLoading}
-                  className="w-full"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && email && validateEmail(email)) {
-                      handleLogin(e as React.FormEvent<HTMLInputElement>);
-                    }
-                  }}
-                />
-              </div>
-              
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              
-              <Button 
-                onClick={handleLogin}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                disabled={isLoading || !email || !validateEmail(email)}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Sending magic link...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="h-4 w-4 mr-2" />
-                    Send magic link
-                  </>
-                )}
-              </Button>
-              
-              {/* Divider */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
-                </div>
-              </div>
-
-              {/* Google Login Button */}
-              <Button 
-                onClick={handleGoogleLogin}
-                variant="outline"
-                className="w-full border-gray-300 hover:bg-gray-50"
-                disabled={isGoogleLoading}
-              >
-                {isGoogleLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Signing in with Google...
-                  </>
-                ) : (
-                  <>
-                    <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                    Continue with Google
-                  </>
-                )}
-              </Button>
-            </div>
-            
-            <div className="mt-6 text-center text-sm text-gray-600">
-              <p>
-                New to SignalsLoop?{' '}
-                <span className="font-medium">Just enter your email above</span> to create an account.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <div className="text-center mt-6 space-y-2">
-          <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back to homepage
-          </Link>
-          <div className="space-y-1">
-            <Link href="/auth-debug" className="inline-flex items-center text-blue-600 hover:text-blue-700 transition-colors text-sm">
-              🔧 Authentication Debug Tool
-            </Link>
-            <div className="text-xs text-gray-500">
-              Debug Info: Redirect URL: {typeof window !== 'undefined' ? window.location.origin + '/auth/callback' : 'Unknown'}
-            </div>
+        {error && (
+          <div style={{
+            padding: '1rem',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '6px',
+            marginBottom: '1rem',
+            color: '#dc2626'
+          }}>
+            {error}
           </div>
+        )}
+
+        {isSuccess && (
+          <div style={{
+            padding: '1rem',
+            backgroundColor: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            borderRadius: '6px',
+            marginBottom: '1rem',
+            color: '#16a34a'
+          }}>
+            Check your email for the magic link!
+          </div>
+        )}
+
+        <button
+          onClick={handleGoogleLogin}
+          disabled={isGoogleLoading}
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            backgroundColor: isGoogleLoading ? '#9ca3af' : '#4285f4',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '1rem',
+            fontWeight: '500',
+            cursor: isGoogleLoading ? 'not-allowed' : 'pointer',
+            marginBottom: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem'
+          }}
+        >
+          {isGoogleLoading ? (
+            <>
+              <div style={{
+                width: '20px',
+                height: '20px',
+                border: '2px solid #ffffff',
+                borderTop: '2px solid transparent',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }} />
+              Loading...
+            </>
+          ) : (
+            <>
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Continue with Google
+            </>
+          )}
+        </button>
+
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          margin: '1.5rem 0',
+          color: '#6b7280'
+        }}>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e7eb' }} />
+          <span style={{ padding: '0 1rem' }}>or</span>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e7eb' }} />
         </div>
-        
-        <div className="text-center mt-8 text-xs text-gray-500">
-          <p>
-            By signing in, you agree to our{' '}
-            <Link href="/terms" className="hover:underline">Terms of Service</Link>
-            {' '}and{' '}
-            <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
-          </p>
+
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ 
+              display: 'block', 
+              fontSize: '0.875rem', 
+              fontWeight: '500', 
+              color: '#374151',
+              marginBottom: '0.5rem'
+            }}>
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              required
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '1rem',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+          
+          <button
+            type="submit"
+            disabled={isLoading}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              backgroundColor: isLoading ? '#9ca3af' : '#1f2937',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '1rem',
+              fontWeight: '500',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            {isLoading ? (
+              <>
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  border: '2px solid #ffffff',
+                  borderTop: '2px solid transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+                Sending...
+              </>
+            ) : (
+              'Send Magic Link'
+            )}
+          </button>
+        </form>
+
+        <div style={{ 
+          marginTop: '2rem', 
+          padding: '1rem',
+          backgroundColor: '#f9fafb',
+          borderRadius: '6px',
+          fontSize: '0.875rem',
+          color: '#6b7280'
+        }}>
+          <p><strong>Debug Info:</strong></p>
+          <p>Origin: {typeof window !== 'undefined' ? window.location.origin : 'Unknown'}</p>
+          <p>Redirect URL: {typeof window !== 'undefined' ? window.location.origin + '/auth/callback' : 'Unknown'}</p>
+          <p>Supabase URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Missing'}</p>
+          <p>Supabase Key: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Missing'}</p>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
