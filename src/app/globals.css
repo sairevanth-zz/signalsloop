@@ -3,6 +3,26 @@
 
 /* Ensure custom animations are loaded */
 @layer utilities {
+  /* Cursor utilities for specific use cases */
+  .cursor-auto { cursor: auto; }
+  .cursor-default { cursor: default; }
+  .cursor-none { cursor: none; }
+  .cursor-context-menu { cursor: context-menu; }
+  .cursor-cell { cursor: cell; }
+  .cursor-vertical-text { cursor: vertical-text; }
+  .cursor-alias { cursor: alias; }
+  .cursor-copy { cursor: copy; }
+  .cursor-no-drop { cursor: no-drop; }
+  .cursor-zoom-in { cursor: zoom-in; }
+  .cursor-zoom-out { cursor: zoom-out; }
+  .cursor-ew-resize { cursor: ew-resize; }
+  .cursor-ns-resize { cursor: ns-resize; }
+  .cursor-nesw-resize { cursor: nesw-resize; }
+  .cursor-nwse-resize { cursor: nwse-resize; }
+  .cursor-col-resize { cursor: col-resize; }
+  .cursor-row-resize { cursor: row-resize; }
+  .cursor-all-scroll { cursor: all-scroll; }
+  
   .animate-fade-in {
     animation: fade-in 0.6s ease-out;
   }
@@ -189,6 +209,134 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Cursor styles for interactive elements */
+  button, 
+  [role="button"], 
+  input[type="button"], 
+  input[type="submit"], 
+  input[type="reset"],
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  
+  /* Links should always have pointer cursor */
+  a {
+    cursor: pointer;
+  }
+  
+  /* Disabled elements should show not-allowed */
+  button:disabled, 
+  [role="button"]:disabled,
+  input:disabled,
+  .cursor-not-allowed {
+    cursor: not-allowed;
+  }
+  
+  /* Text inputs and textareas should show text cursor */
+  input[type="text"], 
+  input[type="email"], 
+  input[type="password"], 
+  input[type="search"], 
+  input[type="url"], 
+  input[type="tel"], 
+  input[type="number"],
+  textarea,
+  [contenteditable="true"],
+  .cursor-text {
+    cursor: text;
+  }
+  
+  /* Select elements */
+  select {
+    cursor: pointer;
+  }
+  
+  /* Checkboxes and radio buttons */
+  input[type="checkbox"], 
+  input[type="radio"] {
+    cursor: pointer;
+  }
+  
+  /* Drag and drop elements */
+  [draggable="true"] {
+    cursor: grab;
+  }
+  
+  [draggable="true"]:active {
+    cursor: grabbing;
+  }
+  
+  /* Help cursor for tooltips and help text */
+  [title], 
+  .cursor-help {
+    cursor: help;
+  }
+  
+  /* Resize cursors for resizable elements */
+  .resize {
+    cursor: nw-resize;
+  }
+  
+  .resize-x {
+    cursor: ew-resize;
+  }
+  
+  .resize-y {
+    cursor: ns-resize;
+  }
+  
+  /* Move cursor for draggable content */
+  .cursor-move {
+    cursor: move;
+  }
+  
+  /* Crosshair for precise interactions */
+  .cursor-crosshair {
+    cursor: crosshair;
+  }
+  
+  /* Wait cursor for loading states */
+  .cursor-wait {
+    cursor: wait;
+  }
+  
+  /* Progress cursor for ongoing operations */
+  .cursor-progress {
+    cursor: progress;
+  }
+  
+  /* Cards and interactive elements */
+  .card-clickable,
+  .interactive-card {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .card-clickable:hover,
+  .interactive-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Navigation items */
+  nav a,
+  .nav-item {
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  
+  /* Badge and tag interactions */
+  .badge-clickable,
+  .tag-clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .badge-clickable:hover,
+  .tag-clickable:hover {
+    transform: scale(1.05);
   }
 }
 
