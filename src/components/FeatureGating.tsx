@@ -209,6 +209,22 @@ const FEATURES: FeatureConfig[] = [
     icon: <Sparkles className="h-4 w-4" />,
     proOnly: true,
     category: 'analytics'
+  },
+  {
+    id: 'ai_duplicate_detection',
+    name: 'AI Duplicate Detection',
+    description: 'Automatically detect and flag duplicate feedback posts',
+    icon: <Sparkles className="h-4 w-4" />,
+    proOnly: true,
+    category: 'analytics'
+  },
+  {
+    id: 'ai_priority_scoring',
+    name: 'AI Priority Scoring',
+    description: 'Automatically score feedback priority based on AI analysis',
+    icon: <Sparkles className="h-4 w-4" />,
+    proOnly: true,
+    category: 'analytics'
   }
 ];
 

@@ -382,14 +382,14 @@ export default function Homepage() {
                     "Unlimited posts", 
                     "Private boards",
                     "🤖 AI Smart Categorization",
-                    "🔍 AI Duplicate Detection (coming soon)",
-                    "🎯 AI Priority Scoring (coming soon)",
+                    "🔍 AI Duplicate Detection",
+                    "🎯 AI Priority Scoring",
                     "Smart filtering & search",
-                    "Custom domain",
+                    "Custom domain (coming soon)",
                     "Remove branding",
-                    "Priority email support",
+                    "Priority email support (coming soon)",
                     "API access",
-                    "Email notifications"
+                    "Email notifications (coming soon)"
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-3" />

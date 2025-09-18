@@ -56,10 +56,9 @@ export async function POST(request: NextRequest) {
       .eq('id', project_id)
       .single();
 
-    // Only attempt AI categorization for Pro accounts
+    // Only attempt AI features for Pro accounts
     if (!projectError && projectData && projectData.plan === 'pro') {
-      // Now attempt AI categorization in the background
-      // This doesn't block the response to the user
+      // 1. AI Categorization in background
       categorizeFeedback(title, description)
         .then(async (aiResult) => {
           try {
@@ -85,10 +84,52 @@ export async function POST(request: NextRequest) {
         })
         .catch((aiError) => {
           console.error('AI categorization failed for post:', newPost.id, aiError);
-          // Don't throw - this is a background process
         });
+
+      // 2. Trigger AI Duplicate Detection (async)
+      fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/ai/duplicate-detection`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE}`
+        },
+        body: JSON.stringify({ 
+          postId: newPost.id, 
+          projectId: project_id 
+        })
+      }).then(response => {
+        if (response.ok) {
+          console.log('✅ AI duplicate detection triggered for post:', newPost.id);
+        } else {
+          console.error('❌ AI duplicate detection failed for post:', newPost.id);
+        }
+      }).catch(error => {
+        console.error('Error triggering duplicate detection:', error);
+      });
+
+      // 3. Trigger AI Priority Scoring (async)
+      fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/ai/priority-scoring`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE}`
+        },
+        body: JSON.stringify({ 
+          postId: newPost.id, 
+          projectId: project_id 
+        })
+      }).then(response => {
+        if (response.ok) {
+          console.log('✅ AI priority scoring triggered for post:', newPost.id);
+        } else {
+          console.error('❌ AI priority scoring failed for post:', newPost.id);
+        }
+      }).catch(error => {
+        console.error('Error triggering priority scoring:', error);
+      });
+
     } else {
-      console.log(`Post ${newPost.id} created for free account - skipping AI categorization`);
+      console.log(`Post ${newPost.id} created for free account - skipping AI features`);
     }
 
     // Return the post immediately (without AI categorization)
