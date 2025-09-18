@@ -22,50 +22,27 @@ export default function DebugOAuth() {
     setLogs([]);
     
     try {
-      addLog('Starting Google OAuth test...');
+      addLog('Testing Google OAuth flow via API...');
       
-      // Check environment variables
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      const response = await fetch('/api/test-google-flow');
+      const data = await response.json();
       
-      addLog(`Supabase URL: ${supabaseUrl ? 'Set' : 'Missing'}`);
-      addLog(`Supabase Key: ${supabaseKey ? 'Set' : 'Missing'}`);
-      addLog(`Google Client ID: ${googleClientId ? 'Set' : 'Missing'}`);
-      
-      if (!supabaseUrl || !supabaseKey) {
-        addLog('ERROR: Missing Supabase environment variables');
-        return;
-      }
-
-      // Import Supabase
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      
-      addLog('Supabase client created successfully');
-      
-      // Test the OAuth flow
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      addLog(`Using redirect URL: ${redirectUrl}`);
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl
-        }
-      });
-
-      if (error) {
-        addLog(`ERROR: ${error.message}`);
-        addLog(`Error details: ${JSON.stringify(error)}`);
+      if (response.ok) {
+        addLog(`SUCCESS: ${data.message}`);
+        addLog(`Redirect URL: ${data.redirectUrl}`);
+        addLog(`OAuth URL: ${data.oauthUrl}`);
+        
+        // Try to initiate the actual OAuth flow
+        addLog('Attempting to redirect to Google OAuth...');
+        window.location.href = data.oauthUrl;
       } else {
-        addLog(`SUCCESS: OAuth initiated`);
-        addLog(`Data: ${JSON.stringify(data)}`);
+        addLog(`ERROR: ${data.error}`);
+        if (data.message) addLog(`Details: ${data.message}`);
+        if (data.details) addLog(`Full details: ${JSON.stringify(data.details)}`);
       }
       
     } catch (error) {
       addLog(`EXCEPTION: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      addLog(`Stack: ${error instanceof Error ? error.stack : 'No stack'}`);
     } finally {
       setIsLoading(false);
     }
