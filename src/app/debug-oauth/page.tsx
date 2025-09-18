@@ -1,16 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function DebugOAuth() {
   const [logs, setLogs] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const addLog = (message: string) => {
     setLogs(prev => [...prev, `${new Date().toISOString()}: ${message}`]);
   };
 
   const testGoogleOAuth = async () => {
+    if (!isClient) return;
+    
     setIsLoading(true);
     setLogs([]);
     
@@ -65,6 +72,8 @@ export default function DebugOAuth() {
   };
 
   const testCallback = async () => {
+    if (!isClient) return;
+    
     addLog('Testing callback URL...');
     
     try {
@@ -75,6 +84,15 @@ export default function DebugOAuth() {
       addLog(`Callback test error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
+
+  if (!isClient) {
+    return (
+      <div style={{ padding: '20px', fontFamily: 'monospace', textAlign: 'center' }}>
+        <h1>OAuth Debug Tool</h1>
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '20px', fontFamily: 'monospace' }}>
