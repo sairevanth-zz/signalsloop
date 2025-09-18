@@ -12,32 +12,21 @@ export async function GET(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Check if users table exists
-    const { data: tables, error: tablesError } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
-      .eq('table_name', 'users');
+    // Check if users table exists by trying to query it
+    const { data: usersData, error: usersError } = await supabase
+      .from('users')
+      .select('*')
+      .limit(1);
     
-    // Check users table structure
-    const { data: columns, error: columnsError } = await supabase
-      .from('information_schema.columns')
-      .select('column_name, data_type, is_nullable')
-      .eq('table_schema', 'public')
-      .eq('table_name', 'users');
+    const usersTableExists = !usersError || usersError.code !== 'PGRST116';
     
-    // Check if trigger exists
-    const { data: triggers, error: triggersError } = await supabase
-      .from('information_schema.triggers')
-      .select('trigger_name, event_manipulation, action_statement')
-      .eq('trigger_schema', 'public')
-      .eq('trigger_name', 'on_auth_user_created');
+    // Check users table structure by trying to select specific columns
+    const { data: columnsData, error: columnsError } = await supabase
+      .from('users')
+      .select('id, email, full_name, avatar_url, google_id, provider, created_at, updated_at')
+      .limit(0);
     
-    // Check RLS policies
-    const { data: policies, error: policiesError } = await supabase
-      .from('pg_policies')
-      .select('policyname, permissive, roles, cmd, qual')
-      .eq('tablename', 'users');
+    const columnsExist = !columnsError || columnsError.code !== 'PGRST116';
     
     // Try to count users
     const { data: userCount, error: userCountError } = await supabase
@@ -48,21 +37,15 @@ export async function GET(request: NextRequest) {
     const { data: authUserCount, error: authUserCountError } = await supabase.auth.admin.listUsers();
     
     return NextResponse.json({
-      tables: {
-        data: tables,
-        error: tablesError?.message
+      usersTable: {
+        exists: usersTableExists,
+        error: usersError?.message,
+        data: usersData
       },
       columns: {
-        data: columns,
-        error: columnsError?.message
-      },
-      triggers: {
-        data: triggers,
-        error: triggersError?.message
-      },
-      policies: {
-        data: policies,
-        error: policiesError?.message
+        exist: columnsExist,
+        error: columnsError?.message,
+        data: columnsData
       },
       userCount: {
         data: userCount,
@@ -71,6 +54,10 @@ export async function GET(request: NextRequest) {
       authUserCount: {
         data: authUserCount?.users?.length || 0,
         error: authUserCountError?.message
+      },
+      environment: {
+        supabaseUrl: supabaseUrl ? 'Set' : 'Missing',
+        supabaseKey: supabaseKey ? 'Set' : 'Missing'
       }
     });
 

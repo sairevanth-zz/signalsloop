@@ -183,23 +183,21 @@ export default function DebugOAuth() {
       
       if (response.ok) {
         addLog(`Database Debug Results:`);
-        addLog(`  Users Table Exists: ${data.tables.data?.length > 0 ? 'Yes' : 'No'}`);
-        addLog(`  Users Table Error: ${data.tables.error || 'None'}`);
+        addLog(`  Users Table Exists: ${data.usersTable.exists ? 'Yes' : 'No'}`);
+        addLog(`  Users Table Error: ${data.usersTable.error || 'None'}`);
         
-        addLog(`  Table Columns: ${data.columns.data?.map((c: any) => c.column_name).join(', ') || 'None'}`);
+        addLog(`  Table Columns Exist: ${data.columns.exist ? 'Yes' : 'No'}`);
         addLog(`  Columns Error: ${data.columns.error || 'None'}`);
-        
-        addLog(`  Trigger Exists: ${data.triggers.data?.length > 0 ? 'Yes' : 'No'}`);
-        addLog(`  Trigger Error: ${data.triggers.error || 'None'}`);
-        
-        addLog(`  RLS Policies: ${data.policies.data?.length || 0} policies`);
-        addLog(`  Policies Error: ${data.policies.error || 'None'}`);
         
         addLog(`  Users Count: ${data.userCount.data || 'Error'}`);
         addLog(`  Users Count Error: ${data.userCount.error || 'None'}`);
         
         addLog(`  Auth Users Count: ${data.authUserCount.data || 'Error'}`);
         addLog(`  Auth Users Error: ${data.authUserCount.error || 'None'}`);
+        
+        addLog(`Environment:`);
+        addLog(`  Supabase URL: ${data.environment.supabaseUrl}`);
+        addLog(`  Supabase Key: ${data.environment.supabaseKey}`);
       } else {
         addLog(`ERROR: ${data.error}`);
       }
