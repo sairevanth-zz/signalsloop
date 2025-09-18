@@ -15,11 +15,13 @@ import {
   ArrowRight,
   Zap
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 
 export default function Homepage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(false);
 
   useEffect(() => {
     // Check if there's an access_token in the hash (magic link redirect)
@@ -30,10 +32,12 @@ export default function Homepage() {
     }
   }, [router]);
 
-  const handleProCheckout = async (billingType: 'monthly' | 'annual') => {
+  const handleProCheckout = async () => {
     setIsLoading(true);
     
     try {
+      const billingType = isAnnual ? 'annual' : 'monthly';
+      
       // Create checkout session
       const response = await fetch('/api/stripe/homepage-checkout', {
         method: 'POST',
@@ -96,9 +100,9 @@ export default function Homepage() {
               <Link href="/login">
                 <Button variant="ghost">Sign In</Button>
               </Link>
-              <Link href="/app/create">
+              <Link href="/login">
                 <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  Start Free Trial
+                  Get Started
                 </Button>
               </Link>
             </div>
@@ -298,6 +302,23 @@ export default function Homepage() {
               Start free with manual organization, upgrade to unlock AI-powered categorization and smart features. No hidden fees.
             </p>
           </div>
+
+          {/* Billing Toggle */}
+          <div className="flex justify-center mb-12">
+            <div className="flex items-center space-x-4 bg-gray-100 p-1 rounded-lg">
+              <span className={`px-4 py-2 text-sm font-medium transition-colors ${!isAnnual ? 'text-white bg-blue-600 rounded-md' : 'text-gray-600'}`}>
+                Monthly
+              </span>
+              <Switch
+                checked={isAnnual}
+                onCheckedChange={setIsAnnual}
+                className="data-[state=checked]:bg-green-600"
+              />
+              <span className={`px-4 py-2 text-sm font-medium transition-colors ${isAnnual ? 'text-white bg-green-600 rounded-md' : 'text-gray-600'}`}>
+                Annual <span className="text-xs">(20% off)</span>
+              </span>
+            </div>
+          </div>
           
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card className="border-2">
@@ -341,10 +362,18 @@ export default function Homepage() {
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Pro</CardTitle>
                 <div className="text-4xl font-bold text-gray-900 my-4">
-                  $19<span className="text-lg text-gray-500">/month</span>
-                </div>
-                <div className="text-sm text-green-600 font-medium mb-2">
-                  Annual: $15.20/month (20% off)
+                  {isAnnual ? (
+                    <>
+                      $15.20<span className="text-lg text-gray-500">/month</span>
+                      <div className="text-sm text-green-600 font-medium mt-1">
+                        Billed annually ($182.40/year)
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      $19<span className="text-lg text-gray-500">/month</span>
+                    </>
+                  )}
                 </div>
                 <CardDescription>For growing teams</CardDescription>
               </CardHeader>
@@ -370,22 +399,13 @@ export default function Homepage() {
                     </li>
                   ))}
                 </ul>
-                <div className="mt-8 space-y-3">
-                  <Button 
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                    onClick={() => handleProCheckout('monthly')}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Loading...' : 'Get Pro - Monthly'}
-                  </Button>
-                  <Button 
-                    className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-                    onClick={() => handleProCheckout('annual')}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Loading...' : 'Get Pro - Annual (20% off)'}
-                  </Button>
-                </div>
+                <Button 
+                  className="w-full mt-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  onClick={handleProCheckout}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Loading...' : `Get Pro - ${isAnnual ? 'Annual' : 'Monthly'}`}
+                </Button>
               </CardContent>
             </Card>
           </div>

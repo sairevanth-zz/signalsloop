@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
       
       if (!monthlyPrice) {
-        return NextResponse.json({ error: 'Monthly Pro price not found' }, { status: 404 });
+        return NextResponse.json({ error: 'Monthly Pro price not found. Please contact support.' }, { status: 404 });
       }
       
       priceId = monthlyPrice.id;
@@ -48,10 +48,21 @@ export async function POST(request: NextRequest) {
       );
       
       if (!annualPrice) {
-        return NextResponse.json({ error: 'Annual Pro price not found' }, { status: 404 });
+        // Fallback to monthly price if annual not found
+        const monthlyPrice = prices.data.find(price => 
+          price.recurring?.interval === 'month' && 
+          (price.product as Stripe.Product).name?.toLowerCase().includes('pro')
+        );
+        
+        if (!monthlyPrice) {
+          return NextResponse.json({ error: 'Pro pricing not found. Please contact support.' }, { status: 404 });
+        }
+        
+        priceId = monthlyPrice.id;
+        console.log('Annual price not found, using monthly price as fallback');
+      } else {
+        priceId = annualPrice.id;
       }
-      
-      priceId = annualPrice.id;
     }
 
     // Create Stripe checkout session
