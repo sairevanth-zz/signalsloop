@@ -56,9 +56,9 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Redirect to the intended destination or dashboard
-      console.log('Redirecting to:', `${origin}${next}`);
-      return NextResponse.redirect(`${origin}${next}`);
+      // Redirect to dashboard (since Supabase default redirect doesn't include next parameter)
+      console.log('Redirecting to dashboard');
+      return NextResponse.redirect(`${origin}/app`);
     } catch (error) {
       console.error('Unexpected error in auth callback:', error);
       return NextResponse.redirect(`${origin}/login?error=unexpected_error`);
