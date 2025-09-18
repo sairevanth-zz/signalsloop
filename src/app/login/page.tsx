@@ -35,7 +35,7 @@ export default function LoginPage() {
           // Set the session in Supabase client (async function)
           const setSession = async () => {
             try {
-              const { createClient } = await import('@supabase/supabase-js');
+              const { createClient } = require('@supabase/supabase-js');
               const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
               const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
               

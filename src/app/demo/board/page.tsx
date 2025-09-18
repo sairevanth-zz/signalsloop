@@ -146,33 +146,39 @@ export default function DemoBoard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <header className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">SignalsLoop Demo</h1>
-            <p className="text-gray-600 mt-1">See how feedback boards work in action</p>
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">S</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">SignalsLoop Demo</h1>
+                <p className="text-sm text-gray-600">See how feedback boards work in action</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" asChild>
+                <Link href="/">← Back to Home</Link>
+              </Button>
+              <Badge variant="outline" className="text-blue-600 border-blue-200">
+                Demo Mode
+              </Badge>
+              <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                <Link href="/login">Get Started</Link>
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link href="/">← Back to Home</Link>
-            </Button>
-            <Badge variant="outline" className="text-blue-600 border-blue-200">
-              Demo Mode
-            </Badge>
-            <Button asChild>
-              <Link href="/app/create">Create Your Own</Link>
-            </Button>
-          </div>
-        </div>
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg border p-6 mb-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -195,7 +201,11 @@ export default function DemoBoard() {
                     variant={statusFilter === option.value ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setStatusFilter(option.value)}
-                    className="flex items-center gap-2"
+                    className={`flex items-center gap-2 ${
+                      statusFilter === option.value 
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
+                        : ''
+                    }`}
                   >
                     <Icon className="h-3 w-3" />
                     {option.label}
@@ -218,9 +228,9 @@ export default function DemoBoard() {
 
         {/* New Post Form */}
         {showNewPostForm && (
-          <Card className="mb-6">
+          <Card className="mb-6 bg-white/80 backdrop-blur-sm border border-gray-200">
             <CardHeader>
-              <CardTitle>Submit New Feedback</CardTitle>
+              <CardTitle className="text-xl font-semibold text-gray-900">Submit New Feedback</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -245,7 +255,12 @@ export default function DemoBoard() {
                 />
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleSubmitPost}>Submit Post</Button>
+                <Button 
+                  onClick={handleSubmitPost}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  Submit Post
+                </Button>
                 <Button variant="outline" onClick={() => setShowNewPostForm(false)}>
                   Cancel
                 </Button>
@@ -258,7 +273,7 @@ export default function DemoBoard() {
         <div className="space-y-4">
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-transparent bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-4"></div>
               <p className="text-gray-600">Loading demo data...</p>
             </div>
           ) : filteredPosts.length === 0 ? (
@@ -267,7 +282,7 @@ export default function DemoBoard() {
             </div>
           ) : (
             filteredPosts.map((post) => (
-            <Card key={post.id} className="hover:shadow-md hover:bg-blue-50 transition-all cursor-pointer border-2 hover:border-blue-200" onClick={() => handlePostClick(post.id)}>
+            <Card key={post.id} className="hover:shadow-lg hover:shadow-blue-100/50 transition-all cursor-pointer border border-gray-200 hover:border-blue-300 bg-white/80 backdrop-blur-sm" onClick={() => handlePostClick(post.id)}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
@@ -316,7 +331,7 @@ export default function DemoBoard() {
                       }}
                       className={`flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors ${
                         post.user_voted 
-                          ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' 
+                          ? 'text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
                           : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
                       }`}
                     >
@@ -325,7 +340,7 @@ export default function DemoBoard() {
                       </svg>
                       <span className="font-medium text-sm">{post.vote_count}</span>
                       {post.user_voted && (
-                        <div className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                        <div className="text-xs text-white mt-1 flex items-center gap-1">
                           <span>Voted</span>
                         </div>
                       )}
@@ -340,21 +355,23 @@ export default function DemoBoard() {
 
         {/* Call to Action */}
         {!showNewPostForm && (
-          <div className="mt-8 text-center">
-            <Button
-              onClick={() => setShowNewPostForm(true)}
-              size="lg"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Submit Your Feedback
-            </Button>
-            <p className="text-gray-600 mt-2">
-              This demo shows real data from our seeded demo project. <Link href="/app/create" className="text-blue-600 hover:underline">Create your own board</Link> to get started.
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              All posts, votes, and comments above are real data stored in our database.
-            </p>
+          <div className="mt-12 text-center">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-8">
+              <Button
+                onClick={() => setShowNewPostForm(true)}
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Submit Your Feedback
+              </Button>
+              <p className="text-gray-600 mt-4">
+                This demo shows real data from our seeded demo project. <Link href="/login" className="text-blue-600 hover:underline font-medium">Create your own board</Link> to get started.
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                All posts, votes, and comments above are real data stored in our database.
+              </p>
+            </div>
           </div>
         )}
       </div>
