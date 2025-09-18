@@ -23,7 +23,13 @@ export const getSupabaseClient = () => {
     }
 
     try {
-      supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+      supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true
+        }
+      });
       console.log('Supabase client initialized successfully');
     } catch (error) {
       console.error('Failed to create Supabase client:', error);

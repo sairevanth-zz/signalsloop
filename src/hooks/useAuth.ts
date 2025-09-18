@@ -29,6 +29,18 @@ export function useAuth() {
     const getInitialSession = async () => {
       try {
         console.log('Getting initial session...');
+        
+        // First try to get session from URL (for OAuth redirects)
+        const { data: { session: urlSession }, error: urlError } = await client.auth.getSession();
+        
+        if (urlSession) {
+          console.log('Session found from URL:', urlSession.user?.email || 'no user');
+          setUser(urlSession.user);
+          setLoading(false);
+          return;
+        }
+        
+        // If no session from URL, try regular session
         const { data: { session }, error } = await client.auth.getSession();
         
         if (error) {
