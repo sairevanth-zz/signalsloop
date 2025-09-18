@@ -172,6 +172,42 @@ export default function DebugOAuth() {
     }
   };
 
+  const testDatabase = async () => {
+    if (!isClient) return;
+    
+    addLog('Testing database configuration...');
+    
+    try {
+      const response = await fetch('/api/debug-database');
+      const data = await response.json();
+      
+      if (response.ok) {
+        addLog(`Database Debug Results:`);
+        addLog(`  Users Table Exists: ${data.tables.data?.length > 0 ? 'Yes' : 'No'}`);
+        addLog(`  Users Table Error: ${data.tables.error || 'None'}`);
+        
+        addLog(`  Table Columns: ${data.columns.data?.map((c: any) => c.column_name).join(', ') || 'None'}`);
+        addLog(`  Columns Error: ${data.columns.error || 'None'}`);
+        
+        addLog(`  Trigger Exists: ${data.triggers.data?.length > 0 ? 'Yes' : 'No'}`);
+        addLog(`  Trigger Error: ${data.triggers.error || 'None'}`);
+        
+        addLog(`  RLS Policies: ${data.policies.data?.length || 0} policies`);
+        addLog(`  Policies Error: ${data.policies.error || 'None'}`);
+        
+        addLog(`  Users Count: ${data.userCount.data || 'Error'}`);
+        addLog(`  Users Count Error: ${data.userCount.error || 'None'}`);
+        
+        addLog(`  Auth Users Count: ${data.authUserCount.data || 'Error'}`);
+        addLog(`  Auth Users Error: ${data.authUserCount.error || 'None'}`);
+      } else {
+        addLog(`ERROR: ${data.error}`);
+      }
+    } catch (error) {
+      addLog(`Database test error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
   if (!isClient) {
     return (
       <div style={{ padding: '20px', fontFamily: 'monospace', textAlign: 'center' }}>
@@ -266,6 +302,7 @@ export default function DebugOAuth() {
           onClick={testOAuthFlow}
           style={{
             padding: '10px 20px',
+            marginRight: '10px',
             backgroundColor: '#10b981',
             color: 'white',
             border: 'none',
@@ -274,6 +311,20 @@ export default function DebugOAuth() {
           }}
         >
           Test OAuth Flow
+        </button>
+        
+        <button 
+          onClick={testDatabase}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#dc2626',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Test Database
         </button>
       </div>
 
