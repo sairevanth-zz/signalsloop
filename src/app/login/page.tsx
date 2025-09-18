@@ -64,6 +64,10 @@ export default function LoginPage() {
       if (hash.includes('access_token=')) {
         console.log('OAuth tokens detected in URL hash, processing...');
         
+        // Show loading state immediately to prevent flash
+        setIsGoogleLoading(true);
+        setError('');
+        
         // Extract tokens from hash
         const urlParams = new URLSearchParams(hash.substring(1));
         const accessToken = urlParams.get('access_token');
@@ -90,12 +94,18 @@ export default function LoginPage() {
                 
                 if (error) {
                   console.error('Error setting session:', error);
+                  setError('Authentication failed. Please try again.');
+                  setIsGoogleLoading(false);
+                  return;
                 } else {
                   console.log('Session set successfully:', data.user?.email);
                 }
               }
             } catch (error) {
               console.error('Error processing OAuth tokens:', error);
+              setError('Authentication failed. Please try again.');
+              setIsGoogleLoading(false);
+              return;
             }
             
             // Clean up the URL and redirect to app
@@ -246,6 +256,17 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-screen bg-black relative overflow-hidden flex items-center justify-center">
+      {/* Loading overlay for OAuth redirect */}
+      {isGoogleLoading && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto mb-4"></div>
+            <h3 className="text-lg font-semibold text-white mb-2">Signing you in...</h3>
+            <p className="text-gray-300">Please wait while we complete your authentication</p>
+          </div>
+        </div>
+      )}
+      
       {/* Background gradient effect */}
       <div className="absolute inset-0 bg-gradient-to-b from-purple-500/40 via-purple-700/50 to-black" />
       

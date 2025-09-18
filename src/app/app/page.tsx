@@ -105,6 +105,7 @@ export default function AppPage() {
   const [loadingAIInsights, setLoadingAIInsights] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
   const supabase = getSupabaseClient();
   const router = useRouter();
 
@@ -140,10 +141,11 @@ export default function AppPage() {
       return;
     }
     
-    // If user is authenticated, load projects
+    // If user is authenticated, load projects and user plan
     if (user && supabase) {
       console.log('Loading projects for user:', user.email);
       loadProjects();
+      loadUserPlan();
       return;
     }
     
@@ -195,6 +197,7 @@ export default function AppPage() {
         // Reload projects if user is authenticated
         if (user && supabase) {
           loadProjects();
+          loadUserPlan();
         }
       }
     }
@@ -333,6 +336,24 @@ export default function AppPage() {
 
     } catch (error) {
       console.error('Error loading AI insights:', error);
+    }
+  };
+
+  const loadUserPlan = async () => {
+    if (!supabase || !user) return;
+    
+    try {
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('plan')
+        .eq('id', user.id)
+        .single();
+      
+      if (!error && userData) {
+        setUserPlan(userData.plan || 'free');
+      }
+    } catch (error) {
+      console.error('Error loading user plan:', error);
     }
   };
 
@@ -649,6 +670,18 @@ export default function AppPage() {
               <div className="mb-8 flex justify-center">
                 <Button
                   onClick={async () => {
+                    // Check if user has Pro plan
+                    if (userPlan !== 'pro') {
+                      toast.error('AI Insights is a Pro feature. Upgrade to Pro to unlock AI-powered analytics!', {
+                        duration: 5000,
+                        action: {
+                          label: 'Upgrade',
+                          onClick: () => router.push('/billing')
+                        }
+                      });
+                      return;
+                    }
+                    
                     setShowAIInsights(true);
                     setLoadingAIInsights(true);
                     // Load AI insights when user explicitly requests them
@@ -670,6 +703,11 @@ export default function AppPage() {
                 >
                   <Sparkles className="w-5 h-5 mr-2" />
                   View AI Insights
+                  {userPlan !== 'pro' && (
+                    <span className="ml-2 px-2 py-1 bg-white/20 rounded-full text-xs">
+                      Pro
+                    </span>
+                  )}
                 </Button>
               </div>
             )}
