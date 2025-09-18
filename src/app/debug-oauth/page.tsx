@@ -134,6 +134,44 @@ export default function DebugOAuth() {
     }
   };
 
+  const testOAuthFlow = async () => {
+    if (!isClient) return;
+    
+    addLog('Testing complete OAuth flow...');
+    
+    try {
+      const response = await fetch('/api/debug-oauth-flow');
+      const data = await response.json();
+      
+      if (response.ok) {
+        addLog(`Current URL: ${data.currentUrl}`);
+        addLog(`Origin: ${data.origin}`);
+        addLog(`Search Params: ${JSON.stringify(data.searchParams)}`);
+        addLog(`Auth Params: ${JSON.stringify(data.authParams)}`);
+        
+        if (data.session) {
+          addLog(`SUCCESS: Session found for user ${data.session.user.email}`);
+        } else {
+          addLog(`NO SESSION: ${data.sessionError || 'No session found'}`);
+        }
+        
+        addLog(`OAuth Test:`);
+        addLog(`  Redirect URL: ${data.oauthTest.redirectUrl}`);
+        addLog(`  OAuth URL: ${data.oauthTest.oauthUrl || 'Failed to generate'}`);
+        addLog(`  OAuth Error: ${data.oauthTest.error || 'None'}`);
+        
+        addLog(`Environment:`);
+        addLog(`  Supabase URL: ${data.environment.supabaseUrl}`);
+        addLog(`  Supabase Key: ${data.environment.supabaseKey}`);
+        addLog(`  Node Env: ${data.environment.nodeEnv}`);
+      } else {
+        addLog(`ERROR: ${data.error}`);
+      }
+    } catch (error) {
+      addLog(`OAuth flow test error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
   if (!isClient) {
     return (
       <div style={{ padding: '20px', fontFamily: 'monospace', textAlign: 'center' }}>
@@ -213,6 +251,7 @@ export default function DebugOAuth() {
           onClick={testUrlSession}
           style={{
             padding: '10px 20px',
+            marginRight: '10px',
             backgroundColor: '#f59e0b',
             color: 'white',
             border: 'none',
@@ -221,6 +260,20 @@ export default function DebugOAuth() {
           }}
         >
           Test URL Session
+        </button>
+        
+        <button 
+          onClick={testOAuthFlow}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#10b981',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Test OAuth Flow
         </button>
       </div>
 
