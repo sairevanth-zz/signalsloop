@@ -41,6 +41,10 @@ export async function GET(request: NextRequest) {
         console.log('User authenticated:', data.user.email);
         console.log('User metadata:', data.user.user_metadata);
         
+        // Check if this is a new user (created_at is very recent)
+        const userCreatedAt = new Date(data.user.created_at);
+        const isNewUser = (Date.now() - userCreatedAt.getTime()) < 60000; // Within last minute
+        
         // The trigger should automatically handle user creation
         // But let's check if the user record exists and update if needed
         const { data: userRecord, error: userError } = await supabase
@@ -88,6 +92,12 @@ export async function GET(request: NextRequest) {
           } else {
             console.log('User record updated:', data.user.email);
           }
+        }
+
+        // For new users, redirect to welcome page first
+        if (isNewUser) {
+          console.log('New user detected, redirecting to welcome page');
+          return NextResponse.redirect(`${origin}/welcome`);
         }
       }
 
