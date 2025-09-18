@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -9,8 +8,12 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [isClient, setIsClient] = useState(false);
 
+  // Ensure we're on client side
   useEffect(() => {
+    setIsClient(true);
+    
     const urlParams = new URLSearchParams(window.location.search);
     const errorParam = urlParams.get('error');
     const detailsParam = urlParams.get('details');
@@ -39,37 +42,31 @@ export default function LoginPage() {
     }
   }, []);
 
-  // Create Supabase client directly to avoid any hook issues
-  const getSupabaseClient = () => {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase environment variables');
-      return null;
-    }
-    
-    return createClient(supabaseUrl, supabaseKey);
-  };
-
   const handleGoogleLogin = async () => {
-    console.log('handleGoogleLogin called');
+    if (!isClient) return;
     
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      console.error('Supabase client not available');
-      setError('Authentication service not available. Please refresh the page.');
-      return;
-    }
-
+    console.log('handleGoogleLogin called');
     setIsGoogleLoading(true);
     setError('');
 
     try {
+      // Import Supabase dynamically only on client side
+      const { createClient } = await import('@supabase/supabase-js');
+      
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        setError('Missing Supabase environment variables');
+        return;
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseKey);
       const redirectUrl = window.location.origin + '/auth/callback?next=/app';
+      
       console.log('Starting Google OAuth with redirectTo:', redirectUrl);
-      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-      console.log('Supabase Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+      console.log('Supabase URL:', supabaseUrl);
+      console.log('Supabase Key exists:', !!supabaseKey);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -99,18 +96,24 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
-    
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      setError('Authentication service not available. Please refresh the page.');
-      return;
-    }
+    if (!email || !isClient) return;
 
     setIsLoading(true);
     setError('');
 
     try {
+      // Import Supabase dynamically only on client side
+      const { createClient } = await import('@supabase/supabase-js');
+      
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        setError('Missing Supabase environment variables');
+        return;
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseKey);
       const redirectUrl = window.location.origin + '/app';
       
       const { error } = await supabase.auth.signInWithOtp({
@@ -131,6 +134,39 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  // Don't render until client-side
+  if (!isClient) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}>
+        <div style={{
+          padding: '2rem',
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '4px solid #f3f3f3',
+            borderTop: '4px solid #3498db',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 1rem'
+          }} />
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
@@ -312,10 +348,11 @@ export default function LoginPage() {
           color: '#6b7280'
         }}>
           <p><strong>Debug Info:</strong></p>
-          <p>Origin: {typeof window !== 'undefined' ? window.location.origin : 'Unknown'}</p>
-          <p>Redirect URL: {typeof window !== 'undefined' ? window.location.origin + '/auth/callback' : 'Unknown'}</p>
+          <p>Origin: {window.location.origin}</p>
+          <p>Redirect URL: {window.location.origin + '/auth/callback'}</p>
           <p>Supabase URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Missing'}</p>
           <p>Supabase Key: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Missing'}</p>
+          <p>Client Side: {isClient ? 'Yes' : 'No'}</p>
         </div>
       </div>
 
