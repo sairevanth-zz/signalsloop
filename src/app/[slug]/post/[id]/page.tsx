@@ -20,6 +20,8 @@ import {
 import { toast } from 'sonner';
 import Link from 'next/link';
 import VoteButton from '@/components/VoteButton';
+import { AIDuplicateDetection } from '@/components/AIDuplicateDetection';
+import { AIPriorityScoring } from '@/components/AIPriorityScoring';
 
 interface Post {
   id: string;
@@ -30,6 +32,14 @@ interface Post {
   created_at: string;
   vote_count: number;
   user_voted: boolean;
+  project_id: string;
+}
+
+interface Project {
+  id: string;
+  name: string;
+  slug: string;
+  plan: 'free' | 'pro';
 }
 
 interface Comment {
@@ -143,7 +153,8 @@ export default function PostDetailPage() {
         status: postData.status,
         created_at: postData.created_at,
         vote_count: postData.vote_count?.[0]?.count || 0,
-        user_voted: false // TODO: Check if current user voted
+        user_voted: false, // TODO: Check if current user voted
+        project_id: projectData.id
       };
 
       setPost(processedPost);
@@ -357,6 +368,41 @@ export default function PostDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* AI Features Section - Only show for Pro projects */}
+        {project && project.plan === 'pro' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <AIDuplicateDetection
+              postId={post.id}
+              projectId={post.project_id}
+              userPlan={project.plan}
+              onShowNotification={(message, type) => {
+                if (type === 'success') {
+                  toast.success(message);
+                } else if (type === 'error') {
+                  toast.error(message);
+                } else {
+                  toast.info(message);
+                }
+              }}
+            />
+            
+            <AIPriorityScoring
+              postId={post.id}
+              projectId={post.project_id}
+              userPlan={project.plan}
+              onShowNotification={(message, type) => {
+                if (type === 'success') {
+                  toast.success(message);
+                } else if (type === 'error') {
+                  toast.error(message);
+                } else {
+                  toast.info(message);
+                }
+              }}
+            />
+          </div>
+        )}
 
         {/* Comments Section */}
         <Card>
