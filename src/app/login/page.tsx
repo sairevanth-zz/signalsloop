@@ -14,6 +14,27 @@ export default function LoginPage() {
   useEffect(() => {
     setIsClient(true);
     
+    // Check for OAuth tokens in URL hash
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash.includes('access_token=')) {
+        console.log('OAuth tokens detected in URL hash, processing...');
+        
+        // Extract tokens from hash
+        const urlParams = new URLSearchParams(hash.substring(1));
+        const accessToken = urlParams.get('access_token');
+        const refreshToken = urlParams.get('refresh_token');
+        
+        if (accessToken) {
+          console.log('Access token found, redirecting to /app');
+          // Clean up the URL and redirect to app
+          window.history.replaceState({}, document.title, window.location.pathname);
+          window.location.href = '/app';
+          return;
+        }
+      }
+    }
+    
     const urlParams = new URLSearchParams(window.location.search);
     const errorParam = urlParams.get('error');
     const detailsParam = urlParams.get('details');
