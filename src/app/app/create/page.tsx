@@ -15,7 +15,8 @@ import {
   Loader2, 
   FolderPlus, 
   MessageSquare,
-  Rocket
+  Rocket,
+  Home
 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 
@@ -204,11 +205,24 @@ export default function ProjectWizard() {
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">S</span>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="outline"
+              onClick={() => router.push('/app')}
+              className="flex items-center space-x-2"
+            >
+              <Home className="h-4 w-4" />
+              <span>Back to Dashboard</span>
+            </Button>
+            
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">S</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
+            
+            <div className="w-24"></div> {/* Spacer for centering */}
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create your feedback board</h1>
           <p className="text-gray-600">Let&apos;s set up your project in just a few steps</p>
