@@ -438,9 +438,6 @@ export default function Homepage() {
                 </div>
                 <span className="text-xl font-bold">SignalsLoop</span>
               </div>
-              <p className="text-gray-400">
-                Simple feedback boards and public roadmaps for indie makers.
-              </p>
             </div>
             
             <div>
