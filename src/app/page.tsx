@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,11 @@ import {
   ArrowRight,
   Zap
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Homepage() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Check if there's an access_token in the hash (magic link redirect)
@@ -27,6 +29,41 @@ export default function Homepage() {
       router.push(`/app${hash}`);
     }
   }, [router]);
+
+  const handleProCheckout = async (billingType: 'monthly' | 'annual') => {
+    setIsLoading(true);
+    
+    try {
+      // Create checkout session
+      const response = await fetch('/api/stripe/homepage-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ billingType }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create checkout session');
+      }
+
+      const { url } = await response.json();
+      
+      if (url) {
+        // Redirect to Stripe checkout
+        window.location.href = url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+      
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
@@ -288,7 +325,7 @@ export default function Homepage() {
                 </ul>
                 <Link href="/login" className="block mt-8">
                   <Button className="w-full" variant="outline">
-                    Start Free
+                    Free
                   </Button>
                 </Link>
               </CardContent>
@@ -305,6 +342,9 @@ export default function Homepage() {
                 <CardTitle className="text-2xl">Pro</CardTitle>
                 <div className="text-4xl font-bold text-gray-900 my-4">
                   $19<span className="text-lg text-gray-500">/month</span>
+                </div>
+                <div className="text-sm text-green-600 font-medium mb-2">
+                  Annual: $15.20/month (20% off)
                 </div>
                 <CardDescription>For growing teams</CardDescription>
               </CardHeader>
@@ -330,11 +370,22 @@ export default function Homepage() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/app/create" className="block mt-8">
-                  <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                    Start Free Trial
+                <div className="mt-8 space-y-3">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    onClick={() => handleProCheckout('monthly')}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Loading...' : 'Get Pro - Monthly'}
                   </Button>
-                </Link>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                    onClick={() => handleProCheckout('annual')}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Loading...' : 'Get Pro - Annual (20% off)'}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
