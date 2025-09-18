@@ -94,12 +94,31 @@ export default function PostDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [commenting, setCommenting] = useState(false);
+  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
   
   // Comment form state
   const [commentForm, setCommentForm] = useState({
     body: '',
     author_email: ''
   });
+
+  const loadUserPlan = useCallback(async () => {
+    if (!supabase || !user) return;
+    
+    try {
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('plan')
+        .eq('id', user.id)
+        .single();
+      
+      if (!error && userData) {
+        setUserPlan(userData.plan || 'free');
+      }
+    } catch (error) {
+      console.error('Error loading user plan:', error);
+    }
+  }, [supabase, user]);
 
   const loadPostData = useCallback(async () => {
     if (!supabase) {
@@ -184,6 +203,11 @@ export default function PostDetailPage() {
   useEffect(() => {
     loadPostData();
   }, [loadPostData]);
+
+  // Load user plan
+  useEffect(() => {
+    loadUserPlan();
+  }, [loadUserPlan]);
 
 
   // Handle comment submission
@@ -369,13 +393,13 @@ export default function PostDetailPage() {
           </CardContent>
         </Card>
 
-        {/* AI Features Section - Only show for Pro projects */}
-        {project && project.plan === 'pro' && (
+        {/* AI Features Section - Only show for Pro users */}
+        {user && userPlan === 'pro' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <AIDuplicateDetection
               postId={post.id}
               projectId={post.project_id}
-              userPlan={project.plan}
+              userPlan={userPlan}
               onShowNotification={(message, type) => {
                 if (type === 'success') {
                   toast.success(message);
@@ -390,7 +414,7 @@ export default function PostDetailPage() {
             <AIPriorityScoring
               postId={post.id}
               projectId={post.project_id}
-              userPlan={project.plan}
+              userPlan={userPlan}
               onShowNotification={(message, type) => {
                 if (type === 'success') {
                   toast.success(message);

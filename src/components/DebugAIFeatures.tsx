@@ -41,7 +41,7 @@ export function DebugAIFeatures({ projectSlug }: DebugAIFeaturesProps) {
         // Get project info
         const { data: projectData } = await supabase
           .from('projects')
-          .select('id, plan, owner_id')
+          .select('id, owner_id')
           .eq('slug', projectSlug)
           .single();
         
@@ -68,7 +68,7 @@ export function DebugAIFeatures({ projectSlug }: DebugAIFeaturesProps) {
         const hasOpenAIKey = process.env.NEXT_PUBLIC_OPENAI_AVAILABLE === 'true' || false;
 
         setDebugInfo({
-          projectPlan: projectData?.plan || 'unknown',
+          projectPlan: 'n/a', // No longer used
           userPlan: userData?.plan || 'unknown',
           hasOpenAIKey,
           hasDatabaseSchema: hasSchema,
@@ -85,19 +85,26 @@ export function DebugAIFeatures({ projectSlug }: DebugAIFeaturesProps) {
     checkDebugInfo();
   }, [projectSlug]);
 
-  const updateProjectToPro = async () => {
+  const updateUserToPro = async () => {
     try {
       const supabase = getSupabaseClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        alert('No user found');
+        return;
+      }
+      
       const { error } = await supabase
-        .from('projects')
+        .from('users')
         .update({ plan: 'pro' })
-        .eq('slug', projectSlug);
+        .eq('id', user.id);
       
       if (error) {
-        console.error('Error updating project:', error);
-        alert('Error updating project: ' + error.message);
+        console.error('Error updating user:', error);
+        alert('Error updating user: ' + error.message);
       } else {
-        alert('Project updated to Pro! Refresh the page to see AI features.');
+        alert('User updated to Pro! Refresh the page to see AI features.');
         window.location.reload();
       }
     } catch (error) {
@@ -151,17 +158,17 @@ export function DebugAIFeatures({ projectSlug }: DebugAIFeaturesProps) {
           <p><strong>User ID:</strong> {debugInfo.userId || 'Not found'}</p>
         </div>
 
-        {debugInfo.projectPlan !== 'pro' && (
+        {debugInfo.userPlan !== 'pro' && (
           <div className="p-4 bg-yellow-100 rounded-lg">
             <p className="text-sm text-yellow-800 mb-3">
-              <strong>Issue Found:</strong> Your project is not set to Pro plan. AI features only show for Pro projects.
+              <strong>Issue Found:</strong> Your account is not set to Pro plan. AI features only show for Pro users.
             </p>
             <Button 
-              onClick={updateProjectToPro}
+              onClick={updateUserToPro}
               className="bg-yellow-600 hover:bg-yellow-700 text-white"
               size="sm"
             >
-              Update Project to Pro
+              Update User to Pro
             </Button>
           </div>
         )}

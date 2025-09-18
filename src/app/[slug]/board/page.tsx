@@ -110,6 +110,7 @@ export default function BoardPage() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [boardId, setBoardId] = useState<string | null>(null);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -169,6 +170,24 @@ export default function BoardPage() {
       console.error('Error signing out:', error);
     }
   };
+
+  const loadUserPlan = useCallback(async () => {
+    if (!supabase || !user) return;
+    
+    try {
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('plan')
+        .eq('id', user.id)
+        .single();
+      
+      if (!error && userData) {
+        setUserPlan(userData.plan || 'free');
+      }
+    } catch (error) {
+      console.error('Error loading user plan:', error);
+    }
+  }, [supabase, user]);
 
   const loadProjectAndPosts = useCallback(async () => {
     if (!supabase) {
@@ -297,6 +316,11 @@ export default function BoardPage() {
   useEffect(() => {
     loadProjectAndPosts();
   }, [loadProjectAndPosts]);
+
+  // Load user plan
+  useEffect(() => {
+    loadUserPlan();
+  }, [loadUserPlan]);
 
   // Filter posts by search term
   const filteredPosts = posts.filter(post =>
@@ -515,8 +539,8 @@ export default function BoardPage() {
         {/* Debug AI Features - Temporary */}
         <DebugAIFeatures projectSlug={params?.slug as string} />
 
-        {/* AI Features Section - Only show for Pro projects */}
-        {project && project.plan === 'pro' && (
+        {/* AI Features Section - Only show for Pro users */}
+        {user && userPlan === 'pro' && (
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Sparkles className="h-5 w-5 text-purple-600" />
