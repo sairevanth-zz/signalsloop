@@ -111,36 +111,65 @@ export default function AppPage() {
   useEffect(() => {
     console.log('App page auth check:', { user: !!user, loading, userEmail: user?.email });
     
-    // Give a moment for session to be established after OAuth redirect
-    if (!loading && !user) {
-      console.log('No user found, checking if this is an OAuth redirect...');
+    // Check for OAuth parameters in URL first
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasAuthParams = urlParams.has('access_token') || urlParams.has('refresh_token') || urlParams.has('code');
       
-      // Check if we just came from OAuth (no referrer or came from Google/Supabase)
-      const isOAuthRedirect = !document.referrer || 
-        document.referrer.includes('google.com') || 
-        document.referrer.includes('supabase.co');
-      
-      if (isOAuthRedirect) {
-        console.log('OAuth redirect detected, waiting for session...');
-        // Wait a bit longer for session to be established
-        setTimeout(() => {
-          if (!user) {
-            console.log('Still no user after OAuth redirect, redirecting to login');
-            router.push('/login');
-          }
-        }, 2000);
-        return;
-      } else {
-        console.log('Not an OAuth redirect, redirecting to login immediately');
-        router.push('/login');
+      if (hasAuthParams) {
+        console.log('OAuth parameters detected in URL:', Object.fromEntries(urlParams.entries()));
+        console.log('Waiting for session to be established from URL parameters...');
+        // Don't redirect immediately, let Supabase handle the session from URL
         return;
       }
     }
-
-    // Load projects if user is authenticated
+    
+    // If still loading, wait
+    if (loading) {
+      console.log('Still loading auth state...');
+      return;
+    }
+    
+    // If user is authenticated, load projects
     if (user && supabase) {
       console.log('Loading projects for user:', user.email);
       loadProjects();
+      return;
+    }
+    
+    // No user and not loading - check if this is an OAuth redirect
+    console.log('No user found, checking if this is an OAuth redirect...');
+    
+    // Check if we just came from OAuth (no referrer or came from Google/Supabase)
+    const isOAuthRedirect = !document.referrer || 
+      document.referrer.includes('google.com') || 
+      document.referrer.includes('supabase.co');
+    
+    if (isOAuthRedirect) {
+      console.log('OAuth redirect detected, waiting for session...');
+      // Wait longer for session to be established
+      setTimeout(() => {
+        console.log('Timeout reached, checking session again...');
+        // Force a session check by refreshing the auth state
+        if (supabase) {
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+              console.log('Session found after timeout:', session.user.email);
+              // Don't redirect, let the useAuth hook handle it
+            } else {
+              console.log('Still no session after timeout, redirecting to login');
+              router.push('/login');
+            }
+          });
+        } else {
+          router.push('/login');
+        }
+      }, 3000);
+      return;
+    } else {
+      console.log('Not an OAuth redirect, redirecting to login immediately');
+      router.push('/login');
+      return;
     }
   }, [user, loading, router, supabase]);
 
