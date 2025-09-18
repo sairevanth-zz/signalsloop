@@ -107,6 +107,33 @@ export default function DebugOAuth() {
     }
   };
 
+  const testUrlSession = async () => {
+    if (!isClient) return;
+    
+    addLog('Testing URL session parameters...');
+    
+    try {
+      const response = await fetch('/api/debug-url-session');
+      const data = await response.json();
+      
+      if (response.ok) {
+        addLog(`URL: ${data.url}`);
+        addLog(`Search Params: ${JSON.stringify(data.searchParams)}`);
+        addLog(`Auth Params: ${JSON.stringify(data.authParams)}`);
+        
+        if (data.session) {
+          addLog(`SUCCESS: Session found for user ${data.session.user.email}`);
+        } else {
+          addLog(`NO SESSION: ${data.error || 'No session found'}`);
+        }
+      } else {
+        addLog(`ERROR: ${data.error}`);
+      }
+    } catch (error) {
+      addLog(`URL session test error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
   if (!isClient) {
     return (
       <div style={{ padding: '20px', fontFamily: 'monospace', textAlign: 'center' }}>
@@ -171,6 +198,7 @@ export default function DebugOAuth() {
           onClick={testSession}
           style={{
             padding: '10px 20px',
+            marginRight: '10px',
             backgroundColor: '#8b5cf6',
             color: 'white',
             border: 'none',
@@ -179,6 +207,20 @@ export default function DebugOAuth() {
           }}
         >
           Test Session
+        </button>
+        
+        <button 
+          onClick={testUrlSession}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#f59e0b',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Test URL Session
         </button>
       </div>
 
