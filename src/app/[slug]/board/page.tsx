@@ -14,6 +14,7 @@ import BoardShare from '@/components/BoardShare';
 import FeedbackExport from '@/components/FeedbackExport';
 import { AIDuplicateDetection } from '@/components/AIDuplicateDetection';
 import { AIPriorityScoring } from '@/components/AIPriorityScoring';
+import { DebugAIFeatures } from '@/components/DebugAIFeatures';
 import { 
   Search, 
   Plus, 
@@ -510,6 +511,9 @@ export default function BoardPage() {
             </Select>
           </div>
         </div>
+
+        {/* Debug AI Features - Temporary */}
+        <DebugAIFeatures projectSlug={params?.slug as string} />
 
         {/* AI Features Section - Only show for Pro projects */}
         {project && project.plan === 'pro' && (
