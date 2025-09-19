@@ -111,6 +111,7 @@ export default function AppPage() {
 
   useEffect(() => {
     console.log('App page auth check:', { user: !!user, loading, userEmail: user?.email });
+    console.log('Current userPlan state:', userPlan); // DEBUG: Log userPlan state
     
     // Check for OAuth parameters in URL first
     if (typeof window !== 'undefined') {
@@ -682,8 +683,12 @@ export default function AppPage() {
               <div className="mb-8 flex justify-center">
                 <Button
                   onClick={async () => {
+                    // DEBUG: Log userPlan check
+                    console.log('AI Insights button clicked. userPlan:', userPlan, 'type:', typeof userPlan);
+                    
                     // Check if user has Pro plan
                     if (userPlan !== 'pro') {
+                      console.log('User plan is not Pro, showing upgrade message');
                       toast.error('AI Insights is a Pro feature. Upgrade to Pro to unlock AI-powered analytics!', {
                         duration: 5000,
                         action: {
@@ -693,6 +698,8 @@ export default function AppPage() {
                       });
                       return;
                     }
+                    
+                    console.log('User plan is Pro, proceeding with AI insights');
                     
                     setShowAIInsights(true);
                     setLoadingAIInsights(true);

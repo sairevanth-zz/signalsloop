@@ -649,18 +649,26 @@ export default function PublicRoadmap() {
                         key={post.id} 
                         className="hover:shadow-lg transition-all duration-200 cursor-pointer bg-white/90 backdrop-blur-sm border-white/20 hover:scale-[1.02]"
                         onClick={() => {
+                          console.log('=== ROADMAP POST CLICK DEBUG ===');
                           console.log('Post clicked:', { projectSlug, postId: post.id, postTitle: post.title });
+                          console.log('Router object:', router);
+                          console.log('Project slug type:', typeof projectSlug);
+                          console.log('Post ID type:', typeof post.id);
+                          
                           try {
                             if (projectSlug && post.id) {
                               const url = `/${projectSlug}/post/${post.id}`;
-                              console.log('Navigating to:', url);
+                              console.log('Attempting navigation to:', url);
+                              console.log('About to call router.push...');
                               router.push(url);
+                              console.log('router.push called successfully');
                             } else {
                               console.error('Missing projectSlug or post.id:', { projectSlug, postId: post.id });
                               toast.error('Unable to open post. Please try again.');
                             }
                           } catch (error) {
-                            console.error('Navigation error:', error);
+                            console.error('Navigation error caught:', error);
+                            console.error('Error stack:', error.stack);
                             toast.error('Failed to open post. Please try again.');
                           }
                         }}

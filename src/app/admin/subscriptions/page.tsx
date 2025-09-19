@@ -112,6 +112,7 @@ export default function AdminSubscriptionsPage() {
       return;
     }
 
+    console.log('Admin gift subscription attempt:', { giftEmail, giftDuration });
     setGiftLoading(true);
     try {
       // Find user by email first
@@ -122,10 +123,13 @@ export default function AdminSubscriptionsPage() {
         .single();
 
       if (userError || !userData) {
+        console.error('User not found error:', userError);
         toast.error('User not found. Please make sure they have an account.');
         setGiftLoading(false);
         return;
       }
+      
+      console.log('User found:', userData);
 
       // Find their projects
       const { data: userProjects, error: projectsError } = await supabase
