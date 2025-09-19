@@ -348,30 +348,50 @@ export default function AppPage() {
   };
 
   const loadUserPlan = async () => {
-    if (!supabase || !user) return;
+    if (!supabase || !user) {
+      console.log('loadUserPlan: No supabase or user');
+      return;
+    }
+    
+    console.log('loadUserPlan: Starting for user:', user.id, user.email);
     
     try {
+      // First try to get user plan from users table
       const { data: userData, error } = await supabase
         .from('users')
         .select('plan')
         .eq('id', user.id)
         .single();
       
-      if (!error && userData) {
-        setUserPlan(userData.plan || 'free');
+      console.log('loadUserPlan: Users table query result:', { userData, error });
+      
+      if (!error && userData && userData.plan) {
+        console.log('loadUserPlan: Found user plan in users table:', userData.plan);
+        setUserPlan(userData.plan);
+        return;
+      }
+      
+      console.log('loadUserPlan: No user plan in users table, checking projects...');
+      
+      // Fallback: check if user has any Pro projects
+      const { data: proProjects, error: proError } = await supabase
+        .from('projects')
+        .select('plan')
+        .eq('owner_id', user.id)
+        .eq('plan', 'pro')
+        .limit(1);
+      
+      console.log('loadUserPlan: Projects query result:', { proProjects, proError });
+      
+      if (proProjects && proProjects.length > 0) {
+        console.log('loadUserPlan: Found Pro projects, setting userPlan to pro');
+        setUserPlan('pro');
       } else {
-        // Fallback: check if user has any Pro projects
-        const { data: proProjects } = await supabase
-          .from('projects')
-          .select('plan')
-          .eq('owner_id', user.id)
-          .eq('plan', 'pro')
-          .limit(1);
-        
-        setUserPlan(proProjects && proProjects.length > 0 ? 'pro' : 'free');
+        console.log('loadUserPlan: No Pro projects found, setting userPlan to free');
+        setUserPlan('free');
       }
     } catch (error) {
-      console.error('Error loading user plan:', error);
+      console.error('loadUserPlan: Error loading user plan:', error);
       // Default to free if there's any error
       setUserPlan('free');
     }
