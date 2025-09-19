@@ -33,55 +33,72 @@ export default function DebugGiftsPage() {
       
       addResult('Authentication', 'success', `User authenticated: ${user.email}`);
 
-      // Test 2: Check if gift_subscriptions table exists
+      // Test 2: Check if gift_subscriptions table exists by trying to query it
       addResult('Database Schema', 'info', 'Checking if gift_subscriptions table exists...');
-      const { data: tables, error: tableError } = await supabase
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_name', 'gift_subscriptions');
+      const { data: giftTableTest, error: tableError } = await supabase
+        .from('gift_subscriptions')
+        .select('id')
+        .limit(1);
 
-      if (tableError) {
-        addResult('Database Schema', 'error', 'Error checking tables', tableError);
-      } else if (tables.length === 0) {
+      if (tableError && tableError.code === 'PGRST116') {
         addResult('Database Schema', 'error', 'gift_subscriptions table does not exist! Run add-gift-subscriptions-schema.sql');
+      } else if (tableError) {
+        addResult('Database Schema', 'error', 'Error checking gift_subscriptions table', tableError);
       } else {
         addResult('Database Schema', 'success', 'gift_subscriptions table exists');
       }
 
-      // Test 3: Check if create_gift_subscription function exists
+      // Test 3: Check if create_gift_subscription function exists by trying to call it
       addResult('Database Functions', 'info', 'Checking if create_gift_subscription function exists...');
-      const { data: functions, error: functionError } = await supabase
-        .from('information_schema.routines')
-        .select('routine_name')
-        .eq('routine_name', 'create_gift_subscription');
+      
+      // First check if we have projects to test with
+      const { data: projects, error: projectsError } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('owner_id', user.id)
+        .limit(1);
 
-      if (functionError) {
-        addResult('Database Functions', 'error', 'Error checking functions', functionError);
-      } else if (functions.length === 0) {
-        addResult('Database Functions', 'error', 'create_gift_subscription function does not exist! Run add-gift-subscriptions-schema.sql');
+      if (projectsError || !projects || projects.length === 0) {
+        addResult('Database Functions', 'error', 'Need at least one project to test functions. Create a project first.');
       } else {
-        addResult('Database Functions', 'success', 'create_gift_subscription function exists');
+        // Try to call the function with invalid parameters to see if it exists
+        const { data: functionTest, error: functionError } = await supabase.rpc('create_gift_subscription', {
+          p_project_id: '00000000-0000-0000-0000-000000000000', // Invalid UUID
+          p_recipient_email: 'test@example.com',
+          p_duration_months: 1,
+          p_gift_message: null
+        });
+
+        if (functionError && functionError.message.includes('function') && functionError.message.includes('does not exist')) {
+          addResult('Database Functions', 'error', 'create_gift_subscription function does not exist! Run add-gift-subscriptions-schema.sql');
+        } else if (functionError && functionError.message.includes('Unauthorized')) {
+          addResult('Database Functions', 'success', 'create_gift_subscription function exists (got expected auth error)');
+        } else if (functionError) {
+          addResult('Database Functions', 'success', 'create_gift_subscription function exists (got function-specific error)', functionError);
+        } else {
+          addResult('Database Functions', 'success', 'create_gift_subscription function exists');
+        }
       }
 
-      // Test 4: Try to get user's projects
+      // Test 4: Try to get user's projects (reuse from previous test)
       addResult('User Projects', 'info', 'Checking user projects...');
-      const { data: projects, error: projectsError } = await supabase
+      const { data: userProjects, error: userProjectsError } = await supabase
         .from('projects')
         .select('id, name, slug')
         .eq('owner_id', user.id);
 
-      if (projectsError) {
-        addResult('User Projects', 'error', 'Error fetching projects', projectsError);
-      } else if (projects.length === 0) {
+      if (userProjectsError) {
+        addResult('User Projects', 'error', 'Error fetching projects', userProjectsError);
+      } else if (userProjects.length === 0) {
         addResult('User Projects', 'error', 'No projects found. Create a project first.');
       } else {
-        addResult('User Projects', 'success', `Found ${projects.length} project(s)`, projects);
+        addResult('User Projects', 'success', `Found ${userProjects.length} project(s)`, userProjects);
       }
 
       // Test 5: Try to create a test gift (if we have projects)
-      if (projects && projects.length > 0) {
+      if (userProjects && userProjects.length > 0) {
         addResult('Gift Creation', 'info', 'Testing gift creation...');
-        const testProject = projects[0];
+        const testProject = userProjects[0];
         
         const { data, error } = await supabase.rpc('create_gift_subscription', {
           p_project_id: testProject.id,
