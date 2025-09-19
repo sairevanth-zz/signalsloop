@@ -88,7 +88,11 @@ export function VoteButton({
     }
   }, [postId, supabase, checkUserVoteStatus]);
 
-  const handleVote = async () => {
+  const handleVote = async (event: React.MouseEvent) => {
+    // Prevent event bubbling to parent elements (like card onClick)
+    event.stopPropagation();
+    event.preventDefault();
+    
     if (loading || !voterHash || !supabase) {
       onShowNotification?.('Voting system not available. Please refresh the page.', 'error');
       return;
