@@ -30,7 +30,13 @@ CREATE INDEX IF NOT EXISTS idx_gift_subscriptions_expires ON gift_subscriptions(
 -- 3. Enable RLS
 ALTER TABLE gift_subscriptions ENABLE ROW LEVEL SECURITY;
 
--- 4. Create RLS policies
+-- 4. Create RLS policies (drop existing ones first)
+DROP POLICY IF EXISTS "Project owners can view gifts" ON gift_subscriptions;
+DROP POLICY IF EXISTS "Project owners can create gifts" ON gift_subscriptions;
+DROP POLICY IF EXISTS "Project owners can update gifts" ON gift_subscriptions;
+DROP POLICY IF EXISTS "Recipients can view own gifts" ON gift_subscriptions;
+DROP POLICY IF EXISTS "Recipients can claim gifts" ON gift_subscriptions;
+
 CREATE POLICY "Project owners can view gifts" ON gift_subscriptions
   FOR SELECT USING (
     EXISTS (
@@ -68,7 +74,8 @@ CREATE POLICY "Recipients can claim gifts" ON gift_subscriptions
     recipient_id = auth.uid() OR recipient_email = auth.email()
   );
 
--- 5. Create function to create gift subscriptions
+-- 5. Create function to create gift subscriptions (replace existing)
+DROP FUNCTION IF EXISTS public.create_gift_subscription(UUID, VARCHAR, INTEGER, TEXT);
 CREATE OR REPLACE FUNCTION public.create_gift_subscription(
   p_project_id UUID,
   p_recipient_email VARCHAR(255),
@@ -121,7 +128,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 6. Create function to claim gift subscriptions
+-- 6. Create function to claim gift subscriptions (replace existing)
+DROP FUNCTION IF EXISTS public.claim_gift_subscription(UUID);
 CREATE OR REPLACE FUNCTION public.claim_gift_subscription(gift_id UUID)
 RETURNS JSON AS $$
 DECLARE
@@ -182,7 +190,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 7. Create function to get gift statistics
+-- 7. Create function to get gift statistics (replace existing)
+DROP FUNCTION IF EXISTS public.get_gift_stats(UUID);
 CREATE OR REPLACE FUNCTION public.get_gift_stats(p_project_id UUID)
 RETURNS JSON AS $$
 DECLARE
