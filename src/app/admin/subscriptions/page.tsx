@@ -94,9 +94,31 @@ export default function AdminSubscriptionsPage() {
 
       setProjects(transformedProjects);
 
-      // Load subscription gifts (you'd need to create this table)
-      // For now, we'll create a mock array
-      setGifts([]);
+      // Load subscription gifts
+      const { data: giftsData, error: giftsError } = await supabase
+        .from('gift_subscriptions')
+        .select(`
+          *,
+          projects!inner(name, slug)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (giftsError) {
+        console.error('Error loading gifts:', giftsError);
+      } else {
+        const transformedGifts = giftsData?.map(gift => ({
+          id: gift.id,
+          project_slug: gift.projects?.slug || 'unknown',
+          project_name: gift.projects?.name || 'Unknown Project',
+          owner_email: gift.recipient_email,
+          duration_months: gift.duration_months,
+          status: gift.status === 'claimed' ? 'active' : gift.status,
+          gifted_at: gift.created_at,
+          expires_at: gift.expires_at
+        })) || [];
+        setGifts(transformedGifts);
+      }
 
     } catch (error) {
       console.error('Error loading data:', error);
@@ -170,6 +192,29 @@ export default function AdminSubscriptionsPage() {
         console.error('Error gifting subscription:', error);
         toast.error('Failed to gift subscription');
         return;
+      }
+
+      // Create a gift subscription record for tracking
+      const { error: giftError } = await supabase
+        .from('gift_subscriptions')
+        .insert({
+          project_id: userProjects[0].id, // Use first project as reference
+          gifter_id: null, // Admin gift
+          gifter_email: 'admin@signalsloop.com',
+          recipient_email: giftEmail,
+          recipient_id: userData.id,
+          gift_type: 'pro',
+          duration_months: durationMonths,
+          status: 'claimed', // Already applied
+          expires_at: newExpiry.toISOString(),
+          claimed_at: new Date().toISOString(),
+          gift_message: giftReason || 'Admin gift subscription',
+          admin_notes: `Gifted by admin for ${giftReason || 'administrative purposes'}`
+        });
+
+      if (giftError) {
+        console.error('Error creating gift record:', giftError);
+        // Continue anyway since the actual upgrade worked
       }
 
       // Log the gift
@@ -375,6 +420,45 @@ export default function AdminSubscriptionsPage() {
             )}
           </CardContent>
         </Card>
+
+      {/* Gift History */}
+      {gifts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Gift className="h-5 w-5" />
+              Gift History
+            </CardTitle>
+            <CardDescription>
+              Recent gift subscriptions given to users
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {gifts.slice(0, 10).map((gift) => (
+                <div key={gift.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-semibold">{gift.owner_email}</h3>
+                      <Badge variant={gift.status === 'active' ? 'default' : 'secondary'}>
+                        {gift.status}
+                      </Badge>
+                      <Badge variant="outline">
+                        {gift.duration_months} month{gift.duration_months > 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p><strong>Project:</strong> {gift.project_name} ({gift.project_slug})</p>
+                      <p><strong>Gifted:</strong> {new Date(gift.gifted_at).toLocaleDateString()}</p>
+                      <p><strong>Expires:</strong> {new Date(gift.expires_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Projects List */}
       <Card>

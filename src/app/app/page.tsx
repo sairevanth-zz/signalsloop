@@ -255,7 +255,14 @@ export default function AppPage() {
       }
 
             if (!posts || posts.length === 0) {
-              console.log('🤖 No posts found for AI insights');
+              console.log('🤖 No posts found for AI insights, showing empty state');
+              setAiInsights({
+                totalPosts: 0,
+                totalVotes: 0,
+                categoryBreakdown: {},
+                topCategories: [],
+                recentPosts: []
+              });
               return;
             }
 
@@ -676,7 +683,7 @@ export default function AppPage() {
         </div>
 
         {/* AI Insights Toggle and Section */}
-        {projects.filter(p => (p.posts_count || 0) > 0).length > 0 && (
+        {projects.length > 0 && (
           <>
             {/* AI Insights Toggle Button */}
             {!showAIInsights && (
@@ -703,19 +710,22 @@ export default function AppPage() {
                     
                     setShowAIInsights(true);
                     setLoadingAIInsights(true);
-                    // Load AI insights when user explicitly requests them
-                    const projectsWithPosts = projects
-                      .filter(p => (p.posts_count || 0) > 0)
-                      .map(p => p.id);
-                    if (projectsWithPosts.length > 0) {
+                    
+                    // Load AI insights for all projects (even if no posts yet)
+                    const projectIds = projects.map(p => p.id);
+                    
+                    if (projectIds.length > 0) {
                       try {
-                        await loadAIInsights(projectsWithPosts);
+                        await loadAIInsights(projectIds);
                       } catch (error) {
                         console.error('AI insights failed to load:', error);
                         toast.error('Failed to load AI insights');
                       } finally {
                         setLoadingAIInsights(false);
                       }
+                    } else {
+                      setLoadingAIInsights(false);
+                      toast.info('No projects found. Create a project first to see AI insights.');
                     }
                   }}
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg"
