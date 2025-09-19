@@ -26,6 +26,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface GiftSubscription {
   id: string;
@@ -108,10 +109,20 @@ export default function GiftSubscriptionManager({
 
     setCreating(true);
     try {
+      // Get the current user's access token
+      const supabase = getSupabaseClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error('Please sign in to create gift subscriptions');
+        return;
+      }
+
       const response = await fetch(`/api/gifts/${projectId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.access_token}`,
         },
         body: JSON.stringify({
           recipient_email: recipientEmail.trim(),
@@ -130,7 +141,14 @@ export default function GiftSubscriptionManager({
         loadGifts();
         loadStats();
       } else {
-        toast.error(data.error || 'Failed to create gift subscription');
+        if (response.status === 401) {
+          toast.error('Please sign in to create gift subscriptions');
+        } else if (response.status === 500 && data.error?.includes('function')) {
+          toast.error('Gift subscription system not set up. Please run the database setup first.');
+          console.error('Database function error. Please run add-gift-subscriptions-schema.sql in Supabase.');
+        } else {
+          toast.error(data.error || 'Failed to create gift subscription');
+        }
       }
     } catch (error) {
       console.error('Error creating gift:', error);
@@ -153,10 +171,20 @@ export default function GiftSubscriptionManager({
 
     setCreating(true);
     try {
+      // Get the current user's access token
+      const supabase = getSupabaseClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error('Please sign in to create gift subscriptions');
+        return;
+      }
+
       const response = await fetch(`/api/gifts/${projectId}/bulk`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.access_token}`,
         },
         body: JSON.stringify({
           emails,
@@ -169,13 +197,23 @@ export default function GiftSubscriptionManager({
 
       if (response.ok) {
         toast.success(`Created ${data.created_count} gift subscriptions!`);
+        if (data.failed_count > 0) {
+          toast.error(`${data.failed_count} gifts failed to create`);
+        }
         setShowCreateDialog(false);
         setBulkEmails('');
         setGiftMessage('');
         loadGifts();
         loadStats();
       } else {
-        toast.error(data.error || 'Failed to create bulk gifts');
+        if (response.status === 401) {
+          toast.error('Please sign in to create gift subscriptions');
+        } else if (response.status === 500 && data.error?.includes('function')) {
+          toast.error('Gift subscription system not set up. Please run the database setup first.');
+          console.error('Database function error. Please run add-gift-subscriptions-schema.sql in Supabase.');
+        } else {
+          toast.error(data.error || 'Failed to create bulk gifts');
+        }
       }
     } catch (error) {
       console.error('Error creating bulk gifts:', error);

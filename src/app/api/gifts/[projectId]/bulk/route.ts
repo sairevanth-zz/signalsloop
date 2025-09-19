@@ -26,6 +26,15 @@ export async function POST(
       );
     }
 
+    // Get the current user from the request headers
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Create multiple gift subscriptions
