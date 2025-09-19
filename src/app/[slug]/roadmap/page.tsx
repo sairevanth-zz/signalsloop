@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import VoteButton from '@/components/VoteButton'; // Import our voting component
 import { toast } from 'sonner';
+import DebugRoadmap from '@/components/DebugRoadmap';
 
 interface RoadmapPost {
   id: string;
@@ -449,6 +450,12 @@ export default function PublicRoadmap() {
         showBackButton={true} 
         backLabel="Back to Board" 
       />
+      
+      {/* Temporary Debug Component */}
+      <div className="container mx-auto px-4 py-4">
+        <DebugRoadmap />
+      </div>
+      
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">

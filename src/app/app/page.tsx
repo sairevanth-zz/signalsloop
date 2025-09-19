@@ -351,9 +351,21 @@ export default function AppPage() {
       
       if (!error && userData) {
         setUserPlan(userData.plan || 'free');
+      } else {
+        // Fallback: check if user has any Pro projects
+        const { data: proProjects } = await supabase
+          .from('projects')
+          .select('plan')
+          .eq('owner_id', user.id)
+          .eq('plan', 'pro')
+          .limit(1);
+        
+        setUserPlan(proProjects && proProjects.length > 0 ? 'pro' : 'free');
       }
     } catch (error) {
       console.error('Error loading user plan:', error);
+      // Default to free if there's any error
+      setUserPlan('free');
     }
   };
 

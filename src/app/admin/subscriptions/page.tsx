@@ -423,7 +423,7 @@ export default function AdminSubscriptionsPage() {
                       <Button
                         size="sm"
                         onClick={() => {
-                          setSelectedProject(project.slug);
+                          setGiftEmail(project.owner_email || '');
                           setShowGiftForm(true);
                         }}
                         className="flex items-center gap-1"
