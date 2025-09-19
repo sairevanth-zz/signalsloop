@@ -95,12 +95,31 @@ export default function PostDetailPage() {
   const [error, setError] = useState('');
   const [commenting, setCommenting] = useState(false);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
+  const [user, setUser] = useState<any>(null);
   
   // Comment form state
   const [commentForm, setCommentForm] = useState({
     body: '',
     author_email: ''
   });
+
+  // Load current user
+  useEffect(() => {
+    if (supabase) {
+      const getUser = async () => {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        setUser(currentUser);
+      };
+      getUser();
+    }
+  }, [supabase]);
+
+  // Load user plan when user is available
+  useEffect(() => {
+    if (user) {
+      loadUserPlan();
+    }
+  }, [user, loadUserPlan]);
 
   const loadUserPlan = useCallback(async () => {
     if (!supabase || !user) return;
