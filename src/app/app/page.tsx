@@ -1106,7 +1106,7 @@ export default function AppPage() {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="p-6">
-                  {/* Header */}
+                  {/* Header - Pro badges removed */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
