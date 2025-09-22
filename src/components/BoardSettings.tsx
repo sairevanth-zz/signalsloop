@@ -118,13 +118,17 @@ export default function BoardSettings({
       setProject(projectData);
 
       // Get board settings
+      console.log('🔍 Loading board for project:', projectData.id);
       const { data: boardData, error: boardError } = await supabase
         .from('boards')
         .select('*')
         .eq('project_id', projectData.id)
         .single();
 
+      console.log('🔍 Board query result:', { boardData, boardError });
+
       if (boardError || !boardData) {
+        console.error('❌ Board not found:', { boardError, boardData });
         onShowNotification?.('Board not found', 'error');
         return;
       }
@@ -271,27 +275,46 @@ export default function BoardSettings({
   };
 
   const handleDeleteBoard = async () => {
-    console.log('🗑️ Delete board clicked:', { board: !!board, supabase: !!supabase, project: !!project });
+    console.log('🗑️ Delete board clicked:', { 
+      board: board ? { id: board.id, name: board.name } : null, 
+      supabase: !!supabase, 
+      project: project ? { id: project.id, slug: project.slug } : null 
+    });
     
     if (!board || !supabase || !project) {
-      console.error('❌ Missing required data:', { board: !!board, supabase: !!supabase, project: !!project });
+      console.error('❌ Missing required data:', { 
+        board: board ? { id: board.id, name: board.name } : null, 
+        supabase: !!supabase, 
+        project: project ? { id: project.id, slug: project.slug } : null 
+      });
       onShowNotification?.('Database connection not available. Please refresh the page.', 'error');
       return;
     }
 
+    if (!board.id) {
+      console.error('❌ Board ID is missing:', board);
+      onShowNotification?.('Board ID is missing. Please refresh the page.', 'error');
+      return;
+    }
+
     try {
-      console.log('🗑️ Attempting to delete board via API:', board.id);
+      console.log('🗑️ Attempting to delete board via API:', { boardId: board.id, boardName: board.name });
+      
+      // Get auth session
+      const { data: session } = await supabase.auth.getSession();
+      console.log('🔐 Auth session:', { hasSession: !!session.session, hasToken: !!session.session?.access_token });
       
       // Use API route with service role key to bypass RLS
       const response = await fetch('/api/boards/delete', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          'Authorization': `Bearer ${session.session?.access_token || 'no-token'}`
         },
         body: JSON.stringify({ boardId: board.id })
       });
 
+      console.log('📡 API Response status:', response.status);
       const result = await response.json();
       console.log('🗑️ API Delete result:', result);
 
