@@ -17,17 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { 
   Settings, 
   Save, 
@@ -692,41 +681,47 @@ export default function BoardSettings({
                 </Button>
               </div>
               
-              <AlertDialog open={showDeleteDialog} onOpenChange={(open) => {
-                if (!open) {
-                  setShowDeleteDialog(false);
-                }
-              }}>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete Board
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Board</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete &quot;{board.name}&quot;? This will permanently delete:
-                      <ul className="list-disc list-inside mt-2 space-y-1">
-                        <li>All feedback posts</li>
-                        <li>All comments and votes</li>
-                        <li>All board settings</li>
-                      </ul>
-                      This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <Button
-                      onClick={handleDeleteBoard}
-                      className="bg-red-600 hover:bg-red-700 text-white"
-                    >
-                      Delete Board
-                    </Button>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button 
+                variant="outline" 
+                className="border-red-300 text-red-700 hover:bg-red-50"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Board
+              </Button>
+              
+              {/* Custom Modal */}
+              {showDeleteDialog && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowDeleteDialog(false)}></div>
+                  <div className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                    <h2 className="text-lg font-semibold mb-4">Delete Board</h2>
+                    <p className="text-gray-600 mb-4">
+                      Are you sure you want to delete &quot;{board?.name}&quot;? This will permanently delete:
+                    </p>
+                    <ul className="list-disc list-inside mb-6 text-gray-600 space-y-1">
+                      <li>All feedback posts</li>
+                      <li>All comments and votes</li>
+                      <li>All board settings</li>
+                    </ul>
+                    <p className="text-red-600 mb-6">This action cannot be undone.</p>
+                    <div className="flex gap-3 justify-end">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShowDeleteDialog(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleDeleteBoard}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        Delete Board
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
