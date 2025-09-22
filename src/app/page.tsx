@@ -152,21 +152,24 @@ export default function Homepage() {
           </div>
           
           {/* Product Screenshot */}
-          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-5xl mx-auto">
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg h-[500px] relative overflow-hidden">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-6xl mx-auto">
+            <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg h-[600px] relative overflow-hidden">
               {/* Mock Dashboard Interface */}
-              <div className="absolute inset-4 bg-white rounded-lg shadow-lg">
+              <div className="absolute inset-4 bg-white rounded-lg shadow-lg border border-gray-100">
                 {/* Header */}
-                <div className="h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-lg flex items-center justify-between px-6">
+                <div className="h-14 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-lg flex items-center justify-between px-6">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
                       <span className="text-blue-600 font-bold text-lg">S</span>
                     </div>
-                    <span className="text-white font-semibold">SignalsLoop Dashboard</span>
+                    <div>
+                      <span className="text-white font-semibold text-sm">SignalsLoop</span>
+                      <div className="text-white/80 text-xs">Feedback Dashboard</div>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-white/20 rounded-lg"></div>
-                    <div className="w-8 h-8 bg-white/20 rounded-lg"></div>
+                    <div className="w-6 h-6 bg-white/20 rounded"></div>
+                    <div className="w-6 h-6 bg-white/20 rounded"></div>
                   </div>
                 </div>
                 
@@ -174,9 +177,12 @@ export default function Homepage() {
                 <div className="p-6 h-full">
                   <div className="flex gap-6 h-full">
                     {/* Sidebar */}
-                    <div className="w-64 bg-gray-50 rounded-lg p-4">
+                    <div className="w-64 bg-gray-50 rounded-lg p-4 border border-gray-100">
                       <div className="space-y-3">
-                        <div className="h-8 bg-blue-100 rounded"></div>
+                        <div className="h-8 bg-blue-100 rounded-lg flex items-center px-3">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                          <span className="text-sm font-medium text-blue-700">Dashboard</span>
+                        </div>
                         <div className="h-6 bg-gray-200 rounded"></div>
                         <div className="h-6 bg-gray-200 rounded"></div>
                         <div className="h-6 bg-gray-200 rounded"></div>
@@ -186,51 +192,113 @@ export default function Homepage() {
                     
                     {/* Main Content */}
                     <div className="flex-1">
+                      {/* Header Stats */}
+                      <div className="grid grid-cols-3 gap-4 mb-6">
+                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-2xl font-bold text-blue-600">127</div>
+                              <div className="text-xs text-blue-600">Total Posts</div>
+                            </div>
+                            <MessageSquare className="w-6 h-6 text-blue-500" />
+                          </div>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-4 border border-green-100">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-2xl font-bold text-green-600">89</div>
+                              <div className="text-xs text-green-600">Votes Today</div>
+                            </div>
+                            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs">↑</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-2xl font-bold text-purple-600">23</div>
+                              <div className="text-xs text-purple-600">AI Categorized</div>
+                            </div>
+                            <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs">🤖</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Recent Feedback */}
                       <div className="mb-4">
-                        <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">Recent Feedback</h3>
                       </div>
                       
                       {/* Feedback Cards */}
-                      <div className="space-y-4">
-                        <div className="bg-white border rounded-lg p-4 shadow-sm">
+                      <div className="space-y-3">
+                        <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <div className="h-5 bg-gray-300 rounded w-3/4 mb-2"></div>
-                              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-                              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="font-medium text-gray-900 text-sm">Add dark mode support</span>
+                                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Feature</span>
+                              </div>
+                              <div className="text-xs text-gray-600 mb-2">Users want the ability to switch between light and dark themes for better accessibility...</div>
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span>👤 Sarah M.</span>
+                                <span>🕒 2 hours ago</span>
+                                <span>💬 5 comments</span>
+                              </div>
                             </div>
-                            <div className="flex gap-2">
-                              <div className="w-16 h-6 bg-green-100 rounded"></div>
-                              <div className="w-12 h-6 bg-blue-100 rounded"></div>
+                            <div className="flex flex-col items-center">
+                              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mb-1">
+                                <span className="text-blue-600 text-sm">↑</span>
+                              </div>
+                              <span className="text-sm font-medium text-gray-700">24</span>
                             </div>
                           </div>
                         </div>
                         
-                        <div className="bg-white border rounded-lg p-4 shadow-sm">
+                        <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <div className="h-5 bg-gray-300 rounded w-2/3 mb-2"></div>
-                              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-                              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="font-medium text-gray-900 text-sm">Fix login button not working</span>
+                                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">Bug</span>
+                              </div>
+                              <div className="text-xs text-gray-600 mb-2">The login button on the homepage doesn't respond when clicked. Tested on Chrome and Safari...</div>
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span>👤 Mike R.</span>
+                                <span>🕒 4 hours ago</span>
+                                <span>💬 2 comments</span>
+                              </div>
                             </div>
-                            <div className="flex gap-2">
-                              <div className="w-16 h-6 bg-orange-100 rounded"></div>
-                              <div className="w-12 h-6 bg-blue-100 rounded"></div>
+                            <div className="flex flex-col items-center">
+                              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mb-1">
+                                <span className="text-blue-600 text-sm">↑</span>
+                              </div>
+                              <span className="text-sm font-medium text-gray-700">18</span>
                             </div>
                           </div>
                         </div>
                         
-                        <div className="bg-white border rounded-lg p-4 shadow-sm">
+                        <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <div className="h-5 bg-gray-300 rounded w-4/5 mb-2"></div>
-                              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-                              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="font-medium text-gray-900 text-sm">Improve mobile navigation</span>
+                                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Enhancement</span>
+                              </div>
+                              <div className="text-xs text-gray-600 mb-2">The mobile menu could be more intuitive. Consider adding swipe gestures...</div>
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span>👤 Alex T.</span>
+                                <span>🕒 6 hours ago</span>
+                                <span>💬 0 comments</span>
+                              </div>
                             </div>
-                            <div className="flex gap-2">
-                              <div className="w-16 h-6 bg-purple-100 rounded"></div>
-                              <div className="w-12 h-6 bg-blue-100 rounded"></div>
+                            <div className="flex flex-col items-center">
+                              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mb-1">
+                                <span className="text-blue-600 text-sm">↑</span>
+                              </div>
+                              <span className="text-sm font-medium text-gray-700">12</span>
                             </div>
                           </div>
                         </div>
@@ -241,17 +309,25 @@ export default function Homepage() {
               </div>
               
               {/* Floating Elements */}
-              <div className="absolute top-8 right-8 bg-white rounded-lg shadow-lg p-3">
+              <div className="absolute top-8 right-8 bg-white rounded-lg shadow-lg p-3 border border-gray-100">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                  <span className="text-sm text-gray-600">AI Categorizing...</span>
+                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-gray-700 font-medium">AI Processing</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">3 new posts categorized</div>
+              </div>
+              
+              <div className="absolute bottom-8 left-8 bg-white rounded-lg shadow-lg p-3 border border-gray-100">
+                <div className="text-center">
+                  <div className="text-xl font-bold text-blue-600">98%</div>
+                  <div className="text-xs text-gray-500">Accuracy Rate</div>
                 </div>
               </div>
               
-              <div className="absolute bottom-8 left-8 bg-white rounded-lg shadow-lg p-3">
+              <div className="absolute top-1/2 right-4 bg-white rounded-lg shadow-lg p-2 border border-gray-100">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">127</div>
-                  <div className="text-xs text-gray-500">Feedback Items</div>
+                  <div className="text-lg font-bold text-purple-600">127</div>
+                  <div className="text-xs text-gray-500">Total</div>
                 </div>
               </div>
             </div>
