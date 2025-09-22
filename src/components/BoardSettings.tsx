@@ -680,7 +680,11 @@ export default function BoardSettings({
                 </p>
               </div>
               
-              <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+              <AlertDialog open={showDeleteDialog} onOpenChange={(open) => {
+                if (!open) {
+                  setShowDeleteDialog(false);
+                }
+              }}>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
                     <Trash2 className="w-4 h-4 mr-2" />
@@ -701,13 +705,13 @@ export default function BoardSettings({
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <Button
                       onClick={handleDeleteBoard}
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700 text-white"
                     >
                       Delete Board
-                    </AlertDialogAction>
+                    </Button>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
