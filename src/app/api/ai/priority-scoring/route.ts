@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase-client';
+import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
@@ -148,7 +148,10 @@ function getPriorityLevel(score: number): string {
 export async function POST(request: NextRequest) {
   try {
     // Check authentication and plan
-    const supabase = getSupabaseClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE!
+    );
     const authHeader = request.headers.get('authorization');
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -297,7 +300,10 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Check authentication and plan
-    const supabase = getSupabaseClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE!
+    );
     const authHeader = request.headers.get('authorization');
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {

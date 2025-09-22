@@ -46,12 +46,16 @@ export function AIPriorityScoring({
 
   const analyzePriority = async () => {
     setIsLoading(true);
+    console.log('Starting priority analysis for post:', postId, 'project:', projectId);
     try {
       // Get the current session token
       const supabase = (await import('@/lib/supabase-client')).getSupabaseClient();
       const { data: { session } } = await supabase.auth.getSession();
       
+      console.log('Session found:', !!session, 'Token exists:', !!session?.access_token);
+      
       if (!session?.access_token) {
+        console.error('No session token found');
         onShowNotification?.('Please sign in to use AI features', 'error');
         return;
       }
@@ -66,8 +70,10 @@ export function AIPriorityScoring({
       });
 
       const data = await response.json();
+      console.log('API Response:', response.status, data);
 
       if (!response.ok) {
+        console.error('API Error:', data);
         if (data.upgrade_required) {
           onShowNotification?.('AI Priority Scoring is a Pro feature', 'error');
           return;
