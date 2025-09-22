@@ -27,7 +27,9 @@ import {
   Map,
   Sparkles,
   Share2,
-  TrendingUp
+  TrendingUp,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import {
   Select,
@@ -111,6 +113,7 @@ export default function BoardPage() {
   const [boardId, setBoardId] = useState<string | null>(null);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -682,17 +685,45 @@ export default function BoardPage() {
 
           {/* AI Insights Sidebar - Only show for Pro users */}
           {user && userPlan === 'pro' && (
-            <div className="hidden lg:block w-80 flex-shrink-0">
+            <div className={`hidden lg:block ${sidebarCollapsed ? 'w-12' : 'w-80'} flex-shrink-0 transition-all duration-300`}>
               <div className="sticky top-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="h-5 w-5 text-purple-600" />
-                  <h2 className="text-lg font-semibold text-gray-900">AI-Powered Insights</h2>
-                  <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                    Pro Feature
-                  </Badge>
+                {/* Toggle Button */}
+                <div className="flex items-center justify-between mb-4">
+                  {!sidebarCollapsed && (
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-purple-600" />
+                      <h2 className="text-lg font-semibold text-gray-900">AI-Powered Insights</h2>
+                      <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                        Pro Feature
+                      </Badge>
+                    </div>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                    className="p-2 hover:bg-purple-50"
+                  >
+                    {sidebarCollapsed ? (
+                      <ChevronRight className="h-4 w-4 text-purple-600" />
+                    ) : (
+                      <ChevronLeft className="h-4 w-4 text-purple-600" />
+                    )}
+                  </Button>
                 </div>
-                <div className="space-y-4">
-                  <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+                
+                {/* Collapsed State - Show AI icon */}
+                {sidebarCollapsed && (
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <Sparkles className="h-6 w-6 text-purple-600" />
+                    </div>
+                  </div>
+                )}
+                
+                {!sidebarCollapsed && (
+                  <div className="space-y-4">
+                    <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -753,7 +784,8 @@ export default function BoardPage() {
                       </p>
                     </CardContent>
                   </Card>
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
