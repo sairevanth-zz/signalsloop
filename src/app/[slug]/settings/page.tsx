@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ApiKeySettings } from '@/components/ApiKeySettings';
 import BoardSettings from '@/components/BoardSettings';
+import { CustomDomainSettings } from '@/components/CustomDomainSettings';
 import GlobalBanner from '@/components/GlobalBanner';
 import FeedbackExport from '@/components/FeedbackExport';
 import { CSVImport } from '@/components/admin/csv-import';
@@ -16,7 +17,8 @@ import {
   Settings, 
   Shield,
   Upload,
-  Download
+  Download,
+  Globe
 } from 'lucide-react';
 
 interface Project {
@@ -148,7 +150,7 @@ export default function SettingsPage() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-2 mb-6">
-            <TabsList className="grid w-full grid-cols-5 bg-transparent">
+            <TabsList className="grid w-full grid-cols-6 bg-transparent">
               <TabsTrigger 
                 value="api-keys" 
                 className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
@@ -162,6 +164,13 @@ export default function SettingsPage() {
               >
                 <Settings className="w-4 h-4" />
                 Board Settings
+              </TabsTrigger>
+              <TabsTrigger 
+                value="domain" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
+              >
+                <Globe className="w-4 h-4" />
+                Custom Domain
               </TabsTrigger>
               <TabsTrigger 
                 value="import" 
@@ -208,6 +217,14 @@ export default function SettingsPage() {
                 onShowNotification={handleShowNotification}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="domain" className="mt-6">
+            <CustomDomainSettings 
+              projectId={project.id}
+              projectSlug={project.slug}
+              userPlan={project.plan}
+            />
           </TabsContent>
 
 
