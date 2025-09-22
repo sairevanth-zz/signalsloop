@@ -2,13 +2,21 @@
 // Run this script to fix board names and set up basic Stripe settings
 
 const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config({ path: '.env.local' });
 
-// You'll need to replace these with your actual values
+// Load environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE;
 
+console.log('🔍 Environment check:');
+console.log('  NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅ Found' : '❌ Missing');
+console.log('  SUPABASE_SERVICE_ROLE:', supabaseServiceKey ? '✅ Found' : '❌ Missing');
+
 if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('Missing Supabase credentials');
+  console.error('❌ Missing Supabase credentials');
+  console.log('💡 Make sure your .env.local file contains:');
+  console.log('   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url');
+  console.log('   SUPABASE_SERVICE_ROLE=your_service_role_key');
   process.exit(1);
 }
 

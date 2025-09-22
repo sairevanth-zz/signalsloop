@@ -148,7 +148,7 @@ export default function SettingsPage() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-2 mb-6">
-            <TabsList className="grid w-full grid-cols-6 bg-transparent">
+            <TabsList className="grid w-full grid-cols-5 bg-transparent">
               <TabsTrigger 
                 value="api-keys" 
                 className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
@@ -176,13 +176,6 @@ export default function SettingsPage() {
               >
                 <Download className="w-4 h-4" />
                 Export
-              </TabsTrigger>
-              <TabsTrigger 
-                value="billing" 
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
-              >
-                <Shield className="w-4 h-4" />
-                Billing
               </TabsTrigger>
             </TabsList>
           </div>
@@ -252,7 +245,7 @@ export default function SettingsPage() {
                   </p>
                   <div className="space-y-3">
                     <Button 
-                      onClick={() => window.open(`/${project.slug}/billing`, '_blank')}
+                      onClick={() => window.open('/app/billing', '_blank')}
                       className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
                     >
                       Upgrade to Pro
@@ -315,7 +308,7 @@ export default function SettingsPage() {
                   </p>
                   <div className="space-y-3">
                     <Button 
-                      onClick={() => window.open(`/${project.slug}/billing`, '_blank')}
+                      onClick={() => window.open('/app/billing', '_blank')}
                       className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
                     >
                       Upgrade to Pro
@@ -329,32 +322,6 @@ export default function SettingsPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="billing" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Shield className="h-8 w-8 text-green-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Billing & Subscription
-                </h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Manage your subscription, billing information, and upgrade to Pro for advanced features.
-                </p>
-                <div className="space-y-3">
-                  <Button 
-                    onClick={() => window.open(`/${project.slug}/billing`, '_blank')}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                  >
-                    Manage Billing
-                  </Button>
-                  <p className="text-sm text-gray-500">
-                    Current plan: <span className="font-medium capitalize">{project.plan}</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
         </Tabs>
       </div>
     </div>

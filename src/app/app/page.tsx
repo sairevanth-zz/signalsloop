@@ -46,7 +46,8 @@ import {
   Sparkles,
   Brain,
   Zap,
-  Share2
+  Share2,
+  CreditCard
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -747,6 +748,18 @@ export default function AppPage() {
                 </p>
               </div>
               <div className="hidden md:flex items-center space-x-4">
+                {/* Billing Button */}
+                <Link href="/app/billing">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/80 hover:bg-white border-gray-200 cursor-pointer"
+                  >
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Billing
+                  </Button>
+                </Link>
+                
                 {/* Refresh Button */}
                 <Button
                   variant="outline"
@@ -828,7 +841,7 @@ export default function AppPage() {
                         duration: 5000,
                         action: {
                           label: 'Upgrade',
-                          onClick: () => router.push('/billing')
+                          onClick: () => router.push('/app/billing')
                         }
                       });
                       return;

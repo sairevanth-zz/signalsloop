@@ -94,6 +94,35 @@ export function BillingDashboard({
 
     try {
       console.log('🔍 Loading billing info for project:', projectId);
+      
+      // Check if this is account-level billing (using user ID as project ID)
+      if (projectId && projectId.length > 20) {
+        // This looks like a user ID, so we'll treat it as account-level billing
+        console.log('🔍 Detected account-level billing, using user-based approach');
+        
+        // Get current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          console.error('❌ Error getting user for account billing:', userError);
+          throw new Error('User not authenticated');
+        }
+
+        // For account-level billing, we'll create a mock billing info
+        // In a real implementation, you'd store billing info at the user level
+        const accountBillingInfo = {
+          plan: 'pro' as const, // Default to pro for now, you can make this dynamic
+          stripe_customer_id: null,
+          subscription_status: 'active' as const,
+          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+          cancel_at_period_end: false
+        };
+
+        console.log('✅ Account billing info set:', accountBillingInfo);
+        setBillingInfo(accountBillingInfo);
+        return;
+      }
+
+      // Project-level billing (existing logic)
       const { data, error } = await supabase
         .from('projects')
         .select('plan, stripe_customer_id, subscription_status, current_period_end, cancel_at_period_end')
@@ -135,7 +164,60 @@ export function BillingDashboard({
     if (!supabase) return;
 
     try {
-      // Load actual usage data from database
+      // Check if this is account-level billing
+      if (projectId && projectId.length > 20) {
+        console.log('🔍 Loading account-level usage stats');
+        
+        // Get current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          console.error('❌ Error getting user for account usage:', userError);
+          return;
+        }
+
+        // Get all projects for this user
+        const { data: projects, error: projectsError } = await supabase
+          .from('projects')
+          .select('id')
+          .eq('owner_id', user.id);
+
+        if (projectsError) {
+          console.error('Error loading user projects:', projectsError);
+          return;
+        }
+
+        const projectIds = projects?.map(p => p.id) || [];
+
+        // Get total posts count across all user projects
+        const { data: posts, error: postsError } = await supabase
+          .from('posts')
+          .select('id')
+          .in('project_id', projectIds);
+
+        // Get total votes count across all user projects
+        const { data: votes, error: votesError } = await supabase
+          .from('votes')
+          .select('id')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .in('post_id', posts?.map((p: any) => p.id) || []);
+
+        if (!postsError && !votesError) {
+          console.log('✅ Account usage stats loaded:', {
+            projects: projectIds.length,
+            posts: posts?.length || 0,
+            votes: votes?.length || 0
+          });
+
+          setUsage(prev => ({
+            ...prev,
+            posts_count: posts?.length || 0,
+            votes_count: votes?.length || 0
+          }));
+        }
+        return;
+      }
+
+      // Project-level usage (existing logic)
       const { data: posts, error: postsError } = await supabase
         .from('posts')
         .select('id')
