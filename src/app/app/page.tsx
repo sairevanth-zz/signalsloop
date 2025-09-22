@@ -47,7 +47,8 @@ import {
   Brain,
   Zap,
   Share2,
-  CreditCard
+  CreditCard,
+  LogOut
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -738,53 +739,51 @@ export default function AppPage() {
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-8 mb-6 transform transition-all duration-300 hover:shadow-xl animate-bounce-in">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-4xl font-bold mb-2 animate-fade-in">
-                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    Welcome back! ✨
-                  </span>
-                </h1>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-4xl font-bold animate-fade-in">
+                    <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      Welcome back! ✨
+                    </span>
+                  </h1>
+                  {userPlan === 'pro' && (
+                    <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-sm">
+                      <Crown className="w-3 h-3 mr-1" />
+                      Pro
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-gray-600 text-lg animate-fade-in-delay">
                   Manage your feedback boards and track user engagement
                 </p>
               </div>
               <div className="hidden md:flex items-center space-x-4">
-                {/* Billing Button */}
-                <Link href="/app/billing">
+                {/* User Menu */}
+                <div className="flex items-center space-x-2">
+                  <Link href="/app/billing">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/80 hover:bg-white border-gray-200 cursor-pointer"
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Billing
+                    </Button>
+                  </Link>
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={async () => {
+                      if (supabase) {
+                        await supabase.auth.signOut();
+                        window.location.href = '/login';
+                      }
+                    }}
                     className="bg-white/80 hover:bg-white border-gray-200 cursor-pointer"
                   >
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Billing
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
                   </Button>
-                </Link>
-                
-                {/* Refresh Button */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    console.log('Manual refresh triggered');
-                    loadProjects();
-                  }}
-                  className="bg-white/80 hover:bg-white border-gray-200"
-                  disabled={projectsLoading}
-                >
-                  {projectsLoading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mr-2"></div>
-                      Refreshing...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                      Refresh
-                    </>
-                  )}
-                </Button>
+                </div>
                 
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200 transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-slide-in-right">
                   <div className="flex items-center gap-3 mb-2">
@@ -1116,18 +1115,6 @@ export default function AppPage() {
                       <p className="text-sm text-gray-600">
                         Created {formatDate(project.created_at)}
                       </p>
-                    </div>
-                    <div className="ml-3">
-                      {project.plan === 'pro' ? (
-                        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-sm">
-                          <Crown className="w-3 h-3 mr-1" />
-                          Pro
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                          Free
-                        </Badge>
-                      )}
                     </div>
                   </div>
 

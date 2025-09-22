@@ -702,16 +702,14 @@ export function BillingDashboard({
                       Upgrade to Yearly
                     </Button>
                   )}
-                  {billingInfo.subscription_type !== 'gifted' && (
-                    <Button 
-                      onClick={handleManageBilling}
-                      disabled={loading}
-                      variant="outline"
-                      size="sm"
-                    >
-                      {loading ? 'Loading...' : 'Manage Billing'}
-                    </Button>
-                  )}
+                  <Button 
+                    onClick={handleManageBilling}
+                    disabled={loading}
+                    variant="outline"
+                    size="sm"
+                  >
+                    {loading ? 'Loading...' : 'Manage Billing'}
+                  </Button>
                 </div>
                 <Button 
                   onClick={handleCancelSubscription}
