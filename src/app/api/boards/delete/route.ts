@@ -18,27 +18,45 @@ export async function DELETE(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE!
     );
 
-    console.log('🗑️ Deleting board with service role:', boardId);
+    console.log('🗑️ Deleting board and project with service role:', boardId);
 
-    // Delete the board (this will cascade delete all posts, comments, votes)
-    const { error } = await supabase
+    // First, get the project_id from the board
+    const { data: boardData, error: boardQueryError } = await supabase
       .from('boards')
+      .select('project_id')
+      .eq('id', boardId)
+      .single();
+
+    if (boardQueryError || !boardData) {
+      console.error('Error finding board:', boardQueryError);
+      return NextResponse.json(
+        { error: 'Board not found' },
+        { status: 404 }
+      );
+    }
+
+    const projectId = boardData.project_id;
+    console.log('📍 Found project_id for board:', projectId);
+
+    // Delete the project (this will cascade delete the board, posts, comments, votes, members, api_keys)
+    const { error } = await supabase
+      .from('projects')
       .delete()
-      .eq('id', boardId);
+      .eq('id', projectId);
 
     if (error) {
-      console.error('Error deleting board:', error);
+      console.error('Error deleting project:', error);
       return NextResponse.json(
-        { error: `Failed to delete board: ${error.message}` },
+        { error: `Failed to delete project: ${error.message}` },
         { status: 500 }
       );
     }
 
-    console.log('✅ Board deleted successfully:', boardId);
+    console.log('✅ Project and board deleted successfully:', { projectId, boardId });
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Board deleted successfully' 
+      message: 'Project and board deleted successfully' 
     });
 
   } catch (error) {

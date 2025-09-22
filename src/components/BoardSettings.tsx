@@ -663,9 +663,9 @@ export default function BoardSettings({
           <CardContent>
             <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
               <div>
-                <h3 className="font-medium text-red-900">Delete Board</h3>
+                <h3 className="font-medium text-red-900">Delete Project</h3>
                 <p className="text-sm text-red-600">
-                  Permanently delete this board and all its posts, comments, and votes.
+                  Permanently delete this entire project including the board, all posts, comments, and votes.
                 </p>
                 
               </div>
@@ -676,7 +676,7 @@ export default function BoardSettings({
                 onClick={() => setShowDeleteDialog(true)}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete Board
+                Delete Project
               </Button>
               
               {/* Custom Modal */}
@@ -684,14 +684,16 @@ export default function BoardSettings({
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                   <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowDeleteDialog(false)}></div>
                   <div className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-                    <h2 className="text-lg font-semibold mb-4">Delete Board</h2>
+                    <h2 className="text-lg font-semibold mb-4">Delete Project</h2>
                     <p className="text-gray-600 mb-4">
-                      Are you sure you want to delete &quot;{board?.name}&quot;? This will permanently delete:
+                      Are you sure you want to delete the entire project &quot;{project?.name}&quot;? This will permanently delete:
                     </p>
                     <ul className="list-disc list-inside mb-6 text-gray-600 space-y-1">
+                      <li>The entire project and its board</li>
                       <li>All feedback posts</li>
                       <li>All comments and votes</li>
-                      <li>All board settings</li>
+                      <li>All project settings</li>
+                      <li>API keys and integrations</li>
                     </ul>
                     <p className="text-red-600 mb-6">This action cannot be undone.</p>
                     <div className="flex gap-3 justify-end">
@@ -705,7 +707,7 @@ export default function BoardSettings({
                         onClick={handleDeleteBoard}
                         className="bg-red-600 hover:bg-red-700 text-white"
                       >
-                        Delete Board
+                        Delete Project
                       </Button>
                     </div>
                   </div>
