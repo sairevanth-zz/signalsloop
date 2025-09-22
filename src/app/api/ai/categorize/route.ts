@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { categorizeFeedback, batchCategorizeFeedback, getCurrentModel } from '@/lib/ai-categorization';
-import { getSupabaseClient } from '@/lib/supabase-client';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * POST /api/ai/categorize
@@ -11,7 +11,11 @@ export async function POST(request: NextRequest) {
     console.log('🤖 AI Categorize API called');
     
     // Check authentication and plan
-    const supabase = getSupabaseClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE!
+    );
+    
     const authHeader = request.headers.get('authorization');
     
     console.log('🤖 Auth header present:', !!authHeader);
@@ -137,7 +141,10 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Check authentication and plan
-    const supabase = getSupabaseClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE!
+    );
     const authHeader = request.headers.get('authorization');
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
