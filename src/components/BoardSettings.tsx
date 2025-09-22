@@ -280,20 +280,23 @@ export default function BoardSettings({
     }
 
     try {
-      console.log('🗑️ Attempting to delete board:', board.id);
+      console.log('🗑️ Attempting to delete board via API:', board.id);
       
-      // This would cascade delete all posts, comments, votes
-      const { error } = await supabase
-        .from('boards')
-        .delete()
-        .eq('id', board.id);
+      // Use API route with service role key to bypass RLS
+      const response = await fetch('/api/boards/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({ boardId: board.id })
+      });
 
-      console.log('🗑️ Delete result:', { error });
+      const result = await response.json();
+      console.log('🗑️ API Delete result:', result);
 
-      if (error) {
-        console.error('Error deleting board:', error);
-        onShowNotification?.(`Error deleting board: ${error.message}`, 'error');
-        return;
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete board');
       }
 
       console.log('✅ Board deleted successfully');
