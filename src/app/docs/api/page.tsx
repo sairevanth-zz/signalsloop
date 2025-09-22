@@ -263,30 +263,30 @@ export default function APIDocumentationPage() {
                 <div>
                   <h4 className="font-semibold mb-2">Example Response</h4>
                   <CodeBlock id="list-posts-response" language="json">
-                    {
-                      "data": [
-                        {
-                          "id": "post-123",
-                          "title": "Add dark mode support",
-                          "description": "Users want the ability to switch themes...",
-                          "status": "open",
-                          "ai_category": "Feature",
-                          "ai_confidence": 0.95,
-                          "vote_count": 24,
-                          "comments_count": 5,
-                          "author_name": "Sarah M.",
-                          "author_email": "sarah@example.com",
-                          "created_at": "2024-01-15T10:30:00Z",
-                          "updated_at": "2024-01-15T10:30:00Z"
-                        }
-                      ],
-                      "pagination": {
-                        "limit": 10,
-                        "offset": 0,
-                        "total": 127,
-                        "has_more": true
-                      }
-                    }
+{`{
+  "data": [
+    {
+      "id": "post-123",
+      "title": "Add dark mode support",
+      "description": "Users want the ability to switch themes...",
+      "status": "open",
+      "ai_category": "Feature",
+      "ai_confidence": 0.95,
+      "vote_count": 24,
+      "comments_count": 5,
+      "author_name": "Sarah M.",
+      "author_email": "sarah@example.com",
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "pagination": {
+    "limit": 10,
+    "offset": 0,
+    "total": 127,
+    "has_more": true
+  }
+}`}
                   </CodeBlock>
                 </div>
               </CardContent>
@@ -360,16 +360,16 @@ export default function APIDocumentationPage() {
                 <div>
                   <h4 className="font-semibold mb-2">Example Request</h4>
                   <CodeBlock id="create-post">
-                    curl -X POST \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
+{`curl -X POST \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
   -d '{
     "title": "Fix login button",
     "description": "The login button is not responding to clicks",
     "author_name": "John Doe",
     "author_email": "john@example.com"
-  }' \
-  "https://signalsloop.vercel.app/api/v1/posts"
+  }' \\
+  "https://signalsloop.vercel.app/api/v1/posts"`}
                   </CodeBlock>
                 </div>
               </CardContent>
@@ -422,14 +422,14 @@ export default function APIDocumentationPage() {
                 <div>
                   <h4 className="font-semibold mb-2">Example Request</h4>
                   <CodeBlock id="update-post">
-                    curl -X PUT \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
+{`curl -X PUT \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
   -d '{
     "status": "in_progress",
     "title": "Updated: Fix login button"
-  }' \
-  "https://signalsloop.vercel.app/api/v1/posts/post-123"
+  }' \\
+  "https://signalsloop.vercel.app/api/v1/posts/post-123"`}
                   </CodeBlock>
                 </div>
               </CardContent>
@@ -503,15 +503,15 @@ export default function APIDocumentationPage() {
                     <code className="bg-gray-100 px-2 py-1 rounded text-sm">/api/v1/posts/{`{id}`}/comments</code>
                   </div>
                   <CodeBlock id="create-comment">
-                    curl -X POST \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
+{`curl -X POST \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
   -d '{
     "content": "Thanks for reporting this issue. We are looking into it.",
     "author_name": "Support Team",
     "author_email": "support@company.com"
-  }' \
-  "https://signalsloop.vercel.app/api/v1/posts/post-123/comments"
+  }' \\
+  "https://signalsloop.vercel.app/api/v1/posts/post-123/comments"`}
                   </CodeBlock>
                 </div>
               </CardContent>
@@ -547,41 +547,41 @@ export default function APIDocumentationPage() {
                 <div>
                   <h4 className="font-semibold mb-2">Example Response</h4>
                   <CodeBlock id="stats-response" language="json">
-                    {
-                      "data": {
-                        "project": {
-                          "id": "proj-123",
-                          "name": "My Project",
-                          "slug": "my-project",
-                          "plan": "pro"
-                        },
-                        "overview": {
-                          "total_posts": 127,
-                          "total_votes": 892,
-                          "total_comments": 234,
-                          "ai_categorization_rate": "89.2%",
-                          "avg_votes_per_post": "7.0",
-                          "avg_comments_per_post": "1.8"
-                        },
-                        "posts_by_status": {
-                          "open": 45,
-                          "planned": 23,
-                          "in_progress": 12,
-                          "done": 35,
-                          "closed": 12
-                        },
-                        "posts_by_category": {
-                          "Feature": 67,
-                          "Bug": 34,
-                          "Enhancement": 26
-                        },
-                        "recent_activity": {
-                          "posts_last_30_days": 23,
-                          "votes_last_30_days": 156
-                        },
-                        "generated_at": "2024-01-15T10:30:00Z"
-                      }
-                    }
+{`{
+  "data": {
+    "project": {
+      "id": "proj-123",
+      "name": "My Project",
+      "slug": "my-project",
+      "plan": "pro"
+    },
+    "overview": {
+      "total_posts": 127,
+      "total_votes": 892,
+      "total_comments": 234,
+      "ai_categorization_rate": "89.2%",
+      "avg_votes_per_post": "7.0",
+      "avg_comments_per_post": "1.8"
+    },
+    "posts_by_status": {
+      "open": 45,
+      "planned": 23,
+      "in_progress": 12,
+      "done": 35,
+      "closed": 12
+    },
+    "posts_by_category": {
+      "Feature": 67,
+      "Bug": 34,
+      "Enhancement": 26
+    },
+    "recent_activity": {
+      "posts_last_30_days": 23,
+      "votes_last_30_days": 156
+    },
+    "generated_at": "2024-01-15T10:30:00Z"
+  }
+}`}
                   </CodeBlock>
                 </div>
               </CardContent>
