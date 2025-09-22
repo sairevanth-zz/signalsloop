@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -80,11 +81,8 @@ export function BillingDashboard({
 
   // Initialize Supabase client safely
   useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
+    const client = getSupabaseClient();
+    if (client) {
       setSupabase(client);
     }
   }, []);
@@ -340,6 +338,13 @@ export function BillingDashboard({
     console.log('🔧 Manage billing clicked');
     console.log('📋 Billing info:', billingInfo);
     
+    // Check if this is account-level billing
+    if (projectId && projectId.length > 20) {
+      console.log('🔍 Account-level billing - no Stripe customer setup yet');
+      toast.info('Billing management is not yet set up for account-level billing. Please contact support for billing assistance.');
+      return;
+    }
+    
     if (!billingInfo.stripe_customer_id) {
       console.log('⚠️ No Stripe customer ID found');
       toast.error('No billing account found. Please upgrade to Pro first.');
@@ -358,7 +363,9 @@ export function BillingDashboard({
         },
         body: JSON.stringify({
           customerId: billingInfo.stripe_customer_id,
-          returnUrl: `${window.location.origin}/${projectSlug}/billing`
+          returnUrl: projectSlug === 'account' 
+            ? `${window.location.origin}/app/billing`
+            : `${window.location.origin}/${projectSlug}/billing`
         })
       });
 

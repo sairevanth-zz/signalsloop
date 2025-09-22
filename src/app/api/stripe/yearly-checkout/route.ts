@@ -17,12 +17,54 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log('🔍 Yearly checkout request for projectId:', projectId);
+
     // Get project data from Supabase
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE!
     );
 
+    // Check if this is account-level billing (user ID as project ID)
+    if (projectId && projectId.length > 20) {
+      console.log('🔍 Detected account-level yearly checkout');
+      
+      // For account-level billing, we need to handle it differently
+      // Since we don't have stripe_customer_id set up yet, we'll create a fallback
+      console.log('⚠️ Account-level billing detected but no Stripe customer ID setup');
+      
+      // Create a Stripe Checkout session without requiring existing customer
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price: process.env.STRIPE_YEARLY_PRICE_ID || 'price_yearly_placeholder',
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        subscription_data: {
+          metadata: {
+            account_id: projectId,
+            upgrade_type: 'yearly'
+          },
+        },
+        success_url: `${request.headers.get('origin')}/app/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${request.headers.get('origin')}/app/billing?cancelled=true`,
+        metadata: {
+          account_id: projectId,
+          upgrade_type: 'yearly'
+        },
+      });
+
+      console.log('✅ Account-level yearly checkout session created:', session.id);
+      return NextResponse.json({ 
+        url: session.url,
+        session_id: session.id
+      });
+    }
+
+    // Project-level billing (existing logic)
     const { data: project, error: projectError } = await supabase
       .from('projects')
       .select('stripe_customer_id, name, slug')
@@ -38,10 +80,38 @@ export async function POST(request: Request) {
     }
 
     if (!project.stripe_customer_id) {
-      return NextResponse.json(
-        { error: 'No billing account found' },
-        { status: 400 }
-      );
+      console.log('⚠️ Project has no Stripe customer ID, creating new checkout session');
+      
+      // Create checkout session without existing customer
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price: process.env.STRIPE_YEARLY_PRICE_ID || 'price_yearly_placeholder',
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        subscription_data: {
+          metadata: {
+            project_id: projectId,
+            project_slug: project.slug,
+          },
+        },
+        success_url: `${request.headers.get('origin')}/${project.slug}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${request.headers.get('origin')}/${project.slug}/billing?cancelled=true`,
+        metadata: {
+          project_id: projectId,
+          project_slug: project.slug,
+          upgrade_type: 'yearly'
+        },
+      });
+
+      console.log('✅ New yearly checkout session created:', session.id);
+      return NextResponse.json({ 
+        url: session.url,
+        session_id: session.id
+      });
     }
 
     // Create Stripe Checkout session for yearly plan
