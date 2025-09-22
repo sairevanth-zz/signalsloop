@@ -127,16 +127,22 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
 
   if (!insights) {
     return (
-      <Card className="bg-gray-50/70 backdrop-blur-lg shadow-lg border-none">
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200">
         <CardContent className="pt-6">
-          <div className="flex items-center gap-3 text-gray-600">
-            <AlertCircle className="w-5 h-5" />
-            <div>
-              <p>No insights available</p>
-              <p className="text-xs text-gray-500 mt-1">
-                Start adding posts to see AI-powered insights and categorization
-              </p>
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Brain className="w-8 h-8 text-blue-600" />
             </div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">No Insights Available Yet</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Start adding feedback posts to see AI-powered insights and categorization
+            </p>
+            <button 
+              onClick={loadAIInsights}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+            >
+              Refresh Insights
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -224,17 +230,30 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3">
-            <Badge className={`px-3 py-1 ${getCategoryColor(insights.topCategory)}`}>
-              {insights.topCategory}
-            </Badge>
-            <span className="text-sm text-gray-600">
-              {insights.categoryBreakdown[0]?.count || 0} posts
-            </span>
-            {insights.averageConfidence > 0 && (
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <CheckCircle className="w-3 h-3" />
-                {insights.averageConfidence.toFixed(0)}% avg confidence
+            {insights.topCategory === 'None' ? (
+              <div className="flex items-center gap-3">
+                <Badge className="px-3 py-1 bg-gray-100 text-gray-600 border-gray-200">
+                  No categories yet
+                </Badge>
+                <span className="text-sm text-gray-500">
+                  Posts will be auto-categorized by AI
+                </span>
               </div>
+            ) : (
+              <>
+                <Badge className={`px-3 py-1 ${getCategoryColor(insights.topCategory)}`}>
+                  {insights.topCategory}
+                </Badge>
+                <span className="text-sm text-gray-600">
+                  {insights.categoryBreakdown[0]?.count || 0} posts
+                </span>
+                {insights.averageConfidence > 0 && (
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <CheckCircle className="w-3 h-3" />
+                    {insights.averageConfidence.toFixed(0)}% avg confidence
+                  </div>
+                )}
+              </>
             )}
           </div>
         </CardContent>
@@ -249,28 +268,40 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {insights.categoryBreakdown.slice(0, 5).map((item) => (
-              <div key={item.category} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Badge className={`px-2 py-1 text-xs ${getCategoryColor(item.category)}`}>
-                    {item.category}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700">
-                    {item.count}
-                  </span>
-                  <div className="w-20">
-                    <Progress value={item.percentage} className="h-2" />
-                  </div>
-                  <span className="text-xs text-gray-500 w-12 text-right">
-                    {item.percentage.toFixed(1)}%
-                  </span>
-                </div>
+          {insights.categoryBreakdown.length === 0 ? (
+            <div className="text-center py-6">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <BarChart3 className="w-6 h-6 text-gray-400" />
               </div>
-            ))}
-          </div>
+              <p className="text-sm text-gray-500">No categories assigned yet</p>
+              <p className="text-xs text-gray-400 mt-1">
+                AI will automatically categorize posts as they're added
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {insights.categoryBreakdown.slice(0, 5).map((item) => (
+                <div key={item.category} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Badge className={`px-2 py-1 text-xs ${getCategoryColor(item.category)}`}>
+                      {item.category}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-700">
+                      {item.count}
+                    </span>
+                    <div className="w-20">
+                      <Progress value={item.percentage} className="h-2" />
+                    </div>
+                    <span className="text-xs text-gray-500 w-12 text-right">
+                      {item.percentage.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
