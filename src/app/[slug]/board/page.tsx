@@ -113,7 +113,7 @@ export default function BoardPage() {
   const [boardId, setBoardId] = useState<string | null>(null);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   // Initialize filters from URL parameters
   useEffect(() => {
