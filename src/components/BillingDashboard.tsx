@@ -248,6 +248,69 @@ export function BillingDashboard({
     }
   };
 
+  const handleUpgradeToYearly = async () => {
+    setLoading(true);
+    
+    try {
+      // Create yearly checkout session
+      const response = await fetch('/api/stripe/yearly-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId: projectId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create yearly checkout session');
+      }
+
+      const { url } = await response.json();
+      window.location.href = url;
+    } catch (error) {
+      console.error('Error creating yearly checkout:', error);
+      toast.error('Failed to start yearly upgrade');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!confirm('Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of your billing period.')) {
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      // Cancel subscription at period end
+      const response = await fetch('/api/stripe/cancel-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId: projectId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to cancel subscription');
+      }
+
+      toast.success('Subscription will be cancelled at the end of your billing period');
+      // Reload billing info
+      loadBillingInfo();
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      toast.error('Failed to cancel subscription');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const planFeatures = {
     free: [
       { name: '1 feedback board', included: true },
@@ -335,6 +398,11 @@ export function BillingDashboard({
                   : 'Free forever - Limited features'
                 }
               </p>
+              {billingInfo.plan === 'pro' && (
+                <p className="text-sm text-blue-600">
+                  💰 Save 20% with annual billing - $15/month billed yearly
+                </p>
+              )}
             </div>
             {billingInfo.plan === 'free' ? (
               <Button 
@@ -356,13 +424,34 @@ export function BillingDashboard({
                 )}
               </Button>
             ) : (
-              <Button 
-                onClick={handleManageBilling}
-                disabled={loading}
-                variant="outline"
-              >
-                {loading ? 'Loading...' : 'Manage Billing'}
-              </Button>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleUpgradeToYearly}
+                    disabled={loading}
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Upgrade to Yearly
+                  </Button>
+                  <Button 
+                    onClick={handleManageBilling}
+                    disabled={loading}
+                    variant="outline"
+                    size="sm"
+                  >
+                    {loading ? 'Loading...' : 'Manage Billing'}
+                  </Button>
+                </div>
+                <Button 
+                  onClick={handleCancelSubscription}
+                  disabled={loading}
+                  variant="destructive"
+                  size="sm"
+                >
+                  Cancel Subscription
+                </Button>
+              </div>
             )}
           </div>
 

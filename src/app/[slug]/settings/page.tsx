@@ -199,6 +199,7 @@ export default function SettingsPage() {
               </div>
               
               <ApiKeySettings 
+                projectId={project.id}
                 projectSlug={project.slug}
                 userPlan={project.plan}
                 onShowNotification={handleShowNotification}

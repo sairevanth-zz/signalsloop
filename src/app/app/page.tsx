@@ -1143,11 +1143,11 @@ export default function AppPage() {
                   {/* Actions */}
                   <div className="space-y-3">
                     <div className="flex space-x-2">
-                      <Link href={`/${project.slug}/board`} className="flex-1">
+                      <Link href={`/${project.slug}/board`} className="flex-1 cursor-pointer">
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="w-full bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
+                          className="w-full bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105 cursor-pointer"
                         >
                           <Eye className="w-4 h-4 mr-1 transition-transform duration-200 group-hover:scale-110" />
                           View Board
@@ -1165,32 +1165,32 @@ export default function AppPage() {
                       >
                         <Share2 className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
                       </Button>
-                      <Link href={`/${project.slug}/roadmap`}>
+                      <Link href={`/${project.slug}/roadmap`} className="cursor-pointer">
                         <Button 
                           variant="outline" 
                           size="sm"
-                          className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
+                          className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105 cursor-pointer"
                           title="View Roadmap"
                         >
                           <Map className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
                         </Button>
                       </Link>
-                             <Link href="/ai-test">
+                             <Link href="/ai-test" className="cursor-pointer">
                                <Button
                                  variant="outline"
                                  size="sm"
-                                 className="bg-gradient-to-r from-purple-50 to-blue-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-blue-100 transition-all duration-200 hover:scale-105"
+                                 className="bg-gradient-to-r from-purple-50 to-blue-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-blue-100 transition-all duration-200 hover:scale-105 cursor-pointer"
                                  title={!aiAvailable ? "AI features not available" : "AI Analysis"}
                                  disabled={!project.posts_count || project.posts_count === 0 || !aiAvailable}
                                >
                                  <Sparkles className="w-4 h-4 text-purple-600 transition-transform duration-200 group-hover:scale-110" />
                                </Button>
                              </Link>
-                      <Link href={`/${project.slug}/settings`}>
+                      <Link href={`/${project.slug}/settings`} className="cursor-pointer">
                         <Button 
                           variant="outline" 
                           size="sm"
-                          className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
+                          className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105 cursor-pointer"
                           title="Project Settings"
                         >
                           <Settings className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
@@ -1226,10 +1226,10 @@ export default function AppPage() {
 
         {/* Floating Action Button */}
         <div className="fixed bottom-8 right-8 z-50">
-          <Link href="/app/create">
+          <Link href="/app/create" className="cursor-pointer">
             <Button 
               size="lg"
-              className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 animate-float"
+              className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 animate-float cursor-pointer"
             >
               <Plus className="w-6 h-6" />
             </Button>

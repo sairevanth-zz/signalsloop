@@ -40,9 +40,11 @@ interface WidgetSettings {
 interface ApiKeySettingsProps {
   projectId: string;
   projectSlug: string;
+  userPlan?: 'free' | 'pro';
+  onShowNotification?: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
-export function ApiKeySettings({ projectId, projectSlug }: ApiKeySettingsProps) {
+export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onShowNotification }: ApiKeySettingsProps) {
   console.log('ApiKeySettings received:', { projectId, projectSlug });
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(false);
@@ -468,9 +470,11 @@ export function ApiKeySettings({ projectId, projectSlug }: ApiKeySettingsProps) 
                   <li>• Custom domain embedding</li>
                   <li>• Advanced positioning options</li>
                 </ul>
-                <Button size="sm" className="mt-3">
-                  Upgrade to Pro
-                </Button>
+                {userPlan === 'free' && (
+                  <Button size="sm" className="mt-3">
+                    Upgrade to Pro
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
