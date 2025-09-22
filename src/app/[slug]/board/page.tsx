@@ -48,6 +48,7 @@ import Link from 'next/link';
 import PostSubmissionForm from '@/components/PostSubmissionForm';
 import VoteButton from '@/components/VoteButton';
 import { AIInsightsModal } from '@/components/AIInsightsModal';
+import { TestModal } from '@/components/TestModal';
 
 interface Post {
   id: string;
@@ -107,6 +108,7 @@ export default function BoardPage() {
   const [sortBy, setSortBy] = useState('votes');
   const [showPostForm, setShowPostForm] = useState(false);
   const [showAIInsights, setShowAIInsights] = useState(false);
+  const [showTestModal, setShowTestModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [boardId, setBoardId] = useState<string | null>(null);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
@@ -448,14 +450,21 @@ export default function BoardPage() {
                 </Link>
               )}
               {user && posts.length > 0 && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowAIInsights(true)}
-                  className="flex items-center gap-1 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  AI Insights
-                </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowTestModal(true)}
+                className="flex items-center gap-1 bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
+              >
+                Test Modal
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowAIInsights(true)}
+                className="flex items-center gap-1 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+              >
+                <Sparkles className="w-4 h-4" />
+                AI Insights
+              </Button>
               )}
               <Button 
                 onClick={() => setShowPostForm(true)}
@@ -760,6 +769,14 @@ export default function BoardPage() {
           projectId={project.id}
           boardId={boardId}
           onPostSubmitted={loadProjectAndPosts}
+        />
+      )}
+
+      {/* Test Modal */}
+      {showTestModal && (
+        <TestModal
+          isOpen={showTestModal}
+          onClose={() => setShowTestModal(false)}
         />
       )}
 
