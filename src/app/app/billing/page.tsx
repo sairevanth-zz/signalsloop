@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { BillingDashboard } from '@/components/BillingDashboard';
-import { GlobalBanner } from '@/components/GlobalBanner';
+import GlobalBanner from '@/components/GlobalBanner';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft } from 'lucide-react';
