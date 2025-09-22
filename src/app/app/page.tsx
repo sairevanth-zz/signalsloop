@@ -236,6 +236,7 @@ export default function AppPage() {
 
           try {
       // Get recent posts from all projects
+      console.log('🤖 Fetching posts for project IDs:', projectIds);
       const { data: posts, error: postsError } = await supabase
         .from('posts')
         .select(`
@@ -254,15 +255,19 @@ export default function AppPage() {
         return;
       }
 
+      console.log('🤖 Posts fetched:', posts);
+
             if (!posts || posts.length === 0) {
               console.log('🤖 No posts found for AI insights, showing empty state');
-              setAiInsights({
+              const emptyInsights = {
                 totalPosts: 0,
                 totalVotes: 0,
                 categoryBreakdown: {},
                 topCategories: [],
                 recentPosts: []
-              });
+              };
+              console.log('🤖 Setting empty AI insights data:', emptyInsights);
+              setAiInsights(emptyInsights);
               return;
             }
 
@@ -334,13 +339,16 @@ export default function AppPage() {
 
       const totalVotes = votes?.length || 0;
 
-      setAiInsights({
+      const insightsData = {
         totalPosts: posts.length,
         totalVotes,
         categoryBreakdown,
         topCategories,
         recentPosts: postsWithCategories.slice(0, 5) as RecentPost[]
-      });
+      };
+      
+      console.log('🤖 Setting AI insights data:', insightsData);
+      setAiInsights(insightsData);
 
     } catch (error) {
       console.error('Error loading AI insights:', error);
