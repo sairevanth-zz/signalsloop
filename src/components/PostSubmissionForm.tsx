@@ -239,8 +239,8 @@ export default function PostSubmissionForm({
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex flex-col">
-      <div className="bg-black bg-opacity-50 flex-1 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-black bg-opacity-50 flex-1 flex items-start justify-center p-4 pt-8">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl h-full max-h-[calc(100vh-4rem)] overflow-y-auto">
         <Card className="border-0 shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div>
