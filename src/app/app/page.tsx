@@ -1160,7 +1160,7 @@ export default function AppPage() {
                           setSelectedProject(project);
                           setShareModalOpen(true);
                         }}
-                        className="bg-green-50/80 border-green-200 text-green-700 hover:bg-green-100/80 transition-all duration-200 hover:scale-105"
+                        className="bg-green-50/80 border-green-200 text-green-700 hover:bg-green-100/80 transition-all duration-200 hover:scale-105 cursor-pointer"
                         title="Share Board"
                       >
                         <Share2 className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />

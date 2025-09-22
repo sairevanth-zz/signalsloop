@@ -252,7 +252,7 @@ export default function SettingsPage() {
                   </p>
                   <div className="space-y-3">
                     <Button 
-                      onClick={() => window.open('/billing', '_blank')}
+                      onClick={() => window.open(`/${project.slug}/billing`, '_blank')}
                       className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
                     >
                       Upgrade to Pro
@@ -315,7 +315,7 @@ export default function SettingsPage() {
                   </p>
                   <div className="space-y-3">
                     <Button 
-                      onClick={() => window.open('/billing', '_blank')}
+                      onClick={() => window.open(`/${project.slug}/billing`, '_blank')}
                       className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
                     >
                       Upgrade to Pro
@@ -343,7 +343,7 @@ export default function SettingsPage() {
                 </p>
                 <div className="space-y-3">
                   <Button 
-                    onClick={() => window.open('/billing', '_blank')}
+                    onClick={() => window.open(`/${project.slug}/billing`, '_blank')}
                     className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                   >
                     Manage Billing
