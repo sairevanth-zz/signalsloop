@@ -751,7 +751,7 @@ export default function AppPage() {
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg"
                 >
                   <Sparkles className="w-5 h-5 mr-2" />
-                  View AI Insights
+                  Analyze Feedback with AI
                   {userPlan !== 'pro' && (
                     <span className="ml-2 px-2 py-1 bg-white/20 rounded-full text-xs">
                       Pro
@@ -775,7 +775,7 @@ export default function AppPage() {
             )}
 
             {/* AI Insights Content */}
-            {showAIInsights && !loadingAIInsights && aiInsights && aiInsights.totalPosts > 0 && (
+            {showAIInsights && !loadingAIInsights && aiInsights && (
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
@@ -802,7 +802,9 @@ export default function AppPage() {
                   </Button>
                 </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Show content based on whether there are posts */}
+                {aiInsights.totalPosts > 0 ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Category Breakdown */}
               <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -864,10 +866,39 @@ export default function AppPage() {
                     </div>
                   ))}
                 </div>
+                  </div>
+                ) : (
+                  /* Empty State for No Posts */
+                  <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-8">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <MessageSquare className="w-8 h-8 text-purple-600" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-3">No Feedback Posts Yet</h3>
+                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                        AI insights will appear here once you have feedback posts in your projects. 
+                        Create posts or encourage users to submit feedback to see AI-powered analysis.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <Button 
+                          onClick={() => setShowAIInsights(false)}
+                          variant="outline"
+                          className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                        >
+                          Close
+                        </Button>
+                        <Link href="/app/create">
+                          <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create Project
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
-        )}
+            )}
           </>
         )}
 
