@@ -47,11 +47,20 @@ export function AIPriorityScoring({
   const analyzePriority = async () => {
     setIsLoading(true);
     try {
+      // Get the current session token
+      const supabase = (await import('@/lib/supabase-client')).getSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        onShowNotification?.('Please sign in to use AI features', 'error');
+        return;
+      }
+
       const response = await fetch('/api/ai/priority-scoring', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ postId, projectId })
       });

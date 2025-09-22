@@ -45,11 +45,20 @@ export function AIDuplicateDetection({
   const detectDuplicates = async () => {
     setIsLoading(true);
     try {
+      // Get the current session token
+      const supabase = (await import('@/lib/supabase-client')).getSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        onShowNotification?.('Please sign in to use AI features', 'error');
+        return;
+      }
+
       const response = await fetch('/api/ai/duplicate-detection', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ postId, projectId })
       });
@@ -82,12 +91,21 @@ export function AIDuplicateDetection({
 
   const handleMarkAsDuplicate = async (similarityId: string, action: 'confirmed' | 'dismissed') => {
     try {
+      // Get the current session token
+      const supabase = (await import('@/lib/supabase-client')).getSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        onShowNotification?.('Please sign in to use AI features', 'error');
+        return;
+      }
+
       // Update similarity status in database
       const response = await fetch('/api/ai/duplicate-detection', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ 
           similarityId, 
