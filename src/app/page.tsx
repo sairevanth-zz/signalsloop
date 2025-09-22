@@ -618,6 +618,7 @@ export default function Homepage() {
                 <li><Link href="#features" className="hover:text-white transition-colors">Features</Link></li>
                 <li><Link href="#pricing" className="hover:text-white transition-colors">Pricing</Link></li>
                 <li><Link href="/demo/board" className="hover:text-white transition-colors">Demo</Link></li>
+                <li><Link href="/docs/api" className="hover:text-white transition-colors">API Documentation</Link></li>
                 <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
               </ul>
             </div>

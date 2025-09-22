@@ -692,9 +692,11 @@ export default function DemoBoard() {
                       <p className="font-medium">API Access</p>
                       <p className="text-sm text-gray-600">Connect with external tools</p>
                     </div>
-                    <Button variant="outline" size="sm">
-                      <Code className="h-4 w-4 mr-2" />
-                      View Docs
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href="/docs/api">
+                        <Code className="h-4 w-4 mr-2" />
+                        View Docs
+                      </Link>
                     </Button>
                   </div>
                   <div className="flex items-center justify-between">
@@ -702,10 +704,15 @@ export default function DemoBoard() {
                       <p className="font-medium">Webhook</p>
                       <p className="text-sm text-gray-600">Real-time updates</p>
                     </div>
-                    <Button variant="outline" size="sm">
-                      <Mail className="h-4 w-4 mr-2" />
-                      Configure
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                        Coming Soon
+                      </Badge>
+                      <Button variant="outline" size="sm" disabled>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Configure
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
