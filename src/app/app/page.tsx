@@ -209,7 +209,12 @@ export default function AppPage() {
 
           console.log('🤖 Loading AI insights for projects:', projectIds);
 
+          // TEMPORARY: Skip API check for testing
+          console.log('🤖 SKIPPING API CHECK FOR TESTING');
+          setAiAvailable(true);
+
           // Check if OpenAI API key is available
+          /*
           try {
             console.log('🤖 Testing OpenAI API key availability...');
             const response = await fetch('/api/ai/categorize', {
@@ -236,6 +241,7 @@ export default function AppPage() {
             setAiAvailable(false);
             return;
           }
+          */
 
           try {
       // Get recent posts from all projects
@@ -750,14 +756,19 @@ export default function AppPage() {
                     
                     if (projectIds.length > 0) {
                       try {
+                        console.log('🚀 About to call loadAIInsights with project IDs:', projectIds);
                         await loadAIInsights(projectIds);
+                        console.log('🚀 loadAIInsights completed successfully');
                       } catch (error) {
-                        console.error('AI insights failed to load:', error);
+                        console.error('🚀 AI insights failed to load:', error);
+                        console.error('🚀 Error details:', error.message, error.stack);
                         toast.error('Failed to load AI insights');
                       } finally {
+                        console.log('🚀 Setting loadingAIInsights to false');
                         setLoadingAIInsights(false);
                       }
                     } else {
+                      console.log('🚀 No project IDs found');
                       setLoadingAIInsights(false);
                       toast.info('No projects found. Create a project first to see AI insights.');
                     }
