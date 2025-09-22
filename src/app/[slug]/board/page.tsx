@@ -536,8 +536,10 @@ export default function BoardPage() {
           </div>
         </div>
 
-        {/* Debug AI Features - Temporary */}
-        <DebugAIFeatures projectSlug={params?.slug as string} />
+        {/* Debug AI Features - Only show when DEBUG_AI_FEATURES is enabled */}
+        {process.env.NEXT_PUBLIC_DEBUG_AI_FEATURES === 'true' && (
+          <DebugAIFeatures projectSlug={params?.slug as string} />
+        )}
 
         {/* AI Features Section - Only show for Pro users */}
         {user && userPlan === 'pro' && (
