@@ -264,7 +264,6 @@ export default function BoardSettings({
   };
 
   const handleDeleteBoard = async () => {
-    alert('DELETE BOARD FUNCTION CALLED!');
     console.log('🚨🚨🚨 DELETE BOARD FUNCTION CALLED! 🚨🚨🚨');
     console.log('🚨 Current state:', { board, project, supabase: !!supabase });
     console.log('🗑️ Delete board clicked:', { 
@@ -669,16 +668,6 @@ export default function BoardSettings({
                   Permanently delete this board and all its posts, comments, and votes.
                 </p>
                 
-                {/* Test button outside dialog */}
-                <Button 
-                  onClick={() => {
-                    alert('TEST BUTTON CLICKED!');
-                    console.log('🧪 TEST BUTTON CLICKED!');
-                  }}
-                  className="mt-2 bg-blue-600 hover:bg-blue-700"
-                >
-                  Test Button (Should Show Alert)
-                </Button>
               </div>
               
               <Button 
