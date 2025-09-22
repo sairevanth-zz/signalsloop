@@ -151,13 +151,108 @@ export default function Homepage() {
             Trusted by 100+ indie makers and startups
           </div>
           
-          {/* Hero Image Placeholder */}
-          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-4xl mx-auto">
-            <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg h-96 flex items-center justify-center">
-              <div className="text-center">
-                <MessageSquare className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Product Screenshot Goes Here</p>
-                <p className="text-sm text-gray-400">Feedback board, voting, roadmap preview</p>
+          {/* Product Screenshot */}
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-5xl mx-auto">
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg h-[500px] relative overflow-hidden">
+              {/* Mock Dashboard Interface */}
+              <div className="absolute inset-4 bg-white rounded-lg shadow-lg">
+                {/* Header */}
+                <div className="h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-lg flex items-center justify-between px-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                      <span className="text-blue-600 font-bold text-lg">S</span>
+                    </div>
+                    <span className="text-white font-semibold">SignalsLoop Dashboard</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-white/20 rounded-lg"></div>
+                    <div className="w-8 h-8 bg-white/20 rounded-lg"></div>
+                  </div>
+                </div>
+                
+                {/* Content Area */}
+                <div className="p-6 h-full">
+                  <div className="flex gap-6 h-full">
+                    {/* Sidebar */}
+                    <div className="w-64 bg-gray-50 rounded-lg p-4">
+                      <div className="space-y-3">
+                        <div className="h-8 bg-blue-100 rounded"></div>
+                        <div className="h-6 bg-gray-200 rounded"></div>
+                        <div className="h-6 bg-gray-200 rounded"></div>
+                        <div className="h-6 bg-gray-200 rounded"></div>
+                        <div className="h-6 bg-gray-200 rounded"></div>
+                      </div>
+                    </div>
+                    
+                    {/* Main Content */}
+                    <div className="flex-1">
+                      <div className="mb-4">
+                        <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                      
+                      {/* Feedback Cards */}
+                      <div className="space-y-4">
+                        <div className="bg-white border rounded-lg p-4 shadow-sm">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="h-5 bg-gray-300 rounded w-3/4 mb-2"></div>
+                              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="w-16 h-6 bg-green-100 rounded"></div>
+                              <div className="w-12 h-6 bg-blue-100 rounded"></div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white border rounded-lg p-4 shadow-sm">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="h-5 bg-gray-300 rounded w-2/3 mb-2"></div>
+                              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="w-16 h-6 bg-orange-100 rounded"></div>
+                              <div className="w-12 h-6 bg-blue-100 rounded"></div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white border rounded-lg p-4 shadow-sm">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="h-5 bg-gray-300 rounded w-4/5 mb-2"></div>
+                              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="w-16 h-6 bg-purple-100 rounded"></div>
+                              <div className="w-12 h-6 bg-blue-100 rounded"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Floating Elements */}
+              <div className="absolute top-8 right-8 bg-white rounded-lg shadow-lg p-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                  <span className="text-sm text-gray-600">AI Categorizing...</span>
+                </div>
+              </div>
+              
+              <div className="absolute bottom-8 left-8 bg-white rounded-lg shadow-lg p-3">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">127</div>
+                  <div className="text-xs text-gray-500">Feedback Items</div>
+                </div>
               </div>
             </div>
           </div>
@@ -451,14 +546,6 @@ export default function Homepage() {
               </ul>
             </div>
             
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/about" className="hover:text-white transition-colors">About</Link></li>
-                <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-              </ul>
-            </div>
             
             <div>
               <h3 className="font-semibold mb-4">Legal</h3>
