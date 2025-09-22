@@ -352,7 +352,10 @@ export default function BoardPage() {
         showBackButton={true} 
         backLabel="Back to Dashboard" 
       />
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex gap-8">
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
         {/* Error Display */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -541,81 +544,6 @@ export default function BoardPage() {
           <DebugAIFeatures projectSlug={params?.slug as string} />
         )}
 
-        {/* AI Features Section - Only show for Pro users */}
-        {user && userPlan === 'pro' && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="h-5 w-5 text-purple-600" />
-              <h2 className="text-lg font-semibold text-gray-900">AI-Powered Insights</h2>
-              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                Pro Feature
-              </Badge>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <Sparkles className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">AI Features</h3>
-                      <p className="text-sm text-gray-600">Available on individual posts</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                      <span>Duplicate Detection</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                      <span>Priority Scoring</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span>Smart Categorization</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-3">
-                    Click on any post to access AI-powered analysis and insights.
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <TrendingUp className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">Smart Analytics</h3>
-                      <p className="text-sm text-gray-600">AI-powered insights</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                      <span>Automatic categorization</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                      <span>Duplicate detection</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span>Priority scoring</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-3">
-                    AI automatically analyzes your feedback for better organization.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
 
         {/* Posts List */}
         <div className="space-y-4">
@@ -750,6 +678,86 @@ export default function BoardPage() {
             </Button>
           </div>
         )}
+          </div>
+
+          {/* AI Insights Sidebar - Only show for Pro users */}
+          {user && userPlan === 'pro' && (
+            <div className="hidden lg:block w-80 flex-shrink-0">
+              <div className="sticky top-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="h-5 w-5 text-purple-600" />
+                  <h2 className="text-lg font-semibold text-gray-900">AI-Powered Insights</h2>
+                  <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                    Pro Feature
+                  </Badge>
+                </div>
+                <div className="space-y-4">
+                  <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                          <Sparkles className="h-5 w-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">AI Features</h3>
+                          <p className="text-sm text-gray-600">Available on individual posts</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                          <span>Duplicate Detection</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                          <span>Priority Scoring</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                          <span>Smart Categorization</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-3">
+                        Click on any post to access AI-powered analysis and insights.
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <TrendingUp className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">Smart Analytics</h3>
+                          <p className="text-sm text-gray-600">AI-powered insights</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                          <span>Automatic categorization</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                          <span>Duplicate detection</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                          <span>Priority scoring</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-3">
+                        AI automatically analyzes your feedback for better organization.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Post Submission Modal */}
