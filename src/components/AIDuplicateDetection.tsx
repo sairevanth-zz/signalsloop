@@ -28,7 +28,7 @@ interface DuplicatePost {
 interface AIDuplicateDetectionProps {
   postId: string;
   projectId: string;
-  userPlan: 'free' | 'pro';
+  userPlan: { plan: 'free' | 'pro' };
   onShowNotification?: (message: string, type: 'success' | 'error') => void;
 }
 

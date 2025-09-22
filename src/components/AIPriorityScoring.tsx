@@ -29,7 +29,7 @@ interface PriorityScore {
 interface AIPriorityScoringProps {
   postId: string;
   projectId: string;
-  userPlan: 'free' | 'pro';
+  userPlan: { plan: 'free' | 'pro' };
   currentScore?: number;
   onShowNotification?: (message: string, type: 'success' | 'error') => void;
 }
