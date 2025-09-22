@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AIInsightsPanel } from './AIInsightsPanel';
 import { Sparkles, X } from 'lucide-react';
 
@@ -14,18 +16,36 @@ export function AIInsightsModal({
   isOpen, 
   onClose 
 }: AIInsightsModalProps) {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  if (!isOpen || !mounted) return null;
+
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
       />
       
       {/* Modal Content */}
-      <div className="relative z-50 w-[95vw] h-[90vh] max-w-6xl max-h-[800px] bg-white rounded-lg shadow-2xl flex flex-col">
+      <div className="relative w-full h-full max-w-6xl max-h-[90vh] bg-white rounded-lg shadow-2xl flex flex-col">
         {/* Header */}
         <div className="flex-shrink-0 p-6 border-b">
           <div className="flex items-center justify-between">
@@ -54,4 +74,6 @@ export function AIInsightsModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
