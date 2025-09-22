@@ -80,14 +80,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if project has Pro plan for AI categorization
-    const { data: projectData, error: projectError } = await supabase
+    const { data: proProjectData, error: proProjectError } = await supabase
       .from('projects')
       .select('plan')
       .eq('id', project_id)
       .single();
 
     // Only attempt AI features for Pro accounts
-    if (!projectError && projectData && projectData.plan === 'pro') {
+    if (!proProjectError && proProjectData && proProjectData.plan === 'pro') {
       // 1. AI Categorization in background
       categorizeFeedback(title, description)
         .then(async (aiResult) => {
