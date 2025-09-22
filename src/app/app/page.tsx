@@ -723,7 +723,8 @@ export default function AppPage() {
               <div className="mb-8 flex justify-center">
                 <Button
                   onClick={async () => {
-                    // DEBUG: Log userPlan check
+                    // DEBUG: Log button click
+                    console.log('🚀 AI INSIGHTS BUTTON CLICKED!');
                     console.log('AI Insights button clicked. userPlan:', userPlan, 'type:', typeof userPlan);
                     
                     // Check if user has Pro plan
