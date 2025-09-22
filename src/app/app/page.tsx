@@ -757,33 +757,6 @@ export default function AppPage() {
                 </p>
               </div>
               <div className="hidden md:flex items-center space-x-4">
-                {/* User Menu */}
-                <div className="flex items-center space-x-2">
-                  <Link href="/app/billing">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-white/80 hover:bg-white border-gray-200 cursor-pointer"
-                    >
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Billing
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      if (supabase) {
-                        await supabase.auth.signOut();
-                        window.location.href = '/login';
-                      }
-                    }}
-                    className="bg-white/80 hover:bg-white border-gray-200 cursor-pointer"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </div>
                 
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200 transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-slide-in-right">
                   <div className="flex items-center gap-3 mb-2">

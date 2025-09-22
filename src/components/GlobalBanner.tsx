@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { LogOut, ArrowLeft } from 'lucide-react';
+import { LogOut, ArrowLeft, CreditCard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface GlobalBannerProps {
@@ -92,14 +92,26 @@ export default function GlobalBanner({
             )}
             
             {!loading && user && (
-              <Button 
-                variant="outline" 
-                onClick={handleSignOut}
-                className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
+              <>
+                <Link href="/app/billing">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80"
+                  >
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Billing
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  onClick={handleSignOut}
+                  className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </>
             )}
           </div>
         </div>
