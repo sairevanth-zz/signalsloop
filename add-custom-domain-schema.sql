@@ -61,7 +61,7 @@ ALTER TABLE domain_verifications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own domain verifications" ON domain_verifications
   FOR SELECT USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
@@ -69,7 +69,7 @@ CREATE POLICY "Users can view own domain verifications" ON domain_verifications
 CREATE POLICY "Users can create domain verifications" ON domain_verifications
   FOR INSERT WITH CHECK (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
@@ -77,7 +77,7 @@ CREATE POLICY "Users can create domain verifications" ON domain_verifications
 CREATE POLICY "Users can update own domain verifications" ON domain_verifications
   FOR UPDATE USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
@@ -85,7 +85,7 @@ CREATE POLICY "Users can update own domain verifications" ON domain_verification
 CREATE POLICY "Users can delete own domain verifications" ON domain_verifications
   FOR DELETE USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 

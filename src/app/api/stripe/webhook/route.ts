@@ -52,17 +52,32 @@ export async function POST(request: NextRequest) {
         
         if (session.mode === 'subscription') {
           const projectId = session.metadata?.projectId;
+          const isTrial = session.metadata?.trial === 'true';
           
           if (projectId) {
+            // Get subscription details to check trial info
+            const stripe = getStripe();
+            const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+            
+            const updateData: any = {
+              plan: 'pro',
+              stripe_customer_id: session.customer as string,
+              subscription_id: session.subscription as string,
+              upgraded_at: new Date().toISOString(),
+            };
+
+            // Handle trial information
+            if (isTrial && subscription.trial_end) {
+              updateData.trial_start_date = new Date(subscription.trial_start! * 1000).toISOString();
+              updateData.trial_end_date = new Date(subscription.trial_end * 1000).toISOString();
+              updateData.trial_status = 'active';
+              updateData.is_trial = true;
+            }
+
             // Update project to Pro plan
             const { error } = await supabase
               .from('projects')
-              .update({
-                plan: 'pro',
-                stripe_customer_id: session.customer as string,
-                subscription_id: session.subscription as string,
-                upgraded_at: new Date().toISOString(),
-              })
+              .update(updateData)
               .eq('id', projectId);
 
             if (error) {
@@ -75,7 +90,7 @@ export async function POST(request: NextRequest) {
               .from('billing_events')
               .insert({
                 project_id: projectId,
-                event_type: 'subscription_created',
+                event_type: isTrial ? 'trial_started' : 'subscription_created',
                 stripe_session_id: session.id,
                 stripe_customer_id: session.customer as string,
                 amount: session.amount_total,
@@ -83,10 +98,12 @@ export async function POST(request: NextRequest) {
                 metadata: {
                   subscription_id: session.subscription,
                   payment_status: session.payment_status,
+                  is_trial: isTrial,
+                  trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
                 },
               });
 
-            console.log(`Project ${projectId} upgraded to Pro via Stripe`);
+            console.log(`Project ${projectId} ${isTrial ? 'started trial for' : 'upgraded to'} Pro via Stripe`);
           }
         }
         break;
@@ -95,16 +112,33 @@ export async function POST(request: NextRequest) {
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
         
+        const updateData: any = {
+          subscription_status: subscription.status,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          cancel_at_period_end: (subscription as any).cancel_at_period_end,
+        };
+
+        // Handle trial conversion (trial ended, now paying)
+        if (!subscription.trial_end && subscription.status === 'active') {
+          // Check if this was previously a trial
+          const { data: project } = await supabase
+            .from('projects')
+            .select('trial_status, is_trial')
+            .eq('stripe_customer_id', subscription.customer as string)
+            .single();
+
+          if (project?.is_trial && project?.trial_status === 'active') {
+            updateData.trial_status = 'converted';
+            updateData.is_trial = false;
+          }
+        }
+
         // Update subscription status in database
         const { error } = await supabase
           .from('projects')
-          .update({
-            subscription_status: subscription.status,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            cancel_at_period_end: (subscription as any).cancel_at_period_end,
-          })
+          .update(updateData)
           .eq('stripe_customer_id', subscription.customer as string);
 
         if (error) {
@@ -123,6 +157,7 @@ export async function POST(request: NextRequest) {
               status: subscription.status,
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               cancel_at_period_end: (subscription as any).cancel_at_period_end,
+              trial_converted: updateData.trial_status === 'converted',
             },
           });
         break;
@@ -131,15 +166,33 @@ export async function POST(request: NextRequest) {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
         
+        // Check if this was a trial cancellation
+        const { data: project } = await supabase
+          .from('projects')
+          .select('trial_status, is_trial')
+          .eq('stripe_customer_id', subscription.customer as string)
+          .single();
+
+        const wasTrial = project?.is_trial && project?.trial_status === 'active';
+        
+        const updateData: any = {
+          plan: 'free',
+          subscription_status: 'canceled',
+          subscription_id: null,
+          downgraded_at: new Date().toISOString(),
+        };
+
+        // Handle trial cancellation
+        if (wasTrial) {
+          updateData.trial_status = 'cancelled';
+          updateData.trial_cancelled_at = new Date().toISOString();
+          updateData.is_trial = false;
+        }
+
         // Downgrade project to free plan
         const { error } = await supabase
           .from('projects')
-          .update({
-            plan: 'free',
-            subscription_status: 'canceled',
-            subscription_id: null,
-            downgraded_at: new Date().toISOString(),
-          })
+          .update(updateData)
           .eq('stripe_customer_id', subscription.customer as string);
 
         if (error) {
@@ -151,12 +204,13 @@ export async function POST(request: NextRequest) {
         await supabase
           .from('billing_events')
           .insert({
-            event_type: 'subscription_canceled',
+            event_type: wasTrial ? 'trial_canceled' : 'subscription_canceled',
             stripe_customer_id: subscription.customer as string,
             metadata: {
               subscription_id: subscription.id,
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               canceled_at: new Date((subscription as any).canceled_at! * 1000).toISOString(),
+              was_trial: wasTrial,
             },
           });
         break;

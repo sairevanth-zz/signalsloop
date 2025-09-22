@@ -37,6 +37,12 @@ interface BillingInfo {
     exp_month: number;
     exp_year: number;
   } | null;
+  // Trial fields
+  trial_start_date?: string | null;
+  trial_end_date?: string | null;
+  trial_status?: 'none' | 'active' | 'cancelled' | 'expired' | 'converted' | null;
+  is_trial?: boolean;
+  trial_cancelled_at?: string | null;
 }
 
 interface ProjectUsage {
@@ -122,7 +128,7 @@ export function BillingDashboard({
         // Get the user's primary project to get subscription details
         const { data: primaryProject, error: projectError } = await supabase
           .from('projects')
-          .select('plan, subscription_status, current_period_end, cancel_at_period_end, stripe_customer_id, subscription_id')
+          .select('plan, subscription_status, current_period_end, cancel_at_period_end, stripe_customer_id, subscription_id, trial_start_date, trial_end_date, trial_status, is_trial, trial_cancelled_at')
           .eq('owner_id', user.id)
           .eq('plan', 'pro')
           .order('created_at', { ascending: true })
@@ -137,7 +143,13 @@ export function BillingDashboard({
             stripe_customer_id: null,
             subscription_status: null,
             current_period_end: null,
-            cancel_at_period_end: false
+            cancel_at_period_end: false,
+            // Trial fields
+            trial_start_date: null,
+            trial_end_date: null,
+            trial_status: 'none' as const,
+            is_trial: false,
+            trial_cancelled_at: null
           };
           console.log('✅ Account billing info set (fallback):', accountBillingInfo);
           setBillingInfo(accountBillingInfo);
@@ -180,7 +192,13 @@ export function BillingDashboard({
           cancel_at_period_end: primaryProject.cancel_at_period_end || false,
           is_yearly: isYearly,
           subscription_type: subscriptionType,
-          payment_method: null
+          payment_method: null,
+          // Trial fields
+          trial_start_date: primaryProject.trial_start_date,
+          trial_end_date: primaryProject.trial_end_date,
+          trial_status: primaryProject.trial_status || 'none',
+          is_trial: primaryProject.is_trial || false,
+          trial_cancelled_at: primaryProject.trial_cancelled_at
         };
 
         console.log('✅ Account billing info set (REAL DATA):', accountBillingInfo);
@@ -192,7 +210,7 @@ export function BillingDashboard({
       // Project-level billing (existing logic)
       const { data, error } = await supabase
         .from('projects')
-        .select('plan, stripe_customer_id, subscription_status, current_period_end, cancel_at_period_end')
+        .select('plan, stripe_customer_id, subscription_status, current_period_end, cancel_at_period_end, trial_start_date, trial_end_date, trial_status, is_trial, trial_cancelled_at')
         .eq('id', projectId)
         .single();
 
@@ -209,7 +227,13 @@ export function BillingDashboard({
         stripe_customer_id: data.stripe_customer_id,
         subscription_status: data.subscription_status,
         current_period_end: data.current_period_end,
-        cancel_at_period_end: data.cancel_at_period_end || false
+        cancel_at_period_end: data.cancel_at_period_end || false,
+        // Trial fields
+        trial_start_date: data.trial_start_date,
+        trial_end_date: data.trial_end_date,
+        trial_status: data.trial_status || 'none',
+        is_trial: data.is_trial || false,
+        trial_cancelled_at: data.trial_cancelled_at
       }));
 
       // If customer has Stripe ID, load subscription info
@@ -547,6 +571,49 @@ export function BillingDashboard({
     }
   };
 
+  const handleCancelTrial = async () => {
+    console.log('❌ Cancel trial clicked');
+    console.log('📋 Project ID:', projectId);
+    
+    if (!confirm('Are you sure you want to cancel your trial? You will lose access to Pro features immediately.')) {
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      console.log('🚀 Cancelling trial...');
+      const response = await fetch('/api/trial/cancel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId: projectId
+        })
+      });
+
+      console.log('📡 Cancel trial response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to cancel trial');
+      }
+
+      const result = await response.json();
+      console.log('✅ Trial cancelled:', result);
+      toast.success(result.message || 'Trial cancelled successfully');
+      
+      // Reload billing info
+      loadBillingInfo();
+    } catch (error) {
+      console.error('❌ Error cancelling trial:', error);
+      toast.error('Failed to cancel trial: ' + (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const planFeatures = {
     free: [
       { name: '1 feedback board', included: true },
@@ -606,7 +673,7 @@ export function BillingDashboard({
           {billingInfo.plan === 'pro' ? (
             <>
               <Crown className="h-3 w-3 mr-1" />
-              Pro Plan
+              {billingInfo.is_trial ? 'Pro Plan (Trial)' : 'Pro Plan'}
             </>
           ) : (
             'Free Plan'
@@ -630,7 +697,16 @@ export function BillingDashboard({
               </h3>
               {billingInfo.plan === 'pro' ? (
                 <div>
-                  {billingInfo.subscription_type === 'gifted' ? (
+                  {billingInfo.is_trial ? (
+                    <div>
+                      <p className="text-muted-foreground">🆓 7-Day Free Trial - All features included</p>
+                      {billingInfo.trial_end_date && (
+                        <p className="text-sm text-orange-600">
+                          ⏰ Trial ends {new Date(billingInfo.trial_end_date).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  ) : billingInfo.subscription_type === 'gifted' ? (
                     <div>
                       <p className="text-muted-foreground">🎁 Gifted Subscription - All features included</p>
                       {billingInfo.is_yearly && (
@@ -675,50 +751,70 @@ export function BillingDashboard({
             ) : (
               <div className="flex flex-col gap-2">
                 <div className="flex gap-2 mb-2">
+                  {billingInfo.is_trial && (
+                    <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+                      🆓 Trial
+                    </Badge>
+                  )}
                   {billingInfo.subscription_type === 'gifted' && (
                     <Badge className="bg-purple-100 text-purple-800 border-purple-200">
                       🎁 Gifted
                     </Badge>
                   )}
-                  {billingInfo.is_yearly && billingInfo.subscription_type !== 'gifted' && (
+                  {billingInfo.is_yearly && billingInfo.subscription_type !== 'gifted' && !billingInfo.is_trial && (
                     <Badge className="bg-blue-100 text-blue-800 border-blue-200">
                       📅 Annual
                     </Badge>
                   )}
-                  {billingInfo.subscription_type === 'monthly' && (
+                  {billingInfo.subscription_type === 'monthly' && !billingInfo.is_trial && (
                     <Badge className="bg-green-100 text-green-800 border-green-200">
                       📆 Monthly
                     </Badge>
                   )}
                 </div>
                 <div className="flex gap-2">
-                  {!billingInfo.is_yearly && billingInfo.subscription_type !== 'gifted' && (
+                  {billingInfo.is_trial ? (
                     <Button 
-                      onClick={handleUpgradeToYearly}
+                      onClick={handleCancelTrial}
                       disabled={loading}
+                      variant="destructive"
                       size="sm"
-                      className="bg-green-600 hover:bg-green-700"
                     >
-                      Upgrade to Yearly
+                      Cancel Trial
                     </Button>
+                  ) : (
+                    <>
+                      {!billingInfo.is_yearly && billingInfo.subscription_type !== 'gifted' && (
+                        <Button 
+                          onClick={handleUpgradeToYearly}
+                          disabled={loading}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          Upgrade to Yearly
+                        </Button>
+                      )}
+                      <Button 
+                        onClick={handleManageBilling}
+                        disabled={loading}
+                        variant="outline"
+                        size="sm"
+                      >
+                        {loading ? 'Loading...' : 'Manage Billing'}
+                      </Button>
+                    </>
                   )}
+                </div>
+                {!billingInfo.is_trial && (
                   <Button 
-                    onClick={handleManageBilling}
+                    onClick={handleCancelSubscription}
                     disabled={loading}
-                    variant="outline"
+                    variant="destructive"
                     size="sm"
                   >
-                    {loading ? 'Loading...' : 'Manage Billing'}
+                    Cancel Subscription
                   </Button>
-                </div>
-                <Button 
-                  onClick={handleCancelSubscription}
-                  disabled={loading}
-                  variant="destructive"
-                  size="sm"
-                >
-                  Cancel Subscription
-                </Button>
+                )}
               </div>
             )}
           </div>

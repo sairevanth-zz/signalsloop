@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    // Create Stripe checkout session
+    // Create Stripe checkout session with 7-day trial
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -52,11 +52,22 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'subscription',
+      subscription_data: {
+        trial_period_days: 7,
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: 'cancel'
+          }
+        }
+      },
+      payment_method_collection: 'always', // Always collect payment method for trial
       success_url: successUrl || `${request.nextUrl.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl || `${request.nextUrl.origin}/billing`,
       metadata: {
         projectId: projectId,
         projectSlug: project.slug,
+        trial: 'true',
+        trial_days: '7'
       },
       customer_email: project.owner_email, // If you have it
       allow_promotion_codes: true,

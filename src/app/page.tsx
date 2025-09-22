@@ -71,6 +71,15 @@ export default function Homepage() {
   };
   return (
     <div className="min-h-screen">
+      {/* Trial Banner */}
+      <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-center py-3">
+        <div className="container mx-auto px-4">
+          <p className="text-sm font-medium">
+            🎉 <strong>Limited Time:</strong> Get 7 days of Pro features completely FREE - No credit card required!
+          </p>
+        </div>
+      </div>
+      
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -99,8 +108,8 @@ export default function Homepage() {
                 <Button variant="ghost">Sign In</Button>
               </Link>
               <Link href="/login">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  Get Started
+                <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">
+                  🆓 Start Free Trial
                 </Button>
               </Link>
             </div>
@@ -111,8 +120,8 @@ export default function Homepage() {
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center">
-          <Badge variant="secondary" className="mb-4">
-            🤖 AI-powered alternative to expensive feedback tools
+          <Badge variant="secondary" className="mb-4 bg-orange-100 text-orange-700 border-orange-200">
+            🆓 7-Day Free Trial - No Credit Card Required
           </Badge>
           
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
@@ -125,12 +134,16 @@ export default function Homepage() {
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
             Collect user feedback with AI-powered categorization and show progress with a 2-line embeddable widget. 
             <strong> 75% cheaper than Canny</strong>, infinitely easier to set up.
+            <br />
+            <span className="text-lg font-semibold text-orange-600 mt-2 block">
+              🎉 Start your 7-day free trial today - no credit card required!
+            </span>
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link href="/login">
-              <GradientButton className="text-lg px-8 py-3 gap-2">
-                Start Free Trial
+              <GradientButton className="text-lg px-8 py-3 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">
+                🆓 Start 7-Day Free Trial
                 <ArrowRight className="h-5 w-5" />
               </GradientButton>
             </Link>
@@ -149,6 +162,10 @@ export default function Homepage() {
               ))}
             </div>
             Trusted by 100+ indie makers and startups
+            <br />
+            <span className="text-orange-600 font-medium">
+              ⚡ Join them risk-free with our 7-day trial
+            </span>
           </div>
           
           {/* Product Screenshot */}
@@ -464,11 +481,18 @@ export default function Homepage() {
       <section id="pricing" className="py-20 px-4 bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4 bg-green-100 text-green-700 border-green-200">
+              🎉 Special Offer: 7-Day Free Trial on Pro Plan
+            </Badge>
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               AI-powered pricing that scales with you
             </h2>
             <p className="text-xl text-gray-600">
-              Start free with manual organization, upgrade to unlock AI-powered categorization and smart features. No hidden fees.
+              Start free with manual organization, upgrade to unlock AI-powered categorization and smart features. 
+              <br />
+              <span className="text-lg font-semibold text-green-600 mt-2 block">
+                Try Pro risk-free for 7 days - no credit card required!
+              </span>
             </p>
           </div>
 
@@ -528,6 +552,9 @@ export default function Homepage() {
               <Badge className="absolute -top-3 right-4 bg-purple-600">
                 🤖 Powered by AI
               </Badge>
+              <Badge className="absolute -top-3 left-4 bg-orange-500">
+                🆓 7-Day Free Trial
+              </Badge>
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Pro</CardTitle>
                 <div className="text-4xl font-bold text-gray-900 my-4">
@@ -537,10 +564,16 @@ export default function Homepage() {
                       <div className="text-sm text-green-600 font-medium mt-1">
                         Billed annually ($182.40/year)
                       </div>
+                      <div className="text-sm text-orange-600 font-medium mt-1">
+                        🆓 7 days free, then $15.20/month
+                      </div>
                     </>
                   ) : (
                     <>
                       $19<span className="text-lg text-gray-500">/month</span>
+                      <div className="text-sm text-orange-600 font-medium mt-1">
+                        🆓 7 days free, then $19/month
+                      </div>
                     </>
                   )}
                 </div>
@@ -569,11 +602,11 @@ export default function Homepage() {
                   ))}
                 </ul>
                 <GradientButton 
-                  className="w-full mt-8"
+                  className="w-full mt-8 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
                   onClick={handleProCheckout}
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Loading...' : `Get Pro - ${isAnnual ? 'Annual' : 'Monthly'}`}
+                  {isLoading ? 'Loading...' : `🆓 Start 7-Day Free Trial - ${isAnnual ? 'Annual' : 'Monthly'}`}
                 </GradientButton>
               </CardContent>
             </Card>
@@ -582,7 +615,7 @@ export default function Homepage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <section className="py-20 px-4 bg-gradient-to-r from-orange-500 to-red-500 text-white">
         <div className="container mx-auto text-center">
           <h2 className="text-4xl font-bold mb-4">
             Ready to start collecting smarter feedback?
@@ -590,9 +623,14 @@ export default function Homepage() {
           <p className="text-xl mb-8 opacity-90">
             Join 100+ companies using SignalsLoop&apos;s AI-powered feedback boards to build better products
           </p>
+          <div className="mb-6">
+            <Badge className="bg-white text-orange-600 text-lg px-4 py-2">
+              🆓 7-Day Free Trial - No Credit Card Required
+            </Badge>
+          </div>
           <Link href="/login">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3">
-              Start Free Trial
+            <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-lg px-8 py-3 font-bold">
+              🚀 Start Your Free Trial Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
