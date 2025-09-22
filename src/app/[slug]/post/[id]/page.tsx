@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,12 +50,6 @@ interface Comment {
   created_at: string;
 }
 
-interface Project {
-  id: string;
-  name: string;
-  slug: string;
-}
-
 const statusConfig = {
   open: { 
     label: 'Open', 
@@ -86,6 +81,7 @@ const statusConfig = {
 export default function PostDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const supabase = getSupabaseClient();
   
   const [project, setProject] = useState<Project | null>(null);
@@ -95,7 +91,6 @@ export default function PostDetailPage() {
   const [error, setError] = useState('');
   const [commenting, setCommenting] = useState(false);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
-  const [user, setUser] = useState<any>(null);
   
   // Comment form state
   const [commentForm, setCommentForm] = useState({
@@ -103,23 +98,14 @@ export default function PostDetailPage() {
     author_email: ''
   });
 
-  // Load current user
-  useEffect(() => {
-    if (supabase) {
-      const getUser = async () => {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        setUser(currentUser);
-      };
-      getUser();
-    }
-  }, [supabase]);
+  // User is now provided by useAuth hook
 
   // Load user plan when user is available
   useEffect(() => {
     if (user) {
       loadUserPlan();
     }
-  }, [user, loadUserPlan]);
+  }, [user]);
 
   const loadUserPlan = useCallback(async () => {
     if (!supabase || !user) return;
@@ -142,6 +128,12 @@ export default function PostDetailPage() {
   const loadPostData = useCallback(async () => {
     if (!supabase) {
       setError('Database connection not available. Please refresh the page.');
+      setLoading(false);
+      return;
+    }
+
+    if (!params?.slug || !params?.id) {
+      setError('Invalid URL parameters. Please check the URL and try again.');
       setLoading(false);
       return;
     }
@@ -223,10 +215,12 @@ export default function PostDetailPage() {
     loadPostData();
   }, [loadPostData]);
 
-  // Load user plan
+  // Load user plan when supabase and user are available
   useEffect(() => {
-    loadUserPlan();
-  }, [loadUserPlan]);
+    if (supabase && user) {
+      loadUserPlan();
+    }
+  }, [supabase, user, loadUserPlan]);
 
 
   // Handle comment submission
@@ -278,7 +272,7 @@ export default function PostDetailPage() {
     return email.split('@')[0];
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 py-8">
