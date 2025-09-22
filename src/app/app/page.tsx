@@ -209,18 +209,25 @@ export default function AppPage() {
 
           console.log('🤖 Loading AI insights for projects:', projectIds);
 
-          // TEMPORARY: Skip API check for testing
-          console.log('🤖 SKIPPING API CHECK FOR TESTING');
-          setAiAvailable(true);
-
           // Check if OpenAI API key is available
-          /*
           try {
             console.log('🤖 Testing OpenAI API key availability...');
+            
+            // Get the current session token for authentication
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            
+            if (!token) {
+              console.log('🤖 No authentication token available for API test');
+              setAiAvailable(false);
+              return;
+            }
+
             const response = await fetch('/api/ai/categorize', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
               },
               body: JSON.stringify({
                 title: 'Test',
@@ -241,7 +248,6 @@ export default function AppPage() {
             setAiAvailable(false);
             return;
           }
-          */
 
           try {
       // Get recent posts from all projects
@@ -287,10 +293,25 @@ export default function AppPage() {
       const postsWithCategories = await Promise.all(
         posts.map(async (post: PostWithProject) => {
           try {
+            // Get the current session token for authentication
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            
+            if (!token) {
+              console.error('🤖 No authentication token available');
+              return {
+                ...post,
+                ai_category: 'Other',
+                ai_confidence: 0,
+                project_slug: post.projects.slug
+              };
+            }
+
             const response = await fetch('/api/ai/categorize', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
               },
               body: JSON.stringify({
                 title: post.title,
