@@ -86,6 +86,7 @@ export default function BoardSettings({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [supabase, setSupabase] = useState<any>(null);
 
@@ -270,32 +271,41 @@ export default function BoardSettings({
   };
 
   const handleDeleteBoard = async () => {
+    console.log('🗑️ Delete board clicked:', { board: !!board, supabase: !!supabase, project: !!project });
+    
     if (!board || !supabase || !project) {
+      console.error('❌ Missing required data:', { board: !!board, supabase: !!supabase, project: !!project });
       onShowNotification?.('Database connection not available. Please refresh the page.', 'error');
       return;
     }
 
     try {
+      console.log('🗑️ Attempting to delete board:', board.id);
+      
       // This would cascade delete all posts, comments, votes
       const { error } = await supabase
         .from('boards')
         .delete()
         .eq('id', board.id);
 
+      console.log('🗑️ Delete result:', { error });
+
       if (error) {
         console.error('Error deleting board:', error);
-        onShowNotification?.('Error deleting board', 'error');
+        onShowNotification?.(`Error deleting board: ${error.message}`, 'error');
         return;
       }
 
+      console.log('✅ Board deleted successfully');
       onShowNotification?.('Board deleted successfully', 'success');
       
-      // Navigate back to project dashboard
+      // Close dialog and navigate
+      setShowDeleteDialog(false);
       router.push(`/${project.slug}/board`);
 
     } catch (error) {
       console.error('Error deleting board:', error);
-      onShowNotification?.('Something went wrong', 'error');
+      onShowNotification?.(`Something went wrong: ${error.message}`, 'error');
     }
   };
 
@@ -642,7 +652,7 @@ export default function BoardSettings({
                 </p>
               </div>
               
-              <AlertDialog>
+              <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
                     <Trash2 className="w-4 h-4 mr-2" />
@@ -663,7 +673,7 @@ export default function BoardSettings({
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDeleteBoard}
                       className="bg-red-600 hover:bg-red-700"
