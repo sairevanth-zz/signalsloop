@@ -109,6 +109,32 @@ export default function AppPage() {
   const supabase = getSupabaseClient();
   const router = useRouter();
 
+  // Refresh projects when user returns to dashboard (e.g., after deleting a board)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user && supabase && !projectsLoading) {
+        console.log('Dashboard focused - refreshing projects');
+        loadProjects();
+      }
+    };
+
+    // Also refresh when the page becomes visible again
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user && supabase && !projectsLoading) {
+        console.log('Page became visible - refreshing projects');
+        loadProjects();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user, supabase, projectsLoading]);
+
   useEffect(() => {
     console.log('App page auth check:', { user: !!user, loading, userEmail: user?.email });
     console.log('Current userPlan state:', userPlan); // DEBUG: Log userPlan state
@@ -721,6 +747,32 @@ export default function AppPage() {
                 </p>
               </div>
               <div className="hidden md:flex items-center space-x-4">
+                {/* Refresh Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    console.log('Manual refresh triggered');
+                    loadProjects();
+                  }}
+                  className="bg-white/80 hover:bg-white border-gray-200"
+                  disabled={projectsLoading}
+                >
+                  {projectsLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mr-2"></div>
+                      Refreshing...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Refresh
+                    </>
+                  )}
+                </Button>
+                
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200 transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-slide-in-right">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center animate-pulse">
