@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -78,6 +79,8 @@ export default function BoardSettings({
   onShowNotification,
   userPlan = 'free'
 }: BoardSettingsProps) {
+  const router = useRouter();
+  
   const [project, setProject] = useState<Project | null>(null);
   const [board, setBoard] = useState<BoardConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -267,7 +270,7 @@ export default function BoardSettings({
   };
 
   const handleDeleteBoard = async () => {
-    if (!board || !supabase) {
+    if (!board || !supabase || !project) {
       onShowNotification?.('Database connection not available. Please refresh the page.', 'error');
       return;
     }
@@ -286,7 +289,9 @@ export default function BoardSettings({
       }
 
       onShowNotification?.('Board deleted successfully', 'success');
-      // TODO: Navigate back to project settings or dashboard
+      
+      // Navigate back to project dashboard
+      router.push(`/${project.slug}/board`);
 
     } catch (error) {
       console.error('Error deleting board:', error);

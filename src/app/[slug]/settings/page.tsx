@@ -15,7 +15,6 @@ import {
   Key, 
   Settings, 
   Shield,
-  Users,
   Upload,
   Download
 } from 'lucide-react';
@@ -165,13 +164,6 @@ export default function SettingsPage() {
                 Board Settings
               </TabsTrigger>
               <TabsTrigger 
-                value="team" 
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
-              >
-                <Users className="w-4 h-4" />
-                Team
-              </TabsTrigger>
-              <TabsTrigger 
                 value="import" 
                 className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
               >
@@ -224,32 +216,6 @@ export default function SettingsPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="team" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Users className="h-8 w-8 text-blue-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Team Management
-                </h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Invite team members, manage permissions, and collaborate on your feedback board.
-                </p>
-                <div className="space-y-3">
-                  <Button 
-                    onClick={() => window.open('/billing', '_blank')}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  >
-                    Upgrade to Pro
-                  </Button>
-                  <p className="text-sm text-gray-500">
-                    Team management is available for Pro users
-                  </p>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
 
           <TabsContent value="import" className="mt-6">
             <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
