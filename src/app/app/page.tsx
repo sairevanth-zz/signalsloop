@@ -297,6 +297,12 @@ export default function AppPage() {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
             
+            console.log('🤖 Session data:', { 
+              hasSession: !!session, 
+              hasToken: !!token,
+              tokenPrefix: token ? token.substring(0, 20) + '...' : 'NO_TOKEN'
+            });
+            
             if (!token) {
               console.error('🤖 No authentication token available');
               return {
@@ -319,8 +325,15 @@ export default function AppPage() {
               }),
             });
 
+            console.log('🤖 API response:', {
+              status: response.status,
+              ok: response.ok,
+              postTitle: post.title
+            });
+
             if (response.ok) {
               const data = await response.json();
+              console.log('🤖 API success data:', data);
               return {
                 ...post,
                 ai_category: data.result?.category || 'Other',
@@ -328,6 +341,8 @@ export default function AppPage() {
                 project_slug: post.projects.slug
               };
             } else {
+              const errorData = await response.json();
+              console.error('🤖 API error:', errorData);
               return {
                 ...post,
                 ai_category: 'Other',
