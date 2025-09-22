@@ -211,6 +211,7 @@ export default function AppPage() {
 
           // Check if OpenAI API key is available
           try {
+            console.log('🤖 Testing OpenAI API key availability...');
             const response = await fetch('/api/ai/categorize', {
               method: 'POST',
               headers: {
@@ -222,14 +223,16 @@ export default function AppPage() {
               }),
             });
 
+            console.log('🤖 API response status:', response.status);
             if (!response.ok) {
               console.log('🤖 OpenAI API key not available, skipping AI insights');
               setAiAvailable(false);
               return;
             }
+            console.log('🤖 OpenAI API key is available');
             setAiAvailable(true);
           } catch (error) {
-            console.log('🤖 OpenAI API key not available, skipping AI insights');
+            console.log('🤖 OpenAI API key test failed:', error);
             setAiAvailable(false);
             return;
           }
@@ -250,6 +253,7 @@ export default function AppPage() {
         .order('created_at', { ascending: false })
         .limit(20);
 
+      console.log('🤖 Posts query completed. Error:', postsError);
       if (postsError) {
         console.error('Error fetching posts for AI insights:', postsError);
         return;
@@ -351,7 +355,8 @@ export default function AppPage() {
       setAiInsights(insightsData);
 
     } catch (error) {
-      console.error('Error loading AI insights:', error);
+      console.error('🤖 Error loading AI insights:', error);
+      console.error('🤖 Error details:', error.message, error.stack);
     }
   };
 
