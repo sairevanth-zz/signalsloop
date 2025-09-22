@@ -29,6 +29,8 @@ interface BillingInfo {
   subscription_status: 'active' | 'canceled' | 'past_due' | null;
   current_period_end: string | null;
   cancel_at_period_end: boolean;
+  is_yearly?: boolean;
+  subscription_type?: 'monthly' | 'yearly' | 'gifted';
   payment_method: {
     brand: string;
     last4: string;
@@ -105,17 +107,84 @@ export function BillingDashboard({
           throw new Error('User not authenticated');
         }
 
-        // For account-level billing, we'll create a mock billing info
-        // In a real implementation, you'd store billing info at the user level
+        // Get REAL user data from the users table
+        const { data: userData, error: userDataError } = await supabase
+          .from('users')
+          .select('plan')
+          .eq('id', user.id)
+          .single();
+
+        if (userDataError) {
+          console.error('❌ Error getting user data:', userDataError);
+          throw new Error('Failed to load user data');
+        }
+
+        // Get the user's primary project to get subscription details
+        const { data: primaryProject, error: projectError } = await supabase
+          .from('projects')
+          .select('plan, subscription_status, current_period_end, cancel_at_period_end, stripe_customer_id, subscription_id')
+          .eq('owner_id', user.id)
+          .eq('plan', 'pro')
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .single();
+
+        if (projectError) {
+          console.error('❌ Error getting primary project:', projectError);
+          // Fallback to user data only
+          const accountBillingInfo = {
+            plan: userData.plan || 'free',
+            stripe_customer_id: null,
+            subscription_status: null,
+            current_period_end: null,
+            cancel_at_period_end: false
+          };
+          console.log('✅ Account billing info set (fallback):', accountBillingInfo);
+          setBillingInfo(accountBillingInfo);
+          return;
+        }
+
+        // Determine subscription type based on current_period_end
+        let subscriptionType: 'monthly' | 'yearly' | 'gifted' = 'monthly';
+        let isYearly = false;
+
+        if (primaryProject.current_period_end) {
+          const currentDate = new Date();
+          const periodEnd = new Date(primaryProject.current_period_end);
+          const daysDiff = Math.ceil((periodEnd.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          console.log('📅 Subscription analysis:', {
+            currentDate: currentDate.toISOString(),
+            periodEnd: periodEnd.toISOString(),
+            daysDiff: daysDiff
+          });
+
+          if (daysDiff > 300) { // More than ~10 months = yearly
+            subscriptionType = 'yearly';
+            isYearly = true;
+          } else if (daysDiff > 25 && daysDiff < 35) { // ~30 days = monthly
+            subscriptionType = 'monthly';
+          } else if (!primaryProject.stripe_customer_id && !primaryProject.subscription_id) {
+            // No Stripe data but has subscription = gifted
+            subscriptionType = 'gifted';
+            isYearly = daysDiff > 300;
+          }
+        }
+
+        // Use REAL data from the database
         const accountBillingInfo = {
-          plan: 'pro' as const, // Default to pro for now, you can make this dynamic
-          stripe_customer_id: null,
-          subscription_status: 'active' as const,
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-          cancel_at_period_end: false
+          plan: primaryProject.plan || userData.plan || 'free',
+          stripe_customer_id: primaryProject.stripe_customer_id,
+          subscription_status: primaryProject.subscription_status,
+          current_period_end: primaryProject.current_period_end,
+          cancel_at_period_end: primaryProject.cancel_at_period_end || false,
+          is_yearly: isYearly,
+          subscription_type: subscriptionType,
+          payment_method: null
         };
 
-        console.log('✅ Account billing info set:', accountBillingInfo);
+        console.log('✅ Account billing info set (REAL DATA):', accountBillingInfo);
+        console.log('📊 Subscription type detected:', subscriptionType, 'isYearly:', isYearly);
         setBillingInfo(accountBillingInfo);
         return;
       }
@@ -559,16 +628,29 @@ export function BillingDashboard({
               <h3 className="font-semibold text-lg">
                 {billingInfo.plan === 'pro' ? 'SignalsLoop Pro' : 'SignalsLoop Free'}
               </h3>
-              <p className="text-muted-foreground">
-                {billingInfo.plan === 'pro' 
-                  ? '$19/month - All features included'
-                  : 'Free forever - Limited features'
-                }
-              </p>
-              {billingInfo.plan === 'pro' && (
-                <p className="text-sm text-blue-600">
-                  💰 Save 20% with annual billing - $15/month billed yearly
-                </p>
+              {billingInfo.plan === 'pro' ? (
+                <div>
+                  {billingInfo.subscription_type === 'gifted' ? (
+                    <div>
+                      <p className="text-muted-foreground">🎁 Gifted Subscription - All features included</p>
+                      {billingInfo.is_yearly && (
+                        <p className="text-sm text-purple-600">✨ 1-Year Gifted Subscription</p>
+                      )}
+                    </div>
+                  ) : billingInfo.is_yearly ? (
+                    <div>
+                      <p className="text-muted-foreground">$15/month billed yearly - All features included</p>
+                      <p className="text-sm text-blue-600">💰 Annual billing - 20% savings</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-muted-foreground">$19/month - All features included</p>
+                      <p className="text-sm text-blue-600">💰 Save 20% with annual billing - $15/month billed yearly</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Free forever - Limited features</p>
               )}
             </div>
             {billingInfo.plan === 'free' ? (
@@ -592,23 +674,44 @@ export function BillingDashboard({
               </Button>
             ) : (
               <div className="flex flex-col gap-2">
+                <div className="flex gap-2 mb-2">
+                  {billingInfo.subscription_type === 'gifted' && (
+                    <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+                      🎁 Gifted
+                    </Badge>
+                  )}
+                  {billingInfo.is_yearly && billingInfo.subscription_type !== 'gifted' && (
+                    <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                      📅 Annual
+                    </Badge>
+                  )}
+                  {billingInfo.subscription_type === 'monthly' && (
+                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                      📆 Monthly
+                    </Badge>
+                  )}
+                </div>
                 <div className="flex gap-2">
-                  <Button 
-                    onClick={handleUpgradeToYearly}
-                    disabled={loading}
-                    size="sm"
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Upgrade to Yearly
-                  </Button>
-                  <Button 
-                    onClick={handleManageBilling}
-                    disabled={loading}
-                    variant="outline"
-                    size="sm"
-                  >
-                    {loading ? 'Loading...' : 'Manage Billing'}
-                  </Button>
+                  {!billingInfo.is_yearly && billingInfo.subscription_type !== 'gifted' && (
+                    <Button 
+                      onClick={handleUpgradeToYearly}
+                      disabled={loading}
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Upgrade to Yearly
+                    </Button>
+                  )}
+                  {billingInfo.subscription_type !== 'gifted' && (
+                    <Button 
+                      onClick={handleManageBilling}
+                      disabled={loading}
+                      variant="outline"
+                      size="sm"
+                    >
+                      {loading ? 'Loading...' : 'Manage Billing'}
+                    </Button>
+                  )}
                 </div>
                 <Button 
                   onClick={handleCancelSubscription}
@@ -626,7 +729,14 @@ export function BillingDashboard({
             <Alert>
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>
-                <strong>Next billing date:</strong> {formatDate(billingInfo.current_period_end)}
+                <strong>
+                  {billingInfo.subscription_type === 'gifted' ? 'Expires:' : 'Next billing date:'}
+                </strong> {formatDate(billingInfo.current_period_end)}
+                {billingInfo.subscription_type === 'gifted' && billingInfo.is_yearly && (
+                  <span className="text-purple-600 ml-2">
+                    (1-Year Gifted Subscription)
+                  </span>
+                )}
                 {billingInfo.cancel_at_period_end && (
                   <span className="text-orange-600 ml-2">
                     (Subscription will cancel at the end of this period)
