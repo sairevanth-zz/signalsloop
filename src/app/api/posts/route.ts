@@ -23,6 +23,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check post limits for free accounts
+    const { data: projectData, error: projectError } = await supabase
+      .from('projects')
+      .select('plan')
+      .eq('id', project_id)
+      .single();
+
+    if (projectError) {
+      console.error('Error fetching project:', projectError);
+      return NextResponse.json(
+        { error: 'Failed to validate project' },
+        { status: 500 }
+      );
+    }
+
+    // Enforce 50 post limit for free accounts
+    if (projectData.plan === 'free') {
+      const { data: existingPosts, error: countError } = await supabase
+        .from('posts')
+        .select('id', { count: 'exact' })
+        .eq('project_id', project_id);
+
+      if (!countError && existingPosts && existingPosts.length >= 50) {
+        return NextResponse.json(
+          { error: 'Free accounts are limited to 50 posts. Upgrade to Pro for unlimited posts.' },
+          { status: 403 }
+        );
+      }
+    }
+
     // First, create the post without AI categorization
     const { data: newPost, error: insertError } = await supabase
       .from('posts')
