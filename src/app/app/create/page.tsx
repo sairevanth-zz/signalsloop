@@ -36,7 +36,7 @@ export default function ProjectWizard() {
   const [projectData, setProjectData] = useState<ProjectData>({
     name: '',
     slug: '',
-    boardName: 'General'
+    boardName: 'Feedback Board'
   });
 
   const totalSteps = 3;

@@ -93,18 +93,27 @@ export function BillingDashboard({
     if (!supabase) return;
 
     try {
+      console.log('🔍 Loading billing info for project:', projectId);
       const { data, error } = await supabase
         .from('projects')
-        .select('plan, stripe_customer_id')
+        .select('plan, stripe_customer_id, subscription_status, current_period_end, cancel_at_period_end')
         .eq('id', projectId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error loading project billing data:', error);
+        throw error;
+      }
+
+      console.log('✅ Project billing data loaded:', data);
 
       setBillingInfo(prev => ({
         ...prev,
-        plan: data.plan,
-        stripe_customer_id: data.stripe_customer_id
+        plan: data.plan || 'free',
+        stripe_customer_id: data.stripe_customer_id,
+        subscription_status: data.subscription_status,
+        current_period_end: data.current_period_end,
+        cancel_at_period_end: data.cancel_at_period_end || false
       }));
 
       // If customer has Stripe ID, load subscription info
@@ -117,34 +126,10 @@ export function BillingDashboard({
   }, [supabase, projectId]);
 
   const loadStripeSubscription = useCallback(async () => {
-    if (!supabase) return;
-
-    try {
-      // Load real subscription data from the database
-      const { data: projectData, error: projectError } = await supabase
-        .from('projects')
-        .select('stripe_customer_id, subscription_status, current_period_end, cancel_at_period_end')
-        .eq('id', projectId)
-        .single();
-
-      if (projectError) {
-        console.error('Error loading project billing data:', projectError);
-        return;
-      }
-
-      if (projectData) {
-        setBillingInfo(prev => ({
-          ...prev,
-          stripe_customer_id: projectData.stripe_customer_id,
-          subscription_status: projectData.subscription_status,
-          current_period_end: projectData.current_period_end,
-          cancel_at_period_end: projectData.cancel_at_period_end || false
-        }));
-      }
-    } catch (error) {
-      console.error('Error loading subscription:', error);
-    }
-  }, [supabase, projectId]);
+    // This function is now handled in loadBillingInfo
+    // Keeping it for backward compatibility but it's no longer needed
+    console.log('loadStripeSubscription called but data is already loaded in loadBillingInfo');
+  }, []);
 
   const loadUsage = useCallback(async () => {
     if (!supabase) return;
@@ -177,10 +162,9 @@ export function BillingDashboard({
   useEffect(() => {
     if (supabase) {
       loadBillingInfo();
-      loadStripeSubscription();
       loadUsage();
     }
-  }, [supabase, loadBillingInfo, loadStripeSubscription, loadUsage]);
+  }, [supabase, loadBillingInfo, loadUsage]);
 
   const handleUpgrade = async () => {
     if (!stripeSettings?.configured) {

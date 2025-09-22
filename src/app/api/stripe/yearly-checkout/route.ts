@@ -61,8 +61,8 @@ export async function POST(request: Request) {
           project_slug: project.slug,
         },
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing?cancelled=true`,
+      success_url: `${request.headers.get('origin')}/${project.slug}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${request.headers.get('origin')}/${project.slug}/billing?cancelled=true`,
       metadata: {
         project_id: projectId,
         project_slug: project.slug,

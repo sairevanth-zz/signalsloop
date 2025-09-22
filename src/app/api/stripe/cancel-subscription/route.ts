@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .select('stripe_customer_id, stripe_subscription_id')
+      .select('stripe_customer_id, subscription_id')
       .eq('id', projectId)
       .single();
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!project.stripe_subscription_id) {
+    if (!project.subscription_id) {
       return NextResponse.json(
         { error: 'No active subscription found' },
         { status: 400 }
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
     // Cancel the subscription at period end
     const subscription = await stripe.subscriptions.update(
-      project.stripe_subscription_id,
+      project.subscription_id,
       {
         cancel_at_period_end: true,
       }
