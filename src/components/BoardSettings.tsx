@@ -275,6 +275,8 @@ export default function BoardSettings({
   };
 
   const handleDeleteBoard = async () => {
+    alert('DELETE BOARD FUNCTION CALLED!');
+    console.log('🚨🚨🚨 DELETE BOARD FUNCTION CALLED! 🚨🚨🚨');
     console.log('🗑️ Delete board clicked:', { 
       board: board ? { id: board.id, name: board.name } : null, 
       supabase: !!supabase, 
