@@ -167,8 +167,54 @@ export function BillingDashboard({
   }, [supabase, loadBillingInfo, loadUsage]);
 
   const handleUpgrade = async () => {
+    console.log('🚀 Upgrade button clicked');
+    console.log('📋 Stripe settings:', stripeSettings);
+    
     if (!stripeSettings?.configured) {
-      toast.error('Stripe is not configured yet');
+      console.log('⚠️ Stripe not configured, using fallback pricing');
+      toast.error('Stripe is not configured yet. Using fallback upgrade process.');
+      
+      // Fallback: Use environment variables for pricing
+      const fallbackPriceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_ID;
+      if (!fallbackPriceId) {
+        toast.error('No pricing configuration found. Please contact support.');
+        return;
+      }
+      
+      setUpgrading(true);
+      
+      try {
+        const response = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            projectId,
+            priceId: fallbackPriceId,
+            successUrl: `${window.location.origin}/${projectSlug}/billing/success`,
+            cancelUrl: `${window.location.origin}/${projectSlug}/billing`
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to create checkout session');
+        }
+
+        const { url } = await response.json();
+        
+        if (url) {
+          window.location.href = url;
+        } else {
+          throw new Error('No checkout URL received');
+        }
+      } catch (error) {
+        console.error('Error creating checkout:', error);
+        toast.error('Failed to start checkout process: ' + (error as Error).message);
+      } finally {
+        setUpgrading(false);
+      }
       return;
     }
 
@@ -209,14 +255,19 @@ export function BillingDashboard({
   };
 
   const handleManageBilling = async () => {
+    console.log('🔧 Manage billing clicked');
+    console.log('📋 Billing info:', billingInfo);
+    
     if (!billingInfo.stripe_customer_id) {
-      toast.error('No billing account found');
+      console.log('⚠️ No Stripe customer ID found');
+      toast.error('No billing account found. Please upgrade to Pro first.');
       return;
     }
 
     setLoading(true);
     
     try {
+      console.log('🚀 Creating Stripe portal session...');
       // Create Stripe Customer Portal session
       const response = await fetch('/api/stripe/portal', {
         method: 'POST',
@@ -229,20 +280,37 @@ export function BillingDashboard({
         })
       });
 
+      console.log('📡 Portal response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create portal session');
+      }
+
       const { url } = await response.json();
-      window.location.href = url;
+      console.log('✅ Portal URL received:', url);
+      
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error('No portal URL received');
+      }
     } catch (error) {
-      console.error('Error opening billing portal:', error);
-      toast.error('Failed to open billing management');
+      console.error('❌ Error opening billing portal:', error);
+      toast.error('Failed to open billing management: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleUpgradeToYearly = async () => {
+    console.log('📅 Yearly upgrade clicked');
+    console.log('📋 Project ID:', projectId);
+    
     setLoading(true);
     
     try {
+      console.log('🚀 Creating yearly checkout session...');
       // Create yearly checkout session
       const response = await fetch('/api/stripe/yearly-checkout', {
         method: 'POST',
@@ -254,21 +322,33 @@ export function BillingDashboard({
         })
       });
 
+      console.log('📡 Yearly checkout response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to create yearly checkout session');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create yearly checkout session');
       }
 
       const { url } = await response.json();
-      window.location.href = url;
+      console.log('✅ Yearly checkout URL received:', url);
+      
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error('No yearly checkout URL received');
+      }
     } catch (error) {
-      console.error('Error creating yearly checkout:', error);
-      toast.error('Failed to start yearly upgrade');
+      console.error('❌ Error creating yearly checkout:', error);
+      toast.error('Failed to start yearly upgrade: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancelSubscription = async () => {
+    console.log('❌ Cancel subscription clicked');
+    console.log('📋 Project ID:', projectId);
+    
     if (!confirm('Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of your billing period.')) {
       return;
     }
@@ -276,6 +356,7 @@ export function BillingDashboard({
     setLoading(true);
     
     try {
+      console.log('🚀 Cancelling subscription...');
       // Cancel subscription at period end
       const response = await fetch('/api/stripe/cancel-subscription', {
         method: 'POST',
@@ -287,16 +368,22 @@ export function BillingDashboard({
         })
       });
 
+      console.log('📡 Cancel subscription response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to cancel subscription');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to cancel subscription');
       }
 
-      toast.success('Subscription will be cancelled at the end of your billing period');
+      const result = await response.json();
+      console.log('✅ Subscription cancelled:', result);
+      toast.success(result.message || 'Subscription will be cancelled at the end of your billing period');
+      
       // Reload billing info
       loadBillingInfo();
     } catch (error) {
-      console.error('Error cancelling subscription:', error);
-      toast.error('Failed to cancel subscription');
+      console.error('❌ Error cancelling subscription:', error);
+      toast.error('Failed to cancel subscription: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
