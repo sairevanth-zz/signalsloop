@@ -8,11 +8,16 @@ import { getSupabaseClient } from '@/lib/supabase-client';
  */
 export async function POST(request: NextRequest) {
   try {
+    console.log('🤖 AI Categorize API called');
+    
     // Check authentication and plan
     const supabase = getSupabaseClient();
     const authHeader = request.headers.get('authorization');
     
+    console.log('🤖 Auth header present:', !!authHeader);
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('🤖 No valid auth header, returning 401');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -55,10 +60,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('🤖 Request body:', body);
     
     // Handle single post categorization
     if (body.title) {
       const { title, description } = body;
+      console.log('🤖 Categorizing:', { title, description });
       
       if (!title || typeof title !== 'string') {
         return NextResponse.json(
@@ -68,6 +75,7 @@ export async function POST(request: NextRequest) {
       }
 
       const result = await categorizeFeedback(title, description);
+      console.log('🤖 Categorization result:', result);
       
       return NextResponse.json({
         success: true,
