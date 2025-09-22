@@ -316,9 +316,9 @@ export default function BoardSettings({
       console.log('✅ Board deleted successfully');
       onShowNotification?.('Board deleted successfully', 'success');
       
-      // Close dialog and navigate
+      // Close dialog and navigate to project dashboard (not board page since board is deleted)
       setShowDeleteDialog(false);
-      router.push(`/${project.slug}/board`);
+      router.push('/app');
 
     } catch (error) {
       console.error('Error deleting board:', error);
