@@ -106,28 +106,33 @@ export function StripeSettingsComponent({ projectId }: StripeSettingsComponentPr
 
   const loadProducts = useCallback(async () => {
     try {
-      // In a real app, this would call Stripe API to list products
-      // For demo purposes, we'll show sample products
-      setProducts([
-        {
-          id: 'price_sample_pro',
-          name: 'SignalsLoop Pro',
-          price: 19,
-          currency: 'usd',
-          interval: 'month',
-          active: true
-        }
-      ]);
+      // Load real products from Stripe API
+      const response = await fetch('/api/stripe/products', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data.products || []);
+      } else {
+        console.error('Failed to load products');
+        setProducts([]);
+      }
     } catch (error) {
       console.error('Error loading products:', error);
+      setProducts([]);
     }
   }, []);
 
   useEffect(() => {
     if (supabase) {
       loadSettings();
+      loadProducts();
     }
-  }, [supabase, loadSettings]);
+  }, [supabase, loadSettings, loadProducts]);
 
   const testStripeConnection = async () => {
     if (!supabase) {

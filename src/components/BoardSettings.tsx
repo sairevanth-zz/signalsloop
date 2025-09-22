@@ -115,6 +115,22 @@ export default function BoardSettings({
         .single();
 
       console.log('🔍 Board query result:', { boardData, boardError });
+      console.log('📋 Board data fields:', {
+        name: boardData?.name,
+        description: boardData?.description,
+        is_private: boardData?.is_private,
+        allow_anonymous_posts: boardData?.allow_anonymous_posts,
+        require_approval: boardData?.require_approval,
+        auto_close_days: boardData?.auto_close_days,
+        custom_css: boardData?.custom_css,
+        welcome_message: boardData?.welcome_message,
+        sort_default: boardData?.sort_default,
+        posts_per_page: boardData?.posts_per_page,
+        show_author_emails: boardData?.show_author_emails,
+        enable_comments: boardData?.enable_comments,
+        enable_voting: boardData?.enable_voting,
+        custom_statuses: boardData?.custom_statuses
+      });
 
       if (boardError || !boardData) {
         console.error('❌ Board not found:', { boardError, boardData });
@@ -143,6 +159,8 @@ export default function BoardSettings({
 
       setBoard(boardConfig);
       setFormData(boardConfig);
+      
+      console.log('✅ Final board config set:', boardConfig);
 
     } catch (error) {
       console.error('Error loading board settings:', error);

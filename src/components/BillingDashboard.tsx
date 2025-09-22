@@ -120,28 +120,31 @@ export function BillingDashboard({
     if (!supabase) return;
 
     try {
-      // In real implementation, this would call your backend API
-      // which then calls Stripe to get subscription details
-      const mockSubscription = {
-        subscription_status: 'active' as const,
-        current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        cancel_at_period_end: false,
-        payment_method: {
-          brand: 'visa',
-          last4: '4242',
-          exp_month: 12,
-          exp_year: 2025
-        }
-      };
+      // Load real subscription data from the database
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('stripe_customer_id, subscription_status, current_period_end, cancel_at_period_end')
+        .eq('id', projectId)
+        .single();
 
-      setBillingInfo(prev => ({
-        ...prev,
-        ...mockSubscription
-      }));
+      if (projectError) {
+        console.error('Error loading project billing data:', projectError);
+        return;
+      }
+
+      if (projectData) {
+        setBillingInfo(prev => ({
+          ...prev,
+          stripe_customer_id: projectData.stripe_customer_id,
+          subscription_status: projectData.subscription_status,
+          current_period_end: projectData.current_period_end,
+          cancel_at_period_end: projectData.cancel_at_period_end || false
+        }));
+      }
     } catch (error) {
       console.error('Error loading subscription:', error);
     }
-  }, [supabase]);
+  }, [supabase, projectId]);
 
   const loadUsage = useCallback(async () => {
     if (!supabase) return;
@@ -174,9 +177,10 @@ export function BillingDashboard({
   useEffect(() => {
     if (supabase) {
       loadBillingInfo();
+      loadStripeSubscription();
       loadUsage();
     }
-  }, [supabase, loadBillingInfo, loadUsage]);
+  }, [supabase, loadBillingInfo, loadStripeSubscription, loadUsage]);
 
   const handleUpgrade = async () => {
     if (!stripeSettings?.configured) {
@@ -187,31 +191,34 @@ export function BillingDashboard({
     setUpgrading(true);
     
     try {
-      if (stripeSettings.payment_method === 'checkout_link') {
-        // Method A: Redirect to Stripe Checkout Link
-        const checkoutUrl = `https://buy.stripe.com/test_...${projectId}`;
-        window.open(checkoutUrl, '_blank');
-      } else {
-        // Method B: Create hosted checkout session
-        const response = await fetch('/api/stripe/checkout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            projectId,
-            priceId: stripeSettings.stripe_price_id,
-            successUrl: `${window.location.origin}/billing/success`,
-            cancelUrl: `${window.location.origin}/billing`
-          })
-        });
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId,
+          priceId: stripeSettings.stripe_price_id || process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
+          successUrl: `${window.location.origin}/${projectSlug}/billing/success`,
+          cancelUrl: `${window.location.origin}/${projectSlug}/billing`
+        })
+      });
 
-        const { url } = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create checkout session');
+      }
+
+      const { url } = await response.json();
+      
+      if (url) {
         window.location.href = url;
+      } else {
+        throw new Error('No checkout URL received');
       }
     } catch (error) {
       console.error('Error creating checkout:', error);
-      toast.error('Failed to start checkout process');
+      toast.error('Failed to start checkout process: ' + (error as Error).message);
     } finally {
       setUpgrading(false);
     }
@@ -234,7 +241,7 @@ export function BillingDashboard({
         },
         body: JSON.stringify({
           customerId: billingInfo.stripe_customer_id,
-          returnUrl: `${window.location.origin}/billing`
+          returnUrl: `${window.location.origin}/${projectSlug}/billing`
         })
       });
 
