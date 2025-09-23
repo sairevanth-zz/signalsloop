@@ -60,13 +60,21 @@
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   }
   
-  .gradient-text-animated {
+  .animate-gradient {
     background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4, #10b981);
     background-size: 300% 300%;
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradient-shift 3s ease infinite;
+  }
+  
+  .animate-bounce-subtle {
+    animation: bounce-subtle 2s ease-in-out infinite;
+  }
+  
+  .animate-float-delayed {
+    animation: float-delayed 3s ease-in-out infinite;
   }
 
   /* Line clamp utilities for text truncation */
@@ -469,6 +477,24 @@
   100% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes float-delayed {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
   }
 }
 

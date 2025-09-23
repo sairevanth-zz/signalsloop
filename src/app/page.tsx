@@ -14,7 +14,10 @@ import {
   CheckCircle, 
   Star,
   ArrowRight,
-  Zap
+  Zap,
+  Bot,
+  BarChart3,
+  Zap as Lightning
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
@@ -82,9 +85,9 @@ export default function Homepage() {
             ✨ AI-Powered Feedback Management
           </Badge>
           
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight tracking-tight">
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight tracking-tight animate-fade-in">
             AI-Powered Feedback That<br />
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent animate-gradient">
               Actually Gets Organized
             </span>
           </h1>
@@ -281,7 +284,7 @@ export default function Homepage() {
               </div>
               
               {/* Floating Elements */}
-              <div className="absolute top-8 right-8 bg-white rounded-lg shadow-lg p-3 border border-gray-100">
+              <div className="absolute top-8 right-8 bg-white rounded-lg shadow-lg p-3 border border-gray-100 animate-bounce-subtle">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                   <span className="text-sm text-gray-700 font-medium">AI Organizing</span>
@@ -289,17 +292,118 @@ export default function Homepage() {
                 <div className="text-xs text-gray-500 mt-1">3 new posts auto-categorized</div>
               </div>
               
-              <div className="absolute bottom-8 left-8 bg-white rounded-lg shadow-lg p-3 border border-gray-100">
+              <div className="absolute bottom-8 left-8 bg-white rounded-lg shadow-lg p-3 border border-gray-100 animate-float">
                 <div className="text-center">
                   <div className="text-xl font-bold text-blue-600">98%</div>
                   <div className="text-xs text-gray-500">Accuracy Rate</div>
                 </div>
               </div>
               
-              <div className="absolute top-1/2 right-4 bg-white rounded-lg shadow-lg p-2 border border-gray-100">
+              <div className="absolute top-1/2 right-4 bg-white rounded-lg shadow-lg p-2 border border-gray-100 animate-float-delayed">
               <div className="text-center">
                   <div className="text-lg font-bold text-purple-600">127</div>
                   <div className="text-xs text-gray-500">Total</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Before/After Comparison Section */}
+      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-gray-50 to-blue-50 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-100/20 to-blue-100/20"></div>
+        <div className="container mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              See the difference AI makes
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Transform chaotic feedback into organized, actionable insights
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 max-w-6xl mx-auto">
+            {/* Before SignalsLoop */}
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-lg border border-red-100/50">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold text-red-600 mb-2">Before SignalsLoop</h3>
+                <p className="text-gray-600">Feedback scattered everywhere</p>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Scattered feedback icons */}
+                <div className="flex flex-wrap gap-3 justify-center">
+                  <div className="bg-red-100 rounded-lg p-3 flex items-center gap-2">
+                    <span className="text-2xl">📧</span>
+                    <span className="text-sm text-red-700">Email threads</span>
+                  </div>
+                  <div className="bg-orange-100 rounded-lg p-3 flex items-center gap-2">
+                    <span className="text-2xl">💬</span>
+                    <span className="text-sm text-orange-700">Slack messages</span>
+                  </div>
+                  <div className="bg-yellow-100 rounded-lg p-3 flex items-center gap-2">
+                    <span className="text-2xl">📝</span>
+                    <span className="text-sm text-yellow-700">Sticky notes</span>
+                  </div>
+                  <div className="bg-pink-100 rounded-lg p-3 flex items-center gap-2">
+                    <span className="text-2xl">🎫</span>
+                    <span className="text-sm text-pink-700">Support tickets</span>
+                  </div>
+                </div>
+                
+                {/* Visual chaos representation */}
+                <div className="bg-gray-100 rounded-lg p-6 mt-6">
+                  <div className="text-center text-gray-500 text-sm mb-4">Visual Chaos</div>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    <div className="w-8 h-8 bg-red-200 rounded rotate-12"></div>
+                    <div className="w-6 h-6 bg-orange-200 rounded-full rotate-45"></div>
+                    <div className="w-10 h-4 bg-yellow-200 rounded rotate-6"></div>
+                    <div className="w-7 h-7 bg-pink-200 rounded rotate-12"></div>
+                    <div className="w-5 h-8 bg-blue-200 rounded rotate-45"></div>
+                    <div className="w-9 h-3 bg-green-200 rounded rotate-6"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* After SignalsLoop */}
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-lg border border-green-100/50">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold text-green-600 mb-2">After SignalsLoop</h3>
+                <p className="text-gray-600">AI automatically organizes everything</p>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Organized board interface mockup */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="text-center text-gray-600 text-sm mb-3">Organized Feedback Board</div>
+                  
+                  {/* Categories */}
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="bg-blue-100 rounded-lg p-2 text-center">
+                      <div className="text-xs text-blue-700 font-medium">Bug Reports</div>
+                      <div className="text-lg font-bold text-blue-600">12</div>
+                    </div>
+                    <div className="bg-green-100 rounded-lg p-2 text-center">
+                      <div className="text-xs text-green-700 font-medium">Features</div>
+                      <div className="text-lg font-bold text-green-600">8</div>
+                    </div>
+                    <div className="bg-purple-100 rounded-lg p-2 text-center">
+                      <div className="text-xs text-purple-700 font-medium">UI/UX</div>
+                      <div className="text-lg font-bold text-purple-600">5</div>
+                    </div>
+                    <div className="bg-orange-100 rounded-lg p-2 text-center">
+                      <div className="text-xs text-orange-700 font-medium">Enhancements</div>
+                      <div className="text-lg font-bold text-orange-600">3</div>
+                    </div>
+                  </div>
+                  
+                  {/* AI processing indicator */}
+                  <div className="flex items-center justify-center gap-2 bg-green-50 rounded-lg p-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-green-700 font-medium">AI Processing...</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -396,6 +500,111 @@ export default function Homepage() {
         </div>
       </section>
 
+      {/* AI Categorization Showcase */}
+      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-100/20 to-purple-100/20"></div>
+        <div className="container mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Watch AI organize feedback instantly
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              See how our AI processes and categorizes feedback in real-time
+            </p>
+          </div>
+          
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-lg border border-purple-100/50">
+              {/* Demo Flow */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-center">
+                {/* Step 1: Feedback Submission */}
+                <div className="text-center">
+                  <div className="bg-blue-100 rounded-xl p-6 mb-4">
+                    <MessageSquare className="h-12 w-12 text-blue-600 mx-auto mb-3" />
+                    <div className="text-sm text-blue-700 font-medium">User submits feedback</div>
+                  </div>
+                  <div className="bg-gray-100 rounded-lg p-3 text-left">
+                    <div className="text-xs text-gray-600 mb-1">"The login button doesn't work on mobile"</div>
+                    <div className="text-xs text-gray-500">Submitted by Sarah M.</div>
+                  </div>
+                </div>
+                
+                {/* Step 2: AI Processing */}
+                <div className="text-center">
+                  <div className="bg-purple-100 rounded-xl p-6 mb-4">
+                    <div className="h-12 w-12 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-white text-xl">🤖</span>
+                    </div>
+                    <div className="text-sm text-purple-700 font-medium">AI Processing...</div>
+                  </div>
+                  <div className="bg-purple-50 rounded-lg p-3">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                    </div>
+                    <div className="text-xs text-purple-600 mt-2">Analyzing content...</div>
+                  </div>
+                </div>
+                
+                {/* Step 3: Categorized Result */}
+                <div className="text-center">
+                  <div className="bg-green-100 rounded-xl p-6 mb-4">
+                    <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
+                    <div className="text-sm text-green-700 font-medium">Automatically categorized</div>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium">Bug Report</span>
+                    </div>
+                    <div className="text-xs text-green-600">Mobile • Authentication • High Priority</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Arrow indicators */}
+              <div className="hidden md:flex items-center justify-between mt-6 md:mt-8">
+                <div className="flex-1 flex justify-center">
+                  <ArrowRight className="h-5 w-5 md:h-6 md:w-6 text-gray-400" />
+                </div>
+                <div className="flex-1 flex justify-center">
+                  <ArrowRight className="h-5 w-5 md:h-6 md:w-6 text-gray-400" />
+                </div>
+                <div className="flex-1"></div>
+              </div>
+              
+              {/* Mobile arrow indicators */}
+              <div className="md:hidden flex flex-col items-center gap-4 mt-6">
+                <ArrowRight className="h-5 w-5 text-gray-400 rotate-90" />
+                <ArrowRight className="h-5 w-5 text-gray-400 rotate-90" />
+              </div>
+              
+              {/* Additional examples */}
+              <div className="mt-8 md:mt-12 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Feature Request</span>
+                  </div>
+                  <div className="text-sm text-gray-600">"Add dark mode support"</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">UI/UX</span>
+                  </div>
+                  <div className="text-sm text-gray-600">"Make the navigation more intuitive"</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">Enhancement</span>
+                  </div>
+                  <div className="text-sm text-gray-600">"Improve loading speed"</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section id="features" className="py-24 md:py-32 px-4 bg-white">
         <div className="container mx-auto">
@@ -412,7 +621,7 @@ export default function Homepage() {
             <Card className="text-center border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/80 backdrop-blur-sm rounded-xl p-6">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-6">
-                  <span className="text-3xl">🤖</span>
+                  <Bot className="h-8 w-8 text-blue-600" />
                 </div>
                 <CardTitle className="text-xl font-bold text-gray-900 mb-3">AI Auto-Categorization</CardTitle>
                 <CardDescription className="text-gray-600 leading-relaxed">
@@ -424,7 +633,7 @@ export default function Homepage() {
             <Card className="text-center border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/80 backdrop-blur-sm rounded-xl p-6">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-6">
-                  <span className="text-3xl">📊</span>
+                  <BarChart3 className="h-8 w-8 text-purple-600" />
                 </div>
                 <CardTitle className="text-xl font-bold text-gray-900 mb-3">Smart Roadmaps</CardTitle>
                 <CardDescription className="text-gray-600 leading-relaxed">
@@ -436,7 +645,7 @@ export default function Homepage() {
             <Card className="text-center border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/80 backdrop-blur-sm rounded-xl p-6">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-6">
-                  <span className="text-3xl">⚡</span>
+                  <Lightning className="h-8 w-8 text-green-600" />
                 </div>
                 <CardTitle className="text-xl font-bold text-gray-900 mb-3">2-Minute Setup</CardTitle>
                 <CardDescription className="text-gray-600 leading-relaxed">
@@ -461,18 +670,56 @@ export default function Homepage() {
             </p>
           </div>
           
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-gray-900 rounded-xl p-8 text-white font-mono text-sm shadow-lg">
-              <div className="flex items-center justify-between mb-6">
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-gray-900 rounded-xl p-4 md:p-8 text-white font-mono text-xs md:text-sm shadow-lg">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 md:mb-6">
                 <span className="text-green-400 font-medium">→ Install Widget</span>
-                <Button size="sm" variant="secondary" className="rounded-lg">Copy</Button>
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  className="rounded-lg hover:bg-gray-700 transition-colors w-full sm:w-auto"
+                  onClick={() => {
+                    navigator.clipboard.writeText('<script src="https://signalsloop.com/embed/demo.js"></script>');
+                    // You could add a toast notification here
+                  }}
+                >
+                  Copy
+                </Button>
               </div>
-              <code className="text-gray-300">
-                {`<script src="https://signalsloop.com/embed/your-key.js"></script>`}
+              <code className="text-gray-300 block break-all">
+                {`<script src="https://signalsloop.com/embed/demo.js"></script>`}
               </code>
             </div>
             
-            <div className="text-center mt-10">
+            {/* Widget Preview */}
+            <div className="mt-8 bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+              <div className="text-center mb-4">
+                <span className="text-sm text-gray-600 font-medium">Widget Preview</span>
+              </div>
+              
+              {/* Mock website with widget button */}
+              <div className="bg-gray-50 rounded-lg p-4 relative">
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-3/4 mb-4"></div>
+                  <div className="h-2 bg-gray-200 rounded w-1/2"></div>
+                </div>
+                
+                {/* Widget button */}
+                <div className="absolute bottom-4 right-4">
+                  <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-blue-700 transition-colors cursor-pointer">
+                    <MessageSquare className="h-4 w-4" />
+                    <span className="text-sm font-medium">Feedback</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-center mt-4">
+                <span className="text-sm text-gray-600">Add to any website in 2 minutes</span>
+              </div>
+            </div>
+            
+            <div className="text-center mt-8">
               <div className="inline-flex items-center space-x-3 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-gray-200">
                 <Zap className="h-5 w-5 text-blue-600" />
                 <span className="text-sm font-medium text-gray-700">Feedback button appears → Users submit → You see results</span>
