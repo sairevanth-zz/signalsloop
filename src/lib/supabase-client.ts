@@ -52,3 +52,21 @@ export const getSupabaseServerClient = () => {
 
   return createClient(supabaseUrl, supabaseServiceKey);
 };
+
+// Service role client for admin operations
+export const getSupabaseServiceRoleClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Missing server Supabase environment variables');
+    return null;
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+};

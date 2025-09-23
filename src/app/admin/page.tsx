@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { 
   Users, 
   Crown, 
@@ -14,10 +15,14 @@ import {
   Mail,
   Calendar,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Search,
+  RefreshCw,
+  TrendingUp,
+  MessageSquare,
+  FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { getSupabaseClient } from '@/lib/supabase-client';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface Project {
@@ -34,26 +39,52 @@ interface Project {
 interface User {
   id: string;
   email: string;
-  plan: string;
   created_at: string;
+  last_sign_in_at: string;
+  email_confirmed_at: string;
   projects_count: number;
+  pro_projects: number;
+  free_projects: number;
+  has_pro_subscription: boolean;
+}
+
+interface Stats {
+  overview: {
+    totalUsers: number;
+    totalProjects: number;
+    totalPosts: number;
+    totalComments: number;
+    proUsers: number;
+    freeUsers: number;
+    proProjects: number;
+    freeProjects: number;
+  };
+  recentActivity: {
+    newUsers: number;
+    newProjects: number;
+    newPosts: number;
+  };
+  postsByStatus: {
+    open: number;
+    planned: number;
+    in_progress: number;
+    done: number;
+    declined: number;
+  };
+  conversion: {
+    proUserPercentage: number;
+    proProjectPercentage: number;
+  };
 }
 
 export default function AdminDashboard() {
   const { isAdmin, loading: authLoading, user } = useAdminAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalProjects: 0,
-    proUsers: 0,
-    freeUsers: 0,
-    proProjects: 0,
-    freeProjects: 0
-  });
-
-  const supabase = getSupabaseClient();
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -68,77 +99,32 @@ export default function AdminDashboard() {
   }, [isAdmin, authLoading]);
 
   const loadData = async () => {
-    if (!supabase) return;
-
     try {
       setLoading(true);
       console.log('Loading admin data...');
 
-      // Load all projects
-      const { data: projectsData, error: projectsError } = await supabase
-        .from('projects')
-        .select(`
-          *,
-          users!projects_owner_id_fkey(email)
-        `)
-        .order('created_at', { ascending: false });
+      // Load all data in parallel
+      const [statsResponse, usersResponse, projectsResponse] = await Promise.all([
+        fetch('/api/admin/stats'),
+        fetch('/api/admin/users'),
+        fetch('/api/admin/projects')
+      ]);
 
-      if (projectsError) {
-        console.error('Error loading projects:', projectsError);
-        toast.error('Failed to load projects');
-        return;
+      if (!statsResponse.ok || !usersResponse.ok || !projectsResponse.ok) {
+        throw new Error('Failed to fetch admin data');
       }
 
-      // Load all users
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const [statsData, usersData, projectsData] = await Promise.all([
+        statsResponse.json(),
+        usersResponse.json(),
+        projectsResponse.json()
+      ]);
 
-      if (usersError) {
-        console.error('Error loading users:', usersError);
-        toast.error('Failed to load users');
-        return;
-      }
+      setStats(statsData.stats);
+      setUsers(usersData.users);
+      setProjects(projectsData.projects);
 
-      // Transform projects data
-      const transformedProjects = projectsData.map(project => ({
-        ...project,
-        owner_email: project.users?.email || 'Unknown',
-        posts_count: 0 // We'll add this later if needed
-      }));
-
-      // Transform users data and add project counts
-      const transformedUsers = usersData.map(user => {
-        const userProjects = projectsData.filter(p => p.owner_id === user.id);
-        return {
-          ...user,
-          projects_count: userProjects.length
-        };
-      });
-
-      setProjects(transformedProjects);
-      setUsers(transformedUsers);
-
-      // Calculate stats
-      const totalUsers = usersData.length;
-      const totalProjects = projectsData.length;
-      const proUsers = usersData.filter(u => u.plan === 'pro').length;
-      const freeUsers = totalUsers - proUsers;
-      const proProjects = projectsData.filter(p => p.plan === 'pro').length;
-      const freeProjects = totalProjects - proProjects;
-
-      setStats({
-        totalUsers,
-        totalProjects,
-        proUsers,
-        freeUsers,
-        proProjects,
-        freeProjects
-      });
-
-      console.log('Admin data loaded:', { totalUsers, totalProjects, proUsers, proProjects });
-
+      console.log('Admin data loaded successfully');
     } catch (error) {
       console.error('Error loading admin data:', error);
       toast.error('Failed to load admin data');
@@ -147,51 +133,73 @@ export default function AdminDashboard() {
     }
   };
 
-  const upgradeUserToPro = async (userId: string, userEmail: string) => {
-    if (!supabase) return;
-
+  const handleUserAction = async (userId: string, userEmail: string, action: 'upgrade' | 'downgrade') => {
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({ plan: 'pro' })
-        .eq('id', userId);
+      setActionLoading(userId);
+      
+      const response = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          action: action === 'upgrade' ? 'upgrade_to_pro' : 'downgrade_to_free'
+        })
+      });
 
-      if (error) {
-        console.error('Error upgrading user:', error);
-        toast.error('Failed to upgrade user');
-        return;
+      if (!response.ok) {
+        throw new Error('Failed to update user');
       }
 
-      toast.success(`Successfully upgraded ${userEmail} to Pro!`);
+      const result = await response.json();
+      toast.success(result.message);
       loadData(); // Reload data
     } catch (error) {
-      console.error('Error upgrading user:', error);
-      toast.error('Failed to upgrade user');
+      console.error('Error updating user:', error);
+      toast.error(`Failed to ${action} user`);
+    } finally {
+      setActionLoading(null);
     }
   };
 
-  const downgradeUserToFree = async (userId: string, userEmail: string) => {
-    if (!supabase) return;
-
+  const handleProjectAction = async (projectId: string, action: 'upgrade' | 'downgrade') => {
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({ plan: 'free' })
-        .eq('id', userId);
+      setActionLoading(projectId);
+      
+      const response = await fetch('/api/admin/projects', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          action: 'update_plan',
+          plan: action === 'upgrade' ? 'pro' : 'free'
+        })
+      });
 
-      if (error) {
-        console.error('Error downgrading user:', error);
-        toast.error('Failed to downgrade user');
-        return;
+      if (!response.ok) {
+        throw new Error('Failed to update project');
       }
 
-      toast.success(`Successfully downgraded ${userEmail} to Free!`);
+      const result = await response.json();
+      toast.success(result.message);
       loadData(); // Reload data
     } catch (error) {
-      console.error('Error downgrading user:', error);
-      toast.error('Failed to downgrade user');
+      console.error('Error updating project:', error);
+      toast.error(`Failed to ${action} project`);
+    } finally {
+      setActionLoading(null);
     }
   };
+
+  // Filter data based on search term
+  const filteredUsers = users.filter(user =>
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredProjects = projects.filter(project =>
+    project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.owner_email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (authLoading) {
     return (
@@ -229,13 +237,22 @@ export default function AdminDashboard() {
             <p className="text-gray-600">Manage users, projects, and subscriptions</p>
           </div>
           <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={loadData}
+              disabled={loading}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
             <span className="text-sm text-gray-600">
               Logged in as: {user?.email}
             </span>
             <Button
               variant="outline"
               onClick={() => {
-                const supabase = getSupabaseClient();
+                const supabase = require('@/lib/supabase-client').getSupabaseClient();
                 supabase.auth.signOut();
                 window.location.href = '/login';
               }}
@@ -246,67 +263,82 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.proUsers} Pro, {stats.freeUsers} Free
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalProjects}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.proProjects} Pro, {stats.freeProjects} Free
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pro Users</CardTitle>
-              <Crown className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.proUsers}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.totalUsers > 0 ? Math.round((stats.proUsers / stats.totalUsers) * 100) : 0}% of total
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Free Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.freeUsers}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.totalUsers > 0 ? Math.round((stats.freeUsers / stats.totalUsers) * 100) : 0}% of total
-              </p>
-            </CardContent>
-          </Card>
+        {/* Search */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search users or projects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </div>
+
+        {/* Stats Cards */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.overview.totalUsers}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.overview.proUsers} Pro, {stats.overview.freeUsers} Free
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.overview.totalProjects}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.overview.proProjects} Pro, {stats.overview.freeProjects} Free
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.overview.totalPosts}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.recentActivity.newPosts} new this month
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">{stats.conversion.proUserPercentage}%</div>
+                <p className="text-xs text-muted-foreground">
+                  Users with Pro subscriptions
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Users Table */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Users Management</CardTitle>
             <CardDescription>
-              Manage user accounts and subscription plans
+              Manage user accounts and subscription plans ({filteredUsers.length} users)
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -323,12 +355,12 @@ export default function AdminDashboard() {
                       <th className="text-left p-3">Email</th>
                       <th className="text-left p-3">Plan</th>
                       <th className="text-left p-3">Projects</th>
-                      <th className="text-left p-3">Joined</th>
+                      <th className="text-left p-3">Last Sign In</th>
                       <th className="text-left p-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((user) => (
+                    {filteredUsers.map((user) => (
                       <tr key={user.id} className="border-b hover:bg-gray-50">
                         <td className="p-3">
                           <div className="flex items-center gap-2">
@@ -338,45 +370,67 @@ export default function AdminDashboard() {
                         </td>
                         <td className="p-3">
                           <Badge 
-                            variant={user.plan === 'pro' ? 'default' : 'secondary'}
-                            className={user.plan === 'pro' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
+                            variant={user.has_pro_subscription ? 'default' : 'secondary'}
+                            className={user.has_pro_subscription ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
                           >
-                            {user.plan === 'pro' ? (
+                            {user.has_pro_subscription ? (
                               <>
                                 <Crown className="w-3 h-3 mr-1" />
-                                Pro
+                                Pro ({user.pro_projects} projects)
                               </>
                             ) : (
                               'Free'
                             )}
                           </Badge>
                         </td>
-                        <td className="p-3">{user.projects_count}</td>
+                        <td className="p-3">
+                          <div className="text-sm">
+                            <div>{user.projects_count} total</div>
+                            <div className="text-gray-500">
+                              {user.pro_projects} Pro, {user.free_projects} Free
+                            </div>
+                          </div>
+                        </td>
                         <td className="p-3">
                           <div className="flex items-center gap-1 text-sm text-gray-600">
                             <Calendar className="w-3 h-3" />
-                            {new Date(user.created_at).toLocaleDateString()}
+                            {user.last_sign_in_at ? 
+                              new Date(user.last_sign_in_at).toLocaleDateString() : 
+                              'Never'
+                            }
                           </div>
                         </td>
                         <td className="p-3">
                           <div className="flex gap-2">
-                            {user.plan === 'free' ? (
+                            {user.has_pro_subscription ? (
                               <Button
                                 size="sm"
-                                onClick={() => upgradeUserToPro(user.id, user.email)}
-                                className="bg-green-600 hover:bg-green-700"
+                                variant="outline"
+                                onClick={() => handleUserAction(user.id, user.email, 'downgrade')}
+                                disabled={actionLoading === user.id}
+                                className="text-orange-600 border-orange-300 hover:bg-orange-50"
                               >
-                                <Crown className="w-3 h-3 mr-1" />
-                                Upgrade to Pro
+                                {actionLoading === user.id ? (
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  'Downgrade to Free'
+                                )}
                               </Button>
                             ) : (
                               <Button
                                 size="sm"
-                                variant="outline"
-                                onClick={() => downgradeUserToFree(user.id, user.email)}
-                                className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                                onClick={() => handleUserAction(user.id, user.email, 'upgrade')}
+                                disabled={actionLoading === user.id}
+                                className="bg-green-600 hover:bg-green-700"
                               >
-                                Downgrade to Free
+                                {actionLoading === user.id ? (
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Crown className="w-3 h-3 mr-1" />
+                                    Upgrade to Pro
+                                  </>
+                                )}
                               </Button>
                             )}
                           </div>
@@ -395,7 +449,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle>Projects Overview</CardTitle>
             <CardDescription>
-              View all projects and their details
+              View all projects and their details ({filteredProjects.length} projects)
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -413,11 +467,13 @@ export default function AdminDashboard() {
                       <th className="text-left p-3">Slug</th>
                       <th className="text-left p-3">Owner</th>
                       <th className="text-left p-3">Plan</th>
+                      <th className="text-left p-3">Posts</th>
                       <th className="text-left p-3">Created</th>
+                      <th className="text-left p-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {projects.map((project) => (
+                    {filteredProjects.map((project) => (
                       <tr key={project.id} className="border-b hover:bg-gray-50">
                         <td className="p-3 font-medium">{project.name}</td>
                         <td className="p-3">
@@ -442,9 +498,50 @@ export default function AdminDashboard() {
                           </Badge>
                         </td>
                         <td className="p-3">
+                          <div className="flex items-center gap-1">
+                            <MessageSquare className="w-3 h-3 text-gray-400" />
+                            {project.posts_count}
+                          </div>
+                        </td>
+                        <td className="p-3">
                           <div className="flex items-center gap-1 text-sm text-gray-600">
                             <Calendar className="w-3 h-3" />
                             {new Date(project.created_at).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex gap-2">
+                            {project.plan === 'free' ? (
+                              <Button
+                                size="sm"
+                                onClick={() => handleProjectAction(project.id, 'upgrade')}
+                                disabled={actionLoading === project.id}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                {actionLoading === project.id ? (
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Crown className="w-3 h-3 mr-1" />
+                                    Upgrade to Pro
+                                  </>
+                                )}
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleProjectAction(project.id, 'downgrade')}
+                                disabled={actionLoading === project.id}
+                                className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                              >
+                                {actionLoading === project.id ? (
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  'Downgrade to Free'
+                                )}
+                              </Button>
+                            )}
                           </div>
                         </td>
                       </tr>
