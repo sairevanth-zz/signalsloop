@@ -1,103 +1,102 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-});
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not configured');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2024-06-20',
+  });
+};
 
-export async function POST(request: Request) {
+const getSupabase = () => {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE) {
+    throw new Error('Supabase configuration is missing');
+  }
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE
+  );
+};
+
+export async function POST(request: NextRequest) {
   try {
     const { projectId } = await request.json();
 
     if (!projectId) {
-      return NextResponse.json(
-        { error: 'Project ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
 
-    console.log('🔍 Cancel subscription request for projectId:', projectId);
-
-    // Get project data from Supabase
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE!
-    );
-
-    // Check if this is account-level billing (user ID as project ID)
-    if (projectId && projectId.length > 20) {
-      console.log('🔍 Detected account-level cancel subscription');
-      
-      // For account-level billing, we don't have a subscription_id yet
-      // This is a mock response for now
-      console.log('⚠️ Account-level billing detected but no subscription setup yet');
-      
-      return NextResponse.json({ 
-        success: true, 
-        message: 'Subscription cancellation request received. No active subscription found for account-level billing.',
-        cancel_at: null
-      });
-    }
-
-    // Project-level billing (existing logic)
+    const supabase = getSupabase();
+    
+    // Get project details
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .select('stripe_customer_id, subscription_id')
+      .select('*')
       .eq('id', projectId)
       .single();
 
     if (projectError || !project) {
-      console.error('Error fetching project:', projectError);
-      return NextResponse.json(
-        { error: 'Project not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    if (!project.subscription_id) {
-      console.log('⚠️ Project has no subscription ID, returning mock response');
-      return NextResponse.json({ 
-        success: true, 
-        message: 'No active subscription found. You are currently on a free plan.',
-        cancel_at: null
-      });
+    if (project.plan !== 'pro') {
+      return NextResponse.json({ error: 'No active Pro subscription found' }, { status: 400 });
     }
 
-    // Cancel the subscription at period end
-    const subscription = await stripe.subscriptions.update(
-      project.subscription_id,
-      {
-        cancel_at_period_end: true,
+    // If there's a Stripe subscription, cancel it
+    if (project.subscription_id) {
+      const stripe = getStripe();
+      
+      try {
+        await stripe.subscriptions.update(project.subscription_id, {
+          cancel_at_period_end: true,
+        });
+      } catch (stripeError) {
+        console.error('Stripe cancellation error:', stripeError);
+        // Continue with database update even if Stripe fails
       }
-    );
+    }
 
-    // Update the project record
+    // Update project in database
     const { error: updateError } = await supabase
       .from('projects')
       .update({
         cancel_at_period_end: true,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', projectId);
 
     if (updateError) {
-      console.error('Error updating project:', updateError);
+      console.error('Database update error:', updateError);
+      return NextResponse.json({ error: 'Failed to update subscription' }, { status: 500 });
     }
 
-    console.log('✅ Subscription cancelled at period end:', subscription.id);
+    // Log the cancellation event
+    await supabase
+      .from('billing_events')
+      .insert({
+        project_id: projectId,
+        event_type: 'subscription_cancelled',
+        stripe_customer_id: project.stripe_customer_id,
+        metadata: {
+          cancelled_at: new Date().toISOString(),
+          cancel_at_period_end: true,
+        },
+      });
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Subscription will be cancelled at the end of the billing period',
-      cancel_at: subscription.cancel_at
+      message: 'Subscription cancelled successfully. You will retain Pro features until the end of your billing period.' 
     });
 
   } catch (error) {
-    console.error('Error cancelling subscription:', error);
-    return NextResponse.json(
-      { error: 'Failed to cancel subscription' },
-      { status: 500 }
-    );
+    console.error('Cancel subscription error:', error);
+    return NextResponse.json({ 
+      error: 'Failed to cancel subscription',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

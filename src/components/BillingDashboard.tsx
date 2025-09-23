@@ -385,59 +385,18 @@ export function BillingDashboard({
     console.log('🔧 Manage billing clicked');
     console.log('📋 Billing info:', billingInfo);
     
-    // Check if this is account-level billing
-    if (projectId && projectId.length > 20) {
-      console.log('🔍 Account-level billing - no Stripe customer setup yet');
-      toast.info('Billing management is not yet set up for account-level billing. Please contact support for billing assistance.');
-      return;
-    }
-    
-    if (!billingInfo.stripe_customer_id) {
-      console.log('⚠️ No Stripe customer ID found');
+    if (billingInfo.plan !== 'pro') {
+      console.log('⚠️ User is not on Pro plan');
       toast.info('You need to upgrade to Pro first to access billing management. Click "Upgrade Now" to get started!');
       return;
     }
 
-    setLoading(true);
+    // Redirect to our custom billing management page
+    const billingUrl = projectSlug === 'account' 
+      ? '/app/billing-manage'
+      : `/${projectSlug}/billing-manage`;
     
-    try {
-      console.log('🚀 Creating Stripe portal session...');
-      // Create Stripe Customer Portal session
-      const response = await fetch('/api/stripe/portal', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          customerId: billingInfo.stripe_customer_id,
-          returnUrl: projectSlug === 'account' 
-            ? `${window.location.origin}/app/billing`
-            : `${window.location.origin}/${projectSlug}/billing`
-        })
-      });
-
-      console.log('📡 Portal response status:', response.status);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('❌ Portal API error:', errorData);
-        throw new Error(errorData.error || 'Failed to create portal session');
-      }
-
-      const { url } = await response.json();
-      console.log('✅ Portal URL received:', url);
-      
-      if (url) {
-        window.location.href = url;
-      } else {
-        throw new Error('No portal URL received');
-      }
-    } catch (error) {
-      console.error('❌ Error opening billing portal:', error);
-      toast.error('Failed to open billing management: ' + (error as Error).message);
-    } finally {
-      setLoading(false);
-    }
+    window.location.href = billingUrl;
   };
 
   const handleUpgradeToYearly = async () => {
