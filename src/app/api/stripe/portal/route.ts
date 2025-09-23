@@ -6,7 +6,7 @@ const getStripe = () => {
     throw new Error('STRIPE_SECRET_KEY is not configured');
   }
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-08-27.basil',
+    apiVersion: '2024-06-20',
   });
 };
 
@@ -28,6 +28,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: portalSession.url });
   } catch (error) {
     console.error('Portal session error:', error);
-    return NextResponse.json({ error: 'Failed to create portal session' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to create portal session',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

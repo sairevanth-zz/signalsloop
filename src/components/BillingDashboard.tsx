@@ -394,7 +394,7 @@ export function BillingDashboard({
     
     if (!billingInfo.stripe_customer_id) {
       console.log('⚠️ No Stripe customer ID found');
-      toast.error('No billing account found. Please upgrade to Pro first.');
+      toast.info('You need to upgrade to Pro first to access billing management. Click "Upgrade Now" to get started!');
       return;
     }
 
@@ -420,6 +420,7 @@ export function BillingDashboard({
       
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('❌ Portal API error:', errorData);
         throw new Error(errorData.error || 'Failed to create portal session');
       }
 
