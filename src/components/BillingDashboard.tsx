@@ -441,49 +441,6 @@ export function BillingDashboard({
     }
   };
 
-  const handleCancelSubscription = async () => {
-    console.log('❌ Cancel subscription clicked');
-    console.log('📋 Project ID:', projectId);
-    
-    if (!confirm('Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of your billing period.')) {
-      return;
-    }
-
-    setLoading(true);
-    
-    try {
-      console.log('🚀 Cancelling subscription...');
-      // Cancel subscription at period end
-      const response = await fetch('/api/stripe/cancel-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          projectId: projectId
-        })
-      });
-
-      console.log('📡 Cancel subscription response status:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to cancel subscription');
-      }
-
-      const result = await response.json();
-      console.log('✅ Subscription cancelled:', result);
-      toast.success(result.message || 'Subscription will be cancelled at the end of your billing period');
-      
-      // Reload billing info
-      loadBillingInfo();
-    } catch (error) {
-      console.error('❌ Error cancelling subscription:', error);
-      toast.error('Failed to cancel subscription: ' + (error as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCancelTrial = async () => {
     console.log('❌ Cancel trial clicked');
@@ -719,16 +676,6 @@ export function BillingDashboard({
                     </>
                   )}
                 </div>
-                {!billingInfo.is_trial && (
-                  <Button 
-                    onClick={handleCancelSubscription}
-                    disabled={loading}
-                    variant="destructive"
-                    size="sm"
-                  >
-                    Cancel Subscription
-                  </Button>
-                )}
               </div>
             )}
           </div>
