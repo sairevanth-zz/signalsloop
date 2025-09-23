@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { randomUUID } from 'crypto';
 
 const getSupabase = () => {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE) {
@@ -21,35 +22,31 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabase();
 
-    // Find or create user by email
-    let { data: users, error: userError } = await supabase
-      .from('users')
-      .select('id, email')
-      .eq('email', email)
-      .limit(1);
+    // Find or create user by email using Supabase Auth
+    let { data: users, error: userError } = await supabase.auth.admin.listUsers();
+    
+    let user = null;
+    
+    if (!userError && users?.users) {
+      user = users.users.find(u => u.email === email);
+    }
 
-    let user;
+    if (!user) {
+      // Create user using Supabase Auth Admin API
+      const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
+        email: email,
+        email_confirm: true,
+        user_metadata: {
+          source: 'trial_signup'
+        }
+      });
 
-    if (userError || !users || users.length === 0) {
-      // Create user if they don't exist
-      const { data: newUser, error: createUserError } = await supabase
-        .from('users')
-        .insert({
-          email: email,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select('id, email')
-        .single();
-
-      if (createUserError || !newUser) {
+      if (createUserError || !newUser?.user) {
         console.error('Error creating user:', createUserError);
-        return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to create user', details: createUserError }, { status: 500 });
       }
 
-      user = newUser;
-    } else {
-      user = users[0];
+      user = newUser.user;
     }
 
     // Find user's primary project
@@ -70,18 +67,16 @@ export async function POST(request: NextRequest) {
           owner_id: user.id,
           name: 'My Project',
           slug: `project-${Date.now()}`,
-          description: 'Default project created for trial',
           plan: 'free',
-          subscription_status: 'none',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          subscription_status: 'trialing'
         })
         .select('*')
         .single();
 
       if (createProjectError || !newProject) {
         console.error('Error creating project:', createProjectError);
-        return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
+        console.error('Project data attempted:', { owner_id: user.id, name: 'My Project', slug: `project-${Date.now()}` });
+        return NextResponse.json({ error: 'Failed to create project', details: createProjectError }, { status: 500 });
       }
 
       project = newProject;
