@@ -113,24 +113,6 @@ export default function GlobalBanner({
     }
   };
 
-  const handleCancelTrial = async () => {
-    if (!projectSlug) return;
-
-    try {
-      const response = await fetch('/api/trial/cancel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: projectSlug }),
-      });
-
-      if (response.ok) {
-        // Reload billing info
-        loadBillingInfo();
-      }
-    } catch (error) {
-      console.error('Error canceling trial:', error);
-    }
-  };
 
   if (loading) {
     return (
@@ -207,15 +189,6 @@ export default function GlobalBanner({
                         >
                           Manage Billing
                         </Button>
-                        {billingInfo.plan === 'pro' && (
-                          <Button 
-                            onClick={handleCancelTrial}
-                            variant="outline" 
-                            size="sm"
-                          >
-                            Cancel Subscription
-                          </Button>
-                        )}
                       </>
                     )}
                   </div>
