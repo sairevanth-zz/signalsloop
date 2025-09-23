@@ -42,13 +42,13 @@ export default function Homepage() {
       
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
+              <div className="w-7 h-7 md:w-8 md:h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-xs md:text-sm">S</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
+              <span className="text-lg md:text-xl font-bold text-gray-900">SignalsLoop</span>
             </div>
             
             <nav className="hidden md:flex items-center space-x-8">
@@ -63,13 +63,13 @@ export default function Homepage() {
               </Link>
             </nav>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 md:space-x-4">
               <Link href="/login">
-                <Button variant="ghost">Sign In</Button>
+                <Button variant="ghost" className="text-sm md:text-base min-h-[44px] px-3 md:px-4">Sign In</Button>
               </Link>
               <Button 
                 onClick={handleProCheckout}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl px-8 py-3"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl px-6 md:px-8 py-3 text-sm md:text-base min-h-[44px]"
               >
                 Get Started
               </Button>
@@ -79,34 +79,35 @@ export default function Homepage() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-24 md:py-32 px-4">
+      <section className="py-16 md:py-24 lg:py-32 px-4">
         <div className="container mx-auto text-center">
-          <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200">
+          <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200 text-sm">
             ✨ AI-Powered Feedback Management
           </Badge>
           
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight tracking-tight animate-fade-in">
-            AI-Powered Feedback That<br />
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 md:mb-8 leading-tight tracking-tight animate-fade-in">
+            AI-Powered Feedback That<br className="hidden sm:block" />
+            <span className="block sm:inline"> </span>
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent animate-gradient">
               Actually Gets Organized
             </span>
           </h1>
           
-          <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
+          <p className="text-lg sm:text-xl text-gray-600 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed font-medium px-4">
             Stop drowning in scattered feedback. Our AI instantly categorizes every user suggestion, so you can focus on building what matters most.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center mb-12 md:mb-16 px-4">
             <Button 
               onClick={handleProCheckout}
               size="lg"
-              className="text-lg px-10 py-4 gap-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="text-base sm:text-lg px-6 sm:px-8 md:px-10 py-3 sm:py-4 gap-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl min-h-[44px] w-full sm:w-auto"
             >
               Start Organizing Feedback Instantly
-              <ArrowRight className="h-5 w-5" />
+              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
-            <Link href="/demo/board">
-              <Button size="lg" variant="outline" className="text-lg px-10 py-4 rounded-xl border-2 hover:bg-gray-50 transition-all duration-200">
+            <Link href="/demo/board" className="w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="text-base sm:text-lg px-6 sm:px-8 md:px-10 py-3 sm:py-4 rounded-xl border-2 hover:bg-gray-50 transition-all duration-200 min-h-[44px] w-full">
                 View Live Demo
               </Button>
             </Link>
@@ -311,91 +312,91 @@ export default function Homepage() {
       </section>
 
       {/* Before/After Comparison Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-gray-50 to-blue-50 relative">
+      <section className="py-16 md:py-20 lg:py-24 px-4 bg-gradient-to-br from-gray-50 to-blue-50 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-gray-100/20 to-blue-100/20"></div>
         <div className="container mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               See the difference AI makes
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4">
               Transform chaotic feedback into organized, actionable insights
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 md:gap-12 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-6xl mx-auto">
             {/* Before SignalsLoop */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-lg border border-red-100/50">
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 md:p-8 shadow-lg border border-red-100/50">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-red-600 mb-2">Before SignalsLoop</h3>
-                <p className="text-gray-600">Feedback scattered everywhere</p>
+                <h3 className="text-xl md:text-2xl font-bold text-red-600 mb-2">Before SignalsLoop</h3>
+                <p className="text-gray-600 text-sm md:text-base">Feedback scattered everywhere</p>
               </div>
               
               <div className="space-y-4">
                 {/* Scattered feedback icons */}
-                <div className="flex flex-wrap gap-3 justify-center">
-                  <div className="bg-red-100 rounded-lg p-3 flex items-center gap-2">
-                    <span className="text-2xl">📧</span>
-                    <span className="text-sm text-red-700">Email threads</span>
+                <div className="flex flex-wrap gap-2 md:gap-3 justify-center">
+                  <div className="bg-red-100 rounded-lg p-2 md:p-3 flex items-center gap-2">
+                    <span className="text-lg md:text-2xl">📧</span>
+                    <span className="text-xs md:text-sm text-red-700">Email threads</span>
                   </div>
-                  <div className="bg-orange-100 rounded-lg p-3 flex items-center gap-2">
-                    <span className="text-2xl">💬</span>
-                    <span className="text-sm text-orange-700">Slack messages</span>
+                  <div className="bg-orange-100 rounded-lg p-2 md:p-3 flex items-center gap-2">
+                    <span className="text-lg md:text-2xl">💬</span>
+                    <span className="text-xs md:text-sm text-orange-700">Slack messages</span>
                   </div>
-                  <div className="bg-yellow-100 rounded-lg p-3 flex items-center gap-2">
-                    <span className="text-2xl">📝</span>
-                    <span className="text-sm text-yellow-700">Sticky notes</span>
+                  <div className="bg-yellow-100 rounded-lg p-2 md:p-3 flex items-center gap-2">
+                    <span className="text-lg md:text-2xl">📝</span>
+                    <span className="text-xs md:text-sm text-yellow-700">Sticky notes</span>
                   </div>
-                  <div className="bg-pink-100 rounded-lg p-3 flex items-center gap-2">
-                    <span className="text-2xl">🎫</span>
-                    <span className="text-sm text-pink-700">Support tickets</span>
+                  <div className="bg-pink-100 rounded-lg p-2 md:p-3 flex items-center gap-2">
+                    <span className="text-lg md:text-2xl">🎫</span>
+                    <span className="text-xs md:text-sm text-pink-700">Support tickets</span>
                   </div>
                 </div>
                 
                 {/* Visual chaos representation */}
-                <div className="bg-gray-100 rounded-lg p-6 mt-6">
-                  <div className="text-center text-gray-500 text-sm mb-4">Visual Chaos</div>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    <div className="w-8 h-8 bg-red-200 rounded rotate-12"></div>
-                    <div className="w-6 h-6 bg-orange-200 rounded-full rotate-45"></div>
-                    <div className="w-10 h-4 bg-yellow-200 rounded rotate-6"></div>
-                    <div className="w-7 h-7 bg-pink-200 rounded rotate-12"></div>
-                    <div className="w-5 h-8 bg-blue-200 rounded rotate-45"></div>
-                    <div className="w-9 h-3 bg-green-200 rounded rotate-6"></div>
+                <div className="bg-gray-100 rounded-lg p-4 md:p-6 mt-4 md:mt-6">
+                  <div className="text-center text-gray-500 text-xs md:text-sm mb-3 md:mb-4">Visual Chaos</div>
+                  <div className="flex flex-wrap gap-1 md:gap-2 justify-center">
+                    <div className="w-6 h-6 md:w-8 md:h-8 bg-red-200 rounded rotate-12"></div>
+                    <div className="w-4 h-4 md:w-6 md:h-6 bg-orange-200 rounded-full rotate-45"></div>
+                    <div className="w-8 h-3 md:w-10 md:h-4 bg-yellow-200 rounded rotate-6"></div>
+                    <div className="w-5 h-5 md:w-7 md:h-7 bg-pink-200 rounded rotate-12"></div>
+                    <div className="w-4 h-6 md:w-5 md:h-8 bg-blue-200 rounded rotate-45"></div>
+                    <div className="w-7 h-2 md:w-9 md:h-3 bg-green-200 rounded rotate-6"></div>
                   </div>
                 </div>
               </div>
             </div>
             
             {/* After SignalsLoop */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-lg border border-green-100/50">
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 md:p-8 shadow-lg border border-green-100/50">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-green-600 mb-2">After SignalsLoop</h3>
-                <p className="text-gray-600">AI automatically organizes everything</p>
+                <h3 className="text-xl md:text-2xl font-bold text-green-600 mb-2">After SignalsLoop</h3>
+                <p className="text-gray-600 text-sm md:text-base">AI automatically organizes everything</p>
               </div>
               
               <div className="space-y-4">
                 {/* Organized board interface mockup */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="text-center text-gray-600 text-sm mb-3">Organized Feedback Board</div>
+                <div className="bg-gray-50 rounded-lg p-3 md:p-4">
+                  <div className="text-center text-gray-600 text-xs md:text-sm mb-2 md:mb-3">Organized Feedback Board</div>
                   
                   {/* Categories */}
-                  <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="grid grid-cols-2 gap-2 mb-3 md:mb-4">
                     <div className="bg-blue-100 rounded-lg p-2 text-center">
                       <div className="text-xs text-blue-700 font-medium">Bug Reports</div>
-                      <div className="text-lg font-bold text-blue-600">12</div>
+                      <div className="text-sm md:text-lg font-bold text-blue-600">12</div>
                     </div>
                     <div className="bg-green-100 rounded-lg p-2 text-center">
                       <div className="text-xs text-green-700 font-medium">Features</div>
-                      <div className="text-lg font-bold text-green-600">8</div>
+                      <div className="text-sm md:text-lg font-bold text-green-600">8</div>
                     </div>
                     <div className="bg-purple-100 rounded-lg p-2 text-center">
                       <div className="text-xs text-purple-700 font-medium">UI/UX</div>
-                      <div className="text-lg font-bold text-purple-600">5</div>
+                      <div className="text-sm md:text-lg font-bold text-purple-600">5</div>
                     </div>
                     <div className="bg-orange-100 rounded-lg p-2 text-center">
                       <div className="text-xs text-orange-700 font-medium">Enhancements</div>
-                      <div className="text-lg font-bold text-orange-600">3</div>
+                      <div className="text-sm md:text-lg font-bold text-orange-600">3</div>
                     </div>
                   </div>
                   
@@ -501,20 +502,20 @@ export default function Homepage() {
       </section>
 
       {/* AI Categorization Showcase */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative">
+      <section className="py-16 md:py-20 lg:py-24 px-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-100/20 to-purple-100/20"></div>
         <div className="container mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Watch AI organize feedback instantly
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4">
               See how our AI processes and categorizes feedback in real-time
             </p>
           </div>
           
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-lg border border-purple-100/50">
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 md:p-8 shadow-lg border border-purple-100/50">
               {/* Demo Flow */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-center">
                 {/* Step 1: Feedback Submission */}
@@ -673,11 +674,11 @@ export default function Homepage() {
           <div className="max-w-3xl mx-auto">
             <div className="bg-gray-900 rounded-xl p-4 md:p-8 text-white font-mono text-xs md:text-sm shadow-lg">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 md:mb-6">
-                <span className="text-green-400 font-medium">→ Install Widget</span>
+                <span className="text-green-400 font-medium text-sm">→ Install Widget</span>
                 <Button 
                   size="sm" 
                   variant="secondary" 
-                  className="rounded-lg hover:bg-gray-700 transition-colors w-full sm:w-auto"
+                  className="rounded-lg hover:bg-gray-700 transition-colors w-full sm:w-auto min-h-[44px]"
                   onClick={() => {
                     navigator.clipboard.writeText('<script src="https://signalsloop.com/embed/demo.js"></script>');
                     // You could add a toast notification here
@@ -686,19 +687,19 @@ export default function Homepage() {
                   Copy
                 </Button>
               </div>
-              <code className="text-gray-300 block break-all">
+              <code className="text-gray-300 block break-all text-xs md:text-sm">
                 {`<script src="https://signalsloop.com/embed/demo.js"></script>`}
               </code>
             </div>
             
             {/* Widget Preview */}
-            <div className="mt-8 bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+            <div className="mt-6 md:mt-8 bg-white rounded-xl p-4 md:p-6 shadow-lg border border-gray-200">
               <div className="text-center mb-4">
                 <span className="text-sm text-gray-600 font-medium">Widget Preview</span>
               </div>
               
               {/* Realistic Website Integration */}
-              <div className="bg-gray-50 rounded-lg p-4 relative overflow-hidden">
+              <div className="bg-gray-50 rounded-lg p-3 md:p-4 relative overflow-hidden">
                 {/* Browser frame */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   {/* Browser header */}
@@ -716,17 +717,17 @@ export default function Homepage() {
                   {/* Website Content */}
                   <div className="bg-white">
                     {/* App Header */}
-                    <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                          <span className="text-white text-sm font-bold">M</span>
+                    <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2 md:gap-3">
+                        <div className="w-6 h-6 md:w-8 md:h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-xs md:text-sm font-bold">M</span>
                         </div>
                         <div>
-                          <h1 className="text-lg font-semibold text-gray-900">MyApp</h1>
-                          <p className="text-sm text-gray-500">Dashboard</p>
+                          <h1 className="text-base md:text-lg font-semibold text-gray-900">MyApp</h1>
+                          <p className="text-xs md:text-sm text-gray-500">Dashboard</p>
                         </div>
                       </div>
-                      <nav className="flex gap-6 text-sm text-gray-600">
+                      <nav className="hidden sm:flex gap-4 md:gap-6 text-xs md:text-sm text-gray-600">
                         <span className="hover:text-gray-900 cursor-pointer">Analytics</span>
                         <span className="hover:text-gray-900 cursor-pointer">Users</span>
                         <span className="hover:text-gray-900 cursor-pointer">Settings</span>
@@ -734,26 +735,26 @@ export default function Homepage() {
                     </div>
                     
                     {/* Dashboard Content */}
-                    <div className="p-6">
+                    <div className="p-4 md:p-6">
                       {/* Welcome Section */}
-                      <div className="mb-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome back, Sarah!</h2>
-                        <p className="text-gray-600">Here's what's happening with your app today.</p>
+                      <div className="mb-4 md:mb-6">
+                        <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Welcome back, Sarah!</h2>
+                        <p className="text-sm md:text-base text-gray-600">Here's what's happening with your app today.</p>
                       </div>
                       
                       {/* Stats Grid */}
-                      <div className="grid grid-cols-3 gap-4 mb-6">
-                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                          <div className="text-2xl font-bold text-blue-600">1,234</div>
-                          <div className="text-sm text-blue-700">Active Users</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
+                        <div className="bg-blue-50 rounded-lg p-3 md:p-4 border border-blue-200">
+                          <div className="text-xl md:text-2xl font-bold text-blue-600">1,234</div>
+                          <div className="text-xs md:text-sm text-blue-700">Active Users</div>
                         </div>
-                        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                          <div className="text-2xl font-bold text-green-600">$5,678</div>
-                          <div className="text-sm text-green-700">Revenue</div>
+                        <div className="bg-green-50 rounded-lg p-3 md:p-4 border border-green-200">
+                          <div className="text-xl md:text-2xl font-bold text-green-600">$5,678</div>
+                          <div className="text-xs md:text-sm text-green-700">Revenue</div>
                         </div>
-                        <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                          <div className="text-2xl font-bold text-purple-600">89</div>
-                          <div className="text-sm text-purple-700">New Signups</div>
+                        <div className="bg-purple-50 rounded-lg p-3 md:p-4 border border-purple-200">
+                          <div className="text-xl md:text-2xl font-bold text-purple-600">89</div>
+                          <div className="text-xs md:text-sm text-purple-700">New Signups</div>
                         </div>
                       </div>
                       
@@ -791,15 +792,15 @@ export default function Homepage() {
                 </div>
                 
                 {/* Callout annotation */}
-                <div className="absolute bottom-16 right-2 bg-white rounded-lg shadow-lg border border-gray-200 p-3 max-w-48">
+                <div className="absolute bottom-12 md:bottom-16 right-1 md:right-2 bg-white rounded-lg shadow-lg border border-gray-200 p-2 md:p-3 max-w-40 md:max-w-48">
                   <div className="flex items-start gap-2">
                     <div className="flex-1">
                       <div className="text-xs font-medium text-gray-900 mb-1">Users click here to submit feedback</div>
                       <div className="text-xs text-gray-600">AI automatically organizes their suggestions</div>
                     </div>
                     <div className="flex-shrink-0">
-                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                        <ArrowRight className="h-3 w-3 text-blue-600 rotate-45" />
+                      <div className="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                        <ArrowRight className="h-2 w-2 md:h-3 md:w-3 text-blue-600 rotate-45" />
                       </div>
                     </div>
                   </div>
@@ -822,16 +823,16 @@ export default function Homepage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-24 md:py-32 px-4 bg-white">
+      <section id="pricing" className="py-16 md:py-24 lg:py-32 px-4 bg-white">
         <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200">
+          <div className="text-center mb-12 md:mb-16">
+            <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200 text-sm">
               💎 Simple, Transparent Pricing
             </Badge>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               AI-powered pricing that scales with you
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-lg sm:text-xl text-gray-600 px-4">
               Start free. Upgrade for advanced features starting at $19/month.
             </p>
           </div>
@@ -853,7 +854,7 @@ export default function Homepage() {
             </div>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
             <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/80 backdrop-blur-sm rounded-xl">
               <CardHeader className="text-center pb-6">
                 <CardTitle className="text-2xl font-bold">Free</CardTitle>
@@ -945,34 +946,34 @@ export default function Homepage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 md:py-32 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <section className="py-16 md:py-24 lg:py-32 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="container mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             Ready to start organizing feedback with AI?
           </h2>
-          <p className="text-xl mb-8 opacity-90">
+          <p className="text-lg sm:text-xl mb-8 opacity-90 px-4">
             Join 100+ product teams who've organized 10,000+ pieces of feedback with AI
           </p>
           <div className="mb-6">
-            <Badge className="bg-white text-blue-600 text-lg px-4 py-2">
+            <Badge className="bg-white text-blue-600 text-base md:text-lg px-4 py-2">
               ✨ Ready to Get Started?
             </Badge>
           </div>
           <Button 
             onClick={handleProCheckout}
             size="lg" 
-            className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-10 py-4 font-bold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+            className="bg-white text-blue-600 hover:bg-gray-100 text-base md:text-lg px-6 md:px-10 py-3 md:py-4 font-bold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl min-h-[44px]"
           >
             🚀 Get Started Now
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
             </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4">
+      <footer className="bg-gray-900 text-white py-8 md:py-12 px-4">
         <div className="container mx-auto">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
