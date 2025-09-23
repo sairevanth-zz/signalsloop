@@ -132,7 +132,7 @@ export default function APIDocumentationPage() {
             <div className="bg-gray-50 rounded-lg p-4">
               <h4 className="font-semibold mb-2">Base URL</h4>
               <CodeBlock id="base-url" language="text">
-                https://signalsloop.vercel.app/api/v1
+                https://signalsloop.com/api/v1
               </CodeBlock>
             </div>
           </CardContent>
@@ -256,7 +256,7 @@ export default function APIDocumentationPage() {
                   <h4 className="font-semibold mb-2">Example Request</h4>
                   <CodeBlock id="list-posts">
                     curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://signalsloop.vercel.app/api/v1/posts?limit=10&status=open"
+  "https://signalsloop.com/api/v1/posts?limit=10&status=open"
                   </CodeBlock>
                 </div>
 
@@ -369,7 +369,7 @@ export default function APIDocumentationPage() {
     "author_name": "John Doe",
     "author_email": "john@example.com"
   }' \\
-  "https://signalsloop.vercel.app/api/v1/posts"`}
+  "https://signalsloop.com/api/v1/posts"`}
                   </CodeBlock>
                 </div>
               </CardContent>
@@ -396,7 +396,7 @@ export default function APIDocumentationPage() {
                   <h4 className="font-semibold mb-2">Example Request</h4>
                   <CodeBlock id="get-post">
                     curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://signalsloop.vercel.app/api/v1/posts/post-123"
+  "https://signalsloop.com/api/v1/posts/post-123"
                   </CodeBlock>
                 </div>
               </CardContent>
@@ -429,7 +429,7 @@ export default function APIDocumentationPage() {
     "status": "in_progress",
     "title": "Updated: Fix login button"
   }' \\
-  "https://signalsloop.vercel.app/api/v1/posts/post-123"`}
+  "https://signalsloop.com/api/v1/posts/post-123"`}
                   </CodeBlock>
                 </div>
               </CardContent>
@@ -464,7 +464,7 @@ export default function APIDocumentationPage() {
                   <CodeBlock id="delete-post">
                     curl -X DELETE \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://signalsloop.vercel.app/api/v1/posts/post-123"
+  "https://signalsloop.com/api/v1/posts/post-123"
                   </CodeBlock>
                 </div>
               </CardContent>
@@ -492,7 +492,7 @@ export default function APIDocumentationPage() {
                   </div>
                   <CodeBlock id="list-comments">
                     curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://signalsloop.vercel.app/api/v1/posts/post-123/comments"
+  "https://signalsloop.com/api/v1/posts/post-123/comments"
                   </CodeBlock>
                 </div>
 
@@ -511,7 +511,7 @@ export default function APIDocumentationPage() {
     "author_name": "Support Team",
     "author_email": "support@company.com"
   }' \\
-  "https://signalsloop.vercel.app/api/v1/posts/post-123/comments"`}
+  "https://signalsloop.com/api/v1/posts/post-123/comments"`}
                   </CodeBlock>
                 </div>
               </CardContent>
@@ -540,7 +540,7 @@ export default function APIDocumentationPage() {
                   <h4 className="font-semibold mb-2">Example Request</h4>
                   <CodeBlock id="get-stats">
                     curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://signalsloop.vercel.app/api/v1/stats"
+  "https://signalsloop.com/api/v1/stats"
                   </CodeBlock>
                 </div>
 

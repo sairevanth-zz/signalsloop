@@ -99,7 +99,7 @@ export default function AdminSEOPage() {
               <Label htmlFor="url">Page URL</Label>
               <Input
                 id="url"
-                placeholder="https://signalsloop.vercel.app/app"
+                placeholder="https://signalsloop.com/app"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
               />

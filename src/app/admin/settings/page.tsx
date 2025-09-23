@@ -37,7 +37,7 @@ interface AdminSettings {
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<AdminSettings>({
     platformName: 'SignalsLoop',
-    platformUrl: 'https://signalsloop.vercel.app',
+    platformUrl: 'https://signalsloop.com',
     adminEmails: ['revanth@signalloop.com', 'admin@signalloop.com'],
     maintenanceMode: false,
     allowRegistrations: true,
@@ -82,7 +82,7 @@ export default function AdminSettingsPage() {
     // Reset to default values
     setSettings({
       platformName: 'SignalsLoop',
-      platformUrl: 'https://signalsloop.vercel.app',
+      platformUrl: 'https://signalsloop.com',
       adminEmails: ['revanth@signalloop.com', 'admin@signalloop.com'],
       maintenanceMode: false,
       allowRegistrations: true,
