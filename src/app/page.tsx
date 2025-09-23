@@ -698,11 +698,77 @@ export default function Homepage() {
               </div>
               
               {/* Mock website with widget button */}
-              <div className="bg-gray-50 rounded-lg p-4 relative">
-                <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-3/4 mb-4"></div>
-                  <div className="h-2 bg-gray-200 rounded w-1/2"></div>
+              <div className="bg-gray-50 rounded-lg p-4 relative overflow-hidden">
+                {/* Browser frame */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  {/* Browser header */}
+                  <div className="bg-gray-100 px-4 py-2 flex items-center gap-2 border-b border-gray-200">
+                    <div className="flex gap-1">
+                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                    </div>
+                    <div className="flex-1 bg-white rounded px-3 py-1 text-xs text-gray-500 text-center">
+                      your-website.com
+                    </div>
+                  </div>
+                  
+                  {/* Website content */}
+                  <div className="p-6">
+                    {/* Navigation */}
+                    <nav className="flex items-center justify-between mb-8">
+                      <div className="text-lg font-bold text-gray-900">YourApp</div>
+                      <div className="flex gap-6 text-sm text-gray-600">
+                        <span className="hover:text-gray-900 cursor-pointer">Home</span>
+                        <span className="hover:text-gray-900 cursor-pointer">Features</span>
+                        <span className="hover:text-gray-900 cursor-pointer">Pricing</span>
+                        <span className="hover:text-gray-900 cursor-pointer">Contact</span>
+                      </div>
+                    </nav>
+                    
+                    {/* Hero section */}
+                    <div className="text-center mb-8">
+                      <h1 className="text-2xl font-bold text-gray-900 mb-3">Welcome to YourApp</h1>
+                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                        The all-in-one solution for managing your business operations with AI-powered insights.
+                      </p>
+                      <div className="flex gap-3 justify-center">
+                        <div className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                          Get Started
+                        </div>
+                        <div className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">
+                          Learn More
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Features grid */}
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                          <span className="text-blue-600 text-sm">📊</span>
+                        </div>
+                        <div className="text-xs font-medium text-gray-700">Analytics</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="w-8 h-8 bg-green-100 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                          <span className="text-green-600 text-sm">⚡</span>
+                        </div>
+                        <div className="text-xs font-medium text-gray-700">Automation</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="w-8 h-8 bg-purple-100 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                          <span className="text-purple-600 text-sm">🔒</span>
+                        </div>
+                        <div className="text-xs font-medium text-gray-700">Security</div>
+                      </div>
+                    </div>
+                    
+                    {/* Stats */}
+                    <div className="text-center text-sm text-gray-500">
+                      Trusted by 10,000+ businesses worldwide
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Widget button */}
