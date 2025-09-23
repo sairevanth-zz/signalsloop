@@ -35,8 +35,9 @@ export default function Homepage() {
 
   const handleProCheckout = async () => {
     console.log('🚀 handleProCheckout called!');
-    alert('Button clicked! Starting trial...');
+    console.log('🔄 Setting loading state...');
     setIsLoading(true);
+    console.log('✅ Loading state set');
     
     try {
       console.log('📧 Getting user email...');
@@ -98,10 +99,14 @@ export default function Homepage() {
       console.log('✅ Redirect initiated');
       
     } catch (error) {
-      console.error('Trial start error:', error);
+      console.error('❌ Trial start error:', error);
+      console.error('❌ Error type:', typeof error);
+      console.error('❌ Error message:', error instanceof Error ? error.message : 'Unknown error');
       toast.error(error instanceof Error ? error.message : 'Failed to start trial');
     } finally {
+      console.log('🧹 Finally block - setting loading to false');
       setIsLoading(false);
+      console.log('✅ Loading state cleared');
     }
   };
   return (
