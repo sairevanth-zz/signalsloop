@@ -63,18 +63,9 @@ export default function AccountBillingPage() {
       // For now, we'll create a mock project ID based on user ID
       const accountProjectId = user.id; // Using user ID as account identifier
 
-      // Load Stripe settings for the account
-      const { data: stripeData, error: stripeError } = await supabase
-        .from('stripe_settings')
-        .select('configured, payment_method, stripe_price_id')
-        .eq('project_id', accountProjectId)
-        .single();
-
-      if (stripeError && stripeError.code !== 'PGRST116') {
-        console.error('Error loading Stripe settings:', stripeError);
-      }
-
-      setStripeSettings(stripeData || { configured: false, payment_method: 'checkout_link', stripe_price_id: '' });
+      // Stripe settings - using default configuration since stripe_settings table doesn't exist
+      console.log('⚠️ stripe_settings table not found, using default configuration');
+      setStripeSettings({ configured: true, payment_method: 'checkout_link', stripe_price_id: '' });
 
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load user data.';

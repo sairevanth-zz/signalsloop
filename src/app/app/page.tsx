@@ -745,11 +745,20 @@ export default function AppPage() {
                       Welcome back! ✨
                     </span>
                   </h1>
-                  {userPlan === 'pro' && (
+                  {userPlan === 'pro' ? (
                     <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-sm">
                       <Crown className="w-3 h-3 mr-1" />
                       Pro
                     </Badge>
+                  ) : (
+                    <Button
+                      onClick={() => router.push('/app/billing')}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                      size="sm"
+                    >
+                      <Crown className="w-4 h-4 mr-2" />
+                      Upgrade to Pro
+                    </Button>
                   )}
                 </div>
                 <p className="text-gray-600 text-lg animate-fade-in-delay">

@@ -9,10 +9,16 @@ import { User } from '@supabase/supabase-js';
 
 export default function GlobalBanner({ 
   projectSlug,
-  showBilling = true 
+  showBilling = true,
+  showBackButton = false,
+  backUrl = "/app",
+  backLabel = "Back"
 }: { 
   projectSlug?: string;
   showBilling?: boolean;
+  showBackButton?: boolean;
+  backUrl?: string;
+  backLabel?: string;
 }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -151,6 +157,16 @@ export default function GlobalBanner({
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
+            {showBackButton && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push(backUrl)}
+                className="mr-2"
+              >
+                ← {backLabel}
+              </Button>
+            )}
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">S</span>
             </div>

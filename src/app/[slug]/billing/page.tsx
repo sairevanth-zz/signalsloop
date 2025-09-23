@@ -66,18 +66,9 @@ export default function BillingPage() {
 
       setProject(projectData);
 
-      // Load Stripe settings
-      const { data: stripeData, error: stripeError } = await supabase
-        .from('stripe_settings')
-        .select('configured, payment_method, stripe_price_id')
-        .eq('project_id', projectData.id)
-        .single();
-
-      if (stripeError && stripeError.code !== 'PGRST116') {
-        console.error('Error loading Stripe settings:', stripeError);
-      }
-
-      setStripeSettings(stripeData || { configured: false, payment_method: 'checkout_link', stripe_price_id: '' });
+      // Stripe settings - using default configuration since stripe_settings table doesn't exist
+      console.log('⚠️ stripe_settings table not found, using default configuration');
+      setStripeSettings({ configured: true, payment_method: 'checkout_link', stripe_price_id: '' });
 
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load project data.';

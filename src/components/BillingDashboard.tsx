@@ -341,71 +341,24 @@ export function BillingDashboard({
 
   const handleUpgrade = async () => {
     console.log('🚀 Upgrade button clicked');
-    console.log('📋 Stripe settings:', stripeSettings);
     
-    if (!stripeSettings?.configured) {
-      console.log('⚠️ Stripe not configured, using fallback pricing');
-      toast.error('Stripe is not configured yet. Using fallback upgrade process.');
-      
-      // Fallback: Use environment variables for pricing
-      const fallbackPriceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_ID;
-      if (!fallbackPriceId) {
-        toast.error('No pricing configuration found. Please contact support.');
-        return;
-      }
-      
-      setUpgrading(true);
-      
-      try {
-        const response = await fetch('/api/stripe/checkout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            projectId,
-            priceId: fallbackPriceId,
-            successUrl: `${window.location.origin}/${projectSlug}/billing/success`,
-            cancelUrl: `${window.location.origin}/${projectSlug}/billing`
-          })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to create checkout session');
-        }
-
-        const { url } = await response.json();
-        
-        if (url) {
-          window.location.href = url;
-        } else {
-          throw new Error('No checkout URL received');
-        }
-      } catch (error) {
-        console.error('Error creating checkout:', error);
-        toast.error('Failed to start checkout process: ' + (error as Error).message);
-      } finally {
-        setUpgrading(false);
-      }
-      return;
-    }
-
     setUpgrading(true);
     
     try {
-      const response = await fetch('/api/stripe/checkout', {
+      // Use homepage checkout for upgrade
+      const response = await fetch('/api/stripe/homepage-checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          projectId,
-          priceId: stripeSettings.stripe_price_id || process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
-          successUrl: `${window.location.origin}/${projectSlug}/billing/success`,
-          cancelUrl: `${window.location.origin}/${projectSlug}/billing`
+          billingType: 'monthly', // Default to monthly
+          projectId: projectId,
+          returnUrl: `${window.location.origin}/${projectSlug}/billing/success`
         })
       });
+
+      console.log('📡 Upgrade response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -413,6 +366,7 @@ export function BillingDashboard({
       }
 
       const { url } = await response.json();
+      console.log('✅ Upgrade URL received:', url);
       
       if (url) {
         window.location.href = url;
@@ -420,8 +374,8 @@ export function BillingDashboard({
         throw new Error('No checkout URL received');
       }
     } catch (error) {
-      console.error('Error creating checkout:', error);
-      toast.error('Failed to start checkout process: ' + (error as Error).message);
+      console.error('❌ Error creating upgrade checkout:', error);
+      toast.error('Failed to start upgrade process: ' + (error as Error).message);
     } finally {
       setUpgrading(false);
     }
