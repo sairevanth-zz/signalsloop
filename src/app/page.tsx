@@ -68,10 +68,12 @@ export default function Homepage() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Trial start failed:', errorData);
         throw new Error(errorData.error || 'Failed to start trial');
       }
 
       const result = await response.json();
+      console.log('Trial start result:', result);
       
       // Redirect to app with success message
       toast.success('🎉 Your 7-day free trial has started!');

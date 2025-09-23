@@ -21,32 +21,73 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabase();
 
-    // Find user by email
-    const { data: users, error: userError } = await supabase
+    // Find or create user by email
+    let { data: users, error: userError } = await supabase
       .from('users')
       .select('id, email')
       .eq('email', email)
       .limit(1);
 
+    let user;
+
     if (userError || !users || users.length === 0) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      // Create user if they don't exist
+      const { data: newUser, error: createUserError } = await supabase
+        .from('users')
+        .insert({
+          email: email,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select('id, email')
+        .single();
+
+      if (createUserError || !newUser) {
+        console.error('Error creating user:', createUserError);
+        return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+      }
+
+      user = newUser;
+    } else {
+      user = users[0];
     }
 
-    const user = users[0];
-
     // Find user's primary project
-    const { data: projects, error: projectError } = await supabase
+    let { data: projects, error: projectError } = await supabase
       .from('projects')
       .select('*')
       .eq('owner_id', user.id)
       .order('created_at', { ascending: true })
       .limit(1);
 
-    if (projectError || !projects || projects.length === 0) {
-      return NextResponse.json({ error: 'No project found for user' }, { status: 404 });
-    }
+    let project;
 
-    const project = projects[0];
+    if (projectError || !projects || projects.length === 0) {
+      // Create a default project if none exists
+      const { data: newProject, error: createProjectError } = await supabase
+        .from('projects')
+        .insert({
+          owner_id: user.id,
+          name: 'My Project',
+          slug: `project-${Date.now()}`,
+          description: 'Default project created for trial',
+          plan: 'free',
+          subscription_status: 'none',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select('*')
+        .single();
+
+      if (createProjectError || !newProject) {
+        console.error('Error creating project:', createProjectError);
+        return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
+      }
+
+      project = newProject;
+    } else {
+      project = projects[0];
+    }
 
     // Check if user already has an active trial or subscription
     if (project.is_trial || project.plan === 'pro') {
@@ -91,11 +132,14 @@ export async function POST(request: NextRequest) {
         }
       });
 
+    console.log('Trial started successfully for user:', user.email, 'project:', project.id);
+    
     return NextResponse.json({ 
       success: true, 
       message: 'Trial started successfully',
       trial_end_date: trialEndDate.toISOString(),
-      project_id: project.id
+      project_id: project.id,
+      user_id: user.id
     });
 
   } catch (error) {
