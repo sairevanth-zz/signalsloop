@@ -6,7 +6,7 @@ const getStripe = () => {
     throw new Error('STRIPE_SECRET_KEY is not configured');
   }
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-08-27.basil',
+    apiVersion: '2024-06-20',
   });
 };
 
@@ -84,10 +84,6 @@ export async function POST(request: NextRequest) {
         }
       },
       payment_method_collection: 'always', // Collect payment method but don't charge during trial
-      collect_shipping_address: false, // Don't collect shipping address
-      phone_number_collection: {
-        enabled: false, // Don't require phone number
-      },
       success_url: `${request.nextUrl.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${request.nextUrl.origin}/#pricing`,
       allow_promotion_codes: true,
@@ -106,6 +102,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error('Homepage checkout error:', error);
-    return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to create checkout session',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
