@@ -39,23 +39,31 @@ export default function Homepage() {
     setIsLoading(true);
     
     try {
+      console.log('📧 Getting user email...');
       // First, get user email (prompt if not available)
       let userEmail = '';
       
       // Try to get email from localStorage or prompt user
       const savedEmail = localStorage.getItem('userEmail');
+      console.log('💾 Saved email:', savedEmail);
       if (savedEmail) {
         userEmail = savedEmail;
+        console.log('✅ Using saved email:', userEmail);
       } else {
+        console.log('📝 Prompting for email...');
         userEmail = prompt('Please enter your email to start your free trial:');
+        console.log('📧 User entered email:', userEmail);
         if (!userEmail) {
           throw new Error('Email is required to start trial');
         }
         localStorage.setItem('userEmail', userEmail);
+        console.log('💾 Saved email to localStorage');
       }
 
       const billingType = isAnnual ? 'annual' : 'monthly';
+      console.log('💰 Billing type:', billingType);
       
+      console.log('🌐 Making API request to /api/trial/start...');
       // Start trial directly (no Stripe checkout needed)
       const response = await fetch('/api/trial/start', {
         method: 'POST',
@@ -67,6 +75,9 @@ export default function Homepage() {
           billingType 
         }),
       });
+      
+      console.log('📡 API response status:', response.status);
+      console.log('📡 API response ok:', response.ok);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -74,12 +85,17 @@ export default function Homepage() {
         throw new Error(errorData.error || 'Failed to start trial');
       }
 
+      console.log('📄 Parsing response JSON...');
       const result = await response.json();
-      console.log('Trial start result:', result);
+      console.log('✅ Trial start result:', result);
       
+      console.log('🎉 Showing success toast...');
       // Redirect to app with success message
       toast.success('🎉 Your 7-day free trial has started!');
+      
+      console.log('🚀 Redirecting to app...');
       router.push('/app?trial=started');
+      console.log('✅ Redirect initiated');
       
     } catch (error) {
       console.error('Trial start error:', error);
