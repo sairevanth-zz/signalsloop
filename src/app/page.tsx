@@ -34,6 +34,8 @@ export default function Homepage() {
   }, [router]);
 
   const handleProCheckout = async () => {
+    console.log('🚀 handleProCheckout called!');
+    alert('Button clicked! Starting trial...');
     setIsLoading(true);
     
     try {
