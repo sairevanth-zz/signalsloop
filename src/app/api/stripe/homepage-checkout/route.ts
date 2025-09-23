@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     // Create Stripe checkout session with 7-day trial
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      // Don't specify payment_method_types for trial - let Stripe handle it
       line_items: [
         {
           price: priceId,
@@ -83,7 +83,11 @@ export async function POST(request: NextRequest) {
           }
         }
       },
-      payment_method_collection: 'always', // Always collect payment method for trial
+      payment_method_collection: 'if_required', // Only collect payment method if required for trial
+      collect_shipping_address: false, // Don't collect shipping address
+      phone_number_collection: {
+        enabled: false, // Don't require phone number
+      },
       success_url: `${request.nextUrl.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${request.nextUrl.origin}/#pricing`,
       allow_promotion_codes: true,
