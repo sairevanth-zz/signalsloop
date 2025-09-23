@@ -697,7 +697,7 @@ export default function Homepage() {
                 <span className="text-sm text-gray-600 font-medium">Widget Preview</span>
               </div>
               
-              {/* Mock SaaS Dashboard with widget */}
+              {/* Realistic Website Integration */}
               <div className="bg-gray-50 rounded-lg p-4 relative overflow-hidden">
                 {/* Browser frame */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -709,79 +709,72 @@ export default function Homepage() {
                       <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                     </div>
                     <div className="flex-1 bg-white rounded px-3 py-1 text-xs text-gray-500 text-center">
-                      app.acme-corp.com/dashboard
+                      myapp.com/dashboard
                     </div>
                   </div>
                   
-                  {/* SaaS Dashboard Layout */}
-                  <div className="flex h-80">
-                    {/* Sidebar */}
-                    <div className="w-16 bg-gray-900 flex flex-col items-center py-4 gap-4">
-                      <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-sm font-bold">A</span>
+                  {/* Website Content */}
+                  <div className="bg-white">
+                    {/* App Header */}
+                    <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">M</span>
+                        </div>
+                        <div>
+                          <h1 className="text-lg font-semibold text-gray-900">MyApp</h1>
+                          <p className="text-sm text-gray-500">Dashboard</p>
+                        </div>
                       </div>
-                      <div className="w-6 h-6 bg-gray-700 rounded flex items-center justify-center">
-                        <span className="text-gray-300 text-xs">📊</span>
-                      </div>
-                      <div className="w-6 h-6 bg-gray-700 rounded flex items-center justify-center">
-                        <span className="text-gray-300 text-xs">👥</span>
-                      </div>
-                      <div className="w-6 h-6 bg-gray-700 rounded flex items-center justify-center">
-                        <span className="text-gray-300 text-xs">⚙️</span>
-                      </div>
+                      <nav className="flex gap-6 text-sm text-gray-600">
+                        <span className="hover:text-gray-900 cursor-pointer">Analytics</span>
+                        <span className="hover:text-gray-900 cursor-pointer">Users</span>
+                        <span className="hover:text-gray-900 cursor-pointer">Settings</span>
+                      </nav>
                     </div>
                     
-                    {/* Main Content */}
-                    <div className="flex-1 bg-gray-50">
-                      {/* Top Header */}
-                      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                        <div>
-                          <h1 className="text-lg font-semibold text-gray-900">Acme Dashboard</h1>
-                          <p className="text-sm text-gray-500">Welcome back, Sarah</p>
+                    {/* Dashboard Content */}
+                    <div className="p-6">
+                      {/* Welcome Section */}
+                      <div className="mb-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome back, Sarah!</h2>
+                        <p className="text-gray-600">Here's what's happening with your app today.</p>
+                      </div>
+                      
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-3 gap-4 mb-6">
+                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                          <div className="text-2xl font-bold text-blue-600">1,234</div>
+                          <div className="text-sm text-blue-700">Active Users</div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                          <div className="text-sm text-gray-600">Sarah Johnson</div>
+                        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                          <div className="text-2xl font-bold text-green-600">$5,678</div>
+                          <div className="text-sm text-green-700">Revenue</div>
+                        </div>
+                        <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                          <div className="text-2xl font-bold text-purple-600">89</div>
+                          <div className="text-sm text-purple-700">New Signups</div>
                         </div>
                       </div>
                       
-                      {/* Dashboard Content */}
-                      <div className="p-6">
-                        {/* Stats Cards */}
-                        <div className="grid grid-cols-3 gap-4 mb-6">
-                          <div className="bg-white rounded-lg p-4 border border-gray-200">
-                            <div className="text-2xl font-bold text-blue-600">2,847</div>
-                            <div className="text-sm text-gray-600">Total Users</div>
+                      {/* Recent Activity */}
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="font-medium text-gray-900 mb-3">Recent Activity</h3>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3 text-sm">
+                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <span className="text-gray-600">New user signed up</span>
+                            <span className="text-gray-400">2 min ago</span>
                           </div>
-                          <div className="bg-white rounded-lg p-4 border border-gray-200">
-                            <div className="text-2xl font-bold text-green-600">$12,450</div>
-                            <div className="text-sm text-gray-600">Revenue</div>
+                          <div className="flex items-center gap-3 text-sm">
+                            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                            <span className="text-gray-600">Payment received</span>
+                            <span className="text-gray-400">15 min ago</span>
                           </div>
-                          <div className="bg-white rounded-lg p-4 border border-gray-200">
-                            <div className="text-2xl font-bold text-purple-600">98.2%</div>
-                            <div className="text-sm text-gray-600">Uptime</div>
-                          </div>
-                        </div>
-                        
-                        {/* Recent Activity */}
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                          <h3 className="font-medium text-gray-900 mb-3">Recent Activity</h3>
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-3 text-sm">
-                              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                              <span className="text-gray-600">New user registration</span>
-                              <span className="text-gray-400">2 min ago</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-sm">
-                              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                              <span className="text-gray-600">Payment processed</span>
-                              <span className="text-gray-400">5 min ago</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-sm">
-                              <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                              <span className="text-gray-600">System update</span>
-                              <span className="text-gray-400">1 hour ago</span>
-                            </div>
+                          <div className="flex items-center gap-3 text-sm">
+                            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                            <span className="text-gray-600">Feature request submitted</span>
+                            <span className="text-gray-400">1 hour ago</span>
                           </div>
                         </div>
                       </div>
@@ -789,31 +782,25 @@ export default function Homepage() {
                   </div>
                 </div>
                 
-                {/* Widget button - positioned realistically */}
-                <div className="absolute bottom-6 right-6">
-                  <div className="bg-blue-600 text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-2 hover:bg-blue-700 transition-all duration-200 cursor-pointer hover:scale-105">
+                {/* Widget button - naturally positioned */}
+                <div className="absolute bottom-4 right-4">
+                  <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-blue-700 transition-all duration-200 cursor-pointer">
                     <MessageSquare className="h-4 w-4" />
                     <span className="text-sm font-medium">Feedback</span>
                   </div>
                 </div>
                 
-                {/* Widget Modal Preview (appears on hover) */}
-                <div className="absolute bottom-20 right-6 bg-white rounded-lg shadow-2xl border border-gray-200 p-4 w-80 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                  <div className="text-sm font-medium text-gray-900 mb-3">Share your feedback</div>
-                  <div className="space-y-3">
-                    <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600">
-                      "I love the new dashboard design! Could you add dark mode?"
+                {/* Callout annotation */}
+                <div className="absolute bottom-16 right-2 bg-white rounded-lg shadow-lg border border-gray-200 p-3 max-w-48">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1">
+                      <div className="text-xs font-medium text-gray-900 mb-1">Users click here to submit feedback</div>
+                      <div className="text-xs text-gray-600">AI automatically organizes their suggestions</div>
                     </div>
-                    <div className="flex gap-2">
-                      <div className="flex-1 bg-blue-50 text-blue-700 px-3 py-2 rounded text-xs font-medium text-center">
-                        Feature Request
+                    <div className="flex-shrink-0">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                        <ArrowRight className="h-3 w-3 text-blue-600 rotate-45" />
                       </div>
-                      <div className="flex-1 bg-gray-50 text-gray-700 px-3 py-2 rounded text-xs font-medium text-center">
-                        UI/UX
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      AI automatically categorized this feedback
                     </div>
                   </div>
                 </div>
