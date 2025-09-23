@@ -117,14 +117,15 @@ export default function Homepage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <GradientButton 
+            <Button 
               onClick={handleProCheckout}
               disabled={isLoading}
-              className="text-lg px-8 py-3 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+              size="lg"
+              className="text-lg px-8 py-3 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
             >
               {isLoading ? 'Loading...' : '🆓 Start 7-Day Free Trial'}
-                <ArrowRight className="h-5 w-5" />
-              </GradientButton>
+              <ArrowRight className="h-5 w-5" />
+            </Button>
             <Link href="/demo/board">
               <Button size="lg" variant="outline" className="text-lg px-8 py-3">
                 View Live Demo
