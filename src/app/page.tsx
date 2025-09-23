@@ -697,7 +697,7 @@ export default function Homepage() {
                 <span className="text-sm text-gray-600 font-medium">Widget Preview</span>
               </div>
               
-              {/* Mock website with widget button */}
+              {/* Mock SaaS Dashboard with widget */}
               <div className="bg-gray-50 rounded-lg p-4 relative overflow-hidden">
                 {/* Browser frame */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -709,73 +709,112 @@ export default function Homepage() {
                       <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                     </div>
                     <div className="flex-1 bg-white rounded px-3 py-1 text-xs text-gray-500 text-center">
-                      your-website.com
+                      app.acme-corp.com/dashboard
                     </div>
                   </div>
                   
-                  {/* Website content */}
-                  <div className="p-6">
-                    {/* Navigation */}
-                    <nav className="flex items-center justify-between mb-8">
-                      <div className="text-lg font-bold text-gray-900">YourApp</div>
-                      <div className="flex gap-6 text-sm text-gray-600">
-                        <span className="hover:text-gray-900 cursor-pointer">Home</span>
-                        <span className="hover:text-gray-900 cursor-pointer">Features</span>
-                        <span className="hover:text-gray-900 cursor-pointer">Pricing</span>
-                        <span className="hover:text-gray-900 cursor-pointer">Contact</span>
+                  {/* SaaS Dashboard Layout */}
+                  <div className="flex h-80">
+                    {/* Sidebar */}
+                    <div className="w-16 bg-gray-900 flex flex-col items-center py-4 gap-4">
+                      <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">A</span>
                       </div>
-                    </nav>
-                    
-                    {/* Hero section */}
-                    <div className="text-center mb-8">
-                      <h1 className="text-2xl font-bold text-gray-900 mb-3">Welcome to YourApp</h1>
-                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                        The all-in-one solution for managing your business operations with AI-powered insights.
-                      </p>
-                      <div className="flex gap-3 justify-center">
-                        <div className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                          Get Started
-                        </div>
-                        <div className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">
-                          Learn More
-                        </div>
+                      <div className="w-6 h-6 bg-gray-700 rounded flex items-center justify-center">
+                        <span className="text-gray-300 text-xs">📊</span>
+                      </div>
+                      <div className="w-6 h-6 bg-gray-700 rounded flex items-center justify-center">
+                        <span className="text-gray-300 text-xs">👥</span>
+                      </div>
+                      <div className="w-6 h-6 bg-gray-700 rounded flex items-center justify-center">
+                        <span className="text-gray-300 text-xs">⚙️</span>
                       </div>
                     </div>
                     
-                    {/* Features grid */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                          <span className="text-blue-600 text-sm">📊</span>
+                    {/* Main Content */}
+                    <div className="flex-1 bg-gray-50">
+                      {/* Top Header */}
+                      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                        <div>
+                          <h1 className="text-lg font-semibold text-gray-900">Acme Dashboard</h1>
+                          <p className="text-sm text-gray-500">Welcome back, Sarah</p>
                         </div>
-                        <div className="text-xs font-medium text-gray-700">Analytics</div>
-                      </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="w-8 h-8 bg-green-100 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                          <span className="text-green-600 text-sm">⚡</span>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                          <div className="text-sm text-gray-600">Sarah Johnson</div>
                         </div>
-                        <div className="text-xs font-medium text-gray-700">Automation</div>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="w-8 h-8 bg-purple-100 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                          <span className="text-purple-600 text-sm">🔒</span>
+                      
+                      {/* Dashboard Content */}
+                      <div className="p-6">
+                        {/* Stats Cards */}
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <div className="text-2xl font-bold text-blue-600">2,847</div>
+                            <div className="text-sm text-gray-600">Total Users</div>
+                          </div>
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <div className="text-2xl font-bold text-green-600">$12,450</div>
+                            <div className="text-sm text-gray-600">Revenue</div>
+                          </div>
+                          <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <div className="text-2xl font-bold text-purple-600">98.2%</div>
+                            <div className="text-sm text-gray-600">Uptime</div>
+                          </div>
                         </div>
-                        <div className="text-xs font-medium text-gray-700">Security</div>
+                        
+                        {/* Recent Activity */}
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                          <h3 className="font-medium text-gray-900 mb-3">Recent Activity</h3>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-3 text-sm">
+                              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                              <span className="text-gray-600">New user registration</span>
+                              <span className="text-gray-400">2 min ago</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-sm">
+                              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                              <span className="text-gray-600">Payment processed</span>
+                              <span className="text-gray-400">5 min ago</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-sm">
+                              <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                              <span className="text-gray-600">System update</span>
+                              <span className="text-gray-400">1 hour ago</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    
-                    {/* Stats */}
-                    <div className="text-center text-sm text-gray-500">
-                      Trusted by 10,000+ businesses worldwide
                     </div>
                   </div>
                 </div>
                 
-                {/* Widget button */}
-                <div className="absolute bottom-4 right-4">
-                  <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-blue-700 transition-colors cursor-pointer">
+                {/* Widget button - positioned realistically */}
+                <div className="absolute bottom-6 right-6">
+                  <div className="bg-blue-600 text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-2 hover:bg-blue-700 transition-all duration-200 cursor-pointer hover:scale-105">
                     <MessageSquare className="h-4 w-4" />
                     <span className="text-sm font-medium">Feedback</span>
+                  </div>
+                </div>
+                
+                {/* Widget Modal Preview (appears on hover) */}
+                <div className="absolute bottom-20 right-6 bg-white rounded-lg shadow-2xl border border-gray-200 p-4 w-80 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  <div className="text-sm font-medium text-gray-900 mb-3">Share your feedback</div>
+                  <div className="space-y-3">
+                    <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600">
+                      "I love the new dashboard design! Could you add dark mode?"
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1 bg-blue-50 text-blue-700 px-3 py-2 rounded text-xs font-medium text-center">
+                        Feature Request
+                      </div>
+                      <div className="flex-1 bg-gray-50 text-gray-700 px-3 py-2 rounded text-xs font-medium text-center">
+                        UI/UX
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      AI automatically categorized this feedback
+                    </div>
                   </div>
                 </div>
               </div>
