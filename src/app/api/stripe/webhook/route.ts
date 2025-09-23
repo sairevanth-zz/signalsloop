@@ -53,12 +53,14 @@ export async function POST(request: NextRequest) {
         if (session.mode === 'subscription') {
           const projectId = session.metadata?.projectId;
           const isTrial = session.metadata?.trial === 'true';
+          const source = session.metadata?.source;
+          
+          // Get subscription details to check trial info
+          const stripe = getStripe();
+          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
           
           if (projectId) {
-            // Get subscription details to check trial info
-            const stripe = getStripe();
-            const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-            
+            // Project-specific checkout (existing logic)
             const updateData: any = {
               plan: 'pro',
               stripe_customer_id: session.customer as string,
@@ -104,6 +106,91 @@ export async function POST(request: NextRequest) {
               });
 
             console.log(`Project ${projectId} ${isTrial ? 'started trial for' : 'upgraded to'} Pro via Stripe`);
+          } else if (source === 'homepage') {
+            // Homepage checkout - find or create user's primary project
+            const customerId = session.customer as string;
+            
+            // Get customer email from Stripe
+            const customer = await stripe.customers.retrieve(customerId);
+            const customerEmail = (customer as Stripe.Customer).email;
+            
+            if (!customerEmail) {
+              console.error('No email found for customer:', customerId);
+              break;
+            }
+            
+            // Find user by email
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('id')
+              .eq('email', customerEmail)
+              .single();
+            
+            if (userError || !userData) {
+              console.error('User not found for email:', customerEmail);
+              break;
+            }
+            
+            // Find user's primary project
+            const { data: projectData, error: projectError } = await supabase
+              .from('projects')
+              .select('id')
+              .eq('owner_id', userData.id)
+              .order('created_at', { ascending: true })
+              .limit(1)
+              .single();
+            
+            if (projectError || !projectData) {
+              console.error('No project found for user:', userData.id);
+              break;
+            }
+            
+            const updateData: any = {
+              plan: 'pro',
+              stripe_customer_id: session.customer as string,
+              subscription_id: session.subscription as string,
+              upgraded_at: new Date().toISOString(),
+            };
+
+            // Handle trial information
+            if (isTrial && subscription.trial_end) {
+              updateData.trial_start_date = new Date(subscription.trial_start! * 1000).toISOString();
+              updateData.trial_end_date = new Date(subscription.trial_end * 1000).toISOString();
+              updateData.trial_status = 'active';
+              updateData.is_trial = true;
+            }
+
+            // Update project to Pro plan
+            const { error: updateError } = await supabase
+              .from('projects')
+              .update(updateData)
+              .eq('id', projectData.id);
+
+            if (updateError) {
+              console.error('Failed to upgrade project:', updateError);
+              throw updateError;
+            }
+
+            // Log the upgrade event
+            await supabase
+              .from('billing_events')
+              .insert({
+                project_id: projectData.id,
+                event_type: isTrial ? 'trial_started' : 'subscription_created',
+                stripe_session_id: session.id,
+                stripe_customer_id: session.customer as string,
+                amount: session.amount_total,
+                currency: session.currency,
+                metadata: {
+                  subscription_id: session.subscription,
+                  payment_status: session.payment_status,
+                  is_trial: isTrial,
+                  trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+                  source: 'homepage',
+                },
+              });
+
+            console.log(`Project ${projectData.id} ${isTrial ? 'started trial for' : 'upgraded to'} Pro via homepage checkout`);
           }
         }
         break;
