@@ -1,117 +1,217 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { LogOut, ArrowLeft, CreditCard } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface GlobalBannerProps {
-  showBackButton?: boolean;
-  backUrl?: string;
-  backLabel?: string;
-  className?: string;
-}
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { getSupabaseClient } from '@/lib/supabase-client';
+import { User } from '@supabase/supabase-js';
 
 export default function GlobalBanner({ 
-  showBackButton = false, 
-  backUrl, 
-  backLabel = 'Back',
-  className = '' 
-}: GlobalBannerProps) {
-  const { user, loading, signOut } = useAuth();
+  projectSlug,
+  showBilling = true 
+}: { 
+  projectSlug?: string;
+  showBilling?: boolean;
+}) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [billingInfo, setBillingInfo] = useState<any>(null);
   const router = useRouter();
 
-  const handleSignOut = async () => {
+  useEffect(() => {
+    const supabase = getSupabaseClient();
+    
+    // Get current user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (user && showBilling) {
+      loadBillingInfo();
+    }
+  }, [user, showBilling]);
+
+  const loadBillingInfo = async () => {
+    if (!user) return;
+
     try {
-      await signOut();
-      router.push('/');
+      const supabase = getSupabaseClient();
+      
+      // Get user's projects
+      const { data: projects, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('owner_id', user.id);
+
+      if (error) {
+        console.error('Error fetching projects:', error);
+        return;
+      }
+
+      if (projects && projects.length > 0) {
+        const project = projectSlug 
+          ? projects.find(p => p.slug === projectSlug) || projects[0]
+          : projects[0];
+
+        setBillingInfo({
+          plan: project.plan,
+          subscription_status: project.subscription_status,
+          subscription_id: project.subscription_id,
+          customer_id: project.customer_id,
+          trial_start_date: project.trial_start_date,
+          trial_end_date: project.trial_end_date,
+          trial_status: project.trial_status,
+          is_trial: project.is_trial,
+          trial_cancelled_at: project.trial_cancelled_at
+        });
+      }
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error loading billing info:', error);
     }
   };
 
-  const getLogoDestination = () => {
-    if (user) {
-      return '/app'; // Dashboard if logged in
-    }
-    return '/'; // Homepage if not logged in
+  const handleSignOut = async () => {
+    const supabase = getSupabaseClient();
+    await supabase.auth.signOut();
+    router.push('/');
   };
 
-  const getBackButtonDestination = () => {
-    if (user) {
-      return '/app'; // Always go to dashboard if logged in
+  const handleManageBilling = async () => {
+    if (!billingInfo?.customer_id) return;
+
+    try {
+      const response = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId: billingInfo.customer_id }),
+      });
+
+      const { url } = await response.json();
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error) {
+      console.error('Error opening billing portal:', error);
     }
-    return backUrl || '/'; // Use provided backUrl if not logged in
   };
+
+  const handleCancelTrial = async () => {
+    if (!projectSlug) return;
+
+    try {
+      const response = await fetch('/api/trial/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: projectSlug }),
+      });
+
+      if (response.ok) {
+        // Reload billing info
+        loadBillingInfo();
+      }
+    } catch (error) {
+      console.error('Error canceling trial:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">S</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className="text-gray-500">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
-    <header className={`bg-white/80 backdrop-blur-sm border-b border-white/20 shadow-lg ${className}`}>
-      <div className="max-w-7xl mx-auto px-4 py-6">
+    <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          {/* Left side - Back button or Logo */}
-          <div className="flex items-center space-x-4">
-            {showBackButton ? (
-              <Link href={getBackButtonDestination()}>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  {user ? 'Back to Dashboard' : (backLabel || 'Back')}
-                </Button>
-              </Link>
-            ) : null}
-            
-            <Link href={getLogoDestination()} className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">S</span>
-              </div>
-              <div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  SignalsLoop
-                </span>
-                <p className="text-sm text-gray-600">Feedback Management</p>
-              </div>
-            </Link>
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">S</span>
+            </div>
+            <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
+            {projectSlug && (
+              <Badge variant="outline" className="ml-2">
+                {projectSlug}
+              </Badge>
+            )}
           </div>
           
-          {/* Right side - User info and actions */}
           <div className="flex items-center space-x-4">
-            {!loading && user && (
-              <div className="flex items-center space-x-2 bg-white/60 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/20">
-                <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-medium">
-                    {user.email?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <span className="text-sm text-gray-700 font-medium">{user.email}</span>
-              </div>
-            )}
-            
-            {!loading && user && (
+            {user ? (
               <>
-                <Link href="/app/billing">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80"
-                  >
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Billing
-                  </Button>
-                </Link>
-                <Button 
-                  variant="outline" 
-                  onClick={handleSignOut}
-                  className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
+                {showBilling && billingInfo && (
+                  <div className="flex items-center space-x-2">
+                    <Badge 
+                      variant={billingInfo.plan === 'pro' ? 'default' : 'secondary'}
+                      className={billingInfo.plan === 'pro' ? 'bg-blue-600' : ''}
+                    >
+                      {billingInfo.is_trial ? 'Pro Plan (Trial)' : `${billingInfo.plan.charAt(0).toUpperCase() + billingInfo.plan.slice(1)} Plan`}
+                    </Badge>
+                    
+                    {billingInfo.is_trial ? (
+                      <Button 
+                        onClick={handleCancelTrial}
+                        variant="outline" 
+                        size="sm"
+                      >
+                        Cancel Trial
+                      </Button>
+                    ) : (
+                      <>
+                        <Button 
+                          onClick={handleManageBilling}
+                          variant="outline" 
+                          size="sm"
+                        >
+                          Manage Billing
+                        </Button>
+                        {billingInfo.plan === 'pro' && (
+                          <Button 
+                            onClick={handleCancelTrial}
+                            variant="outline" 
+                            size="sm"
+                          >
+                            Cancel Subscription
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+                <Button onClick={handleSignOut} variant="ghost" size="sm">
                   Sign Out
                 </Button>
               </>
+            ) : (
+              <Button onClick={() => router.push('/login')} variant="ghost" size="sm">
+                Sign In
+              </Button>
             )}
           </div>
         </div>
