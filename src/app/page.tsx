@@ -107,11 +107,13 @@ export default function Homepage() {
               <Link href="/login">
                 <Button variant="ghost">Sign In</Button>
               </Link>
-              <Link href="/login">
-                <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">
-                  🆓 Start Free Trial
-                </Button>
-              </Link>
+              <Button 
+                onClick={handleProCheckout}
+                disabled={isLoading}
+                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+              >
+                {isLoading ? 'Loading...' : '🆓 Start Free Trial'}
+              </Button>
             </div>
           </div>
         </div>
@@ -141,12 +143,14 @@ export default function Homepage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/login">
-              <GradientButton className="text-lg px-8 py-3 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">
-                🆓 Start 7-Day Free Trial
-                <ArrowRight className="h-5 w-5" />
-              </GradientButton>
-            </Link>
+            <GradientButton 
+              onClick={handleProCheckout}
+              disabled={isLoading}
+              className="text-lg px-8 py-3 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+            >
+              {isLoading ? 'Loading...' : '🆓 Start 7-Day Free Trial'}
+              <ArrowRight className="h-5 w-5" />
+            </GradientButton>
             <Link href="/demo/board">
               <Button size="lg" variant="outline" className="text-lg px-8 py-3">
                 View Live Demo
@@ -628,12 +632,15 @@ export default function Homepage() {
               🆓 7-Day Free Trial - No Credit Card Required
             </Badge>
           </div>
-          <Link href="/login">
-            <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-lg px-8 py-3 font-bold">
-              🚀 Start Your Free Trial Now
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
+          <Button 
+            onClick={handleProCheckout}
+            disabled={isLoading}
+            size="lg" 
+            className="bg-white text-orange-600 hover:bg-gray-100 text-lg px-8 py-3 font-bold"
+          >
+            {isLoading ? 'Loading...' : '🚀 Start Your Free Trial Now'}
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
         </div>
       </section>
 
