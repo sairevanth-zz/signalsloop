@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create Stripe checkout session with 7-day trial
+    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -75,17 +75,9 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'subscription',
-      subscription_data: {
-        trial_period_days: 7,
-        trial_settings: {
-          end_behavior: {
-            missing_payment_method: 'create_invoice'
-          }
-        }
-      },
-      payment_method_collection: 'always', // Collect payment method but don't charge during trial
+      payment_method_collection: 'always',
       success_url: `${request.nextUrl.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${request.nextUrl.origin}/#pricing`,
+      cancel_url: `${request.nextUrl.origin}/app/billing`,
       allow_promotion_codes: true,
       billing_address_collection: 'required',
       tax_id_collection: {
@@ -93,9 +85,7 @@ export async function POST(request: NextRequest) {
       },
       metadata: {
         billingType,
-        source: 'homepage',
-        trial: 'true',
-        trial_days: '7'
+        source: 'homepage'
       },
     });
 
