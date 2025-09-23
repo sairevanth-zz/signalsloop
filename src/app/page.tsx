@@ -83,15 +83,14 @@ export default function Homepage() {
           </Badge>
           
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            AI-Powered Feedback Boards &<br />
+            AI-Powered Feedback That<br />
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Smart Roadmaps
+              Actually Gets Organized
             </span>
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Collect user feedback with AI-powered categorization and show progress with a 2-line embeddable widget. 
-            <strong> 75% cheaper than Canny</strong>, infinitely easier to set up.
+            Stop drowning in scattered feedback. Our AI instantly categorizes every user suggestion, so you can focus on building what matters most.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -100,7 +99,7 @@ export default function Homepage() {
               size="lg"
               className="text-lg px-8 py-3 gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
-              Get Started
+              Start Organizing Feedback Instantly
               <ArrowRight className="h-5 w-5" />
             </Button>
             <Link href="/demo/board">
@@ -117,10 +116,10 @@ export default function Homepage() {
                 <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               ))}
             </div>
-            Trusted by 100+ indie makers and startups
+            Join 100+ product teams who've organized 10,000+ pieces of feedback with AI
             <br />
             <span className="text-blue-600 font-medium">
-              ⚡ Start building better products today
+              ⚡ Start organizing feedback instantly
             </span>
           </div>
           
@@ -285,9 +284,9 @@ export default function Homepage() {
               <div className="absolute top-8 right-8 bg-white rounded-lg shadow-lg p-3 border border-gray-100">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-700 font-medium">AI Processing</span>
+                  <span className="text-sm text-gray-700 font-medium">AI Organizing</span>
                 </div>
-                <div className="text-xs text-gray-500 mt-1">3 new posts categorized</div>
+                <div className="text-xs text-gray-500 mt-1">3 new posts auto-categorized</div>
               </div>
               
               <div className="absolute bottom-8 left-8 bg-white rounded-lg shadow-lg p-3 border border-gray-100">
@@ -345,15 +344,64 @@ export default function Homepage() {
         </div>
       </section>
 
+      {/* Problem Section */}
+      <section className="py-20 px-4 bg-red-50">
+        <div className="container mx-auto text-center">
+          <h2 className="text-4xl font-bold text-gray-900 mb-6">
+            Your users have amazing ideas. But they're buried in:
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto mb-8">
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-red-100">
+              <div className="text-3xl mb-3">📧</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Endless email threads</h3>
+            </div>
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-red-100">
+              <div className="text-3xl mb-3">💬</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Scattered Slack messages</h3>
+            </div>
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-red-100">
+              <div className="text-3xl mb-3">📝</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Lost sticky notes</h3>
+            </div>
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-red-100">
+              <div className="text-3xl mb-3">🎫</div>
+              <h3 className="font-semibold text-gray-900 mb-2">Untagged support tickets</h3>
+            </div>
+          </div>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Meanwhile, your team wastes hours manually sorting through it all.
+          </p>
+        </div>
+      </section>
+
+      {/* Solution Section */}
+      <section className="py-20 px-4 bg-green-50">
+        <div className="container mx-auto text-center">
+          <h2 className="text-4xl font-bold text-gray-900 mb-6">
+            SignalsLoop's AI reads every piece of feedback
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            and instantly organizes it into actionable categories like Bug Reports, Feature Requests, UI Improvements, and more.
+          </p>
+          <div className="bg-white rounded-lg p-8 shadow-lg max-w-2xl mx-auto">
+            <div className="text-6xl mb-4">🤖</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">AI-Powered Organization</h3>
+            <p className="text-gray-600">
+              No more manual sorting. Every piece of feedback is automatically categorized and ready for your team to act on.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section id="features" className="py-20 px-4 bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Everything you need for user feedback
+              AI-powered features that work instantly
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Stop losing feedback in email, Slack, and sticky notes. Organize everything in one place.
+              From automatic categorization to smart roadmaps, everything works seamlessly with AI.
             </p>
           </div>
           
@@ -361,12 +409,11 @@ export default function Homepage() {
             <Card className="text-center border-2 hover:border-blue-200 transition-colors">
               <CardHeader>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="h-6 w-6 text-blue-600" />
+                  <span className="text-2xl">🤖</span>
                 </div>
-                <CardTitle>Collect Feedback</CardTitle>
+                <CardTitle>AI Auto-Categorization</CardTitle>
                 <CardDescription>
-                  Users submit ideas, vote on features, and discuss in comments. 
-                  Anonymous or authenticated - your choice.
+                  Every post automatically sorted into relevant categories. No manual tagging required.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -374,12 +421,11 @@ export default function Homepage() {
             <Card className="text-center border-2 hover:border-purple-200 transition-colors">
               <CardHeader>
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="h-6 w-6 text-purple-600" />
+                  <span className="text-2xl">📊</span>
                 </div>
-                <CardTitle>Public Roadmap</CardTitle>
+                <CardTitle>Smart Roadmaps</CardTitle>
                 <CardDescription>
-                  Show users what you&apos;re working on. Transparent progress updates 
-                  build trust and reduce support tickets.
+                  Show users exactly what you're building with AI-organized public roadmaps.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -387,12 +433,11 @@ export default function Homepage() {
             <Card className="text-center border-2 hover:border-green-200 transition-colors">
               <CardHeader>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Code className="h-6 w-6 text-green-600" />
+                  <span className="text-2xl">⚡</span>
                 </div>
-                <CardTitle>2-Line Install</CardTitle>
+                <CardTitle>2-Minute Setup</CardTitle>
                 <CardDescription>
-                  Add a feedback widget to any site in 2 minutes. Works with React, 
-                  Vue, plain HTML, or any framework.
+                  One script tag. Works anywhere. No backend changes needed.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -405,10 +450,10 @@ export default function Homepage() {
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Install in 2 lines of code
+              AI-powered feedback in 2 lines of code
             </h2>
             <p className="text-xl text-gray-600">
-              No complex setup. No backend integration. Just copy, paste, done.
+              No complex setup. No backend integration. Just copy, paste, and watch AI organize everything.
             </p>
           </div>
           
@@ -444,7 +489,7 @@ export default function Homepage() {
               AI-powered pricing that scales with you
             </h2>
             <p className="text-xl text-gray-600">
-              Start free with manual organization, upgrade to unlock AI-powered categorization and smart features.
+              Start free. Upgrade for advanced features starting at $19/month.
             </p>
           </div>
 
@@ -563,10 +608,10 @@ export default function Homepage() {
       <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="container mx-auto text-center">
           <h2 className="text-4xl font-bold mb-4">
-            Ready to start collecting smarter feedback?
+            Ready to start organizing feedback with AI?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Join 100+ companies using SignalsLoop&apos;s AI-powered feedback boards to build better products
+            Join 100+ product teams who've organized 10,000+ pieces of feedback with AI
           </p>
           <div className="mb-6">
             <Badge className="bg-white text-blue-600 text-lg px-4 py-2">
