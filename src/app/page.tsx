@@ -117,15 +117,26 @@ export default function Homepage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button 
-              onClick={handleProCheckout}
-              disabled={isLoading}
-              size="lg"
-              className="text-lg px-8 py-3 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🚀 RAW BUTTON CLICKED!');
+                alert('RAW BUTTON WORKS!');
+                window.location.href = '/app?test=raw';
+              }}
+              style={{
+                padding: '12px 32px',
+                fontSize: '18px',
+                backgroundColor: '#f97316',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
             >
-              {isLoading ? 'Loading...' : '🆓 Start 7-Day Free Trial'}
-              <ArrowRight className="h-5 w-5" />
-            </Button>
+              🆓 RAW TEST BUTTON
+            </button>
             <Link href="/demo/board">
               <Button size="lg" variant="outline" className="text-lg px-8 py-3">
                 View Live Demo
