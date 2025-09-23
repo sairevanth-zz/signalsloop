@@ -17,11 +17,9 @@ import {
   Zap
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { toast } from 'sonner';
 
 export default function Homepage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
   const [isAnnual, setIsAnnual] = useState(false);
 
   useEffect(() => {
@@ -33,66 +31,11 @@ export default function Homepage() {
     }
   }, [router]);
 
-  const handleProCheckout = async () => {
-    console.log('🚀 handleProCheckout called!');
-    setIsLoading(true);
-
-    try {
-      // Get user email
-      let userEmail = localStorage.getItem('userEmail');
-      if (!userEmail) {
-        userEmail = prompt('Please enter your email to start your free trial:');
-        if (!userEmail) {
-          throw new Error('Email is required to start trial');
-        }
-        localStorage.setItem('userEmail', userEmail);
-      }
-
-      console.log('📧 Using email:', userEmail);
-
-      // Start trial
-      const response = await fetch('/api/trial/start', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          email: userEmail,
-          billingType: isAnnual ? 'annual' : 'monthly'
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        // Clear saved email if there's an error (like existing user)
-        localStorage.removeItem('userEmail');
-        throw new Error(errorData.error || 'Failed to start trial');
-      }
-
-      const result = await response.json();
-      console.log('✅ Trial started:', result);
-
-      // Show success message and redirect to login with trial info
-      alert('🎉 Your 7-day free trial has started! You can now sign in to access your account.');
-      window.location.href = '/login?trial=started';
-      
-    } catch (error) {
-      console.error('❌ Trial start error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to start trial');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleProCheckout = () => {
+    router.push('/login');
   };
   return (
     <div className="min-h-screen">
-      {/* Trial Banner */}
-      <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-center py-3">
-        <div className="container mx-auto px-4">
-          <p className="text-sm font-medium">
-            🎉 <strong>Limited Time:</strong> Get 7 days of Pro features completely FREE - No credit card required!
-          </p>
-        </div>
-      </div>
       
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
@@ -123,11 +66,10 @@ export default function Homepage() {
               </Link>
               <Button 
                 onClick={handleProCheckout}
-                disabled={isLoading}
-                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               >
-                {isLoading ? 'Loading...' : '🆓 Start Free Trial'}
-                </Button>
+                Get Started
+              </Button>
             </div>
           </div>
         </div>
@@ -136,8 +78,8 @@ export default function Homepage() {
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center">
-          <Badge variant="secondary" className="mb-4 bg-orange-100 text-orange-700 border-orange-200">
-            🆓 7-Day Free Trial - No Credit Card Required
+          <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200">
+            ✨ AI-Powered Feedback Management
           </Badge>
           
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
@@ -150,20 +92,15 @@ export default function Homepage() {
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
             Collect user feedback with AI-powered categorization and show progress with a 2-line embeddable widget. 
             <strong> 75% cheaper than Canny</strong>, infinitely easier to set up.
-            <br />
-            <span className="text-lg font-semibold text-orange-600 mt-2 block">
-              🎉 Start your 7-day free trial today - no credit card required!
-            </span>
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button 
               onClick={handleProCheckout}
-              disabled={isLoading}
               size="lg"
-              className="text-lg px-8 py-3 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+              className="text-lg px-8 py-3 gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
-              {isLoading ? 'Loading...' : '🆓 Start 7-Day Free Trial'}
+              Get Started
               <ArrowRight className="h-5 w-5" />
             </Button>
             <Link href="/demo/board">
@@ -182,8 +119,8 @@ export default function Homepage() {
             </div>
             Trusted by 100+ indie makers and startups
             <br />
-            <span className="text-orange-600 font-medium">
-              ⚡ Join them risk-free with our 7-day trial
+            <span className="text-blue-600 font-medium">
+              ⚡ Start building better products today
             </span>
           </div>
           
@@ -500,18 +437,14 @@ export default function Homepage() {
       <section id="pricing" className="py-20 px-4 bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4 bg-green-100 text-green-700 border-green-200">
-              🎉 Special Offer: 7-Day Free Trial on Pro Plan
+            <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200">
+              💎 Simple, Transparent Pricing
             </Badge>
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               AI-powered pricing that scales with you
             </h2>
             <p className="text-xl text-gray-600">
-              Start free with manual organization, upgrade to unlock AI-powered categorization and smart features. 
-              <br />
-              <span className="text-lg font-semibold text-green-600 mt-2 block">
-                Try Pro risk-free for 7 days - no credit card required!
-              </span>
+              Start free with manual organization, upgrade to unlock AI-powered categorization and smart features.
             </p>
           </div>
 
@@ -571,8 +504,8 @@ export default function Homepage() {
               <Badge className="absolute -top-3 right-4 bg-purple-600">
                 🤖 Powered by AI
               </Badge>
-              <Badge className="absolute -top-3 left-4 bg-orange-500">
-                🆓 7-Day Free Trial
+              <Badge className="absolute -top-3 left-4 bg-blue-600">
+                💎 Most Popular
               </Badge>
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Pro</CardTitle>
@@ -583,16 +516,10 @@ export default function Homepage() {
                       <div className="text-sm text-green-600 font-medium mt-1">
                         Billed annually ($182.40/year)
                       </div>
-                      <div className="text-sm text-orange-600 font-medium mt-1">
-                        🆓 7 days free, then $15.20/month
-                      </div>
                     </>
                   ) : (
                     <>
                       $19<span className="text-lg text-gray-500">/month</span>
-                      <div className="text-sm text-orange-600 font-medium mt-1">
-                        🆓 7 days free, then $19/month
-                      </div>
                     </>
                   )}
                 </div>
@@ -621,11 +548,10 @@ export default function Homepage() {
                   ))}
                 </ul>
                 <GradientButton 
-                  className="w-full mt-8 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                  className="w-full mt-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   onClick={handleProCheckout}
-                  disabled={isLoading}
                 >
-                  {isLoading ? 'Loading...' : `🆓 Start 7-Day Free Trial - ${isAnnual ? 'Annual' : 'Monthly'}`}
+                  Get Started - {isAnnual ? 'Annual' : 'Monthly'}
                 </GradientButton>
               </CardContent>
             </Card>
@@ -634,7 +560,7 @@ export default function Homepage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-orange-500 to-red-500 text-white">
+      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="container mx-auto text-center">
           <h2 className="text-4xl font-bold mb-4">
             Ready to start collecting smarter feedback?
@@ -643,17 +569,16 @@ export default function Homepage() {
             Join 100+ companies using SignalsLoop&apos;s AI-powered feedback boards to build better products
           </p>
           <div className="mb-6">
-            <Badge className="bg-white text-orange-600 text-lg px-4 py-2">
-              🆓 7-Day Free Trial - No Credit Card Required
+            <Badge className="bg-white text-blue-600 text-lg px-4 py-2">
+              ✨ Ready to Get Started?
             </Badge>
           </div>
           <Button 
             onClick={handleProCheckout}
-            disabled={isLoading}
             size="lg" 
-            className="bg-white text-orange-600 hover:bg-gray-100 text-lg px-8 py-3 font-bold"
+            className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3 font-bold"
           >
-            {isLoading ? 'Loading...' : '🚀 Start Your Free Trial Now'}
+            🚀 Get Started Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
         </div>
