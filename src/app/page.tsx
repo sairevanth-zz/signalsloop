@@ -34,14 +34,52 @@ export default function Homepage() {
   }, [router]);
 
   const handleProCheckout = async () => {
-    console.log('🚀 TEST: handleProCheckout called!');
-    alert('TEST: Button clicked!');
-    console.log('🚀 TEST: After alert');
-    
-    // Simple test - just redirect to app
-    console.log('🚀 TEST: Redirecting to app...');
-    window.location.href = '/app?trial=test';
-    console.log('🚀 TEST: Redirect initiated');
+    console.log('🚀 handleProCheckout called!');
+    setIsLoading(true);
+
+    try {
+      // Get user email
+      let userEmail = localStorage.getItem('userEmail');
+      if (!userEmail) {
+        userEmail = prompt('Please enter your email to start your free trial:');
+        if (!userEmail) {
+          throw new Error('Email is required to start trial');
+        }
+        localStorage.setItem('userEmail', userEmail);
+      }
+
+      console.log('📧 Using email:', userEmail);
+
+      // Start trial
+      const response = await fetch('/api/trial/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: userEmail,
+          billingType: isAnnual ? 'annual' : 'monthly'
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to start trial');
+      }
+
+      const result = await response.json();
+      console.log('✅ Trial started:', result);
+
+      // Show success message and redirect to login with trial info
+      alert('🎉 Your 7-day free trial has started! You can now sign in to access your account.');
+      window.location.href = '/login?trial=started';
+      
+    } catch (error) {
+      console.error('❌ Trial start error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to start trial');
+    } finally {
+      setIsLoading(false);
+    }
   };
   return (
     <div className="min-h-screen">
@@ -117,26 +155,15 @@ export default function Homepage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <button 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('🚀 RAW BUTTON CLICKED!');
-                alert('RAW BUTTON WORKS!');
-                window.location.href = '/app?test=raw';
-              }}
-              style={{
-                padding: '12px 32px',
-                fontSize: '18px',
-                backgroundColor: '#f97316',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer'
-              }}
+            <Button 
+              onClick={handleProCheckout}
+              disabled={isLoading}
+              size="lg"
+              className="text-lg px-8 py-3 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
             >
-              🆓 RAW TEST BUTTON
-            </button>
+              {isLoading ? 'Loading...' : '🆓 Start 7-Day Free Trial'}
+              <ArrowRight className="h-5 w-5" />
+            </Button>
             <Link href="/demo/board">
               <Button size="lg" variant="outline" className="text-lg px-8 py-3">
                 View Live Demo
