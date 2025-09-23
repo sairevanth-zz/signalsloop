@@ -66,7 +66,7 @@ export default function Homepage() {
               </Link>
               <Button 
                 onClick={handleProCheckout}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl px-8 py-3"
               >
                 Get Started
               </Button>
@@ -76,34 +76,34 @@ export default function Homepage() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 px-4">
+      <section className="py-24 md:py-32 px-4">
         <div className="container mx-auto text-center">
           <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200">
             ✨ AI-Powered Feedback Management
           </Badge>
           
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight tracking-tight">
             AI-Powered Feedback That<br />
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Actually Gets Organized
             </span>
           </h1>
           
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
             Stop drowning in scattered feedback. Our AI instantly categorizes every user suggestion, so you can focus on building what matters most.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
             <Button 
               onClick={handleProCheckout}
               size="lg"
-              className="text-lg px-8 py-3 gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              className="text-lg px-10 py-4 gap-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               Start Organizing Feedback Instantly
               <ArrowRight className="h-5 w-5" />
             </Button>
             <Link href="/demo/board">
-              <Button size="lg" variant="outline" className="text-lg px-8 py-3">
+              <Button size="lg" variant="outline" className="text-lg px-10 py-4 rounded-xl border-2 hover:bg-gray-50 transition-all duration-200">
                 View Live Demo
               </Button>
             </Link>
@@ -308,8 +308,9 @@ export default function Homepage() {
       </section>
 
       {/* AI Features Highlight Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-purple-50 to-blue-50">
-        <div className="container mx-auto">
+      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-100/20 to-blue-100/20"></div>
+        <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-purple-100 text-purple-700 border-purple-200">
               🤖 Powered by AI
@@ -323,49 +324,50 @@ export default function Homepage() {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center bg-white rounded-lg p-6 shadow-sm border border-purple-100">
-              <div className="text-4xl mb-4">🤖</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">AI Smart Categorization</h3>
-              <p className="text-gray-600">Automatically organizes every post into relevant categories like Bug, Feature Request, UI/UX, and more.</p>
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-purple-100/50">
+              <div className="text-5xl mb-6">🤖</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">AI Smart Categorization</h3>
+              <p className="text-gray-600 leading-relaxed">Automatically organizes every post into relevant categories like Bug, Feature Request, UI/UX, and more.</p>
             </div>
             
-            <div className="text-center bg-white rounded-lg p-6 shadow-sm border border-blue-100">
-              <div className="text-4xl mb-4">⚡</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Instant Organization</h3>
-              <p className="text-gray-600">No more manual tagging or endless sorting. Every piece of feedback is instantly categorized and ready to review.</p>
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100/50">
+              <div className="text-5xl mb-6">⚡</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Instant Organization</h3>
+              <p className="text-gray-600 leading-relaxed">No more manual tagging or endless sorting. Every piece of feedback is instantly categorized and ready to review.</p>
             </div>
             
-            <div className="text-center bg-white rounded-lg p-6 shadow-sm border border-green-100">
-              <div className="text-4xl mb-4">🎯</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Smart Filtering</h3>
-              <p className="text-gray-600">Find what matters fast with AI-powered category filters and intelligent search across all your feedback.</p>
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-green-100/50">
+              <div className="text-5xl mb-6">🎯</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Smart Filtering</h3>
+              <p className="text-gray-600 leading-relaxed">Find what matters fast with AI-powered category filters and intelligent search across all your feedback.</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Problem Section */}
-      <section className="py-20 px-4 bg-red-50">
-        <div className="container mx-auto text-center">
+      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-red-100/10 to-orange-100/10"></div>
+        <div className="container mx-auto text-center relative z-10">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
             Your users have amazing ideas. But they're buried in:
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto mb-8">
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-red-100">
-              <div className="text-3xl mb-3">📧</div>
-              <h3 className="font-semibold text-gray-900 mb-2">Endless email threads</h3>
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-red-100/50">
+              <div className="text-4xl mb-4">📧</div>
+              <h3 className="font-bold text-gray-900 mb-2">Endless email threads</h3>
             </div>
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-red-100">
-              <div className="text-3xl mb-3">💬</div>
-              <h3 className="font-semibold text-gray-900 mb-2">Scattered Slack messages</h3>
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-red-100/50">
+              <div className="text-4xl mb-4">💬</div>
+              <h3 className="font-bold text-gray-900 mb-2">Scattered Slack messages</h3>
             </div>
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-red-100">
-              <div className="text-3xl mb-3">📝</div>
-              <h3 className="font-semibold text-gray-900 mb-2">Lost sticky notes</h3>
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-red-100/50">
+              <div className="text-4xl mb-4">📝</div>
+              <h3 className="font-bold text-gray-900 mb-2">Lost sticky notes</h3>
             </div>
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-red-100">
-              <div className="text-3xl mb-3">🎫</div>
-              <h3 className="font-semibold text-gray-900 mb-2">Untagged support tickets</h3>
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-red-100/50">
+              <div className="text-4xl mb-4">🎫</div>
+              <h3 className="font-bold text-gray-900 mb-2">Untagged support tickets</h3>
             </div>
           </div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -375,18 +377,19 @@ export default function Homepage() {
       </section>
 
       {/* Solution Section */}
-      <section className="py-20 px-4 bg-green-50">
-        <div className="container mx-auto text-center">
+      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-green-100/20 to-emerald-100/20"></div>
+        <div className="container mx-auto text-center relative z-10">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
             SignalsLoop's AI reads every piece of feedback
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             and instantly organizes it into actionable categories like Bug Reports, Feature Requests, UI Improvements, and more.
           </p>
-          <div className="bg-white rounded-lg p-8 shadow-lg max-w-2xl mx-auto">
-            <div className="text-6xl mb-4">🤖</div>
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 max-w-2xl mx-auto border border-green-100/50">
+            <div className="text-7xl mb-6">🤖</div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">AI-Powered Organization</h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 leading-relaxed">
               No more manual sorting. Every piece of feedback is automatically categorized and ready for your team to act on.
             </p>
           </div>
@@ -394,7 +397,7 @@ export default function Homepage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 bg-white">
+      <section id="features" className="py-24 md:py-32 px-4 bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -406,37 +409,37 @@ export default function Homepage() {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="text-center border-2 hover:border-blue-200 transition-colors">
-              <CardHeader>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🤖</span>
+            <Card className="text-center border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/80 backdrop-blur-sm rounded-xl p-6">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                  <span className="text-3xl">🤖</span>
                 </div>
-                <CardTitle>AI Auto-Categorization</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-xl font-bold text-gray-900 mb-3">AI Auto-Categorization</CardTitle>
+                <CardDescription className="text-gray-600 leading-relaxed">
                   Every post automatically sorted into relevant categories. No manual tagging required.
                 </CardDescription>
               </CardHeader>
             </Card>
             
-            <Card className="text-center border-2 hover:border-purple-200 transition-colors">
-              <CardHeader>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">📊</span>
+            <Card className="text-center border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/80 backdrop-blur-sm rounded-xl p-6">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                  <span className="text-3xl">📊</span>
                 </div>
-                <CardTitle>Smart Roadmaps</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-xl font-bold text-gray-900 mb-3">Smart Roadmaps</CardTitle>
+                <CardDescription className="text-gray-600 leading-relaxed">
                   Show users exactly what you're building with AI-organized public roadmaps.
                 </CardDescription>
               </CardHeader>
             </Card>
             
-            <Card className="text-center border-2 hover:border-green-200 transition-colors">
-              <CardHeader>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">⚡</span>
+            <Card className="text-center border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/80 backdrop-blur-sm rounded-xl p-6">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                  <span className="text-3xl">⚡</span>
                 </div>
-                <CardTitle>2-Minute Setup</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-xl font-bold text-gray-900 mb-3">2-Minute Setup</CardTitle>
+                <CardDescription className="text-gray-600 leading-relaxed">
                   One script tag. Works anywhere. No backend changes needed.
                 </CardDescription>
               </CardHeader>
@@ -446,8 +449,9 @@ export default function Homepage() {
       </section>
 
       {/* Widget Demo Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="container mx-auto">
+      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/20 to-purple-100/20"></div>
+        <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               AI-powered feedback in 2 lines of code
@@ -458,20 +462,20 @@ export default function Homepage() {
           </div>
           
           <div className="max-w-2xl mx-auto">
-            <div className="bg-gray-900 rounded-lg p-6 text-white font-mono text-sm">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-green-400">→ Install Widget</span>
-                <Button size="sm" variant="secondary">Copy</Button>
+            <div className="bg-gray-900 rounded-xl p-8 text-white font-mono text-sm shadow-lg">
+              <div className="flex items-center justify-between mb-6">
+                <span className="text-green-400 font-medium">→ Install Widget</span>
+                <Button size="sm" variant="secondary" className="rounded-lg">Copy</Button>
               </div>
-              <code>
+              <code className="text-gray-300">
                 {`<script src="https://signalsloop.com/embed/your-key.js"></script>`}
               </code>
             </div>
             
-            <div className="text-center mt-8">
-              <div className="inline-flex items-center space-x-2 bg-white rounded-full px-4 py-2 shadow-lg">
-                <Zap className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium">Feedback button appears → Users submit → You see results</span>
+            <div className="text-center mt-10">
+              <div className="inline-flex items-center space-x-3 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-gray-200">
+                <Zap className="h-5 w-5 text-blue-600" />
+                <span className="text-sm font-medium text-gray-700">Feedback button appears → Users submit → You see results</span>
               </div>
             </div>
           </div>
@@ -479,7 +483,7 @@ export default function Homepage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 bg-white">
+      <section id="pricing" className="py-24 md:py-32 px-4 bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200">
@@ -511,13 +515,13 @@ export default function Homepage() {
           </div>
           
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Card className="border-2">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl">Free</CardTitle>
-                <div className="text-4xl font-bold text-gray-900 my-4">$0</div>
-                <CardDescription>Perfect for getting started</CardDescription>
+            <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/80 backdrop-blur-sm rounded-xl">
+              <CardHeader className="text-center pb-6">
+                <CardTitle className="text-2xl font-bold">Free</CardTitle>
+                <div className="text-4xl font-bold text-gray-900 my-6">$0</div>
+                <CardDescription className="text-gray-600">Perfect for getting started</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-6 pb-6">
                 <ul className="space-y-3">
                   {[
                     "1 feedback board",
@@ -542,19 +546,16 @@ export default function Homepage() {
               </CardContent>
             </Card>
             
-            <Card className="border-2 border-blue-200 relative">
-              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600">
+            <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/80 backdrop-blur-sm rounded-xl relative">
+              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full">
                 Most Popular
               </Badge>
-              <Badge className="absolute -top-3 right-4 bg-purple-600">
+              <Badge className="absolute -top-3 right-4 bg-purple-600 text-white px-3 py-1 rounded-full">
                 🤖 Powered by AI
               </Badge>
-              <Badge className="absolute -top-3 left-4 bg-blue-600">
-                💎 Most Popular
-              </Badge>
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl">Pro</CardTitle>
-                <div className="text-4xl font-bold text-gray-900 my-4">
+              <CardHeader className="text-center pb-6 pt-8">
+                <CardTitle className="text-2xl font-bold">Pro</CardTitle>
+                <div className="text-4xl font-bold text-gray-900 my-6">
                   {isAnnual ? (
                     <>
                       $15.20<span className="text-lg text-gray-500">/month</span>
@@ -568,9 +569,9 @@ export default function Homepage() {
                     </>
                   )}
                 </div>
-                <CardDescription>For growing teams</CardDescription>
+                <CardDescription className="text-gray-600">For growing teams</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-6 pb-6">
                 <ul className="space-y-3">
                   {[
                     "Unlimited boards",
@@ -593,7 +594,7 @@ export default function Homepage() {
                   ))}
                 </ul>
                 <GradientButton 
-                  className="w-full mt-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="w-full mt-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl py-4"
                   onClick={handleProCheckout}
                 >
                   Get Started - {isAnnual ? 'Annual' : 'Monthly'}
@@ -605,7 +606,7 @@ export default function Homepage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <section className="py-24 md:py-32 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="container mx-auto text-center">
           <h2 className="text-4xl font-bold mb-4">
             Ready to start organizing feedback with AI?
@@ -621,7 +622,7 @@ export default function Homepage() {
           <Button 
             onClick={handleProCheckout}
             size="lg" 
-            className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3 font-bold"
+            className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-10 py-4 font-bold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             🚀 Get Started Now
               <ArrowRight className="ml-2 h-5 w-5" />
