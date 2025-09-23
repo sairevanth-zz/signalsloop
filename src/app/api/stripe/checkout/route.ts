@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     // Create Stripe checkout session with 7-day trial
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
-      // Don't specify payment_method_types for trial - let Stripe handle it
+      payment_method_types: ['card'],
       line_items: [
         {
           price: priceId,
@@ -56,11 +56,11 @@ export async function POST(request: NextRequest) {
         trial_period_days: 7,
         trial_settings: {
           end_behavior: {
-            missing_payment_method: 'cancel'
+            missing_payment_method: 'create_invoice'
           }
         }
       },
-      payment_method_collection: 'if_required', // Only collect payment method if required for trial
+      payment_method_collection: 'always', // Collect payment method but don't charge during trial
       success_url: successUrl || `${request.nextUrl.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl || `${request.nextUrl.origin}/billing`,
       metadata: {

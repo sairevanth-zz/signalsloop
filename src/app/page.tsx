@@ -37,34 +37,49 @@ export default function Homepage() {
     setIsLoading(true);
     
     try {
+      // First, get user email (prompt if not available)
+      let userEmail = '';
+      
+      // Try to get email from localStorage or prompt user
+      const savedEmail = localStorage.getItem('userEmail');
+      if (savedEmail) {
+        userEmail = savedEmail;
+      } else {
+        userEmail = prompt('Please enter your email to start your free trial:');
+        if (!userEmail) {
+          throw new Error('Email is required to start trial');
+        }
+        localStorage.setItem('userEmail', userEmail);
+      }
+
       const billingType = isAnnual ? 'annual' : 'monthly';
       
-      // Create checkout session
-      const response = await fetch('/api/stripe/homepage-checkout', {
+      // Start trial directly (no Stripe checkout needed)
+      const response = await fetch('/api/trial/start', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ billingType }),
+        body: JSON.stringify({ 
+          email: userEmail,
+          billingType 
+        }),
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create checkout session');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to start trial');
       }
 
-      const { url } = await response.json();
+      const result = await response.json();
       
-      if (url) {
-        // Redirect to Stripe checkout
-        window.location.href = url;
-      } else {
-        throw new Error('No checkout URL received');
-      }
+      // Redirect to app with success message
+      toast.success('🎉 Your 7-day free trial has started!');
+      router.push('/app?trial=started');
       
     } catch (error) {
-      console.error('Checkout error:', error);
-      toast.error('Something went wrong. Please try again.');
+      console.error('Trial start error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to start trial');
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +128,7 @@ export default function Homepage() {
                 className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
               >
                 {isLoading ? 'Loading...' : '🆓 Start Free Trial'}
-              </Button>
+                </Button>
             </div>
           </div>
         </div>
@@ -149,8 +164,8 @@ export default function Homepage() {
               className="text-lg px-8 py-3 gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
             >
               {isLoading ? 'Loading...' : '🆓 Start 7-Day Free Trial'}
-              <ArrowRight className="h-5 w-5" />
-            </GradientButton>
+                <ArrowRight className="h-5 w-5" />
+              </GradientButton>
             <Link href="/demo/board">
               <Button size="lg" variant="outline" className="text-lg px-8 py-3">
                 View Live Demo
@@ -346,7 +361,7 @@ export default function Homepage() {
               </div>
               
               <div className="absolute top-1/2 right-4 bg-white rounded-lg shadow-lg p-2 border border-gray-100">
-                <div className="text-center">
+              <div className="text-center">
                   <div className="text-lg font-bold text-purple-600">127</div>
                   <div className="text-xs text-gray-500">Total</div>
                 </div>
@@ -639,8 +654,8 @@ export default function Homepage() {
             className="bg-white text-orange-600 hover:bg-gray-100 text-lg px-8 py-3 font-bold"
           >
             {isLoading ? 'Loading...' : '🚀 Start Your Free Trial Now'}
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
         </div>
       </section>
 
