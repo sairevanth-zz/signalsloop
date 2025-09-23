@@ -96,7 +96,7 @@ export default function GlobalBanner({
 
   const handleManageBilling = () => {
     // Redirect to our custom billing management page
-    const billingUrl = projectSlug === 'account' 
+    const billingUrl = projectSlug === 'account' || !projectSlug
       ? '/app/billing-manage'
       : `/${projectSlug}/billing-manage`;
     
