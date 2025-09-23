@@ -34,80 +34,14 @@ export default function Homepage() {
   }, [router]);
 
   const handleProCheckout = async () => {
-    console.log('🚀 handleProCheckout called!');
-    console.log('🔄 Setting loading state...');
-    setIsLoading(true);
-    console.log('✅ Loading state set');
+    console.log('🚀 TEST: handleProCheckout called!');
+    alert('TEST: Button clicked!');
+    console.log('🚀 TEST: After alert');
     
-    try {
-      console.log('📧 Getting user email...');
-      // First, get user email (prompt if not available)
-      let userEmail = '';
-      
-      // Try to get email from localStorage or prompt user
-      const savedEmail = localStorage.getItem('userEmail');
-      console.log('💾 Saved email:', savedEmail);
-      if (savedEmail) {
-        userEmail = savedEmail;
-        console.log('✅ Using saved email:', userEmail);
-      } else {
-        console.log('📝 Prompting for email...');
-        userEmail = prompt('Please enter your email to start your free trial:');
-        console.log('📧 User entered email:', userEmail);
-        if (!userEmail) {
-          throw new Error('Email is required to start trial');
-        }
-        localStorage.setItem('userEmail', userEmail);
-        console.log('💾 Saved email to localStorage');
-      }
-
-      const billingType = isAnnual ? 'annual' : 'monthly';
-      console.log('💰 Billing type:', billingType);
-      
-      console.log('🌐 Making API request to /api/trial/start...');
-      // Start trial directly (no Stripe checkout needed)
-      const response = await fetch('/api/trial/start', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          email: userEmail,
-          billingType 
-        }),
-      });
-      
-      console.log('📡 API response status:', response.status);
-      console.log('📡 API response ok:', response.ok);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Trial start failed:', errorData);
-        throw new Error(errorData.error || 'Failed to start trial');
-      }
-
-      console.log('📄 Parsing response JSON...');
-      const result = await response.json();
-      console.log('✅ Trial start result:', result);
-      
-      console.log('🎉 Showing success toast...');
-      // Redirect to app with success message
-      toast.success('🎉 Your 7-day free trial has started!');
-      
-      console.log('🚀 Redirecting to app...');
-      router.push('/app?trial=started');
-      console.log('✅ Redirect initiated');
-      
-    } catch (error) {
-      console.error('❌ Trial start error:', error);
-      console.error('❌ Error type:', typeof error);
-      console.error('❌ Error message:', error instanceof Error ? error.message : 'Unknown error');
-      toast.error(error instanceof Error ? error.message : 'Failed to start trial');
-    } finally {
-      console.log('🧹 Finally block - setting loading to false');
-      setIsLoading(false);
-      console.log('✅ Loading state cleared');
-    }
+    // Simple test - just redirect to app
+    console.log('🚀 TEST: Redirecting to app...');
+    window.location.href = '/app?trial=test';
+    console.log('🚀 TEST: Redirect initiated');
   };
   return (
     <div className="min-h-screen">
