@@ -94,23 +94,13 @@ export default function GlobalBanner({
     router.push('/');
   };
 
-  const handleManageBilling = async () => {
-    if (!billingInfo?.customer_id) return;
-
-    try {
-      const response = await fetch('/api/stripe/portal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId: billingInfo.customer_id }),
-      });
-
-      const { url } = await response.json();
-      if (url) {
-        window.location.href = url;
-      }
-    } catch (error) {
-      console.error('Error opening billing portal:', error);
-    }
+  const handleManageBilling = () => {
+    // Redirect to our custom billing management page
+    const billingUrl = projectSlug === 'account' 
+      ? '/app/billing-manage'
+      : `/${projectSlug}/billing-manage`;
+    
+    router.push(billingUrl);
   };
 
 
