@@ -64,6 +64,8 @@ export default function Homepage() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        // Clear saved email if there's an error (like existing user)
+        localStorage.removeItem('userEmail');
         throw new Error(errorData.error || 'Failed to start trial');
       }
 
