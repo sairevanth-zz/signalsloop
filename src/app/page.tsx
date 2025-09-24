@@ -125,74 +125,69 @@ export default function Homepage() {
             Stop drowning in scattered feedback. Our AI automatically categorizes every user suggestion effortlessly, so you can focus on building what matters most.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center mb-12 md:mb-16 px-4">
+          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center mb-8 px-4">
             <Button 
               onClick={handleProCheckout}
               size="lg"
-              className="text-base sm:text-lg px-6 sm:px-8 md:px-10 py-3 sm:py-4 gap-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl min-h-[44px] w-full sm:w-auto"
+              className="text-lg sm:text-xl px-8 sm:px-12 md:px-16 py-4 sm:py-5 gap-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-2xl hover:scale-105 transition-all duration-200 shadow-xl hover:shadow-2xl min-h-[56px] w-full sm:w-auto text-center"
             >
-              🚀 Get Started in 2 Minutes
-              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+              🚀 Start Organizing Feedback Instantly
+              <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
             <Link href="/demo/board" className="w-full sm:w-auto">
-              <Button size="lg" variant="outline" className="text-base sm:text-lg px-6 sm:px-8 md:px-10 py-3 sm:py-4 rounded-xl border-2 hover:bg-gray-50 transition-all duration-200 min-h-[44px] w-full">
-                See AI in Action
+              <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 md:px-10 py-3 sm:py-4 rounded-xl border-2 hover:bg-gray-50 transition-all duration-200 min-h-[44px] w-full">
+                View Live Demo
               </Button>
             </Link>
           </div>
           
-          {/* Conversion Micro-copy */}
+          {/* Enhanced Micro-copy under CTA */}
           <div className="text-center mb-8">
-            <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600">
+            <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600 font-medium">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 text-xs">✓</span>
+                  <span className="text-green-600 text-xs font-bold">✓</span>
                 </div>
                 <span>No credit card required</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 text-xs">⚡</span>
+                  <span className="text-blue-600 text-xs font-bold">✓</span>
                 </div>
-                <span>Setup takes 2 minutes</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 text-xs">🔄</span>
-                </div>
-                <span>Cancel anytime</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-orange-100 rounded-full flex items-center justify-center">
-                  <span className="text-orange-600 text-xs">🆓</span>
-                </div>
-                <span>Free forever plan available</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-pink-100 rounded-full flex items-center justify-center">
-                  <span className="text-pink-600 text-xs">🎯</span>
-                </div>
-                <span>Try all features free</span>
+                <span>2-minute setup</span>
               </div>
             </div>
           </div>
           
-          {/* Social Proof */}
-          <div className="text-sm text-gray-500 mb-8">
-            <div className="flex items-center justify-center space-x-1 mb-2">
+          
+          {/* Enhanced Social Proof */}
+          <div className="text-center mb-12">
+            <div className="flex items-center justify-center space-x-1 mb-3">
               {[1,2,3,4,5].map((star) => (
                 <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               ))}
             </div>
-            Join 100+ product teams who've organized 10,000+ pieces of feedback with AI
-            <br />
-            <span className="text-blue-600 font-medium">
+            
+            {/* Company avatars visual indicator */}
+            <div className="flex items-center justify-center mb-3">
+              <div className="flex -space-x-2">
+                {[1,2,3,4,5].map((i) => (
+                  <div key={i} className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full border-2 border-white flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">{String.fromCharCode(64 + i)}</span>
+                  </div>
+                ))}
+                <div className="w-8 h-8 bg-gray-200 rounded-full border-2 border-white flex items-center justify-center">
+                  <span className="text-gray-600 text-xs font-bold">+</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-sm text-gray-600 mb-2">
+              <span className="font-semibold text-gray-900">Join 100+ teams</span> who've organized <span className="font-semibold text-blue-600">50,000+ pieces of feedback</span> with AI
+            </div>
+            <div className="text-xs text-gray-500">
               ⚡ Saved teams 500+ hours of manual categorization • 99.2% accuracy rate
-            </span>
-            <br />
-            <span className="text-green-600 font-medium text-xs">
-              🚀 Average setup time: 2 minutes • 💰 ROI: 340% in first month
-            </span>
+            </div>
           </div>
           
           {/* Product Screenshot */}
