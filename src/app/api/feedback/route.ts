@@ -1,0 +1,91 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { project_slug, content, category = 'other', user_email } = body;
+
+    if (!project_slug || !content) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Get project details
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('id, name, slug')
+      .eq('slug', project_slug)
+      .single();
+
+    if (projectError || !project) {
+      return NextResponse.json(
+        { error: 'Project not found' },
+        { status: 404 }
+      );
+    }
+
+    // Create feedback post
+    const { data: post, error: postError } = await supabase
+      .from('posts')
+      .insert({
+        project_id: project.id,
+        content: content.trim(),
+        category: category,
+        user_email: user_email || null,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (postError) {
+      console.error('Error creating post:', postError);
+      return NextResponse.json(
+        { error: 'Failed to submit feedback' },
+        { status: 500 }
+      );
+    }
+
+    // If project has AI categorization enabled, trigger it
+    try {
+      const aiResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://signalsloop.com'}/api/ai/categorize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          post_id: post.id,
+          content: content.trim(),
+          project_slug: project_slug
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        console.warn('AI categorization failed, but feedback was submitted');
+      }
+    } catch (aiError) {
+      console.warn('AI categorization error:', aiError);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Feedback submitted successfully',
+      post_id: post.id
+    });
+
+  } catch (error) {
+    console.error('Feedback submission error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
