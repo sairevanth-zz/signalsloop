@@ -35,7 +35,7 @@ export async function GET(
 ) {
   try {
     const { searchParams } = new URL(request.url);
-    const key = params.key;
+    const key = params.key.replace('.js', ''); // Remove .js extension if present
 
     // Determine the domain for rate limiting
     const origin = request.headers.get('origin');
@@ -132,7 +132,7 @@ function generateWidgetScript(config) {
   // Widget configuration
   const CONFIG = ${JSON.stringify(config)};
   const WIDGET_ID = 'signalsloop-widget-' + Math.random().toString(36).substr(2, 9);
-  const IFRAME_URL = '${process.env.NEXT_PUBLIC_APP_URL || 'https://signalsloop.com'}/embed/' + CONFIG.apiKey + '/frame?theme=' + CONFIG.theme + '&color=' + encodeURIComponent(CONFIG.color);
+  const IFRAME_URL = '${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/embed/' + CONFIG.apiKey + '/frame?theme=' + CONFIG.theme + '&color=' + encodeURIComponent(CONFIG.color);
 
   // Position configurations
   const POSITIONS = {
