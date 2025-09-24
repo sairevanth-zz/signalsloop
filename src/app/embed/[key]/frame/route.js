@@ -11,7 +11,8 @@ export async function GET(
   { params }
 ) {
   try {
-    const { key } = params;
+    const resolvedParams = await params;
+    const { key } = resolvedParams;
     const url = new URL(request.url);
     const theme = url.searchParams.get('theme') || 'light';
     const customColor = url.searchParams.get('color');
@@ -34,14 +35,14 @@ export async function GET(
       .select(`
         id,
         title,
-        content,
+        description,
         category,
         vote_count,
         created_at,
-        user_email
+        author_email
       `)
       .eq('project_id', project.id)
-      .eq('status', 'published')
+      .eq('status', 'open')
       .order('created_at', { ascending: false })
       .limit(10);
 
@@ -684,12 +685,12 @@ function generatePostsHTML(posts) {
         </div>
       </div>
       
-      ${post.content ? `<div class="post-content">${escapeHtml(post.content)}</div>` : ''}
+      ${post.description ? `<div class="post-content">${escapeHtml(post.description)}</div>` : ''}
       
       <div class="post-footer">
         <div class="post-meta">
           ${formatDate(post.created_at)}
-          ${post.user_email ? ' • ' + escapeHtml(post.user_email) : ''}
+          ${post.author_email ? ' • ' + escapeHtml(post.author_email) : ''}
         </div>
         <button class="vote-button" data-post-id="${post.id}">
           ↑ ${post.vote_count}

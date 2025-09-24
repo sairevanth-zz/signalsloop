@@ -35,7 +35,8 @@ export async function GET(
 ) {
   try {
     const { searchParams } = new URL(request.url);
-    const key = params.key.replace('.js', ''); // Remove .js extension if present
+    const resolvedParams = await params;
+    const key = resolvedParams.key.replace('.js', ''); // Remove .js extension if present
 
     // Determine the domain for rate limiting
     const origin = request.headers.get('origin');
