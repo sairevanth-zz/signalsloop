@@ -782,16 +782,16 @@ export default function Homepage() {
               </code>
             </div>
             
-            {/* Widget Preview */}
+            {/* Realistic Widget Preview */}
             <div className="mt-6 md:mt-8 bg-white rounded-xl p-4 md:p-6 shadow-lg border border-gray-200">
               <div className="text-center mb-4">
-                <span className="text-sm text-gray-600 font-medium">Widget Preview</span>
+                <span className="text-sm text-gray-600 font-medium">Live Widget Preview</span>
               </div>
               
-              {/* Realistic Website Integration */}
-              <div className="bg-gray-50 rounded-lg p-3 md:p-4 relative overflow-hidden">
+              {/* Realistic SaaS Dashboard */}
+              <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg p-4 relative overflow-hidden min-h-[400px]">
                 {/* Browser frame */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden h-full">
                   {/* Browser header */}
                   <div className="bg-gray-100 px-4 py-2 flex items-center gap-2 border-b border-gray-200">
                     <div className="flex gap-1">
@@ -800,72 +800,102 @@ export default function Homepage() {
                       <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                     </div>
                     <div className="flex-1 bg-white rounded px-3 py-1 text-xs text-gray-500 text-center">
-                      myapp.com/dashboard
+                      acme-saas.com/dashboard
                     </div>
                   </div>
                   
-                  {/* Website Content */}
-                  <div className="bg-white">
+                  {/* SaaS Dashboard Content */}
+                  <div className="bg-white h-full flex flex-col">
                     {/* App Header */}
-                    <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
-                      <div className="flex items-center gap-2 md:gap-3">
-                        <div className="w-6 h-6 md:w-8 md:h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                          <span className="text-white text-xs md:text-sm font-bold">M</span>
+                    <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">A</span>
                         </div>
                         <div>
-                          <h1 className="text-base md:text-lg font-semibold text-gray-900">MyApp</h1>
-                          <p className="text-xs md:text-sm text-gray-500">Dashboard</p>
+                          <h1 className="text-lg font-semibold text-gray-900">Acme Dashboard</h1>
+                          <p className="text-sm text-gray-500">Customer Analytics</p>
                         </div>
                       </div>
-                      <nav className="hidden sm:flex gap-4 md:gap-6 text-xs md:text-sm text-gray-600">
-                        <span className="hover:text-gray-900 cursor-pointer">Analytics</span>
-                        <span className="hover:text-gray-900 cursor-pointer">Users</span>
-                        <span className="hover:text-gray-900 cursor-pointer">Settings</span>
-                      </nav>
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                        <span className="text-sm text-gray-600">Sarah Chen</span>
+                      </div>
                     </div>
                     
-                    {/* Dashboard Content */}
-                    <div className="p-4 md:p-6">
-                      {/* Welcome Section */}
-                      <div className="mb-4 md:mb-6">
-                        <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Welcome back, Sarah!</h2>
-                        <p className="text-sm md:text-base text-gray-600">Here's what's happening with your app today.</p>
+                    {/* Dashboard Layout */}
+                    <div className="flex-1 flex">
+                      {/* Sidebar */}
+                      <div className="w-48 bg-gray-50 border-r border-gray-200 p-4">
+                        <nav className="space-y-2">
+                          <div className="flex items-center gap-2 px-3 py-2 bg-blue-100 rounded-lg">
+                            <div className="w-4 h-4 bg-blue-600 rounded"></div>
+                            <span className="text-sm font-medium text-blue-700">Dashboard</span>
+                          </div>
+                          <div className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer">
+                            <div className="w-4 h-4 bg-gray-400 rounded"></div>
+                            <span className="text-sm">Analytics</span>
+                          </div>
+                          <div className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer">
+                            <div className="w-4 h-4 bg-gray-400 rounded"></div>
+                            <span className="text-sm">Users</span>
+                          </div>
+                          <div className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer">
+                            <div className="w-4 h-4 bg-gray-400 rounded"></div>
+                            <span className="text-sm">Reports</span>
+                          </div>
+                          <div className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer">
+                            <div className="w-4 h-4 bg-gray-400 rounded"></div>
+                            <span className="text-sm">Settings</span>
+                          </div>
+                        </nav>
                       </div>
                       
-                      {/* Stats Grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
-                        <div className="bg-blue-50 rounded-lg p-3 md:p-4 border border-blue-200">
-                          <div className="text-xl md:text-2xl font-bold text-blue-600">1,234</div>
-                          <div className="text-xs md:text-sm text-blue-700">Active Users</div>
+                      {/* Main Content */}
+                      <div className="flex-1 p-6">
+                        <div className="mb-6">
+                          <h2 className="text-xl font-semibold text-gray-900 mb-2">Customer Analytics</h2>
+                          <p className="text-gray-600">Monitor your customer engagement and growth metrics</p>
                         </div>
-                        <div className="bg-green-50 rounded-lg p-3 md:p-4 border border-green-200">
-                          <div className="text-xl md:text-2xl font-bold text-green-600">$5,678</div>
-                          <div className="text-xs md:text-sm text-green-700">Revenue</div>
-                        </div>
-                        <div className="bg-purple-50 rounded-lg p-3 md:p-4 border border-purple-200">
-                          <div className="text-xl md:text-2xl font-bold text-purple-600">89</div>
-                          <div className="text-xs md:text-sm text-purple-700">New Signups</div>
-                        </div>
-                      </div>
-                      
-                      {/* Recent Activity */}
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <h3 className="font-medium text-gray-900 mb-3">Recent Activity</h3>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-3 text-sm">
-                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                            <span className="text-gray-600">New user signed up</span>
-                            <span className="text-gray-400">2 min ago</span>
+                        
+                        {/* Metrics Cards */}
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                          <div className="bg-white border border-gray-200 rounded-lg p-4">
+                            <div className="text-2xl font-bold text-blue-600">2,847</div>
+                            <div className="text-sm text-gray-600">Total Users</div>
+                            <div className="text-xs text-green-600 mt-1">↗ +12% this month</div>
                           </div>
-                          <div className="flex items-center gap-3 text-sm">
-                            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                            <span className="text-gray-600">Payment received</span>
-                            <span className="text-gray-400">15 min ago</span>
+                          <div className="bg-white border border-gray-200 rounded-lg p-4">
+                            <div className="text-2xl font-bold text-green-600">94.2%</div>
+                            <div className="text-sm text-gray-600">Satisfaction</div>
+                            <div className="text-xs text-green-600 mt-1">↗ +2.1% this week</div>
                           </div>
-                          <div className="flex items-center gap-3 text-sm">
-                            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                            <span className="text-gray-600">Feature request submitted</span>
-                            <span className="text-gray-400">1 hour ago</span>
+                          <div className="bg-white border border-gray-200 rounded-lg p-4">
+                            <div className="text-2xl font-bold text-purple-600">156</div>
+                            <div className="text-sm text-gray-600">New Signups</div>
+                            <div className="text-xs text-green-600 mt-1">↗ +8% today</div>
+                          </div>
+                        </div>
+                        
+                        {/* Activity Feed */}
+                        <div className="bg-white border border-gray-200 rounded-lg p-4">
+                          <h3 className="font-medium text-gray-900 mb-3">Recent Activity</h3>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                              <span className="text-sm text-gray-600">New user registration</span>
+                              <span className="text-xs text-gray-400">2 minutes ago</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                              <span className="text-sm text-gray-600">Payment processed</span>
+                              <span className="text-xs text-gray-400">5 minutes ago</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                              <span className="text-sm text-gray-600">Feature request received</span>
+                              <span className="text-xs text-gray-400">12 minutes ago</span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -873,32 +903,34 @@ export default function Homepage() {
                   </div>
                 </div>
                 
-                {/* Widget button - naturally positioned */}
-                <div className="absolute bottom-4 right-4">
-                  <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-blue-700 transition-all duration-200 cursor-pointer">
+                {/* Floating Widget Button - Realistic Position */}
+                <div className="absolute bottom-6 right-6">
+                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 hover:scale-105 transition-all duration-200 cursor-pointer border-2 border-white">
                     <MessageSquare className="h-4 w-4" />
                     <span className="text-sm font-medium">Feedback</span>
                   </div>
                 </div>
                 
-                {/* Callout annotation */}
-                <div className="absolute bottom-12 md:bottom-16 right-1 md:right-2 bg-white rounded-lg shadow-lg border border-gray-200 p-2 md:p-3 max-w-40 md:max-w-48">
-                  <div className="flex items-start gap-2">
-                    <div className="flex-1">
-                      <div className="text-xs font-medium text-gray-900 mb-1">Users click here to submit feedback</div>
-                      <div className="text-xs text-gray-600">AI automatically organizes their suggestions</div>
-                    </div>
-                    <div className="flex-shrink-0">
-                      <div className="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                        <ArrowRight className="h-2 w-2 md:h-3 md:w-3 text-blue-600 rotate-45" />
-                      </div>
-                    </div>
+                {/* Widget Interaction Preview */}
+                <div className="absolute bottom-20 right-6 bg-white rounded-lg shadow-xl border border-gray-200 p-4 max-w-64 opacity-90">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-xs font-medium text-gray-900">Widget Active</span>
+                  </div>
+                  <div className="text-xs text-gray-600 mb-2">Users can submit feedback directly from your dashboard</div>
+                  <div className="text-xs text-blue-600 font-medium">AI automatically categorizes all submissions</div>
+                </div>
+                
+                {/* Integration Arrow */}
+                <div className="absolute bottom-16 right-4">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                    <ArrowRight className="h-3 w-3 text-blue-600 rotate-45" />
                   </div>
                 </div>
               </div>
               
               <div className="text-center mt-4">
-                <span className="text-sm text-gray-600">Add to any website in 2 minutes</span>
+                <span className="text-sm text-gray-600">Integrates seamlessly with any SaaS dashboard</span>
                 <p className="text-xs text-gray-500 mt-1">Trusted by startups to enterprise</p>
               </div>
             </div>
