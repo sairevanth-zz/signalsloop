@@ -36,15 +36,15 @@ export async function GET(request: NextRequest) {
       .select(`
         id,
         title,
-        content,
+        description,
         category,
         vote_count,
         created_at,
-        user_email,
+        author_email,
         status
       `)
       .eq('project_id', project.id)
-      .eq('status', 'published');
+      .eq('status', 'open');
 
     // Apply filters
     if (category && category !== 'all') {
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
         .from('votes')
         .select('post_id')
         .in('post_id', postIds)
-        .eq('user_ip', clientIp);
+        .eq('ip_address', clientIp);
       
       userVotes = votes || [];
     }

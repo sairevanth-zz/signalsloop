@@ -42,10 +42,10 @@ export async function POST(request: NextRequest) {
       .insert({
         project_id: project.id,
         title: finalTitle.trim(),
-        content: finalContent.trim(),
+        description: finalContent.trim(),
         category: category,
-        user_email: user_email || null,
-        status: 'published', // Auto-publish widget submissions
+        author_email: user_email || null,
+        status: 'open', // Auto-publish widget submissions
         vote_count: 0,
         created_at: new Date().toISOString()
       })

@@ -23,7 +23,7 @@ export async function POST(
       .from('votes')
       .select('id')
       .eq('post_id', postId)
-      .eq('user_ip', clientIp)
+      .eq('ip_address', clientIp)
       .single();
 
     if (voteCheckError && voteCheckError.code !== 'PGRST116') {
@@ -40,7 +40,7 @@ export async function POST(
       .from('votes')
       .insert({
         post_id: postId,
-        user_ip: clientIp,
+        ip_address: clientIp,
         created_at: new Date().toISOString()
       })
       .select()
@@ -104,7 +104,7 @@ export async function DELETE(
       .from('votes')
       .delete()
       .eq('post_id', postId)
-      .eq('user_ip', clientIp)
+      .eq('ip_address', clientIp)
       .select()
       .single();
 
