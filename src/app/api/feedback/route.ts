@@ -9,11 +9,15 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { project_slug, content, category = 'other', user_email } = body;
+    const { project_slug, title, content, category = 'other', user_email } = body;
 
-    if (!project_slug || !content) {
+    // Support both title and content fields
+    const finalContent = content || title;
+    const finalTitle = title || content?.substring(0, 100) || 'Feedback';
+
+    if (!project_slug || !finalContent) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Project slug and content are required' },
         { status: 400 }
       );
     }
@@ -37,10 +41,12 @@ export async function POST(request: NextRequest) {
       .from('posts')
       .insert({
         project_id: project.id,
-        content: content.trim(),
+        title: finalTitle.trim(),
+        content: finalContent.trim(),
         category: category,
         user_email: user_email || null,
-        status: 'pending',
+        status: 'published', // Auto-publish widget submissions
+        vote_count: 0,
         created_at: new Date().toISOString()
       })
       .select()
@@ -63,7 +69,7 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           post_id: post.id,
-          content: content.trim(),
+          content: finalContent.trim(),
           project_slug: project_slug
         }),
       });

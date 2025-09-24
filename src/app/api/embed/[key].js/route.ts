@@ -61,8 +61,8 @@ export async function GET(
     // Generate widget ID for this instance
     const widgetId = `signalsloop-${project.slug}-${Date.now()}`;
     
-    // Construct the widget URL
-    const widgetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://signalsloop.com'}/${project.slug}/widget`;
+    // Construct the widget URL - use the new frame endpoint
+    const widgetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://signalsloop.com'}/embed/${key}/frame?theme=${theme}&color=${encodeURIComponent(color)}&hide_branding=${project.plan === 'pro'}`;
     
     // Generate the JavaScript code
     const jsCode = `
