@@ -85,6 +85,8 @@ export async function GET(
       isPro: project?.plan === 'pro' || false
     });
 
+    console.log('Generated widget script for key:', key, 'project:', project?.name);
+
     return new NextResponse(widgetScript, {
       status: 200,
       headers: {
@@ -130,7 +132,7 @@ function generateWidgetScript(config) {
   // Widget configuration
   const CONFIG = ${JSON.stringify(config)};
   const WIDGET_ID = 'signalsloop-widget-' + Math.random().toString(36).substr(2, 9);
-  const IFRAME_URL = '${process.env.NEXT_PUBLIC_APP_URL || 'https://signalsloop.com'}/embed/' + CONFIG.projectSlug + '/frame?theme=' + CONFIG.theme + '&color=' + encodeURIComponent(CONFIG.color);
+  const IFRAME_URL = '${process.env.NEXT_PUBLIC_APP_URL || 'https://signalsloop.com'}/embed/' + CONFIG.apiKey + '/frame?theme=' + CONFIG.theme + '&color=' + encodeURIComponent(CONFIG.color);
 
   // Position configurations
   const POSITIONS = {
@@ -386,6 +388,8 @@ function generateWidgetScript(config) {
     };
 
     console.log('SignalsLoop widget loaded for', CONFIG.projectName);
+    console.log('Widget config:', CONFIG);
+    console.log('Iframe URL:', IFRAME_URL);
   }
 
   // Wait for DOM to be ready
