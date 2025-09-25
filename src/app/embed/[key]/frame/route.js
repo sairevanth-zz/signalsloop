@@ -19,14 +19,39 @@ export async function GET(
     const hideBranding = url.searchParams.get('hide_branding') === 'true';
 
     // Validate API key and get project info
-    const { data: project, error } = await supabase
-      .from('projects')
-      .select('id, name, slug, plan')
-      .eq('slug', key) // Using slug as key for demo
+    let project = null;
+    
+    // First, try to find by API key in api_keys table
+    const { data: apiKeyData, error: apiKeyError } = await supabase
+      .from('api_keys')
+      .select(`
+        id,
+        project_id,
+        name,
+        usage_count,
+        projects!inner(id, name, slug, plan)
+      `)
+      .eq('key_hash', btoa(key))
       .single();
 
-    if (error || !project) {
-      return new NextResponse('Project not found', { status: 404 });
+    if (apiKeyData && apiKeyData.projects) {
+      // Valid API key found
+      project = apiKeyData.projects;
+      console.log('Valid API key found in frame:', key, 'for project:', project.name);
+    } else {
+      // Fallback: try to find project by slug (for demo purposes)
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('id, name, slug, plan')
+        .eq('slug', key)
+        .single();
+
+      if (projectData) {
+        project = projectData;
+        console.log('Project found by slug in frame:', key, 'project:', project.name);
+      } else {
+        return new NextResponse('Invalid API key', { status: 401 });
+      }
     }
 
     // Get recent posts with vote counts

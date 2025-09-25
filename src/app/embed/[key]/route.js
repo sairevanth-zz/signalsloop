@@ -55,22 +55,54 @@ export async function GET(
     const size = searchParams.get('size') || 'medium';
     const theme = searchParams.get('theme') || 'light';
 
-    // For demo purposes, we'll use a simple validation
-    // In production, you'd validate against your API key database
+    // Validate API key and get project info
+    let project = null;
     let projectSlug = key;
     
-    // Try to find project by slug first
-    const { data: project, error } = await supabase
-      .from('projects')
-      .select('id, name, slug, plan')
-      .eq('slug', key)
+    // First, try to find by API key in api_keys table
+    const { data: apiKeyData, error: apiKeyError } = await supabase
+      .from('api_keys')
+      .select(`
+        id,
+        project_id,
+        name,
+        usage_count,
+        projects!inner(id, name, slug, plan)
+      `)
+      .eq('key_hash', btoa(key))
       .single();
 
-    if (error || !project) {
-      // If not found by slug, try to use the key directly
-      projectSlug = key;
-    } else {
+    if (apiKeyData && apiKeyData.projects) {
+      // Valid API key found
+      project = apiKeyData.projects;
       projectSlug = project.slug;
+      
+      // Update usage count and last used
+      await supabase
+        .from('api_keys')
+        .update({
+          usage_count: apiKeyData.usage_count + 1,
+          last_used_at: new Date().toISOString()
+        })
+        .eq('id', apiKeyData.id);
+        
+      console.log('Valid API key found:', key, 'for project:', project.name);
+    } else {
+      // Fallback: try to find project by slug (for demo purposes)
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('id, name, slug, plan')
+        .eq('slug', key)
+        .single();
+
+      if (projectData) {
+        project = projectData;
+        projectSlug = project.slug;
+        console.log('Project found by slug:', key, 'project:', project.name);
+      } else {
+        // If no valid API key or project found, return error
+        return new NextResponse('Invalid API key', { status: 401 });
+      }
     }
 
     // Generate the widget JavaScript
