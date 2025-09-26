@@ -261,7 +261,11 @@ export default function QuickActionsSidebar({
               </p>
             </div>
             {userPlan === 'free' && (
-              <Button size="sm" variant="outline">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => window.open('/app/billing', '_blank')}
+              >
                 Upgrade
               </Button>
             )}

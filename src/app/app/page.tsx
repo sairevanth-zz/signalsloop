@@ -174,14 +174,13 @@ export default function EnhancedDashboardPage() {
     if (!user || !supabase) return;
     
     try {
-      const { data: subscription } = await supabase
-        .from('subscriptions')
+      const { data: userData } = await supabase
+        .from('users')
         .select('plan')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
+        .eq('id', user.id)
         .single();
 
-      setUserPlan(subscription?.plan || 'free');
+      setUserPlan(userData?.plan || 'free');
     } catch (error) {
       console.error('Error loading user plan:', error);
       setUserPlan('free');
