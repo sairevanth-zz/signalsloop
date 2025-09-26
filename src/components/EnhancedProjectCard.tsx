@@ -216,14 +216,24 @@ export default function EnhancedProjectCard({
         {/* Actions */}
         <div className="space-y-3">
           <div className="flex space-x-2">
-            <Link href={`/${project.slug}/roadmap`} className="flex-1">
+            <Link href={`/${project.slug}/board`} className="flex-1">
               <Button 
                 variant="outline" 
                 size="sm" 
                 className="w-full bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
               >
-                <Map className="w-4 h-4 mr-1 transition-transform duration-200 group-hover:scale-110" />
-                Roadmap
+                <Eye className="w-4 h-4 mr-1 transition-transform duration-200 group-hover:scale-110" />
+                View Board
+              </Button>
+            </Link>
+            
+            <Link href={`/${project.slug}/roadmap`}>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
+              >
+                <Map className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
               </Button>
             </Link>
             
@@ -232,7 +242,6 @@ export default function EnhancedProjectCard({
                 variant="outline" 
                 size="sm"
                 className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
-                title="Project Settings"
               >
                 <Settings className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
               </Button>
