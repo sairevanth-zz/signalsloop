@@ -44,10 +44,10 @@ export function middleware(request: NextRequest) {
       return NextResponse.rewrite(url);
     } else if (pathname.startsWith('/post/')) {
       // For individual post paths on custom domains
-      const postId = pathname.split('/post/')[1];
+      const id = pathname.split('/post/')[1];
       url.pathname = `/custom-domain-post`;
       url.searchParams.set('domain', host);
-      url.searchParams.set('postId', postId);
+      url.searchParams.set('id', id);
       return NextResponse.rewrite(url);
     }
   } catch (error) {
