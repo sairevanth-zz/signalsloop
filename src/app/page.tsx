@@ -20,10 +20,12 @@ import {
   Zap as Lightning
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Homepage() {
   const router = useRouter();
   const [isAnnual, setIsAnnual] = useState(false);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     // Check if there's an access_token in the hash (magic link redirect)
@@ -31,12 +33,36 @@ export default function Homepage() {
     if (hash && hash.includes('access_token')) {
       console.log('Found access_token in hash, redirecting to app');
       router.push(`/app${hash}`);
+      return;
     }
-  }, [router]);
+
+    // If user is already authenticated, redirect to dashboard
+    if (!loading && user) {
+      console.log('User already authenticated, redirecting to dashboard');
+      router.push('/app');
+      return;
+    }
+  }, [router, user, loading]);
 
   const handleProCheckout = () => {
     router.push('/login');
   };
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-white font-bold text-sm">S</span>
+          </div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { Mail, Lock, Eye, EyeClosed, ArrowRight } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { useAuth } from '@/hooks/useAuth';
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
@@ -36,6 +37,7 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
 
   const router = useRouter();
+  const { user, loading } = useAuth();
 
   // For 3D card effect
   const mouseX = useMotionValue(0);
@@ -57,6 +59,13 @@ export default function LoginPage() {
   // Ensure we're on client side
   useEffect(() => {
     setIsClient(true);
+    
+    // If user is already authenticated, redirect to dashboard
+    if (!loading && user) {
+      console.log('User already authenticated, redirecting to dashboard');
+      router.push('/app');
+      return;
+    }
     
     // Check for OAuth tokens in URL hash
     if (typeof window !== 'undefined') {
@@ -145,7 +154,7 @@ export default function LoginPage() {
       setError(errorMessage);
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, [user, loading, router]);
 
   const handleGoogleLogin = async () => {
     if (!isClient) return;
