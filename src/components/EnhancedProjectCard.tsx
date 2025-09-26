@@ -138,16 +138,6 @@ export default function EnhancedProjectCard({
               <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate">
                 {project.name}
               </h3>
-              {project.plan === 'pro' && (
-                <Badge variant="secondary" className="text-xs bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 border-purple-200">
-                  Pro
-                </Badge>
-              )}
-              {project.widget_installed && (
-                <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-200">
-                  Widget
-                </Badge>
-              )}
             </div>
             <p className="text-sm text-gray-600">
               Created {formatDate(project.created_at)}
