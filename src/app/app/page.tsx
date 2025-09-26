@@ -212,7 +212,7 @@ export default function EnhancedDashboardPage() {
         .in('project_id', projectIds)
         .gte('created_at', weekAgo.toISOString())
         .order('vote_count', { ascending: false })
-        .limit(5);
+        .limit(3);
 
       if (topPostsError) {
         console.error('Error fetching top posts:', topPostsError);
@@ -230,7 +230,7 @@ export default function EnhancedDashboardPage() {
         .in('project_id', projectIds)
         .gte('created_at', weekAgo.toISOString())
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(3);
 
       if (recentPostsError) {
         console.error('Error fetching recent posts:', recentPostsError);
@@ -246,7 +246,7 @@ export default function EnhancedDashboardPage() {
         .in('post_id', recentPosts?.map(p => p.id) || [])
         .gte('created_at', weekAgo.toISOString())
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(3);
 
       if (recentVotesError) {
         console.error('Error fetching recent votes:', recentVotesError);
@@ -285,9 +285,9 @@ export default function EnhancedDashboardPage() {
         });
       });
 
-      // Sort recent activity by timestamp and limit to 10
+      // Sort recent activity by timestamp and limit to 3
       recentActivity.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      recentActivity.splice(10);
+      recentActivity.splice(3);
 
       // Calculate weekly growth (simplified - compare current week vs previous week)
       const previousWeek = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000));
