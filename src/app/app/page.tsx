@@ -188,47 +188,133 @@ export default function EnhancedDashboardPage() {
   };
 
   const loadAnalytics = async () => {
+    if (!user || !supabase || projects.length === 0) return;
+    
     setAnalyticsLoading(true);
     try {
-      // Mock analytics data - replace with real API call
-      const mockAnalytics = {
+      // Get user's project IDs
+      const projectIds = projects.map(p => p.id);
+      
+      // Calculate date range for "this week"
+      const now = new Date();
+      const weekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+      
+      // Get top posts from this week across all user's projects
+      const { data: topPostsData, error: topPostsError } = await supabase
+        .from('posts')
+        .select(`
+          id,
+          title,
+          vote_count,
+          created_at,
+          projects!inner(name, slug)
+        `)
+        .in('project_id', projectIds)
+        .gte('created_at', weekAgo.toISOString())
+        .order('vote_count', { ascending: false })
+        .limit(5);
+
+      if (topPostsError) {
+        console.error('Error fetching top posts:', topPostsError);
+      }
+
+      // Get recent activity (posts and votes) from the last 7 days
+      const { data: recentPosts, error: recentPostsError } = await supabase
+        .from('posts')
+        .select(`
+          id,
+          title,
+          created_at,
+          projects!inner(name, slug)
+        `)
+        .in('project_id', projectIds)
+        .gte('created_at', weekAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (recentPostsError) {
+        console.error('Error fetching recent posts:', recentPostsError);
+      }
+
+      const { data: recentVotes, error: recentVotesError } = await supabase
+        .from('votes')
+        .select(`
+          id,
+          created_at,
+          posts!inner(title, projects!inner(name, slug))
+        `)
+        .in('post_id', recentPosts?.map(p => p.id) || [])
+        .gte('created_at', weekAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (recentVotesError) {
+        console.error('Error fetching recent votes:', recentVotesError);
+      }
+
+      // Process top posts
+      const topPosts = (topPostsData || []).map(post => ({
+        id: post.id,
+        title: post.title,
+        votes: post.vote_count || 0,
+        project: post.projects?.name || 'Unknown'
+      }));
+
+      // Process recent activity
+      const recentActivity = [];
+      
+      // Add recent posts
+      (recentPosts || []).forEach(post => {
+        recentActivity.push({
+          id: `post-${post.id}`,
+          type: 'post' as const,
+          message: `New feedback submitted: "${post.title}"`,
+          timestamp: post.created_at,
+          project: post.projects?.name || 'Unknown'
+        });
+      });
+
+      // Add recent votes
+      (recentVotes || []).forEach(vote => {
+        recentActivity.push({
+          id: `vote-${vote.id}`,
+          type: 'vote' as const,
+          message: `User voted on "${vote.posts?.title || 'Unknown'}"`,
+          timestamp: vote.created_at,
+          project: vote.posts?.projects?.name || 'Unknown'
+        });
+      });
+
+      // Sort recent activity by timestamp and limit to 10
+      recentActivity.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      recentActivity.splice(10);
+
+      // Calculate weekly growth (simplified - compare current week vs previous week)
+      const previousWeek = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000));
+      const { data: previousWeekPosts } = await supabase
+        .from('posts')
+        .select('id')
+        .in('project_id', projectIds)
+        .gte('created_at', previousWeek.toISOString())
+        .lt('created_at', weekAgo.toISOString());
+
+      const currentWeekCount = recentPosts?.length || 0;
+      const previousWeekCount = previousWeekPosts?.length || 0;
+      const weeklyGrowth = previousWeekCount > 0 
+        ? Math.round(((currentWeekCount - previousWeekCount) / previousWeekCount) * 100)
+        : currentWeekCount > 0 ? 100 : 0;
+
+      const analytics = {
         totalProjects: projects.length,
         totalPosts: projects.reduce((sum, p) => sum + (p.posts_count || 0), 0),
         totalVotes: projects.reduce((sum, p) => sum + (p.votes_count || 0), 0),
         activeWidgets: projects.filter(p => p.plan === 'pro').length,
-        weeklyGrowth: 12,
-        topPosts: [
-          {
-            id: '1',
-            title: 'Dark mode support',
-            votes: 45,
-            project: 'My App'
-          },
-          {
-            id: '2',
-            title: 'Mobile app improvements',
-            votes: 32,
-            project: 'My App'
-          }
-        ],
-        recentActivity: [
-          {
-            id: '1',
-            type: 'post',
-            message: 'New feedback submitted: "Add dark mode"',
-            timestamp: new Date().toISOString(),
-            project: 'My App'
-          },
-          {
-            id: '2',
-            type: 'vote',
-            message: 'User voted on "Mobile improvements"',
-            timestamp: new Date(Date.now() - 3600000).toISOString(),
-            project: 'My App'
-          }
-        ]
+        weeklyGrowth,
+        topPosts,
+        recentActivity
       };
-      setAnalytics(mockAnalytics);
+
+      setAnalytics(analytics);
     } catch (error) {
       console.error('Error loading analytics:', error);
     } finally {
