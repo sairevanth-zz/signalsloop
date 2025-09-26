@@ -7,7 +7,7 @@ import PostPage from '@/app/[slug]/post/[id]/page';
 function CustomDomainPostContent() {
   const searchParams = useSearchParams();
   const domain = searchParams.get('domain');
-  const postId = searchParams.get('postId');
+  const postId = searchParams.get('id');
   const [projectSlug, setProjectSlug] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -186,7 +186,7 @@ export default function PublicBoardHomepage({ project, posts: initialPosts }: Pu
       const newPost: Post = {
         id: result.postId,
         title: postData.title,
-        description: postData.content || '',
+        description: postData.description || '',
         category: postData.category,
         vote_count: 0,
         created_at: new Date().toISOString(),
