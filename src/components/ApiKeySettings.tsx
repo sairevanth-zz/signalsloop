@@ -59,6 +59,13 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
     text: 'Feedback',
     enabled: true
   });
+  
+  // Analytics data state
+  const [analyticsData, setAnalyticsData] = useState({
+    totalWidgetLoads: 0,
+    submissionsThisWeek: 0,
+    activeDomains: 0
+  });
 
   const loadApiKeys = useCallback(async () => {
     if (!supabase) {
@@ -85,6 +92,44 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
     }
   }, [supabase, projectId]);
 
+  const loadAnalyticsData = useCallback(async () => {
+    if (!supabase) return;
+
+    try {
+      // Calculate date range for "this week"
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+
+      // Total Widget Loads (sum of usage_count from all API keys)
+      const totalWidgetLoads = apiKeys.reduce((sum, key) => sum + key.usage_count, 0);
+
+      // Submissions This Week
+      const { count: submissionsThisWeek } = await supabase
+        .from('analytics_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', projectId)
+        .eq('event_name', 'feedback_submitted')
+        .gte('created_at', sevenDaysAgo.toISOString());
+
+      // Active Domains (distinct referers for widget_loaded events)
+      const { data: activeDomainsData } = await supabase
+        .from('analytics_events')
+        .select('referer', { distinct: true })
+        .eq('project_id', projectId)
+        .eq('event_name', 'widget_loaded')
+        .not('referer', 'is', null);
+
+      setAnalyticsData({
+        totalWidgetLoads,
+        submissionsThisWeek: submissionsThisWeek || 0,
+        activeDomains: activeDomainsData?.length || 0
+      });
+    } catch (error) {
+      console.error('Error loading analytics data:', error);
+      // Don't show error toast for analytics, just log it
+    }
+  }, [supabase, projectId, apiKeys]);
+
   // Initialize Supabase client safely
   useEffect(() => {
     const client = getSupabaseClient();
@@ -98,6 +143,12 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
       loadApiKeys();
     }
   }, [projectId, supabase, loadApiKeys]);
+
+  useEffect(() => {
+    if (supabase && apiKeys.length > 0) {
+      loadAnalyticsData();
+    }
+  }, [supabase, apiKeys, loadAnalyticsData]);
 
   const generateApiKey = async () => {
     if (!supabase) {
@@ -493,16 +544,16 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
           <div className="grid grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-primary">
-                {apiKeys.reduce((sum, key) => sum + key.usage_count, 0)}
+                {analyticsData.totalWidgetLoads}
               </div>
               <div className="text-sm text-muted-foreground">Total Widget Loads</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">24</div>
+              <div className="text-2xl font-bold text-green-600">{analyticsData.submissionsThisWeek}</div>
               <div className="text-sm text-muted-foreground">Submissions This Week</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">8</div>
+              <div className="text-2xl font-bold text-blue-600">{analyticsData.activeDomains}</div>
               <div className="text-sm text-muted-foreground">Active Domains</div>
             </div>
           </div>
