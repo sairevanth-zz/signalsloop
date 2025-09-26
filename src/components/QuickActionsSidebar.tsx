@@ -151,11 +151,11 @@ export default function QuickActionsSidebar({
                 Create from Template
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-sm w-[90vw] max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Choose a Template</DialogTitle>
               </DialogHeader>
-              <div className="grid grid-cols-1 gap-3 mt-4">
+              <div className="grid grid-cols-1 gap-2 mt-4">
                 {templates.map((template) => (
                   <button
                     key={template.id}
@@ -163,15 +163,15 @@ export default function QuickActionsSidebar({
                       onCreateFromTemplate(template.id);
                       setShowTemplates(false);
                     }}
-                    className="p-3 rounded-lg border-2 border-transparent hover:border-blue-200 transition-colors text-left"
+                    className="p-2 rounded-lg border-2 border-transparent hover:border-blue-200 transition-colors text-left"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className={`p-2 rounded-lg ${template.color}`}>
+                    <div className="flex items-start gap-2">
+                      <div className={`p-1.5 rounded-lg ${template.color}`}>
                         {template.icon}
                       </div>
                       <div className="flex-1">
                         <h3 className="font-medium text-gray-900 text-sm">{template.name}</h3>
-                        <p className="text-xs text-gray-600 mt-1">{template.description}</p>
+                        <p className="text-xs text-gray-600 mt-1 leading-tight">{template.description}</p>
                       </div>
                     </div>
                   </button>
