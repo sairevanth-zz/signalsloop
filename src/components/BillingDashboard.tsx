@@ -75,11 +75,11 @@ export function BillingDashboard({
   });
 
   const [usage, setUsage] = useState<ProjectUsage>({
-    boards_count: 1,
-    posts_count: 12,
-    votes_count: 45,
-    widget_loads: 1234,
-    team_members: 1
+    boards_count: 0,
+    posts_count: 0,
+    votes_count: 0,
+    widget_loads: 0,
+    team_members: 0
   });
 
   const [loading, setLoading] = useState(false);
@@ -255,6 +255,10 @@ export function BillingDashboard({
     if (!supabase) return;
 
     try {
+      // Calculate date range for "this month"
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
       // Check if this is account-level billing
       if (projectId && projectId.length > 20) {
         console.log('🔍 Loading account-level usage stats');
@@ -279,31 +283,44 @@ export function BillingDashboard({
 
         const projectIds = projects?.map(p => p.id) || [];
 
-        // Get total posts count across all user projects
+        // Get total posts count across all user projects (this month)
         const { data: posts, error: postsError } = await supabase
           .from('posts')
           .select('id')
-          .in('project_id', projectIds);
+          .in('project_id', projectIds)
+          .gte('created_at', startOfMonth.toISOString());
 
-        // Get total votes count across all user projects
+        // Get total votes count across all user projects (this month)
         const { data: votes, error: votesError } = await supabase
           .from('votes')
           .select('id')
+          .gte('created_at', startOfMonth.toISOString())
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .in('post_id', posts?.map((p: any) => p.id) || []);
 
-        if (!postsError && !votesError) {
+        // Get widget loads from analytics_events (this month)
+        const { data: widgetEvents, error: widgetError } = await supabase
+          .from('analytics_events')
+          .select('id')
+          .in('project_id', projectIds)
+          .eq('event_name', 'widget_loaded')
+          .gte('created_at', startOfMonth.toISOString());
+
+        if (!postsError && !votesError && !widgetError) {
           console.log('✅ Account usage stats loaded:', {
             projects: projectIds.length,
             posts: posts?.length || 0,
-            votes: votes?.length || 0
+            votes: votes?.length || 0,
+            widget_loads: widgetEvents?.length || 0
           });
 
-          setUsage(prev => ({
-            ...prev,
+          setUsage({
+            boards_count: projectIds.length,
             posts_count: posts?.length || 0,
-            votes_count: votes?.length || 0
-          }));
+            votes_count: votes?.length || 0,
+            widget_loads: widgetEvents?.length || 0,
+            team_members: 1 // TODO: Implement team member counting
+          });
         }
         return;
       }
@@ -312,20 +329,32 @@ export function BillingDashboard({
       const { data: posts, error: postsError } = await supabase
         .from('posts')
         .select('id')
-        .eq('project_id', projectId);
+        .eq('project_id', projectId)
+        .gte('created_at', startOfMonth.toISOString());
 
       const { data: votes, error: votesError } = await supabase
         .from('votes')
         .select('id')
+        .gte('created_at', startOfMonth.toISOString())
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .in('post_id', posts?.map((p: any) => p.id) || []);
 
-      if (!postsError && !votesError) {
-        setUsage(prev => ({
-          ...prev,
+      // Get widget loads for this project (this month)
+      const { data: widgetEvents, error: widgetError } = await supabase
+        .from('analytics_events')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('event_name', 'widget_loaded')
+        .gte('created_at', startOfMonth.toISOString());
+
+      if (!postsError && !votesError && !widgetError) {
+        setUsage({
+          boards_count: 1, // Single project
           posts_count: posts?.length || 0,
-          votes_count: votes?.length || 0
-        }));
+          votes_count: votes?.length || 0,
+          widget_loads: widgetEvents?.length || 0,
+          team_members: 1 // TODO: Implement team member counting
+        });
       }
     } catch (error) {
       console.error('Error loading usage:', error);
