@@ -32,6 +32,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import GlobalBanner from '@/components/GlobalBanner';
 import BoardShare from '@/components/BoardShare';
 import FeedbackExport from '@/components/FeedbackExport';
+import EnhancedProjectCard from '@/components/EnhancedProjectCard';
+import DashboardAnalytics from '@/components/DashboardAnalytics';
+import QuickActionsSidebar from '@/components/QuickActionsSidebar';
+import EnhancedEmptyState from '@/components/EnhancedEmptyState';
+import DashboardSearchFilters from '@/components/DashboardSearchFilters';
 import { 
   Plus, 
   Settings, 
@@ -108,6 +113,17 @@ export default function AppPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
+  
+  // Enhanced dashboard state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [filterBy, setFilterBy] = useState('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  
   const supabase = getSupabaseClient();
   const router = useRouter();
 
@@ -231,6 +247,13 @@ export default function AppPage() {
       }
     }
   }, [user, supabase]);
+
+  // Load analytics when projects change
+  useEffect(() => {
+    if (projects.length > 0) {
+      loadAnalytics();
+    }
+  }, [projects]);
 
         const loadAIInsights = async (projectIds: string[]) => {
           if (projectIds.length === 0) return;
@@ -644,6 +667,77 @@ export default function AppPage() {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  // Enhanced dashboard functions
+  const handleProjectSelect = (projectId: string, selected: boolean) => {
+    setSelectedProjects(prev => {
+      const newSet = new Set(prev);
+      if (selected) {
+        newSet.add(projectId);
+      } else {
+        newSet.delete(projectId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleBulkAction = (action: string) => {
+    const selectedIds = Array.from(selectedProjects);
+    if (selectedIds.length === 0) {
+      toast.error('No projects selected');
+      return;
+    }
+
+    switch (action) {
+      case 'archive':
+        toast.info(`Archiving ${selectedIds.length} projects...`);
+        break;
+      case 'duplicate':
+        toast.info(`Duplicating ${selectedIds.length} projects...`);
+        break;
+      case 'export':
+        toast.info(`Exporting ${selectedIds.length} projects...`);
+        break;
+      case 'delete':
+        toast.info(`Deleting ${selectedIds.length} projects...`);
+        break;
+    }
+  };
+
+  const handleExport = () => {
+    toast.info('Exporting project data...');
+  };
+
+  const handleCreateFromTemplate = (template: string) => {
+    toast.info(`Creating project from ${template} template...`);
+    // TODO: Implement template-based project creation
+  };
+
+  const handleLoadSampleData = () => {
+    toast.info('Loading sample data...');
+    // TODO: Implement sample data loading
+  };
+
+  const loadAnalytics = async () => {
+    setAnalyticsLoading(true);
+    try {
+      // Mock analytics data - replace with real API call
+      const mockAnalytics = {
+        totalProjects: projects.length,
+        totalPosts: projects.reduce((sum, p) => sum + (p.posts_count || 0), 0),
+        totalVotes: projects.reduce((sum, p) => sum + (p.votes_count || 0), 0),
+        activeWidgets: projects.filter(p => p.plan === 'pro').length,
+        weeklyGrowth: 12,
+        topPosts: [],
+        recentActivity: []
+      };
+      setAnalytics(mockAnalytics);
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+    } finally {
+      setAnalyticsLoading(false);
+    }
   };
 
   if (loading || projectsLoading) {
