@@ -25,12 +25,9 @@ import {
   TrendingUp,
   Crown,
   BarChart3,
-  Sparkles,
   Brain,
   Zap,
-  Share2,
-  CreditCard,
-  LogOut
+  Share2
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -417,42 +414,6 @@ export default function EnhancedDashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <GlobalBanner />
-      
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                      <Sparkles className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                <h1 className="text-xl font-bold text-gray-900">SignalsLoop</h1>
-                <p className="text-sm text-gray-600">Dashboard</p>
-                    </div>
-                  </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/app/billing">
-                <Button variant="outline" size="sm">
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  {userPlan === 'pro' ? 'Pro Plan' : 'Upgrade'}
-                </Button>
-              </Link>
-                  <Button
-                variant="outline"
-                    size="sm"
-                    onClick={() => {
-                  supabase.auth.signOut();
-                  router.push('/');
-                    }}
-                  >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-                  </Button>
-                </div>
-                              </div>
-                                </div>
-      </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
