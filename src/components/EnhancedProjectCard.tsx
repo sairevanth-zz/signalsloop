@@ -117,27 +117,24 @@ export default function EnhancedProjectCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Selection checkbox */}
-      {onSelect && (
-        <div className="absolute top-4 left-4 z-10">
-          <button
-            onClick={() => onSelect(project.id, !isSelected)}
-            className="p-1 rounded-md hover:bg-gray-100 transition-colors"
-          >
-            {isSelected ? (
-              <CheckSquare className="w-4 h-4 text-blue-600" />
-            ) : (
-              <Square className="w-4 h-4 text-gray-400" />
-            )}
-          </button>
-        </div>
-      )}
-
       <div className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
+              {/* Selection checkbox */}
+              {onSelect && (
+                <button
+                  onClick={() => onSelect(project.id, !isSelected)}
+                  className="flex-shrink-0 p-1 rounded-md hover:bg-gray-100 transition-colors"
+                >
+                  {isSelected ? (
+                    <CheckSquare className="w-4 h-4 text-blue-600" />
+                  ) : (
+                    <Square className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+              )}
               <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate">
                 {project.name}
               </h3>
