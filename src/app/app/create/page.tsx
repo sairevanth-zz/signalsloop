@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ interface ProjectData {
 
 export default function ProjectWizard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -38,6 +39,28 @@ export default function ProjectWizard() {
     slug: '',
     boardName: 'Feedback Board'
   });
+
+  // Handle template parameter
+  useEffect(() => {
+    const template = searchParams.get('template');
+    if (template) {
+      const templateConfigs = {
+        saas: { name: 'My SaaS Product', boardName: 'Feature Requests & Bug Reports' },
+        mobile: { name: 'My Mobile App', boardName: 'App Feedback & Feature Requests' },
+        website: { name: 'My Website', boardName: 'Website Feedback & Improvements' },
+        community: { name: 'My Community Project', boardName: 'Community Feedback Board' }
+      };
+      
+      const config = templateConfigs[template as keyof typeof templateConfigs];
+      if (config) {
+        setProjectData(prev => ({
+          ...prev,
+          name: config.name,
+          boardName: config.boardName
+        }));
+      }
+    }
+  }, [searchParams]);
 
   const totalSteps = 3;
   const progress = (currentStep / totalSteps) * 100;

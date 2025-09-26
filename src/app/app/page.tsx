@@ -278,8 +278,8 @@ export default function EnhancedDashboardPage() {
   };
 
   const handleCreateFromTemplate = (template: string) => {
-    toast.info(`Creating project from ${template} template...`);
-    // TODO: Implement template-based project creation
+    // Navigate to create page with template parameter
+    router.push(`/app/create?template=${template}`);
   };
 
   const handleLoadSampleData = () => {
