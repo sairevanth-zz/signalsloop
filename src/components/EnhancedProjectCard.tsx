@@ -216,50 +216,27 @@ export default function EnhancedProjectCard({
         {/* Actions */}
         <div className="space-y-3">
           <div className="flex space-x-2">
-            <Link href={`/${project.slug}/board`} className="flex-1">
+            <Link href={`/${project.slug}/roadmap`} className="flex-1">
               <Button 
                 variant="outline" 
                 size="sm" 
                 className="w-full bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
               >
-                <Eye className="w-4 h-4 mr-1 transition-transform duration-200 group-hover:scale-110" />
-                View Board
+                <Map className="w-4 h-4 mr-1 transition-transform duration-200 group-hover:scale-110" />
+                Roadmap
               </Button>
             </Link>
             
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onShare?.(project)}
-              className="bg-green-50/80 border-green-200 text-green-700 hover:bg-green-100/80 transition-all duration-200 hover:scale-105"
-              title="Share Board"
-            >
-              <Share2 className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-            </Button>
-            
-            <Link href={`/${project.slug}/roadmap`}>
+            <Link href={`/${project.slug}/settings`}>
               <Button 
                 variant="outline" 
                 size="sm"
                 className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
-                title="View Roadmap"
+                title="Project Settings"
               >
-                <Map className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                <Settings className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
               </Button>
             </Link>
-            
-            {aiAvailable && (project.posts_count || 0) > 0 && (
-              <Link href="/ai-test">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-gradient-to-r from-purple-50 to-blue-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-blue-100 transition-all duration-200 hover:scale-105"
-                  title="AI Analysis"
-                >
-                  <Sparkles className="w-4 h-4 text-purple-600 transition-transform duration-200 group-hover:scale-110" />
-                </Button>
-              </Link>
-            )}
           </div>
         </div>
       </div>
