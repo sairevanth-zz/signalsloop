@@ -9,13 +9,13 @@ const supabase = createClient(
 );
 
 interface PublicBoardPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: PublicBoardPageProps): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await params;
   
   try {
     // Get project details for SEO
@@ -77,7 +77,7 @@ export async function generateMetadata({ params }: PublicBoardPageProps): Promis
 }
 
 export default async function PublicBoardPage({ params }: PublicBoardPageProps) {
-  const { slug } = params;
+  const { slug } = await params;
   
   try {
     // Get project details

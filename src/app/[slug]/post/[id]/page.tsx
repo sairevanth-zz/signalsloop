@@ -9,14 +9,14 @@ const supabase = createClient(
 );
 
 interface PublicPostPageProps {
-  params: {
+  params: Promise<{
     slug: string;
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: PublicPostPageProps): Promise<Metadata> {
-  const { slug, id } = params;
+  const { slug, id } = await params;
   
   try {
     // Get project and post details for SEO
@@ -93,7 +93,7 @@ export async function generateMetadata({ params }: PublicPostPageProps): Promise
 }
 
 export default async function PublicPostPage({ params }: PublicPostPageProps) {
-  const { slug, id } = params;
+  const { slug, id } = await params;
   
   try {
     // Get project details

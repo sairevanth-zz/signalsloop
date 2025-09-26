@@ -9,13 +9,13 @@ const supabase = createClient(
 );
 
 interface PublicRoadmapPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: PublicRoadmapPageProps): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await params;
   
   try {
     // Get project details for SEO
@@ -77,7 +77,7 @@ export async function generateMetadata({ params }: PublicRoadmapPageProps): Prom
 }
 
 export default async function PublicRoadmapPage({ params }: PublicRoadmapPageProps) {
-  const { slug } = params;
+  const { slug } = await params;
   
   try {
     // Get project details
