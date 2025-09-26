@@ -151,11 +151,11 @@ export default function QuickActionsSidebar({
                 Create from Template
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-sm w-[90vw] max-h-[85vh] overflow-y-auto">
+            <DialogContent className="!max-w-xs !w-[85vw] !max-h-[80vh] !top-[5vh] !translate-y-0 !overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Choose a Template</DialogTitle>
               </DialogHeader>
-              <div className="grid grid-cols-1 gap-2 mt-4">
+              <div className="grid grid-cols-1 gap-1 mt-3">
                 {templates.map((template) => (
                   <button
                     key={template.id}
@@ -163,15 +163,15 @@ export default function QuickActionsSidebar({
                       onCreateFromTemplate(template.id);
                       setShowTemplates(false);
                     }}
-                    className="p-2 rounded-lg border-2 border-transparent hover:border-blue-200 transition-colors text-left"
+                    className="p-1.5 rounded-lg border border-transparent hover:border-blue-200 transition-colors text-left"
                   >
-                    <div className="flex items-start gap-2">
-                      <div className={`p-1.5 rounded-lg ${template.color}`}>
+                    <div className="flex items-start gap-1.5">
+                      <div className={`p-1 rounded ${template.color}`}>
                         {template.icon}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 text-sm">{template.name}</h3>
-                        <p className="text-xs text-gray-600 mt-1 leading-tight">{template.description}</p>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-gray-900 text-xs truncate">{template.name}</h3>
+                        <p className="text-[10px] text-gray-600 mt-0.5 leading-tight line-clamp-2">{template.description}</p>
                       </div>
                     </div>
                   </button>
