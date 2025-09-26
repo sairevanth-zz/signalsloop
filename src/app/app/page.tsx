@@ -4,34 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { useAuth } from '@/hooks/useAuth';
-// AI categorization data - defined locally to avoid client-side import issues
-const categoryColors = {
-  'Bug': 'bg-red-100 text-red-800 border-red-200',
-  'Feature Request': 'bg-blue-100 text-blue-800 border-blue-200',
-  'Improvement': 'bg-green-100 text-green-800 border-green-200',
-  'UI/UX': 'bg-purple-100 text-purple-800 border-purple-200',
-  'Integration': 'bg-orange-100 text-orange-800 border-orange-200',
-  'Performance': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  'Documentation': 'bg-indigo-100 text-indigo-800 border-indigo-200',
-  'Other': 'bg-gray-100 text-gray-800 border-gray-200'
-};
-
-const categoryDescriptions = {
-  'Bug': 'Reports of broken functionality, errors, or unexpected behavior',
-  'Feature Request': 'Requests for new features or functionality',
-  'Improvement': 'Suggestions to enhance existing features',
-  'UI/UX': 'Issues or suggestions related to user interface or user experience',
-  'Integration': 'Requests or issues related to third-party integrations',
-  'Performance': 'Issues or suggestions related to speed, efficiency, or resource usage',
-  'Documentation': 'Requests for better documentation or help content',
-  'Other': 'Anything that doesn\'t fit the above categories'
-};
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import GlobalBanner from '@/components/GlobalBanner';
 import BoardShare from '@/components/BoardShare';
-import FeedbackExport from '@/components/FeedbackExport';
 import EnhancedProjectCard from '@/components/EnhancedProjectCard';
 import DashboardAnalytics from '@/components/DashboardAnalytics';
 import QuickActionsSidebar from '@/components/QuickActionsSidebar';
@@ -73,43 +50,15 @@ interface Project {
   created_at: string;
   posts_count?: number;
   votes_count?: number;
+  last_activity?: string;
+  weekly_posts_trend?: number;
+  widget_installed?: boolean;
 }
 
-interface RecentPost {
-  id: string;
-  title: string;
-  description?: string;
-  project_slug: string;
-  ai_category?: string;
-  ai_confidence?: number;
-}
-
-interface AIInsights {
-  totalPosts: number;
-  totalVotes: number;
-  categoryBreakdown: Record<string, number>;
-  topCategories: string[];
-  recentPosts: RecentPost[];
-}
-
-interface PostWithProject {
-  id: string;
-  title: string;
-  description?: string;
-  project_id: string;
-  projects: {
-    slug: string;
-  };
-}
-
-export default function AppPage() {
+export default function EnhancedDashboardPage() {
   const { user, loading } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
-  const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
-  const [aiAvailable, setAiAvailable] = useState(false);
-  const [showAIInsights, setShowAIInsights] = useState(false);
-  const [loadingAIInsights, setLoadingAIInsights] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
@@ -127,124 +76,10 @@ export default function AppPage() {
   const supabase = getSupabaseClient();
   const router = useRouter();
 
-  // Refresh projects when user returns to dashboard (e.g., after deleting a board)
   useEffect(() => {
-    const handleFocus = () => {
-      if (user && supabase && !projectsLoading) {
-        console.log('Dashboard focused - refreshing projects');
-        loadProjects();
-      }
-    };
-
-    // Also refresh when the page becomes visible again
-    const handleVisibilityChange = () => {
-      if (!document.hidden && user && supabase && !projectsLoading) {
-        console.log('Page became visible - refreshing projects');
-        loadProjects();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [user, supabase, projectsLoading]);
-
-  useEffect(() => {
-    console.log('App page auth check:', { user: !!user, loading, userEmail: user?.email });
-    console.log('Current userPlan state:', userPlan); // DEBUG: Log userPlan state
-    
-    // Check for OAuth parameters in URL first
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const hasAuthParams = urlParams.has('access_token') || urlParams.has('refresh_token') || urlParams.has('code');
-      const authSuccess = urlParams.get('auth') === 'success';
-      
-      if (hasAuthParams) {
-        console.log('OAuth parameters detected in URL:', Object.fromEntries(urlParams.entries()));
-        console.log('Waiting for session to be established from URL parameters...');
-        // Don't redirect immediately, let Supabase handle the session from URL
-        return;
-      }
-      
-      if (authSuccess) {
-        console.log('Auth success parameter detected, session should be established');
-        // Clean up the URL
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
-        // Don't redirect, let the useAuth hook handle the session
-        return;
-      }
-    }
-    
-    // If still loading, wait
-    if (loading) {
-      console.log('Still loading auth state...');
-      return;
-    }
-    
-    // If user is authenticated, load projects and user plan
     if (user && supabase) {
-      console.log('Loading projects for user:', user.email);
       loadProjects();
       loadUserPlan();
-      return;
-    }
-    
-    // No user and not loading - check if this is an OAuth redirect
-    console.log('No user found, checking if this is an OAuth redirect...');
-    
-    // Check if we just came from OAuth (no referrer or came from Google/Supabase)
-    const isOAuthRedirect = !document.referrer || 
-      document.referrer.includes('google.com') || 
-      document.referrer.includes('supabase.co');
-    
-    if (isOAuthRedirect) {
-      console.log('OAuth redirect detected, waiting for session...');
-      // Wait longer for session to be established
-      setTimeout(() => {
-        console.log('Timeout reached, checking session again...');
-        // Force a session check by refreshing the auth state
-        if (supabase) {
-          supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-              console.log('Session found after timeout:', session.user.email);
-              // Don't redirect, let the useAuth hook handle it
-            } else {
-              console.log('Still no session after timeout, redirecting to login');
-              router.push('/login');
-            }
-          });
-        } else {
-          router.push('/login');
-        }
-      }, 3000);
-      return;
-    } else {
-      console.log('Not an OAuth redirect, redirecting to login immediately');
-      router.push('/login');
-      return;
-    }
-  }, [user, loading, router, supabase]);
-
-  // Check for refresh parameter and reload projects
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('refresh')) {
-        // Remove the refresh parameter from URL
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
-        
-        // Reload projects if user is authenticated
-        if (user && supabase) {
-          loadProjects();
-          loadUserPlan();
-        }
-      }
     }
   }, [user, supabase]);
 
@@ -255,262 +90,11 @@ export default function AppPage() {
     }
   }, [projects]);
 
-        const loadAIInsights = async (projectIds: string[]) => {
-          if (projectIds.length === 0) return;
-
-          console.log('🤖 Loading AI insights for projects:', projectIds);
-
-          // Check if OpenAI API key is available
-          try {
-            console.log('🤖 Testing OpenAI API key availability...');
-            
-            // Get the current session token for authentication
-            const { data: { session } } = await supabase.auth.getSession();
-            const token = session?.access_token;
-            
-            if (!token) {
-              console.log('🤖 No authentication token available for API test');
-              setAiAvailable(false);
-              return;
-            }
-
-            const response = await fetch('/api/ai/categorize', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                title: 'Test',
-                description: 'Test'
-              }),
-            });
-
-            console.log('🤖 API response status:', response.status);
-            if (!response.ok) {
-              console.log('🤖 OpenAI API key not available, skipping AI insights');
-              setAiAvailable(false);
-              return;
-            }
-            console.log('🤖 OpenAI API key is available');
-            setAiAvailable(true);
-          } catch (error) {
-            console.log('🤖 OpenAI API key test failed:', error);
-            setAiAvailable(false);
-            return;
-          }
-
-          try {
-      // Get recent posts from all projects
-      console.log('🤖 Fetching posts for project IDs:', projectIds);
-      const { data: posts, error: postsError } = await supabase
-        .from('posts')
-        .select(`
-          id,
-          title,
-          description,
-          project_id,
-          projects!inner(slug)
-        `)
-        .in('project_id', projectIds)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      console.log('🤖 Posts query completed. Error:', postsError);
-      if (postsError) {
-        console.error('Error fetching posts for AI insights:', postsError);
-        return;
-      }
-
-      console.log('🤖 Posts fetched:', posts);
-
-            if (!posts || posts.length === 0) {
-              console.log('🤖 No posts found for AI insights, showing empty state');
-              const emptyInsights = {
-                totalPosts: 0,
-                totalVotes: 0,
-                categoryBreakdown: {},
-                topCategories: [],
-                recentPosts: []
-              };
-              console.log('🤖 Setting empty AI insights data:', emptyInsights);
-              setAiInsights(emptyInsights);
-              return;
-            }
-
-            console.log('🤖 Found posts for AI insights:', posts.length, posts);
-
-            // Call AI categorization API instead of direct function call
-      const postsWithCategories = await Promise.all(
-        posts.map(async (post: PostWithProject) => {
-          try {
-            // Get the current session token for authentication
-            const { data: { session } } = await supabase.auth.getSession();
-            const token = session?.access_token;
-            
-            console.log('🤖 Session data:', { 
-              hasSession: !!session, 
-              hasToken: !!token,
-              tokenPrefix: token ? token.substring(0, 20) + '...' : 'NO_TOKEN'
-            });
-            
-            if (!token) {
-              console.error('🤖 No authentication token available');
-              return {
-                ...post,
-                ai_category: 'Other',
-                ai_confidence: 0,
-                project_slug: post.projects.slug
-              };
-            }
-
-            const response = await fetch('/api/ai/categorize', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                title: post.title,
-                description: post.description
-              }),
-            });
-
-            console.log('🤖 API response:', {
-              status: response.status,
-              ok: response.ok,
-              postTitle: post.title
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              console.log('🤖 API success data:', data);
-              return {
-                ...post,
-                ai_category: data.result?.category || 'Other',
-                ai_confidence: data.result?.confidence || 0,
-                project_slug: post.projects.slug
-              };
-            } else {
-              const errorData = await response.json();
-              console.error('🤖 API error:', errorData);
-              return {
-                ...post,
-                ai_category: 'Other',
-                ai_confidence: 0,
-                project_slug: post.projects.slug
-              };
-            }
-          } catch (error) {
-            console.error('AI categorization error:', error);
-            return {
-              ...post,
-              ai_category: 'Other',
-              ai_confidence: 0,
-              project_slug: post.projects.slug
-            };
-          }
-        })
-      );
-
-      // Calculate category breakdown
-      const categoryBreakdown: Record<string, number> = {};
-      postsWithCategories.forEach(post => {
-        if (post.ai_category) {
-          categoryBreakdown[post.ai_category] = (categoryBreakdown[post.ai_category] || 0) + 1;
-        }
-      });
-
-      // Get top categories
-      const topCategories = Object.entries(categoryBreakdown)
-        .sort(([,a], [,b]) => b - a)
-        .slice(0, 3)
-        .map(([category]) => category);
-
-      // Get total votes for these posts
-      const postIds = posts.map((p: PostWithProject) => p.id);
-      const { data: votes } = await supabase
-        .from('votes')
-        .select('post_id')
-        .in('post_id', postIds);
-
-      const totalVotes = votes?.length || 0;
-
-      const insightsData = {
-        totalPosts: posts.length,
-        totalVotes,
-        categoryBreakdown,
-        topCategories,
-        recentPosts: postsWithCategories.slice(0, 5) as RecentPost[]
-      };
-      
-      console.log('🤖 Setting AI insights data:', insightsData);
-      setAiInsights(insightsData);
-
-    } catch (error) {
-      console.error('🤖 Error loading AI insights:', error);
-      console.error('🤖 Error details:', error.message, error.stack);
-    }
-  };
-
-  const loadUserPlan = async () => {
-    if (!supabase || !user) {
-      console.log('loadUserPlan: No supabase or user');
-      return;
-    }
-    
-    console.log('loadUserPlan: Starting for user:', user.id, user.email);
-    
-    try {
-      // First try to get user plan from users table
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('plan')
-        .eq('id', user.id)
-        .single();
-      
-      console.log('loadUserPlan: Users table query result:', { userData, error });
-      
-      if (!error && userData && userData.plan) {
-        console.log('loadUserPlan: Found user plan in users table:', userData.plan);
-        setUserPlan(userData.plan);
-        return;
-      }
-      
-      console.log('loadUserPlan: No user plan in users table, checking projects...');
-      
-      // Fallback: check if user has any Pro projects
-      const { data: proProjects, error: proError } = await supabase
-        .from('projects')
-        .select('plan')
-        .eq('owner_id', user.id)
-        .eq('plan', 'pro')
-        .limit(1);
-      
-      console.log('loadUserPlan: Projects query result:', { proProjects, proError });
-      
-      if (proProjects && proProjects.length > 0) {
-        console.log('loadUserPlan: Found Pro projects, setting userPlan to pro');
-        setUserPlan('pro');
-      } else {
-        console.log('loadUserPlan: No Pro projects found, setting userPlan to free');
-        setUserPlan('free');
-      }
-    } catch (error) {
-      console.error('loadUserPlan: Error loading user plan:', error);
-      // Default to free if there's any error
-      setUserPlan('free');
-    }
-  };
-
   const loadProjects = async () => {
-    if (!supabase || !user) return;
-
+    if (!user || !supabase) return;
+    
+    setProjectsLoading(true);
     try {
-      setProjectsLoading(true);
-      console.log('Loading projects for user:', user.id, user.email);
-      
-      // First, get all projects
       const { data: projects, error: projectsError } = await supabase
         .from('projects')
         .select(`
@@ -522,8 +106,6 @@ export default function AppPage() {
         `)
         .eq('owner_id', user.id)
         .order('created_at', { ascending: false });
-
-      console.log('Projects query result:', { projects, projectsError });
 
       if (projectsError) {
         console.error('Error loading projects:', projectsError);
@@ -545,15 +127,11 @@ export default function AppPage() {
         .select('project_id')
         .in('project_id', projectIds);
 
-      console.log('Posts counts result:', { postsCounts, postsError });
-
       // Count votes per project (through posts)
       const { data: votesCounts, error: votesError } = await supabase
         .from('votes')
         .select('post_id, posts!inner(project_id)')
         .in('posts.project_id', projectIds);
-
-      console.log('Votes counts result:', { votesCounts, votesError });
 
       // Calculate counts per project
       const postsCountByProject: Record<string, number> = {};
@@ -576,19 +154,13 @@ export default function AppPage() {
       const projectsWithCounts = projects.map((project: Project) => ({
         ...project,
         posts_count: postsCountByProject[project.id] || 0,
-        votes_count: votesCountByProject[project.id] || 0
+        votes_count: votesCountByProject[project.id] || 0,
+        last_activity: project.created_at, // TODO: Add real last activity
+        weekly_posts_trend: Math.floor(Math.random() * 10) - 5, // TODO: Add real trend data
+        widget_installed: project.plan === 'pro' // TODO: Add real widget status
       }));
       
-      console.log('Projects with counts:', projectsWithCounts);
       setProjects(projectsWithCounts);
-      
-      // Load AI insights for projects with posts (optional, non-blocking)
-      const projectsWithPosts = projectsWithCounts
-        .filter((p: Project) => (p.posts_count || 0) > 0)
-        .map((p: Project) => p.id);
-      
-      // AI insights are no longer auto-loaded to prevent unnecessary API costs
-      // They will only load when user explicitly requests them via the AI insights button
 
     } catch (error) {
       console.error('Error loading projects:', error);
@@ -598,75 +170,71 @@ export default function AppPage() {
     }
   };
 
-
-  const copyEmbedCode = async (projectSlug: string, projectId: string) => {
+  const loadUserPlan = async () => {
+    if (!user || !supabase) return;
+    
     try {
-      console.log('🔗 Copying embed code for project:', projectSlug, projectId);
-      
-      // Use the new API endpoint
-      const response = await fetch('/api/embed/copy-code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ projectId }),
-      });
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('plan')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single();
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        console.error('🔗 API error:', data.error);
-        toast.error(data.error || 'Failed to get embed code');
-        return;
-      }
-
-      const { embedCode } = data;
-      console.log('🔗 Generated embed code:', embedCode);
-      
-      // Try modern clipboard API first
-      try {
-        await navigator.clipboard.writeText(embedCode);
-        toast.success('Embed code copied to clipboard!');
-      } catch (clipboardError) {
-        console.error('Modern clipboard failed, trying fallback:', clipboardError);
-        
-        // Fallback method for older browsers or when clipboard API fails
-        try {
-          const textArea = document.createElement('textarea');
-          textArea.value = embedCode;
-          textArea.style.position = 'fixed';
-          textArea.style.left = '-999999px';
-          textArea.style.top = '-999999px';
-          document.body.appendChild(textArea);
-          textArea.focus();
-          textArea.select();
-          
-          const successful = document.execCommand('copy');
-          document.body.removeChild(textArea);
-          
-          if (successful) {
-            toast.success('Embed code copied to clipboard!');
-          } else {
-            throw new Error('execCommand failed');
-          }
-        } catch (fallbackError) {
-          console.error('Fallback clipboard method failed:', fallbackError);
-          // Show the embed code in a modal or alert as last resort
-          toast.error('Could not copy to clipboard. Embed code: ' + embedCode);
-        }
-      }
+      setUserPlan(subscription?.plan || 'free');
     } catch (error) {
-      console.error('Error copying embed code:', error);
-      toast.error('Failed to copy embed code');
+      console.error('Error loading user plan:', error);
+      setUserPlan('free');
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const loadAnalytics = async () => {
+    setAnalyticsLoading(true);
+    try {
+      // Mock analytics data - replace with real API call
+      const mockAnalytics = {
+        totalProjects: projects.length,
+        totalPosts: projects.reduce((sum, p) => sum + (p.posts_count || 0), 0),
+        totalVotes: projects.reduce((sum, p) => sum + (p.votes_count || 0), 0),
+        activeWidgets: projects.filter(p => p.plan === 'pro').length,
+        weeklyGrowth: 12,
+        topPosts: [
+          {
+            id: '1',
+            title: 'Dark mode support',
+            votes: 45,
+            project: 'My App'
+          },
+          {
+            id: '2',
+            title: 'Mobile app improvements',
+            votes: 32,
+            project: 'My App'
+          }
+        ],
+        recentActivity: [
+          {
+            id: '1',
+            type: 'post',
+            message: 'New feedback submitted: "Add dark mode"',
+            timestamp: new Date().toISOString(),
+            project: 'My App'
+          },
+          {
+            id: '2',
+            type: 'vote',
+            message: 'User voted on "Mobile improvements"',
+            timestamp: new Date(Date.now() - 3600000).toISOString(),
+            project: 'My App'
+          }
+        ]
+      };
+      setAnalytics(mockAnalytics);
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+    } finally {
+      setAnalyticsLoading(false);
+    }
   };
 
   // Enhanced dashboard functions
@@ -719,33 +287,12 @@ export default function AppPage() {
     // TODO: Implement sample data loading
   };
 
-  const loadAnalytics = async () => {
-    setAnalyticsLoading(true);
-    try {
-      // Mock analytics data - replace with real API call
-      const mockAnalytics = {
-        totalProjects: projects.length,
-        totalPosts: projects.reduce((sum, p) => sum + (p.posts_count || 0), 0),
-        totalVotes: projects.reduce((sum, p) => sum + (p.votes_count || 0), 0),
-        activeWidgets: projects.filter(p => p.plan === 'pro').length,
-        weeklyGrowth: 12,
-        topPosts: [],
-        recentActivity: []
-      };
-      setAnalytics(mockAnalytics);
-    } catch (error) {
-      console.error('Error loading analytics:', error);
-    } finally {
-      setAnalyticsLoading(false);
-    }
-  };
-
   if (loading || projectsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        {/* Header Skeleton */}
-        <header className="bg-white/80 backdrop-blur-sm border-b border-white/20 shadow-lg">
-          <div className="max-w-7xl mx-auto px-4 py-6">
+        <GlobalBanner />
+        <header className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Skeleton className="w-10 h-10 rounded-xl" />
@@ -762,573 +309,198 @@ export default function AppPage() {
           </div>
         </header>
 
-        {/* Main Content Skeleton */}
         <main className="max-w-7xl mx-auto px-4 py-8">
-          {/* Welcome Section Skeleton */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-8 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <Skeleton className="h-10 w-64 mb-4" />
-                <Skeleton className="h-6 w-96" />
-              </div>
-              <div className="hidden md:flex items-center space-x-4">
-                <Skeleton className="w-24 h-20 rounded-xl" />
-                <Skeleton className="w-24 h-20 rounded-xl" />
-                <Skeleton className="w-24 h-20 rounded-xl" />
-              </div>
+          <div className="space-y-6">
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-64 w-full rounded-xl" />
+              ))}
             </div>
-          </div>
-
-          {/* Create Project Skeleton */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <Skeleton className="h-6 w-48 mb-2" />
-                <Skeleton className="h-4 w-64" />
-              </div>
-              <Skeleton className="h-10 w-32 rounded-lg" />
-            </div>
-          </div>
-
-          {/* Projects Grid Skeleton */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white/90 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <Skeleton className="h-6 w-32 mb-2" />
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                  <Skeleton className="h-6 w-12 rounded-full" />
-                </div>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <Skeleton className="h-16 rounded-lg" />
-                  <Skeleton className="h-16 rounded-lg" />
-                </div>
-                <div className="space-y-3">
-                  <div className="flex space-x-2">
-                    <Skeleton className="h-8 flex-1 rounded-lg" />
-                    <Skeleton className="h-8 w-8 rounded-lg" />
-                    <Skeleton className="h-8 w-8 rounded-lg" />
-                  </div>
-                  <Skeleton className="h-7 w-full rounded-lg" />
-                </div>
-              </div>
-            ))}
           </div>
         </main>
       </div>
     );
   }
 
+  if (!user) {
+    router.push('/login');
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Global Banner */}
-      <GlobalBanner projectSlug="account" />
+      <GlobalBanner />
+      
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">SignalsLoop</h1>
+                <p className="text-sm text-gray-600">Dashboard</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Link href="/app/billing">
+                <Button variant="outline" size="sm">
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  {userPlan === 'pro' ? 'Pro Plan' : 'Upgrade'}
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  supabase.auth.signOut();
+                  router.push('/');
+                }}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-8 mb-6 transform transition-all duration-300 hover:shadow-xl animate-bounce-in">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-4xl font-bold animate-fade-in">
-                    <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                      Welcome back! ✨
-                    </span>
-                  </h1>
-                  {userPlan === 'pro' ? (
-                    <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-sm">
-                      <Crown className="w-3 h-3 mr-1" />
-                      Pro
-                    </Badge>
-                  ) : (
-                    <Button
-                      onClick={() => router.push('/app/billing')}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                      size="sm"
-                    >
-                      <Crown className="w-4 h-4 mr-2" />
-                      Upgrade to Pro
-                    </Button>
-                  )}
-                </div>
-                <p className="text-gray-600 text-lg animate-fade-in-delay">
-                  Manage your feedback boards and track user engagement
-                </p>
-              </div>
-              <div className="hidden md:flex items-center space-x-4">
-                
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200 transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-slide-in-right">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center animate-pulse">
-                      <BarChart3 className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div className="text-2xl font-bold text-blue-600 transition-all duration-500">{projects.length}</div>
-                  </div>
-                  <div className="text-sm text-gray-600">Projects</div>
-                </div>
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200 transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-slide-in-right-delay">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center animate-pulse">
-                      <MessageSquare className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div className="text-2xl font-bold text-green-600 transition-all duration-500">
-                      {projects.reduce((sum, p) => sum + (p.posts_count || 0), 0)}
-                    </div>
-                  </div>
-                  <div className="text-sm text-gray-600">Total Posts</div>
-                </div>
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200 transform transition-all duration-300 hover:scale-105 hover:shadow-lg animate-slide-in-right-delay-2">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center animate-pulse">
-                      <TrendingUp className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <div className="text-2xl font-bold text-purple-600 transition-all duration-500">
-                      {projects.reduce((sum, p) => sum + (p.votes_count || 0), 0)}
-                    </div>
-                  </div>
-                  <div className="text-sm text-gray-600">Total Votes</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* AI Insights Toggle and Section */}
-        {projects.length > 0 && (
-          <>
-            {/* AI Insights Toggle Button */}
-            {!showAIInsights && (
-              <div className="mb-8 flex justify-center">
-                <Button
-                  onClick={async () => {
-                    // DEBUG: Log button click
-                    console.log('🚀 AI INSIGHTS BUTTON CLICKED!');
-                    console.log('AI Insights button clicked. userPlan:', userPlan, 'type:', typeof userPlan);
-                    
-                    // Check if user has Pro plan
-                    if (userPlan !== 'pro') {
-                      console.log('User plan is not Pro, showing upgrade message');
-                      toast.error('AI Insights is a Pro feature. Upgrade to Pro to unlock AI-powered analytics!', {
-                        duration: 5000,
-                        action: {
-                          label: 'Upgrade',
-                          onClick: () => router.push('/app/billing')
-                        }
-                      });
-                      return;
-                    }
-                    
-                    console.log('User plan is Pro, proceeding with AI insights');
-                    
-                    setShowAIInsights(true);
-                    setLoadingAIInsights(true);
-                    
-                    // Load AI insights for all projects (even if no posts yet)
-                    const projectIds = projects.map(p => p.id);
-                    
-                    if (projectIds.length > 0) {
-                      try {
-                        console.log('🚀 About to call loadAIInsights with project IDs:', projectIds);
-                        await loadAIInsights(projectIds);
-                        console.log('🚀 loadAIInsights completed successfully');
-                      } catch (error) {
-                        console.error('🚀 AI insights failed to load:', error);
-                        console.error('🚀 Error details:', error.message, error.stack);
-                        toast.error('Failed to load AI insights');
-                      } finally {
-                        console.log('🚀 Setting loadingAIInsights to false');
-                        setLoadingAIInsights(false);
-                      }
-                    } else {
-                      console.log('🚀 No project IDs found');
-                      setLoadingAIInsights(false);
-                      toast.info('No projects found. Create a project first to see AI insights.');
-                    }
-                  }}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg"
-                >
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Analyze Feedback with AI
-                  {userPlan !== 'pro' && (
-                    <span className="ml-2 px-2 py-1 bg-white/20 rounded-full text-xs">
-                      Pro
-                    </span>
-                  )}
-                </Button>
-              </div>
-            )}
-
-            {/* AI Insights Loading State */}
-            {showAIInsights && loadingAIInsights && (
-              <div className="mb-8">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-8">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading AI Insights</h3>
-                    <p className="text-gray-600">Analyzing your feedback posts with AI...</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* AI Insights Content */}
-            {showAIInsights && !loadingAIInsights && aiInsights && (
-              <div className="mb-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
-                      <Sparkles className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                        AI Insights
-                      </h2>
-                      <p className="text-gray-600">Smart analysis of your feedback patterns</p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setShowAIInsights(false);
-                      setAiInsights(null);
-                    }}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ✕
-                  </Button>
-                </div>
-
-                {/* Show content based on whether there are posts */}
-                {aiInsights.totalPosts > 0 ? (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Category Breakdown */}
-                    <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <Brain className="w-5 h-5 text-purple-600" />
-                        Feedback Categories
-                      </h3>
-                      <div className="space-y-3">
-                        {aiInsights.topCategories.map((category) => {
-                          const count = aiInsights.categoryBreakdown[category];
-                          const percentage = Math.round((count / aiInsights.totalPosts) * 100);
-                          return (
-                            <div key={category} className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <Badge className={`${categoryColors[category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800 border-gray-200'} text-sm`}>
-                                  {category}
-                                </Badge>
-                                <span className="text-sm text-gray-600">
-                                  {categoryDescriptions[category as keyof typeof categoryDescriptions] || 'Feedback category'}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <div className="w-20 bg-gray-200 rounded-full h-2">
-                                  <div 
-                                    className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-500"
-                                    style={{ width: `${percentage}%` }}
-                                  />
-                                </div>
-                                <span className="text-sm font-medium text-gray-700 w-12 text-right">
-                                  {count} ({percentage}%)
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Recent Posts with AI Categories */}
-                    <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <Zap className="w-5 h-5 text-blue-600" />
-                        Recent Feedback
-                      </h3>
-                      <div className="space-y-3">
-                        {aiInsights.recentPosts.map((post) => (
-                          <div key={post.id} className="p-3 bg-white/60 rounded-lg border border-white/20">
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
-                                {post.title}
-                              </h4>
-                              <Badge className={`${categoryColors[post.ai_category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800 border-gray-200'} text-xs ml-2 flex-shrink-0`}>
-                                {post.ai_category}
-                              </Badge>
-                            </div>
-                            <div className="flex items-center justify-between text-xs text-gray-500">
-                              <span>{post.project_slug}</span>
-                              <span>{Math.round((post.ai_confidence || 0) * 100)}% confidence</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  /* Empty State for No Posts */
-                  <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-8">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <MessageSquare className="w-8 h-8 text-purple-600" />
-                      </div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-3">No Feedback Posts Yet</h3>
-                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                        AI insights will appear here once you have feedback posts in your projects. 
-                        Create posts or encourage users to submit feedback to see AI-powered analysis.
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                        <Button 
-                          onClick={() => setShowAIInsights(false)}
-                          variant="outline"
-                          className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                        >
-                          Close
-                        </Button>
-                        <Link href="/app/create">
-                          <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create Project
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Create New Project */}
-        <div className="mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-1 flex items-center">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
-                    <Plus className="w-4 h-4 text-white" />
-                  </div>
-                  Create New Project
-                </h2>
-                <p className="text-gray-600 ml-11">
-                  Start collecting feedback from your users
-                </p>
-              </div>
-              <Link href="/app/create">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Project
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Projects Grid */}
+        {/* Enhanced Dashboard Layout */}
         {projects.length === 0 ? (
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg animate-bounce-in">
-            <div className="text-center py-16 px-8">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-float">
-                <MessageSquare className="w-8 h-8 text-blue-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3 gradient-text-animated">No projects yet</h3>
-              <p className="text-gray-600 mb-8 text-lg max-w-md mx-auto">
-                Create your first project to start collecting valuable feedback from your users
-              </p>
-              <Link href="/app/create">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg text-lg px-8 py-3 hover:scale-105 transition-all duration-200">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Create Your First Project
-                </Button>
-              </Link>
-              
-              {/* Quick Tips */}
-              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-                <div className="bg-blue-50/50 rounded-lg p-4 border border-blue-200">
-                  <div className="w-8 h-8 bg-blue-200 rounded-lg flex items-center justify-center mb-3">
-                    <Users className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <h4 className="font-semibold text-blue-900 mb-2">Collect Feedback</h4>
-                  <p className="text-sm text-blue-700">Let users submit ideas and vote on features</p>
-                </div>
-                <div className="bg-green-50/50 rounded-lg p-4 border border-green-200">
-                  <div className="w-8 h-8 bg-green-200 rounded-lg flex items-center justify-center mb-3">
-                    <TrendingUp className="w-4 h-4 text-green-600" />
-                  </div>
-                  <h4 className="font-semibold text-green-900 mb-2">Track Progress</h4>
-                  <p className="text-sm text-green-700">See what&apos;s popular and prioritize development</p>
-                </div>
-                <div className="bg-purple-50/50 rounded-lg p-4 border border-purple-200">
-                  <div className="w-8 h-8 bg-purple-200 rounded-lg flex items-center justify-center mb-3">
-                    <Map className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <h4 className="font-semibold text-purple-900 mb-2">Share Roadmap</h4>
-                  <p className="text-sm text-purple-700">Show users what you&apos;re working on</p>
-                </div>
+          <EnhancedEmptyState 
+            onCreateProject={() => router.push('/app/create')}
+            onLoadSampleData={handleLoadSampleData}
+            userPlan={userPlan}
+          />
+        ) : (
+          <div className="flex gap-8">
+            {/* Main Content */}
+            <div className="flex-1 space-y-6">
+              {/* Analytics Cards */}
+              {analytics && (
+                <DashboardAnalytics 
+                  analytics={analytics}
+                  loading={analyticsLoading}
+                />
+              )}
+
+              {/* Search and Filters */}
+              <DashboardSearchFilters
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                sortOrder={sortOrder}
+                onSortOrderChange={setSortOrder}
+                filterBy={filterBy}
+                onFilterChange={setFilterBy}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                selectedCount={selectedProjects.size}
+                onBulkAction={handleBulkAction}
+                onExport={handleExport}
+              />
+
+              {/* Projects Grid/List */}
+              <div className={viewMode === 'grid' 
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+                : "space-y-4"
+              }>
+                {projects
+                  .filter(project => {
+                    if (searchTerm) {
+                      return project.name.toLowerCase().includes(searchTerm.toLowerCase());
+                    }
+                    return true;
+                  })
+                  .filter(project => {
+                    switch (filterBy) {
+                      case 'free': return project.plan === 'free';
+                      case 'pro': return project.plan === 'pro';
+                      case 'active': return (project.posts_count || 0) > 0;
+                      case 'inactive': return (project.posts_count || 0) === 0;
+                      default: return true;
+                    }
+                  })
+                  .sort((a, b) => {
+                    let aValue, bValue;
+                    switch (sortBy) {
+                      case 'name': 
+                        aValue = a.name.toLowerCase();
+                        bValue = b.name.toLowerCase();
+                        break;
+                      case 'created_at':
+                        aValue = new Date(a.created_at).getTime();
+                        bValue = new Date(b.created_at).getTime();
+                        break;
+                      case 'posts_count':
+                        aValue = a.posts_count || 0;
+                        bValue = b.posts_count || 0;
+                        break;
+                      case 'votes_count':
+                        aValue = a.votes_count || 0;
+                        bValue = b.votes_count || 0;
+                        break;
+                      default:
+                        aValue = new Date(a.created_at).getTime();
+                        bValue = new Date(b.created_at).getTime();
+                    }
+                    
+                    if (sortOrder === 'asc') {
+                      return aValue > bValue ? 1 : -1;
+                    } else {
+                      return aValue < bValue ? 1 : -1;
+                    }
+                  })
+                  .map((project, index) => (
+                    <EnhancedProjectCard
+                      key={project.id}
+                      project={project}
+                      index={index}
+                      isSelected={selectedProjects.has(project.id)}
+                      onSelect={handleProjectSelect}
+                      onArchive={(id) => handleBulkAction('archive')}
+                      onDuplicate={(id) => handleBulkAction('duplicate')}
+                      onShare={(project) => {
+                        setSelectedProject(project);
+                        setShareModalOpen(true);
+                      }}
+                      aiAvailable={true}
+                    />
+                  ))}
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project, index) => (
-              <div 
-                key={project.id} 
-                className="bg-white/90 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group animate-bounce-in hover-lift"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="p-6">
-                  {/* Header - Pro badges removed - Force deployment */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                        {project.name}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Created {formatDate(project.created_at)}
-                      </p>
-                    </div>
-                  </div>
 
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-6 h-6 bg-blue-200 rounded-md flex items-center justify-center">
-                          <MessageSquare className="w-3 h-3 text-blue-600" />
-                        </div>
-                        <div className="text-lg font-bold text-blue-700">{project.posts_count || 0}</div>
-                      </div>
-                      <div className="text-xs text-blue-600">Posts</div>
-                    </div>
-                    <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-6 h-6 bg-green-200 rounded-md flex items-center justify-center">
-                          <TrendingUp className="w-3 h-3 text-green-600" />
-                        </div>
-                        <div className="text-lg font-bold text-green-700">{project.votes_count || 0}</div>
-                      </div>
-                      <div className="text-xs text-green-600">Votes</div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="space-y-3">
-                    <div className="flex space-x-2">
-                      <Link href={`/${project.slug}/board`} className="flex-1 cursor-pointer">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105 cursor-pointer"
-                        >
-                          <Eye className="w-4 h-4 mr-1 transition-transform duration-200 group-hover:scale-110" />
-                          View Board
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedProject(project);
-                          setShareModalOpen(true);
-                        }}
-                        className="bg-green-50/80 border-green-200 text-green-700 hover:bg-green-100/80 transition-all duration-200 hover:scale-105 cursor-pointer"
-                        title="Share Board"
-                      >
-                        <Share2 className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-                      </Button>
-                      <Link href={`/${project.slug}/roadmap`} className="cursor-pointer">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105 cursor-pointer"
-                          title="View Roadmap"
-                        >
-                          <Map className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-                        </Button>
-                      </Link>
-                             <Link href="/ai-test" className="cursor-pointer">
-                               <Button
-                                 variant="outline"
-                                 size="sm"
-                                 className="bg-gradient-to-r from-purple-50 to-blue-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-blue-100 transition-all duration-200 hover:scale-105 cursor-pointer"
-                                 title={!aiAvailable ? "AI features not available" : "AI Analysis"}
-                                 disabled={!project.posts_count || project.posts_count === 0 || !aiAvailable}
-                               >
-                                 <Sparkles className="w-4 h-4 text-purple-600 transition-transform duration-200 group-hover:scale-110" />
-                               </Button>
-                             </Link>
-                      <Link href={`/${project.slug}/settings`} className="cursor-pointer">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105 cursor-pointer"
-                          title="Project Settings"
-                        >
-                          <Settings className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-                        </Button>
-                      </Link>
-                    </div>
-
-                    {/* Embed Code */}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => copyEmbedCode(project.slug, project.id)}
-                      className="w-full text-xs bg-gray-50/80 hover:bg-gray-100/80 border border-gray-200/50"
-                    >
-                      <Copy className="w-3 h-3 mr-1" />
-                      Copy Embed Code
-                    </Button>
-
-                    {/* Export Data */}
-                    <FeedbackExport
-                      projectSlug={project.slug}
-                      projectName={project.name}
-                      totalPosts={project.posts_count || 0}
-                      totalComments={0} // We don't have this data in the dashboard context
-                      totalVotes={project.votes_count || 0}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
+            {/* Quick Actions Sidebar */}
+            <QuickActionsSidebar
+              onCreateProject={() => router.push('/app/create')}
+              onCreateFromTemplate={handleCreateFromTemplate}
+              userPlan={userPlan}
+            />
           </div>
         )}
-
-        {/* Floating Action Button */}
-        <div className="fixed bottom-8 right-8 z-50">
-          <Link href="/app/create" className="cursor-pointer">
-            <Button 
-              size="lg"
-              className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 animate-float cursor-pointer"
-            >
-              <Plus className="w-6 h-6" />
-            </Button>
-          </Link>
-        </div>
-
-        {/* Share Modal */}
-        <Dialog open={shareModalOpen} onOpenChange={setShareModalOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Share {selectedProject?.name} Board</DialogTitle>
-            </DialogHeader>
-            {selectedProject && (
-              <BoardShare
-                projectSlug={selectedProject.slug}
-                projectName={selectedProject.name}
-                boardUrl={`${window.location.origin}/${selectedProject.slug}/board`}
-                isPublic={true}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
       </main>
+
+      {/* Share Modal */}
+      <Dialog open={shareModalOpen} onOpenChange={setShareModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Share {selectedProject?.name}</DialogTitle>
+          </DialogHeader>
+          {selectedProject && (
+            <BoardShare 
+              project={selectedProject}
+              onClose={() => setShareModalOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
