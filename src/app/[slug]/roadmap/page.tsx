@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
-import PublicRoadmap from '@/components/PublicRoadmap';
+import EnhancedPublicRoadmap from '@/components/EnhancedPublicRoadmap';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -80,7 +80,7 @@ export default async function PublicRoadmapPage({ params }: PublicRoadmapPagePro
   const { slug } = await params;
   
   try {
-    // Get project details
+    // Get project details with roadmap settings
     const { data: project, error: projectError } = await supabase
       .from('projects')
       .select(`
@@ -91,7 +91,16 @@ export default async function PublicRoadmapPage({ params }: PublicRoadmapPagePro
         custom_domain,
         is_private,
         plan,
-        created_at
+        created_at,
+        roadmap_title,
+        roadmap_description,
+        roadmap_logo_url,
+        roadmap_brand_color,
+        roadmap_show_progress,
+        roadmap_show_effort,
+        roadmap_show_timeline,
+        roadmap_allow_anonymous_votes,
+        roadmap_subscribe_emails
       `)
       .eq('slug', slug)
       .single();
@@ -128,7 +137,7 @@ export default async function PublicRoadmapPage({ params }: PublicRoadmapPagePro
       );
     }
 
-    // Get posts organized by status for roadmap
+    // Get posts organized by status for roadmap with enhanced fields
     const { data: posts, error: postsError } = await supabase
       .from('posts')
       .select(`
@@ -139,7 +148,14 @@ export default async function PublicRoadmapPage({ params }: PublicRoadmapPagePro
         vote_count,
         created_at,
         author_email,
-        status
+        status,
+        priority,
+        effort_estimate,
+        progress_percentage,
+        estimated_timeline,
+        completion_date,
+        tags,
+        last_updated
       `)
       .eq('project_id', project.id)
       .in('status', ['open', 'in_progress', 'planned', 'completed'])
@@ -158,7 +174,7 @@ export default async function PublicRoadmapPage({ params }: PublicRoadmapPagePro
     };
 
     return (
-      <PublicRoadmap 
+      <EnhancedPublicRoadmap 
         project={project}
         roadmapData={roadmapData}
       />
