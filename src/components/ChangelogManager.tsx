@@ -211,7 +211,8 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
                             {release.is_published ? 'Published' : 'Draft'}
                           </Badge>
                           {release.is_featured && (
-                            <Badge variant="outline">Featured</Badge                          )}
+                            <Badge variant="outline">Featured</Badge>
+                          )}
                         </div>
                         <CardDescription className="flex items-center gap-4">
                           <span>{release.release_type}</span>

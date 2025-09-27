@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { createClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import PublicChangelog from '@/components/PublicChangelog';
 
 interface ChangelogPageProps {
@@ -10,7 +10,7 @@ interface ChangelogPageProps {
 
 export async function generateMetadata({ params }: ChangelogPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = createClient();
+  const supabase = getSupabaseServiceRoleClient();
   
   try {
     const { data: project } = await supabase
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: ChangelogPageProps): Promise<
 
 export default async function ChangelogPage({ params }: ChangelogPageProps) {
   const { slug } = await params;
-  const supabase = createClient();
+  const supabase = getSupabaseServiceRoleClient();
 
   try {
     // Get project details

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
 export async function GET(
   request: NextRequest,
@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { projectId, releaseId } = await params;
-    const supabase = createClient();
+    const supabase = getSupabaseServiceRoleClient();
 
     const { data: release, error } = await supabase
       .from('changelog_releases')
@@ -64,7 +64,7 @@ export async function PATCH(
 ) {
   try {
     const { projectId, releaseId } = await params;
-    const supabase = createClient();
+    const supabase = getSupabaseServiceRoleClient();
     
     const body = await request.json();
     const updateData: any = {};
@@ -154,7 +154,7 @@ export async function DELETE(
 ) {
   try {
     const { projectId, releaseId } = await params;
-    const supabase = createClient();
+    const supabase = getSupabaseServiceRoleClient();
 
     // Delete related data first (CASCADE should handle this, but being explicit)
     await supabase

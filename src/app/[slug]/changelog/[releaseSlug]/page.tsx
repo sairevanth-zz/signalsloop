@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { createClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import PublicChangelogRelease from '@/components/PublicChangelogRelease';
 import Link from 'next/link';
 import { ArrowLeft, Calendar, Tag } from 'lucide-react';
@@ -12,7 +12,7 @@ interface ReleasePageProps {
 
 export async function generateMetadata({ params }: ReleasePageProps): Promise<Metadata> {
   const { slug, releaseSlug } = await params;
-  const supabase = createClient();
+  const supabase = getSupabaseServiceRoleClient();
   
   try {
     const { data: release } = await supabase
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: ReleasePageProps): Promise<Me
 
 export default async function ReleasePage({ params }: ReleasePageProps) {
   const { slug, releaseSlug } = await params;
-  const supabase = createClient();
+  const supabase = getSupabaseServiceRoleClient();
 
   try {
     // Get release details with all related data

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import crypto from 'crypto';
 
 export async function POST(
@@ -8,7 +8,7 @@ export async function POST(
 ) {
   try {
     const { slug } = await params;
-    const supabase = createClient();
+    const supabase = getSupabaseServiceRoleClient();
     
     const body = await request.json();
     const { email, preferences = {} } = body;
@@ -107,7 +107,7 @@ export async function DELETE(
 ) {
   try {
     const { slug } = await params;
-    const supabase = createClient();
+    const supabase = getSupabaseServiceRoleClient();
     
     const body = await request.json();
     const { email, token } = body;
