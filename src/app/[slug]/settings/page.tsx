@@ -10,7 +10,7 @@ import { CustomDomainSettings } from '@/components/CustomDomainSettings';
 import GlobalBanner from '@/components/GlobalBanner';
 import FeedbackExport from '@/components/FeedbackExport';
 import { CSVImport } from '@/components/admin/csv-import';
-import { ChangelogManager } from '@/components/ChangelogManager';
+import SimpleChangelogManager from '@/components/SimpleChangelogManager';
 import { toast } from 'sonner';
 import { useParams, useRouter } from 'next/navigation';
 import { 
@@ -359,9 +359,9 @@ export default function SettingsPage() {
                 </div>
               </div>
               
-              {project ? (
-                <ChangelogManager projectId={project.id} projectSlug={project.slug} />
-              ) : (
+            {project ? (
+              <SimpleChangelogManager projectId={project.id} projectSlug={project.slug} />
+            ) : (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <FileText className="h-8 w-8 text-blue-600" />
