@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+// import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -68,16 +68,14 @@ interface ChangelogMedia {
 }
 
 export default function ChangelogManager({ projectId, projectSlug }: ChangelogManagerProps) {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const [releases, setReleases] = useState<Release[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('releases');
 
   useEffect(() => {
-    if (user) {
-      loadReleases();
-    }
-  }, [user, projectId]);
+    loadReleases();
+  }, [projectId]);
 
   const loadReleases = async () => {
     try {
