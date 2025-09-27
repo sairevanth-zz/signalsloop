@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PublicRoadmapPageProps): Prom
     // Get project details for SEO
     const { data: project, error } = await supabase
       .from('projects')
-      .select('name, description, slug, custom_domain, is_private')
+      .select('name, roadmap_description, slug, custom_domain')
       .eq('slug', slug)
       .single();
 
@@ -86,10 +86,8 @@ export default async function PublicRoadmapPage({ params }: PublicRoadmapPagePro
       .select(`
         id,
         name,
-        description,
         slug,
         custom_domain,
-        is_private,
         plan,
         created_at,
         roadmap_title,
@@ -109,33 +107,8 @@ export default async function PublicRoadmapPage({ params }: PublicRoadmapPagePro
       notFound();
     }
 
-    // Check if board is private
-    if (project.is_private) {
-      return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6 text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Private Roadmap</h1>
-            <p className="text-gray-600 mb-6">
-              This roadmap is private and requires authentication to access.
-            </p>
-            <div className="space-y-3">
-              <a
-                href={`/login?redirect=${encodeURIComponent(`/${slug}/roadmap`)}`}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
-              >
-                Sign In
-              </a>
-              <a
-                href="/"
-                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors inline-block"
-              >
-                Create Your Own Board
-              </a>
-            </div>
-          </div>
-        </div>
-      );
-    }
+    // Note: Privacy check removed since is_private column doesn't exist yet
+    // All roadmaps are currently public
 
     // Get posts organized by status for roadmap with enhanced fields
     const { data: posts, error: postsError } = await supabase

@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PublicBoardPageProps): Promis
     // Get project details for SEO
     const { data: project, error } = await supabase
       .from('projects')
-      .select('name, description, slug, custom_domain')
+      .select('name, roadmap_description, slug, custom_domain')
       .eq('slug', slug)
       .single();
 
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: PublicBoardPageProps): Promis
 
     const siteName = 'SignalsLoop';
     const title = `${project.name} - Feedback Board`;
-    const description = project.description || `Share your feedback and suggestions for ${project.name}. Help us improve by voting on existing ideas or submitting your own.`;
+    const description = project.roadmap_description || `Share your feedback and suggestions for ${project.name}. Help us improve by voting on existing ideas or submitting your own.`;
     
     return {
       title,
@@ -86,13 +86,14 @@ export default async function PublicBoardPage({ params }: PublicBoardPageProps) 
       .select(`
         id,
         name,
-        description,
         slug,
         custom_domain,
-        is_private,
         plan,
         created_at,
-        settings
+        roadmap_title,
+        roadmap_description,
+        roadmap_logo_url,
+        roadmap_brand_color
       `)
       .eq('slug', slug)
       .single();
@@ -101,33 +102,8 @@ export default async function PublicBoardPage({ params }: PublicBoardPageProps) 
       notFound();
     }
 
-    // Check if board is private
-    if (project.is_private) {
-      return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6 text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Private Board</h1>
-            <p className="text-gray-600 mb-6">
-              This feedback board is private and requires authentication to access.
-            </p>
-            <div className="space-y-3">
-              <a
-                href={`/login?redirect=${encodeURIComponent(`/${slug}`)}`}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
-              >
-                Sign In
-              </a>
-              <a
-                href="/"
-                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors inline-block"
-              >
-                Create Your Own Board
-              </a>
-            </div>
-          </div>
-        </div>
-      );
-    }
+    // Note: Privacy check removed since is_private column doesn't exist yet
+    // All boards are currently public
 
     // Get recent posts for the board
     const { data: posts, error: postsError } = await supabase
