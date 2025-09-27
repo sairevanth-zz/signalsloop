@@ -84,7 +84,7 @@ export default function Homepage() {
               <Link href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Pricing
               </Link>
-              <Link href="/demo/board" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <Link href="/demo" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Demo
               </Link>
               
@@ -176,7 +176,7 @@ export default function Homepage() {
               <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
             <div className="w-full sm:w-auto">
-              <Link href="/demo/board">
+              <Link href="/demo">
                 <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 md:px-10 py-3 sm:py-4 rounded-xl border-2 hover:bg-gray-50 transition-all duration-200 min-h-[44px] w-full">
                   View Live Demo
                 </Button>
@@ -753,9 +753,14 @@ export default function Homepage() {
                   <BarChart3 className="h-8 w-8 text-purple-600" />
                 </div>
                 <CardTitle className="text-xl font-bold text-gray-900 mb-3">Smart Roadmaps</CardTitle>
-                <CardDescription className="text-gray-600 leading-relaxed">
+                <CardDescription className="text-gray-600 leading-relaxed mb-4">
                   Show users exactly what you're building with AI-organized public roadmaps.
                 </CardDescription>
+                <Link href="/demo/roadmap">
+                  <Button variant="outline" size="sm" className="text-purple-600 border-purple-200 hover:bg-purple-50">
+                    View Demo Roadmap
+                  </Button>
+                </Link>
               </CardHeader>
             </Card>
             
@@ -1216,7 +1221,8 @@ export default function Homepage() {
               <ul className="space-y-2 text-gray-400">
                 <li><Link href="#features" className="hover:text-white transition-colors">Features</Link></li>
                 <li><Link href="#pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="/demo/board" className="hover:text-white transition-colors">Demo</Link></li>
+                <li><Link href="/demo" className="hover:text-white transition-colors">Demo Board</Link></li>
+                <li><Link href="/demo/roadmap" className="hover:text-white transition-colors">Demo Roadmap</Link></li>
                 <li><Link href="/docs/api" className="hover:text-white transition-colors">API Documentation</Link></li>
                 <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
               </ul>
