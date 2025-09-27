@@ -1,120 +1,138 @@
-'use client';
+import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
+import { createClient } from '@/lib/supabase-client';
+import PublicChangelog from '@/components/PublicChangelog';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { ChangelogSystem } from '@/components/ChangelogSystem';
-import { toast } from 'sonner';
-import { useParams } from 'next/navigation';
-
-interface Project {
-  id: string;
-  name: string;
-  slug: string;
-  plan: 'free' | 'pro';
+interface ChangelogPageProps {
+  params: Promise<{ slug: string }>;
 }
 
-export default function ChangelogPage() {
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [supabase, setSupabase] = useState<any>(null);
+export async function generateMetadata({ params }: ChangelogPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = createClient();
   
-  const params = useParams();
-  const projectSlug = params.slug as string;
+  try {
+    const { data: project } = await supabase
+      .from('projects')
+      .select('name, description')
+      .eq('slug', slug)
+      .single();
 
-  // Initialize Supabase client safely
-  useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
-      setSupabase(client);
-    }
-  }, []);
-
-  const loadProject = useCallback(async () => {
-    if (!supabase) {
-      toast.error('Database connection not available. Please refresh the page.');
-      setLoading(false);
-      return;
+    if (!project) {
+      return {
+        title: 'Changelog Not Found',
+        description: 'The requested changelog could not be found.',
+      };
     }
 
-    try {
-      setLoading(true);
+    return {
+      title: `${project.name} - Changelog`,
+      description: `Stay updated with the latest changes and improvements to ${project.name}.`,
+      openGraph: {
+        title: `${project.name} - Changelog`,
+        description: `Stay updated with the latest changes and improvements to ${project.name}.`,
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${project.name} - Changelog`,
+        description: `Stay updated with the latest changes and improvements to ${project.name}.`,
+      },
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return {
+      title: 'Changelog',
+      description: 'Stay updated with the latest changes and improvements.',
+    };
+  }
+}
 
-      const { data: projectData, error: projectError } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('slug', projectSlug)
-        .single();
+export default async function ChangelogPage({ params }: ChangelogPageProps) {
+  const { slug } = await params;
+  const supabase = createClient();
 
-      if (projectError || !projectData) {
-        toast.error('Project not found');
-        return;
-      }
+  try {
+    // Get project details
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('id, name, description, slug')
+      .eq('slug', slug)
+      .single();
 
-      setProject(projectData);
-
-      // Check if user is admin (simplified check - in real app, use proper auth)
-      // For now, we'll assume admin access if user is authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAdmin(!!user);
-
-    } catch (error) {
-      console.error('Error loading project:', error);
-      toast.error('Something went wrong');
-    } finally {
-      setLoading(false);
+    if (projectError || !project) {
+      notFound();
     }
-  }, [supabase, projectSlug]);
 
-  useEffect(() => {
-    if (supabase && projectSlug) {
-      loadProject();
+    // Get published changelog releases
+    const { data: releases, error: releasesError } = await supabase
+      .from('changelog_releases')
+      .select(`
+        *,
+        changelog_entries (
+          id,
+          title,
+          description,
+          entry_type,
+          priority,
+          icon,
+          color,
+          order_index
+        ),
+        changelog_media (
+          id,
+          file_url,
+          file_type,
+          alt_text,
+          caption,
+          display_order,
+          is_video,
+          video_thumbnail_url
+        )
+      `)
+      .eq('project_id', project.id)
+      .eq('is_published', true)
+      .order('published_at', { ascending: false });
+
+    if (releasesError) {
+      console.error('Error fetching releases:', releasesError);
+      notFound();
     }
-  }, [supabase, projectSlug, loadProject]);
 
-  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
-            <div className="space-y-6">
-              {[1,2,3].map(i => (
-                <div key={i} className="h-48 bg-gray-200 rounded"></div>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              {project.name} Changelog
+            </h1>
+            <p className="text-lg text-gray-600">
+              Stay updated with the latest changes and improvements.
+            </p>
+          </div>
+
+          <Suspense fallback={
+            <div className="space-y-8">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="bg-white rounded-lg border border-gray-200 p-6 animate-pulse">
+                  <div className="h-6 bg-gray-200 rounded mb-3"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                </div>
               ))}
             </div>
-          </div>
+          }>
+            <PublicChangelog 
+              project={project} 
+              releases={releases || []} 
+            />
+          </Suspense>
         </div>
       </div>
     );
+  } catch (error) {
+    console.error('Error loading changelog:', error);
+    notFound();
   }
-
-  if (!project) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Project not found</h2>
-            <p className="text-gray-600">The project you&apos;re looking for doesn&apos;t exist.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <ChangelogSystem 
-          projectId={project.id}
-          projectSlug={project.slug}
-          isAdmin={isAdmin}
-        />
-      </div>
-    </div>
-  );
 }
