@@ -31,7 +31,7 @@ interface DemoComment {
 
 export default function DemoPostPage() {
   const params = useParams();
-  const postId = params.id as string;
+  const postId = params.postId as string;
   const [post, setPost] = useState<DemoPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [voteCount, setVoteCount] = useState(0);
