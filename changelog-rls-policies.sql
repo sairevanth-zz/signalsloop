@@ -17,7 +17,7 @@ CREATE POLICY "Project members can view all changelog releases" ON changelog_rel
     EXISTS (
       SELECT 1 FROM projects 
       WHERE projects.id = changelog_releases.project_id 
-      AND projects.user_id = auth.uid()
+      AND projects.owner_id = auth.uid()
     )
   );
 
@@ -26,7 +26,7 @@ CREATE POLICY "Project members can insert changelog releases" ON changelog_relea
     EXISTS (
       SELECT 1 FROM projects 
       WHERE projects.id = changelog_releases.project_id 
-      AND projects.user_id = auth.uid()
+      AND projects.owner_id = auth.uid()
     )
   );
 
@@ -35,7 +35,7 @@ CREATE POLICY "Project members can update changelog releases" ON changelog_relea
     EXISTS (
       SELECT 1 FROM projects 
       WHERE projects.id = changelog_releases.project_id 
-      AND projects.user_id = auth.uid()
+      AND projects.owner_id = auth.uid()
     )
   );
 
@@ -44,7 +44,7 @@ CREATE POLICY "Project members can delete changelog releases" ON changelog_relea
     EXISTS (
       SELECT 1 FROM projects 
       WHERE projects.id = changelog_releases.project_id 
-      AND projects.user_id = auth.uid()
+      AND projects.owner_id = auth.uid()
     )
   );
 
@@ -64,7 +64,7 @@ CREATE POLICY "Project members can manage changelog entries" ON changelog_entrie
       SELECT 1 FROM changelog_releases 
       JOIN projects ON projects.id = changelog_releases.project_id
       WHERE changelog_releases.id = changelog_entries.release_id 
-      AND projects.user_id = auth.uid()
+      AND projects.owner_id = auth.uid()
     )
   );
 
@@ -84,7 +84,7 @@ CREATE POLICY "Project members can manage changelog media" ON changelog_media
       SELECT 1 FROM changelog_releases 
       JOIN projects ON projects.id = changelog_releases.project_id
       WHERE changelog_releases.id = changelog_media.release_id 
-      AND projects.user_id = auth.uid()
+      AND projects.owner_id = auth.uid()
     )
   );
 
@@ -98,7 +98,7 @@ CREATE POLICY "Users can manage their own subscriptions" ON changelog_subscripti
     EXISTS (
       SELECT 1 FROM projects 
       WHERE projects.id = changelog_subscriptions.project_id 
-      AND projects.user_id = auth.uid()
+      AND projects.owner_id = auth.uid()
     )
   );
 
@@ -118,7 +118,7 @@ CREATE POLICY "Project members can manage feedback links" ON changelog_feedback_
       SELECT 1 FROM changelog_releases 
       JOIN projects ON projects.id = changelog_releases.project_id
       WHERE changelog_releases.id = changelog_feedback_links.release_id 
-      AND projects.user_id = auth.uid()
+      AND projects.owner_id = auth.uid()
     )
   );
 
@@ -128,6 +128,6 @@ CREATE POLICY "Project members can manage webhooks" ON changelog_webhooks
     EXISTS (
       SELECT 1 FROM projects 
       WHERE projects.id = changelog_webhooks.project_id 
-      AND projects.user_id = auth.uid()
+      AND projects.owner_id = auth.uid()
     )
   );
