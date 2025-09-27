@@ -13,29 +13,20 @@ import {
   Copy, 
   Trash2, 
   Plus,
-  BarChart3,
   Settings,
-  ExternalLink,
   Check,
   AlertCircle,
   Eye,
   Monitor,
   Smartphone,
-  Palette,
-  MapPin,
   Shield,
   RotateCcw,
   AlertTriangle,
-  Globe,
   Play,
   BookOpen,
   HelpCircle,
-  ChevronRight,
   Download,
-  Upload,
-  Users,
-  TrendingUp,
-  Map
+  Upload
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -61,14 +52,6 @@ interface WidgetSettings {
   customCSS?: string;
 }
 
-interface WidgetAnalytics {
-  totalLoads: number;
-  totalSubmissions: number;
-  conversionRate: number;
-  topDomains: Array<{ domain: string; count: number }>;
-  geographicData: Array<{ country: string; count: number }>;
-  performanceOverTime: Array<{ date: string; loads: number; submissions: number }>;
-}
 
 interface ApiKeySettingsProps {
   projectId: string;
@@ -93,9 +76,7 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
     enabled: true,
     animationSpeed: 'medium'
   });
-  const [selectedApiKey, setSelectedApiKey] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
-  const [analytics, setAnalytics] = useState<WidgetAnalytics | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<'html' | 'react' | 'wordpress' | 'squarespace'>('html');
   const [securitySettings, setSecuritySettings] = useState({
     allowedDomains: [] as string[],
@@ -103,12 +84,6 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
     suspiciousActivityDetection: true
   });
   
-  // Analytics data state
-  const [analyticsData, setAnalyticsData] = useState({
-    totalWidgetLoads: 0,
-    submissionsThisWeek: 0,
-    activeDomains: 0
-  });
 
   const loadApiKeys = useCallback(async () => {
     if (!supabase) {
@@ -135,43 +110,6 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
     }
   }, [supabase, projectId]);
 
-  const loadAnalyticsData = useCallback(async () => {
-    if (!supabase) return;
-
-    try {
-      // Calculate date range for "this week"
-      const now = new Date();
-      const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
-
-      // Total Widget Loads (sum of usage_count from all API keys)
-      const totalWidgetLoads = apiKeys.reduce((sum, key) => sum + key.usage_count, 0);
-
-      // Submissions This Week
-      const { count: submissionsThisWeek } = await supabase
-        .from('analytics_events')
-        .select('*', { count: 'exact', head: true })
-        .eq('project_id', projectId)
-        .eq('event_name', 'feedback_submitted')
-        .gte('created_at', sevenDaysAgo.toISOString());
-
-      // Active Domains (distinct referers for widget_loaded events)
-      const { data: activeDomainsData } = await supabase
-        .from('analytics_events')
-        .select('referer', { distinct: true })
-        .eq('project_id', projectId)
-        .eq('event_name', 'widget_loaded')
-        .not('referer', 'is', null);
-
-      setAnalyticsData({
-        totalWidgetLoads,
-        submissionsThisWeek: submissionsThisWeek || 0,
-        activeDomains: activeDomainsData?.length || 0
-      });
-    } catch (error) {
-      console.error('Error loading analytics data:', error);
-      // Don't show error toast for analytics, just log it
-    }
-  }, [supabase, projectId, apiKeys]);
 
   // Initialize Supabase client safely
   useEffect(() => {
@@ -187,11 +125,6 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
     }
   }, [projectId, supabase, loadApiKeys]);
 
-  useEffect(() => {
-    if (supabase && apiKeys.length > 0) {
-      loadAnalyticsData();
-    }
-  }, [supabase, apiKeys, loadAnalyticsData]);
 
   const generateApiKey = async () => {
     if (!supabase) {
@@ -272,30 +205,6 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
     }
   };
 
-  const loadAnalytics = async (keyId: string) => {
-    // Mock analytics data - in real implementation, fetch from API
-    const mockAnalytics: WidgetAnalytics = {
-      totalLoads: 1250,
-      totalSubmissions: 89,
-      conversionRate: 7.12,
-      topDomains: [
-        { domain: 'example.com', count: 450 },
-        { domain: 'mysite.com', count: 320 },
-        { domain: 'blog.example.com', count: 280 }
-      ],
-      geographicData: [
-        { country: 'United States', count: 520 },
-        { country: 'United Kingdom', count: 180 },
-        { country: 'Canada', count: 150 }
-      ],
-      performanceOverTime: [
-        { date: '2024-01-01', loads: 45, submissions: 3 },
-        { date: '2024-01-02', loads: 52, submissions: 4 },
-        { date: '2024-01-03', loads: 38, submissions: 2 }
-      ]
-    };
-    setAnalytics(mockAnalytics);
-  };
 
   const getEmbedCode = (apiKey: string, platform: string = 'html') => {
     const domain = typeof window !== 'undefined' ? window.location.origin : 'https://signalsloop.com';
@@ -402,11 +311,10 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
     <div className="space-y-6">
 
       <Tabs defaultValue="keys" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="keys">API Keys</TabsTrigger>
           <TabsTrigger value="preview">Live Preview</TabsTrigger>
           <TabsTrigger value="install">Installation</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="customize">Customize</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
@@ -495,16 +403,6 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedApiKey(apiKey.id);
-                              loadAnalytics(apiKey.id);
-                            }}
-                          >
-                            <BarChart3 className="h-4 w-4" />
-                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -749,94 +647,6 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
           </Card>
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Widget Analytics
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {!selectedApiKey ? (
-                <div className="text-center py-8">
-                  <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    Select an API key to view analytics
-                  </p>
-                </div>
-              ) : analytics ? (
-                <>
-                  <div className="grid grid-cols-3 gap-6">
-                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {analytics.totalLoads.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Total Loads</div>
-                    </div>
-                    <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">
-                        {analytics.totalSubmissions}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Submissions</div>
-                    </div>
-                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">
-                        {analytics.conversionRate}%
-                      </div>
-                      <div className="text-sm text-muted-foreground">Conversion Rate</div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
-                        <Globe className="h-4 w-4" />
-                        Top Referring Domains
-                      </h4>
-                      <div className="space-y-2">
-                        {analytics.topDomains.map((domain, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                            <span className="text-sm font-medium">{domain.domain}</span>
-                            <Badge variant="secondary">{domain.count}</Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
-                        <Map className="h-4 w-4" />
-                        Geographic Distribution
-                      </h4>
-                      <div className="space-y-2">
-                        {analytics.geographicData.map((geo, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                            <span className="text-sm font-medium">{geo.country}</span>
-                            <Badge variant="outline">{geo.count}</Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <h4 className="font-medium mb-3">Performance Over Time</h4>
-                    <div className="text-sm text-muted-foreground">
-                      <p>📈 Chart visualization would go here (requires charting library)</p>
-                      <p className="mt-2">Track widget loads and submissions over time to optimize performance.</p>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-                  <p className="text-muted-foreground">Loading analytics...</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="customize" className="space-y-4">
           <Card>
@@ -1172,33 +982,6 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
         </TabsContent>
       </Tabs>
 
-      {/* Widget Analytics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Widget Analytics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">
-                {analyticsData.totalWidgetLoads}
-              </div>
-              <div className="text-sm text-muted-foreground">Total Widget Loads</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{analyticsData.submissionsThisWeek}</div>
-              <div className="text-sm text-muted-foreground">Submissions This Week</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{analyticsData.activeDomains}</div>
-              <div className="text-sm text-muted-foreground">Active Domains</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
