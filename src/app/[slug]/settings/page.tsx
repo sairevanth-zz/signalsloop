@@ -10,6 +10,7 @@ import { CustomDomainSettings } from '@/components/CustomDomainSettings';
 import GlobalBanner from '@/components/GlobalBanner';
 import FeedbackExport from '@/components/FeedbackExport';
 import { CSVImport } from '@/components/admin/csv-import';
+import { ChangelogManager } from '@/components/ChangelogManager';
 import { toast } from 'sonner';
 import { useParams, useRouter } from 'next/navigation';
 import { 
@@ -18,7 +19,8 @@ import {
   Shield,
   Upload,
   Download,
-  Globe
+  Globe,
+  FileText
 } from 'lucide-react';
 
 interface Project {
@@ -150,7 +152,7 @@ export default function SettingsPage() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-2 mb-6">
-            <TabsList className="grid w-full grid-cols-6 bg-transparent">
+            <TabsList className="grid w-full grid-cols-7 bg-transparent">
               <TabsTrigger 
                 value="api-keys" 
                 className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
@@ -185,6 +187,13 @@ export default function SettingsPage() {
               >
                 <Download className="w-4 h-4" />
                 Export
+              </TabsTrigger>
+              <TabsTrigger 
+                value="changelog" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
+              >
+                <FileText className="w-4 h-4" />
+                Changelog
               </TabsTrigger>
             </TabsList>
           </div>
@@ -334,6 +343,35 @@ export default function SettingsPage() {
                       Try the <Button variant="link" className="p-0 h-auto text-blue-600" onClick={() => window.open('/demo/data-export', '_blank')}>demo</Button> to see how it works
                     </p>
                   </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="changelog" className="mt-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Changelog Management</h3>
+                  <p className="text-gray-600">
+                    Create and manage product changelog releases for your users
+                  </p>
+                </div>
+              </div>
+              
+              {project ? (
+                <ChangelogManager projectId={project.id} projectSlug={project.slug} />
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <FileText className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Loading...
+                  </h3>
+                  <p className="text-gray-600">
+                    Loading changelog settings...
+                  </p>
                 </div>
               )}
             </div>
