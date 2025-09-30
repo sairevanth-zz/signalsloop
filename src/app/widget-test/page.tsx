@@ -100,12 +100,6 @@ export default function WidgetTestPage() {
                 <p className="text-xs text-gray-500 mt-1">
                   Enter your API key from project settings (starts with sk_)
                 </p>
-                <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
-                  <p className="font-medium text-blue-800 mb-1">Test API Keys:</p>
-                  <p className="text-blue-700">sk_n2h6kbpmyro5u0abj8ds (My SaaS Product)</p>
-                  <p className="text-blue-700">sk_cjdp9nz1l6z1vz3gppd2 (test-chandupatlasairevanth)</p>
-                  <p className="text-blue-700">sk_qx0n6bwlhcsrobqpto0evk (test-sairevanthchandupatla)</p>
-                </div>
               </div>
 
               <div>
@@ -195,7 +189,7 @@ export default function WidgetTestPage() {
               <h3 className="text-lg font-semibold text-gray-900">Widget Code</h3>
               <div className="bg-gray-100 p-4 rounded-md">
                 <code className="text-sm">
-                  {`<script src="/api/embed/${apiKey}.js?position=${position}&color=${encodeURIComponent(color)}&text=${text}&size=${size}"></script>`}
+                  {`<script src="/embed/${apiKey}.js?position=${position}&color=${encodeURIComponent(color)}&text=${text}&size=${size}"></script>`}
                 </code>
               </div>
 
