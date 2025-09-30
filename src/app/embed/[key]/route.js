@@ -212,6 +212,10 @@ function generateWidgetScript(config) {
 
     // Force the background color with higher specificity to override any CSS
     button.style.setProperty('background-color', CONFIG.color, 'important');
+    button.style.setProperty('background', CONFIG.color, 'important');
+    
+    // Also set it as an attribute to ensure it's not overridden
+    button.setAttribute('style', button.getAttribute('style') + '; background-color: ' + CONFIG.color + ' !important;');
 
     // Hover effects
     button.addEventListener('mouseenter', function() {
@@ -252,12 +256,12 @@ function generateWidgetScript(config) {
     const container = document.createElement('div');
     Object.assign(container.style, {
       position: 'absolute',
-      top: '50%',
+      top: '20px',
       left: '50%',
-      transform: 'translate(-50%, -50%) scale(0.9)',
+      transform: 'translateX(-50%) scale(0.9)',
       width: '90%',
       maxWidth: '500px',
-      height: '80%',
+      height: 'calc(100vh - 40px)',
       maxHeight: '600px',
       backgroundColor: 'white',
       borderRadius: '12px',
@@ -350,7 +354,7 @@ function generateWidgetScript(config) {
     // Animate in
     requestAnimationFrame(() => {
       modal.overlay.style.opacity = '1';
-      modal.container.style.transform = 'translate(-50%, -50%) scale(1)';
+      modal.container.style.transform = 'translateX(-50%) scale(1)';
     });
 
     // Track widget open
@@ -368,7 +372,7 @@ function generateWidgetScript(config) {
     
     // Animate out
     modal.overlay.style.opacity = '0';
-    modal.container.style.transform = 'translate(-50%, -50%) scale(0.9)';
+    modal.container.style.transform = 'translateX(-50%) scale(0.9)';
     
     setTimeout(() => {
       modal.overlay.style.display = 'none';
