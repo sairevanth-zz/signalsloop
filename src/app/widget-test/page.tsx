@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function WidgetTestPage() {
   const [apiKey, setApiKey] = useState('');
@@ -9,6 +9,18 @@ export default function WidgetTestPage() {
   const [text, setText] = useState('Feedback');
   const [size, setSize] = useState('medium');
   const [widgetLoaded, setWidgetLoaded] = useState(false);
+
+  // Update preview when settings change
+  const updatePreview = () => {
+    if (widgetLoaded) {
+      createWidgetPreview();
+    }
+  };
+
+  // Update preview when settings change
+  useEffect(() => {
+    updatePreview();
+  }, [position, color, text, size, widgetLoaded]);
 
   const loadWidget = () => {
     // Validate API key
@@ -22,57 +34,162 @@ export default function WidgetTestPage() {
       return;
     }
 
-    // Remove existing widget
-    const existingScript = document.getElementById('signalsloop-widget-script');
-    if (existingScript) {
-      existingScript.remove();
+    // Instead of loading the actual widget script, create a preview
+    createWidgetPreview();
+    setWidgetLoaded(true);
+  };
+
+  const createWidgetPreview = () => {
+    // Remove existing preview
+    const existingPreview = document.getElementById('widget-preview');
+    if (existingPreview) {
+      existingPreview.remove();
     }
 
-    // Remove existing widget elements
-    const existingWidgets = document.querySelectorAll('[id^="signalsloop-"]');
-    existingWidgets.forEach(widget => widget.remove());
-
-    // Remove existing styles
-    const existingStyles = document.getElementById('signalsloop-widget-styles');
-    if (existingStyles) {
-      existingStyles.remove();
-    }
-
-    // Build widget URL with parameters
-    const params = new URLSearchParams({
-      position,
-      color: encodeURIComponent(color),
-      text,
-      size
+    // Create preview container
+    const preview = document.createElement('div');
+    preview.id = 'widget-preview';
+    preview.style.cssText = `
+      position: fixed;
+      ${position.includes('bottom') ? 'bottom' : 'top'}: 20px;
+      ${position.includes('right') ? 'right' : 'left'}: 20px;
+      background-color: ${color};
+      color: white;
+      padding: ${size === 'small' ? '8px 16px' : size === 'large' ? '16px 24px' : '12px 20px'};
+      border-radius: 25px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-weight: 600;
+      font-size: ${size === 'small' ? '14px' : size === 'large' ? '18px' : '16px'};
+      cursor: pointer;
+      z-index: 999999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      border: none;
+      outline: none;
+    `;
+    preview.textContent = text;
+    
+    // Add hover effect
+    preview.addEventListener('mouseenter', () => {
+      preview.style.transform = 'scale(1.05)';
+      preview.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.25)';
+    });
+    
+    preview.addEventListener('mouseleave', () => {
+      preview.style.transform = 'scale(1)';
+      preview.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
     });
 
-    const widgetUrl = `/embed/${apiKey}.js?${params.toString()}`;
+    // Add click handler to show preview modal
+    preview.addEventListener('click', () => {
+      showPreviewModal();
+    });
 
-    // Create and load script
-    const script = document.createElement('script');
-    script.id = 'signalsloop-widget-script';
-    script.src = widgetUrl;
-    script.onload = () => setWidgetLoaded(true);
-    script.onerror = () => {
-      alert('Failed to load widget. Please check your API key.');
-      setWidgetLoaded(false);
+    document.body.appendChild(preview);
+  };
+
+  const showPreviewModal = () => {
+    // Remove existing modal
+    const existingModal = document.getElementById('preview-modal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'preview-modal';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000000;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 20px;
+    `;
+
+    // Create modal content
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+      width: 90%;
+      max-width: 500px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      position: relative;
+    `;
+
+    modal.innerHTML = `
+      <div style="padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h2 style="margin: 0; font-size: 24px; font-weight: 600;">Share your feedback and ideas</h2>
+          <button id="close-preview" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500;">Title *</label>
+          <input type="text" placeholder="Enter a title for your feedback" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px;">
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500;">Description</label>
+          <textarea placeholder="Describe your feedback in detail..." rows="4" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; resize: vertical;"></textarea>
+        </div>
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500;">Category</label>
+          <select style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px;">
+            <option>Feature Request</option>
+            <option>Bug Report</option>
+            <option>Improvement</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+          <button id="cancel-preview" style="padding: 12px 24px; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer;">Cancel</button>
+          <button style="padding: 12px 24px; background: ${color}; color: white; border: none; border-radius: 6px; cursor: pointer;">Submit Feedback</button>
+        </div>
+      </div>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Add close handlers
+    const closeModal = () => {
+      overlay.remove();
     };
-    
-    document.head.appendChild(script);
+
+    document.getElementById('close-preview').addEventListener('click', closeModal);
+    document.getElementById('cancel-preview').addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    // Close on escape key
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
   };
 
   const removeWidget = () => {
-    const existingScript = document.getElementById('signalsloop-widget-script');
-    if (existingScript) {
-      existingScript.remove();
+    // Remove preview widget
+    const existingPreview = document.getElementById('widget-preview');
+    if (existingPreview) {
+      existingPreview.remove();
     }
 
-    const existingWidgets = document.querySelectorAll('[id^="signalsloop-"]');
-    existingWidgets.forEach(widget => widget.remove());
-
-    const existingStyles = document.getElementById('signalsloop-widget-styles');
-    if (existingStyles) {
-      existingStyles.remove();
+    // Remove preview modal
+    const existingModal = document.getElementById('preview-modal');
+    if (existingModal) {
+      existingModal.remove();
     }
 
     setWidgetLoaded(false);
@@ -99,6 +216,13 @@ export default function WidgetTestPage() {
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Enter your API key from project settings (starts with sk_)
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Note:</strong> This is a preview of how your widget will look on external websites. 
+                  The actual widget will be loaded via the embed script on your customers' sites.
                 </p>
               </div>
 
