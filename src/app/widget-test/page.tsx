@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 export default function WidgetTestPage() {
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState('sk_n2h6kbpmyro5u0abj8ds');
   const [position, setPosition] = useState('bottom-right');
   const [color, setColor] = useState('#6366f1');
   const [text, setText] = useState('Feedback');
