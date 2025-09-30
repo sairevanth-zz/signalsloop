@@ -35,7 +35,7 @@ export default function WidgetTestPage() {
       size
     });
 
-    const widgetUrl = `/api/embed/${apiKey}.js?${params.toString()}`;
+    const widgetUrl = `/embed/${apiKey}.js?${params.toString()}`;
 
     // Create and load script
     const script = document.createElement('script');
