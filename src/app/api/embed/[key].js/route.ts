@@ -40,16 +40,51 @@ export async function GET(
       return new NextResponse('Rate limit exceeded', { status: 429 });
     }
 
-    // Validate API key - using a simple approach for now
-    // In production, you'd want to hash and store API keys securely
-    const { data: project, error } = await supabase
-      .from('projects')
-      .select('id, name, slug, plan')
-      .eq('slug', key) // For demo purposes, using slug as key
+    // Validate API key - check both API keys table and project slugs
+    let project = null;
+    
+    // First, try to find by API key in api_keys table
+    const { data: apiKeyData, error: apiKeyError } = await supabase
+      .from('api_keys')
+      .select(`
+        id,
+        project_id,
+        name,
+        usage_count,
+        projects!inner(id, name, slug, plan)
+      `)
+      .eq('key_hash', btoa(key))
       .single();
 
-    if (error || !project) {
-      return new NextResponse('Invalid API key', { status: 401 });
+    if (apiKeyData && apiKeyData.projects) {
+      // Valid API key found
+      project = apiKeyData.projects;
+      
+      // Update usage count and last used
+      await supabase
+        .from('api_keys')
+        .update({
+          usage_count: apiKeyData.usage_count + 1,
+          last_used_at: new Date().toISOString()
+        })
+        .eq('id', apiKeyData.id);
+        
+      console.log('Valid API key found:', key, 'for project:', project.name);
+    } else {
+      // Fallback: try to find project by slug (for demo purposes)
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('id, name, slug, plan')
+        .eq('slug', key)
+        .single();
+
+      if (projectData) {
+        project = projectData;
+        console.log('Project found by slug:', key, 'project:', project.name);
+      } else {
+        // If no valid API key or project found, return error
+        return new NextResponse('Invalid API key', { status: 401 });
+      }
     }
 
     // Get customization parameters from URL
@@ -57,6 +92,7 @@ export async function GET(
     const color = url.searchParams.get('color') || '#6366f1';
     const text = url.searchParams.get('text') || 'Feedback';
     const size = url.searchParams.get('size') || 'medium';
+    const theme = url.searchParams.get('theme') || 'light';
 
     // Generate widget ID for this instance
     const widgetId = `signalsloop-${project.slug}-${Date.now()}`;
