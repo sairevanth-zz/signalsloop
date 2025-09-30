@@ -508,12 +508,23 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                           // Generate preview image
                           const previewContainer = document.querySelector('.widget-preview-container');
                           if (previewContainer) {
-                            html2canvas(previewContainer as HTMLElement).then(canvas => {
+                            html2canvas(previewContainer as HTMLElement, {
+                              backgroundColor: '#f8fafc',
+                              scale: 2,
+                              useCORS: true,
+                              allowTaint: true
+                            }).then(canvas => {
                               const link = document.createElement('a');
                               link.download = `widget-preview-${projectSlug}.png`;
-                              link.href = canvas.toDataURL();
+                              link.href = canvas.toDataURL('image/png', 1.0);
                               link.click();
+                              toast.success('Preview image downloaded successfully!');
+                            }).catch(error => {
+                              console.error('Error generating preview:', error);
+                              toast.error('Failed to generate preview image');
                             });
+                          } else {
+                            toast.error('Preview container not found');
                           }
                         }}
                       >
@@ -526,18 +537,37 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                   <div className={`widget-preview-container relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-lg overflow-hidden ${
                     previewMode === 'mobile' ? 'max-w-sm mx-auto' : 'w-full'
                   }`} style={{ height: previewMode === 'mobile' ? '600px' : '400px' }}>
-                    <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                      <div className="text-center">
-                        <div className="text-4xl mb-2">🌐</div>
-                        <p className="text-sm">Your Website Preview</p>
+                    {/* Website Content Simulation */}
+                    <div className="absolute inset-0 p-6">
+                      <div className="space-y-4">
+                        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5"></div>
+                        <div className="grid grid-cols-2 gap-4 mt-6">
+                          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        </div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mt-4"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
                       </div>
                     </div>
-                    <div style={{
-                      ...getWidgetPreviewStyle(),
-                      animation: widgetSettings.animationSpeed === 'slow' ? 'pulse 3s infinite' : 
-                                widgetSettings.animationSpeed === 'fast' ? 'pulse 1s infinite' : 
-                                'pulse 2s infinite'
-                    }}>
+                    
+                    {/* Widget Preview */}
+                    <div 
+                      className="absolute cursor-pointer transition-all duration-300 hover:scale-105"
+                      style={{
+                        ...getWidgetPreviewStyle(),
+                        animation: widgetSettings.animationSpeed === 'slow' ? 'pulse 3s infinite' : 
+                                  widgetSettings.animationSpeed === 'fast' ? 'pulse 1s infinite' : 
+                                  'pulse 2s infinite',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                        zIndex: 10
+                      }}
+                      onClick={() => {
+                        toast.success('Widget clicked! This is how it will appear on your website.');
+                      }}
+                    >
                       💬 {widgetSettings.text}
                     </div>
                   </div>
