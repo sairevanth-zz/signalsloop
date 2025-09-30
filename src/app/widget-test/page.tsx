@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 export default function WidgetTestPage() {
-  const [apiKey, setApiKey] = useState('sk_n2h6kbpmyro5u0abj8ds');
+  const [apiKey, setApiKey] = useState('');
   const [position, setPosition] = useState('bottom-right');
   const [color, setColor] = useState('#6366f1');
   const [text, setText] = useState('Feedback');
@@ -11,6 +11,17 @@ export default function WidgetTestPage() {
   const [widgetLoaded, setWidgetLoaded] = useState(false);
 
   const loadWidget = () => {
+    // Validate API key
+    if (!apiKey.trim()) {
+      alert('Please enter an API key');
+      return;
+    }
+    
+    if (!apiKey.startsWith('sk_')) {
+      alert('API key should start with "sk_"');
+      return;
+    }
+
     // Remove existing widget
     const existingScript = document.getElementById('signalsloop-widget-script');
     if (existingScript) {
@@ -83,9 +94,18 @@ export default function WidgetTestPage() {
                   type="text"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Enter your project API key"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="sk_..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter your API key from project settings (starts with sk_)
+                </p>
+                <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
+                  <p className="font-medium text-blue-800 mb-1">Test API Keys:</p>
+                  <p className="text-blue-700">sk_n2h6kbpmyro5u0abj8ds (My SaaS Product)</p>
+                  <p className="text-blue-700">sk_cjdp9nz1l6z1vz3gppd2 (test-chandupatlasairevanth)</p>
+                  <p className="text-blue-700">sk_qx0n6bwlhcsrobqpto0evk (test-sairevanthchandupatla)</p>
+                </div>
               </div>
 
               <div>
