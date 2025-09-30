@@ -77,10 +77,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Event tracked successfully'
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      }
     });
 
   } catch (error) {
     console.error('Analytics tracking error:', error);
     return NextResponse.json({ error: 'Failed to track event' }, { status: 500 });
   }
+}
+
+// OPTIONS endpoint for CORS preflight
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
 }
