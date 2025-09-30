@@ -210,6 +210,9 @@ function generateWidgetScript(config) {
       ...size
     });
 
+    // Force the background color with higher specificity to override any CSS
+    button.style.setProperty('background-color', CONFIG.color, 'important');
+
     // Hover effects
     button.addEventListener('mouseenter', function() {
       button.style.transform = (position.transform || '') + ' scale(1.05)';
