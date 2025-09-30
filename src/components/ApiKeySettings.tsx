@@ -29,6 +29,7 @@ import {
   Upload
 } from 'lucide-react';
 import { toast } from 'sonner';
+import html2canvas from 'html2canvas';
 
 interface ApiKey {
   id: string;
@@ -292,7 +293,7 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
   };
 
   const getWidgetPreviewStyle = () => ({
-    position: 'fixed' as const,
+    position: 'absolute' as const,
     [widgetSettings.position.includes('bottom') ? 'bottom' : 'top']: '20px',
     [widgetSettings.position.includes('right') ? 'right' : 'left']: '20px',
     backgroundColor: widgetSettings.color,
@@ -303,8 +304,12 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
     fontWeight: '500',
     cursor: 'pointer',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-    zIndex: 1000,
-    opacity: widgetSettings.enabled ? 1 : 0.5
+    zIndex: 10,
+    opacity: widgetSettings.enabled ? 1 : 0.5,
+    transition: 'all 0.3s ease',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
   });
 
   return (
@@ -481,18 +486,44 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          if (apiKeys.length > 0) {
+                            const testUrl = `/widget-test?key=${apiKeys[0].key_hash}&project=${projectSlug}`;
+                            window.open(testUrl, '_blank');
+                          } else {
+                            toast.error('Please create an API key first');
+                          }
+                        }}
+                      >
                         <Play className="h-4 w-4 mr-1" />
                         Test Widget
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          // Generate preview image
+                          const previewContainer = document.querySelector('.widget-preview-container');
+                          if (previewContainer) {
+                            html2canvas(previewContainer as HTMLElement).then(canvas => {
+                              const link = document.createElement('a');
+                              link.download = `widget-preview-${projectSlug}.png`;
+                              link.href = canvas.toDataURL();
+                              link.click();
+                            });
+                          }
+                        }}
+                      >
                         <Download className="h-4 w-4 mr-1" />
                         Download Preview
                       </Button>
                     </div>
                   </div>
 
-                  <div className={`relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-lg overflow-hidden ${
+                  <div className={`widget-preview-container relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-lg overflow-hidden ${
                     previewMode === 'mobile' ? 'max-w-sm mx-auto' : 'w-full'
                   }`} style={{ height: previewMode === 'mobile' ? '600px' : '400px' }}>
                     <div className="absolute inset-0 flex items-center justify-center text-gray-400">
@@ -779,7 +810,7 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
 
                 <div>
                   <Label>Live Preview</Label>
-                  <div className="mt-2 relative bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-950 rounded-lg h-64 overflow-hidden">
+                  <div className="widget-preview-container mt-2 relative bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-950 rounded-lg h-64 overflow-hidden">
                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                       Your Website Preview
                     </div>
