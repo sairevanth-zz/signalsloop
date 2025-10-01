@@ -403,7 +403,7 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
             <p className="text-gray-600">See what we're building and what's coming next</p>
             {/* Debug info */}
             <div className="mt-2 text-xs text-gray-500">
-              Debug: isOwner = {isOwner ? 'true' : 'false'}
+              Debug: isOwner = {isOwner ? 'true' : 'false'} - Updated
             </div>
           </div>
           
