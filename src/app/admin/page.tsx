@@ -110,21 +110,39 @@ export default function AdminDashboard() {
         fetch('/api/admin/projects')
       ]);
 
-      if (!statsResponse.ok || !usersResponse.ok || !projectsResponse.ok) {
-        throw new Error('Failed to fetch admin data');
-      }
-
+      // Parse all responses
       const [statsData, usersData, projectsData] = await Promise.all([
-        statsResponse.json(),
-        usersResponse.json(),
-        projectsResponse.json()
+        statsResponse.json().catch(() => ({ stats: null, error: 'Parse error' })),
+        usersResponse.json().catch(() => ({ users: [], error: 'Parse error' })),
+        projectsResponse.json().catch(() => ({ projects: [], error: 'Parse error' }))
       ]);
 
-      setStats(statsData.stats);
-      setUsers(usersData.users);
-      setProjects(projectsData.projects);
+      // Check for errors and show specific messages
+      if (!statsResponse.ok) {
+        console.error('Stats API error:', statsData);
+        toast.error(`Stats: ${statsData.error || 'Failed to load'}`);
+      }
+      
+      if (!usersResponse.ok) {
+        console.error('Users API error:', usersData);
+        toast.error(`Users: ${usersData.error || 'Failed to load'}`);
+      }
+      
+      if (!projectsResponse.ok) {
+        console.error('Projects API error:', projectsData);
+        toast.error(`Projects: ${projectsData.error || 'Failed to load'}`);
+      }
 
-      console.log('Admin data loaded successfully');
+      if (statsData.stats) setStats(statsData.stats);
+      if (usersData.users) setUsers(usersData.users);
+      if (projectsData.projects) setProjects(projectsData.projects);
+
+      console.log('Admin data loaded:', {
+        stats: !!statsData.stats,
+        usersCount: usersData.users?.length || 0,
+        projectsCount: projectsData.projects?.length || 0
+      });
+      
     } catch (error) {
       console.error('Error loading admin data:', error);
       toast.error('Failed to load admin data');
