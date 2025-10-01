@@ -113,6 +113,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const handleCheckDuplicates = async () => {
     setCheckingDuplicates(true);
     try {
+      console.log('Checking duplicates for post:', post.id);
       const response = await fetch('/api/ai/duplicate-detection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -124,20 +125,24 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
         })
       });
 
+      console.log('Duplicate check response status:', response.status);
+      const data = await response.json();
+      console.log('Duplicate check response data:', data);
+
       if (response.ok) {
-        const data = await response.json();
         setDuplicates(data.duplicates || []);
         if (data.duplicates && data.duplicates.length > 0) {
-          toast.success(`Found ${data.duplicates.length} similar post(s)`);
+          toast.success(`Found ${data.duplicates.length} similar post(s)`, { duration: 5000 });
         } else {
-          toast.success('No duplicates found');
+          toast.success('✓ No duplicates found', { duration: 3000 });
         }
       } else {
-        toast.error('Failed to check duplicates');
+        const errorMsg = data.error || 'Failed to check duplicates';
+        toast.error(errorMsg, { duration: 5000 });
       }
     } catch (error) {
       console.error('Error checking duplicates:', error);
-      toast.error('Failed to check duplicates');
+      toast.error('Network error - Failed to check duplicates', { duration: 5000 });
     } finally {
       setCheckingDuplicates(false);
     }
@@ -146,6 +151,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const handleAnalyzePriority = async () => {
     setAnalyzingPriority(true);
     try {
+      console.log('Analyzing priority for post:', post.id);
       const response = await fetch('/api/ai/priority-scoring', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -158,16 +164,22 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
         })
       });
 
+      console.log('Priority analysis response status:', response.status);
+      const data = await response.json();
+      console.log('Priority analysis response data:', data);
+
       if (response.ok) {
-        const data = await response.json();
-        setPriorityScore(data);
-        toast.success(`Priority Score: ${data.priorityScore}/100`);
+        setPriorityScore(data.priority);
+        const score = data.priority?.score || 0;
+        const level = data.priority?.level || 'Unknown';
+        toast.success(`✓ Priority: ${level} (${score}/100)`, { duration: 5000 });
       } else {
-        toast.error('Failed to analyze priority');
+        const errorMsg = data.error || 'Failed to analyze priority';
+        toast.error(errorMsg, { duration: 5000 });
       }
     } catch (error) {
       console.error('Error analyzing priority:', error);
-      toast.error('Failed to analyze priority');
+      toast.error('Network error - Failed to analyze priority', { duration: 5000 });
     } finally {
       setAnalyzingPriority(false);
     }
