@@ -21,6 +21,7 @@ import {
   Brain
 } from 'lucide-react';
 import { toast } from 'sonner';
+import AIWritingAssistant from './AIWritingAssistant';
 
 interface PostSubmissionFormProps {
   isOpen: boolean;
@@ -343,8 +344,17 @@ export default function PostSubmissionForm({
                     onChange={(e) => handleInputChange('description', e.target.value)}
                     placeholder="Provide more details about your feedback. Include steps to reproduce for bugs, or explain the benefit for feature requests."
                     rows={4}
-                    className={errors.description ? 'border-red-500' : ''}
+                    className={errors.description ? 'border-red-500 mb-2' : 'mb-2'}
                   />
+                  
+                  {/* AI Writing Assistant */}
+                  <AIWritingAssistant
+                    currentText={formData.description}
+                    context={`Feedback type: ${formData.type}, Title: ${formData.title}`}
+                    onTextImprove={(improved) => handleInputChange('description', improved)}
+                    placeholder="Provide more details..."
+                  />
+                  
                   {errors.description && (
                     <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />

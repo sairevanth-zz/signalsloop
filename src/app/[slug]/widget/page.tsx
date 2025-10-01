@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageSquare, Send, X, CheckCircle } from 'lucide-react';
+import AIWritingAssistant from '@/components/AIWritingAssistant';
 
 interface WidgetProps {
   projectSlug: string;
@@ -123,8 +124,16 @@ export default function WidgetPage() {
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   placeholder="Describe your feedback, bug report, or feature request..."
-                  className="min-h-[120px] resize-none"
+                  className="min-h-[120px] resize-none mb-2"
                   required
+                />
+                
+                {/* AI Writing Assistant */}
+                <AIWritingAssistant
+                  currentText={feedback}
+                  context={`Widget feedback for project: ${projectSlug}, Category: ${category || 'not selected'}`}
+                  onTextImprove={(improved) => setFeedback(improved)}
+                  placeholder="Describe your feedback..."
                 />
               </div>
 
