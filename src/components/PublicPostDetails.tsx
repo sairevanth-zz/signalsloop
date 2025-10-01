@@ -262,20 +262,37 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
               </CardContent>
             </Card>
 
-            {/* Comments Section (Placeholder) */}
+            {/* Comments Section */}
             <Card>
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Comments
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Comments (0)
                 </h3>
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500 mb-6">
                   <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>Comments are not available for public posts.</p>
-                  <p className="text-sm mt-2">
-                    <Link href="/login" className="text-blue-600 hover:text-blue-700">
-                      Sign in
-                    </Link> to view and add comments.
-                  </p>
+                  <p>No comments yet. Be the first to share your thoughts!</p>
+                </div>
+                
+                {/* Add Comment Form */}
+                <div className="border-t pt-6">
+                  <h4 className="font-medium text-gray-900 mb-3">Add a comment</h4>
+                  <textarea
+                    placeholder="Share your thoughts..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    rows={4}
+                  />
+                  <input
+                    type="email"
+                    placeholder="Your email (optional)"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-3"
+                  />
+                  <Button 
+                    className="mt-3 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Post Comment
+                  </Button>
                 </div>
               </CardContent>
             </Card>
