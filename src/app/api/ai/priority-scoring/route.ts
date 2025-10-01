@@ -188,20 +188,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify user owns the project
-    const { data: projectData, error: projectError } = await supabase
-      .from('projects')
-      .select('id, owner_id')
-      .eq('id', projectId)
-      .single();
-
-    if (projectError || !projectData || projectData.owner_id !== user.id) {
-      return NextResponse.json(
-        { error: 'Project not found or access denied' },
-        { status: 404 }
-      );
-    }
-
     // Get the post with engagement metrics
     const { data: post, error: postError } = await supabase
       .from('posts')
