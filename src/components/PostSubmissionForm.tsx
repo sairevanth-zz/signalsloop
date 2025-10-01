@@ -187,21 +187,6 @@ export default function PostSubmissionForm({
       const result = await response.json();
       console.log('Post created successfully:', result);
 
-      // Generate smart replies for the new post
-      try {
-        await fetch('/api/ai/smart-replies', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ postId: result.postId }),
-        });
-        console.log('Smart replies generated for new post');
-      } catch (error) {
-        console.error('Failed to generate smart replies:', error);
-        // Don't show error to user as this is a background process
-      }
-
       // Show success state
       setIsSuccess(true);
       toast.success('Feedback submitted successfully!');

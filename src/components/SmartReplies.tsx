@@ -51,14 +51,9 @@ export default function SmartReplies({
   const loadSmartReplies = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/ai/smart-replies?postId=${postId}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to load smart replies');
-      }
-      
-      const data = await response.json();
-      setReplies(data.replies || []);
+      // For now, skip loading existing replies since database might not be set up
+      // We'll generate fresh replies each time
+      setReplies([]);
     } catch (err) {
       console.error('Error loading smart replies:', err);
       setError('Failed to load smart replies');
@@ -72,12 +67,17 @@ export default function SmartReplies({
       setGenerating(true);
       setError(null);
       
+      // Generate smart replies directly using OpenAI API
       const response = await fetch('/api/ai/smart-replies', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ postId }),
+        body: JSON.stringify({ 
+          postId,
+          title: postTitle,
+          description: postDescription || ''
+        }),
       });
       
       if (!response.ok) {

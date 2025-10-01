@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
@@ -8,73 +7,14 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const { postId } = await request.json();
+    const { postId, title, description } = await request.json();
     
-    if (!postId) {
-      return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
+    if (!postId || !title) {
+      return NextResponse.json({ error: 'Post ID and title are required' }, { status: 400 });
     }
-
-    // Create Supabase client with service role
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE!
-    );
-
-    // Get post details
-    const { data: post, error: postError } = await supabase
-      .from('posts')
-      .select(`
-        id,
-        title,
-        description,
-        category,
-        author_name,
-        author_email,
-        projects!inner(
-          id,
-          name,
-          smart_replies_enabled,
-          smart_replies_config
-        )
-      `)
-      .eq('id', postId)
-      .single();
-
-    if (postError || !post) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
-    }
-
-    // Check if smart replies are enabled for this project
-    if (!post.projects.smart_replies_enabled) {
-      return NextResponse.json({ error: 'Smart replies not enabled for this project' }, { status: 400 });
-    }
-
-    // Get existing smart replies to avoid duplicates
-    const { data: existingReplies } = await supabase
-      .from('smart_replies')
-      .select('reply_text')
-      .eq('post_id', postId);
-
-    const existingTexts = existingReplies?.map(r => r.reply_text) || [];
 
     // Generate smart replies using OpenAI
-    const smartReplies = await generateSmartReplies(post, existingTexts);
-
-    // Save smart replies to database
-    const repliesToInsert = smartReplies.map(reply => ({
-      post_id: postId,
-      reply_text: reply.text,
-      reply_type: reply.type
-    }));
-
-    const { error: insertError } = await supabase
-      .from('smart_replies')
-      .insert(repliesToInsert);
-
-    if (insertError) {
-      console.error('Error inserting smart replies:', insertError);
-      return NextResponse.json({ error: 'Failed to save smart replies' }, { status: 500 });
-    }
+    const smartReplies = await generateSmartReplies(title, description || '');
 
     return NextResponse.json({ 
       success: true, 
@@ -88,7 +28,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateSmartReplies(post: any, existingTexts: string[]) {
+async function generateSmartReplies(title: string, description: string) {
   const systemPrompt = `You are an AI assistant that generates helpful follow-up questions for user feedback posts. Your goal is to help collect more detailed information from users to improve their feedback.
 
 Guidelines:
@@ -97,7 +37,7 @@ Guidelines:
 3. Avoid generic questions like "Can you provide more details?"
 4. Focus on gathering information that would help prioritize and implement the feedback
 5. Be friendly and professional
-6. Consider the post category and content when crafting questions
+6. Consider the post content when crafting questions
 
 Reply types:
 - "follow_up": General follow-up questions
@@ -106,10 +46,8 @@ Reply types:
 
 Return your response as a JSON array of objects with "text" and "type" fields.`;
 
-  const userPrompt = `Post Title: ${post.title}
-Post Description: ${post.description || 'No description provided'}
-Category: ${post.category || 'General'}
-Author: ${post.author_name || 'Anonymous'}
+  const userPrompt = `Post Title: ${title}
+Post Description: ${description || 'No description provided'}
 
 Generate 2-3 smart follow-up questions for this feedback post.`;
 
@@ -163,7 +101,7 @@ Generate 2-3 smart follow-up questions for this feedback post.`;
   }
 }
 
-// GET endpoint to fetch existing smart replies
+// GET endpoint to fetch existing smart replies (simplified)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -173,23 +111,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE!
-    );
-
-    const { data: replies, error } = await supabase
-      .from('smart_replies')
-      .select('*')
-      .eq('post_id', postId)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching smart replies:', error);
-      return NextResponse.json({ error: 'Failed to fetch smart replies' }, { status: 500 });
-    }
-
-    return NextResponse.json({ replies });
+    // For now, return empty array since we're not using database
+    return NextResponse.json({ replies: [] });
 
   } catch (error) {
     console.error('Fetch smart replies error:', error);
