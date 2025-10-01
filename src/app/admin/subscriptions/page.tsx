@@ -22,7 +22,6 @@ import {
   Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { getSupabaseClient } from '@/lib/supabase-client';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface Project {
@@ -61,63 +60,29 @@ export default function AdminSubscriptionsPage() {
   const [giftDuration, setGiftDuration] = useState('1');
   const [giftReason, setGiftReason] = useState('');
 
-  const supabase = getSupabaseClient();
-
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
-    if (!supabase) return;
-
     try {
-      // Load all projects with owner info
-      const { data: projectsData, error: projectsError } = await supabase
-        .from('projects')
-        .select(`
-          *,
-          users!projects_owner_id_fkey(email)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (projectsError) {
-        console.error('Error loading projects:', projectsError);
+      // Load projects from admin API
+      const projectsResponse = await fetch('/api/admin/subscriptions');
+      if (projectsResponse.ok) {
+        const projectsData = await projectsResponse.json();
+        setProjects(projectsData.projects || []);
+      } else {
+        console.error('Error loading projects');
         toast.error('Failed to load projects');
-        return;
       }
 
-      // Transform the data to include owner email
-      const transformedProjects = projectsData.map(project => ({
-        ...project,
-        owner_email: project.users?.email || 'Unknown'
-      }));
-
-      setProjects(transformedProjects);
-
-      // Load subscription gifts
-      const { data: giftsData, error: giftsError } = await supabase
-        .from('gift_subscriptions')
-        .select(`
-          *,
-          projects!inner(name, slug)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (giftsError) {
-        console.error('Error loading gifts:', giftsError);
+      // Load gifts from admin API
+      const giftsResponse = await fetch('/api/admin/gifts');
+      if (giftsResponse.ok) {
+        const giftsData = await giftsResponse.json();
+        setGifts(giftsData.gifts || []);
       } else {
-        const transformedGifts = giftsData?.map(gift => ({
-          id: gift.id,
-          project_slug: gift.projects?.slug || 'unknown',
-          project_name: gift.projects?.name || 'Unknown Project',
-          owner_email: gift.recipient_email,
-          duration_months: gift.duration_months,
-          status: gift.status === 'claimed' ? 'active' : gift.status,
-          gifted_at: gift.created_at,
-          expires_at: gift.expires_at
-        })) || [];
-        setGifts(transformedGifts);
+        console.error('Error loading gifts');
       }
 
     } catch (error) {
@@ -134,101 +99,29 @@ export default function AdminSubscriptionsPage() {
       return;
     }
 
-    console.log('Admin gift subscription attempt:', { giftEmail, giftDuration });
     setGiftLoading(true);
     try {
-      // Find user by email first
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', giftEmail)
-        .single();
-
-      if (userError || !userData) {
-        console.error('User not found error:', userError);
-        toast.error('User not found. Please make sure they have an account.');
-        setGiftLoading(false);
-        return;
-      }
-      
-      console.log('User found:', userData);
-
-      // Find their projects
-      const { data: userProjects, error: projectsError } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('owner_id', userData.id);
-
-      if (projectsError) {
-        console.error('Error finding user projects:', projectsError);
-        toast.error('Failed to find user projects');
-        setGiftLoading(false);
-        return;
-      }
-
-      if (!userProjects || userProjects.length === 0) {
-        toast.error('User has no projects yet');
-        setGiftLoading(false);
-        return;
-      }
-
-      // Calculate expiry date
-      const durationMonths = parseInt(giftDuration);
-      const newExpiry = new Date();
-      newExpiry.setMonth(newExpiry.getMonth() + durationMonths);
-
-      // Update all user's projects to Pro
-      const { error } = await supabase
-        .from('projects')
-        .update({
-          plan: 'pro',
-          subscription_status: 'active',
-          current_period_end: newExpiry.toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('owner_id', userData.id);
-
-      if (error) {
-        console.error('Error gifting subscription:', error);
-        toast.error('Failed to gift subscription');
-        return;
-      }
-
-      // Create a gift subscription record for tracking
-      const { error: giftError } = await supabase
-        .from('gift_subscriptions')
-        .insert({
-          project_id: userProjects[0].id, // Use first project as reference
-          gifter_id: null, // Admin gift
-          gifter_email: 'admin@signalsloop.com',
+      const response = await fetch('/api/admin/gifts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           recipient_email: giftEmail,
-          recipient_id: userData.id,
-          gift_type: 'pro',
-          duration_months: durationMonths,
-          status: 'claimed', // Already applied
-          expires_at: newExpiry.toISOString(),
-          claimed_at: new Date().toISOString(),
-          gift_message: giftReason || 'Admin gift subscription',
-          admin_notes: `Gifted by admin for ${giftReason || 'administrative purposes'}`
-        });
-
-      if (giftError) {
-        console.error('Error creating gift record:', giftError);
-        // Continue anyway since the actual upgrade worked
-      }
-
-      // Log the gift
-      console.log('Gift given:', {
-        user_email: giftEmail,
-        user_id: userData.id,
-        projects_upgraded: userProjects.length,
-        duration_months: durationMonths,
-        reason: giftReason,
-        gifted_at: new Date().toISOString(),
-        expires_at: newExpiry.toISOString()
+          sender_name: 'SignalsLoop Admin',
+          gift_message: giftReason || 'Thank you for being an awesome user!',
+          duration_months: parseInt(giftDuration),
+        }),
       });
 
-      toast.success(`Successfully gifted ${durationMonths} month${durationMonths > 1 ? 's' : ''} of Pro to ${giftEmail} (${userProjects.length} project${userProjects.length > 1 ? 's' : ''} upgraded)!`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create gift');
+      }
+
+      const result = await response.json();
+      
+      toast.success(`Successfully gifted ${giftDuration} month${parseInt(giftDuration) > 1 ? 's' : ''} of Pro to ${giftEmail}! Email sent.`);
       
       // Reset form
       setGiftEmail('');
