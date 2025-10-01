@@ -371,26 +371,15 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Product Roadmap</h1>
             <p className="text-gray-600">See what we're building and what's coming next</p>
-            {/* Debug info - remove this later */}
-            <div className="mt-2 text-xs text-gray-500">
-              Debug: isOwner = {isOwner ? 'true' : 'false'}
-            </div>
           </div>
           
           <div className="flex items-center space-x-3">
-            <Button 
-              variant="outline" 
-              className="px-4 py-2 rounded-lg flex items-center"
-              onClick={() => {
-                if (!isOwner) {
-                  toast.error('Please sign in to manage phases');
-                  window.location.href = '/login';
-                }
-              }}
-            >
-              <Settings className="h-4 w-4 mr-2 text-purple-600" />
-              Manage Phases
-            </Button>
+            {isOwner && (
+              <Button variant="outline" className="px-4 py-2 rounded-lg flex items-center">
+                <Settings className="h-4 w-4 mr-2 text-purple-600" />
+                Manage Phases
+              </Button>
+            )}
             <Link href={`/${project.slug}/board`}>
               <Button variant="outline" className="px-4 py-2 rounded-lg">
                 ← Back to Board
@@ -555,27 +544,22 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
                             </p>
                           </div>
                           
-                          {/* Status dropdown */}
-                          <div className="ml-2">
-                            <select
-                              value={post.status}
-                              onChange={(e) => {
-                                if (!isOwner) {
-                                  toast.error('Please sign in to manage phases');
-                                  window.location.href = '/login';
-                                } else {
-                                  handleStatusChange(post.id, e.target.value);
-                                }
-                              }}
-                              disabled={updatingStatus === post.id}
-                              className="text-xs border border-gray-300 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            >
-                              <option value="open">Ideas</option>
-                              <option value="planned">Planned</option>
-                              <option value="in_progress">In Progress</option>
-                              <option value="done">Completed</option>
-                            </select>
-                          </div>
+                          {/* Status dropdown - only show for owners */}
+                          {isOwner && (
+                            <div className="ml-2">
+                              <select
+                                value={post.status}
+                                onChange={(e) => handleStatusChange(post.id, e.target.value)}
+                                disabled={updatingStatus === post.id}
+                                className="text-xs border border-gray-300 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              >
+                                <option value="open">Ideas</option>
+                                <option value="planned">Planned</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="done">Completed</option>
+                              </select>
+                            </div>
+                          )}
                         </div>
                         
                         <div className="flex items-center justify-between">
