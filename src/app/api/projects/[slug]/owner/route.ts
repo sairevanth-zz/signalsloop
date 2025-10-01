@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(
   request: NextRequest,
@@ -7,11 +7,12 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const supabase = getSupabaseServiceRoleClient();
     
-    if (!supabase) {
-      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
-    }
+    // Create Supabase client with service role key
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE!
+    );
 
     // Get the project
     const { data: project, error: projectError } = await supabase
@@ -21,6 +22,7 @@ export async function GET(
       .single();
 
     if (projectError || !project) {
+      console.error('Project not found:', projectError);
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
@@ -36,11 +38,19 @@ export async function GET(
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !user) {
+      console.error('Invalid token:', userError);
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     // Check if user is the project owner
     const isOwner = project.owner_id === user.id;
+
+    console.log('Owner check result:', {
+      projectId: project.id,
+      projectOwnerId: project.owner_id,
+      userId: user.id,
+      isOwner
+    });
 
     return NextResponse.json({ 
       isOwner,

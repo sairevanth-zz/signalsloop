@@ -124,42 +124,65 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
 
   // Check if user is project owner
   useEffect(() => {
-    const checkOwnerStatus = async () => {
+    const supabase = getSupabaseClient();
+    
+    const checkOwnerStatus = async (user: any) => {
       try {
-        const supabase = getSupabaseClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        
         console.log('🔍 Checking owner status:', { 
-          hasSession: !!session, 
-          hasToken: !!session?.access_token,
-          projectSlug: project.slug 
+          hasUser: !!user, 
+          userEmail: user?.email,
+          userId: user?.id,
+          projectSlug: project.slug
         });
         
-        if (session?.access_token) {
-          const response = await fetch(`/api/projects/${project.slug}/owner`, {
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`
+        if (user) {
+          // Get session for token
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session?.access_token) {
+            const response = await fetch(`/api/projects/${project.slug}/owner`, {
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`
+              }
+            });
+            
+            console.log('🔍 Owner check response:', response.status);
+            
+            if (response.ok) {
+              const data = await response.json();
+              console.log('🔍 Owner check data:', data);
+              setIsOwner(data.isOwner);
+            } else {
+              const errorText = await response.text();
+              console.log('🔍 Owner check failed:', errorText);
+              setIsOwner(false);
             }
-          });
-          
-          console.log('🔍 Owner check response:', response.status);
-          
-          if (response.ok) {
-            const data = await response.json();
-            console.log('🔍 Owner check data:', data);
-            setIsOwner(data.isOwner);
           } else {
-            console.log('🔍 Owner check failed:', await response.text());
+            console.log('🔍 No session token available');
+            setIsOwner(false);
           }
         } else {
-          console.log('🔍 No session token available');
+          console.log('🔍 No user found');
+          setIsOwner(false);
         }
       } catch (error) {
         console.error('Error checking owner status:', error);
+        setIsOwner(false);
       }
     };
 
-    checkOwnerStatus();
+    // Get initial user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      checkOwnerStatus(user);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔍 Auth state changed:', event, !!session?.user);
+      checkOwnerStatus(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, [project.slug]);
 
   const handleVote = async (postId: string) => {
