@@ -131,13 +131,15 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
 
       if (response.ok) {
         setDuplicates(data.duplicates || []);
-        if (data.duplicates && data.duplicates.length > 0) {
-          toast.success(`Found ${data.duplicates.length} similar post(s)`, { duration: 5000 });
-        } else {
-          toast.success('✓ No duplicates found', { duration: 3000 });
-        }
+        const message = data.duplicates && data.duplicates.length > 0 
+          ? `Found ${data.duplicates.length} similar post(s)` 
+          : '✓ No duplicates found';
+        
+        alert(message);
+        toast.success(message, { duration: 5000 });
       } else {
         const errorMsg = data.error || 'Failed to check duplicates';
+        alert('Error: ' + errorMsg);
         toast.error(errorMsg, { duration: 5000 });
       }
     } catch (error) {
@@ -172,9 +174,13 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
         setPriorityScore(data.priority);
         const score = data.priority?.score || 0;
         const level = data.priority?.level || 'Unknown';
-        toast.success(`✓ Priority: ${level} (${score}/100)`, { duration: 5000 });
+        const message = `✓ Priority: ${level} (${score}/100)`;
+        
+        alert(message);
+        toast.success(message, { duration: 5000 });
       } else {
         const errorMsg = data.error || 'Failed to analyze priority';
+        alert('Error: ' + errorMsg);
         toast.error(errorMsg, { duration: 5000 });
       }
     } catch (error) {
