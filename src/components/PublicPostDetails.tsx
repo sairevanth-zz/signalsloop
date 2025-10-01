@@ -199,12 +199,18 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   };
 
   const [commentText, setCommentText] = useState('');
+  const [commentName, setCommentName] = useState('');
   const [commentEmail, setCommentEmail] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
   const handleSubmitComment = async () => {
     if (!commentText.trim()) {
       toast.error('Please enter a comment');
+      return;
+    }
+
+    if (!commentName.trim()) {
+      toast.error('Please enter your name');
       return;
     }
 
@@ -215,6 +221,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: commentText,
+          name: commentName,
           email: commentEmail || null
         })
       });
@@ -223,6 +230,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
         const data = await response.json();
         toast.success('Comment posted successfully');
         setCommentText('');
+        setCommentName('');
         setCommentEmail('');
         // Add the new comment to the list
         setComments([...comments, data.comment]);
@@ -440,7 +448,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-medium text-sm text-gray-900">
-                              {comment.author_email || 'Anonymous'}
+                              {comment.author_name || 'Anonymous'}
                             </span>
                             <span className="text-xs text-gray-500">
                               {new Date(comment.created_at).toLocaleDateString()}
@@ -463,6 +471,15 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                   placeholder="Share your thoughts..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
                   rows={3}
+                  required
+                />
+                <input
+                  type="text"
+                  value={commentName}
+                  onChange={(e) => setCommentName(e.target.value)}
+                  placeholder="Your name *"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-2 text-sm"
+                  required
                 />
                 <input
                   type="email"
@@ -473,8 +490,8 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                 />
                 <Button 
                   onClick={handleSubmitComment}
-                  disabled={isSubmittingComment}
-                  className="mt-3 bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={isSubmittingComment || !commentText.trim() || !commentName.trim()}
+                  className="mt-3 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
                   size="sm"
                 >
                   <MessageSquare className="h-3 w-3 mr-2" />

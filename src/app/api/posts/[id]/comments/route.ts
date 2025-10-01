@@ -16,7 +16,7 @@ export async function GET(
     // Fetch comments for this post
     const { data: comments, error } = await supabase
       .from('comments')
-      .select('id, content, author_email, created_at')
+      .select('id, content, author_name, author_email, created_at')
       .eq('post_id', id)
       .order('created_at', { ascending: true });
 
@@ -45,10 +45,14 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { content, email } = body;
+    const { content, name, email } = body;
 
     if (!content || !content.trim()) {
       return NextResponse.json({ error: 'Comment content is required' }, { status: 400 });
+    }
+
+    if (!name || !name.trim()) {
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
     // Insert comment
@@ -57,6 +61,7 @@ export async function POST(
       .insert({
         post_id: id,
         content: content.trim(),
+        author_name: name.trim(),
         author_email: email || null,
         created_at: new Date().toISOString()
       })
