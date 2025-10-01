@@ -79,21 +79,24 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     setHasVoted(voted.includes(post.id));
   }, [post.id, project.id]);
 
-  // Load comments
-  useEffect(() => {
-    const loadComments = async () => {
-      try {
-        const response = await fetch(`/api/posts/${post.id}/comments`);
-        if (response.ok) {
-          const data = await response.json();
-          setComments(data.comments || []);
-        }
-      } catch (error) {
-        console.error('Error loading comments:', error);
-      } finally {
-        setLoadingComments(false);
+  // Load comments function
+  const loadComments = async () => {
+    try {
+      setLoadingComments(true);
+      const response = await fetch(`/api/posts/${post.id}/comments`);
+      if (response.ok) {
+        const data = await response.json();
+        setComments(data.comments || []);
       }
-    };
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  // Load comments on mount
+  useEffect(() => {
     loadComments();
   }, [post.id]);
 
