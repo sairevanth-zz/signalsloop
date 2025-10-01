@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabaseServiceRoleClient();
