@@ -3,11 +3,21 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function PATCH(request: NextRequest) {
   try {
+    console.log('🔄 API: Starting status update...');
+    
     // Create Supabase client with service role key
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE!
+      process.env.SUPABASE_SERVICE_ROLE!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     );
+    
+    console.log('🔄 API: Supabase client created');
 
     const { postId, newStatus, projectId } = await request.json();
     
@@ -36,8 +46,14 @@ export async function PATCH(request: NextRequest) {
     const token = authHeader.split(' ')[1];
     console.log('🔄 API: Token extracted, verifying user...');
     
-    // Verify the JWT token and get user
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    // Create a timeout promise to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('User verification timeout')), 5000)
+    );
+    
+    // Verify the JWT token and get user with timeout
+    const userPromise = supabase.auth.getUser(token);
+    const { data: { user }, error: userError } = await Promise.race([userPromise, timeoutPromise]) as any;
     
     console.log('🔄 API: User verification:', { hasUser: !!user, userEmail: user?.email, error: userError?.message });
     
@@ -48,11 +64,18 @@ export async function PATCH(request: NextRequest) {
 
     // Verify user owns the project
     console.log('🔄 API: Checking project ownership...');
-    const { data: project, error: projectError } = await supabase
+    
+    const projectTimeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Project check timeout')), 5000)
+    );
+    
+    const projectPromise = supabase
       .from('projects')
       .select('id, owner_id')
       .eq('id', projectId)
       .single();
+    
+    const { data: project, error: projectError } = await Promise.race([projectPromise, projectTimeoutPromise]) as any;
 
     console.log('🔄 API: Project check:', { hasProject: !!project, projectOwnerId: project?.owner_id, userId: user.id, error: projectError?.message });
 
@@ -63,7 +86,12 @@ export async function PATCH(request: NextRequest) {
 
     // Update the post status
     console.log('🔄 API: Updating post status...');
-    const { error: updateError } = await supabase
+    
+    const updateTimeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Update timeout')), 5000)
+    );
+    
+    const updatePromise = supabase
       .from('posts')
       .update({ 
         status: newStatus,
@@ -71,6 +99,8 @@ export async function PATCH(request: NextRequest) {
       })
       .eq('id', postId)
       .eq('project_id', projectId);
+    
+    const { error: updateError } = await Promise.race([updatePromise, updateTimeoutPromise]) as any;
 
     if (updateError) {
       console.error('🔄 API: Error updating post status:', updateError);
