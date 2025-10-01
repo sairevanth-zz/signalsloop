@@ -6,8 +6,8 @@ const openai = new OpenAI({
 });
 
 type SmartReply = {
-  text: string;
-  type: string;
+  reply_text: string;
+  reply_type: string;
 };
 
 type SuccessResponse = {
@@ -103,8 +103,8 @@ Generate 2-3 smart follow-up questions for this feedback post.`;
     }
 
     return replies.map((reply: any, index: number) => ({
-      text: reply.text || reply.question || reply,
-      type: reply.type || (index === 0 ? 'follow_up' : index === 1 ? 'clarification' : 'details')
+      reply_text: reply.text || reply.question || reply,
+      reply_type: reply.type || (index === 0 ? 'follow_up' : index === 1 ? 'clarification' : 'details')
     })).slice(0, 3); // Limit to 3 replies
 
   } catch (error) {
@@ -113,16 +113,16 @@ Generate 2-3 smart follow-up questions for this feedback post.`;
     // Fallback replies if AI fails
     return [
       {
-        text: "Could you provide more specific examples of how this would work in your use case?",
-        type: "clarification"
+        reply_text: "Could you provide more specific examples of how this would work in your use case?",
+        reply_type: "clarification"
       },
       {
-        text: "What would be the expected outcome or benefit if this feature was implemented?",
-        type: "follow_up"
+        reply_text: "What would be the expected outcome or benefit if this feature was implemented?",
+        reply_type: "follow_up"
       },
       {
-        text: "Are there any specific requirements or constraints we should consider?",
-        type: "details"
+        reply_text: "Are there any specific requirements or constraints we should consider?",
+        reply_type: "details"
       }
     ];
   }
