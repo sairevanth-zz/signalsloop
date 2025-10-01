@@ -14,6 +14,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/sitemap.xml') ||
     !host ||
     host.includes('signalsloop.vercel.app') ||
+    host.includes('signalsloop.com') ||
     host.includes('localhost') ||
     host.includes('127.0.0.1')
   ) {
