@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { sendGiftNotificationEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -76,6 +77,24 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating gift:', error);
       return NextResponse.json({ error: 'Failed to create gift', details: error.message }, { status: 500 });
+    }
+
+    // Send email notification to recipient
+    try {
+      await sendGiftNotificationEmail({
+        recipientEmail: recipient_email,
+        recipientName,
+        senderName,
+        giftMessage: gift_message,
+        durationMonths: parseInt(duration_months),
+        redemptionCode,
+        expiresAt: newGift.expires_at,
+        giftId: newGift.id
+      });
+      console.log('✅ Gift notification email sent to:', recipient_email);
+    } catch (emailError) {
+      // Don't fail the request if email fails
+      console.error('⚠️ Failed to send gift email (gift still created):', emailError);
     }
 
     return NextResponse.json({ gift: newGift, message: 'Gift subscription created successfully' });

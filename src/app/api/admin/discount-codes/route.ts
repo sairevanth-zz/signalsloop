@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { createStripePromotionCode, updateStripePromotionCode, deleteStripePromotionCode } from '@/lib/stripe-discount-sync';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -67,6 +68,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Discount code already exists' }, { status: 400 });
     }
 
+    // First, create the code in Stripe
+    let stripeCouponId: string | undefined;
+    let stripePromotionCodeId: string | undefined;
+    let stripeSyncError: string | undefined;
+    let syncedToStripe = false;
+
+    try {
+      const stripeResult = await createStripePromotionCode({
+        code: code.toUpperCase(),
+        discountType: discount_type,
+        discountValue: parseFloat(discount_value),
+        maxRedemptions: usage_limit ? parseInt(usage_limit) : undefined,
+        expiresAt: valid_until || undefined,
+        metadata: {
+          source: 'signalsloop_admin',
+          description: description || ''
+        }
+      });
+
+      stripeCouponId = stripeResult.couponId;
+      stripePromotionCodeId = stripeResult.promotionCodeId;
+      syncedToStripe = true;
+      
+      console.log('✅ Created Stripe promotion code:', stripeResult.code);
+    } catch (stripeError) {
+      console.error('⚠️ Failed to create Stripe promotion code (will create discount code anyway):', stripeError);
+      stripeSyncError = stripeError instanceof Error ? stripeError.message : 'Unknown Stripe error';
+    }
+
+    // Then create in database (even if Stripe fails)
     const { data: newCode, error } = await supabase
       .from('discount_codes')
       .insert({
@@ -81,7 +112,11 @@ export async function POST(request: NextRequest) {
         valid_until: valid_until || null,
         target_email: target_email || null,
         is_active: true,
-        usage_count: 0
+        usage_count: 0,
+        stripe_coupon_id: stripeCouponId,
+        stripe_promotion_code_id: stripePromotionCodeId,
+        synced_to_stripe: syncedToStripe,
+        stripe_sync_error: stripeSyncError
       })
       .select()
       .single();
@@ -91,7 +126,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create discount code', details: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ code: newCode, message: 'Discount code created successfully' });
+    return NextResponse.json({ 
+      code: newCode, 
+      message: syncedToStripe 
+        ? 'Discount code created and synced to Stripe successfully' 
+        : 'Discount code created (Stripe sync failed - check logs)',
+      stripeSynced: syncedToStripe
+    });
   } catch (error) {
     console.error('Admin create discount code error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -115,16 +156,33 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (action === 'toggle') {
-      // Toggle active status
+      // Get current code
       const { data: currentCode } = await supabase
         .from('discount_codes')
-        .select('is_active')
+        .select('*')
         .eq('id', id)
         .single();
 
+      if (!currentCode) {
+        return NextResponse.json({ error: 'Discount code not found' }, { status: 404 });
+      }
+
+      const newStatus = !currentCode.is_active;
+
+      // Update in Stripe if synced
+      if (currentCode.stripe_promotion_code_id) {
+        try {
+          await updateStripePromotionCode(currentCode.stripe_promotion_code_id, newStatus);
+          console.log('✅ Updated Stripe promotion code status');
+        } catch (stripeError) {
+          console.error('⚠️ Failed to update Stripe promotion code:', stripeError);
+        }
+      }
+
+      // Update in database
       const { error } = await supabase
         .from('discount_codes')
-        .update({ is_active: !currentCode?.is_active })
+        .update({ is_active: newStatus })
         .eq('id', id);
 
       if (error) {
@@ -169,6 +227,24 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Discount code ID required' }, { status: 400 });
     }
 
+    // Get the discount code to get Stripe IDs
+    const { data: discountCode } = await supabase
+      .from('discount_codes')
+      .select('stripe_coupon_id, stripe_promotion_code_id')
+      .eq('id', id)
+      .single();
+
+    // Delete from Stripe if synced
+    if (discountCode?.stripe_coupon_id) {
+      try {
+        await deleteStripePromotionCode(discountCode.stripe_coupon_id);
+        console.log('✅ Deleted Stripe coupon');
+      } catch (stripeError) {
+        console.error('⚠️ Failed to delete Stripe coupon (will delete from database anyway):', stripeError);
+      }
+    }
+
+    // Delete from database
     const { error } = await supabase
       .from('discount_codes')
       .delete()
