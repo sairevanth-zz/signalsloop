@@ -25,6 +25,7 @@ import {
 import { toast } from 'sonner';
 import Link from 'next/link';
 import AIWritingAssistant from './AIWritingAssistant';
+import AIPostIntelligence from './AIPostIntelligence';
 
 interface Project {
   id: string;
@@ -393,6 +394,15 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                 </div>
               </CardContent>
             </Card>
+
+            {/* AI Post Intelligence */}
+            <div className="mb-6">
+              <AIPostIntelligence 
+                title={post.title}
+                description={post.description}
+                postType="feature"
+              />
+            </div>
 
             {/* AI Features Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
