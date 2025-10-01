@@ -178,10 +178,46 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     });
   };
 
+  const [commentText, setCommentText] = useState('');
+  const [commentEmail, setCommentEmail] = useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
+  const handleSubmitComment = async () => {
+    if (!commentText.trim()) {
+      toast.error('Please enter a comment');
+      return;
+    }
+
+    setIsSubmittingComment(true);
+    try {
+      const response = await fetch(`/api/posts/${post.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: commentText,
+          email: commentEmail || null
+        })
+      });
+
+      if (response.ok) {
+        toast.success('Comment posted successfully');
+        setCommentText('');
+        setCommentEmail('');
+        window.location.reload();
+      } else {
+        toast.error('Failed to post comment');
+      }
+    } catch (error) {
+      toast.error('Failed to post comment');
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Breadcrumb */}
-      <div className="border-b bg-gray-50 py-3">
+      <div className="border-b bg-white/50 backdrop-blur-sm py-3">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center text-sm text-gray-600">
             <Link href="/" className="hover:text-gray-900">Home</Link>
@@ -194,7 +230,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
       </div>
 
       {/* Header */}
-      <header className="border-b bg-white">
+      <header className="border-b bg-white/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link href={`/${project.slug}/board`} className="flex items-center text-gray-700 hover:text-gray-900">
@@ -375,21 +411,27 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
               <div className="mt-6 pt-6 border-t">
                 <h4 className="font-medium text-gray-900 mb-3">Add a comment</h4>
                 <textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Share your thoughts..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
                   rows={3}
                 />
                 <input
                   type="email"
+                  value={commentEmail}
+                  onChange={(e) => setCommentEmail(e.target.value)}
                   placeholder="Your email (optional)"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-2 text-sm"
                 />
                 <Button 
+                  onClick={handleSubmitComment}
+                  disabled={isSubmittingComment}
                   className="mt-3 bg-blue-600 hover:bg-blue-700 text-white"
                   size="sm"
                 >
                   <MessageSquare className="h-3 w-3 mr-2" />
-                  Post Comment
+                  {isSubmittingComment ? 'Posting...' : 'Post Comment'}
                 </Button>
               </div>
             </CardContent>
