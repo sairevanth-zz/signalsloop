@@ -269,17 +269,21 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
     setUpdatingStatus(postId);
     
     try {
+      console.log('🔄 Step 1: Getting Supabase client...');
       const supabase = getSupabaseClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔄 Step 2: Supabase client obtained:', !!supabase);
       
-      console.log('🔄 Session check:', { hasSession: !!session, hasToken: !!session?.access_token });
+      console.log('🔄 Step 3: Getting session...');
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔄 Step 4: Session obtained:', { hasSession: !!session, hasToken: !!session?.access_token });
       
       if (!session?.access_token) {
+        console.log('🔄 Step 5: No session token, showing error');
         toast.error('Please sign in to manage phases');
         return;
       }
 
-      console.log('🔄 Making API call to update status...');
+      console.log('🔄 Step 6: Making API call to update status...');
       const response = await fetch(`/api/posts/${postId}/status`, {
         method: 'PATCH',
         headers: {
@@ -293,18 +297,19 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
         })
       });
 
-      console.log('🔄 API response:', response.status);
+      console.log('🔄 Step 7: API response received:', response.status);
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('🔄 API error:', response.status, errorText);
+        console.error('🔄 Step 8: API error:', response.status, errorText);
         throw new Error(`Failed to update post status: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('🔄 API success:', result);
+      console.log('🔄 Step 9: API success:', result);
       toast.success('Post phase updated successfully');
       
+      console.log('🔄 Step 10: Refreshing page...');
       // Refresh the page to show updated data
       window.location.reload();
       
@@ -312,6 +317,7 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
       console.error('🔄 Status update error:', error);
       toast.error('Failed to update post phase');
     } finally {
+      console.log('🔄 Step 11: Cleaning up...');
       setUpdatingStatus(null);
     }
   };
