@@ -1,7 +1,8 @@
 {
   "functions": {
     "src/app/api/**/*.ts": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "runtime": "nodejs20.x"
     }
   },
   "headers": [
@@ -21,12 +22,6 @@
           "value": "1; mode=block"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/_next/static/(.*)",
-      "destination": "/_next/static/$1"
     }
   ],
   "regions": ["iad1"]
