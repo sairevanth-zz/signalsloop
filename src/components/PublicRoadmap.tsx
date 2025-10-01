@@ -265,20 +265,27 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
   };
 
   const handleStatusChange = async (postId: string, newStatus: string) => {
+    // Ensure we're on the client side
+    if (typeof window === 'undefined') {
+      console.error('🔄 handleStatusChange called on server side - this should not happen');
+      return;
+    }
+
     try {
       console.log('🔄 Status change requested:', { postId, newStatus, projectId: project.id });
       
-      try {
-        setUpdatingStatus(postId);
-        console.log('🔄 Step 0: setUpdatingStatus completed');
-      } catch (stateError) {
-        console.error('🔄 Step 0 ERROR: setUpdatingStatus failed:', stateError);
-        throw stateError;
-      }
+      setUpdatingStatus(postId);
+      console.log('🔄 Step 0: setUpdatingStatus completed');
       
       console.log('🔄 Step 1: Getting Supabase client...');
       const supabase = getSupabaseClient();
       console.log('🔄 Step 2: Supabase client obtained:', !!supabase);
+      
+      if (!supabase) {
+        console.error('🔄 Step 2 ERROR: Supabase client is null');
+        toast.error('Failed to initialize authentication');
+        return;
+      }
       
       console.log('🔄 Step 3: Getting session...');
       const { data: { session } } = await supabase.auth.getSession();
@@ -330,12 +337,8 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
       toast.error('Failed to update post phase');
     } finally {
       console.log('🔄 Step 11: Cleaning up...');
-      try {
-        setUpdatingStatus(null);
-        console.log('🔄 Step 12: Cleanup completed');
-      } catch (cleanupError) {
-        console.error('🔄 Cleanup error:', cleanupError);
-      }
+      setUpdatingStatus(null);
+      console.log('🔄 Step 12: Cleanup completed');
     }
   };
 
@@ -418,10 +421,6 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Product Roadmap</h1>
             <p className="text-gray-600">See what we're building and what's coming next</p>
-            {/* Debug info */}
-            <div className="mt-2 text-xs text-gray-500">
-              Debug: isOwner = {isOwner ? 'true' : 'false'} - Updated
-            </div>
           </div>
           
           <div className="flex items-center space-x-3">
