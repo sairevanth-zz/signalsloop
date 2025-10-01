@@ -270,26 +270,28 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
       
       setUpdatingStatus(postId);
       
-      const response = await fetch(`/api/posts/${postId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          postId,
-          newStatus,
-          projectId: project.id
+      // Use Supabase client directly instead of API route
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        throw new Error('Supabase client not available');
+      }
+      
+      // Update the post status directly
+      const { error } = await supabase
+        .from('posts')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
         })
-      });
+        .eq('id', postId)
+        .eq('project_id', project.id);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error:', response.status, errorText);
-        throw new Error(`Failed to update post status: ${response.status}`);
+      if (error) {
+        console.error('Database error:', error);
+        throw new Error(`Failed to update post status: ${error.message}`);
       }
 
-      const result = await response.json();
-      console.log('API success:', result);
+      console.log('Status updated successfully');
       toast.success('Post phase updated successfully');
       
       // Refresh the page to show updated data
