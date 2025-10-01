@@ -265,30 +265,31 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
             {/* Comments Section */}
             <Card>
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Comments (0)
-                </h3>
-                <div className="text-center py-8 text-gray-500 mb-6">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>No comments yet. Be the first to share your thoughts!</p>
+                <div className="flex items-center gap-2 mb-6">
+                  <MessageSquare className="h-5 w-5 text-gray-700" />
+                  <h3 className="text-lg font-semibold text-gray-900">Comments (0)</h3>
+                </div>
+                
+                <div className="text-center py-12">
+                  <MessageSquare className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                  <p className="text-gray-500">No comments yet. Be the first to share your thoughts!</p>
                 </div>
                 
                 {/* Add Comment Form */}
-                <div className="border-t pt-6">
-                  <h4 className="font-medium text-gray-900 mb-3">Add a comment</h4>
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-4">Add a comment</h4>
                   <textarea
                     placeholder="Share your thoughts..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-900"
                     rows={4}
                   />
                   <input
                     type="email"
                     placeholder="Your email (optional)"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-3"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-3 text-gray-900"
                   />
                   <Button 
-                    className="mt-3 bg-blue-600 hover:bg-blue-700 text-white"
+                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6"
                   >
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Post Comment
