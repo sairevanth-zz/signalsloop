@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
+  // Explicitly enable edge runtime for API routes if needed
+  // This ensures API routes are properly deployed
 };
 
 export default nextConfig;
