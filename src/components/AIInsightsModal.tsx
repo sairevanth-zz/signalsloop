@@ -37,7 +37,7 @@ export function AIInsightsModal({
   if (!isOpen || !mounted) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 z-[9999] flex flex-col">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
@@ -45,7 +45,7 @@ export function AIInsightsModal({
       />
       
       {/* Modal Content */}
-      <div className="relative w-full h-full bg-white shadow-2xl flex flex-col">
+      <div className="relative w-full max-w-6xl h-[90vh] bg-white shadow-2xl rounded-lg flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex-shrink-0 p-6 border-b bg-white">
           <div className="flex items-center justify-between">
@@ -68,7 +68,7 @@ export function AIInsightsModal({
         </div>
         
         {/* Content */}
-        <div className="flex-1 overflow-y-auto bg-white">
+        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 to-blue-50">
           <div className="p-6">
             <AIInsightsPanel projectSlug={projectSlug} />
           </div>
