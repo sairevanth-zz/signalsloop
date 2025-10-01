@@ -67,8 +67,8 @@ export default function SmartReplies({
       setGenerating(true);
       setError(null);
       
-      // Generate smart replies using OpenAI API
-      const response = await fetch('/api/ai/smart-replies', {
+      // Generate smart replies using Pages API (working alternative to App Router API)
+      const response = await fetch('/api/ai-smart-replies', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
