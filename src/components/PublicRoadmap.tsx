@@ -267,7 +267,14 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
   const handleStatusChange = async (postId: string, newStatus: string) => {
     try {
       console.log('🔄 Status change requested:', { postId, newStatus, projectId: project.id });
-      setUpdatingStatus(postId);
+      
+      try {
+        setUpdatingStatus(postId);
+        console.log('🔄 Step 0: setUpdatingStatus completed');
+      } catch (stateError) {
+        console.error('🔄 Step 0 ERROR: setUpdatingStatus failed:', stateError);
+        throw stateError;
+      }
       
       console.log('🔄 Step 1: Getting Supabase client...');
       const supabase = getSupabaseClient();
@@ -315,10 +322,20 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
       
     } catch (error) {
       console.error('🔄 Status update error:', error);
+      console.error('🔄 Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
       toast.error('Failed to update post phase');
     } finally {
       console.log('🔄 Step 11: Cleaning up...');
-      setUpdatingStatus(null);
+      try {
+        setUpdatingStatus(null);
+        console.log('🔄 Step 12: Cleanup completed');
+      } catch (cleanupError) {
+        console.error('🔄 Cleanup error:', cleanupError);
+      }
     }
   };
 
