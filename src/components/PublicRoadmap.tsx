@@ -345,28 +345,55 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
   }, 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Top Navigation Bar */}
-      <header className="bg-gray-100 border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
-            <div className="flex items-center space-x-4">
-              <Link href={`/${project.slug}/board`} className="text-gray-600 hover:text-gray-900 text-sm">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Header - Matching Dashboard Style */}
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => window.location.href = `/${project.slug}/board`}
+                className="mr-2"
+              >
                 ← Back to Board
-              </Link>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">S</span>
-                </div>
-                <span className="font-bold text-lg text-gray-900">SignalsLoop</span>
+              </Button>
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">S</span>
               </div>
+              <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
+              <Badge variant="outline" className="ml-2">
+                {project.slug}
+              </Badge>
             </div>
             
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Pro Plan</span>
-              <span className="text-sm text-gray-600">Manage Billing</span>
-              <span className="text-sm text-gray-600">Sign Out</span>
-              <Sun className="h-5 w-5 text-gray-600" />
+              <Badge 
+                variant={project.plan === 'pro' ? 'default' : 'secondary'}
+                className={project.plan === 'pro' ? 'bg-blue-600' : ''}
+              >
+                {project.plan.charAt(0).toUpperCase() + project.plan.slice(1)} Plan
+              </Badge>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.location.href = '/app/billing'}
+              >
+                Manage Billing
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => {
+                  const supabase = getSupabaseClient();
+                  supabase.auth.signOut().then(() => {
+                    window.location.href = '/';
+                  });
+                }}
+              >
+                Sign Out
+              </Button>
             </div>
           </div>
         </div>
@@ -374,133 +401,129 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
-        <div className="mb-4">
-          <span className="text-sm text-gray-500">{project.name} → Roadmap</span>
-        </div>
-
-        {/* Title Section */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Product Roadmap</h1>
-            <p className="text-gray-600">See what we're building and what's coming next</p>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <Link href={`/${project.slug}/board`}>
-              <Button variant="outline" className="px-4 py-2 rounded-lg">
-                ← Back to Board
-              </Button>
-            </Link>
-            <Button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">
-              Submit Feedback
-            </Button>
+        {/* Enhanced Title Section - Matching Dashboard Style */}
+        <div className="mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-8 mb-6 transform transition-all duration-300 hover:shadow-xl">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <h1 className="text-4xl font-bold">
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Product Roadmap
+                  </span>
+                </h1>
+              </div>
+              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+                See what we're building and what's coming next for {project.name}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Summary Statistics */}
+        {/* Summary Statistics - Enhanced Dashboard Style */}
         <div className="grid grid-cols-5 gap-4 mb-8">
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <Lightbulb className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">Ideas</span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900">{filteredData.open.length}</div>
+                <p className="text-sm font-medium text-gray-600">Ideas</p>
+                <p className="text-2xl font-bold text-gray-900">{filteredData.open.length}</p>
+              </div>
+              <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                <Lightbulb className="h-5 w-5 text-pink-600" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <Target className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">Planned</span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900">{filteredData.planned.length}</div>
+                <p className="text-sm font-medium text-gray-600">Planned</p>
+                <p className="text-2xl font-bold text-gray-900">{filteredData.planned.length}</p>
+              </div>
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Target className="h-5 w-5 text-blue-600" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <Clock className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">In Progress</span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900">{filteredData.in_progress.length}</div>
+                <p className="text-sm font-medium text-gray-600">In Progress</p>
+                <p className="text-2xl font-bold text-gray-900">{filteredData.in_progress.length}</p>
+              </div>
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <Clock className="h-5 w-5 text-green-600" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <CheckCircle className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">Completed</span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900">{filteredData.completed.length}</div>
+                <p className="text-sm font-medium text-gray-600">Completed</p>
+                <p className="text-2xl font-bold text-gray-900">{filteredData.completed.length}</p>
+              </div>
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <CheckCircle className="h-5 w-5 text-purple-600" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <Calendar className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">This Month</span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900">{thisMonthCount}</div>
+                <p className="text-sm font-medium text-gray-600">This Month</p>
+                <p className="text-2xl font-bold text-gray-900">{thisMonthCount}</p>
+              </div>
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Calendar className="h-5 w-5 text-orange-600" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Search and Filter Bar */}
-        <div className="flex items-center space-x-4 mb-8">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Q Search roadmap..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          
-          <div className="relative">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option>All Categories</option>
-              <option>Feature</option>
-              <option>Bug</option>
-              <option>Improvement</option>
-              <option>General Feedback</option>
-            </select>
-            <Filter className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-          </div>
-          
-          <div className="relative">
-            <select
-              value={selectedTimeFilter}
-              onChange={(e) => setSelectedTimeFilter(e.target.value)}
-              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option>All Time</option>
-              <option>This Week</option>
-              <option>This Month</option>
-              <option>This Year</option>
-            </select>
-            <Filter className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        {/* Search and Filter Bar - Enhanced Dashboard Style */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 mb-8">
+          <div className="flex items-center space-x-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search roadmap..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50"
+              />
+            </div>
+            
+            <div className="relative">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="appearance-none bg-white/50 border border-gray-200 rounded-lg px-4 py-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option>All Categories</option>
+                <option>Feature</option>
+                <option>Bug</option>
+                <option>Improvement</option>
+                <option>General Feedback</option>
+              </select>
+              <Filter className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
+            
+            <div className="relative">
+              <select
+                value={selectedTimeFilter}
+                onChange={(e) => setSelectedTimeFilter(e.target.value)}
+                className="appearance-none bg-white/50 border border-gray-200 rounded-lg px-4 py-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option>All Time</option>
+                <option>This Week</option>
+                <option>This Month</option>
+                <option>This Year</option>
+              </select>
+              <Filter className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            </div>
           </div>
         </div>
 
