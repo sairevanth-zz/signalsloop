@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { AIDuplicateDetection } from '@/components/AIDuplicateDetection';
+import { AIPriorityScoring } from '@/components/AIPriorityScoring';
 
 interface Project {
   id: string;
@@ -58,10 +60,6 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const [hasVoted, setHasVoted] = useState(false);
   const [voteCount, setVoteCount] = useState(post.vote_count);
   const [isVoting, setIsVoting] = useState(false);
-  const [checkingDuplicates, setCheckingDuplicates] = useState(false);
-  const [analyzingPriority, setAnalyzingPriority] = useState(false);
-  const [duplicates, setDuplicates] = useState<any[]>([]);
-  const [priorityScore, setPriorityScore] = useState<any>(null);
 
   // Load voted status from localStorage
   useEffect(() => {
@@ -107,87 +105,6 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
       toast.error('Failed to update vote');
     } finally {
       setIsVoting(false);
-    }
-  };
-
-  const handleCheckDuplicates = async () => {
-    setCheckingDuplicates(true);
-    try {
-      console.log('Checking duplicates for post:', post.id);
-      const response = await fetch('/api/ai/duplicate-detection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          postId: post.id,
-          projectId: project.id,
-          title: post.title,
-          description: post.description
-        })
-      });
-
-      console.log('Duplicate check response status:', response.status);
-      const data = await response.json();
-      console.log('Duplicate check response data:', data);
-
-      if (response.ok) {
-        setDuplicates(data.duplicates || []);
-        const message = data.duplicates && data.duplicates.length > 0 
-          ? `Found ${data.duplicates.length} similar post(s)` 
-          : '✓ No duplicates found';
-        
-        alert(message);
-        toast.success(message, { duration: 5000 });
-      } else {
-        const errorMsg = data.error || 'Failed to check duplicates';
-        alert('Error: ' + errorMsg);
-        toast.error(errorMsg, { duration: 5000 });
-      }
-    } catch (error) {
-      console.error('Error checking duplicates:', error);
-      toast.error('Network error - Failed to check duplicates', { duration: 5000 });
-    } finally {
-      setCheckingDuplicates(false);
-    }
-  };
-
-  const handleAnalyzePriority = async () => {
-    setAnalyzingPriority(true);
-    try {
-      console.log('Analyzing priority for post:', post.id);
-      const response = await fetch('/api/ai/priority-scoring', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          postId: post.id,
-          projectId: project.id,
-          title: post.title,
-          description: post.description,
-          voteCount: voteCount
-        })
-      });
-
-      console.log('Priority analysis response status:', response.status);
-      const data = await response.json();
-      console.log('Priority analysis response data:', data);
-
-      if (response.ok) {
-        setPriorityScore(data.priority);
-        const score = data.priority?.score || 0;
-        const level = data.priority?.level || 'Unknown';
-        const message = `✓ Priority: ${level} (${score}/100)`;
-        
-        alert(message);
-        toast.success(message, { duration: 5000 });
-      } else {
-        const errorMsg = data.error || 'Failed to analyze priority';
-        alert('Error: ' + errorMsg);
-        toast.error(errorMsg, { duration: 5000 });
-      }
-    } catch (error) {
-      console.error('Error analyzing priority:', error);
-      toast.error('Network error - Failed to analyze priority', { duration: 5000 });
-    } finally {
-      setAnalyzingPriority(false);
     }
   };
 
@@ -301,52 +218,31 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
             
             {/* AI Features Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {/* AI Duplicate Detection */}
-              <Card className="border-orange-200 bg-orange-50">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                      ⚠
-                    </div>
-                    <h3 className="font-semibold text-gray-900">AI Duplicate Detection</h3>
-                  </div>
-                  <Button 
-                    variant="default" 
-                    className="w-full bg-gray-900 hover:bg-gray-800 text-white"
-                    onClick={handleCheckDuplicates}
-                    disabled={checkingDuplicates}
-                  >
-                    {checkingDuplicates ? 'Checking...' : 'Check for Duplicates'}
-                  </Button>
-                  <p className="text-xs text-gray-600 mt-3 text-center">
-                    AI will analyze this post against all other posts in your project
-                  </p>
-                </CardContent>
-              </Card>
+              <AIDuplicateDetection
+                postId={post.id}
+                projectId={project.id}
+                userPlan={project.plan as 'free' | 'pro'}
+                onShowNotification={(message, type) => {
+                  if (type === 'error') {
+                    toast.error(message);
+                  } else {
+                    toast.success(message);
+                  }
+                }}
+              />
               
-              {/* AI Priority Scoring */}
-              <Card className="border-blue-200 bg-blue-50">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                      🎯
-                    </div>
-                    <h3 className="font-semibold text-gray-900">AI Priority Scoring</h3>
-                  </div>
-                  <Button 
-                    variant="default" 
-                    className="w-full bg-gray-900 hover:bg-gray-800 text-white"
-                    onClick={handleAnalyzePriority}
-                    disabled={analyzingPriority}
-                  >
-                    <span className="mr-2">✨</span>
-                    {analyzingPriority ? 'Analyzing...' : 'Analyze Priority'}
-                  </Button>
-                  <p className="text-xs text-gray-600 mt-3 text-center">
-                    AI will analyze urgency, impact, and engagement to score this post
-                  </p>
-                </CardContent>
-              </Card>
+              <AIPriorityScoring
+                postId={post.id}
+                projectId={project.id}
+                userPlan={project.plan as 'free' | 'pro'}
+                onShowNotification={(message, type) => {
+                  if (type === 'error') {
+                    toast.error(message);
+                  } else {
+                    toast.success(message);
+                  }
+                }}
+              />
             </div>
 
             {/* Comments Section */}
