@@ -407,6 +407,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                 postDescription={post.description}
                 postType="feature"
                 authorName={post.author_email || 'User'}
+                projectId={project.id}
                 onResponsePosted={loadComments}
               />
             </div>

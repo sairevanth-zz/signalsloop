@@ -15,6 +15,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
+import AIUpgradePrompt from './AIUpgradePrompt';
 
 interface AIAutoResponseProps {
   postId: string;
@@ -22,6 +23,7 @@ interface AIAutoResponseProps {
   postDescription?: string;
   postType: string;
   authorName?: string;
+  projectId: string;
   onResponsePosted?: () => void;
 }
 
@@ -31,6 +33,7 @@ export default function AIAutoResponse({
   postDescription, 
   postType,
   authorName,
+  projectId,
   onResponsePosted 
 }: AIAutoResponseProps) {
   const [response, setResponse] = useState('');
@@ -39,6 +42,13 @@ export default function AIAutoResponse({
   const [isEditing, setIsEditing] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
   const [adminName, setAdminName] = useState('');
+  const [usageInfo, setUsageInfo] = useState<{
+    allowed: boolean;
+    current: number;
+    limit: number;
+    remaining: number;
+    isPro: boolean;
+  } | null>(null);
 
   // Auto-generate on mount
   useEffect(() => {
@@ -49,6 +59,19 @@ export default function AIAutoResponse({
     try {
       setIsGenerating(true);
       
+      // Check rate limit first
+      const limitRes = await fetch(`/api/ai/check-limit?projectId=${projectId}&feature=auto_response`);
+      if (limitRes.ok) {
+        const limitData = await limitRes.json();
+        setUsageInfo(limitData);
+        
+        if (!limitData.allowed) {
+          toast.error('Free tier limit reached. Upgrade to Pro for unlimited AI features!');
+          setIsGenerating(false);
+          return;
+        }
+      }
+      
       const res = await fetch('/api/ai/auto-response', {
         method: 'POST',
         headers: {
@@ -56,6 +79,7 @@ export default function AIAutoResponse({
         },
         body: JSON.stringify({
           postId,
+          projectId,
           title: postTitle,
           description: postDescription,
           postType,
@@ -120,6 +144,18 @@ export default function AIAutoResponse({
     }
   };
 
+  // Show upgrade prompt if limit reached
+  if (usageInfo && !usageInfo.allowed) {
+    return (
+      <AIUpgradePrompt
+        featureName="AI Auto-Response"
+        current={usageInfo.current}
+        limit={usageInfo.limit}
+        remaining={usageInfo.remaining}
+      />
+    );
+  }
+
   if (isGenerating && !hasGenerated) {
     return (
       <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
@@ -134,6 +170,20 @@ export default function AIAutoResponse({
   }
 
   return (
+    <>
+      {/* Show usage info if not Pro */}
+      {usageInfo && !usageInfo.isPro && usageInfo.remaining <= 10 && (
+        <div className="mb-4">
+          <AIUpgradePrompt
+            featureName="AI Auto-Response"
+            current={usageInfo.current}
+            limit={usageInfo.limit}
+            remaining={usageInfo.remaining}
+          />
+        </div>
+      )}
+      
+    
     <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
@@ -241,6 +291,7 @@ export default function AIAutoResponse({
         </div>
       </CardContent>
     </Card>
+    </>
   );
 }
 

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
+import { incrementAIUsage } from '@/lib/ai-rate-limit';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -7,6 +8,7 @@ const openai = new OpenAI({
 
 interface AutoResponseRequest {
   postId: string;
+  projectId: string;
   title: string;
   description?: string;
   postType: string;
@@ -20,18 +22,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { postId, title, description, postType, authorName }: AutoResponseRequest = req.body;
+    const { postId, projectId, title, description, postType, authorName }: AutoResponseRequest = req.body;
 
-    if (!postId || !title || !postType) {
-      return res.status(400).json({ error: 'Post ID, title, and type are required' });
+    if (!postId || !projectId || !title || !postType) {
+      return res.status(400).json({ error: 'Post ID, project ID, title, and type are required' });
     }
 
     const response = await generateAutoResponse(title, description || '', postType, authorName);
 
+    // Increment usage counter
+    await incrementAIUsage(projectId, 'auto_response');
+
     return res.status(200).json({
       success: true,
       response,
-      posted: false, // Will be true when we auto-post
+      posted: false,
     });
 
   } catch (error) {
