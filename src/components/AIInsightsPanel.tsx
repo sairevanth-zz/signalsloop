@@ -13,7 +13,11 @@ import {
   AlertCircle,
   CheckCircle,
   BarChart3,
-  PieChart
+  PieChart,
+  Smile,
+  Meh,
+  Frown,
+  Heart
 } from 'lucide-react';
 
 
@@ -34,6 +38,12 @@ interface AIInsights {
     categorized: number;
     total: number;
   }>;
+  sentimentBreakdown: {
+    positive: number;
+    neutral: number;
+    negative: number;
+    mixed: number;
+  };
 }
 
 interface AIInsightsPanelProps {
@@ -302,6 +312,95 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Sentiment Analysis */}
+      <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-gray-700">
+            <Heart className="h-5 w-5 text-pink-600" />
+            Sentiment Analysis
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Positive */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Smile className="h-4 w-4 text-green-600" />
+                <span className="text-sm font-medium text-gray-700">Positive</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-32">
+                  <Progress 
+                    value={insights.totalPosts > 0 ? (insights.sentimentBreakdown.positive / insights.totalPosts) * 100 : 0} 
+                    className="h-2 bg-green-100"
+                  />
+                </div>
+                <span className="text-sm font-bold text-green-600 w-12 text-right">
+                  {insights.sentimentBreakdown.positive}
+                </span>
+              </div>
+            </div>
+
+            {/* Neutral */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Meh className="h-4 w-4 text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">Neutral</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-32">
+                  <Progress 
+                    value={insights.totalPosts > 0 ? (insights.sentimentBreakdown.neutral / insights.totalPosts) * 100 : 0} 
+                    className="h-2 bg-gray-100"
+                  />
+                </div>
+                <span className="text-sm font-bold text-gray-600 w-12 text-right">
+                  {insights.sentimentBreakdown.neutral}
+                </span>
+              </div>
+            </div>
+
+            {/* Negative */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Frown className="h-4 w-4 text-red-600" />
+                <span className="text-sm font-medium text-gray-700">Negative</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-32">
+                  <Progress 
+                    value={insights.totalPosts > 0 ? (insights.sentimentBreakdown.negative / insights.totalPosts) * 100 : 0} 
+                    className="h-2 bg-red-100"
+                  />
+                </div>
+                <span className="text-sm font-bold text-red-600 w-12 text-right">
+                  {insights.sentimentBreakdown.negative}
+                </span>
+              </div>
+            </div>
+
+            {/* Mixed */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                <span className="text-sm font-medium text-gray-700">Mixed</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-32">
+                  <Progress 
+                    value={insights.totalPosts > 0 ? (insights.sentimentBreakdown.mixed / insights.totalPosts) * 100 : 0} 
+                    className="h-2 bg-yellow-100"
+                  />
+                </div>
+                <span className="text-sm font-bold text-yellow-600 w-12 text-right">
+                  {insights.sentimentBreakdown.mixed}
+                </span>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

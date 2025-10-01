@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-client';
 
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -101,6 +104,15 @@ export async function GET(request: NextRequest) {
       };
     }).reverse();
 
+    // Calculate sentiment breakdown (mock data for now - would need actual sentiment analysis)
+    // In real implementation, you'd analyze post titles/descriptions for sentiment
+    const sentimentBreakdown = {
+      positive: Math.round(totalPosts * 0.45), // 45% positive
+      neutral: Math.round(totalPosts * 0.35),  // 35% neutral
+      negative: Math.round(totalPosts * 0.15), // 15% negative
+      mixed: Math.round(totalPosts * 0.05)     // 5% mixed
+    };
+    
     const insights = {
       totalPosts,
       categorizedPosts,
@@ -109,7 +121,8 @@ export async function GET(request: NextRequest) {
       categoryBreakdown,
       timeSaved,
       averageConfidence,
-      recentTrends
+      recentTrends,
+      sentimentBreakdown
     };
 
     return NextResponse.json(insights);

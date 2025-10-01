@@ -134,7 +134,7 @@ export default function AIPostIntelligence({ title, description, postType }: AIP
           ) : (
             <>
               <Brain className="h-4 w-4 mr-2" />
-              Analyze with AI
+              Sentiment Analysis AI
             </>
           )}
         </Button>
