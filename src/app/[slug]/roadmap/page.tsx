@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PublicRoadmapPageProps): Prom
     // Get project details for SEO
     const { data: project, error } = await supabase
       .from('projects')
-      .select('name, description, slug, custom_domain, is_private')
+      .select('name, slug')
       .eq('slug', slug)
       .single();
 
@@ -88,16 +88,7 @@ export default async function PublicRoadmapPage({ params }: PublicRoadmapPagePro
     // Get project details
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .select(`
-        id,
-        name,
-        description,
-        slug,
-        custom_domain,
-        is_private,
-        plan,
-        created_at
-      `)
+      .select('id, name, slug, plan, created_at')
       .eq('slug', slug)
       .single();
 
@@ -105,61 +96,39 @@ export default async function PublicRoadmapPage({ params }: PublicRoadmapPagePro
       notFound();
     }
 
-    // Check if board is private
-    if (project.is_private) {
-      return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6 text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Private Roadmap</h1>
-            <p className="text-gray-600 mb-6">
-              This roadmap is private and requires authentication to access.
-            </p>
-            <div className="space-y-3">
-              <a
-                href={`/login?redirect=${encodeURIComponent(`/${slug}/roadmap`)}`}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
-              >
-                Sign In
-              </a>
-              <a
-                href="/"
-                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors inline-block"
-              >
-                Create Your Own Board
-              </a>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Get posts organized by status for roadmap
+    // Get posts organized by status for roadmap (only existing columns)
     const { data: posts, error: postsError } = await supabase
       .from('posts')
-      .select(`
-        id,
-        title,
-        description,
-        category,
-        vote_count,
-        created_at,
-        author_email,
-        status
-      `)
+      .select('id, title, status, created_at, author_email, author_name, category, ai_categorized')
       .eq('project_id', project.id)
-      .in('status', ['open', 'in_progress', 'planned', 'completed'])
+      .in('status', ['open', 'in_progress', 'planned', 'done'])
       .order('created_at', { ascending: false });
 
     if (postsError) {
       console.error('Error fetching posts:', postsError);
+      return notFound();
     }
+
+    // Get vote counts for each post
+    const postsWithVotes = await Promise.all((posts || []).map(async (post) => {
+      const { count } = await supabase
+        .from('votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('post_id', post.id);
+      
+      return {
+        ...post,
+        description: post.title, // Use title as description if no description column
+        vote_count: count || 0
+      };
+    }));
 
     // Organize posts by status
     const roadmapData = {
-      planned: posts?.filter(post => post.status === 'planned') || [],
-      in_progress: posts?.filter(post => post.status === 'in_progress') || [],
-      completed: posts?.filter(post => post.status === 'completed') || [],
-      open: posts?.filter(post => post.status === 'open') || [],
+      planned: postsWithVotes.filter(post => post.status === 'planned'),
+      in_progress: postsWithVotes.filter(post => post.status === 'in_progress'),
+      completed: postsWithVotes.filter(post => post.status === 'done'),
+      open: postsWithVotes.filter(post => post.status === 'open'),
     };
 
     return (
