@@ -1,12 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import PublicPostDetails from '@/components/PublicPostDetails';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE!
-);
 
 interface PublicPostPageProps {
   params: Promise<{
@@ -19,6 +14,11 @@ export async function generateMetadata({ params }: PublicPostPageProps): Promise
   const { slug, id } = await params;
   
   try {
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      return { title: 'Post Not Found' };
+    }
+
     // Get project and post details for SEO
     const { data: project, error: projectError } = await supabase
       .from('projects')
@@ -96,6 +96,11 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
   const { slug, id } = await params;
   
   try {
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      notFound();
+    }
+
     // Get project details
     const { data: project, error: projectError } = await supabase
       .from('projects')
