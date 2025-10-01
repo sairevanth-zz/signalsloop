@@ -394,6 +394,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
               </div>
             </CardContent>
           </Card>
+        </div>
       </main>
     </div>
   );
