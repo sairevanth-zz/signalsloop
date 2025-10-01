@@ -265,17 +265,21 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
   };
 
   const handleStatusChange = async (postId: string, newStatus: string) => {
+    console.log('🔄 Status change requested:', { postId, newStatus, projectId: project.id });
     setUpdatingStatus(postId);
     
     try {
       const supabase = getSupabaseClient();
       const { data: { session } } = await supabase.auth.getSession();
       
+      console.log('🔄 Session check:', { hasSession: !!session, hasToken: !!session?.access_token });
+      
       if (!session?.access_token) {
         toast.error('Please sign in to manage phases');
         return;
       }
 
+      console.log('🔄 Making API call to update status...');
       const response = await fetch(`/api/posts/${postId}/status`, {
         method: 'PATCH',
         headers: {
@@ -289,17 +293,23 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
         })
       });
 
+      console.log('🔄 API response:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to update post status');
+        const errorText = await response.text();
+        console.error('🔄 API error:', response.status, errorText);
+        throw new Error(`Failed to update post status: ${response.status}`);
       }
 
+      const result = await response.json();
+      console.log('🔄 API success:', result);
       toast.success('Post phase updated successfully');
       
       // Refresh the page to show updated data
       window.location.reload();
       
     } catch (error) {
-      console.error('Status update error:', error);
+      console.error('🔄 Status update error:', error);
       toast.error('Failed to update post phase');
     } finally {
       setUpdatingStatus(null);
@@ -392,12 +402,6 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
           </div>
           
           <div className="flex items-center space-x-3">
-            {isOwner && (
-              <Button variant="outline" className="px-4 py-2 rounded-lg flex items-center">
-                <Settings className="h-4 w-4 mr-2 text-purple-600" />
-                Manage Phases
-              </Button>
-            )}
             <Link href={`/${project.slug}/board`}>
               <Button variant="outline" className="px-4 py-2 rounded-lg">
                 ← Back to Board
