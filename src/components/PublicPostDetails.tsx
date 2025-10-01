@@ -209,6 +209,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const [commentEmail, setCommentEmail] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const commentFormRef = useRef<HTMLDivElement>(null);
+  const [showSmartRepliesFor, setShowSmartRepliesFor] = useState<string | null>(null);
 
   const handleSubmitComment = async () => {
     if (!commentText.trim()) {
@@ -319,9 +320,9 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link href={`/${project.slug}/board`} className="flex items-center text-gray-700 hover:text-gray-900">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Board
-            </Link>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Board
+              </Link>
           </div>
         </div>
       </header>
@@ -331,11 +332,11 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
         <div className="max-w-4xl">
           {/* Main Post Card */}
           <Card className="mb-6">
-            <CardContent className="p-8">
+              <CardContent className="p-8">
               <div className="flex items-start justify-between gap-6">
-                <div className="flex-1">
+                  <div className="flex-1">
                   <div className="flex items-center gap-3 mb-4">
-                    <CategoryBadge category={post.category} />
+                      <CategoryBadge category={post.category} />
                     <Badge variant="secondary" className="bg-orange-100 text-orange-800">
                       {post.status === 'in_progress' ? 'In Progress' : post.status}
                     </Badge>
@@ -343,21 +344,21 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                   
                   <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
                     <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1" />
+                        <Calendar className="h-4 w-4 mr-1" />
                       {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(post.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                    </div>
-                    {post.author_email && (
-                      <div className="flex items-center">
-                        <User className="h-4 w-4 mr-1" />
-                        {post.author_email}
                       </div>
-                    )}
-                  </div>
-                  
-                  <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                    {post.title}
-                  </h1>
-                  
+                      {post.author_email && (
+                      <div className="flex items-center">
+                          <User className="h-4 w-4 mr-1" />
+                          {post.author_email}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                      {post.title}
+                    </h1>
+                    
                   <p className="text-gray-700 leading-relaxed">
                     {post.description}
                   </p>
@@ -369,16 +370,16 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                       </p>
                     </div>
                   )}
-                </div>
-                
+                  </div>
+                  
                 <div className="flex flex-col items-center">
-                  <Button
-                    variant={hasVoted ? "default" : "outline"}
-                    size="lg"
-                    onClick={handleVote}
-                    disabled={isVoting}
+                    <Button
+                      variant={hasVoted ? "default" : "outline"}
+                      size="lg"
+                      onClick={handleVote}
+                      disabled={isVoting}
                     className={`min-w-[80px] ${
-                      hasVoted 
+                        hasVoted 
                         ? 'bg-blue-600 hover:bg-blue-700 text-white' 
                         : 'hover:bg-blue-50 border-2'
                     }`}
@@ -387,40 +388,13 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                       <ChevronUp className="h-5 w-5" />
                       <span className="text-lg font-bold">{voteCount}</span>
                     </div>
-                  </Button>
+                    </Button>
                   <span className="text-xs text-gray-500 mt-1">votes</span>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Smart Replies Section */}
-          <div className="mb-6">
-            <SmartReplies 
-              postId={post.id}
-              postTitle={post.title}
-              postDescription={post.description}
-              onReplySelect={(reply) => {
-                // Auto-fill the comment form with the smart reply
-                setCommentText(reply);
-                
-                // Scroll to the comment form
-                setTimeout(() => {
-                  commentFormRef.current?.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'center' 
-                  });
-                  
-                  // Focus on the textarea
-                  const textarea = commentFormRef.current?.querySelector('textarea');
-                  textarea?.focus();
-                }, 100);
-                
-                toast.success('Reply added to comment form! Edit if needed and post.');
-              }}
-            />
-          </div>
-            
             {/* AI Features Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               {/* AI Duplicate Detection */}
@@ -454,9 +428,9 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                           {duplicateResults.duplicates.map((dup: any) => (
                             <div key={dup.id} className="text-xs text-gray-600 mb-1">
                               • {dup.title} ({dup.similarity}% similar)
-                            </div>
-                          ))}
-                        </div>
+                      </div>
+                    ))}
+                  </div>
                       ) : (
                         <p className="text-sm text-green-600">✓ No duplicates found</p>
                       )}
@@ -464,10 +438,10 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                   )}
                 </CardContent>
               </Card>
-              
+
               {/* AI Priority Scoring */}
               <Card className="border-blue-200 bg-blue-50">
-                <CardContent className="p-6">
+              <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
                       🎯
@@ -551,6 +525,21 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                             {/* Reply Form */}
                             {replyingTo === comment.id && (
                               <div className="mt-3 ml-0 p-3 bg-gray-50 rounded-lg border">
+                                {/* Inline Smart Replies */}
+                                {showSmartRepliesFor === comment.id && (
+                                  <div className="mb-3">
+                                    <SmartReplies 
+                                      postId={post.id}
+                                      postTitle={comment.content}
+                                      postDescription={`Original post: ${post.title}`}
+                                      onReplySelect={(reply) => {
+                                        setReplyText(reply);
+                                        toast.success('Reply added! Edit if needed and post.');
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                                
                                 <textarea
                                   value={replyText}
                                   onChange={(e) => setReplyText(e.target.value)}
@@ -588,12 +577,23 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                                       setReplyText('');
                                       setReplyName('');
                                       setReplyEmail('');
+                                      setShowSmartRepliesFor(null);
                                     }}
                                     size="sm"
                                     variant="outline"
                                   >
                                     Cancel
                                   </Button>
+                                  {showSmartRepliesFor !== comment.id && (
+                                    <Button
+                                      onClick={() => setShowSmartRepliesFor(comment.id)}
+                                      size="sm"
+                                      variant="outline"
+                                      className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                                    >
+                                      ✨ AI Suggestions
+                    </Button>
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -631,7 +631,35 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
               
               {/* Add Comment Form */}
               <div ref={commentFormRef} className="mt-6 pt-6 border-t scroll-mt-20">
-                <h4 className="font-medium text-gray-900 mb-3">Add a comment</h4>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-900">Add a comment</h4>
+                  {showSmartRepliesFor !== 'main' && (
+                    <Button
+                      onClick={() => setShowSmartRepliesFor('main')}
+                      size="sm"
+                      variant="outline"
+                      className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                    >
+                      ✨ AI Suggestions
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Inline Smart Replies for main comment */}
+                {showSmartRepliesFor === 'main' && (
+                  <div className="mb-3">
+                    <SmartReplies 
+                      postId={post.id}
+                      postTitle={post.title}
+                      postDescription={post.description}
+                      onReplySelect={(reply) => {
+                        setCommentText(reply);
+                        toast.success('Reply added! Edit if needed and post.');
+                      }}
+                    />
+                  </div>
+                )}
+                
                 <textarea
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
@@ -664,9 +692,9 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                   <MessageSquare className="h-3 w-3 mr-2" />
                   {isSubmittingComment ? 'Posting...' : 'Post Comment'}
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
         </div>
       </main>
     </div>
