@@ -265,44 +265,15 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
   };
 
   const handleStatusChange = async (postId: string, newStatus: string) => {
-    // Ensure we're on the client side
-    if (typeof window === 'undefined') {
-      console.error('🔄 handleStatusChange called on server side - this should not happen');
-      return;
-    }
-
     try {
       console.log('🔄 Status change requested:', { postId, newStatus, projectId: project.id });
       
       setUpdatingStatus(postId);
-      console.log('🔄 Step 0: setUpdatingStatus completed');
       
-      console.log('🔄 Step 1: Getting Supabase client...');
-      const supabase = getSupabaseClient();
-      console.log('🔄 Step 2: Supabase client obtained:', !!supabase);
-      
-      if (!supabase) {
-        console.error('🔄 Step 2 ERROR: Supabase client is null');
-        toast.error('Failed to initialize authentication');
-        return;
-      }
-      
-      console.log('🔄 Step 3: Getting session...');
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('🔄 Step 4: Session obtained:', { hasSession: !!session, hasToken: !!session?.access_token });
-      
-      if (!session?.access_token) {
-        console.log('🔄 Step 5: No session token, showing error');
-        toast.error('Please sign in to manage phases');
-        return;
-      }
-
-      console.log('🔄 Step 6: Making API call to update status...');
       const response = await fetch(`/api/posts/${postId}/status`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           postId,
@@ -311,34 +282,24 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
         })
       });
 
-      console.log('🔄 Step 7: API response received:', response.status);
-      
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('🔄 Step 8: API error:', response.status, errorText);
+        console.error('API error:', response.status, errorText);
         throw new Error(`Failed to update post status: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('🔄 Step 9: API success:', result);
+      console.log('API success:', result);
       toast.success('Post phase updated successfully');
       
-      console.log('🔄 Step 10: Refreshing page...');
       // Refresh the page to show updated data
       window.location.reload();
       
     } catch (error) {
-      console.error('🔄 Status update error:', error);
-      console.error('🔄 Error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      });
+      console.error('Status update error:', error);
       toast.error('Failed to update post phase');
     } finally {
-      console.log('🔄 Step 11: Cleaning up...');
       setUpdatingStatus(null);
-      console.log('🔄 Step 12: Cleanup completed');
     }
   };
 
