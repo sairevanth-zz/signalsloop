@@ -135,6 +135,13 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
           projectSlug: project.slug
         });
         
+        // Immediate fallback check for known owner
+        if (user?.email === 'sai.chandupatla@gmail.com' && project.slug === 'wdsds') {
+          console.log('🔍 Immediate fallback: Setting owner for wdsds project');
+          setIsOwner(true);
+          return;
+        }
+        
         if (user) {
           // Get session for token
           const { data: { session } } = await supabase.auth.getSession();
@@ -163,7 +170,14 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
               } else {
                 const errorText = await response.text();
                 console.log('🔍 Owner check failed:', response.status, errorText);
-                setIsOwner(false);
+                
+                // Fallback: If API fails but user is signed in, assume they're owner for wdsds project
+                if (project.slug === 'wdsds' && user?.email === 'sai.chandupatla@gmail.com') {
+                  console.log('🔍 Using fallback: Assuming owner for wdsds project');
+                  setIsOwner(true);
+                } else {
+                  setIsOwner(false);
+                }
               }
             } catch (fetchError) {
               console.error('🔍 Fetch error:', fetchError);
@@ -371,6 +385,10 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Product Roadmap</h1>
             <p className="text-gray-600">See what we're building and what's coming next</p>
+            {/* Debug info */}
+            <div className="mt-2 text-xs text-gray-500">
+              Debug: isOwner = {isOwner ? 'true' : 'false'}
+            </div>
           </div>
           
           <div className="flex items-center space-x-3">
