@@ -577,7 +577,10 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
                             <div className="ml-2">
                               <select
                                 value={post.status}
-                                onChange={(e) => handleStatusChange(post.id, e.target.value)}
+                                onChange={(e) => {
+                                  console.log('🔄 Dropdown changed!', { postId: post.id, newValue: e.target.value });
+                                  handleStatusChange(post.id, e.target.value);
+                                }}
                                 disabled={updatingStatus === post.id}
                                 className="text-xs border border-gray-300 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                               >
