@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import AIWritingAssistant from './AIWritingAssistant';
 import AIPostIntelligence from './AIPostIntelligence';
+import AIAutoResponse from './AIAutoResponse';
 
 interface Project {
   id: string;
@@ -394,6 +395,18 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                 </div>
               </CardContent>
             </Card>
+
+            {/* AI Auto-Response */}
+            <div className="mb-6">
+              <AIAutoResponse 
+                postId={post.id}
+                postTitle={post.title}
+                postDescription={post.description}
+                postType="feature"
+                authorName={post.author_email || 'User'}
+                onResponsePosted={loadComments}
+              />
+            </div>
 
             {/* AI Post Intelligence */}
             <div className="mb-6">
