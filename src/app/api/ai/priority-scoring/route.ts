@@ -147,45 +147,37 @@ function getPriorityLevel(score: number): string {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication and plan
+    // Create Supabase client
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE!
     );
-    const authHeader = request.headers.get('authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+
+    const body = await request.json();
+    const { postId, projectId, title, description, voteCount } = body;
+
+    if (!postId || !projectId) {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
+        { error: 'Post ID and Project ID are required' },
+        { status: 400 }
       );
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid authentication' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user has Pro plan
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('plan')
-      .eq('id', user.id)
+    // Check if project has Pro plan
+    const { data: projectData, error: projectError } = await supabase
+      .from('projects')
+      .select('id, plan')
+      .eq('id', projectId)
       .single();
 
-    if (userError || !userData) {
+    if (projectError || !projectData) {
       return NextResponse.json(
-        { error: 'User data not found' },
+        { error: 'Project not found' },
         { status: 404 }
       );
     }
 
-    if (userData.plan !== 'pro') {
+    if (projectData.plan !== 'pro') {
       return NextResponse.json(
         { 
           error: 'AI priority scoring is a Pro feature',
@@ -193,16 +185,6 @@ export async function POST(request: NextRequest) {
           feature: 'ai_priority_scoring'
         },
         { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-    const { postId, projectId } = body;
-
-    if (!postId || !projectId) {
-      return NextResponse.json(
-        { error: 'Post ID and Project ID are required' },
-        { status: 400 }
       );
     }
 

@@ -72,45 +72,38 @@ Provide a brief reason for the similarity (max 100 characters):`;
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication and plan
+    // Create Supabase client
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE!
     );
-    const authHeader = request.headers.get('authorization');
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Get request body first to check project ownership
+    const body = await request.json();
+    const { projectId, postId, title, description } = body;
+    
+    if (!projectId || !postId || !title) {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
+        { error: 'Missing required fields' },
+        { status: 400 }
       );
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid authentication' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user has Pro plan
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('plan')
-      .eq('id', user.id)
+    // Check if project has Pro plan
+    const { data: projectData, error: projectError } = await supabase
+      .from('projects')
+      .select('id, plan')
+      .eq('id', projectId)
       .single();
 
-    if (userError || !userData) {
+    if (projectError || !projectData) {
       return NextResponse.json(
-        { error: 'User data not found' },
+        { error: 'Project not found' },
         { status: 404 }
       );
     }
 
-    if (userData.plan !== 'pro') {
+    if (projectData.plan !== 'pro') {
       return NextResponse.json(
         { 
           error: 'AI duplicate detection is a Pro feature',
@@ -118,30 +111,6 @@ export async function POST(request: NextRequest) {
           feature: 'ai_duplicate_detection'
         },
         { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-    const { postId, projectId } = body;
-
-    if (!postId || !projectId) {
-      return NextResponse.json(
-        { error: 'Post ID and Project ID are required' },
-        { status: 400 }
-      );
-    }
-
-    // Verify user owns the project
-    const { data: projectData, error: projectError } = await supabase
-      .from('projects')
-      .select('id, owner_id')
-      .eq('id', projectId)
-      .single();
-
-    if (projectError || !projectData || projectData.owner_id !== user.id) {
-      return NextResponse.json(
-        { error: 'Project not found or access denied' },
-        { status: 404 }
       );
     }
 
