@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -208,6 +208,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const [commentName, setCommentName] = useState('');
   const [commentEmail, setCommentEmail] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const commentFormRef = useRef<HTMLDivElement>(null);
 
   const handleSubmitComment = async () => {
     if (!commentText.trim()) {
@@ -400,9 +401,22 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
               postTitle={post.title}
               postDescription={post.description}
               onReplySelect={(reply) => {
-                // Copy reply to clipboard
-                navigator.clipboard.writeText(reply);
-                toast.success('Reply copied to clipboard!');
+                // Auto-fill the comment form with the smart reply
+                setCommentText(reply);
+                
+                // Scroll to the comment form
+                setTimeout(() => {
+                  commentFormRef.current?.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                  });
+                  
+                  // Focus on the textarea
+                  const textarea = commentFormRef.current?.querySelector('textarea');
+                  textarea?.focus();
+                }, 100);
+                
+                toast.success('Reply added to comment form! Edit if needed and post.');
               }}
             />
           </div>
@@ -616,7 +630,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
               )}
               
               {/* Add Comment Form */}
-              <div className="mt-6 pt-6 border-t">
+              <div ref={commentFormRef} className="mt-6 pt-6 border-t scroll-mt-20">
                 <h4 className="font-medium text-gray-900 mb-3">Add a comment</h4>
                 <textarea
                   value={commentText}
