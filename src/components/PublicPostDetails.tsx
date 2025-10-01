@@ -229,38 +229,56 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                   </div>
                 </div>
 
-                {/* Share Buttons */}
-                <div className="border-t pt-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-4">Share this feedback</h3>
-                  <div className="flex space-x-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleShare('twitter')}
-                    >
-                      <Twitter className="h-4 w-4 mr-2" />
-                      Twitter
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleShare('facebook')}
-                    >
-                      <Facebook className="h-4 w-4 mr-2" />
-                      Facebook
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleShare('copy')}
-                    >
-                      <LinkIcon className="h-4 w-4 mr-2" />
-                      Copy Link
-                    </Button>
+                {/* Status Info */}
+                {post.status && (
+                  <div className="border-t pt-4 mt-4">
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Status:</span> This feedback is currently being worked on
+                    </p>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
+            
+            {/* AI Features Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {/* AI Duplicate Detection */}
+              <Card className="border-orange-200 bg-orange-50">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                      ⚠
+                    </div>
+                    <h3 className="font-semibold text-gray-900">AI Duplicate Detection</h3>
+                  </div>
+                  <Button variant="default" className="w-full bg-gray-900 hover:bg-gray-800 text-white">
+                    Check for Duplicates
+                  </Button>
+                  <p className="text-xs text-gray-600 mt-3 text-center">
+                    AI will analyze this post against all other posts in your project
+                  </p>
+                </CardContent>
+              </Card>
+              
+              {/* AI Priority Scoring */}
+              <Card className="border-blue-200 bg-blue-50">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                      🎯
+                    </div>
+                    <h3 className="font-semibold text-gray-900">AI Priority Scoring</h3>
+                  </div>
+                  <Button variant="default" className="w-full bg-gray-900 hover:bg-gray-800 text-white">
+                    <span className="mr-2">✨</span>
+                    Analyze Priority
+                  </Button>
+                  <p className="text-xs text-gray-600 mt-3 text-center">
+                    AI will analyze urgency, impact, and engagement to score this post
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Comments Section */}
             <Card>
