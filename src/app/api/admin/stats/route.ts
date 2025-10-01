@@ -8,12 +8,17 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabaseServiceRoleClient();
     
+    if (!supabase) {
+      console.error('Supabase client not available');
+      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
+    }
+    
     // Get user stats
     const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers();
     
     if (usersError) {
       console.error('Error fetching users:', usersError);
-      return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to fetch users', details: usersError.message }, { status: 500 });
     }
 
     // Get project stats

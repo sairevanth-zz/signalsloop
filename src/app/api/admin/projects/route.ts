@@ -8,18 +8,29 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabaseServiceRoleClient();
     
-    // Get all projects with user info
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
+    }
+    
+    // Get all projects
     const { data: projects, error: projectsError } = await supabase
       .from('projects')
-      .select(`
-        *,
-        users!projects_owner_id_fkey(email)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (projectsError) {
       console.error('Error fetching projects:', projectsError);
-      return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to fetch projects', details: projectsError.message }, { status: 500 });
+    }
+
+    // Get all users to map owner emails
+    const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers();
+    
+    const userEmailMap: Record<string, string> = {};
+    if (!usersError && usersData) {
+      usersData.users.forEach(user => {
+        userEmailMap[user.id] = user.email || 'Unknown';
+      });
     }
 
     // Get posts count for each project
@@ -29,19 +40,19 @@ export async function GET(request: NextRequest) {
 
     if (postsError) {
       console.error('Error fetching posts:', postsError);
-      return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
+      // Don't fail if posts fetch fails, just log it
     }
 
     // Calculate posts count per project
-    const postsCountByProject = postsData.reduce((acc, post) => {
+    const postsCountByProject = (postsData || []).reduce((acc, post) => {
       acc[post.project_id] = (acc[post.project_id] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
     // Transform projects data
-    const projectsWithStats = projects.map(project => ({
+    const projectsWithStats = (projects || []).map(project => ({
       ...project,
-      owner_email: project.users?.email || 'Unknown',
+      owner_email: userEmailMap[project.owner_id] || 'Unknown',
       posts_count: postsCountByProject[project.id] || 0
     }));
 
