@@ -64,6 +64,11 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const [priorityResults, setPriorityResults] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [loadingComments, setLoadingComments] = useState(true);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [replyName, setReplyName] = useState('');
+  const [replyEmail, setReplyEmail] = useState('');
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
 
   // Load voted status from localStorage
   useEffect(() => {
@@ -222,7 +227,8 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
         body: JSON.stringify({
           content: commentText,
           name: commentName,
-          email: commentEmail || null
+          email: commentEmail || null,
+          parent_id: null
         })
       });
 
@@ -241,6 +247,53 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
       toast.error('Failed to post comment');
     } finally {
       setIsSubmittingComment(false);
+    }
+  };
+
+  const handleSubmitReply = async (parentId: string) => {
+    if (!replyText.trim()) {
+      toast.error('Please enter a reply');
+      return;
+    }
+
+    if (!replyName.trim()) {
+      toast.error('Please enter your name');
+      return;
+    }
+
+    setIsSubmittingReply(true);
+    try {
+      const response = await fetch(`/api/posts/${post.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: replyText,
+          name: replyName,
+          email: replyEmail || null,
+          parent_id: parentId
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast.success('Reply posted successfully');
+        setReplyText('');
+        setReplyName('');
+        setReplyEmail('');
+        setReplyingTo(null);
+        // Reload comments to show the reply
+        const commentsResponse = await fetch(`/api/posts/${post.id}/comments`);
+        if (commentsResponse.ok) {
+          const commentsData = await commentsResponse.json();
+          setComments(commentsData.comments || []);
+        }
+      } else {
+        toast.error('Failed to post reply');
+      }
+    } catch (error) {
+      toast.error('Failed to post reply');
+    } finally {
+      setIsSubmittingReply(false);
     }
   };
 
@@ -439,26 +492,111 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                 </div>
               ) : (
                 <div className="space-y-4 mb-6">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="border-b border-gray-100 pb-4 last:border-b-0">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <User className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-sm text-gray-900">
-                              {comment.author_name || 'Anonymous'}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {new Date(comment.created_at).toLocaleDateString()}
-                            </span>
+                  {comments.filter(c => !c.parent_id).map((comment) => {
+                    const replies = comments.filter(c => c.parent_id === comment.id);
+                    return (
+                      <div key={comment.id} className="border-b border-gray-100 pb-4 last:border-b-0">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <User className="h-4 w-4 text-blue-600" />
                           </div>
-                          <p className="text-sm text-gray-700">{comment.content}</p>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-sm text-gray-900">
+                                {comment.author_name || 'Anonymous'}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {new Date(comment.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700 mb-2">{comment.content}</p>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setReplyingTo(comment.id)}
+                              className="text-xs text-blue-600 hover:text-blue-700 p-0 h-auto"
+                            >
+                              Reply
+                            </Button>
+                            
+                            {/* Reply Form */}
+                            {replyingTo === comment.id && (
+                              <div className="mt-3 ml-0 p-3 bg-gray-50 rounded-lg border">
+                                <textarea
+                                  value={replyText}
+                                  onChange={(e) => setReplyText(e.target.value)}
+                                  placeholder="Write your reply..."
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm mb-2"
+                                  rows={2}
+                                />
+                                <input
+                                  type="text"
+                                  value={replyName}
+                                  onChange={(e) => setReplyName(e.target.value)}
+                                  placeholder="Your name *"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm mb-2"
+                                  required
+                                />
+                                <input
+                                  type="email"
+                                  value={replyEmail}
+                                  onChange={(e) => setReplyEmail(e.target.value)}
+                                  placeholder="Your email (optional)"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm mb-2"
+                                />
+                                <div className="flex gap-2">
+                                  <Button
+                                    onClick={() => handleSubmitReply(comment.id)}
+                                    disabled={isSubmittingReply || !replyText.trim() || !replyName.trim()}
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                  >
+                                    {isSubmittingReply ? 'Posting...' : 'Post Reply'}
+                                  </Button>
+                                  <Button
+                                    onClick={() => {
+                                      setReplyingTo(null);
+                                      setReplyText('');
+                                      setReplyName('');
+                                      setReplyEmail('');
+                                    }}
+                                    size="sm"
+                                    variant="outline"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Replies */}
+                            {replies.length > 0 && (
+                              <div className="mt-3 ml-8 space-y-3">
+                                {replies.map((reply) => (
+                                  <div key={reply.id} className="flex items-start gap-3">
+                                    <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                      <User className="h-3 w-3 text-gray-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="font-medium text-xs text-gray-900">
+                                          {reply.author_name || 'Anonymous'}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {new Date(reply.created_at).toLocaleDateString()}
+                                        </span>
+                                      </div>
+                                      <p className="text-xs text-gray-700">{reply.content}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               

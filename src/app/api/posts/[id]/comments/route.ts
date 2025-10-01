@@ -13,10 +13,10 @@ export async function GET(
       return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 
-    // Fetch comments for this post
+    // Fetch comments for this post (including parent_id for replies)
     const { data: comments, error } = await supabase
       .from('comments')
-      .select('id, content, author_name, author_email, created_at')
+      .select('id, content, author_name, author_email, created_at, parent_id')
       .eq('post_id', id)
       .order('created_at', { ascending: true });
 
@@ -45,7 +45,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { content, name, email } = body;
+    const { content, name, email, parent_id } = body;
 
     if (!content || !content.trim()) {
       return NextResponse.json({ error: 'Comment content is required' }, { status: 400 });
@@ -55,7 +55,7 @@ export async function POST(
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
-    // Insert comment
+    // Insert comment or reply
     const { data: comment, error } = await supabase
       .from('comments')
       .insert({
@@ -63,6 +63,7 @@ export async function POST(
         content: content.trim(),
         author_name: name.trim(),
         author_email: email || null,
+        parent_id: parent_id || null,
         created_at: new Date().toISOString()
       })
       .select()
