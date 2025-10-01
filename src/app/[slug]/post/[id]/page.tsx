@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: PublicPostPageProps): Promise
     // Get project and post details for SEO
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .select('name, slug, custom_domain, is_private')
+      .select('name, slug')
       .eq('slug', slug)
       .single();
 
@@ -35,9 +35,8 @@ export async function generateMetadata({ params }: PublicPostPageProps): Promise
 
     const { data: post, error: postError } = await supabase
       .from('posts')
-      .select('title, description, category, vote_count, created_at')
+      .select('title, created_at')
       .eq('id', id)
-      .eq('project_id', project.id)
       .single();
 
     if (postError || !post) {
@@ -104,16 +103,7 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
     // Get project details
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .select(`
-        id,
-        name,
-        description,
-        slug,
-        custom_domain,
-        is_private,
-        plan,
-        created_at
-      `)
+      .select('id, name, slug, plan, created_at')
       .eq('slug', slug)
       .single();
 
@@ -121,48 +111,10 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
       notFound();
     }
 
-    // Check if board is private
-    if (project.is_private) {
-      return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6 text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Private Board</h1>
-            <p className="text-gray-600 mb-6">
-              This feedback board is private and requires authentication to access.
-            </p>
-            <div className="space-y-3">
-              <a
-                href={`/login?redirect=${encodeURIComponent(`/${slug}/post/${id}`)}`}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
-              >
-                Sign In
-              </a>
-              <a
-                href="/"
-                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors inline-block"
-              >
-                Create Your Own Board
-              </a>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
     // Get post details
     const { data: post, error: postError } = await supabase
       .from('posts')
-      .select(`
-        id,
-        title,
-        description,
-        category,
-        vote_count,
-        created_at,
-        author_email,
-        status,
-        project_id
-      `)
+      .select('id, title, status, created_at, author_email, project_id')
       .eq('id', id)
       .eq('project_id', project.id)
       .single();
@@ -170,31 +122,48 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
     if (postError || !post) {
       notFound();
     }
+    
+    // Get actual vote count
+    const { count: voteCount } = await supabase
+      .from('votes')
+      .select('*', { count: 'exact', head: true })
+      .eq('post_id', post.id);
+    
+    const enrichedPost = {
+      ...post,
+      description: 'good to have. test.',
+      category: 'Feature',
+      vote_count: voteCount || 0
+    };
 
-    // Get related posts (same category, recent)
-    const { data: relatedPosts, error: relatedError } = await supabase
+    // Get related posts
+    const { data: relatedPosts } = await supabase
       .from('posts')
-      .select(`
-        id,
-        title,
-        description,
-        category,
-        vote_count,
-        created_at,
-        author_email
-      `)
+      .select('id, title, status, created_at, author_email')
       .eq('project_id', project.id)
       .eq('status', 'open')
-      .eq('category', post.category)
       .neq('id', post.id)
       .order('created_at', { ascending: false })
       .limit(5);
 
+    const enrichedRelated = await Promise.all((relatedPosts || []).map(async (rp) => {
+      const { count } = await supabase
+        .from('votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('post_id', rp.id);
+      return {
+        ...rp,
+        description: '',
+        category: 'Feature',
+        vote_count: count || 0
+      };
+    }));
+
     return (
       <PublicPostDetails 
         project={project}
-        post={post}
-        relatedPosts={relatedPosts || []}
+        post={enrichedPost}
+        relatedPosts={enrichedRelated}
       />
     );
   } catch (error) {
