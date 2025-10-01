@@ -216,17 +216,10 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
             </div>
             
             <div className="flex items-center space-x-4">
-              <Link href={`/${project.slug}`}>
+              <Link href={`/${project.slug}/board`}>
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Board
-                </Button>
-              </Link>
-              
-              <Link href="/login">
-                <Button variant="outline" size="sm">
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Sign In
                 </Button>
               </Link>
             </div>
