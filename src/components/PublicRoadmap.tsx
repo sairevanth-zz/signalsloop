@@ -265,10 +265,10 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
   };
 
   const handleStatusChange = async (postId: string, newStatus: string) => {
-    console.log('🔄 Status change requested:', { postId, newStatus, projectId: project.id });
-    setUpdatingStatus(postId);
-    
     try {
+      console.log('🔄 Status change requested:', { postId, newStatus, projectId: project.id });
+      setUpdatingStatus(postId);
+      
       console.log('🔄 Step 1: Getting Supabase client...');
       const supabase = getSupabaseClient();
       console.log('🔄 Step 2: Supabase client obtained:', !!supabase);
