@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import SmartReplies from './SmartReplies';
+import AIWritingAssistant from './AIWritingAssistant';
 
 interface Project {
   id: string;
@@ -209,7 +209,6 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const [commentEmail, setCommentEmail] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const commentFormRef = useRef<HTMLDivElement>(null);
-  const [showSmartRepliesFor, setShowSmartRepliesFor] = useState<string | null>(null);
 
   const handleSubmitComment = async () => {
     if (!commentText.trim()) {
@@ -387,7 +386,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                     <div className="flex flex-col items-center">
                       <ChevronUp className="h-5 w-5" />
                       <span className="text-lg font-bold">{voteCount}</span>
-                    </div>
+                </div>
                     </Button>
                   <span className="text-xs text-gray-500 mt-1">votes</span>
                   </div>
@@ -399,7 +398,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               {/* AI Duplicate Detection */}
               <Card className="border-orange-200 bg-orange-50">
-                <CardContent className="p-6">
+              <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
                       ⚠
@@ -525,27 +524,20 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                             {/* Reply Form */}
                             {replyingTo === comment.id && (
                               <div className="mt-3 ml-0 p-3 bg-gray-50 rounded-lg border">
-                                {/* Inline Smart Replies */}
-                                {showSmartRepliesFor === comment.id && (
-                                  <div className="mb-3">
-                                    <SmartReplies 
-                                      postId={post.id}
-                                      postTitle={comment.content}
-                                      postDescription={`Original post: ${post.title}`}
-                                      onReplySelect={(reply) => {
-                                        setReplyText(reply);
-                                        toast.success('Reply added! Edit if needed and post.');
-                                      }}
-                                    />
-                                  </div>
-                                )}
-                                
                                 <textarea
                                   value={replyText}
                                   onChange={(e) => setReplyText(e.target.value)}
                                   placeholder="Write your reply..."
                                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm mb-2"
-                                  rows={2}
+                                  rows={3}
+                                />
+                                
+                                {/* AI Writing Assistant */}
+                                <AIWritingAssistant
+                                  currentText={replyText}
+                                  context={comment.content}
+                                  onTextImprove={(improved) => setReplyText(improved)}
+                                  placeholder="Write your reply..."
                                 />
                                 <input
                                   type="text"
@@ -577,23 +569,12 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                                       setReplyText('');
                                       setReplyName('');
                                       setReplyEmail('');
-                                      setShowSmartRepliesFor(null);
                                     }}
                                     size="sm"
                                     variant="outline"
                                   >
                                     Cancel
-                                  </Button>
-                                  {showSmartRepliesFor !== comment.id && (
-                                    <Button
-                                      onClick={() => setShowSmartRepliesFor(comment.id)}
-                                      size="sm"
-                                      variant="outline"
-                                      className="text-purple-600 border-purple-200 hover:bg-purple-50"
-                                    >
-                                      ✨ AI Suggestions
                     </Button>
-                                  )}
                                 </div>
                               </div>
                             )}
@@ -631,42 +612,23 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
               
               {/* Add Comment Form */}
               <div ref={commentFormRef} className="mt-6 pt-6 border-t scroll-mt-20">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900">Add a comment</h4>
-                  {showSmartRepliesFor !== 'main' && (
-                    <Button
-                      onClick={() => setShowSmartRepliesFor('main')}
-                      size="sm"
-                      variant="outline"
-                      className="text-purple-600 border-purple-200 hover:bg-purple-50"
-                    >
-                      ✨ AI Suggestions
-                    </Button>
-                  )}
-                </div>
-                
-                {/* Inline Smart Replies for main comment */}
-                {showSmartRepliesFor === 'main' && (
-                  <div className="mb-3">
-                    <SmartReplies 
-                      postId={post.id}
-                      postTitle={post.title}
-                      postDescription={post.description}
-                      onReplySelect={(reply) => {
-                        setCommentText(reply);
-                        toast.success('Reply added! Edit if needed and post.');
-                      }}
-                    />
-                  </div>
-                )}
+                <h4 className="font-medium text-gray-900 mb-3">Add a comment</h4>
                 
                 <textarea
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Share your thoughts..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
-                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm mb-2"
+                  rows={4}
                   required
+                />
+                
+                {/* AI Writing Assistant */}
+                <AIWritingAssistant
+                  currentText={commentText}
+                  context={`${post.title}${post.description ? ': ' + post.description : ''}`}
+                  onTextImprove={(improved) => setCommentText(improved)}
+                  placeholder="Share your thoughts..."
                 />
                 <input
                   type="text"
