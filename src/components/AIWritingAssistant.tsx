@@ -79,6 +79,17 @@ export default function AIWritingAssistant({
 
   return (
     <div className="space-y-2">
+      {/* AI Badge - Always Visible */}
+      <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-1.5 px-2 py-1 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-md">
+          <Sparkles className="h-3 w-3 text-purple-600" />
+          <span className="text-xs font-medium text-purple-700">AI Writing Assistant</span>
+        </div>
+        {!currentText.trim() && (
+          <span className="text-xs text-gray-500 italic">Type something to get AI suggestions</span>
+        )}
+      </div>
+
       {/* Quick Actions */}
       {currentText.trim() && !suggestions.length && (
         <div className="flex flex-wrap gap-2">
@@ -176,13 +187,6 @@ export default function AIWritingAssistant({
             </Button>
           </CardContent>
         </Card>
-      )}
-      
-      {/* Placeholder helper text */}
-      {!currentText.trim() && (
-        <p className="text-xs text-gray-500 italic">
-          💡 Tip: Start typing your thoughts, then use AI to help improve your writing
-        </p>
       )}
     </div>
   );
