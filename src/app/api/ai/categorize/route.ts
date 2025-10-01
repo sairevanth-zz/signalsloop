@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { categorizeFeedback, batchCategorizeFeedback, getCurrentModel } from '@/lib/ai-categorization';
 import { createClient } from '@supabase/supabase-js';
 
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
 /**
  * POST /api/ai/categorize
  * Categorizes feedback posts using AI

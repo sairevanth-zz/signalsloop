@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
 export async function PATCH(request: NextRequest) {
   try {
     const { postId, newStatus, projectId } = await request.json();
