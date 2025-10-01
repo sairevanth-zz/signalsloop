@@ -5,12 +5,12 @@ import { categorizeFeedback } from '@/lib/ai-categorization';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { project_id, board_id, title, description, author_email } = body;
+    const { project_id, board_id, title, description, author_name, author_email } = body;
 
     // Validate required fields
-    if (!project_id || !board_id || !title) {
+    if (!project_id || !board_id || !title || !author_name) {
       return NextResponse.json(
-        { error: 'Missing required fields: project_id, board_id, title' },
+        { error: 'Missing required fields: project_id, board_id, title, author_name' },
         { status: 400 }
       );
     }
@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
         board_id,
         title: title.trim(),
         description: description?.trim() || null,
+        author_name: author_name.trim(),
         author_email: author_email?.trim() || null,
         status: 'open',
         category: null,

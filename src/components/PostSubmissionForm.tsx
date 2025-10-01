@@ -35,6 +35,7 @@ interface FormData {
   description: string;
   type: 'feature' | 'bug' | 'improvement' | 'general';
   priority: 'low' | 'medium' | 'high';
+  name: string;
   email: string;
 }
 
@@ -71,6 +72,7 @@ export default function PostSubmissionForm({
     description: '',
     type: 'feature',
     priority: 'medium',
+    name: '',
     email: ''
   });
   
@@ -131,6 +133,10 @@ export default function PostSubmissionForm({
       newErrors.description = 'Description must be at least 10 characters';
     }
 
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
@@ -168,6 +174,7 @@ export default function PostSubmissionForm({
           board_id: boardId,
           title: formData.title.trim(),
           description: formData.description.trim(),
+          author_name: formData.name.trim(),
           author_email: formData.email.trim() || session?.user?.email || null
         }),
       });
@@ -192,6 +199,7 @@ export default function PostSubmissionForm({
           description: '',
           type: 'feature',
           priority: 'medium',
+          name: '',
           email: ''
         });
         setErrors({});
@@ -426,6 +434,28 @@ export default function PostSubmissionForm({
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Name (Required) */}
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Your Name *
+                  </label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="John Doe"
+                    className={errors.name ? 'border-red-500' : ''}
+                    required
+                  />
+                  {errors.name && (
+                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
 
                 {/* Email (Optional) */}
