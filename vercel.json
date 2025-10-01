@@ -28,5 +28,6 @@
       "source": "/_next/static/(.*)",
       "destination": "/_next/static/$1"
     }
-  ]
+  ],
+  "regions": ["iad1"]
 }

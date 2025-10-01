@@ -67,26 +67,26 @@ export default function SmartReplies({
       setGenerating(true);
       setError(null);
       
-      // Generate mock smart replies for now since API is having issues
-      const mockReplies = [
-        {
-          text: "Could you provide more specific examples of how this would work in your use case?",
-          type: "clarification"
+      // Generate smart replies using OpenAI API
+      const response = await fetch('/api/ai/smart-replies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        {
-          text: "What would be the expected outcome or benefit if this feature was implemented?",
-          type: "follow_up"
-        },
-        {
-          text: "Are there any specific requirements or constraints we should consider?",
-          type: "details"
-        }
-      ];
+        body: JSON.stringify({ 
+          postId,
+          title: postTitle,
+          description: postDescription || ''
+        }),
+      });
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate smart replies');
+      }
       
-      setReplies(mockReplies);
+      const data = await response.json();
+      setReplies(data.replies || []);
       toast.success('Smart replies generated successfully!');
       
     } catch (err) {
