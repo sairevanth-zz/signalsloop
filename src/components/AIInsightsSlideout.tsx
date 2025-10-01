@@ -47,8 +47,8 @@ export function AIInsightsSlideout({
       {/* Slideout Panel */}
       <div 
         className={`
-          relative ml-auto w-full md:w-[800px] lg:w-[900px] h-full bg-white shadow-2xl 
-          flex flex-col transform transition-transform duration-300 ease-out
+          relative ml-auto w-full md:w-[800px] lg:w-[900px] h-screen bg-white shadow-2xl 
+          flex flex-col transform transition-transform duration-300 ease-out overflow-hidden
           ${isOpen ? 'translate-x-0' : 'translate-x-full'}
         `}
       >
@@ -76,9 +76,9 @@ export function AIInsightsSlideout({
           </div>
         </div>
         
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 to-blue-50">
-          <div className="p-6">
+        {/* Content - with explicit height and overflow */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-br from-slate-50 to-blue-50" style={{ maxHeight: 'calc(100vh - 140px)' }}>
+          <div className="p-6 pb-12">
             <AIInsightsPanel projectSlug={projectSlug} />
           </div>
         </div>
