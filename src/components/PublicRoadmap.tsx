@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface Project {
   id: string;
@@ -112,12 +113,41 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('All Time');
+  const [isOwner, setIsOwner] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
   // Load voted posts from localStorage
   useEffect(() => {
     const voted = JSON.parse(localStorage.getItem(`voted_posts_${project.id}`) || '[]');
     setVotedPosts(new Set(voted));
   }, [project.id]);
+
+  // Check if user is project owner
+  useEffect(() => {
+    const checkOwnerStatus = async () => {
+      try {
+        const supabase = getSupabaseClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.access_token) {
+          const response = await fetch(`/api/projects/${project.slug}/owner`, {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setIsOwner(data.isOwner);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking owner status:', error);
+      }
+    };
+
+    checkOwnerStatus();
+  }, [project.slug]);
 
   const handleVote = async (postId: string) => {
     const isVoted = votedPosts.has(postId);
@@ -159,6 +189,48 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
     } catch (error) {
       console.error('Voting error:', error);
       toast.error('Failed to update vote');
+    }
+  };
+
+  const handleStatusChange = async (postId: string, newStatus: string) => {
+    setUpdatingStatus(postId);
+    
+    try {
+      const supabase = getSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        toast.error('Please sign in to manage phases');
+        return;
+      }
+
+      const response = await fetch(`/api/posts/${postId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          postId,
+          newStatus,
+          projectId: project.id
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update post status');
+      }
+
+      toast.success('Post phase updated successfully');
+      
+      // Refresh the page to show updated data
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('Status update error:', error);
+      toast.error('Failed to update post phase');
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
@@ -244,16 +316,12 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
           </div>
           
           <div className="flex items-center space-x-3">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-              View
-            </Button>
-            <Button variant="outline" className="px-4 py-2 rounded-lg">
-              Manage
-            </Button>
-            <Button variant="outline" className="px-4 py-2 rounded-lg flex items-center">
-              <Settings className="h-4 w-4 mr-2 text-purple-600" />
-              Manage Phases
-            </Button>
+            {isOwner && (
+              <Button variant="outline" className="px-4 py-2 rounded-lg flex items-center">
+                <Settings className="h-4 w-4 mr-2 text-purple-600" />
+                Manage Phases
+              </Button>
+            )}
             <Link href={`/${project.slug}/board`}>
               <Button variant="outline" className="px-4 py-2 rounded-lg">
                 ← Back to Board
@@ -417,6 +485,23 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
                               {post.description}
                             </p>
                           </div>
+                          
+                          {/* Status dropdown for owners */}
+                          {isOwner && (
+                            <div className="ml-2">
+                              <select
+                                value={post.status}
+                                onChange={(e) => handleStatusChange(post.id, e.target.value)}
+                                disabled={updatingStatus === post.id}
+                                className="text-xs border border-gray-300 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              >
+                                <option value="open">Ideas</option>
+                                <option value="planned">Planned</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="done">Completed</option>
+                              </select>
+                            </div>
+                          )}
                         </div>
                         
                         <div className="flex items-center justify-between">
