@@ -62,12 +62,32 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const [analyzingPriority, setAnalyzingPriority] = useState(false);
   const [duplicateResults, setDuplicateResults] = useState<any>(null);
   const [priorityResults, setPriorityResults] = useState<any>(null);
+  const [comments, setComments] = useState<any[]>([]);
+  const [loadingComments, setLoadingComments] = useState(true);
 
   // Load voted status from localStorage
   useEffect(() => {
     const voted = JSON.parse(localStorage.getItem(`voted_posts_${project.id}`) || '[]');
     setHasVoted(voted.includes(post.id));
   }, [post.id, project.id]);
+
+  // Load comments
+  useEffect(() => {
+    const loadComments = async () => {
+      try {
+        const response = await fetch(`/api/posts/${post.id}/comments`);
+        if (response.ok) {
+          const data = await response.json();
+          setComments(data.comments || []);
+        }
+      } catch (error) {
+        console.error('Error loading comments:', error);
+      } finally {
+        setLoadingComments(false);
+      }
+    };
+    loadComments();
+  }, [post.id]);
 
   const handleVote = async () => {
     if (isVoting) return;
@@ -200,10 +220,12 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
       });
 
       if (response.ok) {
+        const data = await response.json();
         toast.success('Comment posted successfully');
         setCommentText('');
         setCommentEmail('');
-        window.location.reload();
+        // Add the new comment to the list
+        setComments([...comments, data.comment]);
       } else {
         toast.error('Failed to post comment');
       }
@@ -399,13 +421,38 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <MessageSquare className="h-5 w-5 text-gray-700" />
-                <h3 className="font-semibold text-gray-900">Comments (0)</h3>
+                <h3 className="font-semibold text-gray-900">Comments ({comments.length})</h3>
               </div>
               
-              <div className="text-center py-8">
-                <MessageSquare className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p className="text-gray-500 text-sm">No comments yet. Be the first to share your thoughts!</p>
-              </div>
+              {comments.length === 0 ? (
+                <div className="text-center py-8">
+                  <MessageSquare className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <p className="text-gray-500 text-sm">No comments yet. Be the first to share your thoughts!</p>
+                </div>
+              ) : (
+                <div className="space-y-4 mb-6">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="border-b border-gray-100 pb-4 last:border-b-0">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <User className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-sm text-gray-900">
+                              {comment.author_email || 'Anonymous'}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(comment.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700">{comment.content}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               
               {/* Add Comment Form */}
               <div className="mt-6 pt-6 border-t">
