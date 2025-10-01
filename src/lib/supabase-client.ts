@@ -50,7 +50,12 @@ export const getSupabaseServerClient = () => {
     return null;
   }
 
-  return createClient(supabaseUrl, supabaseServiceKey);
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
 };
 
 // Service role client for admin operations
