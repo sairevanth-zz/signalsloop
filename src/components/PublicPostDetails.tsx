@@ -58,6 +58,10 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const [hasVoted, setHasVoted] = useState(false);
   const [voteCount, setVoteCount] = useState(post.vote_count);
   const [isVoting, setIsVoting] = useState(false);
+  const [checkingDuplicates, setCheckingDuplicates] = useState(false);
+  const [analyzingPriority, setAnalyzingPriority] = useState(false);
+  const [duplicates, setDuplicates] = useState<any[]>([]);
+  const [priorityScore, setPriorityScore] = useState<any>(null);
 
   // Load voted status from localStorage
   useEffect(() => {
@@ -106,22 +110,66 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     }
   };
 
-  const handleShare = async (platform: string) => {
-    const url = window.location.href;
-    const title = post.title;
-    const text = post.description.substring(0, 100) + '...';
+  const handleCheckDuplicates = async () => {
+    setCheckingDuplicates(true);
+    try {
+      const response = await fetch('/api/ai/duplicate-detection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postId: post.id,
+          projectId: project.id,
+          title: post.title,
+          description: post.description
+        })
+      });
 
-    switch (platform) {
-      case 'twitter':
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`, '_blank');
-        break;
-      case 'facebook':
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
-        break;
-      case 'copy':
-        await navigator.clipboard.writeText(url);
-        toast.success('Link copied to clipboard');
-        break;
+      if (response.ok) {
+        const data = await response.json();
+        setDuplicates(data.duplicates || []);
+        if (data.duplicates && data.duplicates.length > 0) {
+          toast.success(`Found ${data.duplicates.length} similar post(s)`);
+        } else {
+          toast.success('No duplicates found');
+        }
+      } else {
+        toast.error('Failed to check duplicates');
+      }
+    } catch (error) {
+      console.error('Error checking duplicates:', error);
+      toast.error('Failed to check duplicates');
+    } finally {
+      setCheckingDuplicates(false);
+    }
+  };
+
+  const handleAnalyzePriority = async () => {
+    setAnalyzingPriority(true);
+    try {
+      const response = await fetch('/api/ai/priority-scoring', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postId: post.id,
+          projectId: project.id,
+          title: post.title,
+          description: post.description,
+          voteCount: voteCount
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPriorityScore(data);
+        toast.success(`Priority Score: ${data.priorityScore}/100`);
+      } else {
+        toast.error('Failed to analyze priority');
+      }
+    } catch (error) {
+      console.error('Error analyzing priority:', error);
+      toast.error('Failed to analyze priority');
+    } finally {
+      setAnalyzingPriority(false);
     }
   };
 
@@ -251,8 +299,13 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                     </div>
                     <h3 className="font-semibold text-gray-900">AI Duplicate Detection</h3>
                   </div>
-                  <Button variant="default" className="w-full bg-gray-900 hover:bg-gray-800 text-white">
-                    Check for Duplicates
+                  <Button 
+                    variant="default" 
+                    className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+                    onClick={handleCheckDuplicates}
+                    disabled={checkingDuplicates}
+                  >
+                    {checkingDuplicates ? 'Checking...' : 'Check for Duplicates'}
                   </Button>
                   <p className="text-xs text-gray-600 mt-3 text-center">
                     AI will analyze this post against all other posts in your project
@@ -269,9 +322,14 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                     </div>
                     <h3 className="font-semibold text-gray-900">AI Priority Scoring</h3>
                   </div>
-                  <Button variant="default" className="w-full bg-gray-900 hover:bg-gray-800 text-white">
+                  <Button 
+                    variant="default" 
+                    className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+                    onClick={handleAnalyzePriority}
+                    disabled={analyzingPriority}
+                  >
                     <span className="mr-2">✨</span>
-                    Analyze Priority
+                    {analyzingPriority ? 'Analyzing...' : 'Analyze Priority'}
                   </Button>
                   <p className="text-xs text-gray-600 mt-3 text-center">
                     AI will analyze urgency, impact, and engagement to score this post
