@@ -1,12 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import PublicRoadmap from '@/components/PublicRoadmap';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE!
-);
 
 interface PublicRoadmapPageProps {
   params: Promise<{
@@ -18,6 +13,11 @@ export async function generateMetadata({ params }: PublicRoadmapPageProps): Prom
   const { slug } = await params;
   
   try {
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      return { title: 'Roadmap Not Found' };
+    }
+
     // Get project details for SEO
     const { data: project, error } = await supabase
       .from('projects')
@@ -80,6 +80,11 @@ export default async function PublicRoadmapPage({ params }: PublicRoadmapPagePro
   const { slug } = await params;
   
   try {
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      notFound();
+    }
+
     // Get project details
     const { data: project, error: projectError } = await supabase
       .from('projects')
