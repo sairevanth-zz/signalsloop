@@ -24,7 +24,6 @@ import {
   Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { getSupabaseClient } from '@/lib/supabase-client';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface DiscountCode {
@@ -61,28 +60,20 @@ export default function AdminDiscountCodesPage() {
   const [validUntil, setValidUntil] = useState('');
   const [targetEmail, setTargetEmail] = useState(''); // New field for email-specific codes
 
-  const supabase = getSupabaseClient();
-
   useEffect(() => {
     loadDiscountCodes();
   }, []);
 
   const loadDiscountCodes = async () => {
-    if (!supabase) return;
-
     try {
-      const { data, error } = await supabase
-        .from('discount_codes')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading discount codes:', error);
-        toast.error('Failed to load discount codes');
-        return;
+      const response = await fetch('/api/admin/discount-codes');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch discount codes');
       }
 
-      setCodes(data || []);
+      const data = await response.json();
+      setCodes(data.codes || []);
     } catch (error) {
       console.error('Error loading discount codes:', error);
       toast.error('Failed to load discount codes');
@@ -99,25 +90,28 @@ export default function AdminDiscountCodesPage() {
 
     setCreateLoading(true);
     try {
-      const { error } = await supabase
-        .from('discount_codes')
-        .insert({
+      const response = await fetch('/api/admin/discount-codes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           code: code.toUpperCase(),
           description: description || null,
           discount_type: discountType,
-          discount_value: parseFloat(discountValue),
-          min_amount: parseFloat(minAmount) || 0,
-          max_discount: maxDiscount ? parseFloat(maxDiscount) : null,
-          usage_limit: usageLimit ? parseInt(usageLimit) : null,
+          discount_value: discountValue,
+          min_amount: minAmount || 0,
+          max_discount: maxDiscount || null,
+          usage_limit: usageLimit || null,
           valid_until: validUntil || null,
-          target_email: targetEmail || null, // Add target email field
+          target_email: targetEmail || null,
           is_active: true
-        });
+        }),
+      });
 
-      if (error) {
-        console.error('Error creating discount code:', error);
-        toast.error('Failed to create discount code');
-        return;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create discount code');
       }
 
       toast.success('Discount code created successfully!');
@@ -146,15 +140,19 @@ export default function AdminDiscountCodesPage() {
 
   const toggleCodeStatus = async (id: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from('discount_codes')
-        .update({ is_active: !currentStatus })
-        .eq('id', id);
+      const response = await fetch('/api/admin/discount-codes', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id,
+          action: 'toggle',
+        }),
+      });
 
-      if (error) {
-        console.error('Error updating discount code:', error);
-        toast.error('Failed to update discount code');
-        return;
+      if (!response.ok) {
+        throw new Error('Failed to update discount code');
       }
 
       toast.success('Discount code status updated');
@@ -162,6 +160,28 @@ export default function AdminDiscountCodesPage() {
     } catch (error) {
       console.error('Error updating discount code:', error);
       toast.error('Failed to update discount code');
+    }
+  };
+  
+  const deleteCode = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this discount code?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/discount-codes?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete discount code');
+      }
+
+      toast.success('Discount code deleted');
+      loadDiscountCodes();
+    } catch (error) {
+      console.error('Error deleting discount code:', error);
+      toast.error('Failed to delete discount code');
     }
   };
 
