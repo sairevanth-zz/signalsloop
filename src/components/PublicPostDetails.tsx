@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import SmartReplies from './SmartReplies';
 
 interface Project {
   id: string;
@@ -391,6 +392,20 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
               </div>
             </CardContent>
           </Card>
+
+          {/* Smart Replies Section */}
+          <div className="mb-6">
+            <SmartReplies 
+              postId={post.id}
+              postTitle={post.title}
+              postDescription={post.description}
+              onReplySelect={(reply) => {
+                // Copy reply to clipboard
+                navigator.clipboard.writeText(reply);
+                toast.success('Reply copied to clipboard!');
+              }}
+            />
+          </div>
             
             {/* AI Features Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
