@@ -49,7 +49,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import PostSubmissionForm from '@/components/PostSubmissionForm';
 import VoteButton from '@/components/VoteButton';
-import { AIInsightsModal } from '@/components/AIInsightsModal';
+import { AIInsightsSlideout } from '@/components/AIInsightsSlideout';
 
 interface Post {
   id: string;
@@ -803,9 +803,9 @@ export default function BoardPage() {
         />
       )}
 
-      {/* AI Insights Modal */}
+      {/* AI Insights Slideout */}
       {showAIInsights && (
-        <AIInsightsModal
+        <AIInsightsSlideout
           projectSlug={params?.slug as string}
           isOpen={showAIInsights}
           onClose={() => setShowAIInsights(false)}
