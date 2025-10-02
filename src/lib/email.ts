@@ -1,6 +1,8 @@
 import { Resend } from 'resend';
+import { getSupabaseServiceRoleClient } from './supabase-client';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.signalsloop.com';
 
 interface SendGiftNotificationParams {
   recipientEmail: string;
@@ -240,6 +242,622 @@ export async function sendGiftClaimedEmail({
     return { success: true, data };
   } catch (error) {
     console.error('Failed to send gift claimed email:', error);
+    throw error;
+  }
+}
+
+// ==================== EMAIL NOTIFICATION SYSTEM ====================
+
+// Helper: Generate email base template
+function getEmailTemplate(content: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SignalsLoop Notification</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f9fafb;">
+          <tr>
+            <td align="center" style="padding: 40px 20px;">
+              <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                ${content}
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+}
+
+// Helper: Get status badge HTML
+function getStatusBadge(status: string): string {
+  const badges: Record<string, { color: string; bg: string; text: string }> = {
+    open: { color: '#6b7280', bg: '#f3f4f6', text: 'Open' },
+    planned: { color: '#3b82f6', bg: '#dbeafe', text: '📅 Planned' },
+    in_progress: { color: '#f59e0b', bg: '#fef3c7', text: '🚧 In Progress' },
+    done: { color: '#10b981', bg: '#d1fae5', text: '✅ Done' },
+    declined: { color: '#ef4444', bg: '#fee2e2', text: '❌ Declined' },
+  };
+
+  const badge = badges[status] || badges.open;
+  return `<span style="display: inline-block; padding: 6px 12px; background-color: ${badge.bg}; color: ${badge.color}; border-radius: 6px; font-weight: 600; font-size: 14px;">${badge.text}</span>`;
+}
+
+// Helper: Log email send
+async function logEmail(params: {
+  emailType: string;
+  toEmail: string;
+  fromEmail?: string;
+  subject: string;
+  postId?: string;
+  commentId?: string;
+  projectId?: string;
+  resendId?: string;
+  metadata?: any;
+}) {
+  const supabase = getSupabaseServiceRoleClient();
+  if (!supabase) return;
+
+  try {
+    await supabase.from('email_logs').insert({
+      email_type: params.emailType,
+      to_email: params.toEmail,
+      from_email: params.fromEmail || 'noreply@signalsloop.com',
+      subject: params.subject,
+      post_id: params.postId,
+      comment_id: params.commentId,
+      project_id: params.projectId,
+      resend_id: params.resendId,
+      metadata: params.metadata,
+    });
+  } catch (error) {
+    console.error('Failed to log email:', error);
+  }
+}
+
+// Helper: Check if should send email
+async function checkEmailPreferences(
+  email: string,
+  userId: string | null,
+  emailType: string
+): Promise<boolean> {
+  const supabase = getSupabaseServiceRoleClient();
+  if (!supabase) return true; // Fail open
+
+  try {
+    const { data: rpcResult, error } = await supabase.rpc('should_send_email', {
+      p_email: email,
+      p_user_id: userId,
+      p_email_type: emailType,
+    });
+
+    if (error) {
+      console.error('Error checking email preferences:', error);
+      return true; // Fail open
+    }
+
+    return rpcResult === true;
+  } catch (error) {
+    console.error('Failed to check email preferences:', error);
+    return true; // Fail open
+  }
+}
+
+// Helper: Check rate limit
+async function checkRateLimit(email: string): Promise<boolean> {
+  const supabase = getSupabaseServiceRoleClient();
+  if (!supabase) return true; // Fail open
+
+  try {
+    const { data: rpcResult, error } = await supabase.rpc('check_email_rate_limit', {
+      p_email: email,
+      p_max_per_day: 5, // Max 5 emails per day
+    });
+
+    if (error) {
+      console.error('Error checking rate limit:', error);
+      return true; // Fail open
+    }
+
+    return rpcResult === true;
+  } catch (error) {
+    console.error('Failed to check rate limit:', error);
+    return true; // Fail open
+  }
+}
+
+// Helper: Increment email count
+async function incrementEmailCount(email: string): Promise<void> {
+  const supabase = getSupabaseServiceRoleClient();
+  if (!supabase) return;
+
+  try {
+    await supabase.rpc('increment_email_count', {
+      p_email: email,
+    });
+  } catch (error) {
+    console.error('Failed to increment email count:', error);
+  }
+}
+
+// Helper: Get unsubscribe token
+async function getOrCreateUnsubscribeToken(email: string, userId: string | null): Promise<string> {
+  const supabase = getSupabaseServiceRoleClient();
+  if (!supabase) return '';
+
+  try {
+    // Try to get existing token
+    let query = supabase.from('email_preferences').select('unsubscribe_token');
+    
+    if (userId) {
+      query = query.eq('user_id', userId);
+    } else {
+      query = query.eq('email', email);
+    }
+
+    const { data, error } = await query.single();
+
+    if (data?.unsubscribe_token) {
+      return data.unsubscribe_token;
+    }
+
+    // Create new token
+    const { data: tokenData } = await supabase.rpc('generate_unsubscribe_token');
+    const token = tokenData || Math.random().toString(36).substring(2);
+
+    // Insert or update preferences
+    await supabase.from('email_preferences').upsert({
+      email: email,
+      user_id: userId,
+      unsubscribe_token: token,
+    });
+
+    return token;
+  } catch (error) {
+    console.error('Failed to get/create unsubscribe token:', error);
+    return '';
+  }
+}
+
+// ==================== TEMPLATE 1: Status Change ====================
+
+interface SendStatusChangeEmailParams {
+  toEmail: string;
+  toName?: string;
+  userId?: string;
+  postTitle: string;
+  postId: string;
+  projectId: string;
+  projectSlug: string;
+  oldStatus: string;
+  newStatus: string;
+  adminNote?: string;
+}
+
+export async function sendStatusChangeEmail(params: SendStatusChangeEmailParams) {
+  const {
+    toEmail,
+    toName,
+    userId,
+    postTitle,
+    postId,
+    projectId,
+    projectSlug,
+    oldStatus,
+    newStatus,
+    adminNote,
+  } = params;
+
+  // Check preferences
+  const shouldSend = await checkEmailPreferences(toEmail, userId || null, 'status_change');
+  if (!shouldSend) {
+    console.log(`User ${toEmail} has opted out of status change emails`);
+    return { success: false, reason: 'opted_out' };
+  }
+
+  // Check rate limit
+  const withinLimit = await checkRateLimit(toEmail);
+  if (!withinLimit) {
+    console.log(`Rate limit exceeded for ${toEmail}`);
+    return { success: false, reason: 'rate_limit' };
+  }
+
+  const postUrl = `${APP_URL}/${projectSlug}/board?post=${postId}`;
+  const unsubscribeToken = await getOrCreateUnsubscribeToken(toEmail, userId || null);
+  const unsubscribeUrl = `${APP_URL}/unsubscribe?token=${unsubscribeToken}`;
+
+  let statusMessage = '';
+  if (newStatus === 'planned') {
+    statusMessage = "We're planning to work on this! It's on our roadmap.";
+  } else if (newStatus === 'in_progress') {
+    statusMessage = "We've started building this! Stay tuned for updates.";
+  } else if (newStatus === 'done') {
+    statusMessage = "🎉 This is live! Check it out now.";
+  } else if (newStatus === 'declined') {
+    statusMessage = adminNote || "Thanks for the suggestion. We've decided not to build this at this time.";
+  }
+
+  const content = `
+    <!-- Header -->
+    <tr>
+      <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px 12px 0 0;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">📢 Status Update</h1>
+      </td>
+    </tr>
+    
+    <!-- Content -->
+    <tr>
+      <td style="padding: 40px;">
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
+          Hi${toName ? ` ${toName}` : ''},
+        </p>
+        
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
+          Good news! We've updated the status of your feature request.
+        </p>
+        
+        <div style="margin: 30px 0; padding: 25px; background-color: #f9fafb; border-radius: 8px; border-left: 4px solid #667eea;">
+          <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">
+            Your Feedback
+          </p>
+          <p style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #111827;">
+            ${postTitle}
+          </p>
+          <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+            Status Update:
+          </p>
+          <p style="margin: 0;">
+            ${getStatusBadge(newStatus)}
+          </p>
+        </div>
+        
+        <div style="margin: 30px 0; padding: 20px; background-color: ${newStatus === 'done' ? '#d1fae5' : newStatus === 'declined' ? '#fee2e2' : '#dbeafe'}; border-radius: 8px;">
+          <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #111827;">
+            ${statusMessage}
+          </p>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${postUrl}" style="display: inline-block; padding: 14px 32px; background-color: #667eea; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            View Feedback
+          </a>
+        </div>
+      </td>
+    </tr>
+    
+    <!-- Footer -->
+    <tr>
+      <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+        <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+          Questions? Contact us at <a href="mailto:support@signalsloop.com" style="color: #667eea; text-decoration: none;">support@signalsloop.com</a>
+        </p>
+        <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+          © 2025 SignalsLoop. All rights reserved.
+        </p>
+        <p style="margin: 0; font-size: 11px;">
+          <a href="${unsubscribeUrl}" style="color: #9ca3af; text-decoration: underline;">Unsubscribe from these emails</a>
+        </p>
+      </td>
+    </tr>
+  `;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'SignalsLoop <noreply@signalsloop.com>',
+      to: [toEmail],
+      subject: `Update on your feedback: ${postTitle}`,
+      html: getEmailTemplate(content),
+    });
+
+    if (error) {
+      console.error('Error sending status change email:', error);
+      throw error;
+    }
+
+    // Log email
+    await logEmail({
+      emailType: 'status_change',
+      toEmail,
+      subject: `Update on your feedback: ${postTitle}`,
+      postId,
+      projectId,
+      resendId: data?.id,
+      metadata: { oldStatus, newStatus, adminNote },
+    });
+
+    // Increment count
+    await incrementEmailCount(toEmail);
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Failed to send status change email:', error);
+    throw error;
+  }
+}
+
+// ==================== TEMPLATE 2: New Comment ====================
+
+interface SendCommentEmailParams {
+  toEmail: string;
+  toName?: string;
+  userId?: string;
+  postTitle: string;
+  postId: string;
+  projectId: string;
+  projectSlug: string;
+  commentId: string;
+  commentText: string;
+  commenterName: string;
+  isAdmin: boolean;
+}
+
+export async function sendCommentEmail(params: SendCommentEmailParams) {
+  const {
+    toEmail,
+    toName,
+    userId,
+    postTitle,
+    postId,
+    projectId,
+    projectSlug,
+    commentId,
+    commentText,
+    commenterName,
+    isAdmin,
+  } = params;
+
+  // Check preferences
+  const shouldSend = await checkEmailPreferences(toEmail, userId || null, 'comment');
+  if (!shouldSend) {
+    console.log(`User ${toEmail} has opted out of comment emails`);
+    return { success: false, reason: 'opted_out' };
+  }
+
+  // Check rate limit
+  const withinLimit = await checkRateLimit(toEmail);
+  if (!withinLimit) {
+    console.log(`Rate limit exceeded for ${toEmail}`);
+    return { success: false, reason: 'rate_limit' };
+  }
+
+  const postUrl = `${APP_URL}/${projectSlug}/board?post=${postId}`;
+  const unsubscribeToken = await getOrCreateUnsubscribeToken(toEmail, userId || null);
+  const unsubscribeUrl = `${APP_URL}/unsubscribe?token=${unsubscribeToken}`;
+
+  const previewText = commentText.length > 100 ? `${commentText.substring(0, 100)}...` : commentText;
+
+  const content = `
+    <!-- Header -->
+    <tr>
+      <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px 12px 0 0;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">💬 New Comment</h1>
+      </td>
+    </tr>
+    
+    <!-- Content -->
+    <tr>
+      <td style="padding: 40px;">
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
+          Hi${toName ? ` ${toName}` : ''},
+        </p>
+        
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
+          ${isAdmin ? '<strong>An admin</strong>' : `<strong>${commenterName}</strong>`} just ${isAdmin ? 'replied' : 'commented'} on your feature request:
+        </p>
+        
+        <div style="margin: 30px 0; padding: 25px; background-color: #f9fafb; border-radius: 8px; border-left: 4px solid #10b981;">
+          <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">
+            Your Feedback
+          </p>
+          <p style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #111827;">
+            ${postTitle}
+          </p>
+          <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+            ${isAdmin ? 'Admin' : commenterName}'s Comment:
+          </p>
+          <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #374151; font-style: italic;">
+            "${previewText}"
+          </p>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${postUrl}" style="display: inline-block; padding: 14px 32px; background-color: #10b981; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            View Full Comment
+          </a>
+        </div>
+      </td>
+    </tr>
+    
+    <!-- Footer -->
+    <tr>
+      <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+        <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+          Questions? Contact us at <a href="mailto:support@signalsloop.com" style="color: #10b981; text-decoration: none;">support@signalsloop.com</a>
+        </p>
+        <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+          © 2025 SignalsLoop. All rights reserved.
+        </p>
+        <p style="margin: 0; font-size: 11px;">
+          <a href="${unsubscribeUrl}" style="color: #9ca3af; text-decoration: underline;">Unsubscribe from these emails</a>
+        </p>
+      </td>
+    </tr>
+  `;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'SignalsLoop <noreply@signalsloop.com>',
+      to: [toEmail],
+      subject: `${commenterName} ${isAdmin ? 'replied to' : 'commented on'} your feedback`,
+      html: getEmailTemplate(content),
+    });
+
+    if (error) {
+      console.error('Error sending comment email:', error);
+      throw error;
+    }
+
+    // Log email
+    await logEmail({
+      emailType: 'comment',
+      toEmail,
+      subject: `${commenterName} ${isAdmin ? 'replied to' : 'commented on'} your feedback`,
+      postId,
+      commentId,
+      projectId,
+      resendId: data?.id,
+      metadata: { commenterName, isAdmin },
+    });
+
+    // Increment count
+    await incrementEmailCount(toEmail);
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Failed to send comment email:', error);
+    throw error;
+  }
+}
+
+// ==================== TEMPLATE 3: Post Submitted (Confirmation) ====================
+
+interface SendPostConfirmationEmailParams {
+  toEmail: string;
+  toName?: string;
+  postTitle: string;
+  postId: string;
+  projectId: string;
+  projectSlug: string;
+  projectName: string;
+  voteCount?: number;
+}
+
+export async function sendPostConfirmationEmail(params: SendPostConfirmationEmailParams) {
+  const {
+    toEmail,
+    toName,
+    postTitle,
+    postId,
+    projectId,
+    projectSlug,
+    projectName,
+    voteCount = 0,
+  } = params;
+
+  const postUrl = `${APP_URL}/${projectSlug}/board?post=${postId}`;
+  const shareUrl = `${APP_URL}/${projectSlug}/board?post=${postId}`;
+
+  const content = `
+    <!-- Header -->
+    <tr>
+      <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px 12px 0 0;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">✅ We Received Your Feedback!</h1>
+      </td>
+    </tr>
+    
+    <!-- Content -->
+    <tr>
+      <td style="padding: 40px;">
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
+          Hi${toName ? ` ${toName}` : ''},
+        </p>
+        
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
+          Thanks for sharing your idea with ${projectName}! Here's what happens next:
+        </p>
+        
+        <div style="margin: 30px 0; padding: 25px; background-color: #f9fafb; border-radius: 8px; border-left: 4px solid #f59e0b;">
+          <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">
+            Your Feedback
+          </p>
+          <p style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #111827;">
+            ${postTitle}
+          </p>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">Status:</p>
+              <p style="margin: 0;">${getStatusBadge('open')}</p>
+            </div>
+            <div style="text-align: right;">
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">Current Votes:</p>
+              <p style="margin: 0; font-size: 24px; font-weight: bold; color: #f59e0b;">${voteCount}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div style="margin: 30px 0; padding: 20px; background-color: #dbeafe; border-radius: 8px;">
+          <p style="margin: 0 0 10px; font-size: 16px; font-weight: 600; color: #111827;">
+            📊 What happens next?
+          </p>
+          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #374151;">
+            We review all feedback and prioritize based on votes and impact. Want to increase visibility? Share the link with your team!
+          </p>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${shareUrl}" style="display: inline-block; padding: 14px 32px; background-color: #f59e0b; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 0 5px;">
+            📢 Share Feedback
+          </a>
+          <a href="${postUrl}" style="display: inline-block; padding: 14px 32px; background-color: #667eea; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 0 5px;">
+            View Post
+          </a>
+        </div>
+        
+        <div style="margin: 30px 0; padding: 20px; background-color: #f3f4f6; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <p style="margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #111827;">
+            💡 Pro Tip:
+          </p>
+          <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #6b7280;">
+            We'll send you email updates when the status changes or when team members reply. You can adjust these preferences anytime.
+          </p>
+        </div>
+      </td>
+    </tr>
+    
+    <!-- Footer -->
+    <tr>
+      <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+        <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+          Questions? Contact us at <a href="mailto:support@signalsloop.com" style="color: #f59e0b; text-decoration: none;">support@signalsloop.com</a>
+        </p>
+        <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+          © 2025 SignalsLoop. All rights reserved.
+        </p>
+      </td>
+    </tr>
+  `;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'SignalsLoop <noreply@signalsloop.com>',
+      to: [toEmail],
+      subject: `✅ We received your feedback: ${postTitle}`,
+      html: getEmailTemplate(content),
+    });
+
+    if (error) {
+      console.error('Error sending post confirmation email:', error);
+      throw error;
+    }
+
+    // Log email
+    await logEmail({
+      emailType: 'confirmation',
+      toEmail,
+      subject: `✅ We received your feedback: ${postTitle}`,
+      postId,
+      projectId,
+      resendId: data?.id,
+      metadata: { projectName, voteCount },
+    });
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Failed to send post confirmation email:', error);
     throw error;
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-client';
 import { categorizeFeedback } from '@/lib/ai-categorization';
+import { sendPostConfirmationEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -164,6 +165,41 @@ export async function POST(request: NextRequest) {
 
     } else {
       console.log(`Post ${newPost.id} created for free account - skipping AI features`);
+    }
+
+    // Send confirmation email to the author
+    if (author_email) {
+      try {
+        // Get project details for email
+        const { data: projectDetails, error: projectDetailsError } = await supabase
+          .from('projects')
+          .select('slug, name')
+          .eq('id', project_id)
+          .single();
+
+        if (!projectDetailsError && projectDetails) {
+          // Get initial vote count (should be 0 for new posts)
+          const { count: voteCount } = await supabase
+            .from('votes')
+            .select('*', { count: 'exact', head: true })
+            .eq('post_id', newPost.id);
+
+          await sendPostConfirmationEmail({
+            toEmail: author_email,
+            toName: author_name,
+            postTitle: title,
+            postId: newPost.id,
+            projectId: project_id,
+            projectSlug: projectDetails.slug,
+            projectName: projectDetails.name,
+            voteCount: voteCount || 0,
+          });
+          console.log(`✅ Confirmation email sent to ${author_email}`);
+        }
+      } catch (emailError) {
+        // Don't fail the request if email fails
+        console.error('Failed to send confirmation email:', emailError);
+      }
     }
 
     // Return the post immediately (without AI categorization)

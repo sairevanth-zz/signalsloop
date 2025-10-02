@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { sendCommentEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -58,6 +59,18 @@ export async function POST(
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
+    // Get the post details for email notification
+    const { data: post, error: postError } = await supabase
+      .from('posts')
+      .select('*, projects(slug, name, owner_id)')
+      .eq('id', id)
+      .single();
+
+    if (postError) {
+      console.error('Error fetching post:', postError);
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+
     // Insert comment or reply
     const { data: comment, error } = await supabase
       .from('comments')
@@ -75,6 +88,33 @@ export async function POST(
     if (error) {
       console.error('Error creating comment:', error);
       return NextResponse.json({ error: 'Failed to create comment' }, { status: 500 });
+    }
+
+    // Send email notification to post author (if not commenting on their own post)
+    if (post.author_email && post.author_email !== email) {
+      try {
+        // Check if commenter is the project owner (admin)
+        const { data: { user: authUser } } = await supabase.auth.admin.getUserById(post.projects?.owner_id || '');
+        const isAdmin = authUser?.email === email;
+
+        await sendCommentEmail({
+          toEmail: post.author_email,
+          toName: post.author_name,
+          userId: post.user_id,
+          postTitle: post.title,
+          postId: post.id,
+          projectId: post.project_id,
+          projectSlug: post.projects?.slug || '',
+          commentId: comment.id,
+          commentText: content.trim(),
+          commenterName: name.trim(),
+          isAdmin: isAdmin || false,
+        });
+        console.log(`✅ Comment email sent to ${post.author_email}`);
+      } catch (emailError) {
+        // Don't fail the request if email fails
+        console.error('Failed to send comment email:', emailError);
+      }
     }
 
     return NextResponse.json({ success: true, comment }, { status: 201 });
