@@ -95,6 +95,7 @@ export default function VoteOnBehalfModal({
         return;
       }
 
+      console.log('🔵 VERSION: v2.0 - Enhanced debugging');
       console.log('Submitting vote with data:', {
         postId,
         projectId,
@@ -102,7 +103,7 @@ export default function VoteOnBehalfModal({
         customerName: formData.customerName,
       });
 
-      console.log('Sending request to /api/votes/on-behalf...');
+      console.log('📤 Sending request to /api/votes/on-behalf...');
 
       // Create abort controller for timeout
       const controller = new AbortController();
