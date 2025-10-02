@@ -116,6 +116,7 @@ export default function BoardPage() {
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [priorityVoteCounts, setPriorityVoteCounts] = useState({ must_have: 0, important: 0, nice_to_have: 0 });
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -359,13 +360,13 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 safe-top safe-bottom">
       <GlobalBanner 
         showBackButton={true} 
         backLabel="Back to Dashboard" 
       />
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <div className="flex gap-4 lg:gap-8">
           {/* Main Content */}
           <div className="flex-1 min-w-0">
         {/* Error Display */}
@@ -407,22 +408,22 @@ export default function BoardPage() {
             )}
           </div>
           
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 {project?.name} Feedback
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-sm sm:text-base text-gray-600 mt-1">
                 Share your ideas and help us build better features
               </p>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100">
+                  <Button variant="outline" className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 min-touch-target tap-highlight-transparent">
                     <Share2 className="w-4 h-4" />
-                    Share
+                    <span className="hidden sm:inline">Share</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -448,17 +449,17 @@ export default function BoardPage() {
                 totalVotes={posts.reduce((sum, post) => sum + (post.vote_count || 0), 0)}
               />
               
-              <Link href={`/${params?.slug}/roadmap`}>
-                <Button variant="outline" className="flex items-center gap-1">
+              <Link href={`/${params?.slug}/roadmap`} className="hidden sm:block">
+                <Button variant="outline" className="flex items-center gap-1 min-touch-target">
                   <Map className="w-4 h-4" />
-                  Roadmap
+                  <span className="hidden md:inline">Roadmap</span>
                 </Button>
               </Link>
               {user && (
-                <Link href={`/${params?.slug}/settings`}>
-                  <Button variant="outline" className="flex items-center gap-1">
+                <Link href={`/${params?.slug}/settings`} className="hidden sm:block">
+                  <Button variant="outline" className="flex items-center gap-1 min-touch-target">
                     <Settings className="w-4 h-4" />
-                    Settings
+                    <span className="hidden md:inline">Settings</span>
                   </Button>
                 </Link>
               )}
@@ -466,40 +467,54 @@ export default function BoardPage() {
                 <Button 
                   variant="outline" 
                   onClick={() => setShowAIInsights(true)}
-                  className="flex items-center gap-1 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                  className="hidden sm:flex items-center gap-1 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 min-touch-target"
                 >
                   <Sparkles className="w-4 h-4" />
-                  AI Insights
+                  <span className="hidden md:inline">AI Insights</span>
                 </Button>
               )}
               <Button 
                 onClick={() => setShowPostForm(true)}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform min-touch-target tap-highlight-transparent flex-1 sm:flex-initial"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Submit Feedback
+                <Plus className="w-4 h-4 sm:mr-2" />
+                <span className="hidden xs:inline">Submit</span>
+                <span className="hidden sm:inline">Feedback</span>
               </Button>
             </div>
           </div>
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 mb-4 sm:mb-6">
+          {/* Mobile Filter Toggle */}
+          <div className="lg:hidden mb-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="w-full justify-between min-touch-target"
+            >
+              <span>Filters & Search</span>
+              <ChevronRight className={`h-4 w-4 transition-transform ${showMobileFilters ? 'rotate-90' : ''}`} />
+            </Button>
+          </div>
+          
+          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 ${showMobileFilters ? 'block' : 'hidden lg:grid'}`}>
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
               <Input
                 placeholder="Search feedback..."
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="pl-10"
+                className="pl-10 min-touch-target text-base"
+                type="search"
               />
             </div>
 
             {/* Category Filter */}
             <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
-              <SelectTrigger>
+              <SelectTrigger className="min-touch-target">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
@@ -524,7 +539,7 @@ export default function BoardPage() {
 
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-              <SelectTrigger>
+              <SelectTrigger className="min-touch-target">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -537,46 +552,9 @@ export default function BoardPage() {
               </SelectContent>
             </Select>
 
-            {/* Priority Filter - Owner Only */}
-            {user && (
-              <Select value={priorityFilter} onValueChange={handlePriorityFilterChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Priority votes" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    <div className="flex items-center gap-2">
-                      <span>All Priorities</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="must_have">
-                    <div className="flex items-center gap-2">
-                      <span className="text-red-600">🔴</span>
-                      <span>Must Have</span>
-                      <span className="text-gray-500 text-sm">({priorityVoteCounts.must_have})</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="important">
-                    <div className="flex items-center gap-2">
-                      <span className="text-orange-600">🟠</span>
-                      <span>Important</span>
-                      <span className="text-gray-500 text-sm">({priorityVoteCounts.important})</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="nice_to_have">
-                    <div className="flex items-center gap-2">
-                      <span className="text-green-600">🟢</span>
-                      <span>Nice to Have</span>
-                      <span className="text-gray-500 text-sm">({priorityVoteCounts.nice_to_have})</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-
             {/* Sort */}
             <Select value={sortBy} onValueChange={handleSortChange}>
-              <SelectTrigger>
+              <SelectTrigger className="min-touch-target">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>

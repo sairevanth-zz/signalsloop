@@ -67,29 +67,29 @@ export default function Homepage() {
     <div className="min-h-screen">
       
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 safe-top">
         <div className="container mx-auto px-4 py-3 md:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-7 h-7 md:w-8 md:h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xs md:text-sm">S</span>
+          <div className="flex items-center justify-between gap-2">
+            <Link href="/" className="flex items-center space-x-2 min-touch-target tap-highlight-transparent">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-sm md:text-base">S</span>
               </div>
-              <span className="text-lg md:text-xl font-bold text-gray-900">SignalsLoop</span>
-            </div>
+              <span className="text-base md:text-xl font-bold text-gray-900 hidden xs:inline">SignalsLoop</span>
+            </Link>
             
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
+            <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
+              <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors min-touch-target">
                 Features
               </Link>
-              <Link href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <Link href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors min-touch-target">
                 Pricing
               </Link>
-              <Link href="/demo/interactive" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors flex items-center gap-1">
+              <Link href="/demo/interactive" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors flex items-center gap-1 min-touch-target">
                 🎯 Demo
               </Link>
               
               {/* Subtle Header Trust Signals */}
-              <div className="flex items-center space-x-4 text-xs text-gray-500">
+              <div className="hidden xl:flex items-center space-x-4 text-xs text-gray-500">
                 <div className="flex items-center gap-1">
                   <span className="text-green-500">🔒</span>
                   <span>SOC 2</span>
@@ -101,24 +101,18 @@ export default function Homepage() {
               </div>
             </nav>
             
-            <div className="flex items-center space-x-2 md:space-x-4">
-              <Link href="/demo/interactive" className="md:hidden">
-                <Button variant="outline" className="text-xs min-h-[44px] px-3 border-purple-300 text-purple-700 font-semibold">
-                  🎯 Demo
+            <div className="flex items-center gap-2">
+              <Link href="/login" className="hidden sm:block">
+                <Button variant="ghost" className="text-sm md:text-base min-touch-target px-3 md:px-4 tap-highlight-transparent">
+                  Sign In
                 </Button>
               </Link>
-              <Link href="/login">
-                <Button variant="ghost" className="text-sm md:text-base min-h-[44px] px-3 md:px-4">Sign In</Button>
-              </Link>
-              <div className="text-center">
-                <Button 
-                  onClick={handleProCheckout}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl px-4 md:px-8 py-3 text-xs md:text-base min-h-[44px]"
-                >
-                  Start Free
-                </Button>
-                <p className="text-xs text-gray-500 mt-1 hidden md:block">✓ Free forever plan available</p>
-              </div>
+              <Button 
+                onClick={handleProCheckout}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl active:scale-95 transition-all duration-200 shadow-lg hover:shadow-xl px-3 sm:px-6 md:px-8 text-xs sm:text-sm md:text-base min-touch-target tap-highlight-transparent whitespace-nowrap"
+              >
+                Start Free
+              </Button>
             </div>
           </div>
         </div>

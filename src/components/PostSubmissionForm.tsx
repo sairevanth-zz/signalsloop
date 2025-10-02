@@ -247,14 +247,14 @@ export default function PostSubmissionForm({
   if (!isOpen || !mounted) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 z-[9999] flex flex-col">
-      <div className="bg-black bg-opacity-50 flex-1 flex items-start justify-center p-4 pt-8">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl h-full max-h-[calc(100vh-4rem)] overflow-y-auto">
-        <Card className="border-0 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <div>
-              <CardTitle className="text-xl">Submit Feedback</CardTitle>
-              <p className="text-sm text-gray-600 mt-1">
+    <div className="fixed inset-0 z-[9999] flex flex-col safe-top safe-bottom">
+      <div className="bg-black/50 backdrop-blur-sm flex-1 flex items-start sm:items-center justify-center sm:p-4">
+        <div className="bg-white sm:rounded-lg shadow-xl w-full max-w-2xl h-full sm:h-auto sm:max-h-[calc(100vh-2rem)] overflow-y-auto momentum-scroll">
+        <Card className="border-0 shadow-none rounded-none sm:rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 sticky top-0 bg-white z-10 border-b sm:border-b-0">
+            <div className="flex-1 mr-2">
+              <CardTitle className="text-lg sm:text-xl">Submit Feedback</CardTitle>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">
                 Help us improve by sharing your thoughts and ideas
               </p>
             </div>
@@ -262,15 +262,15 @@ export default function PostSubmissionForm({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0"
+              className="min-touch-target tap-highlight-transparent flex-shrink-0"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </Button>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6 pb-6 sm:pb-8">
             {isSuccess ? (
-              <div className="text-center py-8">
+              <div className="text-center py-12">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
@@ -288,7 +288,7 @@ export default function PostSubmissionForm({
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     What type of feedback is this?
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
                     {postTypes.map((type) => {
                       const Icon = type.icon;
                       return (
@@ -296,7 +296,7 @@ export default function PostSubmissionForm({
                           key={type.value}
                           type="button"
                           onClick={() => handleInputChange('type', type.value)}
-                          className={`p-3 rounded-lg border-2 transition-all text-left ${
+                          className={`p-3 rounded-lg border-2 transition-all text-left min-touch-target tap-highlight-transparent active:scale-95 ${
                             formData.type === type.value
                               ? 'border-blue-500 bg-blue-50'
                               : 'border-gray-200 hover:border-gray-300'
@@ -323,7 +323,8 @@ export default function PostSubmissionForm({
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
                     placeholder="Brief, descriptive title for your feedback"
-                    className={errors.title ? 'border-red-500' : ''}
+                    className={`text-base ${errors.title ? 'border-red-500' : ''}`}
+                    autoComplete="off"
                   />
                   {errors.title && (
                     <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
@@ -344,7 +345,8 @@ export default function PostSubmissionForm({
                     onChange={(e) => handleInputChange('description', e.target.value)}
                     placeholder="Provide more details about your feedback. Include steps to reproduce for bugs, or explain the benefit for feature requests."
                     rows={4}
-                    className={errors.description ? 'border-red-500 mb-2' : 'mb-2'}
+                    className={`text-base momentum-scroll ${errors.description ? 'border-red-500 mb-2' : 'mb-2'}`}
+                    autoComplete="off"
                   />
                   
                   {/* AI Writing Assistant */}
@@ -379,7 +381,7 @@ export default function PostSubmissionForm({
                       size="sm"
                       onClick={categorizeWithAI}
                       disabled={isAnalyzing || !formData.title.trim()}
-                      className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                      className="text-purple-600 border-purple-200 hover:bg-purple-50 min-touch-target tap-highlight-transparent"
                     >
                       {isAnalyzing ? (
                         <>
@@ -457,7 +459,8 @@ export default function PostSubmissionForm({
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     placeholder="John Doe"
-                    className={errors.name ? 'border-red-500' : ''}
+                    className={`text-base ${errors.name ? 'border-red-500' : ''}`}
+                    autoComplete="name"
                     required
                   />
                   {errors.name && (
@@ -479,7 +482,9 @@ export default function PostSubmissionForm({
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="your@email.com"
-                    className={errors.email ? 'border-red-500' : ''}
+                    className={`text-base ${errors.email ? 'border-red-500' : ''}`}
+                    autoComplete="email"
+                    inputMode="email"
                   />
                   {errors.email && (
                     <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
@@ -493,19 +498,19 @@ export default function PostSubmissionForm({
                 </div>
 
                 {/* Submit Button */}
-                <div className="flex gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3 pt-4 sticky bottom-0 bg-white pb-4 sm:pb-0 -mx-4 sm:mx-0 px-4 sm:px-0 border-t sm:border-t-0 pt-4">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={onClose}
-                    className="flex-1"
+                    className="flex-1 min-touch-target tap-highlight-transparent order-2 sm:order-1"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform min-touch-target tap-highlight-transparent order-1 sm:order-2"
                   >
                     {isSubmitting ? (
                       <>

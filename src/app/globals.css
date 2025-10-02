@@ -98,6 +98,106 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
+  /* Mobile-specific utilities */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  .tap-highlight-transparent {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Minimum touch target size for accessibility */
+  .min-touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Mobile-friendly scrolling */
+  .momentum-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+
+  /* Safe area insets for notched devices */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Mobile-optimized text selection */
+  .user-select-none {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Prevent text size adjustment on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Smooth scroll behavior */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* Mobile button reset for better touch targets */
+  button, 
+  [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Mobile input optimizations */
+  input, 
+  textarea, 
+  select {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  @media (min-width: 768px) {
+    input, 
+    textarea, 
+    select {
+      font-size: 14px;
+    }
+  }
+
+  /* Mobile-friendly focus states */
+  @media (hover: none) {
+    button:active,
+    [role="button"]:active {
+      opacity: 0.7;
+      transform: scale(0.98);
+    }
+  }
+
+  /* Hide scrollbar on mobile for cleaner UI */
+  @media (max-width: 768px) {
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }
 
 @custom-variant dark (&:is(.dark *));
