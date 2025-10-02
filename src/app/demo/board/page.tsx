@@ -523,21 +523,6 @@ export default function DemoBoard() {
               </Card>
             </div>
 
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-6 text-center">
-              <h3 className="text-lg font-semibold mb-2">Interactive Roadmap</h3>
-              <p className="text-gray-600 mb-4">Explore our public roadmap with real-time updates, voting, AI analysis, and more.</p>
-              <Button 
-                onClick={() => setActiveTab('roadmap')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                View Public Roadmap
-              </Button>
-              <p className="text-xs text-gray-500 mt-3">
-                <Sparkles className="h-3 w-3 inline mr-1" />
-                Try AI features with demo limits • Vote on features • Post comments
-              </p>
-            </div>
           </TabsContent>
 
           {/* Analytics Tab */}
@@ -766,6 +751,24 @@ export default function DemoBoard() {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
+            </div>
+
+            {/* Interactive Roadmap CTA */}
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200 p-6 text-center">
+              <Map className="h-12 w-12 text-purple-600 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold mb-2">Interactive Roadmap</h3>
+              <p className="text-gray-600 mb-4">Explore our public roadmap with real-time updates, voting, AI analysis, and more.</p>
+              <Button 
+                onClick={() => setActiveTab('roadmap')}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                View Public Roadmap
+              </Button>
+              <p className="text-xs text-gray-500 mt-3">
+                <Sparkles className="h-3 w-3 inline mr-1" />
+                Try AI features with demo limits • Vote on features • Post comments
+              </p>
             </div>
           </TabsContent>
         </Tabs>
