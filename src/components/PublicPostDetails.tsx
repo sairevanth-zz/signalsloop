@@ -92,12 +92,8 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     const checkOwner = async () => {
       try {
         setOwnerCheckLoading(true);
-        console.log('🔍 Checking owner status...');
-        console.log('👤 Current user:', user?.email);
-        console.log('📦 Project:', project.slug);
         
         if (!user) {
-          console.log('❌ No user logged in');
           setIsOwner(false);
           setOwnerCheckLoading(false);
           return;
@@ -112,19 +108,14 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
           .single();
 
         if (error) {
-          console.error('❌ Error fetching project:', error);
+          console.error('Error fetching project:', error);
           setIsOwner(false);
         } else {
           const isProjectOwner = projectData?.owner_id === user.id;
-          console.log('✅ Owner check result:', {
-            projectOwnerId: projectData?.owner_id,
-            userId: user.id,
-            isOwner: isProjectOwner
-          });
           setIsOwner(isProjectOwner);
         }
       } catch (error) {
-        console.error('❌ Owner check error:', error);
+        console.error('Owner check error:', error);
         setIsOwner(false);
       } finally {
         setOwnerCheckLoading(false);
@@ -453,11 +444,6 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                   <span className="text-xs text-gray-500">votes</span>
                   
                   {/* Vote on Behalf Button (Admin Only) */}
-                  {/* DEBUG: Show state */}
-                  <div className="text-xs text-gray-500">
-                    Debug: isOwner = {String(isOwner)}
-                  </div>
-                  
                   {isOwner && (
                     <Button
                       variant="outline"

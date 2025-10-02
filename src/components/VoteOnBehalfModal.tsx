@@ -149,8 +149,8 @@ export default function VoteOnBehalfModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+      <Card className="w-full max-w-2xl my-8 shadow-2xl">
         <CardContent className="p-0">
           {/* Header */}
           <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
