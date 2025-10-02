@@ -25,6 +25,14 @@ interface DemoPost {
   status: 'open' | 'planned' | 'in_progress' | 'done';
   createdAt: string;
   author: string;
+  commentsList?: Comment[];
+}
+
+interface Comment {
+  id: string;
+  author: string;
+  text: string;
+  time: string;
 }
 
 const INITIAL_POSTS: DemoPost[] = [
@@ -35,10 +43,14 @@ const INITIAL_POSTS: DemoPost[] = [
     category: 'Feature',
     votes: 142,
     userVoted: false,
-    comments: 8,
+    comments: 2,
     status: 'planned',
     createdAt: '2 days ago',
-    author: 'Sarah M.'
+    author: 'Sarah M.',
+    commentsList: [
+      { id: 'c1', author: 'Jane Doe', text: 'This would be really helpful for our team! Looking forward to it.', time: '2 hours ago' },
+      { id: 'c2', author: 'Mike Johnson', text: 'Yes please! My eyes would thank you 😊', time: '5 hours ago' }
+    ]
   },
   {
     id: '2',
@@ -96,6 +108,12 @@ export default function InteractiveDemoPage() {
   const [filter, setFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'votes' | 'recent'>('votes');
   
+  // Submit Feedback Form
+  const [showSubmitForm, setShowSubmitForm] = useState(false);
+  const [newFeedback, setNewFeedback] = useState({ title: '', description: '' });
+  const [aiAssistant, setAiAssistant] = useState('');
+  const [generatingAI, setGeneratingAI] = useState(false);
+  
   // AI Features
   const [aiSentiment, setAiSentiment] = useState<any>(null);
   const [analyzingSentiment, setAnalyzingSentiment] = useState(false);
@@ -107,7 +125,7 @@ export default function InteractiveDemoPage() {
   const [analyzingDuplicate, setAnalyzingDuplicate] = useState(false);
   
   const [comment, setComment] = useState('');
-  const [aiUsage, setAiUsage] = useState({ sentiment: 0, priority: 0, duplicate: 0 });
+  const [aiUsage, setAiUsage] = useState({ sentiment: 0, priority: 0, duplicate: 0, assistant: 0 });
 
   const handleVote = (postId: string) => {
     setPosts(posts.map(p => {
@@ -180,19 +198,91 @@ export default function InteractiveDemoPage() {
     }, 1500);
   };
 
+  const enhanceWithAI = () => {
+    if (aiUsage.assistant >= 10) {
+      toast.error('Demo limit reached (10/day). Upgrade to Pro for unlimited!');
+      return;
+    }
+
+    const text = newFeedback.description || comment;
+    if (!text.trim()) {
+      toast.error('Please enter some text first');
+      return;
+    }
+
+    setGeneratingAI(true);
+    setTimeout(() => {
+      const enhanced = `${text}\n\nAdditionally, this would improve user experience by reducing friction in the workflow and align with our goal of making the platform more accessible.`;
+      setAiAssistant(enhanced);
+      setAiUsage(prev => ({ ...prev, assistant: prev.assistant + 1 }));
+      setGeneratingAI(false);
+      toast.success('AI enhanced your text!');
+    }, 1500);
+  };
+
+  const useAIText = () => {
+    if (selectedPost && aiAssistant) {
+      setComment(aiAssistant);
+    } else if (aiAssistant) {
+      setNewFeedback({ ...newFeedback, description: aiAssistant });
+    }
+    setAiAssistant('');
+    toast.success('Applied AI-enhanced text!');
+  };
+
   const postComment = () => {
     if (!comment.trim()) {
       toast.error('Please enter a comment');
       return;
     }
-    toast.success('Comment posted! (Demo mode)');
-    setComment('');
+    
     if (selectedPost) {
+      const newComment: Comment = {
+        id: `c${Date.now()}`,
+        author: 'Demo User',
+        text: comment,
+        time: 'Just now'
+      };
+      
+      const updatedPost = {
+        ...selectedPost,
+        comments: selectedPost.comments + 1,
+        commentsList: [newComment, ...(selectedPost.commentsList || [])]
+      };
+      
       setPosts(posts.map(p => 
-        p.id === selectedPost.id ? { ...p, comments: p.comments + 1 } : p
+        p.id === selectedPost.id ? updatedPost : p
       ));
-      setSelectedPost({ ...selectedPost, comments: selectedPost.comments + 1 });
+      setSelectedPost(updatedPost);
+      setComment('');
+      toast.success('Comment posted!');
     }
+  };
+
+  const submitFeedback = () => {
+    if (!newFeedback.title.trim() || !newFeedback.description.trim()) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    const newPost: DemoPost = {
+      id: `${Date.now()}`,
+      title: newFeedback.title,
+      description: newFeedback.description,
+      category: 'Feature',
+      votes: 1,
+      userVoted: true,
+      comments: 0,
+      status: 'open',
+      createdAt: 'Just now',
+      author: 'Demo User',
+      commentsList: []
+    };
+
+    setPosts([newPost, ...posts]);
+    setNewFeedback({ title: '', description: '' });
+    setShowSubmitForm(false);
+    toast.success('Feedback submitted! 🎉');
   };
 
   const getStatusColor = (status: string) => {
@@ -219,7 +309,7 @@ export default function InteractiveDemoPage() {
               <div>
                 <div className="font-bold text-sm">🎯 Pro Demo - Try All AI Features!</div>
                 <div className="text-xs text-white/90">
-                  AI Usage: Sentiment ({aiUsage.sentiment}/5) • Priority ({aiUsage.priority}/5) • Duplicate ({aiUsage.duplicate}/10)
+                  AI Usage: Sentiment ({aiUsage.sentiment}/5) • Priority ({aiUsage.priority}/5) • Duplicate ({aiUsage.duplicate}/10) • Assistant ({aiUsage.assistant}/10)
                 </div>
               </div>
             </div>
@@ -240,12 +330,21 @@ export default function InteractiveDemoPage() {
               <h1 className="text-2xl font-bold">Product Feedback Board</h1>
               <p className="text-sm text-gray-600">Experience the full Pro dashboard</p>
             </div>
-            <Link href="/">
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                <Crown className="h-4 w-4 mr-2" />
-                Upgrade to Pro
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setShowSubmitForm(true)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Submit Feedback
               </Button>
-            </Link>
+              <Link href="/">
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  <Crown className="h-4 w-4 mr-2" />
+                  Upgrade to Pro
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -517,35 +616,183 @@ export default function InteractiveDemoPage() {
                   </h3>
 
                   <div className="space-y-3">
-                    <Textarea
-                      placeholder="Add your comment... (Demo mode)"
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      rows={3}
-                    />
+                    <div className="relative">
+                      <Textarea
+                        placeholder="Add your comment..."
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        rows={3}
+                        className="pr-12"
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="absolute top-2 right-2"
+                        onClick={enhanceWithAI}
+                        disabled={generatingAI || !comment.trim() || aiUsage.assistant >= 10}
+                        title="AI Writing Assistant"
+                      >
+                        {generatingAI ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
+                        ) : (
+                          <Sparkles className="h-4 w-4 text-purple-600" />
+                        )}
+                      </Button>
+                    </div>
+                    
+                    {aiAssistant && selectedPost && (
+                      <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-purple-600" />
+                            <span className="text-sm font-semibold text-purple-900">AI Enhanced</span>
+                          </div>
+                          <Button size="sm" onClick={useAIText}>
+                            Use This
+                          </Button>
+                        </div>
+                        <p className="text-sm text-gray-700">{aiAssistant}</p>
+                      </div>
+                    )}
+                    
                     <Button onClick={postComment} disabled={!comment.trim()}>
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Post Comment
                     </Button>
                   </div>
 
-                  {/* Sample Comment */}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-semibold">
-                        JD
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-sm">Jane Doe</span>
-                          <span className="text-xs text-gray-500">2 hours ago</span>
+                  {/* All Comments */}
+                  <div className="space-y-3 pt-4 border-t">
+                    {selectedPost.commentsList && selectedPost.commentsList.length > 0 ? (
+                      selectedPost.commentsList.map((c) => (
+                        <div key={c.id} className="p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                              {c.author.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-semibold text-sm">{c.author}</span>
+                                <span className="text-xs text-gray-500">{c.time}</span>
+                              </div>
+                              <p className="text-sm text-gray-700">{c.text}</p>
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-sm text-gray-700">
-                          This would be really helpful for our team! Looking forward to it.
-                        </p>
-                      </div>
-                    </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500 text-center py-4">No comments yet. Be the first!</p>
+                    )}
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Submit Feedback Modal */}
+        {showSubmitForm && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto">
+            <Card className="w-full max-w-2xl mt-8 mb-8">
+              <CardHeader className="border-b">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-xl mb-2">Submit Feedback</CardTitle>
+                    <p className="text-sm text-gray-600">Share your ideas to improve our product</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowSubmitForm(false);
+                      setNewFeedback({ title: '', description: '' });
+                      setAiAssistant('');
+                    }}
+                  >
+                    ✕
+                  </Button>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-2">Title *</label>
+                  <Input
+                    placeholder="Brief summary of your feedback..."
+                    value={newFeedback.title}
+                    onChange={(e) => setNewFeedback({ ...newFeedback, title: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-semibold">Description *</label>
+                    <Badge className="bg-purple-100 text-purple-700 flex items-center gap-1">
+                      <Sparkles className="h-3 w-3" />
+                      AI Assistant
+                    </Badge>
+                  </div>
+                  <div className="relative">
+                    <Textarea
+                      placeholder="Describe your feedback in detail..."
+                      value={newFeedback.description}
+                      onChange={(e) => setNewFeedback({ ...newFeedback, description: e.target.value })}
+                      rows={5}
+                      className="pr-12"
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="absolute top-2 right-2"
+                      onClick={enhanceWithAI}
+                      disabled={generatingAI || !newFeedback.description.trim() || aiUsage.assistant >= 10}
+                      title="Enhance with AI"
+                    >
+                      {generatingAI ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
+                      ) : (
+                        <Sparkles className="h-4 w-4 text-purple-600" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    ✨ Click the sparkle icon to enhance your description with AI
+                  </p>
+                </div>
+
+                {aiAssistant && !selectedPost && (
+                  <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-purple-600" />
+                        <span className="text-sm font-semibold text-purple-900">AI Enhanced Version</span>
+                      </div>
+                      <Button size="sm" onClick={useAIText}>
+                        Use This
+                      </Button>
+                    </div>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{aiAssistant}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={submitFeedback}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    disabled={!newFeedback.title.trim() || !newFeedback.description.trim()}
+                  >
+                    Submit Feedback
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowSubmitForm(false);
+                      setNewFeedback({ title: '', description: '' });
+                      setAiAssistant('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
                 </div>
               </CardContent>
             </Card>
