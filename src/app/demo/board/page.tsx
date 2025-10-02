@@ -52,7 +52,7 @@ export default function DemoBoard() {
   const router = useRouter();
   const [posts, setPosts] = useState<DemoPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('feedback');
+  const [activeTab, setActiveTab] = useState('roadmap'); // Default to roadmap to showcase features
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('votes');
@@ -166,13 +166,16 @@ export default function DemoBoard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Demo Limit Banner */}
       {showDemoLimitBanner && (
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 px-4">
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4">
           <div className="container mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <Sparkles className="h-4 w-4" />
-              <span><strong>Demo Mode:</strong> Try all features with daily limits • AI features: 3-10 uses/day • Resets at midnight UTC</span>
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-5 w-5 animate-pulse" />
+              <div>
+                <div className="font-bold text-sm">🎯 Interactive Demo - Explore All Features!</div>
+                <div className="text-xs text-white/90">Vote on features • Try AI analysis • Post comments • Experience the full platform</div>
+              </div>
             </div>
-            <button onClick={() => setShowDemoLimitBanner(false)} className="text-white/80 hover:text-white">
+            <button onClick={() => setShowDemoLimitBanner(false)} className="text-white/80 hover:text-white text-lg">
               ✕
             </button>
           </div>
