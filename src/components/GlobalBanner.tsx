@@ -146,17 +146,17 @@ export default function GlobalBanner({
 
   if (loading) {
     return (
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 safe-top">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">S</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
+              <span className="text-base sm:text-xl font-bold text-gray-900">SignalsLoop</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-500">Loading...</span>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 text-xs sm:text-sm">Loading...</span>
             </div>
           </div>
         </div>
@@ -165,70 +165,95 @@ export default function GlobalBanner({
   }
 
   return (
-    <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+    <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 safe-top">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+        <div className="flex items-center justify-between gap-2">
+          {/* Left side - Logo and branding */}
+          <div className="flex items-center gap-2 min-w-0 flex-shrink">
             {showBackButton && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push(backUrl)}
-                className="mr-2"
+                className="hidden sm:flex min-touch-target tap-highlight-transparent"
               >
                 ← {backLabel}
               </Button>
             )}
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">S</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-sm">S</span>
+              </div>
+              <span className="text-base sm:text-xl font-bold text-gray-900 truncate hidden xs:block">SignalsLoop</span>
+              {projectSlug && (
+                <Badge variant="outline" className="hidden md:inline-flex text-xs">
+                  {projectSlug}
+                </Badge>
+              )}
             </div>
-            <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
-            {projectSlug && (
-              <Badge variant="outline" className="ml-2">
-                {projectSlug}
-              </Badge>
-            )}
           </div>
           
-          <div className="flex items-center space-x-4">
+          {/* Right side - Actions */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             {user ? (
               <>
                 {showBilling && billingInfo && (
-                  <div className="flex items-center space-x-2">
+                  <>
+                    {/* Plan Badge - Compact on mobile */}
                     <Badge 
                       variant={billingInfo.plan === 'pro' ? 'default' : 'secondary'}
-                      className={billingInfo.plan === 'pro' ? 'bg-blue-600' : ''}
+                      className={`text-xs ${billingInfo.plan === 'pro' ? 'bg-blue-600' : ''}`}
                     >
-                      {billingInfo.is_trial ? 'Pro Plan (Trial)' : `${billingInfo.plan.charAt(0).toUpperCase() + billingInfo.plan.slice(1)} Plan`}
+                      <span className="hidden sm:inline">
+                        {billingInfo.is_trial ? 'Pro (Trial)' : `${billingInfo.plan.charAt(0).toUpperCase() + billingInfo.plan.slice(1)}`}
+                      </span>
+                      <span className="sm:hidden">
+                        {billingInfo.plan === 'pro' ? 'Pro' : 'Free'}
+                      </span>
                     </Badge>
                     
+                    {/* Billing Button */}
                     {billingInfo.is_trial ? (
                       <Button 
                         onClick={handleCancelTrial}
                         variant="outline" 
                         size="sm"
+                        className="hidden sm:flex min-touch-target"
                       >
                         Cancel Trial
                       </Button>
                     ) : (
-                      <>
-                        <Button 
-                          onClick={handleManageBilling}
-                          variant="outline" 
-                          size="sm"
-                        >
-                          Manage Billing
-                        </Button>
-                      </>
+                      <Button 
+                        onClick={handleManageBilling}
+                        variant="outline" 
+                        size="sm"
+                        className="min-touch-target tap-highlight-transparent text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4"
+                      >
+                        <span className="hidden sm:inline">Manage Billing</span>
+                        <span className="sm:hidden">Billing</span>
+                      </Button>
                     )}
-                  </div>
+                  </>
                 )}
-                <Button onClick={handleSignOut} variant="ghost" size="sm">
-                  Sign Out
+                
+                {/* Sign Out Button */}
+                <Button 
+                  onClick={handleSignOut} 
+                  variant="ghost" 
+                  size="sm"
+                  className="min-touch-target tap-highlight-transparent text-xs sm:text-sm whitespace-nowrap px-2 sm:px-3"
+                >
+                  <span className="hidden sm:inline">Sign Out</span>
+                  <span className="sm:hidden">Out</span>
                 </Button>
               </>
             ) : (
-              <Button onClick={() => router.push('/login')} variant="ghost" size="sm">
+              <Button 
+                onClick={() => router.push('/login')} 
+                variant="ghost" 
+                size="sm"
+                className="min-touch-target tap-highlight-transparent"
+              >
                 Sign In
               </Button>
             )}
