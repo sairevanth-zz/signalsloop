@@ -29,6 +29,8 @@ import AIWritingAssistant from './AIWritingAssistant';
 import AIPostIntelligence from './AIPostIntelligence';
 import AIAutoResponse from './AIAutoResponse';
 import VoteOnBehalfModal from './VoteOnBehalfModal';
+import { useAuth } from '@/hooks/useAuth';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface Project {
   id: string;
@@ -60,6 +62,7 @@ interface PublicPostDetailsProps {
 }
 
 export default function PublicPostDetails({ project, post, relatedPosts }: PublicPostDetailsProps) {
+  const { user, loading: authLoading } = useAuth();
   const [hasVoted, setHasVoted] = useState(false);
   const [voteCount, setVoteCount] = useState(post.vote_count);
   const [isVoting, setIsVoting] = useState(false);
@@ -76,6 +79,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [isVoteOnBehalfModalOpen, setIsVoteOnBehalfModalOpen] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [ownerCheckLoading, setOwnerCheckLoading] = useState(true);
 
   // Load voted status from localStorage
   useEffect(() => {
@@ -83,37 +87,54 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     setHasVoted(voted.includes(post.id));
   }, [post.id, project.id]);
 
-  // Check if current user is project owner (simplified - check if logged in)
+  // Check if current user is project owner using direct Supabase query
   useEffect(() => {
     const checkOwner = async () => {
       try {
-        console.log('🔍 Checking owner status for project:', project.slug);
-        // Check if there's a session by trying to access a protected endpoint
-        const response = await fetch(`/api/projects/${project.slug}/owner`, {
-          credentials: 'include',
-        });
-        console.log('📡 API response status:', response.status);
-        const data = await response.json();
-        console.log('✅ API response data:', data);
+        setOwnerCheckLoading(true);
+        console.log('🔍 Checking owner status...');
+        console.log('👤 Current user:', user?.email);
+        console.log('📦 Project:', project.slug);
         
-        // Log all cookies to help debug
-        console.log('🍪 Browser cookies:', document.cookie);
-        
-        setIsOwner(data.isOwner);
-        console.log('👤 isOwner state set to:', data.isOwner);
-        
-        if (!data.isOwner && data.debug) {
-          console.log('⚠️ Debug reason:', data.debug);
-          if (data.error) {
-            console.log('⚠️ Error details:', data.error);
-          }
+        if (!user) {
+          console.log('❌ No user logged in');
+          setIsOwner(false);
+          setOwnerCheckLoading(false);
+          return;
+        }
+
+        // Query Supabase directly to check if user is owner
+        const supabase = getSupabaseClient();
+        const { data: projectData, error } = await supabase
+          .from('projects')
+          .select('owner_id')
+          .eq('slug', project.slug)
+          .single();
+
+        if (error) {
+          console.error('❌ Error fetching project:', error);
+          setIsOwner(false);
+        } else {
+          const isProjectOwner = projectData?.owner_id === user.id;
+          console.log('✅ Owner check result:', {
+            projectOwnerId: projectData?.owner_id,
+            userId: user.id,
+            isOwner: isProjectOwner
+          });
+          setIsOwner(isProjectOwner);
         }
       } catch (error) {
-        console.error('❌ Failed to check owner status:', error);
+        console.error('❌ Owner check error:', error);
+        setIsOwner(false);
+      } finally {
+        setOwnerCheckLoading(false);
       }
     };
-    checkOwner();
-  }, [project.slug]);
+
+    if (!authLoading) {
+      checkOwner();
+    }
+  }, [user, project.slug, authLoading]);
 
   // Load comments function
   const loadComments = async () => {
