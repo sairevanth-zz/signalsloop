@@ -171,15 +171,40 @@ export default function EnhancedDashboardPage() {
     if (!user || !supabase) return;
     
     try {
-      const { data: userData } = await supabase
+      const { data: userData, error } = await supabase
         .from('users')
         .select('plan')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (error) {
+        console.log('User plan query error (this is OK, defaulting to free):', error);
+        setUserPlan('free');
+        return;
+      }
+
+      // If user doesn't exist in users table, create them
+      if (!userData) {
+        console.log('User not found in users table, creating record...');
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            plan: 'free',
+            created_at: new Date().toISOString()
+          });
+
+        if (insertError) {
+          console.log('Could not create user record (this is OK):', insertError);
+        }
+        setUserPlan('free');
+        return;
+      }
 
       setUserPlan(userData?.plan || 'free');
     } catch (error) {
-      console.error('Error loading user plan:', error);
+      console.log('Error loading user plan (defaulting to free):', error);
       setUserPlan('free');
     }
   };
