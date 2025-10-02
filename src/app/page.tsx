@@ -183,10 +183,10 @@ export default function Homepage() {
             <div className="w-full sm:w-auto">
               <Link href="/demo/board">
                 <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 md:px-10 py-3 sm:py-4 rounded-xl border-2 border-purple-300 hover:bg-purple-50 hover:border-purple-400 transition-all duration-200 min-h-[44px] w-full font-semibold text-purple-700 shadow-md hover:shadow-lg">
-                  🎯 Try Interactive Demo
+                  🎯 View Live Demo
                 </Button>
               </Link>
-              <p className="text-xs text-purple-600 font-medium mt-2 text-center">✨ No signup required • Explore all features</p>
+              <p className="text-xs text-purple-600 font-medium mt-2 text-center">✨ No signup required • Try the roadmap</p>
             </div>
           </div>
           
