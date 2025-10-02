@@ -885,7 +885,7 @@ export async function sendVoteOnBehalfEmail(params: SendVoteOnBehalfEmailParams)
     adminName,
   } = params;
 
-  const postUrl = `${APP_URL}/${projectSlug}/board?post=${postId}`;
+  const postUrl = `${APP_URL}/${projectSlug}/post/${postId}`;
 
   const content = `
     <!-- Header -->
