@@ -103,6 +103,46 @@ export default function GlobalBanner({
     router.push(billingUrl);
   };
 
+  const handleCancelTrial = async () => {
+    try {
+      const supabase = getSupabaseClient();
+      
+      // Get the project
+      const { data: projects } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('owner_id', user?.id);
+
+      if (projects && projects.length > 0) {
+        const project = projectSlug 
+          ? projects.find(p => p.slug === projectSlug) || projects[0]
+          : projects[0];
+
+        // Update project to cancel trial
+        const { error } = await supabase
+          .from('projects')
+          .update({
+            trial_status: 'cancelled',
+            trial_cancelled_at: new Date().toISOString(),
+            plan: 'free'
+          })
+          .eq('id', project.id);
+
+        if (error) {
+          console.error('Error cancelling trial:', error);
+          alert('Failed to cancel trial. Please try again.');
+        } else {
+          alert('Trial cancelled successfully. You have been switched to the Free plan.');
+          // Reload billing info
+          loadBillingInfo();
+        }
+      }
+    } catch (error) {
+      console.error('Error cancelling trial:', error);
+      alert('Failed to cancel trial. Please try again.');
+    }
+  };
+
 
   if (loading) {
     return (
