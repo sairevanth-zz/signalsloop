@@ -239,13 +239,17 @@ function generateWidgetScript(config) {
     const overlay = document.createElement('div');
     overlay.id = WIDGET_ID + '-overlay';
     
+    // Detect mobile devices
+    const isMobile = window.innerWidth < 768;
+    
     Object.assign(overlay.style, {
       position: 'fixed',
       top: '0',
       left: '0',
       width: '100%',
       height: '100%',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: isMobile ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)',
+      backdropFilter: 'blur(4px)',
       zIndex: '1000000',
       display: 'none',
       opacity: '0',
@@ -254,76 +258,140 @@ function generateWidgetScript(config) {
 
     // Create iframe container
     const container = document.createElement('div');
-    Object.assign(container.style, {
-      position: 'absolute',
-      top: '20px',
-      left: '50%',
-      transform: 'translateX(-50%) scale(0.9)',
-      width: '90%',
-      maxWidth: '500px',
-      height: 'calc(100vh - 40px)',
-      maxHeight: '600px',
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
-      transition: 'transform 0.3s ease',
-      overflow: 'hidden'
-    });
+    
+    // Mobile-first styles
+    if (isMobile) {
+      Object.assign(container.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        right: '0',
+        bottom: '0',
+        width: '100%',
+        height: '100%',
+        transform: 'translateY(100%)',
+        backgroundColor: 'white',
+        borderRadius: '0',
+        boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.25)',
+        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        overflow: 'hidden',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)'
+      });
+    } else {
+      Object.assign(container.style, {
+        position: 'absolute',
+        top: '20px',
+        left: '50%',
+        transform: 'translateX(-50%) scale(0.9)',
+        width: '90%',
+        maxWidth: '500px',
+        height: 'calc(100vh - 40px)',
+        maxHeight: '600px',
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
+        transition: 'transform 0.3s ease',
+        overflow: 'hidden'
+      });
+    }
 
     // Create iframe
     const iframe = document.createElement('iframe');
     iframe.src = IFRAME_URL;
+    iframe.setAttribute('allow', 'clipboard-write');
     Object.assign(iframe.style, {
       width: '100%',
       height: '100%',
       border: 'none',
-      borderRadius: '12px'
+      borderRadius: isMobile ? '0' : '12px'
     });
 
     // Create close button
     const closeButton = document.createElement('button');
     closeButton.innerHTML = '×';
-    Object.assign(closeButton.style, {
-      position: 'absolute',
-      top: '10px',
-      right: '10px',
-      width: '30px',
-      height: '30px',
-      borderRadius: '50%',
-      border: 'none',
-      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-      color: '#666',
-      fontSize: '18px',
-      fontWeight: 'bold',
-      cursor: 'pointer',
-      zIndex: '10',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      transition: 'all 0.2s ease'
-    });
+    closeButton.setAttribute('aria-label', 'Close feedback widget');
+    
+    // Mobile-optimized close button
+    if (isMobile) {
+      Object.assign(closeButton.style, {
+        position: 'fixed',
+        top: 'calc(env(safe-area-inset-top) + 12px)',
+        right: '12px',
+        width: '44px',
+        height: '44px',
+        borderRadius: '50%',
+        border: 'none',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        color: 'white',
+        fontSize: '24px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        zIndex: '10',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.2s ease',
+        touchAction: 'manipulation',
+        WebkitTapHighlightColor: 'transparent'
+      });
+    } else {
+      Object.assign(closeButton.style, {
+        position: 'absolute',
+        top: '10px',
+        right: '10px',
+        width: '30px',
+        height: '30px',
+        borderRadius: '50%',
+        border: 'none',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        color: '#666',
+        fontSize: '18px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        zIndex: '10',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.2s ease'
+      });
+    }
 
     closeButton.addEventListener('click', closeWidget);
-    closeButton.addEventListener('mouseenter', function() {
-      closeButton.style.backgroundColor = 'rgba(255, 255, 255, 1)';
-      closeButton.style.color = '#333';
-    });
-
-    closeButton.addEventListener('mouseleave', function() {
-      closeButton.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
-      closeButton.style.color = '#666';
-    });
+    
+    // Touch feedback for mobile
+    if (isMobile) {
+      closeButton.addEventListener('touchstart', function() {
+        closeButton.style.transform = 'scale(0.9)';
+        closeButton.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+      });
+      closeButton.addEventListener('touchend', function() {
+        closeButton.style.transform = 'scale(1)';
+        closeButton.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+      });
+    } else {
+      closeButton.addEventListener('mouseenter', function() {
+        closeButton.style.backgroundColor = 'rgba(255, 255, 255, 1)';
+        closeButton.style.color = '#333';
+      });
+      closeButton.addEventListener('mouseleave', function() {
+        closeButton.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+        closeButton.style.color = '#666';
+      });
+    }
 
     container.appendChild(iframe);
     container.appendChild(closeButton);
     overlay.appendChild(container);
 
-    // Close on overlay click
-    overlay.addEventListener('click', function(e) {
-      if (e.target === overlay) {
-        closeWidget();
-      }
-    });
+    // Close on overlay click (desktop only)
+    if (!isMobile) {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+          closeWidget();
+        }
+      });
+    }
 
     // Close on escape key
     document.addEventListener('keydown', function(e) {
@@ -331,8 +399,11 @@ function generateWidgetScript(config) {
         closeWidget();
       }
     });
+    
+    // Store mobile state for later use
+    overlay.dataset.isMobile = isMobile.toString();
 
-    return { overlay, container, iframe };
+    return { overlay, container, iframe, isMobile };
   }
 
   // Widget state
@@ -351,17 +422,24 @@ function generateWidgetScript(config) {
     isOpen = true;
     modal.overlay.style.display = 'block';
     
-    // Animate in
+    // Animate in with mobile-specific transforms
     requestAnimationFrame(() => {
       modal.overlay.style.opacity = '1';
-      modal.container.style.transform = 'translateX(-50%) scale(1)';
+      if (modal.isMobile) {
+        modal.container.style.transform = 'translateY(0)';
+      } else {
+        modal.container.style.transform = 'translateX(-50%) scale(1)';
+      }
     });
 
     // Track widget open
     trackEvent('widget_opened');
     
-    // Disable body scroll
+    // Disable body scroll and prevent iOS bounce
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = '-' + window.scrollY + 'px';
   }
 
   // Close widget
@@ -370,13 +448,30 @@ function generateWidgetScript(config) {
     
     isOpen = false;
     
-    // Animate out
+    // Store scroll position before closing
+    const scrollY = parseInt(document.body.style.top || '0') * -1;
+    
+    // Animate out with mobile-specific transforms
     modal.overlay.style.opacity = '0';
-    modal.container.style.transform = 'translateX(-50%) scale(0.9)';
+    if (modal.isMobile) {
+      modal.container.style.transform = 'translateY(100%)';
+    } else {
+      modal.container.style.transform = 'translateX(-50%) scale(0.9)';
+    }
     
     setTimeout(() => {
       modal.overlay.style.display = 'none';
+      
+      // Restore body scroll
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+      
+      // Restore scroll position
+      if (scrollY > 0) {
+        window.scrollTo(0, scrollY);
+      }
     }, 300);
 
     // Track widget close

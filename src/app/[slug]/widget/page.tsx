@@ -67,9 +67,9 @@ export default function WidgetPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4 safe-top safe-bottom">
         <Card className="w-full max-w-md">
-          <CardContent className="pt-6 text-center">
+          <CardContent className="pt-8 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
@@ -85,7 +85,7 @@ export default function WidgetPage() {
                 setEmail('');
               }}
               variant="outline"
-              className="w-full"
+              className="w-full min-touch-target tap-highlight-transparent"
             >
               Submit Another
             </Button>
@@ -96,24 +96,24 @@ export default function WidgetPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-3 sm:p-4 safe-top safe-bottom">
       <div className="max-w-md mx-auto">
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="pb-4">
+        <Card className="border-0 shadow-lg rounded-xl">
+          <CardHeader className="pb-4 px-4 sm:px-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">S</span>
+                <div className="w-10 h-10 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-base sm:text-sm font-bold">S</span>
                 </div>
                 <div>
-                  <CardTitle className="text-lg">Share Feedback</CardTitle>
-                  <CardDescription>Help us improve our product</CardDescription>
+                  <CardTitle className="text-base sm:text-lg">Share Feedback</CardTitle>
+                  <CardDescription className="text-sm">Help us improve our product</CardDescription>
                 </div>
               </div>
             </div>
           </CardHeader>
           
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="feedback" className="block text-sm font-medium text-gray-700 mb-2">
@@ -124,7 +124,8 @@ export default function WidgetPage() {
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   placeholder="Describe your feedback, bug report, or feature request..."
-                  className="min-h-[120px] resize-none mb-2"
+                  className="min-h-[120px] resize-none mb-2 text-base momentum-scroll"
+                  autoComplete="off"
                   required
                 />
                 
@@ -142,7 +143,7 @@ export default function WidgetPage() {
                   Category
                 </label>
                 <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
+                  <SelectTrigger className="min-touch-target">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -165,7 +166,9 @@ export default function WidgetPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                  autoComplete="email"
+                  inputMode="email"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   We'll only use this to follow up if needed
@@ -181,7 +184,7 @@ export default function WidgetPage() {
               <Button 
                 type="submit" 
                 disabled={!feedback.trim() || isSubmitting}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 active:scale-95 transition-transform min-touch-target tap-highlight-transparent"
               >
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">

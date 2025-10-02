@@ -422,10 +422,10 @@ export default function EnhancedDashboardPage() {
 
   if (loading || projectsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 safe-top safe-bottom">
         <GlobalBanner />
         <header className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Skeleton className="w-10 h-10 rounded-xl" />
@@ -442,11 +442,11 @@ export default function EnhancedDashboardPage() {
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto px-4 py-8">
-          <div className="space-y-6">
+        <main className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+          <div className="space-y-4 sm:space-y-6">
             <Skeleton className="h-32 w-full rounded-xl" />
             <Skeleton className="h-24 w-full rounded-xl" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-64 w-full rounded-xl" />
               ))}
@@ -463,11 +463,11 @@ export default function EnhancedDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 safe-top safe-bottom">
       <GlobalBanner />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
         {/* Enhanced Dashboard Layout */}
         {projects.length === 0 ? (
           <EnhancedEmptyState 
@@ -476,9 +476,9 @@ export default function EnhancedDashboardPage() {
             userPlan={userPlan}
           />
         ) : (
-          <div className="flex gap-8">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
             {/* Main Content */}
-            <div className="flex-1 space-y-6">
+            <div className="flex-1 space-y-4 sm:space-y-6 min-w-0">
               {/* Analytics Cards */}
               {analytics && (
                 <DashboardAnalytics 
@@ -506,8 +506,8 @@ export default function EnhancedDashboardPage() {
 
               {/* Projects Grid/List */}
               <div className={viewMode === 'grid' 
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
-                : "space-y-4"
+                ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6" 
+                : "space-y-3 sm:space-y-4"
               }>
                 {projects
                   .filter(project => {
@@ -574,12 +574,25 @@ export default function EnhancedDashboardPage() {
               </div>
                     </div>
 
-            {/* Quick Actions Sidebar */}
-            <QuickActionsSidebar
-              onCreateProject={() => router.push('/app/create')}
-              onCreateFromTemplate={handleCreateFromTemplate}
-              userPlan={userPlan}
-            />
+            {/* Quick Actions Sidebar - Hidden on mobile */}
+            <div className="hidden lg:block">
+              <QuickActionsSidebar
+                onCreateProject={() => router.push('/app/create')}
+                onCreateFromTemplate={handleCreateFromTemplate}
+                userPlan={userPlan}
+              />
+            </div>
+            
+            {/* Mobile Quick Action Button */}
+            <div className="lg:hidden fixed bottom-6 right-6 z-50 safe-bottom">
+              <Button
+                onClick={() => router.push('/app/create')}
+                size="lg"
+                className="rounded-full w-14 h-14 shadow-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 active:scale-90 transition-transform min-touch-target tap-highlight-transparent"
+              >
+                <Plus className="h-6 w-6" />
+              </Button>
+            </div>
           </div>
         )}
       </main>
