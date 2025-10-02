@@ -6,6 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { User } from '@supabase/supabase-js';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Menu, CreditCard, LogOut, X } from 'lucide-react';
 
 export default function GlobalBanner({ 
   projectSlug,
@@ -147,16 +155,18 @@ export default function GlobalBanner({
   if (loading) {
     return (
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 safe-top">
-        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
-          <div className="flex items-center justify-between gap-1">
-            <div className="flex items-center gap-1.5">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xs sm:text-sm">S</span>
+        <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">S</span>
               </div>
-              <span className="text-sm sm:text-lg font-bold text-gray-900 hidden sm:block">SignalsLoop</span>
+              <span className="text-base sm:text-xl font-bold text-gray-900 hidden sm:block">SignalsLoop</span>
             </div>
-            <div className="flex items-center gap-1">
-              <span className="text-gray-500 text-[10px] sm:text-xs">...</span>
+            <div className="flex items-center">
+              <div className="h-9 w-9 flex items-center justify-center">
+                <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-blue-600 rounded-full"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -166,71 +176,72 @@ export default function GlobalBanner({
 
   return (
     <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 safe-top">
-      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
-        <div className="flex items-center justify-between gap-1">
+      <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-4">
+        <div className="flex items-center justify-between gap-2">
           {/* Left side - Logo and branding */}
-          <div className="flex items-center gap-1.5 min-w-0 flex-shrink overflow-hidden">
+          <div className="flex items-center gap-2 min-w-0 overflow-hidden">
             {showBackButton && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push(backUrl)}
-                className="hidden sm:flex min-touch-target tap-highlight-transparent text-xs px-2"
+                className="hidden sm:flex min-touch-target tap-highlight-transparent"
               >
                 ← {backLabel}
               </Button>
             )}
-            <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-xs sm:text-sm">S</span>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-sm">S</span>
               </div>
-              <span className="text-sm sm:text-lg font-bold text-gray-900 truncate hidden sm:block">SignalsLoop</span>
+              <span className="text-base sm:text-xl font-bold text-gray-900 hidden sm:block">SignalsLoop</span>
               {projectSlug && (
-                <Badge variant="outline" className="hidden lg:inline-flex text-[10px] px-1.5 py-0">
+                <Badge variant="outline" className="hidden lg:inline-flex text-xs">
                   {projectSlug}
                 </Badge>
               )}
             </div>
           </div>
           
-          {/* Right side - Actions */}
-          <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Desktop Actions */}
+          <div className="hidden sm:flex items-center gap-2">
             {user ? (
               <>
                 {showBilling && billingInfo && (
                   <>
-                    {/* Plan Badge - Very compact */}
                     <Badge 
                       variant={billingInfo.plan === 'pro' ? 'default' : 'secondary'}
-                      className={`text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 ${billingInfo.plan === 'pro' ? 'bg-blue-600' : ''}`}
+                      className={`text-xs ${billingInfo.plan === 'pro' ? 'bg-blue-600' : ''}`}
                     >
-                      {billingInfo.plan === 'pro' ? 'Pro' : 'Free'}
+                      {billingInfo.is_trial ? 'Pro (Trial)' : `${billingInfo.plan.charAt(0).toUpperCase() + billingInfo.plan.slice(1)}`}
                     </Badge>
                     
-                    {/* Billing Button - Icon on smallest screens */}
-                    {!billingInfo.is_trial && (
+                    {billingInfo.is_trial ? (
+                      <Button 
+                        onClick={handleCancelTrial}
+                        variant="outline" 
+                        size="sm"
+                      >
+                        Cancel Trial
+                      </Button>
+                    ) : (
                       <Button 
                         onClick={handleManageBilling}
                         variant="outline" 
                         size="sm"
-                        className="tap-highlight-transparent text-[10px] sm:text-xs whitespace-nowrap px-1.5 sm:px-2 h-7 sm:h-8"
                       >
-                        <span className="hidden sm:inline">Bill</span>
-                        <span className="sm:hidden">💳</span>
+                        Manage Billing
                       </Button>
                     )}
                   </>
                 )}
                 
-                {/* Sign Out Button - Very compact */}
                 <Button 
                   onClick={handleSignOut} 
                   variant="ghost" 
                   size="sm"
-                  className="tap-highlight-transparent text-[10px] sm:text-xs whitespace-nowrap px-1.5 sm:px-2 h-7 sm:h-8"
                 >
-                  <span className="hidden sm:inline">Out</span>
-                  <span className="sm:hidden">👋</span>
+                  Sign Out
                 </Button>
               </>
             ) : (
@@ -238,7 +249,63 @@ export default function GlobalBanner({
                 onClick={() => router.push('/login')} 
                 variant="ghost" 
                 size="sm"
-                className="tap-highlight-transparent text-xs px-2"
+              >
+                Sign In
+              </Button>
+            )}
+          </div>
+
+          {/* Mobile Menu Dropdown */}
+          <div className="sm:hidden">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="h-9 w-9 p-0"
+                  >
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {showBilling && billingInfo && (
+                    <>
+                      <div className="px-2 py-1.5">
+                        <Badge 
+                          variant={billingInfo.plan === 'pro' ? 'default' : 'secondary'}
+                          className={`text-xs w-full justify-center ${billingInfo.plan === 'pro' ? 'bg-blue-600' : ''}`}
+                        >
+                          {billingInfo.plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
+                        </Badge>
+                      </div>
+                      <DropdownMenuSeparator />
+                      {billingInfo.is_trial ? (
+                        <DropdownMenuItem onClick={handleCancelTrial}>
+                          <X className="mr-2 h-4 w-4" />
+                          Cancel Trial
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem onClick={handleManageBilling}>
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Manage Billing
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                onClick={() => router.push('/login')} 
+                variant="ghost" 
+                size="sm"
+                className="text-sm"
               >
                 Sign In
               </Button>
