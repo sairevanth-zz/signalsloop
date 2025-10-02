@@ -4,8 +4,8 @@
 -- 1. Create email_preferences table
 CREATE TABLE IF NOT EXISTS email_preferences (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  email VARCHAR(255), -- For anonymous users
+  user_id UUID, -- Optional: for registered users
+  email VARCHAR(255), -- For anonymous users and as fallback
   
   -- Notification preferences
   status_change_emails BOOLEAN DEFAULT TRUE,
@@ -21,9 +21,8 @@ CREATE TABLE IF NOT EXISTS email_preferences (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   
-  -- Ensure one preference per user/email
-  UNIQUE(user_id),
-  UNIQUE(email)
+  -- At least one identifier must be provided
+  CHECK (user_id IS NOT NULL OR email IS NOT NULL)
 );
 
 -- 2. Create email_logs table
@@ -89,22 +88,21 @@ ALTER TABLE email_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE email_batches ENABLE ROW LEVEL SECURITY;
 
 -- 6. RLS Policies for email_preferences
--- Users can view and update their own preferences
+-- Service role can do anything (for API access)
+CREATE POLICY "Service role full access to email_preferences" ON email_preferences
+  FOR ALL USING (true) WITH CHECK (true);
+
+-- Users can view their own preferences if authenticated
 CREATE POLICY "Users can view own email preferences" ON email_preferences
   FOR SELECT USING (
-    auth.uid() = user_id OR 
-    email = auth.jwt()->>'email'
+    auth.uid() = user_id
   );
 
+-- Users can update their own preferences if authenticated
 CREATE POLICY "Users can update own email preferences" ON email_preferences
   FOR UPDATE USING (
-    auth.uid() = user_id OR 
-    email = auth.jwt()->>'email'
+    auth.uid() = user_id
   );
-
--- Anyone can create email preferences (for anonymous users)
-CREATE POLICY "Anyone can create email preferences" ON email_preferences
-  FOR INSERT WITH CHECK (true);
 
 -- 7. RLS Policies for email_logs (admin only)
 CREATE POLICY "Project owners can view email logs" ON email_logs
