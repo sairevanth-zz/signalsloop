@@ -419,6 +419,7 @@ export default function BoardPage() {
             </div>
             
             <div className="flex flex-wrap gap-2">
+              {/* Share Button */}
               <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 min-touch-target tap-highlight-transparent">
@@ -426,7 +427,7 @@ export default function BoardPage() {
                     <span className="hidden sm:inline">Share</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto momentum-scroll">
                   <DialogHeader>
                     <DialogTitle>Share {project?.name} Board</DialogTitle>
                   </DialogHeader>
@@ -441,6 +442,7 @@ export default function BoardPage() {
                 </DialogContent>
               </Dialog>
               
+              {/* Export Button */}
               <FeedbackExport
                 projectSlug={params?.slug as string}
                 projectName={project?.name || ''}
@@ -449,20 +451,25 @@ export default function BoardPage() {
                 totalVotes={posts.reduce((sum, post) => sum + (post.vote_count || 0), 0)}
               />
               
-              <Link href={`/${params?.slug}/roadmap`} className="hidden sm:block">
-                <Button variant="outline" className="flex items-center gap-1 min-touch-target">
+              {/* Roadmap Button - Visible on all devices */}
+              <Link href={`/${params?.slug}/roadmap`}>
+                <Button variant="outline" className="flex items-center gap-1 min-touch-target tap-highlight-transparent">
                   <Map className="w-4 h-4" />
                   <span className="hidden md:inline">Roadmap</span>
                 </Button>
               </Link>
+              
+              {/* Settings Button - Visible for logged-in users on all devices */}
               {user && (
-                <Link href={`/${params?.slug}/settings`} className="hidden sm:block">
-                  <Button variant="outline" className="flex items-center gap-1 min-touch-target">
+                <Link href={`/${params?.slug}/settings`}>
+                  <Button variant="outline" className="flex items-center gap-1 min-touch-target tap-highlight-transparent">
                     <Settings className="w-4 h-4" />
                     <span className="hidden md:inline">Settings</span>
                   </Button>
                 </Link>
               )}
+              
+              {/* AI Insights - Desktop only */}
               {user && posts.length > 0 && (
                 <Button 
                   variant="outline" 
@@ -473,13 +480,15 @@ export default function BoardPage() {
                   <span className="hidden md:inline">AI Insights</span>
                 </Button>
               )}
+              
+              {/* Submit Feedback Button - Primary CTA */}
               <Button 
                 onClick={() => setShowPostForm(true)}
                 className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform min-touch-target tap-highlight-transparent flex-1 sm:flex-initial"
               >
                 <Plus className="w-4 h-4 sm:mr-2" />
-                <span className="hidden xs:inline">Submit</span>
-                <span className="hidden sm:inline">Feedback</span>
+                <span className="sm:hidden">Submit</span>
+                <span className="hidden sm:inline">Submit Feedback</span>
               </Button>
             </div>
           </div>

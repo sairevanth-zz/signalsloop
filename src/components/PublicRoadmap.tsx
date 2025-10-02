@@ -32,6 +32,7 @@ import {
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import GlobalBanner from '@/components/GlobalBanner';
 
 interface Project {
   id: string;
@@ -346,58 +347,14 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header - Matching Dashboard Style */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.location.href = `/${project.slug}/board`}
-                className="mr-2"
-              >
-                ← Back to Board
-              </Button>
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
-              <Badge variant="outline" className="ml-2">
-                {project.slug}
-              </Badge>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Badge 
-                variant={project.plan === 'pro' ? 'default' : 'secondary'}
-                className={project.plan === 'pro' ? 'bg-blue-600' : ''}
-              >
-                {project.plan.charAt(0).toUpperCase() + project.plan.slice(1)} Plan
-              </Badge>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => window.location.href = '/app/billing'}
-              >
-                Manage Billing
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => {
-                  const supabase = getSupabaseClient();
-                  supabase.auth.signOut().then(() => {
-                    window.location.href = '/';
-                  });
-                }}
-              >
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Header - Using optimized GlobalBanner */}
+      <GlobalBanner 
+        projectSlug={project.slug}
+        showBilling={true}
+        showBackButton={true}
+        backUrl={`/${project.slug}/board`}
+        backLabel="Back to Board"
+      />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
