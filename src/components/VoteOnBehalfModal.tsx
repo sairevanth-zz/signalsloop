@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { X, UserPlus, Loader2, Building2, AlertCircle, Mail, User, FileText, Tag, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface VoteOnBehalfModalProps {
   isOpen: boolean;
@@ -84,10 +85,28 @@ export default function VoteOnBehalfModal({
     setLoading(true);
 
     try {
+      // Get the current user's session token
+      const supabase = getSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error('You must be logged in to vote on behalf of a customer');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Submitting vote with data:', {
+        postId,
+        projectId,
+        customerEmail: formData.customerEmail,
+        customerName: formData.customerName,
+      });
+
       const response = await fetch('/api/votes/on-behalf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           postId,
@@ -102,12 +121,16 @@ export default function VoteOnBehalfModal({
         }),
       });
 
+      console.log('API response status:', response.status);
+
       if (!response.ok) {
         const error = await response.json();
+        console.error('API error response:', error);
         throw new Error(error.error || 'Failed to submit vote');
       }
 
       const data = await response.json();
+      console.log('API success response:', data);
 
       toast.success(
         <div className="flex items-start gap-2">
