@@ -94,6 +94,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the vote
+    console.log('Creating vote with data:', {
+      post_id: postId,
+      voter_hash: voterHash.substring(0, 10) + '...',
+    });
+
     const { data: vote, error: voteError } = await supabase
       .from('votes')
       .insert({
@@ -105,9 +110,21 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (voteError || !vote) {
-      console.error('Error creating vote:', voteError);
-      return NextResponse.json({ error: 'Failed to create vote' }, { status: 500 });
+      console.error('❌ Error creating vote:', voteError);
+      console.error('Vote error details:', {
+        message: voteError?.message,
+        details: voteError?.details,
+        hint: voteError?.hint,
+        code: voteError?.code,
+      });
+      return NextResponse.json({ 
+        error: 'Failed to create vote',
+        details: voteError?.message,
+        hint: voteError?.hint 
+      }, { status: 500 });
     }
+
+    console.log('✅ Vote created successfully:', vote.id);
 
     // Create vote metadata
     const { data: metadata, error: metadataError } = await supabase
