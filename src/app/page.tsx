@@ -84,7 +84,7 @@ export default function Homepage() {
               <Link href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Pricing
               </Link>
-              <Link href="/demo/board" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors flex items-center gap-1">
+              <Link href="/demo/interactive" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors flex items-center gap-1">
                 🎯 Demo
               </Link>
               
@@ -102,7 +102,7 @@ export default function Homepage() {
             </nav>
             
             <div className="flex items-center space-x-2 md:space-x-4">
-              <Link href="/demo/board" className="md:hidden">
+              <Link href="/demo/interactive" className="md:hidden">
                 <Button variant="outline" className="text-xs min-h-[44px] px-3 border-purple-300 text-purple-700 font-semibold">
                   🎯 Demo
                 </Button>
@@ -181,12 +181,12 @@ export default function Homepage() {
               <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
             <div className="w-full sm:w-auto">
-              <Link href="/demo/board">
+              <Link href="/demo/interactive">
                 <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 md:px-10 py-3 sm:py-4 rounded-xl border-2 border-purple-300 hover:bg-purple-50 hover:border-purple-400 transition-all duration-200 min-h-[44px] w-full font-semibold text-purple-700 shadow-md hover:shadow-lg">
-                  🎯 View Live Demo
+                  🎯 Try Interactive Demo
                 </Button>
               </Link>
-              <p className="text-xs text-purple-600 font-medium mt-2 text-center">✨ No signup required • Try the roadmap</p>
+              <p className="text-xs text-purple-600 font-medium mt-2 text-center">✨ No signup • Try all AI features</p>
             </div>
           </div>
           
