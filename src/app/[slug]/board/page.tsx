@@ -378,32 +378,23 @@ export default function BoardPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            {/* Breadcrumb Navigation */}
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Link href="/app" className="hover:text-gray-900 flex items-center gap-1">
-                <Home className="w-4 h-4" />
-                Dashboard
+          {/* Breadcrumb Navigation - Mobile Optimized */}
+          <div className="mb-4">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-600 overflow-x-auto hide-scrollbar">
+              <Link href="/app" className="hover:text-gray-900 flex items-center gap-1 whitespace-nowrap">
+                <Home className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Dashboard</span>
               </Link>
-              <span>→</span>
-              <span>{project?.name}</span>
-              <span>→</span>
-              <span>Feedback Board</span>
+              <span className="flex-shrink-0">→</span>
+              <span className="truncate max-w-[100px] sm:max-w-none">{project?.name}</span>
+              <span className="hidden sm:inline flex-shrink-0">→</span>
+              <span className="hidden sm:inline whitespace-nowrap">Feedback Board</span>
             </div>
             
-            {/* User Actions */}
+            {/* User Email - Mobile: Hidden, shown in GlobalBanner dropdown */}
             {user && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">{user.email}</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="flex items-center gap-1"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </Button>
+              <div className="hidden sm:flex items-center gap-2 mt-2">
+                <span className="text-sm text-gray-600 truncate">{user.email}</span>
               </div>
             )}
           </div>
@@ -484,11 +475,10 @@ export default function BoardPage() {
               {/* Submit Feedback Button - Primary CTA */}
               <Button 
                 onClick={() => setShowPostForm(true)}
-                className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform min-touch-target tap-highlight-transparent flex-1 sm:flex-initial"
+                className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform min-touch-target tap-highlight-transparent whitespace-nowrap px-3 sm:px-4"
               >
-                <Plus className="w-4 h-4 sm:mr-2" />
-                <span className="sm:hidden">Submit</span>
-                <span className="hidden sm:inline">Submit Feedback</span>
+                <Plus className="w-4 h-4 mr-1.5 sm:mr-2" />
+                <span>Submit</span>
               </Button>
             </div>
           </div>
@@ -675,10 +665,10 @@ export default function BoardPage() {
                         </p>
                       )}
 
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-gray-500">
                         <div className="flex items-center gap-1">
-                          <User className="w-4 h-4" />
-                          <span>
+                          <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                          <span className="truncate max-w-[80px] sm:max-w-[120px]">
                             {post.author_email ? 
                               post.author_email.split('@')[0] : 
                               'Anonymous'
@@ -686,16 +676,21 @@ export default function BoardPage() {
                           </span>
                         </div>
                         
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
+                        <div className="flex items-center gap-1 whitespace-nowrap">
+                          <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                           <span>
-                            {new Date(post.created_at).toLocaleDateString()}
+                            {new Date(post.created_at).toLocaleDateString('en-US', { 
+                              month: 'numeric', 
+                              day: 'numeric',
+                              year: '2-digit'
+                            })}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="w-4 h-4" />
-                          <span>{post.comment_count} comments</span>
+                        <div className="flex items-center gap-1 whitespace-nowrap">
+                          <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                          <span>{post.comment_count}</span>
+                          <span className="hidden sm:inline">comments</span>
                         </div>
                       </div>
                     </div>
