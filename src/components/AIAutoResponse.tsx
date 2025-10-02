@@ -117,10 +117,18 @@ export default function AIAutoResponse({
     try {
       setIsPosting(true);
 
+      // Get auth token
+      const { getSupabaseClient } = await import('@/lib/supabase-client');
+      const supabase = getSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      console.log('Posting AI response:', { postId, adminName, responseLength: response.length });
+
       const res = await fetch(`/api/posts/${postId}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
         },
         body: JSON.stringify({
           content: response,
@@ -129,16 +137,30 @@ export default function AIAutoResponse({
         }),
       });
 
+      console.log('Response status:', res.status);
+
       if (!res.ok) {
-        throw new Error('Failed to post response');
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Error response:', errorData);
+        throw new Error(errorData.error || 'Failed to post response');
       }
 
+      const data = await res.json();
+      console.log('Success response:', data);
+
       toast.success('Response posted successfully!');
+      
+      // Clear the form
+      setResponse('');
+      setAdminName('');
+      setHasGenerated(false);
+      
+      // Refresh comments
       onResponsePosted?.();
       
     } catch (error) {
       console.error('Error posting response:', error);
-      toast.error('Failed to post response');
+      toast.error(error instanceof Error ? error.message : 'Failed to post response');
     } finally {
       setIsPosting(false);
     }
@@ -212,7 +234,7 @@ export default function AIAutoResponse({
               className="h-8 text-xs"
             >
               <RefreshCw className={`h-3 w-3 mr-1 ${isGenerating ? 'animate-spin' : ''}`} />
-              Regenerate
+              {hasGenerated ? 'Regenerate' : 'Generate'}
             </Button>
           </div>
         </div>
