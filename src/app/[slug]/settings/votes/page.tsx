@@ -57,36 +57,50 @@ export default function VotesAdminPage() {
       setProjectId(project.id);
 
       // Get all vote metadata for this project
-      const { data: votesData, error } = await supabase
-        .from('vote_metadata')
-        .select(`
-          *,
-          votes!inner(
-            post_id,
-            posts!inner(
-              id,
-              title,
-              project_id
-            )
-          )
-        `)
-        .eq('votes.posts.project_id', project.id)
-        .order('created_at', { ascending: false });
+      // First get all votes with their post IDs
+      const { data: votesWithPosts, error: votesError } = await supabase
+        .from('votes')
+        .select('id, post_id, posts!inner(id, title, project_id)')
+        .eq('posts.project_id', project.id);
 
-      if (error) {
-        console.error('Error loading votes:', error);
+      if (votesError) {
+        console.error('Error loading votes:', votesError);
         toast.error('Failed to load votes');
         return;
       }
 
-      // Transform the data
-      const transformedVotes = votesData.map((vote: any) => ({
-        ...vote,
-        post: {
-          id: vote.votes.posts.id,
-          title: vote.votes.posts.title,
-        },
-      }));
+      if (!votesWithPosts || votesWithPosts.length === 0) {
+        setVotes([]);
+        return;
+      }
+
+      // Get vote IDs
+      const voteIds = votesWithPosts.map((v: any) => v.id);
+
+      // Get vote metadata for these votes
+      const { data: votesData, error } = await supabase
+        .from('vote_metadata')
+        .select('*')
+        .in('vote_id', voteIds)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading vote metadata:', error);
+        toast.error('Failed to load vote metadata');
+        return;
+      }
+
+      // Transform the data by joining with posts
+      const transformedVotes = (votesData || []).map((vote: any) => {
+        const voteWithPost = votesWithPosts.find((v: any) => v.id === vote.vote_id);
+        return {
+          ...vote,
+          post: {
+            id: voteWithPost?.posts?.id || '',
+            title: voteWithPost?.posts?.title || 'Unknown Post',
+          },
+        };
+      });
 
       setVotes(transformedVotes);
     } catch (error) {
