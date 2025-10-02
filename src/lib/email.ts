@@ -862,3 +862,127 @@ export async function sendPostConfirmationEmail(params: SendPostConfirmationEmai
   }
 }
 
+// ==================== TEMPLATE 4: Vote on Behalf Notification ====================
+
+interface SendVoteOnBehalfEmailParams {
+  customerEmail: string;
+  customerName: string;
+  postTitle: string;
+  postId: string;
+  projectSlug: string;
+  projectName: string;
+  adminName: string;
+}
+
+export async function sendVoteOnBehalfEmail(params: SendVoteOnBehalfEmailParams) {
+  const {
+    customerEmail,
+    customerName,
+    postTitle,
+    postId,
+    projectSlug,
+    projectName,
+    adminName,
+  } = params;
+
+  const postUrl = `${APP_URL}/${projectSlug}/board?post=${postId}`;
+
+  const content = `
+    <!-- Header -->
+    <tr>
+      <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 12px 12px 0 0;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">🗳️ Your Request Was Submitted</h1>
+      </td>
+    </tr>
+    
+    <!-- Content -->
+    <tr>
+      <td style="padding: 40px;">
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
+          Hi${customerName ? ` ${customerName}` : ''},
+        </p>
+        
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
+          Good news! ${adminName} from ${projectName} has submitted a feature request on your behalf.
+        </p>
+        
+        <div style="margin: 30px 0; padding: 25px; background-color: #f9fafb; border-radius: 8px; border-left: 4px solid #3b82f6;">
+          <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">
+            Feature Request
+          </p>
+          <p style="margin: 0; font-size: 18px; font-weight: 600; color: #111827;">
+            ${postTitle}
+          </p>
+        </div>
+        
+        <div style="margin: 30px 0; padding: 20px; background-color: #dbeafe; border-radius: 8px;">
+          <p style="margin: 0 0 10px; font-size: 16px; font-weight: 600; color: #111827;">
+            💬 Want to add more details?
+          </p>
+          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #374151;">
+            You can view this request, add comments with more context, and follow updates. Your input helps us build the right features!
+          </p>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${postUrl}" style="display: inline-block; padding: 14px 32px; background-color: #3b82f6; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            View Request & Add Comments
+          </a>
+        </div>
+        
+        <div style="margin: 30px 0; padding: 20px; background-color: #f3f4f6; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <p style="margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #111827;">
+            📊 What happens next?
+          </p>
+          <ul style="margin: 0; padding-left: 20px; color: #374151; font-size: 13px; line-height: 1.8;">
+            <li>We'll review and prioritize based on customer feedback</li>
+            <li>You'll get email updates when the status changes</li>
+            <li>You can vote and comment to show your support</li>
+          </ul>
+        </div>
+      </td>
+    </tr>
+    
+    <!-- Footer -->
+    <tr>
+      <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+        <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+          Questions? Contact us at <a href="mailto:support@signalsloop.com" style="color: #3b82f6; text-decoration: none;">support@signalsloop.com</a>
+        </p>
+        <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+          © 2025 SignalsLoop. All rights reserved.
+        </p>
+      </td>
+    </tr>
+  `;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'SignalsLoop <noreply@signalsloop.com>',
+      to: [customerEmail],
+      subject: `Your team submitted a feature request: ${postTitle}`,
+      html: getEmailTemplate(content),
+    });
+
+    if (error) {
+      console.error('Error sending vote on behalf email:', error);
+      throw error;
+    }
+
+    // Log email
+    await logEmail({
+      emailType: 'vote_on_behalf',
+      toEmail: customerEmail,
+      subject: `Your team submitted a feature request: ${postTitle}`,
+      postId,
+      resendId: data?.id,
+      metadata: { adminName, projectName },
+    });
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Failed to send vote on behalf email:', error);
+    throw error;
+  }
+}
+
