@@ -20,13 +20,15 @@ import {
   ArrowLeft,
   Twitter,
   Facebook,
-  Link as LinkIcon
+  Link as LinkIcon,
+  UserPlus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import AIWritingAssistant from './AIWritingAssistant';
 import AIPostIntelligence from './AIPostIntelligence';
 import AIAutoResponse from './AIAutoResponse';
+import VoteOnBehalfModal from './VoteOnBehalfModal';
 
 interface Project {
   id: string;
@@ -72,12 +74,30 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const [replyName, setReplyName] = useState('');
   const [replyEmail, setReplyEmail] = useState('');
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
+  const [isVoteOnBehalfModalOpen, setIsVoteOnBehalfModalOpen] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
   // Load voted status from localStorage
   useEffect(() => {
     const voted = JSON.parse(localStorage.getItem(`voted_posts_${project.id}`) || '[]');
     setHasVoted(voted.includes(post.id));
   }, [post.id, project.id]);
+
+  // Check if current user is project owner
+  useEffect(() => {
+    const checkOwner = async () => {
+      try {
+        const response = await fetch(`/api/projects/${project.slug}/owner`);
+        if (response.ok) {
+          const data = await response.json();
+          setIsOwner(data.isOwner);
+        }
+      } catch (error) {
+        console.error('Failed to check owner status:', error);
+      }
+    };
+    checkOwner();
+  }, [project.slug]);
 
   // Load comments function
   const loadComments = async () => {
@@ -376,7 +396,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                   )}
                   </div>
                   
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center gap-3">
                     <Button
                       variant={hasVoted ? "default" : "outline"}
                       size="lg"
@@ -393,7 +413,20 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                       <span className="text-lg font-bold">{voteCount}</span>
                 </div>
                     </Button>
-                  <span className="text-xs text-gray-500 mt-1">votes</span>
+                  <span className="text-xs text-gray-500">votes</span>
+                  
+                  {/* Vote on Behalf Button (Admin Only) */}
+                  {isOwner && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsVoteOnBehalfModalOpen(true)}
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50 hover:border-purple-400 transition-all"
+                    >
+                      <UserPlus className="h-4 w-4 mr-1.5" />
+                      Vote on Behalf
+                    </Button>
+                  )}
                   </div>
                 </div>
               </CardContent>
@@ -686,6 +719,19 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
             </Card>
         </div>
       </main>
+
+      {/* Vote on Behalf Modal */}
+      <VoteOnBehalfModal
+        isOpen={isVoteOnBehalfModalOpen}
+        onClose={() => setIsVoteOnBehalfModalOpen(false)}
+        postId={post.id}
+        postTitle={post.title}
+        projectId={project.id}
+        onSuccess={() => {
+          setVoteCount(prev => prev + 1);
+          loadComments(); // Reload in case auto-response was posted
+        }}
+      />
     </div>
   );
 }
