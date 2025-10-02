@@ -42,7 +42,7 @@ export async function sendGiftNotificationEmail({
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'SignalsLoop <noreply@signalsloop.com>',
+      from: 'SignalsLoop <onboarding@resend.dev>',
       to: [recipientEmail],
       subject: `🎁 You've received a ${durationMonths}-month Pro subscription gift!`,
       html: `
@@ -166,7 +166,7 @@ export async function sendGiftClaimedEmail({
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'SignalsLoop <noreply@signalsloop.com>',
+      from: 'SignalsLoop <onboarding@resend.dev>',
       to: [senderEmail],
       subject: `🎉 Your gift has been claimed!`,
       html: `

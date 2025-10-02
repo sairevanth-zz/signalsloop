@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
       .insert({
         recipient_email: recipient_email.toLowerCase(),
         recipient_name,
-        sender_email: sender_email?.toLowerCase(),
-        sender_name,
+        gifter_email: sender_email?.toLowerCase() || 'admin@signalsloop.com',
+        sender_name: sender_name || 'SignalsLoop Admin',
         gift_message,
         duration_months: parseInt(duration_months),
         redemption_code,
