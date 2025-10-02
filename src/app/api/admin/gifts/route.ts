@@ -83,11 +83,11 @@ export async function POST(request: NextRequest) {
     try {
       await sendGiftNotificationEmail({
         recipientEmail: recipient_email,
-        recipientName,
-        senderName,
+        recipientName: recipient_name,
+        senderName: sender_name || 'SignalsLoop Admin',
         giftMessage: gift_message,
         durationMonths: parseInt(duration_months),
-        redemptionCode,
+        redemptionCode: redemption_code,
         expiresAt: newGift.expires_at,
         giftId: newGift.id
       });
