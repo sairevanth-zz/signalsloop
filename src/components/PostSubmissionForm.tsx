@@ -249,9 +249,9 @@ export default function PostSubmissionForm({
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex flex-col safe-top safe-bottom">
       <div className="bg-black/50 backdrop-blur-sm flex-1 flex items-start sm:items-center justify-center sm:p-4">
-        <div className="bg-white sm:rounded-lg shadow-xl w-full max-w-2xl h-full sm:h-auto sm:max-h-[calc(100vh-2rem)] overflow-y-auto momentum-scroll">
-        <Card className="border-0 shadow-none rounded-none sm:rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 sticky top-0 bg-white z-10 border-b sm:border-b-0">
+        <div className="bg-white sm:rounded-lg shadow-xl w-full max-w-2xl flex flex-col h-full sm:h-auto sm:max-h-[calc(100vh-2rem)]">
+        <Card className="border-0 shadow-none rounded-none sm:rounded-lg flex flex-col h-full overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 flex-shrink-0 bg-white z-10 border-b sm:border-b-0">
             <div className="flex-1 mr-2">
               <CardTitle className="text-lg sm:text-xl">Submit Feedback</CardTitle>
               <p className="text-xs sm:text-sm text-gray-600 mt-1">
@@ -268,7 +268,7 @@ export default function PostSubmissionForm({
             </Button>
           </CardHeader>
 
-          <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6 pb-6 sm:pb-8">
+          <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6 pb-6 sm:pb-8 overflow-y-auto momentum-scroll flex-1">
             {isSuccess ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -498,7 +498,7 @@ export default function PostSubmissionForm({
                 </div>
 
                 {/* Submit Button */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-4 sticky bottom-0 bg-white pb-4 sm:pb-0 -mx-4 sm:mx-0 px-4 sm:px-0 border-t sm:border-t-0 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t mt-6">
                   <Button
                     type="button"
                     variant="outline"
