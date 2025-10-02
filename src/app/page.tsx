@@ -84,8 +84,8 @@ export default function Homepage() {
               <Link href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Pricing
               </Link>
-              <Link href="/demo/board" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Demo
+              <Link href="/demo/board" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors flex items-center gap-1">
+                🎯 Demo
               </Link>
               
               {/* Subtle Header Trust Signals */}
@@ -102,17 +102,22 @@ export default function Homepage() {
             </nav>
             
             <div className="flex items-center space-x-2 md:space-x-4">
+              <Link href="/demo/board" className="md:hidden">
+                <Button variant="outline" className="text-xs min-h-[44px] px-3 border-purple-300 text-purple-700 font-semibold">
+                  🎯 Demo
+                </Button>
+              </Link>
               <Link href="/login">
                 <Button variant="ghost" className="text-sm md:text-base min-h-[44px] px-3 md:px-4">Sign In</Button>
               </Link>
               <div className="text-center">
                 <Button 
                   onClick={handleProCheckout}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl px-6 md:px-8 py-3 text-sm md:text-base min-h-[44px]"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl px-4 md:px-8 py-3 text-xs md:text-base min-h-[44px]"
                 >
                   Start Free
                 </Button>
-                <p className="text-xs text-gray-500 mt-1">✓ Free forever plan available</p>
+                <p className="text-xs text-gray-500 mt-1 hidden md:block">✓ Free forever plan available</p>
               </div>
             </div>
           </div>
@@ -177,11 +182,11 @@ export default function Homepage() {
             </Button>
             <div className="w-full sm:w-auto">
               <Link href="/demo/board">
-                <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 md:px-10 py-3 sm:py-4 rounded-xl border-2 hover:bg-gray-50 transition-all duration-200 min-h-[44px] w-full">
-                  View Live Demo
+                <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 md:px-10 py-3 sm:py-4 rounded-xl border-2 border-purple-300 hover:bg-purple-50 hover:border-purple-400 transition-all duration-200 min-h-[44px] w-full font-semibold text-purple-700 shadow-md hover:shadow-lg">
+                  🎯 Try Interactive Demo
                 </Button>
               </Link>
-              <p className="text-xs text-gray-500 mt-2 text-center">See results in 30 seconds</p>
+              <p className="text-xs text-purple-600 font-medium mt-2 text-center">✨ No signup required • Explore all features</p>
             </div>
           </div>
           
