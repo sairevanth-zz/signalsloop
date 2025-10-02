@@ -132,7 +132,8 @@ export default function AIAutoResponse({
         },
         body: JSON.stringify({
           content: response,
-          author_name: adminName,
+          name: adminName,
+          email: session?.user?.email || null,
           parent_id: null
         }),
       });
