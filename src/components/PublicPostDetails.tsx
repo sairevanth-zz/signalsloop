@@ -93,15 +93,20 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
           credentials: 'include',
         });
         console.log('📡 API response status:', response.status);
-        if (response.ok) {
-          const data = await response.json();
-          console.log('✅ API response data:', data);
-          setIsOwner(data.isOwner);
-          console.log('👤 isOwner state set to:', data.isOwner);
-        } else {
-          console.log('❌ API response not OK');
-          const errorData = await response.json().catch(() => ({}));
-          console.log('Error data:', errorData);
+        const data = await response.json();
+        console.log('✅ API response data:', data);
+        
+        // Log all cookies to help debug
+        console.log('🍪 Browser cookies:', document.cookie);
+        
+        setIsOwner(data.isOwner);
+        console.log('👤 isOwner state set to:', data.isOwner);
+        
+        if (!data.isOwner && data.debug) {
+          console.log('⚠️ Debug reason:', data.debug);
+          if (data.error) {
+            console.log('⚠️ Error details:', data.error);
+          }
         }
       } catch (error) {
         console.error('❌ Failed to check owner status:', error);
