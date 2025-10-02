@@ -102,35 +102,44 @@ export default function VoteOnBehalfModal({
         customerName: formData.customerName,
       });
 
-      const response = await fetch('/api/votes/on-behalf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          postId,
-          projectId,
-          customerEmail: formData.customerEmail.toLowerCase().trim(),
-          customerName: formData.customerName.trim(),
-          customerCompany: formData.customerCompany.trim() || null,
-          priority: formData.priority,
-          voteSource: formData.voteSource,
-          internalNote: formData.internalNote.trim() || null,
-          notifyCustomer: formData.notifyCustomer,
-        }),
-      });
+      console.log('Sending request to /api/votes/on-behalf...');
 
-      console.log('API response status:', response.status);
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      if (!response.ok) {
-        const error = await response.json();
-        console.error('API error response:', error);
-        throw new Error(error.error || 'Failed to submit vote');
-      }
+      try {
+        const response = await fetch('/api/votes/on-behalf', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            postId,
+            projectId,
+            customerEmail: formData.customerEmail.toLowerCase().trim(),
+            customerName: formData.customerName.trim(),
+            customerCompany: formData.customerCompany.trim() || null,
+            priority: formData.priority,
+            voteSource: formData.voteSource,
+            internalNote: formData.internalNote.trim() || null,
+            notifyCustomer: formData.notifyCustomer,
+          }),
+          signal: controller.signal,
+        });
 
-      const data = await response.json();
-      console.log('API success response:', data);
+        clearTimeout(timeoutId);
+        console.log('✅ Response received! Status:', response.status);
+
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('❌ API error response:', error);
+          throw new Error(error.error || 'Failed to submit vote');
+        }
+
+        const data = await response.json();
+        console.log('✅ API success response:', data);
 
       toast.success(
         <div className="flex items-start gap-2">
@@ -147,13 +156,26 @@ export default function VoteOnBehalfModal({
         { duration: 5000 }
       );
 
-      onSuccess?.();
-      handleClose();
+        onSuccess?.();
+        handleClose();
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          console.error('❌ Request timed out after 30 seconds');
+          throw new Error('Request timed out. Please try again.');
+        }
+        throw fetchError;
+      }
     } catch (error) {
-      console.error('Error submitting vote:', error);
+      console.error('❌ Error submitting vote:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       toast.error(error instanceof Error ? error.message : 'Failed to submit vote');
     } finally {
       setLoading(false);
+      console.log('✅ Form submission complete, loading state reset');
     }
   };
 
