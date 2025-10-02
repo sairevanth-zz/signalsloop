@@ -147,16 +147,16 @@ export default function GlobalBanner({
   if (loading) {
     return (
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 safe-top">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
+        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
+          <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center gap-1.5">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-xs sm:text-sm">S</span>
               </div>
-              <span className="text-base sm:text-xl font-bold text-gray-900">SignalsLoop</span>
+              <span className="text-sm sm:text-lg font-bold text-gray-900 hidden sm:block">SignalsLoop</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-xs sm:text-sm">Loading...</span>
+            <div className="flex items-center gap-1">
+              <span className="text-gray-500 text-[10px] sm:text-xs">...</span>
             </div>
           </div>
         </div>
@@ -166,27 +166,27 @@ export default function GlobalBanner({
 
   return (
     <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 safe-top">
-      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-        <div className="flex items-center justify-between gap-2">
+      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
+        <div className="flex items-center justify-between gap-1">
           {/* Left side - Logo and branding */}
-          <div className="flex items-center gap-2 min-w-0 flex-shrink">
+          <div className="flex items-center gap-1.5 min-w-0 flex-shrink overflow-hidden">
             {showBackButton && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push(backUrl)}
-                className="hidden sm:flex min-touch-target tap-highlight-transparent"
+                className="hidden sm:flex min-touch-target tap-highlight-transparent text-xs px-2"
               >
                 ← {backLabel}
               </Button>
             )}
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-sm">S</span>
+            <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-xs sm:text-sm">S</span>
               </div>
-              <span className="text-base sm:text-xl font-bold text-gray-900 truncate hidden xs:block">SignalsLoop</span>
+              <span className="text-sm sm:text-lg font-bold text-gray-900 truncate hidden sm:block">SignalsLoop</span>
               {projectSlug && (
-                <Badge variant="outline" className="hidden md:inline-flex text-xs">
+                <Badge variant="outline" className="hidden lg:inline-flex text-[10px] px-1.5 py-0">
                   {projectSlug}
                 </Badge>
               )}
@@ -194,57 +194,43 @@ export default function GlobalBanner({
           </div>
           
           {/* Right side - Actions */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0">
             {user ? (
               <>
                 {showBilling && billingInfo && (
                   <>
-                    {/* Plan Badge - Compact on mobile */}
+                    {/* Plan Badge - Very compact */}
                     <Badge 
                       variant={billingInfo.plan === 'pro' ? 'default' : 'secondary'}
-                      className={`text-xs ${billingInfo.plan === 'pro' ? 'bg-blue-600' : ''}`}
+                      className={`text-[10px] sm:text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 ${billingInfo.plan === 'pro' ? 'bg-blue-600' : ''}`}
                     >
-                      <span className="hidden sm:inline">
-                        {billingInfo.is_trial ? 'Pro (Trial)' : `${billingInfo.plan.charAt(0).toUpperCase() + billingInfo.plan.slice(1)}`}
-                      </span>
-                      <span className="sm:hidden">
-                        {billingInfo.plan === 'pro' ? 'Pro' : 'Free'}
-                      </span>
+                      {billingInfo.plan === 'pro' ? 'Pro' : 'Free'}
                     </Badge>
                     
-                    {/* Billing Button */}
-                    {billingInfo.is_trial ? (
-                      <Button 
-                        onClick={handleCancelTrial}
-                        variant="outline" 
-                        size="sm"
-                        className="hidden sm:flex min-touch-target"
-                      >
-                        Cancel Trial
-                      </Button>
-                    ) : (
+                    {/* Billing Button - Icon on smallest screens */}
+                    {!billingInfo.is_trial && (
                       <Button 
                         onClick={handleManageBilling}
                         variant="outline" 
                         size="sm"
-                        className="min-touch-target tap-highlight-transparent text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4"
+                        className="tap-highlight-transparent text-[10px] sm:text-xs whitespace-nowrap px-1.5 sm:px-2 h-7 sm:h-8"
                       >
-                        <span className="hidden sm:inline">Manage Billing</span>
-                        <span className="sm:hidden">Billing</span>
+                        <span className="hidden sm:inline">Bill</span>
+                        <span className="sm:hidden">💳</span>
                       </Button>
                     )}
                   </>
                 )}
                 
-                {/* Sign Out Button */}
+                {/* Sign Out Button - Very compact */}
                 <Button 
                   onClick={handleSignOut} 
                   variant="ghost" 
                   size="sm"
-                  className="min-touch-target tap-highlight-transparent text-xs sm:text-sm whitespace-nowrap px-2 sm:px-3"
+                  className="tap-highlight-transparent text-[10px] sm:text-xs whitespace-nowrap px-1.5 sm:px-2 h-7 sm:h-8"
                 >
-                  <span className="hidden sm:inline">Sign Out</span>
-                  <span className="sm:hidden">Out</span>
+                  <span className="hidden sm:inline">Out</span>
+                  <span className="sm:hidden">👋</span>
                 </Button>
               </>
             ) : (
@@ -252,7 +238,7 @@ export default function GlobalBanner({
                 onClick={() => router.push('/login')} 
                 variant="ghost" 
                 size="sm"
-                className="min-touch-target tap-highlight-transparent"
+                className="tap-highlight-transparent text-xs px-2"
               >
                 Sign In
               </Button>

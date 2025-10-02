@@ -247,13 +247,13 @@ export default function PostSubmissionForm({
   if (!isOpen || !mounted) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 z-[9999] flex flex-col safe-top safe-bottom">
-      <div className="bg-black/50 backdrop-blur-sm flex-1 flex items-start sm:items-center justify-center sm:p-4">
-        <div className="bg-white sm:rounded-lg shadow-xl w-full max-w-2xl flex flex-col h-full sm:h-auto sm:max-h-[calc(100vh-2rem)]">
-        <Card className="border-0 shadow-none rounded-none sm:rounded-lg flex flex-col h-full overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 flex-shrink-0 bg-white z-10 border-b sm:border-b-0">
-            <div className="flex-1 mr-2">
-              <CardTitle className="text-lg sm:text-xl">Submit Feedback</CardTitle>
+    <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm">
+      <div className="h-full flex items-start sm:items-center justify-center sm:p-4">
+        <div className="bg-white w-full max-w-2xl h-full sm:h-auto sm:max-h-[90vh] sm:rounded-lg shadow-xl flex flex-col">
+          {/* Fixed Header */}
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b flex-shrink-0 bg-white">
+            <div className="flex-1 pr-4">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Submit Feedback</h2>
               <p className="text-xs sm:text-sm text-gray-600 mt-1">
                 Help us improve by sharing your thoughts and ideas
               </p>
@@ -262,13 +262,22 @@ export default function PostSubmissionForm({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="min-touch-target tap-highlight-transparent flex-shrink-0"
+              className="min-touch-target tap-highlight-transparent flex-shrink-0 -mr-2"
             >
               <X className="h-5 w-5" />
             </Button>
-          </CardHeader>
+          </div>
 
-          <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6 pb-6 sm:pb-8 overflow-y-auto momentum-scroll flex-1">
+          {/* Scrollable Content */}
+          <div 
+            className="flex-1 overflow-y-auto p-4 sm:p-6"
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain'
+            }}
+          >
+            <Card className="border-0 shadow-none">
+              <CardContent className="p-0 space-y-4 sm:space-y-6">
             {isSuccess ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -527,8 +536,9 @@ export default function PostSubmissionForm({
                 </div>
               </form>
             )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
