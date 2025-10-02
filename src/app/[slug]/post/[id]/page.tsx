@@ -114,7 +114,7 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
     // Get post details
     const { data: post, error: postError } = await supabase
       .from('posts')
-      .select('id, title, status, created_at, author_email, project_id')
+      .select('id, title, description, status, created_at, author_email, author_name, project_id, category')
       .eq('id', id)
       .eq('project_id', project.id)
       .single();
@@ -131,15 +131,13 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
     
     const enrichedPost = {
       ...post,
-      description: 'good to have. test.',
-      category: 'Feature',
       vote_count: voteCount || 0
     };
 
     // Get related posts
     const { data: relatedPosts } = await supabase
       .from('posts')
-      .select('id, title, status, created_at, author_email')
+      .select('id, title, description, status, created_at, author_email, author_name, category')
       .eq('project_id', project.id)
       .eq('status', 'open')
       .neq('id', post.id)
@@ -153,8 +151,6 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
         .eq('post_id', rp.id);
       return {
         ...rp,
-        description: '',
-        category: 'Feature',
         vote_count: count || 0
       };
     }));
