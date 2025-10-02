@@ -106,6 +106,7 @@ export default function BoardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('votes');
   const [showPostForm, setShowPostForm] = useState(false);
   const [showAIInsights, setShowAIInsights] = useState(false);
@@ -114,16 +115,19 @@ export default function BoardPage() {
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [priorityVoteCounts, setPriorityVoteCounts] = useState({ must_have: 0, important: 0, nice_to_have: 0 });
 
   // Initialize filters from URL parameters
   useEffect(() => {
     const status = searchParams?.get('status') || 'all';
     const category = searchParams?.get('category') || 'all';
+    const priority = searchParams?.get('priority') || 'all';
     const sort = searchParams?.get('sort') || 'votes';
     const search = searchParams?.get('search') || '';
 
     setStatusFilter(status);
     setCategoryFilter(category);
+    setPriorityFilter(priority);
     setSortBy(sort);
     setSearchTerm(search);
   }, [searchParams]);
@@ -153,6 +157,11 @@ export default function BoardPage() {
   const handleCategoryFilterChange = (value: string) => {
     setCategoryFilter(value);
     updateURL({ category: value });
+  };
+
+  const handlePriorityFilterChange = (value: string) => {
+    setPriorityFilter(value);
+    updateURL({ priority: value });
   };
 
   const handleSortChange = (value: string) => {
@@ -527,6 +536,43 @@ export default function BoardPage() {
                 <SelectItem value="declined">Declined</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Priority Filter - Owner Only */}
+            {user && (
+              <Select value={priorityFilter} onValueChange={handlePriorityFilterChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Priority votes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">
+                    <div className="flex items-center gap-2">
+                      <span>All Priorities</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="must_have">
+                    <div className="flex items-center gap-2">
+                      <span className="text-red-600">🔴</span>
+                      <span>Must Have</span>
+                      <span className="text-gray-500 text-sm">({priorityVoteCounts.must_have})</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="important">
+                    <div className="flex items-center gap-2">
+                      <span className="text-orange-600">🟠</span>
+                      <span>Important</span>
+                      <span className="text-gray-500 text-sm">({priorityVoteCounts.important})</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="nice_to_have">
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-600">🟢</span>
+                      <span>Nice to Have</span>
+                      <span className="text-gray-500 text-sm">({priorityVoteCounts.nice_to_have})</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            )}
 
             {/* Sort */}
             <Select value={sortBy} onValueChange={handleSortChange}>

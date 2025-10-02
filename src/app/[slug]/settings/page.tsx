@@ -20,7 +20,8 @@ import {
   Upload,
   Download,
   Globe,
-  FileText
+  FileText,
+  UserPlus
 } from 'lucide-react';
 
 interface Project {
@@ -152,7 +153,7 @@ export default function SettingsPage() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-2 mb-6">
-            <TabsList className="grid w-full grid-cols-7 bg-transparent">
+            <TabsList className="grid w-full grid-cols-8 bg-transparent">
               <TabsTrigger 
                 value="api-keys" 
                 className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
@@ -173,6 +174,13 @@ export default function SettingsPage() {
               >
                 <Globe className="w-4 h-4" />
                 Custom Domain
+              </TabsTrigger>
+              <TabsTrigger 
+                value="votes" 
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
+              >
+                <UserPlus className="w-4 h-4" />
+                Votes
               </TabsTrigger>
               <TabsTrigger 
                 value="import" 
@@ -236,6 +244,29 @@ export default function SettingsPage() {
             />
           </TabsContent>
 
+          <TabsContent value="votes" className="mt-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Votes on Behalf</h3>
+                  <p className="text-gray-600">
+                    View and manage votes submitted on behalf of customers
+                  </p>
+                </div>
+              </div>
+              <div className="text-center py-8">
+                <p className="text-gray-600 mb-4">
+                  View detailed vote information at:
+                </p>
+                <Button 
+                  onClick={() => router.push(`/${projectSlug}/settings/votes`)}
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                >
+                  Open Votes Dashboard
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
 
           <TabsContent value="import" className="mt-6">
             <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
