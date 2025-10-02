@@ -108,6 +108,7 @@ export default function AdminSubscriptionsPage() {
         },
         body: JSON.stringify({
           recipient_email: giftEmail,
+          sender_email: 'admin@signalsloop.com',
           sender_name: 'SignalsLoop Admin',
           gift_message: giftReason || 'Thank you for being an awesome user!',
           duration_months: parseInt(giftDuration),
