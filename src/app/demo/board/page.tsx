@@ -59,6 +59,7 @@ export default function DemoBoard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewPostForm, setShowNewPostForm] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', description: '' });
+  const [showDemoLimitBanner, setShowDemoLimitBanner] = useState(true);
 
   // Load demo data from API
   useEffect(() => {
@@ -162,7 +163,22 @@ export default function DemoBoard() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Demo Limit Banner */}
+      {showDemoLimitBanner && (
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 px-4">
+          <div className="container mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <Sparkles className="h-4 w-4" />
+              <span><strong>Demo Mode:</strong> Try all features with daily limits • AI features: 3-10 uses/day • Resets at midnight UTC</span>
+            </div>
+            <button onClick={() => setShowDemoLimitBanner(false)} className="text-white/80 hover:text-white">
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -509,15 +525,18 @@ export default function DemoBoard() {
 
             <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-6 text-center">
               <h3 className="text-lg font-semibold mb-2">Interactive Roadmap</h3>
-              <p className="text-gray-600 mb-4">Drag and drop features between phases, set completion dates, and track progress in real-time.</p>
-              <Button variant="outline" className="mr-2">
+              <p className="text-gray-600 mb-4">Explore our public roadmap with real-time updates, voting, AI analysis, and more.</p>
+              <Button 
+                onClick={() => setActiveTab('roadmap')}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
                 <Eye className="h-4 w-4 mr-2" />
                 View Public Roadmap
               </Button>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                <Settings className="h-4 w-4 mr-2" />
-                Manage Roadmap
-              </Button>
+              <p className="text-xs text-gray-500 mt-3">
+                <Sparkles className="h-3 w-3 inline mr-1" />
+                Try AI features with demo limits • Vote on features • Post comments
+              </p>
             </div>
           </TabsContent>
 
