@@ -87,19 +87,24 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   useEffect(() => {
     const checkOwner = async () => {
       try {
+        console.log('🔍 Checking owner status for project:', project.slug);
         // Check if there's a session by trying to access a protected endpoint
         const response = await fetch(`/api/projects/${project.slug}/owner`, {
           credentials: 'include',
         });
+        console.log('📡 API response status:', response.status);
         if (response.ok) {
           const data = await response.json();
+          console.log('✅ API response data:', data);
           setIsOwner(data.isOwner);
-          console.log('Owner check result:', data.isOwner);
+          console.log('👤 isOwner state set to:', data.isOwner);
         } else {
-          console.log('Not authenticated or not owner');
+          console.log('❌ API response not OK');
+          const errorData = await response.json().catch(() => ({}));
+          console.log('Error data:', errorData);
         }
       } catch (error) {
-        console.error('Failed to check owner status:', error);
+        console.error('❌ Failed to check owner status:', error);
       }
     };
     checkOwner();
@@ -422,6 +427,11 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                   <span className="text-xs text-gray-500">votes</span>
                   
                   {/* Vote on Behalf Button (Admin Only) */}
+                  {/* DEBUG: Show state */}
+                  <div className="text-xs text-gray-500">
+                    Debug: isOwner = {String(isOwner)}
+                  </div>
+                  
                   {isOwner && (
                     <Button
                       variant="outline"
