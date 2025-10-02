@@ -83,14 +83,20 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     setHasVoted(voted.includes(post.id));
   }, [post.id, project.id]);
 
-  // Check if current user is project owner
+  // Check if current user is project owner (simplified - check if logged in)
   useEffect(() => {
     const checkOwner = async () => {
       try {
-        const response = await fetch(`/api/projects/${project.slug}/owner`);
+        // Check if there's a session by trying to access a protected endpoint
+        const response = await fetch(`/api/projects/${project.slug}/owner`, {
+          credentials: 'include',
+        });
         if (response.ok) {
           const data = await response.json();
           setIsOwner(data.isOwner);
+          console.log('Owner check result:', data.isOwner);
+        } else {
+          console.log('Not authenticated or not owner');
         }
       } catch (error) {
         console.error('Failed to check owner status:', error);
