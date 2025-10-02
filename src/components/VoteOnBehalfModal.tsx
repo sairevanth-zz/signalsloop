@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { X, UserPlus, Loader2, Building2, AlertCircle, Mail, User, FileText, Tag, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import { analytics } from '@/lib/analytics';
 
 interface VoteOnBehalfModalProps {
   isOpen: boolean;
@@ -141,6 +142,17 @@ export default function VoteOnBehalfModal({
 
         const data = await response.json();
         console.log('✅ API success response:', data);
+
+        // Track analytics
+        try {
+          analytics.voteOnBehalf(postId, projectId, formData.priority, {
+            has_company: !!formData.customerCompany,
+            source: formData.source,
+            customer_notified: formData.notifyCustomer,
+          });
+        } catch (error) {
+          console.error('Analytics tracking error:', error);
+        }
 
       toast.success(
         <div className="flex items-start gap-2">

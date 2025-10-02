@@ -64,6 +64,16 @@ export const analytics = {
     });
   },
 
+  voteOnBehalf: (postId: string, projectId: string, priority: string, properties?: Record<string, unknown>) => {
+    posthog.capture('vote_on_behalf', {
+      post_id: postId,
+      project_id: projectId,
+      priority,
+      timestamp: new Date().toISOString(),
+      ...properties
+    });
+  },
+
   addComment: (postId: string, commentId: string, properties?: Record<string, unknown>) => {
     posthog.capture('add_comment', {
       post_id: postId,
