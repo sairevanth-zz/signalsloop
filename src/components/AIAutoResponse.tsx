@@ -50,10 +50,10 @@ export default function AIAutoResponse({
     isPro: boolean;
   } | null>(null);
 
-  // Auto-generate on mount
-  useEffect(() => {
-    generateResponse();
-  }, [postId]);
+  // Don't auto-generate - let admin trigger manually
+  // useEffect(() => {
+  //   generateResponse();
+  // }, [postId]);
 
   const generateResponse = async () => {
     try {

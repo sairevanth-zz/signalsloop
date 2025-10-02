@@ -460,29 +460,34 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
               </CardContent>
             </Card>
 
-            {/* AI Auto-Response */}
-            <div className="mb-6">
-              <AIAutoResponse 
-                postId={post.id}
-                postTitle={post.title}
-                postDescription={post.description}
-                postType="feature"
-                authorName={post.author_email || 'User'}
-                projectId={project.id}
-                onResponsePosted={loadComments}
-              />
-            </div>
+            {/* AI Auto-Response - Owner/Admin Only */}
+            {isOwner && user && (
+              <div className="mb-6">
+                <AIAutoResponse 
+                  postId={post.id}
+                  postTitle={post.title}
+                  postDescription={post.description}
+                  postType="feature"
+                  authorName={post.author_email || 'User'}
+                  projectId={project.id}
+                  onResponsePosted={loadComments}
+                />
+              </div>
+            )}
 
-            {/* AI Post Intelligence */}
-            <div className="mb-6">
-              <AIPostIntelligence 
-                title={post.title}
-                description={post.description}
-                postType="feature"
-              />
-            </div>
+            {/* AI Post Intelligence - Owner/Admin Only */}
+            {isOwner && user && (
+              <div className="mb-6">
+                <AIPostIntelligence 
+                  title={post.title}
+                  description={post.description}
+                  postType="feature"
+                />
+              </div>
+            )}
 
-            {/* AI Features Section */}
+            {/* AI Features Section - Owner/Admin Only */}
+            {isOwner && user && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               {/* AI Duplicate Detection */}
               <Card className="border-orange-200 bg-orange-50">
@@ -566,6 +571,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                 </CardContent>
               </Card>
             </div>
+            )}
 
           {/* Comments Section */}
           <Card>
