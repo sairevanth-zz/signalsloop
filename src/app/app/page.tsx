@@ -192,6 +192,12 @@ export default function EnhancedDashboardPage() {
       // Get user's project IDs
       const projectIds = projects.map(p => p.id);
       
+      // If no projects, skip analytics
+      if (projectIds.length === 0) {
+        setAnalyticsLoading(false);
+        return;
+      }
+      
       // Calculate date range for "this week"
       const now = new Date();
       const weekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
@@ -233,20 +239,29 @@ export default function EnhancedDashboardPage() {
         console.error('Error fetching recent posts:', recentPostsError);
       }
 
-      const { data: recentVotes, error: recentVotesError } = await supabase
-        .from('votes')
-        .select(`
-          id,
-          created_at,
-          posts!inner(title, projects!inner(name, slug))
-        `)
-        .in('post_id', recentPosts?.map(p => p.id) || [])
-        .gte('created_at', weekAgo.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(3);
+      // Skip votes query if no recent posts
+      let recentVotes = null;
+      if (recentPosts && recentPosts.length > 0) {
+        const { data: votesData, error: recentVotesError } = await supabase
+          .from('votes')
+          .select('id, created_at, post_id')
+          .in('post_id', recentPosts.map(p => p.id))
+          .gte('created_at', weekAgo.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(3);
 
-      if (recentVotesError) {
-        console.error('Error fetching recent votes:', recentVotesError);
+        if (recentVotesError) {
+          console.error('Error fetching recent votes:', recentVotesError);
+        } else {
+          // Enrich votes with post data
+          recentVotes = votesData?.map(vote => {
+            const post = recentPosts.find(p => p.id === vote.post_id);
+            return {
+              ...vote,
+              posts: post ? { title: post.title, projects: post.projects } : null
+            };
+          }).filter(v => v.posts !== null);
+        }
       }
 
       // Process top posts
@@ -314,6 +329,17 @@ export default function EnhancedDashboardPage() {
       setAnalytics(analytics);
     } catch (error) {
       console.error('Error loading analytics:', error);
+      // Set empty analytics to prevent dashboard from crashing
+      setAnalytics({
+        totalProjects: projects.length,
+        totalPosts: 0,
+        totalVotes: 0,
+        activeWidgets: 0,
+        weeklyGrowth: 0,
+        topPosts: [],
+        recentActivity: []
+      });
+      toast.error('Failed to load analytics data');
     } finally {
       setAnalyticsLoading(false);
     }
