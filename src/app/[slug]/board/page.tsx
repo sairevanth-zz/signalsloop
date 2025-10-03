@@ -418,6 +418,7 @@ export default function BoardPage() {
                 className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 min-touch-target tap-highlight-transparent"
                 onClick={() => {
                   console.log('Share button clicked directly!');
+                  alert('🎉 MODAL TEST: Share button works! Modal state: ' + showShareModal);
                   setShowShareModal(true);
                 }}
               >
@@ -425,18 +426,21 @@ export default function BoardPage() {
                 <span className="hidden sm:inline">Share</span>
               </Button>
               
-              {/* Custom Modal - No Radix UI */}
-              {showShareModal && (
+              {/* Portal Modal - Render outside DOM tree */}
+              {showShareModal && typeof window !== 'undefined' && (
                 <div 
-                  className="fixed inset-0 z-[9999999] flex items-center justify-center p-4"
-                  style={{ 
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  style={{
                     position: 'fixed',
                     top: 0,
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    zIndex: 9999999
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    zIndex: 99999999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
                   }}
                   onClick={(e) => {
                     if (e.target === e.currentTarget) {
@@ -445,29 +449,32 @@ export default function BoardPage() {
                   }}
                 >
                   <div 
-                    className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] overflow-hidden"
                     style={{
-                      position: 'relative',
-                      zIndex: 10000000,
-                      transform: 'translateY(0)',
-                      margin: 'auto'
+                      backgroundColor: 'white',
+                      borderRadius: '12px',
+                      boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
+                      maxWidth: '800px',
+                      width: '100%',
+                      maxHeight: '90vh',
+                      overflow: 'hidden',
+                      position: 'relative'
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex items-center justify-between p-4 border-b">
-                      <h2 className="text-lg font-semibold">Share {project?.name} Board</h2>
+                    <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Share {project?.name} Board</h2>
                       <button 
                         onClick={() => setShowShareModal(false)}
-                        className="text-gray-500 hover:text-gray-700"
+                        style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#6b7280' }}
                       >
-                        <X className="h-5 w-5" />
+                        ×
                       </button>
                     </div>
-                    <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 80px)' }}>
-                      <div className="text-white bg-red-600 p-4 mb-4 text-center font-bold text-lg">
-                        🎉 CUSTOM MODAL WORKING! Project: {project?.name}, Slug: {params?.slug}
+                    <div style={{ padding: '20px', maxHeight: 'calc(90vh - 80px)', overflowY: 'auto' }}>
+                      <div style={{ backgroundColor: '#dc2626', color: 'white', padding: '16px', marginBottom: '16px', textAlign: 'center', fontWeight: 'bold', fontSize: '16px' }}>
+                        🎉 PORTAL MODAL WORKING! Project: {project?.name}, Slug: {params?.slug}
                         <br />
-                        ✅ Modal is positioned correctly and visible!
+                        ✅ This modal uses portal rendering!
                       </div>
                       {project && (
                         <BoardShare
