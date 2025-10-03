@@ -15,10 +15,10 @@ import FeedbackExport from '@/components/FeedbackExport';
 import { AIDuplicateDetection } from '@/components/AIDuplicateDetection';
 import { AIPriorityScoring } from '@/components/AIPriorityScoring';
 import { DebugAIFeatures } from '@/components/DebugAIFeatures';
-import { 
-  Search, 
-  Plus, 
-  MessageSquare, 
+import {
+  Search,
+  Plus,
+  MessageSquare,
   Calendar,
   User,
   LogOut,
@@ -30,7 +30,8 @@ import {
   TrendingUp,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import {
   Select,
@@ -335,7 +336,7 @@ export default function BoardPage() {
     } finally {
       setLoading(false);
     }
-  }, [params?.slug, statusFilter, categoryFilter, sortBy, supabase, router]);
+  }, [params?.slug, statusFilter, categoryFilter, sortBy, supabase, router, user]);
 
   // Load project and posts
   useEffect(() => {
@@ -346,6 +347,18 @@ export default function BoardPage() {
   useEffect(() => {
     loadUserPlan();
   }, [loadUserPlan]);
+
+  // Debug logging for Submit on Behalf button visibility
+  useEffect(() => {
+    console.log('🔍 Submit on Behalf Button Debug:', {
+      user: user ? 'Logged in' : 'Not logged in',
+      userId: user?.id,
+      project: project ? 'Loaded' : 'Not loaded',
+      projectOwnerId: project?.owner_id,
+      isProjectOwner,
+      shouldShowButton: isProjectOwner && !!project,
+    });
+  }, [user, project, isProjectOwner]);
 
   // Filter posts by search term
   const filteredPosts = posts.filter(post =>
