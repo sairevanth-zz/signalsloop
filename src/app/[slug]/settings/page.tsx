@@ -13,15 +13,16 @@ import { CSVImport } from '@/components/admin/csv-import';
 import SimpleChangelogManager from '@/components/SimpleChangelogManager';
 import { toast } from 'sonner';
 import { useParams, useRouter } from 'next/navigation';
-import { 
-  Key, 
-  Settings, 
+import {
+  Key,
+  Settings,
   Shield,
   Upload,
   Download,
   Globe,
   FileText,
-  UserPlus
+  UserPlus,
+  MessageSquare
 } from 'lucide-react';
 
 interface Project {
@@ -177,12 +178,19 @@ export default function SettingsPage() {
                   <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Domain</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="votes" 
+                <TabsTrigger
+                  value="votes"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent"
                 >
                   <UserPlus className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Votes</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="feedback"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent"
+                >
+                  <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Feedback</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="import" 
@@ -261,11 +269,35 @@ export default function SettingsPage() {
                 <p className="text-gray-600 mb-4">
                   View detailed vote information at:
                 </p>
-                <Button 
+                <Button
                   onClick={() => router.push(`/${projectSlug}/settings/votes`)}
                   className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
                 >
                   Open Votes Dashboard
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="feedback" className="mt-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Feedback on Behalf</h3>
+                  <p className="text-gray-600">
+                    View and manage feedback submitted on behalf of customers
+                  </p>
+                </div>
+              </div>
+              <div className="text-center py-8">
+                <p className="text-gray-600 mb-4">
+                  View detailed feedback information at:
+                </p>
+                <Button
+                  onClick={() => router.push(`/${projectSlug}/settings/feedback`)}
+                  className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600"
+                >
+                  Open Feedback Dashboard
                 </Button>
               </div>
             </div>

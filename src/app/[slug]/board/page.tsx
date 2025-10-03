@@ -52,6 +52,7 @@ import Link from 'next/link';
 import PostSubmissionForm from '@/components/PostSubmissionForm';
 import VoteButton from '@/components/VoteButton';
 import { AIInsightsSlideout } from '@/components/AIInsightsSlideout';
+import FeedbackOnBehalfModal from '@/components/FeedbackOnBehalfModal';
 
 interface Post {
   id: string;
@@ -119,6 +120,8 @@ export default function BoardPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [priorityVoteCounts, setPriorityVoteCounts] = useState({ must_have: 0, important: 0, nice_to_have: 0 });
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [isProjectOwner, setIsProjectOwner] = useState(false);
+  const [showFeedbackOnBehalfModal, setShowFeedbackOnBehalfModal] = useState(false);
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -228,6 +231,13 @@ export default function BoardPage() {
       }
 
       setProject(projectData);
+
+      // Check if current user is the project owner
+      if (user && projectData.owner_id === user.id) {
+        setIsProjectOwner(true);
+      } else {
+        setIsProjectOwner(false);
+      }
 
       // Get board for this project
       const { data: boardData, error: boardError } = await supabase
@@ -522,8 +532,21 @@ export default function BoardPage() {
                 </Button>
               )}
               
+              {/* Submit Feedback on Behalf Button - For project owners only */}
+              {isProjectOwner && project && (
+                <Button
+                  onClick={() => setShowFeedbackOnBehalfModal(true)}
+                  variant="outline"
+                  className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 active:scale-95 transition-transform min-touch-target tap-highlight-transparent whitespace-nowrap px-3 sm:px-4"
+                >
+                  <FileText className="w-4 h-4 mr-1 sm:mr-2" />
+                  <span className="text-sm font-semibold hidden lg:inline">Submit on Behalf</span>
+                  <span className="text-sm font-semibold lg:hidden">On Behalf</span>
+                </Button>
+              )}
+
               {/* Submit Feedback Button - Primary CTA */}
-              <Button 
+              <Button
                 onClick={() => setShowPostForm(true)}
                 className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform min-touch-target tap-highlight-transparent whitespace-nowrap px-3 sm:px-4"
               >
@@ -878,6 +901,17 @@ export default function BoardPage() {
           projectId={project.id}
           boardId={boardId || ''}
           onPostSubmitted={loadProjectAndPosts}
+        />
+      )}
+
+      {/* Feedback on Behalf Modal */}
+      {showFeedbackOnBehalfModal && project && (
+        <FeedbackOnBehalfModal
+          isOpen={showFeedbackOnBehalfModal}
+          onClose={() => setShowFeedbackOnBehalfModal(false)}
+          projectId={project.id}
+          projectSlug={project.slug}
+          onSuccess={loadProjectAndPosts}
         />
       )}
 
