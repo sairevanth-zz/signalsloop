@@ -191,6 +191,15 @@ export default function MentionTextarea({
     }
   }, [showSuggestions]);
 
+  const handleBlur = () => {
+    // Close suggestions on blur, but with a small delay to allow clicking on suggestions
+    setTimeout(() => {
+      setShowSuggestions(false);
+      setMentionStart(null);
+      setMentionSearch('');
+    }, 200);
+  };
+
   return (
     <div className="relative">
       <textarea
@@ -198,6 +207,7 @@ export default function MentionTextarea({
         value={value}
         onChange={handleTextChange}
         onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
         placeholder={placeholder}
         className={`w-full resize-none ${className}`}
         rows={minRows}
