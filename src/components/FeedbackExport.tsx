@@ -153,6 +153,7 @@ export default function FeedbackExport({
         className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
         onClick={() => {
           console.log('Export button clicked directly!');
+          alert('🎉 EXPORT MODAL TEST: Button works!');
           setIsOpen(true);
         }}
       >
@@ -160,30 +161,123 @@ export default function FeedbackExport({
         Export Data
       </Button>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      
-      <DialogContent className="w-[calc(100vw-2rem)] max-w-lg sm:max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl bg-white/95 backdrop-blur">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-3 sm:px-6">
-          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
-            <Download className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-blue-600" />
-            <span className="truncate">Export {projectName} Feedback</span>
-          </DialogTitle>
-          <DialogClose asChild>
-            <Button variant="ghost" size="sm" className="min-touch-target text-gray-500 hover:text-gray-700">
-              <X className="h-5 w-5" />
-              <span className="sr-only">Close</span>
-            </Button>
-          </DialogClose>
-        </div>
-
-        <DialogDescription className="sr-only">
-          Export feedback data in various formats with filtering options
-        </DialogDescription>
-
-        <div className="space-y-4 sm:space-y-6 overflow-y-auto momentum-scroll px-4 py-4 sm:px-6 sm:py-6">
-          <div className="text-white bg-green-600 p-2">
-            DEBUG: Modal is rendering! ExportFormat: {exportFormat}, Project: {projectName}
+      {/* Custom Export Modal - Same approach as Share modal */}
+      {isOpen && typeof window !== 'undefined' && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            zIndex: 99999999,
+            display: 'block',
+            padding: '0',
+            overflow: 'auto'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsOpen(false);
+            }
+          }}
+        >
+          <div 
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
+              maxWidth: '800px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              position: 'relative',
+              margin: '50px auto',
+              border: '5px solid blue'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Export {projectName} Feedback</h2>
+              <button 
+                onClick={() => setIsOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#6b7280' }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ padding: '20px', maxHeight: 'calc(90vh - 80px)', overflowY: 'auto' }}>
+              <div style={{ backgroundColor: '#2563eb', color: 'white', padding: '16px', marginBottom: '16px', textAlign: 'center', fontWeight: 'bold', fontSize: '16px' }}>
+                🎉 EXPORT MODAL WORKING! Project: {projectName}
+                <br />
+                ✅ Export modal using same approach as Share!
+              </div>
+              
+              {/* Export Format Selection */}
+              <div>
+                <label style={{ fontSize: '14px', fontWeight: '500', marginBottom: '12px', display: 'block' }}>Export Format</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                  <button
+                    onClick={() => setExportFormat('excel')}
+                    style={{
+                      padding: '12px 16px',
+                      border: exportFormat === 'excel' ? '2px solid #2563eb' : '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      backgroundColor: exportFormat === 'excel' ? '#2563eb' : 'white',
+                      color: exportFormat === 'excel' ? 'white' : '#374151',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    📊 Excel (.xlsx)
+                  </button>
+                  <button
+                    onClick={() => setExportFormat('csv')}
+                    style={{
+                      padding: '12px 16px',
+                      border: exportFormat === 'csv' ? '2px solid #2563eb' : '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      backgroundColor: exportFormat === 'csv' ? '#2563eb' : 'white',
+                      color: exportFormat === 'csv' ? 'white' : '#374151',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    📄 CSV (.csv)
+                  </button>
+                </div>
+              </div>
+              
+              {/* Export Button */}
+              <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                <button
+                  onClick={handleExport}
+                  disabled={isExporting}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: '#2563eb',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: isExporting ? 'not-allowed' : 'pointer',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    opacity: isExporting ? 0.6 : 1
+                  }}
+                >
+                  {isExporting ? 'Exporting...' : `Export ${exportFormat.toUpperCase()}`}
+                </button>
+              </div>
+            </div>
           </div>
+        </div>
+      )}
+    </>
+  );
           {/* Export Format Selection */}
           <div>
             <Label className="text-sm font-medium mb-3 block">Export Format</Label>
