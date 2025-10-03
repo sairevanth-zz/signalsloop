@@ -376,72 +376,72 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
           </div>
         </div>
 
-        {/* Summary Statistics - Enhanced Dashboard Style */}
-        <div className="grid grid-cols-5 gap-4 mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
+        {/* Summary Statistics - Mobile Responsive */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-3 sm:p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Ideas</p>
-                <p className="text-2xl font-bold text-gray-900">{filteredData.open.length}</p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Ideas</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">{filteredData.open.length}</p>
               </div>
-              <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                <Lightbulb className="h-5 w-5 text-pink-600" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-pink-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 text-pink-600" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-3 sm:p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Planned</p>
-                <p className="text-2xl font-bold text-gray-900">{filteredData.planned.length}</p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Planned</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">{filteredData.planned.length}</p>
               </div>
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Target className="h-5 w-5 text-blue-600" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Target className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-3 sm:p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">In Progress</p>
-                <p className="text-2xl font-bold text-gray-900">{filteredData.in_progress.length}</p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">In Progress</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">{filteredData.in_progress.length}</p>
               </div>
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <Clock className="h-5 w-5 text-green-600" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-3 sm:p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{filteredData.completed.length}</p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Completed</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">{filteredData.completed.length}</p>
               </div>
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="h-5 w-5 text-purple-600" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-3 sm:p-6 transform transition-all duration-300 hover:shadow-xl hover:scale-105 col-span-2 sm:col-span-1">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">This Month</p>
-                <p className="text-2xl font-bold text-gray-900">{thisMonthCount}</p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">This Month</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900">{thisMonthCount}</p>
               </div>
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-orange-600" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Search and Filter Bar - Enhanced Dashboard Style */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 mb-8">
-          <div className="flex items-center space-x-4">
+        {/* Search and Filter Bar - Mobile Responsive */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-4 sm:p-6 mb-8">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
@@ -449,11 +449,11 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
                 placeholder="Search roadmap..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50"
+                className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 text-sm sm:text-base"
               />
             </div>
             
-            <div className="relative">
+            <div className="relative min-w-0 sm:min-w-[120px]">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}

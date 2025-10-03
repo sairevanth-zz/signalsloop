@@ -475,10 +475,10 @@ export default function BoardPage() {
               {/* Submit Feedback Button - Primary CTA */}
               <Button 
                 onClick={() => setShowPostForm(true)}
-                className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform min-touch-target tap-highlight-transparent whitespace-nowrap px-3 sm:px-4"
+                className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform min-touch-target tap-highlight-transparent whitespace-nowrap px-2 sm:px-4"
               >
-                <Plus className="w-4 h-4 mr-1.5 sm:mr-2" />
-                <span>Submit</span>
+                <Plus className="w-4 h-4 mr-1 sm:mr-2" />
+                <span className="text-xs sm:text-sm">Submit Feedback</span>
               </Button>
             </div>
           </div>

@@ -394,15 +394,26 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                     </Badge>
                   </div>
                   
-                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                    <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-1" />
-                      {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(post.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 mb-4">
+                    <div className="flex items-center gap-1 whitespace-nowrap">
+                        <Calendar className="h-4 w-4 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm">
+                        {new Date(post.created_at).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric', 
+                          year: 'numeric' 
+                        })} at {new Date(post.created_at).toLocaleTimeString('en-US', { 
+                          hour: 'numeric', 
+                          minute: '2-digit' 
+                        })}
+                      </span>
                       </div>
                       {post.author_email && (
-                      <div className="flex items-center">
-                          <User className="h-4 w-4 mr-1" />
-                          {post.author_email}
+                      <div className="flex items-center gap-1 min-w-0">
+                          <User className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate max-w-[150px] sm:max-w-[200px]">
+                            {post.author_email}
+                          </span>
                         </div>
                       )}
                     </div>
