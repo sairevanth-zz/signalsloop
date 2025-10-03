@@ -87,6 +87,14 @@ export default function MentionTextarea({
 
     onChange(newValue);
 
+    // If empty, close everything immediately
+    if (!newValue || newValue.trim() === '') {
+      setShowSuggestions(false);
+      setMentionStart(null);
+      setMentionSearch('');
+      return;
+    }
+
     // Check if we're typing a mention (allow letters, numbers, spaces, dots, hyphens)
     const textBeforeCursor = newValue.substring(0, cursorPosition);
     const mentionMatch = textBeforeCursor.match(/@([\w\s\.\-]*)$/);
