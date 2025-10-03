@@ -415,20 +415,13 @@ export default function BoardPage() {
               {/* Share Button */}
               <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
                 <DialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 min-touch-target tap-highlight-transparent"
-                    onClick={(e) => {
-                      console.log('Share button clicked!', e);
-                      e.preventDefault();
-                      setShowShareModal(true);
-                    }}
-                  >
+                  <Button variant="outline" className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 min-touch-target tap-highlight-transparent">
                     <Share2 className="w-4 h-4" />
                     <span className="hidden sm:inline">Share</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="w-[calc(100vw-2rem)] max-w-xl sm:max-w-4xl max-h-[85vh] overflow-hidden rounded-2xl bg-white/95 backdrop-blur [&>[data-radix-dialog-close]]:hidden">
+                  {console.log('DialogContent rendering, showShareModal:', showShareModal)}
                   <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-3 sm:px-6">
                     <DialogTitle className="text-base sm:text-lg font-semibold text-gray-900">
                       Share {project?.name} Board

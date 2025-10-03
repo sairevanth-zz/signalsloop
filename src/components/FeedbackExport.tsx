@@ -152,11 +152,6 @@ export default function FeedbackExport({
         <Button 
           variant="outline" 
           className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-          onClick={(e) => {
-            console.log('Export button clicked!', e);
-            e.preventDefault();
-            setIsOpen(true);
-          }}
         >
           <Download className="w-4 h-4" />
           Export Data
