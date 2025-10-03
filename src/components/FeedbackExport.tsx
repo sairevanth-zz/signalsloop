@@ -147,18 +147,22 @@ export default function FeedbackExport({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
-          className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-        >
-          <Download className="w-4 h-4" />
-          Export Data
-        </Button>
-      </DialogTrigger>
+    <>
+      <Button 
+        variant="outline" 
+        className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+        onClick={() => {
+          console.log('Export button clicked directly!');
+          setIsOpen(true);
+        }}
+      >
+        <Download className="w-4 h-4" />
+        Export Data
+      </Button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
       
-      <DialogContent className="w-[calc(100vw-2rem)] max-w-lg sm:max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl bg-white/95 backdrop-blur [&>[data-radix-dialog-close]]:hidden z-[9999999] border-4 border-green-500">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-lg sm:max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl bg-white/95 backdrop-blur">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-3 sm:px-6">
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
             <Download className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-blue-600" />
@@ -376,5 +380,6 @@ export default function FeedbackExport({
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
