@@ -129,6 +129,19 @@ export default async function PublicBoardPage({ params }: PublicBoardPageProps) 
       );
     }
 
+    // Get board configuration for submissions
+    const { data: board, error: boardError } = await supabase
+      .from('boards')
+      .select('id')
+      .eq('project_id', project.id)
+      .single();
+
+    if (boardError) {
+      console.error('Error fetching board configuration:', boardError);
+    }
+
+    const boardId = board?.id ?? null;
+
     // Get recent posts for the board
     const { data: posts, error: postsError } = await supabase
       .from('posts')
@@ -155,6 +168,7 @@ export default async function PublicBoardPage({ params }: PublicBoardPageProps) 
       <PublicBoardHomepage 
         project={project}
         posts={posts || []}
+        boardId={boardId}
       />
     );
   } catch (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,13 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { toast } from 'sonner';
 import Link from 'next/link';
 import PostSubmissionForm from '@/components/PostSubmissionForm';
@@ -63,21 +56,22 @@ interface Post {
   author_email?: string;
   status: string;
   has_voted?: boolean;
+  comment_count?: number;
 }
 
 interface PublicBoardHomepageProps {
   project: Project;
   posts: Post[];
+  boardId?: string | null;
 }
 
-export default function PublicBoardHomepage({ project, posts: initialPosts }: PublicBoardHomepageProps) {
+export default function PublicBoardHomepage({ project, posts: initialPosts, boardId }: PublicBoardHomepageProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [filteredPosts, setFilteredPosts] = useState<Post[]>(initialPosts);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'votes'>('newest');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showPostForm, setShowPostForm] = useState(false);
   const [votedPosts, setVotedPosts] = useState<Set<string>>(new Set());
 
   // Load voted posts from cookies/localStorage
@@ -162,48 +156,55 @@ export default function PublicBoardHomepage({ project, posts: initialPosts }: Pu
     }
   };
 
-  const handlePostSubmit = async (postData: any) => {
-    setIsSubmitting(true);
+  const loadLatestPosts = useCallback(async () => {
+    if (!boardId) {
+      return;
+    }
+
     try {
-      const response = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          project_slug: project.slug,
-          ...postData,
-        }),
-      });
+      const params = new URLSearchParams({ project_id: project.id, board_id: boardId });
+      const response = await fetch(`/api/posts?${params.toString()}`, { cache: 'no-store' });
 
       if (!response.ok) {
-        throw new Error('Failed to submit feedback');
+        throw new Error('Failed to fetch posts');
       }
 
-      const result = await response.json();
-      
-      // Add the new post to the list
-      const newPost: Post = {
-        id: result.postId,
-        title: postData.title,
-        description: postData.description || '',
-        category: postData.category,
-        vote_count: 0,
-        created_at: new Date().toISOString(),
-        author_email: postData.user_email,
-        status: 'open',
-        has_voted: false,
-      };
+      const data = await response.json();
+      const fetchedPosts: Post[] = (data.posts || []).map((post: Record<string, unknown>) => {
+        const asArray = (value: unknown): number => {
+          if (Array.isArray(value)) {
+            return (value[0] as { count?: number })?.count || 0;
+          }
+          return typeof value === 'number' ? value : 0;
+        };
 
-      setPosts(prevPosts => [newPost, ...prevPosts]);
-      setIsDialogOpen(false);
-      toast.success('Feedback submitted successfully!');
+        return {
+          id: post.id as string,
+          title: post.title as string,
+          description: (post.description as string) || '',
+          category: (post.category as string) || 'general',
+          vote_count: asArray(post.vote_count),
+          created_at: post.created_at as string,
+          author_email: post.author_email as string,
+          status: post.status as string,
+          has_voted: false,
+          comment_count: asArray(post.comment_count),
+        };
+      });
+
+      setPosts(fetchedPosts);
     } catch (error) {
-      console.error('Submission error:', error);
-      toast.error('Failed to submit feedback');
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error refreshing posts:', error);
+      toast.error('Failed to refresh feedback list');
     }
+  }, [boardId, project.id]);
+
+  const handleOpenPostForm = () => {
+    if (!boardId) {
+      toast.error('Feedback submissions are not available right now. Please contact the board owner.');
+      return;
+    }
+    setShowPostForm(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -224,7 +225,7 @@ export default function PublicBoardHomepage({ project, posts: initialPosts }: Pu
   };
 
   const getCategories = () => {
-    const categories = new Set(posts.map(post => post.category));
+    const categories = new Set(posts.map(post => post.category).filter(Boolean));
     return Array.from(categories);
   };
 
@@ -286,24 +287,15 @@ export default function PublicBoardHomepage({ project, posts: initialPosts }: Pu
             </p>
           )}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="h-5 w-5 mr-2" />
-                  Submit Feedback
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Submit Your Feedback</DialogTitle>
-                </DialogHeader>
-                <PostSubmissionForm
-                  projectSlug={project.slug}
-                  onSubmit={handlePostSubmit}
-                  isSubmitting={isSubmitting}
-                />
-              </DialogContent>
-            </Dialog>
+            <Button 
+              size="lg" 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleOpenPostForm}
+              disabled={!boardId}
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Submit Feedback
+            </Button>
             
             <Link href="/">
               <Button variant="outline" size="lg">
@@ -403,24 +395,10 @@ export default function PublicBoardHomepage({ project, posts: initialPosts }: Pu
                     : 'Be the first to share your feedback!'
                   }
                 </p>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Submit Feedback
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Submit Your Feedback</DialogTitle>
-                    </DialogHeader>
-                    <PostSubmissionForm
-                      projectSlug={project.slug}
-                      onSubmit={handlePostSubmit}
-                      isSubmitting={isSubmitting}
-                    />
-                  </DialogContent>
-                </Dialog>
+                <Button onClick={handleOpenPostForm} disabled={!boardId}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Submit Feedback
+                </Button>
               </CardContent>
             </Card>
           ) : (
@@ -472,6 +450,12 @@ export default function PublicBoardHomepage({ project, posts: initialPosts }: Pu
                           {post.author_email}
                         </div>
                       )}
+
+                      <div className="flex items-center text-sm text-gray-500">
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        <span>{post.comment_count ?? 0}</span>
+                        <span className="hidden sm:inline">comments</span>
+                      </div>
                     </div>
                     
                     <Link href={`/${project.slug}/post/${post.id}`}>
@@ -502,6 +486,16 @@ export default function PublicBoardHomepage({ project, posts: initialPosts }: Pu
           </p>
         </div>
       </main>
+
+      {showPostForm && boardId && (
+        <PostSubmissionForm
+          isOpen={showPostForm}
+          onClose={() => setShowPostForm(false)}
+          projectId={project.id}
+          boardId={boardId}
+          onPostSubmitted={loadLatestPosts}
+        />
+      )}
     </div>
   );
 }
