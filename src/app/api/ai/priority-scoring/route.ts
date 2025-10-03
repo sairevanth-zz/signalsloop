@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
+import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -180,14 +181,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (projectData.plan !== 'pro') {
+    // Check rate limit (both free and pro)
+    const usageCheck = await checkAIUsageLimit(projectId, 'priority_scoring');
+
+    if (!usageCheck.allowed) {
       return NextResponse.json(
-        { 
-          error: 'AI priority scoring is a Pro feature',
-          upgrade_required: true,
-          feature: 'ai_priority_scoring'
+        {
+          error: 'Rate limit exceeded',
+          message: `You've reached your monthly limit of ${usageCheck.limit} AI priority scoring uses. ${
+            usageCheck.isPro ? 'Please try again next month.' : 'Upgrade to Pro for 10,000 priority scorings per month!'
+          }`,
+          current: usageCheck.current,
+          limit: usageCheck.limit,
+          remaining: usageCheck.remaining,
+          isPro: usageCheck.isPro
         },
-        { status: 403 }
+        { status: 429 }
       );
     }
 
@@ -244,6 +253,18 @@ export async function POST(request: NextRequest) {
       // Continue even if update fails
     }
 
+    // Increment usage after successful analysis
+    await incrementAIUsage(projectId, 'priority_scoring');
+
+    // Get updated usage info
+    const usage = await checkAIUsageLimit(projectId, 'priority_scoring');
+    const usageInfo = {
+      current: usage.current + 1,
+      limit: usage.limit,
+      remaining: usage.remaining - 1,
+      isPro: usage.isPro
+    };
+
     return NextResponse.json({
       success: true,
       priority: {
@@ -255,7 +276,8 @@ export async function POST(request: NextRequest) {
         voteCount: post.vote_count || 0,
         commentCount: post.comment_count || 0,
         analyzedAt: new Date().toISOString()
-      }
+      },
+      usage: usageInfo
     });
 
   } catch (error) {

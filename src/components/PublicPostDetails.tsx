@@ -28,6 +28,7 @@ import {
 import { toast } from 'sonner';
 import Link from 'next/link';
 import AIWritingAssistant from './AIWritingAssistant';
+import MentionTextarea from './MentionTextarea';
 import AIPostIntelligence from './AIPostIntelligence';
 import AIAutoResponse from './AIAutoResponse';
 import VoteOnBehalfModal from './VoteOnBehalfModal';
@@ -305,12 +306,54 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
 
       if (response.ok) {
         const data = await response.json();
+        const newComment = data.comment;
+
+        // Process mentions
+        try {
+          const mentionsResponse = await fetch('/api/comments/mentions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              commentId: newComment.id,
+              commentText: commentText,
+              postId: post.id,
+              projectId: project.id
+            })
+          });
+
+          if (mentionsResponse.ok) {
+            const mentionsData = await mentionsResponse.json();
+
+            // Send email notifications to mentioned users
+            if (mentionsData.mentions && mentionsData.mentions.length > 0) {
+              for (const mention of mentionsData.mentions) {
+                await fetch('/api/emails/mention-notification', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    mentionedEmail: mention.mentioned_user_email,
+                    mentionedName: mention.mentioned_user_name,
+                    commenterName: commentName,
+                    commentText: commentText,
+                    postTitle: post.title,
+                    postUrl: `${window.location.origin}/${project.slug}/post/${post.id}`,
+                    projectName: project.name
+                  })
+                });
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error processing mentions:', error);
+          // Don't fail the comment if mentions fail
+        }
+
         toast.success('Comment posted successfully');
         setCommentText('');
         setCommentName('');
         setCommentEmail('');
         // Add the new comment to the list
-        setComments([...comments, data.comment]);
+        setComments([...comments, newComment]);
       } else {
         toast.error('Failed to post comment');
       }
@@ -802,14 +845,15 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
               {/* Add Comment Form */}
               <div ref={commentFormRef} className="mt-6 pt-6 border-t scroll-mt-20">
                 <h4 className="font-medium text-gray-900 mb-3">Add a comment</h4>
-                
-                <textarea
+
+                <MentionTextarea
                   value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Share your thoughts..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm mb-2"
-                  rows={4}
-                  required
+                  onChange={setCommentText}
+                  postId={post.id}
+                  placeholder="Share your thoughts... (use @ to mention someone)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm mb-2"
+                  minRows={4}
+                  maxRows={10}
                 />
                 
                 {/* AI Writing Assistant */}

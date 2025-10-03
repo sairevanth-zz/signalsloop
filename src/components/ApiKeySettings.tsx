@@ -559,22 +559,64 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                     </div>
                   </div>
 
-                  <div className={`widget-preview-container relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-lg overflow-hidden ${
+                  <div className={`widget-preview-container relative bg-white rounded-lg overflow-hidden border border-gray-200 ${
                     previewMode === 'mobile' ? 'max-w-sm mx-auto' : 'w-full'
-                  }`} style={{ height: previewMode === 'mobile' ? '600px' : '400px' }}>
-                    {/* Website Content Simulation */}
-                    <div className="absolute inset-0 p-6">
-                      <div className="space-y-4">
-                        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5"></div>
-                        <div className="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2">
-                          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  }`} style={{ height: previewMode === 'mobile' ? '600px' : '500px' }}>
+                    {/* Realistic Website Header */}
+                    <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md z-10">
+                      <div className="flex items-center justify-between h-full px-6">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                            <span className="text-indigo-600 font-bold text-lg">S</span>
+                          </div>
+                          <span className="text-white font-semibold text-lg hidden sm:inline">Your SaaS Product</span>
                         </div>
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mt-4"></div>
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                        <div className="flex items-center gap-4">
+                          <div className="hidden md:flex items-center gap-3 text-white text-sm">
+                            <span className="hover:text-indigo-200 cursor-pointer">Features</span>
+                            <span className="hover:text-indigo-200 cursor-pointer">Pricing</span>
+                            <span className="hover:text-indigo-200 cursor-pointer">Docs</span>
+                          </div>
+                          <div className="w-8 h-8 bg-white/20 rounded-full"></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Website Content Simulation */}
+                    <div className="absolute inset-0 pt-20 p-6 overflow-hidden">
+                      <div className="space-y-6">
+                        {/* Hero Section */}
+                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
+                          <div className="h-6 bg-gradient-to-r from-indigo-400 to-purple-400 rounded w-2/3 mb-3"></div>
+                          <div className="h-4 bg-gray-300 rounded w-full mb-2"></div>
+                          <div className="h-4 bg-gray-300 rounded w-5/6"></div>
+                        </div>
+
+                        {/* Feature Cards */}
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                            <div className="w-10 h-10 bg-blue-500 rounded-lg mb-3"></div>
+                            <div className="h-4 bg-blue-300 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-gray-300 rounded w-full"></div>
+                          </div>
+                          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                            <div className="w-10 h-10 bg-green-500 rounded-lg mb-3"></div>
+                            <div className="h-4 bg-green-300 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-gray-300 rounded w-full"></div>
+                          </div>
+                          <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                            <div className="w-10 h-10 bg-purple-500 rounded-lg mb-3"></div>
+                            <div className="h-4 bg-purple-300 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-gray-300 rounded w-full"></div>
+                          </div>
+                        </div>
+
+                        {/* Content Section */}
+                        <div className="space-y-2">
+                          <div className="h-3 bg-gray-200 rounded w-full"></div>
+                          <div className="h-3 bg-gray-200 rounded w-11/12"></div>
+                          <div className="h-3 bg-gray-200 rounded w-4/5"></div>
+                        </div>
                       </div>
                     </div>
                     

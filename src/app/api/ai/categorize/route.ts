@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { categorizeFeedback, batchCategorizeFeedback, getCurrentModel } from '@/lib/ai-categorization';
 import { createClient } from '@supabase/supabase-js';
+import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -15,10 +16,31 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     console.log('🤖 Request body:', body);
-    
+
+    // Check rate limit if projectId is provided
+    if (body.projectId) {
+      const usageCheck = await checkAIUsageLimit(body.projectId, 'categorization');
+
+      if (!usageCheck.allowed) {
+        return NextResponse.json(
+          {
+            error: 'Rate limit exceeded',
+            message: `You've reached your monthly limit of ${usageCheck.limit} AI categorizations. ${
+              usageCheck.isPro ? 'Please try again next month.' : 'Upgrade to Pro for 50,000 categorizations per month!'
+            }`,
+            current: usageCheck.current,
+            limit: usageCheck.limit,
+            remaining: usageCheck.remaining,
+            isPro: usageCheck.isPro
+          },
+          { status: 429 }
+        );
+      }
+    }
+
     // Handle single post categorization
     if (body.title) {
-      const { title, description } = body;
+      const { title, description, projectId } = body;
       console.log('🤖 Categorizing:', { title, description });
       
       if (!title || typeof title !== 'string') {
@@ -30,11 +52,29 @@ export async function POST(request: NextRequest) {
 
       const result = await categorizeFeedback(title, description);
       console.log('🤖 Categorization result:', result);
-      
+
+      // Increment usage after successful categorization
+      if (projectId) {
+        await incrementAIUsage(projectId, 'categorization');
+      }
+
+      // Get updated usage info
+      let usageInfo = null;
+      if (projectId) {
+        const usage = await checkAIUsageLimit(projectId, 'categorization');
+        usageInfo = {
+          current: usage.current + 1, // Include the one we just used
+          limit: usage.limit,
+          remaining: usage.remaining - 1,
+          isPro: usage.isPro
+        };
+      }
+
       return NextResponse.json({
         success: true,
         result,
-        model: getCurrentModel()
+        model: getCurrentModel(),
+        usage: usageInfo
       });
     }
     

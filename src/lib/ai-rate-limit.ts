@@ -1,22 +1,22 @@
 import { getSupabaseServerClient } from './supabase-client';
 
-// Free tier limits (monthly)
+// Monthly AI usage limits
 export const AI_LIMITS = {
   free: {
     sentiment_analysis: 10,        // 10 sentiment analyses per month
-    auto_response: 25,              // 25 auto-responses per month  
+    auto_response: 25,              // 25 auto-responses per month
     duplicate_detection: 15,        // 15 duplicate checks per month
     priority_scoring: 15,           // 15 priority analyses per month
     categorization: 50,             // 50 auto-categorizations per month
     writing_assistant: 100,         // 100 writing assists per month
   },
   pro: {
-    sentiment_analysis: Infinity,
-    auto_response: Infinity,
-    duplicate_detection: Infinity,
-    priority_scoring: Infinity,
-    categorization: Infinity,
-    writing_assistant: Infinity,
+    sentiment_analysis: 10000,      // 10,000 per month - prevents abuse while allowing normal usage
+    auto_response: 5000,            // 5,000 per month - high limit for auto-responses
+    duplicate_detection: 10000,     // 10,000 per month - plenty for duplicate checks
+    priority_scoring: 10000,        // 10,000 per month - generous limit
+    categorization: 50000,          // 50,000 per month - very high for categorization
+    writing_assistant: 20000,       // 20,000 per month - ample for writing assistance
   }
 };
 
@@ -51,19 +51,9 @@ export async function checkAIUsageLimit(
     throw new Error('Project not found');
   }
 
-  // Pro users have unlimited access
-  if (project.plan === 'pro') {
-    return {
-      allowed: true,
-      current: 0,
-      limit: Infinity,
-      remaining: Infinity,
-      isPro: true
-    };
-  }
-
-  // Check usage for free tier
-  const limit = AI_LIMITS.free[featureType];
+  // Get appropriate limit based on plan
+  const isPro = project.plan === 'pro';
+  const limit = isPro ? AI_LIMITS.pro[featureType] : AI_LIMITS.free[featureType];
   
   const { data, error } = await supabase.rpc('check_ai_usage_limit', {
     p_project_id: projectId,
@@ -85,7 +75,7 @@ export async function checkAIUsageLimit(
 
   return {
     ...data,
-    isPro: false
+    isPro: isPro
   };
 }
 
@@ -94,24 +84,12 @@ export async function incrementAIUsage(
   featureType: AIFeatureType
 ): Promise<void> {
   const supabase = getSupabaseServerClient();
-  
+
   if (!supabase) {
     return;
   }
 
-  // Get project plan
-  const { data: project } = await supabase
-    .from('projects')
-    .select('plan')
-    .eq('id', projectId)
-    .single();
-
-  // Don't track for pro users
-  if (project?.plan === 'pro') {
-    return;
-  }
-
-  // Increment usage
+  // Increment usage for all users (both free and pro)
   await supabase.rpc('increment_ai_usage', {
     p_project_id: projectId,
     p_feature_type: featureType

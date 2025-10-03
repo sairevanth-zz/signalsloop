@@ -126,37 +126,135 @@ export default function WidgetTestPage() {
     `;
 
     modal.innerHTML = `
-      <div style="padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <h2 style="margin: 0; font-size: 24px; font-weight: 600;">Share your feedback and ideas</h2>
-          <button id="close-preview" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
+      <div style="padding: 20px; padding-bottom: 24px; max-height: calc(100vh - 40px); overflow-y: auto; -webkit-overflow-scrolling: touch;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <div>
+            <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: #111;">Submit Feedback</h2>
+            <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">Help us improve by sharing your thoughts and ideas</p>
+          </div>
+          <button id="close-preview" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280; padding: 0; line-height: 1;">×</button>
         </div>
+
+        <!-- Feedback Type Selection -->
         <div style="margin-bottom: 20px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 500;">Title *</label>
-          <input type="text" placeholder="Enter a title for your feedback" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px;">
+          <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 14px; color: #374151;">Feedback Type *</label>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+            <button type="button" class="type-btn" data-type="feature" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
+              <span style="font-size: 18px;">⭐</span>
+              <span style="font-weight: 500;">Feature</span>
+            </button>
+            <button type="button" class="type-btn" data-type="bug" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
+              <span style="font-size: 18px;">🐛</span>
+              <span style="font-weight: 500;">Bug</span>
+            </button>
+            <button type="button" class="type-btn" data-type="improvement" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
+              <span style="font-size: 18px;">💡</span>
+              <span style="font-weight: 500;">Improvement</span>
+            </button>
+            <button type="button" class="type-btn active" data-type="general" style="padding: 12px; border: 2px solid ${color}; background: ${color}10; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
+              <span style="font-size: 18px;">💬</span>
+              <span style="font-weight: 500; color: ${color};">General</span>
+            </button>
+          </div>
         </div>
+
+        <!-- Title -->
         <div style="margin-bottom: 20px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 500;">Description</label>
-          <textarea placeholder="Describe your feedback in detail..." rows="4" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; resize: vertical;"></textarea>
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #374151;">Title *</label>
+          <input type="text" placeholder="Brief summary of your feedback" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box;">
         </div>
+
+        <!-- Description -->
         <div style="margin-bottom: 20px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 500;">Category</label>
-          <select style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label style="font-weight: 500; font-size: 14px; color: #374151;">Description *</label>
+            <span style="font-size: 12px; color: #9ca3af;">0/500</span>
+          </div>
+          <textarea placeholder="Describe your feedback in detail..." rows="4" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; resize: vertical; box-sizing: border-box;"></textarea>
+        </div>
+
+        <!-- Category -->
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #374151;">Category</label>
+          <select style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; background: white;">
             <option>Feature Request</option>
             <option>Bug Report</option>
             <option>Improvement</option>
+            <option>Integration</option>
+            <option>UI/UX</option>
+            <option>Performance</option>
+            <option>Documentation</option>
             <option>Other</option>
           </select>
         </div>
-        <div style="display: flex; gap: 12px; justify-content: flex-end;">
-          <button id="cancel-preview" style="padding: 12px 24px; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer;">Cancel</button>
-          <button style="padding: 12px 24px; background: ${color}; color: white; border: none; border-radius: 6px; cursor: pointer;">Submit Feedback</button>
+
+        <!-- Priority -->
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 14px; color: #374151;">Priority</label>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="priority-btn" data-priority="low" style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">Low</button>
+            <button type="button" class="priority-btn active" data-priority="medium" style="flex: 1; padding: 8px 12px; border: 2px solid ${color}; background: ${color}10; color: ${color}; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Medium</button>
+            <button type="button" class="priority-btn" data-priority="high" style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">High</button>
+          </div>
+        </div>
+
+        <!-- Your Name -->
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #374151;">Your Name *</label>
+          <input type="text" placeholder="John Doe" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box;">
+        </div>
+
+        <!-- Email (MANDATORY) -->
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #374151;">Email *</label>
+          <input type="email" placeholder="your@email.com" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box;">
+          <p style="margin: 6px 0 0 0; font-size: 12px; color: #6b7280;">We'll notify you about updates on your feedback</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+          <button id="cancel-preview" style="padding: 12px 24px; border: 1px solid #d1d5db; background: white; color: #374151; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 14px;">Cancel</button>
+          <button style="padding: 12px 24px; background: ${color}; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Submit Feedback</button>
         </div>
       </div>
     `;
 
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
+
+    // Add interactive functionality for type buttons
+    const typeButtons = modal.querySelectorAll('.type-btn');
+    typeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        typeButtons.forEach(b => {
+          b.style.border = '2px solid #e5e7eb';
+          b.style.background = 'white';
+          const span = b.querySelector('span:last-child');
+          if (span) span.style.color = '';
+        });
+        btn.style.border = `2px solid ${color}`;
+        btn.style.background = `${color}10`;
+        const span = btn.querySelector('span:last-child');
+        if (span) span.style.color = color;
+      });
+    });
+
+    // Add interactive functionality for priority buttons
+    const priorityButtons = modal.querySelectorAll('.priority-btn');
+    priorityButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        priorityButtons.forEach(b => {
+          b.style.border = '1px solid #d1d5db';
+          b.style.background = 'white';
+          b.style.color = '';
+          b.style.fontWeight = '400';
+        });
+        btn.style.border = `2px solid ${color}`;
+        btn.style.background = `${color}10`;
+        btn.style.color = color;
+        btn.style.fontWeight = '500';
+      });
+    });
 
     // Add close handlers
     const closeModal = () => {

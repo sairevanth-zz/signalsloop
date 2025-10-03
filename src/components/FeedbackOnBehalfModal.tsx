@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { analytics } from '@/lib/analytics';
 import AIWritingAssistant from './AIWritingAssistant';
+import AIUsageIndicator from './AIUsageIndicator';
 
 interface FeedbackOnBehalfModalProps {
   isOpen: boolean;
@@ -71,6 +72,7 @@ export default function FeedbackOnBehalfModal({
   const [aiCategory, setAiCategory] = useState<AICategory | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showAICategory, setShowAICategory] = useState(false);
+  const [aiUsage, setAiUsage] = useState<{current: number; limit: number; remaining: number; isPro: boolean} | null>(null);
 
   if (!isOpen) return null;
 
@@ -89,7 +91,8 @@ export default function FeedbackOnBehalfModal({
         },
         body: JSON.stringify({
           title: formData.title,
-          description: formData.description
+          description: formData.description,
+          projectId: projectId
         }),
       });
 
@@ -97,9 +100,17 @@ export default function FeedbackOnBehalfModal({
         const data = await response.json();
         setAiCategory(data.result);
         setShowAICategory(true);
+        if (data.usage) {
+          setAiUsage(data.usage);
+        }
         toast.success('AI analysis complete!');
       } else {
-        toast.error('AI analysis failed. Please try again.');
+        const errorData = await response.json();
+        if (response.status === 429) {
+          toast.error(errorData.message || 'Rate limit exceeded');
+        } else {
+          toast.error('AI analysis failed. Please try again.');
+        }
       }
     } catch (error) {
       console.error('AI categorization error:', error);
@@ -408,23 +419,36 @@ export default function FeedbackOnBehalfModal({
 
                 {/* AI Category Display */}
                 {showAICategory && aiCategory && (
-                  <div className="mt-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <Sparkles className="h-5 w-5 text-purple-600 mt-0.5" />
-                      <div className="flex-1">
-                        <div className="font-medium text-purple-900 mb-1">
-                          AI Suggested Category: {aiCategory.category}
-                        </div>
-                        <div className="text-sm text-purple-700 mb-2">
-                          Confidence: {Math.round(aiCategory.confidence * 100)}%
-                        </div>
-                        {aiCategory.reasoning && (
-                          <div className="text-sm text-purple-600 italic">
-                            &quot;{aiCategory.reasoning}&quot;
+                  <div className="mt-3 space-y-3">
+                    <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <Sparkles className="h-5 w-5 text-purple-600 mt-0.5" />
+                        <div className="flex-1">
+                          <div className="font-medium text-purple-900 mb-1">
+                            AI Suggested Category: {aiCategory.category}
                           </div>
-                        )}
+                          <div className="text-sm text-purple-700 mb-2">
+                            Confidence: {Math.round(aiCategory.confidence * 100)}%
+                          </div>
+                          {aiCategory.reasoning && (
+                            <div className="text-sm text-purple-600 italic">
+                              &quot;{aiCategory.reasoning}&quot;
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
+
+                    {/* AI Usage Indicator */}
+                    {aiUsage && (
+                      <AIUsageIndicator
+                        current={aiUsage.current}
+                        limit={aiUsage.limit}
+                        remaining={aiUsage.remaining}
+                        isPro={aiUsage.isPro}
+                        featureName="AI categorization"
+                      />
+                    )}
                   </div>
                 )}
               </div>

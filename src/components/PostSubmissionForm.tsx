@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import AIWritingAssistant from './AIWritingAssistant';
+import AIUsageIndicator from './AIUsageIndicator';
 
 interface PostSubmissionFormProps {
   isOpen: boolean;
@@ -82,6 +83,7 @@ export default function PostSubmissionForm({
   const [aiCategory, setAiCategory] = useState<AICategory | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showAICategory, setShowAICategory] = useState(false);
+  const [aiUsage, setAiUsage] = useState<{current: number; limit: number; remaining: number; isPro: boolean} | null>(null);
 
   const categorizeWithAI = async () => {
     if (!formData.title.trim()) {
@@ -98,7 +100,8 @@ export default function PostSubmissionForm({
         },
         body: JSON.stringify({
           title: formData.title,
-          description: formData.description
+          description: formData.description,
+          projectId: projectId
         }),
       });
 
@@ -106,9 +109,17 @@ export default function PostSubmissionForm({
         const data = await response.json();
         setAiCategory(data.result);
         setShowAICategory(true);
+        if (data.usage) {
+          setAiUsage(data.usage);
+        }
         toast.success('AI analysis complete!');
       } else {
-        toast.error('AI analysis failed. Please try again.');
+        const errorData = await response.json();
+        if (response.status === 429) {
+          toast.error(errorData.message || 'Rate limit exceeded');
+        } else {
+          toast.error('AI analysis failed. Please try again.');
+        }
       }
     } catch (error) {
       console.error('AI categorization error:', error);
@@ -441,26 +452,39 @@ export default function PostSubmissionForm({
                   </div>
                   
                   {showAICategory && aiCategory && (
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-purple-900">
-                          Suggested Category
-                        </span>
-                        <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
-                          {Math.round(aiCategory.confidence * 100)}% confidence
-                        </span>
+                    <div className="space-y-3">
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-purple-900">
+                            Suggested Category
+                          </span>
+                          <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
+                            {Math.round(aiCategory.confidence * 100)}% confidence
+                          </span>
+                        </div>
+                        <div className="text-sm text-purple-800 mb-2">
+                          <strong>{aiCategory.category}</strong>
+                        </div>
+                        {aiCategory.reasoning && (
+                          <p className="text-xs text-purple-700">
+                            {aiCategory.reasoning}
+                          </p>
+                        )}
                       </div>
-                      <div className="text-sm text-purple-800 mb-2">
-                        <strong>{aiCategory.category}</strong>
-                      </div>
-                      {aiCategory.reasoning && (
-                        <p className="text-xs text-purple-700">
-                          {aiCategory.reasoning}
-                        </p>
+
+                      {/* AI Usage Indicator */}
+                      {aiUsage && (
+                        <AIUsageIndicator
+                          current={aiUsage.current}
+                          limit={aiUsage.limit}
+                          remaining={aiUsage.remaining}
+                          isPro={aiUsage.isPro}
+                          featureName="AI categorization"
+                        />
                       )}
                     </div>
                   )}
-                  
+
                   {!showAICategory && (
                     <p className="text-xs text-gray-500">
                       Get AI-powered category suggestions for your feedback
