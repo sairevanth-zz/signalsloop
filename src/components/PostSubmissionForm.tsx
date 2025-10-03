@@ -288,11 +288,10 @@ export default function PostSubmissionForm({
           boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
           maxWidth: '800px',
           width: '90%',
-          maxHeight: '90vh',
+          maxHeight: '95vh',
           overflow: 'hidden',
           position: 'relative',
-          margin: '50px auto',
-          border: '3px solid green'
+          margin: '20px auto',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -302,9 +301,6 @@ export default function PostSubmissionForm({
             <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
               Help us improve by sharing your thoughts and ideas
             </p>
-            <div style={{ backgroundColor: '#10b981', color: 'white', padding: '8px', marginTop: '8px', textAlign: 'center', fontWeight: 'bold', fontSize: '12px' }}>
-              🎉 SUBMIT FEEDBACK MODAL VISIBLE! Z-index: 99999999
-            </div>
           </div>
           <button
             onClick={onClose}
@@ -313,7 +309,7 @@ export default function PostSubmissionForm({
             ×
           </button>
         </div>
-        <div style={{ padding: '20px', maxHeight: 'calc(90vh - 80px)', overflowY: 'auto' }}>
+        <div style={{ padding: '20px', maxHeight: 'calc(95vh - 100px)', overflowY: 'auto', overflowX: 'hidden' }}>
             {isSuccess ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
