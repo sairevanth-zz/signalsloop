@@ -259,14 +259,16 @@ export default function FeedbackOnBehalfModal({
           boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
           maxWidth: '800px',
           width: '90%',
-          maxHeight: '95vh',
+          maxHeight: '90vh',
           overflow: 'hidden',
           position: 'relative',
           margin: '20px auto',
+          display: 'flex',
+          flexDirection: 'column'
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <div>
             <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Submit Feedback on Behalf</h2>
             <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
@@ -282,7 +284,7 @@ export default function FeedbackOnBehalfModal({
           </button>
         </div>
 
-        <div style={{ padding: '20px', maxHeight: 'calc(95vh - 100px)', overflowY: 'auto', overflowX: 'hidden' }}>
+        <div style={{ padding: '20px', paddingBottom: '24px', flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}>
           {isSuccess ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">

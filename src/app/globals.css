@@ -198,6 +198,29 @@
       display: none;
     }
   }
+
+  /* Extra small screen breakpoint (xs) */
+  @media (min-width: 475px) {
+    .xs\:inline {
+      display: inline;
+    }
+
+    .xs\:hidden {
+      display: none;
+    }
+
+    .xs\:grid-cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* Modal viewport handling for mobile */
+  @supports (-webkit-touch-callout: none) {
+    /* iOS-specific viewport handling */
+    .modal-container {
+      max-height: -webkit-fill-available;
+    }
+  }
 }
 
 @custom-variant dark (&:is(.dark *));
