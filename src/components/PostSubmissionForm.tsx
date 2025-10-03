@@ -314,17 +314,6 @@ export default function PostSubmissionForm({
           </button>
         </div>
         <div style={{ padding: '20px', maxHeight: 'calc(90vh - 80px)', overflowY: 'auto' }}>
-
-          {/* Scrollable Content */}
-          <div 
-            className="flex-1 overflow-y-auto p-4 sm:p-6"
-            style={{
-              WebkitOverflowScrolling: 'touch',
-              overscrollBehavior: 'contain'
-            }}
-          >
-            <Card className="border-0 shadow-none">
-              <CardContent className="p-0 space-y-4 sm:space-y-6">
             {isSuccess ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
