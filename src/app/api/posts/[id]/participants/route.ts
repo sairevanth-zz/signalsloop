@@ -5,12 +5,12 @@ export const runtime = 'nodejs';
 export const maxDuration = 10;
 
 /**
- * GET /api/posts/[postId]/participants
+ * GET /api/posts/[id]/participants
  * Get all participants in a post (for @ mention autocomplete)
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const supabase = getSupabaseServiceRoleClient();
@@ -21,7 +21,7 @@ export async function GET(
       );
     }
 
-    const { postId } = params;
+    const postId = params.id;
     const { searchParams } = new URL(request.url);
     const searchTerm = searchParams.get('search') || '';
 
