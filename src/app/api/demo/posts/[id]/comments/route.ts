@@ -3,10 +3,10 @@ import { getSupabaseServerClient } from '@/lib/supabase-client';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const postId = params.postId;
+    const postId = params.id;
 
     if (!postId) {
       return NextResponse.json(
@@ -63,10 +63,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const postId = params.postId;
+    const postId = params.id;
     const { content } = await request.json();
 
     if (!postId) {
