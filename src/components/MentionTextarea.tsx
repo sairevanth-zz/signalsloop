@@ -95,9 +95,12 @@ export default function MentionTextarea({
       return;
     }
 
-    // Check if we're typing a mention (allow letters, numbers, spaces, dots, hyphens)
+    // Check if we're typing a mention
+    // Only match @ followed by word characters (no spaces after the name has started)
     const textBeforeCursor = newValue.substring(0, cursorPosition);
-    const mentionMatch = textBeforeCursor.match(/@([\w\s\.\-]*)$/);
+
+    // Match @word or @word.name or @word-name but stop at space after @
+    const mentionMatch = textBeforeCursor.match(/@([^\s]*)$/);
 
     if (mentionMatch) {
       // We're in a mention
