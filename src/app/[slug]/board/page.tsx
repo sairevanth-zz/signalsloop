@@ -775,7 +775,10 @@ export default function BoardPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDeletePost(post.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeletePost(post.id);
+                              }}
                               className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
                               title="Delete post"
                             >

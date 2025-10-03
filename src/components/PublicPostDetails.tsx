@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CategoryBadge } from '@/components/CategoryBadge';
-import { 
+import {
   ChevronUp,
   ChevronDown,
   MessageSquare,
@@ -22,7 +22,8 @@ import {
   Twitter,
   Facebook,
   Link as LinkIcon,
-  UserPlus
+  UserPlus,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -367,6 +368,46 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     }
   };
 
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm('Are you sure you want to delete this comment? This action cannot be undone and will also delete all replies.')) {
+      return;
+    }
+
+    try {
+      const supabase = getSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        toast.error('You must be logged in');
+        return;
+      }
+
+      const response = await fetch('/api/admin/delete-comment', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          commentId,
+          projectId: project.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete comment');
+      }
+
+      toast.success('Comment deleted successfully');
+
+      // Remove the comment and its replies from the list
+      setComments(prev => prev.filter(c => c.id !== commentId && c.parent_id !== commentId));
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      toast.error('Failed to delete comment');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Breadcrumb */}
@@ -625,13 +666,26 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                             <User className="h-4 w-4 text-blue-600" />
                           </div>
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-sm text-gray-900">
-                                {comment.author_name || 'Anonymous'}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {new Date(comment.created_at).toLocaleDateString()}
-                              </span>
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm text-gray-900">
+                                  {comment.author_name || 'Anonymous'}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(comment.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                              {isOwner && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteComment(comment.id)}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
+                                  title="Delete comment"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              )}
                             </div>
                             <p className="text-sm text-gray-700 mb-2">{comment.content}</p>
                             <Button
@@ -710,13 +764,26 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                                       <User className="h-3 w-3 text-gray-600" />
                                     </div>
                                     <div className="flex-1">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <span className="font-medium text-xs text-gray-900">
-                                          {reply.author_name || 'Anonymous'}
-                                        </span>
-                                        <span className="text-xs text-gray-500">
-                                          {new Date(reply.created_at).toLocaleDateString()}
-                                        </span>
+                                      <div className="flex items-center justify-between mb-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-medium text-xs text-gray-900">
+                                            {reply.author_name || 'Anonymous'}
+                                          </span>
+                                          <span className="text-xs text-gray-500">
+                                            {new Date(reply.created_at).toLocaleDateString()}
+                                          </span>
+                                        </div>
+                                        {isOwner && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDeleteComment(reply.id)}
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
+                                            title="Delete reply"
+                                          >
+                                            <Trash2 className="w-3 h-3" />
+                                          </Button>
+                                        )}
                                       </div>
                                       <p className="text-xs text-gray-700">{reply.content}</p>
                                     </div>

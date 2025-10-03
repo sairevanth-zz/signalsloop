@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const postUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/${projectSlug}/board`;
+    const postUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/${projectSlug}/post/${postId}`;
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
@@ -57,12 +57,12 @@ export async function POST(request: NextRequest) {
               </div>
 
               <p style="font-size: 16px; margin-bottom: 20px;">
-                You can view and track the status of your feedback, add comments, or vote for other features on our feedback board:
+                You can view and track the status of your feedback, add comments, or upvote this feature request:
               </p>
 
               <div style="text-align: center; margin: 30px 0;">
                 <a href="${postUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
-                  View Feedback Board
+                  View Your Feedback
                 </a>
               </div>
 

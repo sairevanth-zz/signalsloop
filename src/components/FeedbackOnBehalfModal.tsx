@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, AlertCircle, CheckCircle, Star, Bug, Lightbulb, MessageSquare } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle, Star, Bug, Lightbulb, MessageSquare, Brain, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { analytics } from '@/lib/analytics';
+import AIWritingAssistant from './AIWritingAssistant';
 
 interface FeedbackOnBehalfModalProps {
   isOpen: boolean;
@@ -39,6 +40,12 @@ const SOURCE_OPTIONS = [
   { value: 'other', label: '📋 Other' },
 ];
 
+interface AICategory {
+  category: string;
+  confidence: number;
+  reasoning?: string;
+}
+
 export default function FeedbackOnBehalfModal({
   isOpen,
   onClose,
@@ -61,8 +68,46 @@ export default function FeedbackOnBehalfModal({
     notifyCustomer: true,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [aiCategory, setAiCategory] = useState<AICategory | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showAICategory, setShowAICategory] = useState(false);
 
   if (!isOpen) return null;
+
+  const categorizeWithAI = async () => {
+    if (!formData.title.trim()) {
+      toast.error('Please enter a title before analyzing');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch('/api/ai/categorize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAiCategory(data.result);
+        setShowAICategory(true);
+        toast.success('AI analysis complete!');
+      } else {
+        toast.error('AI analysis failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('AI categorization error:', error);
+      toast.error('AI analysis unavailable. Please try again later.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -314,9 +359,18 @@ export default function FeedbackOnBehalfModal({
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   placeholder="Describe what the customer is requesting and why it's important to them..."
                   rows={4}
-                  className={`text-base momentum-scroll ${errors.description ? 'border-red-500' : ''}`}
+                  className={`text-base momentum-scroll ${errors.description ? 'border-red-500 mb-2' : 'mb-2'}`}
                   disabled={loading}
                 />
+
+                {/* AI Writing Assistant */}
+                <AIWritingAssistant
+                  currentText={formData.description}
+                  context={`Feedback type: ${formData.type}, Title: ${formData.title}`}
+                  onTextImprove={(improved) => handleInputChange('description', improved)}
+                  placeholder="Describe the feedback..."
+                />
+
                 {errors.description && (
                   <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
@@ -326,6 +380,51 @@ export default function FeedbackOnBehalfModal({
                 <p className="text-xs text-gray-500 mt-1">
                   {formData.description.length}/500 characters
                 </p>
+              </div>
+
+              {/* AI Categorization Button */}
+              <div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={categorizeWithAI}
+                  disabled={isAnalyzing || loading}
+                  className="w-full border-purple-200 hover:bg-purple-50"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Analyzing with AI...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="h-4 w-4 mr-2" />
+                      Analyze with AI
+                    </>
+                  )}
+                </Button>
+
+                {/* AI Category Display */}
+                {showAICategory && aiCategory && (
+                  <div className="mt-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <Sparkles className="h-5 w-5 text-purple-600 mt-0.5" />
+                      <div className="flex-1">
+                        <div className="font-medium text-purple-900 mb-1">
+                          AI Suggested Category: {aiCategory.category}
+                        </div>
+                        <div className="text-sm text-purple-700 mb-2">
+                          Confidence: {Math.round(aiCategory.confidence * 100)}%
+                        </div>
+                        {aiCategory.reasoning && (
+                          <div className="text-sm text-purple-600 italic">
+                            &quot;{aiCategory.reasoning}&quot;
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Divider */}

@@ -55,7 +55,18 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Comment not found' }, { status: 404 });
     }
 
-    // Delete the comment
+    // First, delete all nested replies (comments with this comment as parent)
+    const { error: deleteRepliesError } = await supabase
+      .from('comments')
+      .delete()
+      .eq('parent_id', commentId);
+
+    if (deleteRepliesError) {
+      console.error('Error deleting replies:', deleteRepliesError);
+      // Continue anyway - we'll still try to delete the parent comment
+    }
+
+    // Then delete the parent comment
     const { error: deleteError } = await supabase
       .from('comments')
       .delete()
