@@ -10,7 +10,7 @@ export const maxDuration = 10;
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = getSupabaseServiceRoleClient();
@@ -21,7 +21,7 @@ export async function GET(
       );
     }
 
-    const postId = params.id;
+    const { id: postId } = await params;
     const { searchParams } = new URL(request.url);
     const searchTerm = searchParams.get('search') || '';
 

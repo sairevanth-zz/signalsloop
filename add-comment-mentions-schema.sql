@@ -50,19 +50,8 @@ BEGIN
       COUNT(*)::BIGINT as count
     FROM comments c
     WHERE c.post_id = p_post_id
+      AND c.author_email IS NOT NULL
     GROUP BY c.author_email, c.author_name
-
-    UNION ALL
-
-    -- Get voters (if they have user info)
-    SELECT
-      v.user_email as email,
-      v.user_name as name,
-      1::BIGINT as count
-    FROM votes v
-    WHERE v.post_id = p_post_id
-      AND v.user_email IS NOT NULL
-    GROUP BY v.user_email, v.user_name
   )
   SELECT
     ap.email,
