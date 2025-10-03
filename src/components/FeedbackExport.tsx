@@ -158,7 +158,7 @@ export default function FeedbackExport({
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="w-[calc(100vw-2rem)] max-w-lg sm:max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl bg-white/95 backdrop-blur [&>[data-radix-dialog-close]]:hidden">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-lg sm:max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl bg-white/95 backdrop-blur [&>[data-radix-dialog-close]]:hidden z-[9999999] border-4 border-green-500">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-3 sm:px-6">
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
             <Download className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-blue-600" />
