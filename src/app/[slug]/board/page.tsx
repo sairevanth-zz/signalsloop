@@ -413,7 +413,7 @@ export default function BoardPage() {
             
             <div className="flex flex-wrap gap-2">
               {/* Share Button */}
-              <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
+                <Dialog open={true} onOpenChange={setShowShareModal}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 min-touch-target tap-highlight-transparent">
                     <Share2 className="w-4 h-4" />
