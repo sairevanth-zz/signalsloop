@@ -429,7 +429,15 @@ export default function BoardPage() {
               {showShareModal && (
                 <div 
                   className="fixed inset-0 z-[9999999] flex items-center justify-center p-4"
-                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                  style={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 9999999
+                  }}
                   onClick={(e) => {
                     if (e.target === e.currentTarget) {
                       setShowShareModal(false);
@@ -438,6 +446,12 @@ export default function BoardPage() {
                 >
                   <div 
                     className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] overflow-hidden"
+                    style={{
+                      position: 'relative',
+                      zIndex: 10000000,
+                      transform: 'translateY(0)',
+                      margin: 'auto'
+                    }}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex items-center justify-between p-4 border-b">
@@ -450,8 +464,10 @@ export default function BoardPage() {
                       </button>
                     </div>
                     <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 80px)' }}>
-                      <div className="text-white bg-blue-600 p-2 mb-4">
+                      <div className="text-white bg-red-600 p-4 mb-4 text-center font-bold text-lg">
                         🎉 CUSTOM MODAL WORKING! Project: {project?.name}, Slug: {params?.slug}
+                        <br />
+                        ✅ Modal is positioned correctly and visible!
                       </div>
                       {project && (
                         <BoardShare
