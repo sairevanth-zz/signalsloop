@@ -418,7 +418,7 @@ export default function BoardPage() {
                     <span className="hidden sm:inline">Share</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto momentum-scroll">
+                <DialogContent className="w-[calc(100vw-1.5rem)] max-w-xl sm:max-w-4xl max-h-[85vh] overflow-y-auto momentum-scroll p-4 sm:p-6 rounded-2xl">
                   <DialogHeader>
                     <DialogTitle>Share {project?.name} Board</DialogTitle>
                   </DialogHeader>

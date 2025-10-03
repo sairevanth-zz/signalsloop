@@ -156,7 +156,7 @@ export default function FeedbackExport({
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto safe-top safe-bottom">
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-lg sm:max-w-2xl max-h-[85vh] overflow-y-auto safe-top safe-bottom p-4 sm:p-6 rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Download className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />

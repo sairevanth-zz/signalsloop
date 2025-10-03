@@ -248,8 +248,8 @@ export default function PostSubmissionForm({
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm">
-      <div className="h-full flex items-start sm:items-center justify-center sm:p-4">
-        <div className="bg-white w-full max-w-2xl h-full sm:h-auto sm:max-h-[90vh] sm:rounded-lg shadow-xl flex flex-col">
+      <div className="h-full flex items-start sm:items-center justify-center p-4 sm:p-6 safe-top safe-bottom">
+        <div className="bg-white w-full max-w-2xl h-full max-h-[calc(100vh-2rem)] sm:h-auto sm:max-h-[90vh] rounded-2xl shadow-xl flex flex-col">
           {/* Fixed Header */}
           <div className="flex items-center justify-between p-4 sm:p-6 border-b flex-shrink-0 bg-white">
             <div className="flex-1 pr-4">
