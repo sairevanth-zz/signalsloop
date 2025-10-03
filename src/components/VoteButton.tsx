@@ -60,19 +60,15 @@ export function VoteButton({
   const checkUserVoteStatus = useCallback(async (hash: string) => {
     if (!supabase) return;
     
-    try {
-      const { data, error } = await supabase
-        .from('votes')
-        .select('id')
-        .eq('post_id', postId)
-        .eq('ip_address', hash)
-        .single();
+    const { data, error } = await supabase
+      .from('votes')
+      .select('id')
+      .eq('post_id', postId)
+      .eq('ip_address', hash)
+      .maybeSingle();
 
-      if (!error && data) {
-        setUserVoted(true);
-      }
-    } catch {
-      // User hasn't voted - this is expected
+    if (!error && data) {
+      setUserVoted(true);
     }
   }, [supabase, postId]);
 

@@ -57,9 +57,9 @@ export async function POST(
       .select('id')
       .eq('post_id', postId)
       .or(`ip_address.eq.${ipAddress},anonymous_id.eq.${anonymousId}`)
-      .single();
+      .maybeSingle();
 
-    if (voteError && voteError.code !== 'PGRST116') { // PGRST116 means no rows found
+    if (voteError) {
       console.error('Error checking existing vote:', voteError);
       return NextResponse.json({ error: 'Failed to check vote status' }, { status: 500 });
     }

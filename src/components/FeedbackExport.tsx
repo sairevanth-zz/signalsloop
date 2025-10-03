@@ -15,10 +15,11 @@ import {
 } from "@/components/ui/select";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { 
   Download, 
@@ -170,6 +171,10 @@ export default function FeedbackExport({
             </Button>
           </DialogClose>
         </div>
+
+        <DialogDescription className="sr-only">
+          Export feedback data in various formats with filtering options
+        </DialogDescription>
 
         <div className="space-y-4 sm:space-y-6 overflow-y-auto momentum-scroll px-4 py-4 sm:px-6 sm:py-6">
           {/* Export Format Selection */}

@@ -43,6 +43,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -427,10 +428,13 @@ export default function BoardPage() {
                     <DialogClose asChild>
                       <Button variant="ghost" size="sm" className="min-touch-target text-gray-500 hover:text-gray-700">
                         <X className="h-5 w-5" />
-                        <span className="sr-only">Close</span>
+                        <span className="sr-only">Close</span>  
                       </Button>
                     </DialogClose>
                   </div>
+                  <DialogDescription className="sr-only">
+                    Share your feedback board with team members and customers
+                  </DialogDescription>
                   <div className="overflow-y-auto momentum-scroll px-4 py-4 sm:px-6 sm:py-6">
                     {project && (
                       <BoardShare
