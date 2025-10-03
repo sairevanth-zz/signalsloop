@@ -316,12 +316,37 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
     <div className="space-y-6">
 
       <Tabs defaultValue="keys" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="keys">API Keys</TabsTrigger>
-          <TabsTrigger value="preview">Live Preview</TabsTrigger>
-          <TabsTrigger value="install">Installation</TabsTrigger>
-          <TabsTrigger value="customize">Customize</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
+        <TabsList className="w-full flex-nowrap gap-1 overflow-x-auto hide-scrollbar sm:inline-grid sm:grid-cols-5 sm:gap-2 sm:overflow-visible">
+          <TabsTrigger 
+            value="keys"
+            className="flex-1 min-w-[140px] text-xs sm:text-sm"
+          >
+            API Keys
+          </TabsTrigger>
+          <TabsTrigger 
+            value="preview"
+            className="flex-1 min-w-[140px] text-xs sm:text-sm"
+          >
+            Live Preview
+          </TabsTrigger>
+          <TabsTrigger 
+            value="install"
+            className="flex-1 min-w-[140px] text-xs sm:text-sm"
+          >
+            Installation
+          </TabsTrigger>
+          <TabsTrigger 
+            value="customize"
+            className="flex-1 min-w-[140px] text-xs sm:text-sm"
+          >
+            Customize
+          </TabsTrigger>
+          <TabsTrigger 
+            value="security"
+            className="flex-1 min-w-[140px] text-xs sm:text-sm"
+          >
+            Security
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="keys" className="space-y-4">
@@ -334,7 +359,7 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <div className="flex-1">
                   <Label htmlFor="keyName">Key Name</Label>
                   <Input
@@ -345,11 +370,11 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                     onKeyDown={(e) => e.key === 'Enter' && generateApiKey()}
                   />
                 </div>
-                <div className="flex items-end">
+                <div className="flex items-end sm:w-auto">
                   <Button 
                     onClick={generateApiKey}
                     disabled={creatingKey || !newKeyName.trim()}
-                    className="min-w-[100px]"
+                    className="min-w-[100px] w-full sm:w-auto"
                   >
                     {creatingKey ? (
                       <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
@@ -464,7 +489,7 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
               ) : (
                 <>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                       <Label>Preview Mode:</Label>
                       <div className="flex items-center gap-2">
                         <Button
@@ -544,7 +569,7 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
                         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
                         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5"></div>
-                        <div className="grid grid-cols-2 gap-4 mt-6">
+                        <div className="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2">
                           <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
                           <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
                         </div>
@@ -572,7 +597,7 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <Label>Position</Label>
                       <select 
@@ -718,7 +743,7 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="space-y-6">
                   <div>
                     <Label>Position</Label>
@@ -745,7 +770,7 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
 
                   <div>
                     <Label>Brand Colors</Label>
-                    <div className="grid grid-cols-6 gap-2 mt-2">
+                    <div className="grid grid-cols-4 gap-2 mt-2 sm:grid-cols-6">
                       {[
                         '#667eea', '#764ba2', '#f093fb', '#f5576c',
                         '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
@@ -759,7 +784,7 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                         />
                       ))}
                     </div>
-                    <div className="flex gap-2 mt-2">
+                    <div className="flex flex-col gap-2 mt-2 sm:flex-row">
                       <Input
                         type="color"
                         value={widgetSettings.color}
@@ -894,7 +919,7 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="space-y-4">
                   <div>
                     <Label>Domain Allowlist</Label>

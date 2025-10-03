@@ -97,8 +97,8 @@ Best regards`;
 
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1">
           <h3 className="text-xl font-semibold text-gray-900 flex items-center">
             <Share2 className="w-5 h-5 mr-2 text-blue-600" />
             Share {projectName} Board
@@ -108,7 +108,7 @@ Best regards`;
           </p>
         </div>
         {isPublic && (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+          <Badge variant="outline" className="w-fit bg-green-50 text-green-700 border-green-200">
             <ExternalLink className="w-3 h-3 mr-1" />
             Public
           </Badge>
@@ -116,24 +116,24 @@ Best regards`;
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-transparent">
+        <TabsList className="w-full flex-nowrap gap-1 overflow-x-auto bg-transparent hide-scrollbar sm:inline-grid sm:grid-cols-3 sm:gap-2 sm:overflow-visible">
           <TabsTrigger 
             value="link" 
-            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
+            className="flex flex-1 min-w-[140px] items-center gap-2 whitespace-nowrap text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
           >
             <Link className="w-4 h-4" />
             Direct Link
           </TabsTrigger>
           <TabsTrigger 
             value="qr" 
-            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
+            className="flex flex-1 min-w-[140px] items-center gap-2 whitespace-nowrap text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
           >
             <QrCode className="w-4 h-4" />
             QR Code
           </TabsTrigger>
           <TabsTrigger 
             value="instructions" 
-            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
+            className="flex flex-1 min-w-[140px] items-center gap-2 whitespace-nowrap text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg"
           >
             <Users className="w-4 h-4" />
             Instructions
@@ -146,17 +146,17 @@ Best regards`;
               <Label htmlFor="board-url" className="text-sm font-medium text-gray-700">
                 Board URL
               </Label>
-              <div className="flex gap-2 mt-1">
+              <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Input
                   id="board-url"
                   value={boardUrl}
                   readOnly
-                  className="font-mono text-sm"
+                  className="w-full font-mono text-sm"
                 />
                 <Button
                   onClick={() => copyToClipboard(boardUrl, 'Board URL')}
                   variant={copied ? "default" : "outline"}
-                  className={copied ? "bg-green-600 hover:bg-green-700" : ""}
+                  className={`${copied ? 'bg-green-600 hover:bg-green-700' : ''} w-full sm:w-auto`}
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>

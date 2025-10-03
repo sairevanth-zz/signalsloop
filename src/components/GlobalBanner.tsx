@@ -185,9 +185,11 @@ export default function GlobalBanner({
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push(backUrl)}
-                className="hidden sm:flex min-touch-target tap-highlight-transparent"
+                className="min-touch-target tap-highlight-transparent px-2 sm:px-3 flex-shrink-0"
               >
-                ← {backLabel}
+                <span aria-hidden="true" className="mr-1 text-base">←</span>
+                <span className="text-sm font-medium sm:hidden">Back</span>
+                <span className="hidden sm:inline">{backLabel}</span>
               </Button>
             )}
             <div className="flex items-center gap-2">

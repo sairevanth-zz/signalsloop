@@ -10,6 +10,7 @@ import {
   ChevronDown,
   MessageSquare,
   Calendar,
+  Clock,
   User,
   LogIn,
   Settings,
@@ -80,6 +81,20 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const [isVoteOnBehalfModalOpen, setIsVoteOnBehalfModalOpen] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [ownerCheckLoading, setOwnerCheckLoading] = useState(true);
+
+  const createdDate = new Date(post.created_at);
+  const formattedDate = createdDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+  const formattedTime = createdDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+  const statusLabel = post.status === 'in_progress'
+    ? 'In Progress'
+    : post.status.charAt(0).toUpperCase() + post.status.slice(1);
 
   // Load voted status from localStorage
   useEffect(() => {
@@ -356,8 +371,8 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Breadcrumb */}
       <div className="border-b bg-white/50 backdrop-blur-sm py-3">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex items-center text-sm text-gray-600">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-wrap items-center gap-1 text-xs text-gray-600 sm:text-sm">
             <Link href="/" className="hover:text-gray-900">Home</Link>
             <span className="mx-2">→</span>
             <Link href={`/${project.slug}/board`} className="hover:text-gray-900">{project.slug}</Link>
@@ -369,52 +384,54 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
 
       {/* Header */}
       <header className="border-b bg-white/50 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href={`/${project.slug}/board`} className="flex items-center text-gray-700 hover:text-gray-900">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Board
-              </Link>
+        <div className="max-w-6xl mx-auto px-4 py-3 sm:px-6 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <Link 
+              href={`/${project.slug}/board`} 
+              className="flex items-center text-sm text-gray-700 hover:text-gray-900 sm:text-base"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Board
+            </Link>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="max-w-4xl">
+      <main className="max-w-6xl mx-auto w-full px-4 py-6 sm:px-6 sm:py-8">
+        <div className="w-full max-w-4xl">
           {/* Main Post Card */}
           <Card className="mb-6">
-              <CardContent className="p-8">
-              <div className="flex items-start justify-between gap-6">
+              <CardContent className="p-5 sm:p-8">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                   <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
                       <CategoryBadge category={post.category} />
                     <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                      {post.status === 'in_progress' ? 'In Progress' : post.status}
+                      {statusLabel}
                     </Badge>
                   </div>
                   
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 mb-4">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-gray-600 sm:text-sm mb-4">
                     <div className="flex items-center gap-1 whitespace-nowrap">
                         <Calendar className="h-4 w-4 flex-shrink-0" />
-                      <span className="text-xs sm:text-sm">
-                        {new Date(post.created_at).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })} at {new Date(post.created_at).toLocaleTimeString('en-US', { 
-                          hour: 'numeric', 
-                          minute: '2-digit' 
-                        })}
-                      </span>
-                      </div>
+                      <span>{formattedDate}</span>
+                    </div>
+                    <span className="hidden text-gray-300 sm:inline">•</span>
+                    <div className="flex items-center gap-1 whitespace-nowrap">
+                      <Clock className="h-4 w-4 flex-shrink-0" />
+                      <span>{formattedTime}</span>
+                    </div>
                       {post.author_email && (
-                      <div className="flex items-center gap-1 min-w-0">
+                      <>
+                        <span className="hidden text-gray-300 sm:inline">•</span>
+                        <div className="flex items-center gap-1 min-w-0">
                           <User className="h-4 w-4 flex-shrink-0" />
-                          <span className="truncate max-w-[150px] sm:max-w-[200px]">
+                          <span className="truncate max-w-[160px] sm:max-w-[220px]">
                             {post.author_email}
                           </span>
                         </div>
+                      </>
                       )}
                     </div>
                     
@@ -441,11 +458,11 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                       size="lg"
                       onClick={handleVote}
                       disabled={isVoting}
-                    className={`min-w-[80px] ${
+                      className={`min-w-[80px] ${
                         hasVoted 
                         ? 'bg-blue-600 hover:bg-blue-700 text-white' 
                         : 'hover:bg-blue-50 border-2'
-                    }`}
+                      }`}
                   >
                     <div className="flex flex-col items-center">
                       <ChevronUp className="h-5 w-5" />

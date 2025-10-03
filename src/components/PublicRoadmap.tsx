@@ -357,10 +357,10 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
       />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Enhanced Title Section - Matching Dashboard Style */}
         <div className="mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-8 mb-6 transform transition-all duration-300 hover:shadow-xl">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6 sm:p-8 mb-6 transform transition-all duration-300 hover:shadow-xl">
             <div className="text-center">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <h1 className="text-4xl font-bold">
@@ -485,7 +485,7 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
         </div>
 
         {/* Kanban Board */}
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-6">
           {roadmapColumns.map((column) => {
             const posts = filteredData[column.key as keyof RoadmapData];
             const Icon = column.icon;
@@ -578,9 +578,9 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
         </div>
 
         {/* Legend Section */}
-        <div className="mt-16 pt-8 border-t border-gray-200">
+        <div className="mt-12 pt-8 border-t border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">How our roadmap works</h3>
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
                 <Lightbulb className="h-5 w-5 text-gray-600" />
