@@ -425,37 +425,46 @@ export default function BoardPage() {
                 <span className="hidden sm:inline">Share</span>
               </Button>
               
-              <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
-                <DialogContent className="w-[calc(100vw-2rem)] max-w-xl sm:max-w-4xl max-h-[85vh] overflow-hidden rounded-2xl bg-white/95 backdrop-blur">
-                  <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-3 sm:px-6">
-                    <DialogTitle className="text-base sm:text-lg font-semibold text-gray-900">
-                      Share {project?.name} Board
-                    </DialogTitle>
-                    <DialogClose asChild>
-                      <Button variant="ghost" size="sm" className="min-touch-target text-gray-500 hover:text-gray-700">
+              {/* Custom Modal - No Radix UI */}
+              {showShareModal && (
+                <div 
+                  className="fixed inset-0 z-[9999999] flex items-center justify-center p-4"
+                  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                      setShowShareModal(false);
+                    }
+                  }}
+                >
+                  <div 
+                    className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[85vh] overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between p-4 border-b">
+                      <h2 className="text-lg font-semibold">Share {project?.name} Board</h2>
+                      <button 
+                        onClick={() => setShowShareModal(false)}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
                         <X className="h-5 w-5" />
-                        <span className="sr-only">Close</span>  
-                      </Button>
-                    </DialogClose>
-                  </div>
-                  <DialogDescription className="sr-only">
-                    Share your feedback board with team members and customers
-                  </DialogDescription>
-                  <div className="overflow-y-auto momentum-scroll px-4 py-4 sm:px-6 sm:py-6">
-                    <div className="text-white bg-blue-600 p-2 mb-4">
-                      DEBUG: Share modal rendering! Project: {project?.name}, Slug: {params?.slug}
+                      </button>
                     </div>
-                    {project && (
-                      <BoardShare
-                        projectSlug={params?.slug as string}
-                        projectName={project.name}
-                        boardUrl={`${window.location.origin}/${params?.slug}/board`}
-                        isPublic={true}
-                      />
-                    )}
+                    <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 80px)' }}>
+                      <div className="text-white bg-blue-600 p-2 mb-4">
+                        🎉 CUSTOM MODAL WORKING! Project: {project?.name}, Slug: {params?.slug}
+                      </div>
+                      {project && (
+                        <BoardShare
+                          projectSlug={params?.slug as string}
+                          projectName={project.name}
+                          boardUrl={`${window.location.origin}/${params?.slug}/board`}
+                          isPublic={true}
+                        />
+                      )}
+                    </div>
                   </div>
-                </DialogContent>
-              </Dialog>
+                </div>
+              )}
               
               {/* Export Button */}
               <FeedbackExport
