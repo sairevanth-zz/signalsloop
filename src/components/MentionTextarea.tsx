@@ -49,6 +49,15 @@ export default function MentionTextarea({
     }
   }, [value, maxRows]);
 
+  // Close suggestions when value is cleared
+  useEffect(() => {
+    if (!value || value.trim() === '') {
+      setShowSuggestions(false);
+      setMentionStart(null);
+      setMentionSearch('');
+    }
+  }, [value]);
+
   // Fetch participants when @ is typed
   useEffect(() => {
     if (mentionSearch !== null && mentionSearch.length >= 0) {
@@ -160,6 +169,27 @@ export default function MentionTextarea({
       }
     }
   }, [selectedIndex, showSuggestions]);
+
+  // Click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        textareaRef.current &&
+        !textareaRef.current.contains(event.target as Node) &&
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    if (showSuggestions) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showSuggestions]);
 
   return (
     <div className="relative">
