@@ -310,11 +310,16 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
       });
 
       if (response.ok) {
+        console.log('Comment posted successfully, response:', response);
         const data = await response.json();
+        console.log('Comment data:', data);
         const newComment = data.comment;
+        console.log('New comment:', newComment);
 
         // Process mentions
         try {
+          console.log('Processing mentions for comment:', newComment.id, 'Text:', commentText);
+
           const mentionsResponse = await fetch('/api/comments/mentions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -328,10 +333,13 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
 
           if (mentionsResponse.ok) {
             const mentionsData = await mentionsResponse.json();
+            console.log('Mentions data:', mentionsData);
 
             // Send email notifications to mentioned users
             if (mentionsData.mentions && mentionsData.mentions.length > 0) {
+              console.log('Sending notifications to', mentionsData.mentions.length, 'users');
               for (const mention of mentionsData.mentions) {
+                console.log('Sending email to:', mention.mentioned_user_email);
                 await fetch('/api/emails/mention-notification', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -346,7 +354,11 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                   })
                 });
               }
+            } else {
+              console.log('No mentions found in response');
             }
+          } else {
+            console.error('Mentions API failed:', await mentionsResponse.text());
           }
         } catch (error) {
           console.error('Error processing mentions:', error);
