@@ -291,6 +291,11 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
       return;
     }
 
+    if (!commentEmail.trim()) {
+      toast.error('Please enter your email');
+      return;
+    }
+
     setIsSubmittingComment(true);
     try {
       const response = await fetch(`/api/posts/${post.id}/comments`, {
@@ -372,6 +377,11 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
 
     if (!replyName.trim()) {
       toast.error('Please enter your name');
+      return;
+    }
+
+    if (!replyEmail.trim()) {
+      toast.error('Please enter your email');
       return;
     }
 
@@ -770,13 +780,14 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                                   type="email"
                                   value={replyEmail}
                                   onChange={(e) => setReplyEmail(e.target.value)}
-                                  placeholder="Your email (optional)"
+                                  placeholder="Your email *"
                                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm mb-2"
+                                  required
                                 />
                                 <div className="flex gap-2">
                                   <Button
                                     onClick={() => handleSubmitReply(comment.id)}
-                                    disabled={isSubmittingReply || !replyText.trim() || !replyName.trim()}
+                                    disabled={isSubmittingReply || !replyText.trim() || !replyName.trim() || !replyEmail.trim()}
                                     size="sm"
                                     className="bg-blue-600 hover:bg-blue-700 text-white"
                                   >
@@ -875,12 +886,13 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                   type="email"
                   value={commentEmail}
                   onChange={(e) => setCommentEmail(e.target.value)}
-                  placeholder="Your email (optional)"
+                  placeholder="Your email *"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-2 text-sm"
+                  required
                 />
-                <Button 
+                <Button
                   onClick={handleSubmitComment}
-                  disabled={isSubmittingComment || !commentText.trim() || !commentName.trim()}
+                  disabled={isSubmittingComment || !commentText.trim() || !commentName.trim() || !commentEmail.trim()}
                   className="mt-3 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
                   size="sm"
                 >

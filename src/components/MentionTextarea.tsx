@@ -78,9 +78,9 @@ export default function MentionTextarea({
 
     onChange(newValue);
 
-    // Check if we're typing a mention
+    // Check if we're typing a mention (allow letters, numbers, spaces, dots, hyphens)
     const textBeforeCursor = newValue.substring(0, cursorPosition);
-    const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+    const mentionMatch = textBeforeCursor.match(/@([\w\s\.\-]*)$/);
 
     if (mentionMatch) {
       // We're in a mention
@@ -104,8 +104,9 @@ export default function MentionTextarea({
     const textBefore = value.substring(0, mentionStart);
     const textAfter = value.substring(cursorPosition);
 
-    // Insert mention using email for accurate matching
-    const mentionText = `@${participant.email}`;
+    // Insert mention using name or email (prefer name)
+    const displayName = participant.name || participant.email;
+    const mentionText = `@${displayName}`;
     const newValue = textBefore + mentionText + ' ' + textAfter;
 
     onChange(newValue);

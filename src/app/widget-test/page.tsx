@@ -173,21 +173,6 @@ export default function WidgetTestPage() {
           <textarea placeholder="Describe your feedback in detail..." rows="4" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; resize: vertical; box-sizing: border-box;"></textarea>
         </div>
 
-        <!-- Category -->
-        <div style="margin-bottom: 20px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #374151;">Category</label>
-          <select style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; background: white;">
-            <option>Feature Request</option>
-            <option>Bug Report</option>
-            <option>Improvement</option>
-            <option>Integration</option>
-            <option>UI/UX</option>
-            <option>Performance</option>
-            <option>Documentation</option>
-            <option>Other</option>
-          </select>
-        </div>
-
         <!-- Priority -->
         <div style="margin-bottom: 20px;">
           <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 14px; color: #374151;">Priority</label>
@@ -214,7 +199,7 @@ export default function WidgetTestPage() {
         <!-- Action Buttons -->
         <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #e5e7eb;">
           <button id="cancel-preview" style="padding: 12px 24px; border: 1px solid #d1d5db; background: white; color: #374151; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 14px;">Cancel</button>
-          <button style="padding: 12px 24px; background: ${color}; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Submit Feedback</button>
+          <button id="submit-feedback" style="padding: 12px 24px; background: ${color}; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Submit Feedback</button>
         </div>
       </div>
     `;
@@ -265,6 +250,12 @@ export default function WidgetTestPage() {
     document.getElementById('cancel-preview').addEventListener('click', closeModal);
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) closeModal();
+    });
+
+    // Add submit handler
+    document.getElementById('submit-feedback').addEventListener('click', () => {
+      alert('✅ Feedback submitted successfully!\\n\\nIn a real implementation, this would send the feedback to your backend.');
+      closeModal();
     });
 
     // Close on escape key

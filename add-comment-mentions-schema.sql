@@ -82,7 +82,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to extract mentions from comment text
--- Returns array of mentioned emails found in format @email or @name
+-- Returns array of mentioned names/emails found in format @name or @email
 CREATE OR REPLACE FUNCTION extract_mentions_from_text(
   comment_text TEXT
 ) RETURNS TEXT[] AS $$
@@ -90,11 +90,11 @@ DECLARE
   mentions TEXT[];
 BEGIN
   -- Extract all @mentions using regex
-  -- Matches @word or @email@domain patterns
-  SELECT ARRAY_AGG(DISTINCT mention)
+  -- Matches @name (with spaces, dots, hyphens) or @email@domain patterns
+  SELECT ARRAY_AGG(DISTINCT TRIM(mention))
   INTO mentions
   FROM (
-    SELECT regexp_matches(comment_text, '@([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|[a-zA-Z0-9._+-]+)', 'g') as m
+    SELECT regexp_matches(comment_text, '@([a-zA-Z0-9._+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}|[a-zA-Z0-9._\- ]+)', 'g') as m
   ) matches
   CROSS JOIN LATERAL (SELECT m[1] as mention) extracted;
 
@@ -119,10 +119,19 @@ BEGIN
     SELECT UNNEST(extract_mentions_from_text(p_comment_text))
   LOOP
     -- Try to find this mention in post participants
+    -- Match by exact name first, then by email, then by partial match
     FOR participant_record IN
       SELECT * FROM get_post_participants(p_post_id, mentioned_text)
-      WHERE email ILIKE '%' || mentioned_text || '%'
+      WHERE LOWER(TRIM(name)) = LOWER(TRIM(mentioned_text))
+         OR LOWER(email) = LOWER(mentioned_text)
          OR name ILIKE '%' || mentioned_text || '%'
+         OR email ILIKE '%' || mentioned_text || '%'
+      ORDER BY
+        CASE
+          WHEN LOWER(TRIM(name)) = LOWER(TRIM(mentioned_text)) THEN 1
+          WHEN LOWER(email) = LOWER(mentioned_text) THEN 2
+          ELSE 3
+        END
       LIMIT 1
     LOOP
       -- Insert mention (will be ignored if duplicate due to UNIQUE constraint)
