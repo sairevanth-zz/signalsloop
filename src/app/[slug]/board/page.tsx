@@ -871,12 +871,12 @@ export default function BoardPage() {
       </div>
 
       {/* Post Submission Modal */}
-      {showPostForm && project && boardId && (
+      {showPostForm && project && (
         <PostSubmissionForm
           isOpen={showPostForm}
           onClose={() => setShowPostForm(false)}
           projectId={project.id}
-          boardId={boardId}
+          boardId={boardId || ''}
           onPostSubmitted={loadProjectAndPosts}
         />
       )}

@@ -163,6 +163,22 @@ export default function PostSubmissionForm({
       // Get current user session
       const { data: { session } } = await supabase.auth.getSession();
       
+      // If boardId is empty, fetch it from the project
+      let finalBoardId = boardId;
+      if (!finalBoardId) {
+        const { data: boardData, error: boardError } = await supabase
+          .from('boards')
+          .select('id')
+          .eq('project_id', projectId)
+          .single();
+        
+        if (boardError || !boardData) {
+          throw new Error('Board not found for this project');
+        }
+        
+        finalBoardId = boardData.id;
+      }
+      
       // Create the post using the API route (includes automatic AI categorization)
       const response = await fetch('/api/posts', {
         method: 'POST',
@@ -171,7 +187,7 @@ export default function PostSubmissionForm({
         },
         body: JSON.stringify({
           project_id: projectId,
-          board_id: boardId,
+          board_id: finalBoardId,
           title: formData.title.trim(),
           description: formData.description.trim(),
           author_name: formData.name.trim(),
