@@ -435,12 +435,11 @@ export default function BoardPage() {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
                     zIndex: 99999999,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '20px'
+                    display: 'block',
+                    padding: '0',
+                    overflow: 'auto'
                   }}
                   onClick={(e) => {
                     if (e.target === e.currentTarget) {
@@ -454,10 +453,12 @@ export default function BoardPage() {
                       borderRadius: '12px',
                       boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
                       maxWidth: '800px',
-                      width: '100%',
+                      width: '90%',
                       maxHeight: '90vh',
                       overflow: 'hidden',
-                      position: 'relative'
+                      position: 'relative',
+                      margin: '50px auto',
+                      border: '5px solid red'
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
