@@ -57,6 +57,7 @@ interface Post {
   status: string;
   has_voted?: boolean;
   comment_count?: number;
+  board_id?: string | null;
 }
 
 interface PublicBoardHomepageProps {
@@ -73,6 +74,17 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'votes'>('newest');
   const [showPostForm, setShowPostForm] = useState(false);
   const [votedPosts, setVotedPosts] = useState<Set<string>>(new Set());
+  const [activeBoardId, setActiveBoardId] = useState<string | null>(() => {
+    if (boardId) return boardId;
+    const firstPostBoardId = initialPosts.find(post => post.board_id)?.board_id;
+    return firstPostBoardId ?? null;
+  });
+
+  useEffect(() => {
+    if (boardId && boardId !== activeBoardId) {
+      setActiveBoardId(boardId);
+    }
+  }, [boardId, activeBoardId]);
 
   // Load voted posts from cookies/localStorage
   useEffect(() => {
@@ -157,12 +169,12 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
   };
 
   const loadLatestPosts = useCallback(async () => {
-    if (!boardId) {
+    if (!activeBoardId) {
       return;
     }
 
     try {
-      const params = new URLSearchParams({ project_id: project.id, board_id: boardId });
+      const params = new URLSearchParams({ project_id: project.id, board_id: activeBoardId });
       const response = await fetch(`/api/posts?${params.toString()}`, { cache: 'no-store' });
 
       if (!response.ok) {
@@ -189,18 +201,22 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
           status: post.status as string,
           has_voted: false,
           comment_count: asArray(post.comment_count),
+          board_id: (post.board_id as string) || null,
         };
       });
 
       setPosts(fetchedPosts);
+      if (!activeBoardId && fetchedPosts.length > 0) {
+        setActiveBoardId(fetchedPosts[0].board_id || null);
+      }
     } catch (error) {
       console.error('Error refreshing posts:', error);
       toast.error('Failed to refresh feedback list');
     }
-  }, [boardId, project.id]);
+  }, [activeBoardId, project.id]);
 
   const handleOpenPostForm = () => {
-    if (!boardId) {
+    if (!activeBoardId) {
       toast.error('Feedback submissions are not available right now. Please contact the board owner.');
       return;
     }
@@ -291,7 +307,7 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
               size="lg" 
               className="bg-blue-600 hover:bg-blue-700"
               onClick={handleOpenPostForm}
-              disabled={!boardId}
+              disabled={!activeBoardId}
             >
               <Plus className="h-5 w-5 mr-2" />
               Submit Feedback
@@ -395,7 +411,7 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
                     : 'Be the first to share your feedback!'
                   }
                 </p>
-                <Button onClick={handleOpenPostForm} disabled={!boardId}>
+                <Button onClick={handleOpenPostForm} disabled={!activeBoardId}>
                   <Plus className="h-4 w-4 mr-2" />
                   Submit Feedback
                 </Button>
@@ -487,12 +503,12 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
         </div>
       </main>
 
-      {showPostForm && boardId && (
+      {showPostForm && activeBoardId && (
         <PostSubmissionForm
           isOpen={showPostForm}
           onClose={() => setShowPostForm(false)}
           projectId={project.id}
-          boardId={boardId}
+          boardId={activeBoardId}
           onPostSubmitted={loadLatestPosts}
         />
       )}
