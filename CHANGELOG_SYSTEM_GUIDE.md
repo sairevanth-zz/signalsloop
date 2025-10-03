@@ -123,7 +123,7 @@ Add changelog links to your navigation:
 
 ```typescript
 // Via API
-const response = await fetch(`/api/projects/${projectId}/changelog`, {
+const response = await fetch(`/api/projects-by-id/${projectId}/changelog`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -185,7 +185,7 @@ const response = await fetch(`/api/${projectSlug}/changelog/subscribe`, {
 
 ```typescript
 // Create webhook
-const response = await fetch(`/api/projects/${projectId}/changelog/webhooks`, {
+const response = await fetch(`/api/projects-by-id/${projectId}/changelog/webhooks`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -227,14 +227,14 @@ The changelog uses Tailwind CSS and can be customized by:
 - `DELETE /[slug]/changelog/subscribe` - Unsubscribe
 
 ### Admin Endpoints
-- `GET /api/projects/[projectId]/changelog` - List releases
-- `POST /api/projects/[projectId]/changelog` - Create release
-- `GET /api/projects/[projectId]/changelog/[releaseId]` - Get release
-- `PATCH /api/projects/[projectId]/changelog/[releaseId]` - Update release
-- `DELETE /api/projects/[projectId]/changelog/[releaseId]` - Delete release
-- `GET /api/projects/[projectId]/changelog/webhooks` - List webhooks
-- `POST /api/projects/[projectId]/changelog/webhooks` - Create webhook
-- `PUT /api/projects/[projectId]/changelog/webhooks` - Test webhook
+- `GET /api/projects-by-id/[projectId]/changelog` - List releases
+- `POST /api/projects-by-id/[projectId]/changelog` - Create release
+- `GET /api/projects-by-id/[projectId]/changelog/[releaseId]` - Get release
+- `PATCH /api/projects-by-id/[projectId]/changelog/[releaseId]` - Update release
+- `DELETE /api/projects-by-id/[projectId]/changelog/[releaseId]` - Delete release
+- `GET /api/projects-by-id/[projectId]/changelog/webhooks` - List webhooks
+- `POST /api/projects-by-id/[projectId]/changelog/webhooks` - Create webhook
+- `PUT /api/projects-by-id/[projectId]/changelog/webhooks` - Test webhook
 
 ## 🔐 Security Features
 

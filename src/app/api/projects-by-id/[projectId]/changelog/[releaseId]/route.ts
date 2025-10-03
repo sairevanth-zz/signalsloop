@@ -53,7 +53,7 @@ export async function GET(
 
     return NextResponse.json(release);
   } catch (error) {
-    console.error('Error in GET /api/projects/[projectId]/changelog/[releaseId]:', error);
+    console.error('Error in GET /api/projects-by-id/[projectId]/changelog/[releaseId]:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -143,7 +143,7 @@ export async function PATCH(
 
     return NextResponse.json(release);
   } catch (error) {
-    console.error('Error in PATCH /api/projects/[projectId]/changelog/[releaseId]:', error);
+    console.error('Error in PATCH /api/projects-by-id/[projectId]/changelog/[releaseId]:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -186,7 +186,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in DELETE /api/projects/[projectId]/changelog/[releaseId]:', error);
+    console.error('Error in DELETE /api/projects-by-id/[projectId]/changelog/[releaseId]:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

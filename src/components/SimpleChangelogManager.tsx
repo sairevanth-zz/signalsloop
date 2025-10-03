@@ -30,7 +30,7 @@ export default function SimpleChangelogManager({ projectId, projectSlug }: Simpl
   const loadReleases = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/projects/${projectId}/changelog`);
+      const response = await fetch(`/api/projects-by-id/${projectId}/changelog`);
       if (response.ok) {
         const data = await response.json();
         setReleases(data);

@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import PublicPostDetails from '@/components/PublicPostDetails';
+import Link from 'next/link';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -64,18 +65,18 @@ async function CustomDomainPostContent({ searchParams }: CustomDomainPostPagePro
               This feedback board is private and requires authentication to access.
             </p>
             <div className="space-y-3">
-              <a
+              <Link
                 href={`/login?redirect=${encodeURIComponent(`/${project.slug}/post/${id}`)}`}
                 className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
               >
                 Sign In
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/"
                 className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors inline-block"
               >
                 Create Your Own Board
-              </a>
+              </Link>
             </div>
           </div>
         </div>

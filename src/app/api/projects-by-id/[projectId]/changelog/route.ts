@@ -41,7 +41,7 @@ export async function GET(
 
     return NextResponse.json(releases);
   } catch (error) {
-    console.error('Error in GET /api/projects/[projectId]/changelog:', error);
+    console.error('Error in GET /api/projects-by-id/[projectId]/changelog:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -155,7 +155,7 @@ export async function POST(
 
     return NextResponse.json(release, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/projects/[projectId]/changelog:', error);
+    console.error('Error in POST /api/projects-by-id/[projectId]/changelog:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

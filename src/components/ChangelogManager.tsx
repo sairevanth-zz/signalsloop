@@ -79,7 +79,7 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
 
   const loadReleases = async () => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/changelog`);
+      const response = await fetch(`/api/projects-by-id/${projectId}/changelog`);
       if (response.ok) {
         const data = await response.json();
         setReleases(data);
@@ -102,7 +102,7 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
 
   const handleTogglePublish = async (releaseId: string, isPublished: boolean) => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/changelog/${releaseId}`, {
+      const response = await fetch(`/api/projects-by-id/${projectId}/changelog/${releaseId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_published: !isPublished }),
@@ -122,7 +122,7 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
     }
 
     try {
-      const response = await fetch(`/api/projects/${projectId}/changelog/${releaseId}`, {
+      const response = await fetch(`/api/projects-by-id/${projectId}/changelog/${releaseId}`, {
         method: 'DELETE',
       });
 
