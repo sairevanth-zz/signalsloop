@@ -40,7 +40,6 @@ export default function FeedbackExport({ projectSlug, projectName }: FeedbackExp
         className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
         onClick={() => {
           console.log('Export button clicked directly!');
-          alert('🎉 EXPORT MODAL TEST: Button works!');
           setIsOpen(true);
         }}
       >
@@ -79,8 +78,7 @@ export default function FeedbackExport({ projectSlug, projectName }: FeedbackExp
               maxHeight: '90vh',
               overflow: 'hidden',
               position: 'relative',
-              margin: '50px auto',
-              border: '5px solid blue'
+              margin: '50px auto'
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -94,12 +92,6 @@ export default function FeedbackExport({ projectSlug, projectName }: FeedbackExp
               </button>
             </div>
             <div style={{ padding: '20px', maxHeight: 'calc(90vh - 80px)', overflowY: 'auto' }}>
-              <div style={{ backgroundColor: '#2563eb', color: 'white', padding: '16px', marginBottom: '16px', textAlign: 'center', fontWeight: 'bold', fontSize: '16px' }}>
-                🎉 EXPORT MODAL WORKING! Project: {projectName}
-                <br />
-                ✅ Export modal using same approach as Share!
-              </div>
-              
               {/* Export Format Selection */}
               <div>
                 <label style={{ fontSize: '14px', fontWeight: '500', marginBottom: '12px', display: 'block' }}>Export Format</label>

@@ -418,7 +418,6 @@ export default function BoardPage() {
                 className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 min-touch-target tap-highlight-transparent"
                 onClick={() => {
                   console.log('Share button clicked directly!');
-                  alert('🎉 MODAL TEST: Share button works! Modal state: ' + showShareModal);
                   setShowShareModal(true);
                 }}
               >
@@ -457,8 +456,7 @@ export default function BoardPage() {
                       maxHeight: '90vh',
                       overflow: 'hidden',
                       position: 'relative',
-                      margin: '50px auto',
-                      border: '5px solid red'
+                      margin: '50px auto'
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -472,11 +470,6 @@ export default function BoardPage() {
                       </button>
                     </div>
                     <div style={{ padding: '20px', maxHeight: 'calc(90vh - 80px)', overflowY: 'auto' }}>
-                      <div style={{ backgroundColor: '#dc2626', color: 'white', padding: '16px', marginBottom: '16px', textAlign: 'center', fontWeight: 'bold', fontSize: '16px' }}>
-                        🎉 PORTAL MODAL WORKING! Project: {project?.name}, Slug: {params?.slug}
-                        <br />
-                        ✅ This modal uses portal rendering!
-                      </div>
                       {project && (
                         <BoardShare
                           projectSlug={params?.slug as string}

@@ -248,7 +248,7 @@ export default function PostSubmissionForm({
   const modalContent = (
     <div className="fixed inset-0 z-[99999999] bg-black/50 backdrop-blur-sm">
       <div className="h-full flex items-center justify-center p-4 sm:p-6 safe-top safe-bottom">
-        <div className="bg-white w-full max-w-lg sm:max-w-2xl h-full max-h-[calc(100vh-2rem)] sm:h-auto sm:max-h-[90vh] rounded-3xl shadow-xl flex flex-col overflow-hidden border-4 border-purple-500">
+        <div className="bg-white w-full max-w-lg sm:max-w-2xl h-full max-h-[calc(100vh-2rem)] sm:h-auto sm:max-h-[90vh] rounded-3xl shadow-xl flex flex-col overflow-hidden">
           {/* Fixed Header */}
           <div className="flex items-center justify-between p-4 sm:p-6 border-b flex-shrink-0 bg-white">
             <div className="flex-1 pr-4">
@@ -256,9 +256,6 @@ export default function PostSubmissionForm({
               <p className="text-xs sm:text-sm text-gray-600 mt-1">
                 Help us improve by sharing your thoughts and ideas
               </p>
-              <div className="bg-purple-600 text-white p-2 mt-2 text-center font-bold text-sm">
-                🎉 SUBMIT FEEDBACK MODAL WORKING! Z-index: 99999999
-              </div>
             </div>
             <Button
               variant="ghost"
