@@ -16,9 +16,9 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { 
   Download, 
@@ -29,7 +29,8 @@ import {
   BarChart3,
   Users,
   MessageSquare,
-  CheckCircle
+  CheckCircle,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -156,15 +157,21 @@ export default function FeedbackExport({
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-lg sm:max-w-2xl max-h-[85vh] overflow-y-auto safe-top safe-bottom p-4 sm:p-6 rounded-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Download className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-lg sm:max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl bg-white/95 backdrop-blur [&>[data-radix-dialog-close]]:hidden">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-3 sm:px-6">
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
+            <Download className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-blue-600" />
             <span className="truncate">Export {projectName} Feedback</span>
           </DialogTitle>
-        </DialogHeader>
+          <DialogClose asChild>
+            <Button variant="ghost" size="sm" className="min-touch-target text-gray-500 hover:text-gray-700">
+              <X className="h-5 w-5" />
+              <span className="sr-only">Close</span>
+            </Button>
+          </DialogClose>
+        </div>
 
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-4 sm:space-y-6 overflow-y-auto momentum-scroll px-4 py-4 sm:px-6 sm:py-6">
           {/* Export Format Selection */}
           <div>
             <Label className="text-sm font-medium mb-3 block">Export Format</Label>

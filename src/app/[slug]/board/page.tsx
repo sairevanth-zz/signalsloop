@@ -29,7 +29,8 @@ import {
   Share2,
   TrendingUp,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 import {
   Select,
@@ -40,8 +41,8 @@ import {
 } from "@/components/ui/select";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -418,18 +419,28 @@ export default function BoardPage() {
                     <span className="hidden sm:inline">Share</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-[calc(100vw-1.5rem)] max-w-xl sm:max-w-4xl max-h-[85vh] overflow-y-auto momentum-scroll p-4 sm:p-6 rounded-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Share {project?.name} Board</DialogTitle>
-                  </DialogHeader>
-                  {project && (
-                    <BoardShare
-                      projectSlug={params?.slug as string}
-                      projectName={project.name}
-                      boardUrl={`${window.location.origin}/${params?.slug}/board`}
-                      isPublic={true}
-                    />
-                  )}
+                <DialogContent className="w-[calc(100vw-2rem)] max-w-xl sm:max-w-4xl max-h-[85vh] overflow-hidden rounded-2xl bg-white/95 backdrop-blur [&>[data-radix-dialog-close]]:hidden">
+                  <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-3 sm:px-6">
+                    <DialogTitle className="text-base sm:text-lg font-semibold text-gray-900">
+                      Share {project?.name} Board
+                    </DialogTitle>
+                    <DialogClose asChild>
+                      <Button variant="ghost" size="sm" className="min-touch-target text-gray-500 hover:text-gray-700">
+                        <X className="h-5 w-5" />
+                        <span className="sr-only">Close</span>
+                      </Button>
+                    </DialogClose>
+                  </div>
+                  <div className="overflow-y-auto momentum-scroll px-4 py-4 sm:px-6 sm:py-6">
+                    {project && (
+                      <BoardShare
+                        projectSlug={params?.slug as string}
+                        projectName={project.name}
+                        boardUrl={`${window.location.origin}/${params?.slug}/board`}
+                        isPublic={true}
+                      />
+                    )}
+                  </div>
                 </DialogContent>
               </Dialog>
               

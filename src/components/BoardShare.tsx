@@ -96,7 +96,7 @@ Best regards`;
   const socialMediaText = `🚀 Check out our ${projectName} feedback board! Share your ideas and vote on features that matter to you. Your voice counts! ${boardUrl}`;
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-4 sm:p-6">
+    <div className="w-full bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-4 sm:p-6">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <h3 className="text-xl font-semibold text-gray-900 flex items-center">
