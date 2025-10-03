@@ -415,7 +415,15 @@ export default function BoardPage() {
               {/* Share Button */}
               <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 min-touch-target tap-highlight-transparent">
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 min-touch-target tap-highlight-transparent"
+                    onClick={(e) => {
+                      console.log('Share button clicked!', e);
+                      e.preventDefault();
+                      setShowShareModal(true);
+                    }}
+                  >
                     <Share2 className="w-4 h-4" />
                     <span className="hidden sm:inline">Share</span>
                   </Button>
@@ -436,6 +444,9 @@ export default function BoardPage() {
                     Share your feedback board with team members and customers
                   </DialogDescription>
                   <div className="overflow-y-auto momentum-scroll px-4 py-4 sm:px-6 sm:py-6">
+                    <div className="text-white bg-blue-600 p-2 mb-4">
+                      DEBUG: Share modal rendering! Project: {project?.name}, Slug: {params?.slug}
+                    </div>
                     {project && (
                       <BoardShare
                         projectSlug={params?.slug as string}

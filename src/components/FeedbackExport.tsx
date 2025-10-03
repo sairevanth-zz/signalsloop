@@ -152,6 +152,11 @@ export default function FeedbackExport({
         <Button 
           variant="outline" 
           className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+          onClick={(e) => {
+            console.log('Export button clicked!', e);
+            e.preventDefault();
+            setIsOpen(true);
+          }}
         >
           <Download className="w-4 h-4" />
           Export Data
@@ -177,6 +182,9 @@ export default function FeedbackExport({
         </DialogDescription>
 
         <div className="space-y-4 sm:space-y-6 overflow-y-auto momentum-scroll px-4 py-4 sm:px-6 sm:py-6">
+          <div className="text-white bg-green-600 p-2">
+            DEBUG: Modal is rendering! ExportFormat: {exportFormat}, Project: {projectName}
+          </div>
           {/* Export Format Selection */}
           <div>
             <Label className="text-sm font-medium mb-3 block">Export Format</Label>
