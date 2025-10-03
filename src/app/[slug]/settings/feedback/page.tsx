@@ -58,20 +58,30 @@ export default function FeedbackAdminPage() {
 
       setProjectId(project.id);
 
-      // Get all feedback metadata for this project
+      // First, get all posts for this project
+      const { data: postsData, error: postsError } = await supabase
+        .from('posts')
+        .select('id, title, description, status')
+        .eq('project_id', project.id);
+
+      if (postsError) {
+        console.error('Error loading posts:', postsError);
+        toast.error('Failed to load posts');
+        return;
+      }
+
+      if (!postsData || postsData.length === 0) {
+        setFeedbackItems([]);
+        return;
+      }
+
+      const postIds = postsData.map((p: any) => p.id);
+
+      // Get all feedback metadata for these posts
       const { data: feedbackData, error } = await supabase
         .from('feedback_metadata')
-        .select(`
-          *,
-          post:posts!inner(
-            id,
-            title,
-            description,
-            status,
-            project_id
-          )
-        `)
-        .eq('post.project_id', project.id)
+        .select('*')
+        .in('post_id', postIds)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -80,16 +90,19 @@ export default function FeedbackAdminPage() {
         return;
       }
 
-      // Transform the data
-      const transformedFeedback = (feedbackData || []).map((item: any) => ({
-        ...item,
-        post: {
-          id: item.post?.id || '',
-          title: item.post?.title || 'Unknown Post',
-          description: item.post?.description || '',
-          status: item.post?.status || 'open',
-        },
-      }));
+      // Transform the data by joining with posts
+      const transformedFeedback = (feedbackData || []).map((item: any) => {
+        const post = postsData.find((p: any) => p.id === item.post_id);
+        return {
+          ...item,
+          post: {
+            id: post?.id || '',
+            title: post?.title || 'Unknown Post',
+            description: post?.description || '',
+            status: post?.status || 'open',
+          },
+        };
+      });
 
       setFeedbackItems(transformedFeedback);
     } catch (error) {

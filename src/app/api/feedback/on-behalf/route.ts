@@ -74,8 +74,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Not authorized for this project' }, { status: 403 });
     }
 
+    // Get the board for this project
+    const { data: board, error: boardError } = await supabase
+      .from('boards')
+      .select('id')
+      .eq('project_id', projectId)
+      .single();
+
+    if (boardError || !board) {
+      console.error('❌ Error finding board:', boardError);
+      return NextResponse.json({ error: 'Board not found for this project' }, { status: 404 });
+    }
+
     console.log('Creating feedback post with data:', {
       projectId,
+      boardId: board.id,
       feedbackTitle,
       customerEmail: customerEmail.toLowerCase().trim(),
     });
@@ -85,6 +98,7 @@ export async function POST(request: NextRequest) {
       .from('posts')
       .insert({
         project_id: projectId,
+        board_id: board.id,
         title: feedbackTitle.trim(),
         description: feedbackDescription.trim(),
         author_name: customerName.trim(),
