@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
         description: feedbackDescription.trim(),
         author_name: customerName.trim(),
         author_email: customerEmail.toLowerCase().trim(),
-        status: 'under_review',
+        status: 'open',
         created_at: new Date().toISOString(),
       })
       .select()
