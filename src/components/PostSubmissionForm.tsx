@@ -262,26 +262,58 @@ export default function PostSubmissionForm({
   if (!isOpen || !mounted) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 z-[99999999] bg-black/50 backdrop-blur-sm">
-      <div className="h-full flex items-center justify-center p-4 sm:p-6 safe-top safe-bottom">
-        <div className="bg-white w-full max-w-lg sm:max-w-2xl h-full max-h-[calc(100vh-2rem)] sm:h-auto sm:max-h-[90vh] rounded-3xl shadow-xl flex flex-col overflow-hidden">
-          {/* Fixed Header */}
-          <div className="flex items-center justify-between p-4 sm:p-6 border-b flex-shrink-0 bg-white">
-            <div className="flex-1 pr-4">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Submit Feedback</h2>
-              <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                Help us improve by sharing your thoughts and ideas
-              </p>
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        zIndex: 99999999,
+        display: 'block',
+        padding: '0',
+        overflow: 'auto'
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div 
+        style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
+          maxWidth: '800px',
+          width: '90%',
+          maxHeight: '90vh',
+          overflow: 'hidden',
+          position: 'relative',
+          margin: '50px auto',
+          border: '3px solid green'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Submit Feedback</h2>
+            <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
+              Help us improve by sharing your thoughts and ideas
+            </p>
+            <div style={{ backgroundColor: '#10b981', color: 'white', padding: '8px', marginTop: '8px', textAlign: 'center', fontWeight: 'bold', fontSize: '12px' }}>
+              🎉 SUBMIT FEEDBACK MODAL VISIBLE! Z-index: 99999999
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="min-touch-target tap-highlight-transparent flex-shrink-0 -mr-2"
-            >
-              <X className="h-5 w-5" />
-            </Button>
           </div>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#6b7280' }}
+          >
+            ×
+          </button>
+        </div>
+        <div style={{ padding: '20px', maxHeight: 'calc(90vh - 80px)', overflowY: 'auto' }}>
 
           {/* Scrollable Content */}
           <div 
@@ -551,9 +583,6 @@ export default function PostSubmissionForm({
                 </div>
               </form>
             )}
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </div>
