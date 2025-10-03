@@ -400,6 +400,48 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
 
       if (response.ok) {
         const data = await response.json();
+        const newReply = data.comment;
+
+        // Process mentions in reply
+        try {
+          const mentionsResponse = await fetch('/api/comments/mentions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              commentId: newReply.id,
+              commentText: replyText,
+              postId: post.id,
+              projectId: project.id
+            })
+          });
+
+          if (mentionsResponse.ok) {
+            const mentionsData = await mentionsResponse.json();
+
+            // Send email notifications to mentioned users
+            if (mentionsData.mentions && mentionsData.mentions.length > 0) {
+              for (const mention of mentionsData.mentions) {
+                await fetch('/api/emails/mention-notification', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    mentionedEmail: mention.mentioned_user_email,
+                    mentionedName: mention.mentioned_user_name,
+                    commenterName: replyName,
+                    commentText: replyText,
+                    postTitle: post.title,
+                    postUrl: `${window.location.origin}/${project.slug}/post/${post.id}`,
+                    projectName: project.name
+                  })
+                });
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error processing mentions:', error);
+          // Don't fail the reply if mentions fail
+        }
+
         toast.success('Reply posted successfully');
         setReplyText('');
         setReplyName('');
@@ -753,14 +795,16 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                             {/* Reply Form */}
                             {replyingTo === comment.id && (
                               <div className="mt-3 ml-0 p-3 bg-gray-50 rounded-lg border">
-                                <textarea
+                                <MentionTextarea
                                   value={replyText}
-                                  onChange={(e) => setReplyText(e.target.value)}
-                                  placeholder="Write your reply..."
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm mb-2"
-                                  rows={3}
+                                  onChange={setReplyText}
+                                  postId={post.id}
+                                  placeholder="Write your reply... (use @ to mention someone)"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm mb-2"
+                                  minRows={3}
+                                  maxRows={8}
                                 />
-                                
+
                                 {/* AI Writing Assistant */}
                                 <AIWritingAssistant
                                   currentText={replyText}

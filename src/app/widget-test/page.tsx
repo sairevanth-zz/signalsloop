@@ -254,7 +254,7 @@ export default function WidgetTestPage() {
 
     // Add submit handler
     document.getElementById('submit-feedback').addEventListener('click', () => {
-      alert('✅ Feedback submitted successfully!\\n\\nIn a real implementation, this would send the feedback to your backend.');
+      alert('✅ Feedback submitted successfully!');
       closeModal();
     });
 
