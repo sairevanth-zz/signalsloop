@@ -31,7 +31,9 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  FileText
+  FileText,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import {
   Select,
@@ -187,6 +189,45 @@ export default function BoardPage() {
       router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm('Are you sure you want to delete this post? This action cannot be undone and will delete all comments and votes associated with it.')) {
+      return;
+    }
+
+    try {
+      const supabase = getSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        toast.error('You must be logged in');
+        return;
+      }
+
+      const response = await fetch('/api/admin/delete-post', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          postId,
+          projectId: project?.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete post');
+      }
+
+      toast.success('Post deleted successfully');
+      // Remove the post from the list
+      setPosts(prev => prev.filter(p => p.id !== postId));
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast.error('Failed to delete post');
     }
   };
 
@@ -724,12 +765,23 @@ export default function BoardPage() {
                           {post.title}
                         </h3>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <Badge 
-                            variant="outline" 
+                          <Badge
+                            variant="outline"
                             className={statusConfig[post.status].color}
                           >
                             {statusConfig[post.status].label}
                           </Badge>
+                          {isProjectOwner && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeletePost(post.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
+                              title="Delete post"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
 
