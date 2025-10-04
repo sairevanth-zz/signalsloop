@@ -521,10 +521,37 @@ function generateWidgetScript(config) {
     // Append directly to body as the very last element
     document.body.appendChild(button);
 
-    // Force reflow to ensure styles are applied
-    button.offsetHeight;
+    // Force correct position - this function will keep the button in place
+    function enforcePosition() {
+      button.style.setProperty('position', 'fixed', 'important');
+      button.style.setProperty('top', 'auto', 'important');
+      button.style.setProperty('left', 'auto', 'important');
+      button.style.setProperty('bottom', '20px', 'important');
+      button.style.setProperty('right', '20px', 'important');
+      button.style.setProperty('z-index', '2147483647', 'important');
+    }
 
-    // Double-check the button is actually fixed
+    // Call immediately
+    enforcePosition();
+
+    // Watch for any attribute changes and re-enforce
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+          enforcePosition();
+        }
+      });
+    });
+
+    observer.observe(button, {
+      attributes: true,
+      attributeFilter: ['style']
+    });
+
+    // Also enforce on a regular interval as backup
+    setInterval(enforcePosition, 500);
+
+    // Debug after a moment
     setTimeout(() => {
       const computedStyle = window.getComputedStyle(button);
       const rect = button.getBoundingClientRect();
@@ -535,26 +562,12 @@ function generateWidgetScript(config) {
       console.log('Right:', computedStyle.right);
       console.log('Top:', computedStyle.top);
       console.log('Left:', computedStyle.left);
-      console.log('Z-index:', computedStyle.zIndex);
-      console.log('Display:', computedStyle.display);
-      console.log('Actual position (getBoundingClientRect):', {
-        top: rect.top,
-        right: rect.right,
-        bottom: rect.bottom,
-        left: rect.left
-      });
-      console.log('Window height:', window.innerHeight);
-      console.log('Window width:', window.innerWidth);
+      console.log('Actual rect:', rect);
 
-      // If not at bottom-right, force it
-      const shouldBeAtBottom = window.innerHeight - rect.bottom < 30;
-      const shouldBeAtRight = window.innerWidth - rect.right < 30;
-
-      if (!shouldBeAtBottom || !shouldBeAtRight) {
-        console.warn('⚠️ Widget not at bottom-right! Current position:', rect);
-        console.warn('Expected: bottom ~20px from bottom, right ~20px from right');
+      if (computedStyle.top !== 'auto') {
+        console.error('❌ TOP IS BEING SET TO:', computedStyle.top, '- This should be auto!');
       }
-    }, 100);
+    }, 200);
 
     // Track widget load
     trackEvent('widget_loaded');
