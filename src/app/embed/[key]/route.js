@@ -228,44 +228,58 @@ function generateWidgetScript(config) {
     // Append iframe to body
     document.body.appendChild(iframe);
 
-    // Aggressively enforce position to stay fixed to viewport
+    // Use absolute positioning relative to body, update on scroll
     function enforceIframePosition() {
-      // Always keep it fixed to viewport, not page
-      iframe.style.setProperty('position', 'fixed', 'important');
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+      const windowHeight = window.innerHeight;
+      const windowWidth = window.innerWidth;
 
+      // Calculate position to keep it in viewport
       if (CONFIG.position === 'bottom-right' || !CONFIG.position) {
-        // Remove top/left if they exist
-        iframe.style.removeProperty('top');
-        iframe.style.removeProperty('left');
-        // Only set bottom/right
-        iframe.style.setProperty('bottom', '20px', 'important');
-        iframe.style.setProperty('right', '20px', 'important');
+        const top = scrollTop + windowHeight - 70; // 50px height + 20px margin
+        const left = scrollLeft + windowWidth - 140; // 120px width + 20px margin
+        iframe.style.setProperty('position', 'absolute', 'important');
+        iframe.style.setProperty('top', top + 'px', 'important');
+        iframe.style.setProperty('left', left + 'px', 'important');
+        iframe.style.removeProperty('bottom');
+        iframe.style.removeProperty('right');
       } else if (CONFIG.position === 'bottom-left') {
-        iframe.style.removeProperty('top');
+        const top = scrollTop + windowHeight - 70;
+        const left = scrollLeft + 20;
+        iframe.style.setProperty('position', 'absolute', 'important');
+        iframe.style.setProperty('top', top + 'px', 'important');
+        iframe.style.setProperty('left', left + 'px', 'important');
+        iframe.style.removeProperty('bottom');
         iframe.style.removeProperty('right');
-        iframe.style.setProperty('bottom', '20px', 'important');
-        iframe.style.setProperty('left', '20px', 'important');
       } else if (CONFIG.position === 'top-right') {
-        iframe.style.removeProperty('bottom');
-        iframe.style.removeProperty('left');
-        iframe.style.setProperty('top', '20px', 'important');
-        iframe.style.setProperty('right', '20px', 'important');
-      } else if (CONFIG.position === 'top-left') {
+        const top = scrollTop + 20;
+        const left = scrollLeft + windowWidth - 140;
+        iframe.style.setProperty('position', 'absolute', 'important');
+        iframe.style.setProperty('top', top + 'px', 'important');
+        iframe.style.setProperty('left', left + 'px', 'important');
         iframe.style.removeProperty('bottom');
         iframe.style.removeProperty('right');
-        iframe.style.setProperty('top', '20px', 'important');
-        iframe.style.setProperty('left', '20px', 'important');
+      } else if (CONFIG.position === 'top-left') {
+        const top = scrollTop + 20;
+        const left = scrollLeft + 20;
+        iframe.style.setProperty('position', 'absolute', 'important');
+        iframe.style.setProperty('top', top + 'px', 'important');
+        iframe.style.setProperty('left', left + 'px', 'important');
+        iframe.style.removeProperty('bottom');
+        iframe.style.removeProperty('right');
       }
     }
 
     // Enforce immediately
     enforceIframePosition();
 
-    // Re-enforce on resize and periodically
+    // Re-enforce on scroll, resize, and periodically
+    window.addEventListener('scroll', enforceIframePosition, { passive: true });
     window.addEventListener('resize', enforceIframePosition);
 
-    // Enforce every 100ms to override any interfering scripts
-    setInterval(enforceIframePosition, 100);
+    // Enforce every 50ms for smooth scrolling
+    setInterval(enforceIframePosition, 50);
 
     // Write button HTML into iframe
     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
