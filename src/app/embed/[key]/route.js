@@ -230,6 +230,12 @@ function generateWidgetScript(config) {
     button.innerHTML = CONFIG.text;
     button.setAttribute('data-signalsloop-widget', 'true');
 
+    // Also set inline styles as backup (even though stylesheet should work)
+    button.style.position = 'fixed';
+    button.style.bottom = '20px';
+    button.style.right = '20px';
+    button.style.zIndex = '2147483647';
+
     // Click handler
     button.addEventListener('click', openWidget);
 
@@ -519,21 +525,32 @@ function generateWidgetScript(config) {
     setTimeout(() => {
       const computedStyle = window.getComputedStyle(button);
       const rect = button.getBoundingClientRect();
+      const inlineStyles = {
+        position: button.style.position,
+        bottom: button.style.bottom,
+        right: button.style.right,
+        top: button.style.top,
+        left: button.style.left
+      };
 
       console.log('🔍 SignalsLoop Widget Debug:');
-      console.log('Position:', computedStyle.position);
-      console.log('Bottom:', computedStyle.bottom);
-      console.log('Right:', computedStyle.right);
-      console.log('Top:', computedStyle.top);
-      console.log('Left:', computedStyle.left);
-      console.log('Rect from viewport:', {
+      console.log('Inline styles:', inlineStyles);
+      console.log('Computed styles:', {
+        position: computedStyle.position,
+        bottom: computedStyle.bottom,
+        right: computedStyle.right,
+        top: computedStyle.top,
+        left: computedStyle.left
+      });
+      console.log('Button rect (distance from viewport edges):', {
         top: rect.top,
-        right: rect.right,
-        bottom: rect.bottom,
+        right: window.innerWidth - rect.right,
+        bottom: window.innerHeight - rect.bottom,
         left: rect.left
       });
-      console.log('Is button visible without scrolling?', rect.bottom <= window.innerHeight && rect.right <= window.innerWidth);
-    }, 200);
+      console.log('Window size:', { width: window.innerWidth, height: window.innerHeight });
+      console.log('Is fixed to bottom-right?', computedStyle.position === 'fixed' && rect.bottom <= window.innerHeight && rect.right <= window.innerWidth);
+    }, 500);
 
     // Track widget load
     trackEvent('widget_loaded');
