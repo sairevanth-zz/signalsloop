@@ -188,51 +188,50 @@ function generateWidgetScript(config) {
     const button = document.createElement('button');
     button.id = WIDGET_ID;
     button.innerHTML = CONFIG.text;
-    
-    // Apply styles
-    const position = POSITIONS[CONFIG.position] || POSITIONS['bottom-right'];
-    const size = SIZES[CONFIG.size] || SIZES['medium'];
-    
-    Object.assign(button.style, {
-      position: 'fixed',
-      zIndex: '2147483647', // Maximum z-index value
-      backgroundColor: CONFIG.color,
-      color: 'white',
-      border: 'none',
-      borderRadius: '25px',
-      cursor: 'pointer',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      fontWeight: '600',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-      transition: 'all 0.3s ease',
-      outline: 'none',
-      ...position,
-      ...size
-    });
+    button.setAttribute('data-signalsloop-widget', 'true');
 
-    // Force all styles with !important to override any CSS
-    button.style.setProperty('position', 'fixed', 'important');
-    button.style.setProperty('z-index', '2147483647', 'important');
-    button.style.setProperty('background-color', CONFIG.color, 'important');
-    button.style.setProperty('background', CONFIG.color, 'important');
-    button.style.setProperty('display', 'block', 'important');
-    button.style.setProperty('visibility', 'visible', 'important');
-    button.style.setProperty('opacity', '1', 'important');
-    button.style.setProperty('bottom', position.bottom || 'auto', 'important');
-    button.style.setProperty('right', position.right || 'auto', 'important');
-    button.style.setProperty('top', position.top || 'auto', 'important');
-    button.style.setProperty('left', position.left || 'auto', 'important');
-    button.style.setProperty('transform', position.transform || 'none', 'important');
+    // Nuclear option: use cssText to set everything at once with !important
+    const cssText = \`
+      all: initial !important;
+      position: fixed !important;
+      bottom: 20px !important;
+      right: 20px !important;
+      z-index: 2147483647 !important;
+      background-color: \${CONFIG.color} !important;
+      background: \${CONFIG.color} !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 25px !important;
+      padding: 12px 20px !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      line-height: 1 !important;
+      cursor: pointer !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+      transition: all 0.3s ease !important;
+      outline: none !important;
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      width: auto !important;
+      height: auto !important;
+      margin: 0 !important;
+      transform: none !important;
+      pointer-events: auto !important;
+    \`;
+
+    button.style.cssText = cssText;
 
     // Hover effects
     button.addEventListener('mouseenter', function() {
-      button.style.transform = (position.transform || '') + ' scale(1.05)';
-      button.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.25)';
+      button.style.transform = 'scale(1.05) !important';
+      button.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.25) !important';
     });
 
     button.addEventListener('mouseleave', function() {
-      button.style.transform = position.transform || '';
-      button.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+      button.style.transform = 'none !important';
+      button.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15) !important';
     });
 
     // Click handler
@@ -515,16 +514,30 @@ function generateWidgetScript(config) {
       return;
     }
 
-    // Create an isolated container for the widget
-    const container = document.createElement('div');
-    container.id = WIDGET_ID + '-container';
-    container.style.cssText = 'all: initial; position: fixed !important; bottom: 0 !important; right: 0 !important; z-index: 2147483647 !important; pointer-events: none !important;';
-
     const button = createWidgetButton();
-    button.style.cssText = button.style.cssText + '; pointer-events: auto !important; margin: 20px !important;';
 
-    container.appendChild(button);
-    document.body.appendChild(container);
+    // Append directly to body as the very last element
+    document.body.appendChild(button);
+
+    // Force reflow to ensure styles are applied
+    button.offsetHeight;
+
+    // Double-check the button is actually fixed
+    setTimeout(() => {
+      const computedStyle = window.getComputedStyle(button);
+      console.log('🔍 SignalsLoop Widget Debug:');
+      console.log('Position:', computedStyle.position);
+      console.log('Bottom:', computedStyle.bottom);
+      console.log('Right:', computedStyle.right);
+      console.log('Z-index:', computedStyle.zIndex);
+      console.log('Display:', computedStyle.display);
+
+      // If not fixed, force it again
+      if (computedStyle.position !== 'fixed') {
+        console.warn('⚠️ Widget position not fixed! Force-fixing...');
+        button.style.cssText = button.style.cssText.replace(/position:[^;]+;/, 'position: fixed !important;');
+      }
+    }, 100);
 
     // Track widget load
     trackEvent('widget_loaded');
@@ -537,9 +550,7 @@ function generateWidgetScript(config) {
       version: '1.0.0'
     };
 
-    console.log('SignalsLoop widget loaded for', CONFIG.projectName);
-    console.log('Widget config:', CONFIG);
-    console.log('Iframe URL:', IFRAME_URL);
+    console.log('✅ SignalsLoop widget loaded for', CONFIG.projectName);
   }
 
   // Wait for DOM to be ready
