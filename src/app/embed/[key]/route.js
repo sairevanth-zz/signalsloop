@@ -234,6 +234,10 @@ function generateWidgetScript(config) {
     button.style.right = '20px';
     button.style.zIndex = '2147483647';
 
+    // Critical: Remove top and left to prevent conflicts
+    button.style.top = '';
+    button.style.left = '';
+
     // Click handler
     button.addEventListener('click', openWidget);
 
@@ -518,6 +522,27 @@ function generateWidgetScript(config) {
 
     // Append directly to body as the very last element
     document.body.appendChild(button);
+
+    // Aggressively prevent any top/left from being set
+    const observer = new MutationObserver(() => {
+      if (button.style.top && button.style.top !== '') {
+        button.style.top = '';
+      }
+      if (button.style.left && button.style.left !== '') {
+        button.style.left = '';
+      }
+    });
+
+    observer.observe(button, {
+      attributes: true,
+      attributeFilter: ['style']
+    });
+
+    // Also check periodically
+    setInterval(() => {
+      if (button.style.top) button.style.top = '';
+      if (button.style.left) button.style.left = '';
+    }, 100);
 
     // Debug positioning after a moment
     setTimeout(() => {
