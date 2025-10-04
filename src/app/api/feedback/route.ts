@@ -9,7 +9,15 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { project_slug, title, content, category = 'other', user_email } = body;
+    const {
+      project_slug,
+      title,
+      content,
+      category = 'other',
+      priority = 'medium',
+      author_name,
+      user_email
+    } = body;
 
     // Support both title and content fields
     const finalContent = content || title;
@@ -44,6 +52,8 @@ export async function POST(request: NextRequest) {
         title: finalTitle.trim(),
         description: finalContent.trim(),
         category: category,
+        priority: priority,
+        author_name: author_name || null,
         author_email: user_email || null,
         status: 'open', // Auto-publish widget submissions
         vote_count: 0,

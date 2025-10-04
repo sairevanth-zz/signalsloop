@@ -64,6 +64,7 @@ export async function GET(
         category,
         vote_count,
         created_at,
+        author_name,
         author_email
       `)
       .eq('project_id', project.id)
@@ -511,15 +512,16 @@ function generateFrameHTML(config) {
           Submit Feedback
         </button>
       </form>
-    </div>
-    
-    <div class="posts-container">
-      <div class="posts-header">
-        <h2>Recent Feedback</h2>
-      </div>
-      
-      <div id="posts-list">
-        ${generatePostsHTML(posts)}
+
+      <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+        <a href="https://www.signalsloop.com/board/${project.slug}" target="_blank" style="color: ${primaryColor}; text-decoration: none; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;">
+          View all feedback & vote
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </a>
       </div>
     </div>
     
@@ -546,7 +548,6 @@ function generateFrameHTML(config) {
     const titleCount = document.getElementById('title-count');
     const descCount = document.getElementById('desc-count');
     const submitBtn = document.getElementById('submit-btn');
-    const postsList = document.getElementById('posts-list');
     
     // Character counters
     function updateCharCount(input, counter, max) {
@@ -708,13 +709,12 @@ function generateFrameHTML(config) {
         }
         priorityInput.value = 'medium';
 
-        // Refresh posts
-        await loadPosts();
-        
         // Track event
         trackEvent('feedback_submitted', {
           category: data.category,
-          has_email: !!data.user_email
+          priority: data.priority,
+          has_email: !!data.user_email,
+          has_name: !!data.author_name
         });
         
       } catch (error) {
@@ -725,124 +725,8 @@ function generateFrameHTML(config) {
         submitBtn.textContent = 'Submit Feedback';
       }
     });
-    
-    // Voting
-    document.addEventListener('click', async (e) => {
-      if (e.target.classList.contains('vote-button')) {
-        const postId = e.target.dataset.postId;
-        const isVoted = e.target.classList.contains('voted');
-        
-        e.target.disabled = true;
-        
-        try {
-          const response = await fetch('/api/posts/' + postId + '/vote', {
-            method: isVoted ? 'DELETE' : 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            }
-          });
-          
-          if (response.ok) {
-            const result = await response.json();
-            updateVoteButton(e.target, result.vote_count, result.user_voted);
-            
-            trackEvent('vote_' + (isVoted ? 'removed' : 'added'), {
-              post_id: postId
-            });
-          }
-        } catch (error) {
-          console.error('Vote error:', error);
-        } finally {
-          e.target.disabled = false;
-        }
-      }
-    });
-    
-    function updateVoteButton(button, count, voted) {
-      button.textContent = (voted ? '✓ ' : '↑ ') + count;
-      button.classList.toggle('voted', voted);
-    }
 
-    // Generate posts HTML
-    function generatePostsHTML(posts) {
-      if (!posts || !posts.length) {
-        return \`
-          <div class="loading">
-            <div class="spinner"></div>
-            Loading feedback...
-          </div>
-        \`;
-      }
 
-      return posts.map(post => {
-        const escapedTitle = escapeHtml(post.title);
-        const escapedDescription = post.description ? escapeHtml(post.description) : '';
-        const escapedEmail = post.author_email ? escapeHtml(post.author_email) : '';
-
-        return \`
-          <div class="post">
-            <div class="post-header">
-              <div>
-                <div class="post-title">\${escapedTitle}</div>
-                <span class="post-category \${post.category}">\${post.category}</span>
-              </div>
-            </div>
-
-            \${escapedDescription ? \`<div class="post-content">\${escapedDescription}</div>\` : ''}
-
-            <div class="post-footer">
-              <div class="post-meta">
-                \${formatDate(post.created_at)}
-                \${escapedEmail ? ' • ' + escapedEmail : ''}
-              </div>
-              <button class="vote-button" data-post-id="\${post.id}">
-                ↑ \${post.vote_count || 0}
-              </button>
-            </div>
-          </div>
-        \`;
-      }).join('');
-    }
-
-    // Escape HTML to prevent XSS
-    function escapeHtml(text) {
-      if (typeof text !== 'string') return '';
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    // Format date
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-      if (diffDays === 0) {
-        return 'Today';
-      } else if (diffDays === 1) {
-        return 'Yesterday';
-      } else if (diffDays < 7) {
-        return diffDays + ' days ago';
-      } else {
-        return date.toLocaleDateString();
-      }
-    }
-
-    // Load posts
-    async function loadPosts() {
-      try {
-        const response = await fetch('/api/v1/posts?project_slug=' + CONFIG.projectSlug + '&limit=10');
-        if (response.ok) {
-          const data = await response.json();
-          postsList.innerHTML = generatePostsHTML(data.posts);
-        }
-      } catch (error) {
-        console.error('Error loading posts:', error);
-      }
-    }
-    
     // Message display
     function showMessage(message, type) {
       const existing = document.querySelector('.error-message, .success-message');
@@ -878,9 +762,6 @@ function generateFrameHTML(config) {
     
     // Initialize
     trackEvent('widget_loaded');
-    
-    // Auto-refresh posts every 30 seconds
-    setInterval(loadPosts, 30000);
   </script>
 </body>
 </html>`;
@@ -896,7 +777,9 @@ function generatePostsHTML(posts) {
     `;
   }
   
-  return posts.map(post => `
+  return posts.map(post => {
+    const authorName = post.author_name || 'Anonymous';
+    return `
     <div class="post">
       <div class="post-header">
         <div>
@@ -904,20 +787,19 @@ function generatePostsHTML(posts) {
           <span class="post-category ${post.category}">${post.category}</span>
         </div>
       </div>
-      
+
       ${post.description ? `<div class="post-content">${escapeHtml(post.description)}</div>` : ''}
-      
+
       <div class="post-footer">
         <div class="post-meta">
-          ${formatDate(post.created_at)}
-          ${post.author_email ? ' • ' + escapeHtml(post.author_email) : ''}
+          ${formatDate(post.created_at)} • ${escapeHtml(authorName)}
         </div>
         <button class="vote-button" data-post-id="${post.id}">
-          ↑ ${post.vote_count}
+          ↑ ${post.vote_count || 0}
         </button>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function escapeHtml(text) {

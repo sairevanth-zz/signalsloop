@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
         category,
         vote_count,
         created_at,
+        author_name,
         author_email,
         status
       `)
