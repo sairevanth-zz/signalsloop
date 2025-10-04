@@ -185,13 +185,21 @@ function generateWidgetScript(config) {
 
   // Create widget button in an iframe for complete isolation
   function createWidgetButton() {
+    const position = POSITIONS[CONFIG.position] || POSITIONS['bottom-right'];
+
     // Create an iframe to isolate the button from page styles
     const iframe = document.createElement('iframe');
     iframe.id = WIDGET_ID + '-frame';
-    iframe.style.cssText =
-      'position: fixed !important;' +
-      'bottom: 20px !important;' +
-      'right: 20px !important;' +
+
+    // Build position CSS
+    let positionCSS = 'position: fixed !important;';
+    if (position.top && position.top !== 'auto') positionCSS += 'top: ' + position.top + ' !important;';
+    if (position.bottom && position.bottom !== 'auto') positionCSS += 'bottom: ' + position.bottom + ' !important;';
+    if (position.left && position.left !== 'auto') positionCSS += 'left: ' + position.left + ' !important;';
+    if (position.right && position.right !== 'auto') positionCSS += 'right: ' + position.right + ' !important;';
+    if (position.transform) positionCSS += 'transform: ' + position.transform + ' !important;';
+
+    iframe.style.cssText = positionCSS +
       'width: 120px !important;' +
       'height: 50px !important;' +
       'border: none !important;' +
