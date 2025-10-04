@@ -194,8 +194,6 @@ function generateWidgetScript(config) {
         'position: fixed !important;' +
         'bottom: 20px !important;' +
         'right: 20px !important;' +
-        'top: auto !important;' +
-        'left: auto !important;' +
         'z-index: 2147483647 !important;' +
         'background-color: ' + CONFIG.color + ' !important;' +
         'color: white !important;' +
