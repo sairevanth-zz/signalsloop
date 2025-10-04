@@ -183,65 +183,78 @@ function generateWidgetScript(config) {
     'large': { padding: '16px 24px', fontSize: '18px', width: '120px', height: '52px' }
   };
 
-  // Create widget button
+  // Create widget button in an iframe for complete isolation
   function createWidgetButton() {
-    // First inject CSS into page head to ensure !important works
-    const styleId = WIDGET_ID + '-styles';
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement('style');
-      style.id = styleId;
-      style.textContent = '#' + WIDGET_ID + ' {' +
-        'position: fixed !important;' +
-        'bottom: 20px !important;' +
-        'right: 20px !important;' +
-        'z-index: 2147483647 !important;' +
-        'background-color: ' + CONFIG.color + ' !important;' +
-        'color: white !important;' +
-        'border: none !important;' +
-        'border-radius: 25px !important;' +
-        'padding: 12px 20px !important;' +
-        'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;' +
-        'font-size: 16px !important;' +
-        'font-weight: 600 !important;' +
-        'line-height: 1 !important;' +
-        'cursor: pointer !important;' +
-        'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;' +
-        'outline: none !important;' +
-        'display: block !important;' +
-        'visibility: visible !important;' +
-        'opacity: 1 !important;' +
-        'pointer-events: auto !important;' +
-        'margin: 0 !important;' +
-        'transform: none !important;' +
-        'width: auto !important;' +
-        'height: auto !important;' +
-      '}' +
-      '#' + WIDGET_ID + ':hover {' +
-        'transform: scale(1.05) !important;' +
-        'box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25) !important;' +
-      '}';
-      document.head.appendChild(style);
-    }
+    // Create an iframe to isolate the button from page styles
+    const iframe = document.createElement('iframe');
+    iframe.id = WIDGET_ID + '-frame';
+    iframe.style.cssText =
+      'position: fixed !important;' +
+      'bottom: 20px !important;' +
+      'right: 20px !important;' +
+      'width: 120px !important;' +
+      'height: 50px !important;' +
+      'border: none !important;' +
+      'background: transparent !important;' +
+      'z-index: 2147483647 !important;' +
+      'pointer-events: none !important;';
 
-    const button = document.createElement('button');
-    button.id = WIDGET_ID;
-    button.innerHTML = CONFIG.text;
-    button.setAttribute('data-signalsloop-widget', 'true');
+    // Append iframe to body
+    document.body.appendChild(iframe);
 
-    // Also set inline styles as backup (even though stylesheet should work)
-    button.style.position = 'fixed';
-    button.style.bottom = '20px';
-    button.style.right = '20px';
-    button.style.zIndex = '2147483647';
+    // Write button HTML into iframe
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+              overflow: hidden;
+              background: transparent;
+              width: 120px;
+              height: 50px;
+            }
+            #btn {
+              position: absolute;
+              bottom: 0;
+              right: 0;
+              background-color: ${CONFIG.color};
+              color: white;
+              border: none;
+              border-radius: 25px;
+              padding: 12px 20px;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+              font-size: 16px;
+              font-weight: 600;
+              cursor: pointer;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+              pointer-events: auto;
+              transition: all 0.2s ease;
+            }
+            #btn:hover {
+              transform: scale(1.05);
+              box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            }
+          </style>
+        </head>
+        <body>
+          <button id="btn">${CONFIG.text}</button>
+        </body>
+      </html>
+    `);
+    iframeDoc.close();
 
-    // Critical: Remove top and left to prevent conflicts
-    button.style.top = '';
-    button.style.left = '';
-
-    // Click handler
+    // Get button from iframe and add click handler
+    const button = iframeDoc.getElementById('btn');
     button.addEventListener('click', openWidget);
 
-    return button;
+    // Make iframe pointer-events work for button
+    iframe.style.pointerEvents = 'auto';
+
+    return iframe;
   }
 
   // Create modal overlay
@@ -518,62 +531,8 @@ function generateWidgetScript(config) {
       return;
     }
 
-    const button = createWidgetButton();
-
-    // Append directly to body as the very last element
-    document.body.appendChild(button);
-
-    // Aggressively prevent any top/left from being set
-    const observer = new MutationObserver(() => {
-      if (button.style.top && button.style.top !== '') {
-        button.style.top = '';
-      }
-      if (button.style.left && button.style.left !== '') {
-        button.style.left = '';
-      }
-    });
-
-    observer.observe(button, {
-      attributes: true,
-      attributeFilter: ['style']
-    });
-
-    // Also check periodically
-    setInterval(() => {
-      if (button.style.top) button.style.top = '';
-      if (button.style.left) button.style.left = '';
-    }, 100);
-
-    // Debug positioning after a moment
-    setTimeout(() => {
-      const computedStyle = window.getComputedStyle(button);
-      const rect = button.getBoundingClientRect();
-      const inlineStyles = {
-        position: button.style.position,
-        bottom: button.style.bottom,
-        right: button.style.right,
-        top: button.style.top,
-        left: button.style.left
-      };
-
-      console.log('🔍 SignalsLoop Widget Debug:');
-      console.log('Inline styles:', inlineStyles);
-      console.log('Computed styles:', {
-        position: computedStyle.position,
-        bottom: computedStyle.bottom,
-        right: computedStyle.right,
-        top: computedStyle.top,
-        left: computedStyle.left
-      });
-      console.log('Button rect (distance from viewport edges):', {
-        top: rect.top,
-        right: window.innerWidth - rect.right,
-        bottom: window.innerHeight - rect.bottom,
-        left: rect.left
-      });
-      console.log('Window size:', { width: window.innerWidth, height: window.innerHeight });
-      console.log('Is fixed to bottom-right?', computedStyle.position === 'fixed' && rect.bottom <= window.innerHeight && rect.right <= window.innerWidth);
-    }, 500);
+    const iframe = createWidgetButton();
+    // iframe is already appended to body in createWidgetButton()
 
     // Track widget load
     trackEvent('widget_loaded');
