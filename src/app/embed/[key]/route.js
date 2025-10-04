@@ -191,21 +191,31 @@ function generateWidgetScript(config) {
     const iframe = document.createElement('iframe');
     iframe.id = WIDGET_ID + '-frame';
 
-    // Build position CSS
-    let positionCSS = 'position: fixed !important;';
-    if (position.top && position.top !== 'auto') positionCSS += 'top: ' + position.top + ' !important;';
-    if (position.bottom && position.bottom !== 'auto') positionCSS += 'bottom: ' + position.bottom + ' !important;';
-    if (position.left && position.left !== 'auto') positionCSS += 'left: ' + position.left + ' !important;';
-    if (position.right && position.right !== 'auto') positionCSS += 'right: ' + position.right + ' !important;';
-    if (position.transform) positionCSS += 'transform: ' + position.transform + ' !important;';
+    // Set styles individually to ensure they're applied
+    iframe.style.position = 'fixed';
+    iframe.style.width = '120px';
+    iframe.style.height = '50px';
+    iframe.style.border = 'none';
+    iframe.style.background = 'transparent';
+    iframe.style.zIndex = '2147483647';
+    iframe.style.pointerEvents = 'auto';
 
-    iframe.style.cssText = positionCSS +
-      'width: 120px !important;' +
-      'height: 50px !important;' +
-      'border: none !important;' +
-      'background: transparent !important;' +
-      'z-index: 2147483647 !important;' +
-      'pointer-events: none !important;';
+    // Set position values
+    iframe.style.top = position.top || 'auto';
+    iframe.style.bottom = position.bottom || 'auto';
+    iframe.style.left = position.left || 'auto';
+    iframe.style.right = position.right || 'auto';
+    if (position.transform) {
+      iframe.style.transform = position.transform;
+    }
+
+    console.log('Widget iframe position:', {
+      top: iframe.style.top,
+      bottom: iframe.style.bottom,
+      left: iframe.style.left,
+      right: iframe.style.right,
+      position: CONFIG.position
+    });
 
     // Append iframe to body
     document.body.appendChild(iframe);
