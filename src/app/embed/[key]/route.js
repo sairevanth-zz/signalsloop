@@ -213,46 +213,46 @@ function generateWidgetScript(config) {
     // Write button HTML into iframe
     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
     iframeDoc.open();
-    iframeDoc.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
-              overflow: hidden;
-              background: transparent;
-              width: 120px;
-              height: 50px;
-            }
-            #btn {
-              position: absolute;
-              bottom: 0;
-              right: 0;
-              background-color: ${CONFIG.color};
-              color: white;
-              border: none;
-              border-radius: 25px;
-              padding: 12px 20px;
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-              font-size: 16px;
-              font-weight: 600;
-              cursor: pointer;
-              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-              pointer-events: auto;
-              transition: all 0.2s ease;
-            }
-            #btn:hover {
-              transform: scale(1.05);
-              box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-            }
-          </style>
-        </head>
-        <body>
-          <button id="btn">${CONFIG.text}</button>
-        </body>
-      </html>
-    `);
+    iframeDoc.write(
+      '<!DOCTYPE html>' +
+      '<html>' +
+        '<head>' +
+          '<style>' +
+            '* { margin: 0; padding: 0; box-sizing: border-box; }' +
+            'body {' +
+              'overflow: hidden;' +
+              'background: transparent;' +
+              'width: 120px;' +
+              'height: 50px;' +
+            '}' +
+            '#btn {' +
+              'position: absolute;' +
+              'bottom: 0;' +
+              'right: 0;' +
+              'background-color: ' + CONFIG.color + ';' +
+              'color: white;' +
+              'border: none;' +
+              'border-radius: 25px;' +
+              'padding: 12px 20px;' +
+              'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;' +
+              'font-size: 16px;' +
+              'font-weight: 600;' +
+              'cursor: pointer;' +
+              'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);' +
+              'pointer-events: auto;' +
+              'transition: all 0.2s ease;' +
+            '}' +
+            '#btn:hover {' +
+              'transform: scale(1.05);' +
+              'box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);' +
+            '}' +
+          '</style>' +
+        '</head>' +
+        '<body>' +
+          '<button id="btn">' + CONFIG.text + '</button>' +
+        '</body>' +
+      '</html>'
+    );
     iframeDoc.close();
 
     // Get button from iframe and add click handler
