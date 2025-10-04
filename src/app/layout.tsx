@@ -45,7 +45,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased touch-manipulation`}
       >
         {children}
-        <script src="https://www.signalsloop.com/embed/sk_5qfjcjroywm9kbplveuc.js" async></script>
+        <script src="https://www.signalsloop.com/embed/sk_5qfjcjroywm9kbplveuc.js"></script>
       </body>
     </html>
   );

@@ -44,11 +44,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get the board for this project
+    const { data: board, error: boardError } = await supabase
+      .from('boards')
+      .select('id')
+      .eq('project_id', project.id)
+      .single();
+
+    if (boardError || !board) {
+      console.error('Board not found for project:', project.id);
+      return NextResponse.json(
+        { error: 'Board not found' },
+        { status: 404 }
+      );
+    }
+
     // Create feedback post
     const { data: post, error: postError } = await supabase
       .from('posts')
       .insert({
         project_id: project.id,
+        board_id: board.id,
         title: finalTitle.trim(),
         description: finalContent.trim(),
         category: category,

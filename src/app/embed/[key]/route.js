@@ -218,6 +218,11 @@ function generateWidgetScript(config) {
     button.style.setProperty('display', 'block', 'important');
     button.style.setProperty('visibility', 'visible', 'important');
     button.style.setProperty('opacity', '1', 'important');
+    button.style.setProperty('bottom', position.bottom || 'auto', 'important');
+    button.style.setProperty('right', position.right || 'auto', 'important');
+    button.style.setProperty('top', position.top || 'auto', 'important');
+    button.style.setProperty('left', position.left || 'auto', 'important');
+    button.style.setProperty('transform', position.transform || 'none', 'important');
 
     // Hover effects
     button.addEventListener('mouseenter', function() {
