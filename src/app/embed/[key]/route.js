@@ -234,25 +234,27 @@ function generateWidgetScript(config) {
       iframe.style.setProperty('position', 'fixed', 'important');
 
       if (CONFIG.position === 'bottom-right' || !CONFIG.position) {
+        // Remove top/left if they exist
+        iframe.style.removeProperty('top');
+        iframe.style.removeProperty('left');
+        // Only set bottom/right
         iframe.style.setProperty('bottom', '20px', 'important');
         iframe.style.setProperty('right', '20px', 'important');
-        iframe.style.setProperty('top', 'auto', 'important');
-        iframe.style.setProperty('left', 'auto', 'important');
       } else if (CONFIG.position === 'bottom-left') {
+        iframe.style.removeProperty('top');
+        iframe.style.removeProperty('right');
         iframe.style.setProperty('bottom', '20px', 'important');
         iframe.style.setProperty('left', '20px', 'important');
-        iframe.style.setProperty('top', 'auto', 'important');
-        iframe.style.setProperty('right', 'auto', 'important');
       } else if (CONFIG.position === 'top-right') {
+        iframe.style.removeProperty('bottom');
+        iframe.style.removeProperty('left');
         iframe.style.setProperty('top', '20px', 'important');
         iframe.style.setProperty('right', '20px', 'important');
-        iframe.style.setProperty('bottom', 'auto', 'important');
-        iframe.style.setProperty('left', 'auto', 'important');
       } else if (CONFIG.position === 'top-left') {
+        iframe.style.removeProperty('bottom');
+        iframe.style.removeProperty('right');
         iframe.style.setProperty('top', '20px', 'important');
         iframe.style.setProperty('left', '20px', 'important');
-        iframe.style.setProperty('bottom', 'auto', 'important');
-        iframe.style.setProperty('right', 'auto', 'important');
       }
     }
 
