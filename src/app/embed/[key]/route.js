@@ -525,17 +525,32 @@ function generateWidgetScript(config) {
     // Double-check the button is actually fixed
     setTimeout(() => {
       const computedStyle = window.getComputedStyle(button);
+      const rect = button.getBoundingClientRect();
+
       console.log('🔍 SignalsLoop Widget Debug:');
       console.log('Position:', computedStyle.position);
       console.log('Bottom:', computedStyle.bottom);
       console.log('Right:', computedStyle.right);
+      console.log('Top:', computedStyle.top);
+      console.log('Left:', computedStyle.left);
       console.log('Z-index:', computedStyle.zIndex);
       console.log('Display:', computedStyle.display);
+      console.log('Actual position (getBoundingClientRect):', {
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        left: rect.left
+      });
+      console.log('Window height:', window.innerHeight);
+      console.log('Window width:', window.innerWidth);
 
-      // If not fixed, force it again
-      if (computedStyle.position !== 'fixed') {
-        console.warn('⚠️ Widget position not fixed! Force-fixing...');
-        button.style.cssText = button.style.cssText.replace(/position:[^;]+;/, 'position: fixed !important;');
+      // If not at bottom-right, force it
+      const shouldBeAtBottom = window.innerHeight - rect.bottom < 30;
+      const shouldBeAtRight = window.innerWidth - rect.right < 30;
+
+      if (!shouldBeAtBottom || !shouldBeAtRight) {
+        console.warn('⚠️ Widget not at bottom-right! Current position:', rect);
+        console.warn('Expected: bottom ~20px from bottom, right ~20px from right');
       }
     }, 100);
 
