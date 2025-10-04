@@ -192,9 +192,8 @@ function generateWidgetScript(config) {
       style.id = styleId;
       style.textContent = '#' + WIDGET_ID + ' {' +
         'position: fixed !important;' +
-        'top: 0 !important;' +
-        'left: 0 !important;' +
-        'transform: translate(calc(100vw - 100% - 20px), calc(100vh - 100% - 20px)) !important;' +
+        'bottom: 20px !important;' +
+        'right: 20px !important;' +
         'z-index: 2147483647 !important;' +
         'background-color: ' + CONFIG.color + ' !important;' +
         'color: white !important;' +
@@ -213,11 +212,12 @@ function generateWidgetScript(config) {
         'opacity: 1 !important;' +
         'pointer-events: auto !important;' +
         'margin: 0 !important;' +
+        'transform: none !important;' +
         'width: auto !important;' +
         'height: auto !important;' +
       '}' +
       '#' + WIDGET_ID + ':hover {' +
-        'transform: translate(calc(100vw - 100% - 20px), calc(100vh - 100% - 20px)) scale(1.05) !important;' +
+        'transform: scale(1.05) !important;' +
         'box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25) !important;' +
       '}';
       document.head.appendChild(style);
