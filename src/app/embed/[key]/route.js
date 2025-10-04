@@ -165,7 +165,7 @@ function generateWidgetScript(config) {
   // Widget configuration
   const CONFIG = ${JSON.stringify(config)};
   const WIDGET_ID = 'signalsloop-widget-' + Math.random().toString(36).substr(2, 9);
-  const IFRAME_URL = 'https://www.signalsloop.com/embed/' + CONFIG.apiKey + '/frame?theme=' + CONFIG.theme + '&color=' + encodeURIComponent(CONFIG.color);
+  const IFRAME_URL = 'https://www.signalsloop.com/embed/' + CONFIG.apiKey + '/frame?theme=' + CONFIG.theme + '&color=' + encodeURIComponent(CONFIG.color) + (CONFIG.isPro ? '&hide_branding=true' : '');
 
   // Position configurations
   const POSITIONS = {

@@ -446,36 +446,67 @@ function generateFrameHTML(config) {
     
     <div class="form-container">
       <form id="feedback-form">
+        <!-- Feedback Type -->
+        <div class="form-group">
+          <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 14px; color: #374151;">Feedback Type *</label>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+            <button type="button" class="type-btn" data-type="feature" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
+              <span style="font-size: 18px;">⭐</span>
+              <span style="font-weight: 500;">Feature</span>
+            </button>
+            <button type="button" class="type-btn" data-type="bug" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
+              <span style="font-size: 18px;">🐛</span>
+              <span style="font-weight: 500;">Bug</span>
+            </button>
+            <button type="button" class="type-btn" data-type="improvement" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
+              <span style="font-size: 18px;">💡</span>
+              <span style="font-weight: 500;">Improvement</span>
+            </button>
+            <button type="button" class="type-btn active" data-type="general" style="padding: 12px; border: 2px solid ${primaryColor}; background: ${primaryColor}10; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
+              <span style="font-size: 18px;">💬</span>
+              <span style="font-weight: 500; color: ${primaryColor};">General</span>
+            </button>
+          </div>
+          <input type="hidden" id="category" name="category" value="general">
+        </div>
+
         <div class="form-group">
           <label for="title">Title *</label>
-          <input type="text" id="title" name="title" maxlength="100" required>
+          <input type="text" id="title" name="title" maxlength="100" required placeholder="Brief summary of your feedback">
           <div class="char-count" id="title-count">0/100</div>
         </div>
-        
+
         <div class="form-group">
-          <label for="description">Description</label>
-          <textarea id="description" name="description" maxlength="500" placeholder="Describe your feedback in detail..."></textarea>
+          <label for="description">Description *</label>
+          <textarea id="description" name="description" maxlength="500" required placeholder="Describe your feedback in detail..."></textarea>
           <div class="char-count" id="desc-count">0/500</div>
         </div>
-        
+
+        <!-- Priority -->
         <div class="form-group">
-          <label for="category">Category</label>
-          <select id="category" name="category">
-            <option value="feature">Feature Request</option>
-            <option value="bug">Bug Report</option>
-            <option value="improvement">Improvement</option>
-            <option value="other">Other</option>
-          </select>
+          <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 14px; color: #374151;">Priority</label>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="priority-btn" data-priority="low" style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">Low</button>
+            <button type="button" class="priority-btn active" data-priority="medium" style="flex: 1; padding: 8px 12px; border: 2px solid ${primaryColor}; background: ${primaryColor}10; color: ${primaryColor}; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Medium</button>
+            <button type="button" class="priority-btn" data-priority="high" style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">High</button>
+          </div>
+          <input type="hidden" id="priority" name="priority" value="medium">
         </div>
-        
+
         <div class="form-group">
-          <label for="email">Email (optional)</label>
-          <input type="email" id="email" name="email" placeholder="your@email.com">
+          <label for="name">Your Name *</label>
+          <input type="text" id="name" name="name" required placeholder="John Doe">
         </div>
-        
+
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input type="email" id="email" name="email" required placeholder="your@email.com">
+          <p style="margin: 6px 0 0 0; font-size: 12px; color: #6b7280;">We'll notify you about updates on your feedback</p>
+        </div>
+
         <!-- Honeypot field -->
         <input type="text" name="website" style="display: none;" tabindex="-1" autocomplete="off">
-        
+
         <button type="submit" class="submit-btn" id="submit-btn">
           Submit Feedback
         </button>
@@ -534,7 +565,51 @@ function generateFrameHTML(config) {
     
     titleInput.addEventListener('input', () => updateCharCount(titleInput, titleCount, 100));
     descInput.addEventListener('input', () => updateCharCount(descInput, descCount, 500));
-    
+
+    // Interactive functionality for type buttons
+    const typeButtons = document.querySelectorAll('.type-btn');
+    const categoryInput = document.getElementById('category');
+    typeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.dataset.type;
+        typeButtons.forEach(b => {
+          b.style.border = '2px solid #e5e7eb';
+          b.style.background = 'white';
+          const span = b.querySelector('span:last-child');
+          if (span) span.style.color = '';
+          b.classList.remove('active');
+        });
+        btn.style.border = '2px solid ${primaryColor}';
+        btn.style.background = '${primaryColor}10';
+        const span = btn.querySelector('span:last-child');
+        if (span) span.style.color = '${primaryColor}';
+        btn.classList.add('active');
+        categoryInput.value = type;
+      });
+    });
+
+    // Interactive functionality for priority buttons
+    const priorityButtons = document.querySelectorAll('.priority-btn');
+    const priorityInput = document.getElementById('priority');
+    priorityButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const priority = btn.dataset.priority;
+        priorityButtons.forEach(b => {
+          b.style.border = '1px solid #d1d5db';
+          b.style.background = 'white';
+          b.style.color = '';
+          b.style.fontWeight = '400';
+          b.classList.remove('active');
+        });
+        btn.style.border = '2px solid ${primaryColor}';
+        btn.style.background = '${primaryColor}10';
+        btn.style.color = '${primaryColor}';
+        btn.style.fontWeight = '500';
+        btn.classList.add('active');
+        priorityInput.value = priority;
+      });
+    });
+
     // Form submission
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -550,12 +625,29 @@ function generateFrameHTML(config) {
         title: formData.get('title'),
         content: formData.get('description') || formData.get('title'),
         category: formData.get('category'),
-        user_email: formData.get('email') || undefined
+        priority: formData.get('priority'),
+        author_name: formData.get('name'),
+        user_email: formData.get('email')
       };
-      
+
       // Validate
       if (!data.title.trim()) {
         showMessage('Please enter a title', 'error');
+        return;
+      }
+
+      if (!data.content.trim()) {
+        showMessage('Please enter a description', 'error');
+        return;
+      }
+
+      if (!data.author_name || !data.author_name.trim()) {
+        showMessage('Please enter your name', 'error');
+        return;
+      }
+
+      if (!data.user_email || !data.user_email.trim()) {
+        showMessage('Please enter your email', 'error');
         return;
       }
       
@@ -579,7 +671,43 @@ function generateFrameHTML(config) {
         form.reset();
         updateCharCount(titleInput, titleCount, 100);
         updateCharCount(descInput, descCount, 500);
-        
+
+        // Reset type buttons to default (general)
+        typeButtons.forEach(b => {
+          b.style.border = '2px solid #e5e7eb';
+          b.style.background = 'white';
+          const span = b.querySelector('span:last-child');
+          if (span) span.style.color = '';
+          b.classList.remove('active');
+        });
+        const generalBtn = document.querySelector('[data-type="general"]');
+        if (generalBtn) {
+          generalBtn.style.border = '2px solid ${primaryColor}';
+          generalBtn.style.background = '${primaryColor}10';
+          const span = generalBtn.querySelector('span:last-child');
+          if (span) span.style.color = '${primaryColor}';
+          generalBtn.classList.add('active');
+        }
+        categoryInput.value = 'general';
+
+        // Reset priority buttons to default (medium)
+        priorityButtons.forEach(b => {
+          b.style.border = '1px solid #d1d5db';
+          b.style.background = 'white';
+          b.style.color = '';
+          b.style.fontWeight = '400';
+          b.classList.remove('active');
+        });
+        const mediumBtn = document.querySelector('[data-priority="medium"]');
+        if (mediumBtn) {
+          mediumBtn.style.border = '2px solid ${primaryColor}';
+          mediumBtn.style.background = '${primaryColor}10';
+          mediumBtn.style.color = '${primaryColor}';
+          mediumBtn.style.fontWeight = '500';
+          mediumBtn.classList.add('active');
+        }
+        priorityInput.value = 'medium';
+
         // Refresh posts
         await loadPosts();
         
@@ -634,7 +762,74 @@ function generateFrameHTML(config) {
       button.textContent = (voted ? '✓ ' : '↑ ') + count;
       button.classList.toggle('voted', voted);
     }
-    
+
+    // Generate posts HTML
+    function generatePostsHTML(posts) {
+      if (!posts || !posts.length) {
+        return \`
+          <div class="loading">
+            <div class="spinner"></div>
+            Loading feedback...
+          </div>
+        \`;
+      }
+
+      return posts.map(post => {
+        const escapedTitle = escapeHtml(post.title);
+        const escapedDescription = post.description ? escapeHtml(post.description) : '';
+        const escapedEmail = post.author_email ? escapeHtml(post.author_email) : '';
+
+        return \`
+          <div class="post">
+            <div class="post-header">
+              <div>
+                <div class="post-title">\${escapedTitle}</div>
+                <span class="post-category \${post.category}">\${post.category}</span>
+              </div>
+            </div>
+
+            \${escapedDescription ? \`<div class="post-content">\${escapedDescription}</div>\` : ''}
+
+            <div class="post-footer">
+              <div class="post-meta">
+                \${formatDate(post.created_at)}
+                \${escapedEmail ? ' • ' + escapedEmail : ''}
+              </div>
+              <button class="vote-button" data-post-id="\${post.id}">
+                ↑ \${post.vote_count || 0}
+              </button>
+            </div>
+          </div>
+        \`;
+      }).join('');
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      if (typeof text !== 'string') return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Format date
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) {
+        return 'Today';
+      } else if (diffDays === 1) {
+        return 'Yesterday';
+      } else if (diffDays < 7) {
+        return diffDays + ' days ago';
+      } else {
+        return date.toLocaleDateString();
+      }
+    }
+
     // Load posts
     async function loadPosts() {
       try {
