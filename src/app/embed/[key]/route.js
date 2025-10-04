@@ -190,40 +190,31 @@ function generateWidgetScript(config) {
     button.innerHTML = CONFIG.text;
     button.setAttribute('data-signalsloop-widget', 'true');
 
-    // Nuclear option: use cssText to set everything at once with !important
-    const cssText = \`
-      all: initial !important;
-      position: fixed !important;
-      top: auto !important;
-      left: auto !important;
-      bottom: 20px !important;
-      right: 20px !important;
-      z-index: 2147483647 !important;
-      background-color: \${CONFIG.color} !important;
-      background: \${CONFIG.color} !important;
-      color: white !important;
-      border: none !important;
-      border-radius: 25px !important;
-      padding: 12px 20px !important;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-      font-size: 16px !important;
-      font-weight: 600 !important;
-      line-height: 1 !important;
-      cursor: pointer !important;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-      transition: all 0.3s ease !important;
-      outline: none !important;
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      width: auto !important;
-      height: auto !important;
-      margin: 0 !important;
-      transform: none !important;
-      pointer-events: auto !important;
-    \`;
+    // Critical: Don't set top/left at all - only bottom/right to avoid browser computing top value
+    button.style.cssText = '';
 
-    button.style.cssText = cssText;
+    // Set each property individually with setProperty to ensure they stick
+    button.style.setProperty('all', 'initial', 'important');
+    button.style.setProperty('position', 'fixed', 'important');
+    button.style.setProperty('bottom', '20px', 'important');
+    button.style.setProperty('right', '20px', 'important');
+    button.style.setProperty('z-index', '2147483647', 'important');
+    button.style.setProperty('background-color', CONFIG.color, 'important');
+    button.style.setProperty('color', 'white', 'important');
+    button.style.setProperty('border', 'none', 'important');
+    button.style.setProperty('border-radius', '25px', 'important');
+    button.style.setProperty('padding', '12px 20px', 'important');
+    button.style.setProperty('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', 'important');
+    button.style.setProperty('font-size', '16px', 'important');
+    button.style.setProperty('font-weight', '600', 'important');
+    button.style.setProperty('line-height', '1', 'important');
+    button.style.setProperty('cursor', 'pointer', 'important');
+    button.style.setProperty('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.15)', 'important');
+    button.style.setProperty('outline', 'none', 'important');
+    button.style.setProperty('display', 'block', 'important');
+    button.style.setProperty('visibility', 'visible', 'important');
+    button.style.setProperty('opacity', '1', 'important');
+    button.style.setProperty('pointer-events', 'auto', 'important');
 
     // Hover effects
     button.addEventListener('mouseenter', function() {
@@ -524,8 +515,7 @@ function generateWidgetScript(config) {
     // Force correct position - this function will keep the button in place
     function enforcePosition() {
       button.style.setProperty('position', 'fixed', 'important');
-      button.style.setProperty('top', 'auto', 'important');
-      button.style.setProperty('left', 'auto', 'important');
+      // Don't set top/left at all - only set bottom/right
       button.style.setProperty('bottom', '20px', 'important');
       button.style.setProperty('right', '20px', 'important');
       button.style.setProperty('z-index', '2147483647', 'important');
