@@ -228,6 +228,37 @@ function generateWidgetScript(config) {
     // Append iframe to body
     document.body.appendChild(iframe);
 
+    // Aggressively enforce position using JavaScript
+    function enforceIframePosition() {
+      const windowHeight = window.innerHeight;
+      const windowWidth = window.innerWidth;
+
+      // Calculate actual pixel position based on window size
+      if (CONFIG.position === 'bottom-right' || !CONFIG.position) {
+        iframe.style.setProperty('top', (windowHeight - 70) + 'px', 'important');
+        iframe.style.setProperty('left', (windowWidth - 140) + 'px', 'important');
+      } else if (CONFIG.position === 'bottom-left') {
+        iframe.style.setProperty('top', (windowHeight - 70) + 'px', 'important');
+        iframe.style.setProperty('left', '20px', 'important');
+      } else if (CONFIG.position === 'top-right') {
+        iframe.style.setProperty('top', '20px', 'important');
+        iframe.style.setProperty('left', (windowWidth - 140) + 'px', 'important');
+      } else if (CONFIG.position === 'top-left') {
+        iframe.style.setProperty('top', '20px', 'important');
+        iframe.style.setProperty('left', '20px', 'important');
+      }
+    }
+
+    // Enforce immediately
+    enforceIframePosition();
+
+    // Re-enforce on scroll and resize
+    window.addEventListener('scroll', enforceIframePosition);
+    window.addEventListener('resize', enforceIframePosition);
+
+    // Also enforce periodically as backup
+    setInterval(enforceIframePosition, 100);
+
     // Write button HTML into iframe
     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
     iframeDoc.open();
