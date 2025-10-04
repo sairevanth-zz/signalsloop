@@ -185,46 +185,50 @@ function generateWidgetScript(config) {
 
   // Create widget button
   function createWidgetButton() {
+    // First inject CSS into page head to ensure !important works
+    const styleId = WIDGET_ID + '-styles';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = '#' + WIDGET_ID + ' {' +
+        'position: fixed !important;' +
+        'bottom: 20px !important;' +
+        'right: 20px !important;' +
+        'top: auto !important;' +
+        'left: auto !important;' +
+        'z-index: 2147483647 !important;' +
+        'background-color: ' + CONFIG.color + ' !important;' +
+        'color: white !important;' +
+        'border: none !important;' +
+        'border-radius: 25px !important;' +
+        'padding: 12px 20px !important;' +
+        'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;' +
+        'font-size: 16px !important;' +
+        'font-weight: 600 !important;' +
+        'line-height: 1 !important;' +
+        'cursor: pointer !important;' +
+        'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;' +
+        'outline: none !important;' +
+        'display: block !important;' +
+        'visibility: visible !important;' +
+        'opacity: 1 !important;' +
+        'pointer-events: auto !important;' +
+        'margin: 0 !important;' +
+        'transform: none !important;' +
+        'width: auto !important;' +
+        'height: auto !important;' +
+      '}' +
+      '#' + WIDGET_ID + ':hover {' +
+        'transform: scale(1.05) !important;' +
+        'box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25) !important;' +
+      '}';
+      document.head.appendChild(style);
+    }
+
     const button = document.createElement('button');
     button.id = WIDGET_ID;
     button.innerHTML = CONFIG.text;
     button.setAttribute('data-signalsloop-widget', 'true');
-
-    // Use cssText to set everything at once - don't set top or left at all
-    button.style.cssText =
-      'position: fixed !important;' +
-      'bottom: 20px !important;' +
-      'right: 20px !important;' +
-      'z-index: 2147483647 !important;' +
-      'background-color: ' + CONFIG.color + ' !important;' +
-      'color: white !important;' +
-      'border: none !important;' +
-      'border-radius: 25px !important;' +
-      'padding: 12px 20px !important;' +
-      'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;' +
-      'font-size: 16px !important;' +
-      'font-weight: 600 !important;' +
-      'line-height: 1 !important;' +
-      'cursor: pointer !important;' +
-      'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;' +
-      'outline: none !important;' +
-      'display: block !important;' +
-      'visibility: visible !important;' +
-      'opacity: 1 !important;' +
-      'pointer-events: auto !important;' +
-      'margin: 0 !important;' +
-      'transform: none !important;';
-
-    // Hover effects
-    button.addEventListener('mouseenter', function() {
-      button.style.transform = 'scale(1.05) !important';
-      button.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.25) !important';
-    });
-
-    button.addEventListener('mouseleave', function() {
-      button.style.transform = 'none !important';
-      button.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15) !important';
-    });
 
     // Click handler
     button.addEventListener('click', openWidget);
@@ -511,36 +515,7 @@ function generateWidgetScript(config) {
     // Append directly to body as the very last element
     document.body.appendChild(button);
 
-    // Force correct position - this function will keep the button in place
-    function enforcePosition() {
-      button.style.setProperty('position', 'fixed', 'important');
-      // Don't set top/left at all - only set bottom/right
-      button.style.setProperty('bottom', '20px', 'important');
-      button.style.setProperty('right', '20px', 'important');
-      button.style.setProperty('z-index', '2147483647', 'important');
-    }
-
-    // Call immediately
-    enforcePosition();
-
-    // Watch for any attribute changes and re-enforce
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-          enforcePosition();
-        }
-      });
-    });
-
-    observer.observe(button, {
-      attributes: true,
-      attributeFilter: ['style']
-    });
-
-    // Also enforce on a regular interval as backup
-    setInterval(enforcePosition, 500);
-
-    // Debug after a moment
+    // Debug positioning after a moment
     setTimeout(() => {
       const computedStyle = window.getComputedStyle(button);
       const rect = button.getBoundingClientRect();
@@ -551,11 +526,13 @@ function generateWidgetScript(config) {
       console.log('Right:', computedStyle.right);
       console.log('Top:', computedStyle.top);
       console.log('Left:', computedStyle.left);
-      console.log('Actual rect:', rect);
-
-      if (computedStyle.top !== 'auto') {
-        console.error('❌ TOP IS BEING SET TO:', computedStyle.top, '- This should be auto!');
-      }
+      console.log('Rect from viewport:', {
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        left: rect.left
+      });
+      console.log('Is button visible without scrolling?', rect.bottom <= window.innerHeight && rect.right <= window.innerWidth);
     }, 200);
 
     // Track widget load
