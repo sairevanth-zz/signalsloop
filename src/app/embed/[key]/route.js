@@ -195,7 +195,7 @@ function generateWidgetScript(config) {
     
     Object.assign(button.style, {
       position: 'fixed',
-      zIndex: '999999',
+      zIndex: '2147483647', // Maximum z-index value
       backgroundColor: CONFIG.color,
       color: 'white',
       border: 'none',
@@ -210,12 +210,14 @@ function generateWidgetScript(config) {
       ...size
     });
 
-    // Force the background color with higher specificity to override any CSS
+    // Force all styles with !important to override any CSS
+    button.style.setProperty('position', 'fixed', 'important');
+    button.style.setProperty('z-index', '2147483647', 'important');
     button.style.setProperty('background-color', CONFIG.color, 'important');
     button.style.setProperty('background', CONFIG.color, 'important');
-    
-    // Also set it as an attribute to ensure it's not overridden
-    button.setAttribute('style', button.getAttribute('style') + '; background-color: ' + CONFIG.color + ' !important;');
+    button.style.setProperty('display', 'block', 'important');
+    button.style.setProperty('visibility', 'visible', 'important');
+    button.style.setProperty('opacity', '1', 'important');
 
     // Hover effects
     button.addEventListener('mouseenter', function() {

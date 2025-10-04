@@ -514,7 +514,7 @@ function generateFrameHTML(config) {
       </form>
 
       <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-        <a href="https://www.signalsloop.com/board/${project.slug}" target="_blank" style="color: ${primaryColor}; text-decoration: none; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;">
+        <a href="https://www.signalsloop.com/${project.slug}/board" target="_blank" style="color: ${primaryColor}; text-decoration: none; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;">
           View all feedback & vote
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
