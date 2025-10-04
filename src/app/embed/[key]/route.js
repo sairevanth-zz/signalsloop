@@ -191,30 +191,29 @@ function generateWidgetScript(config) {
     button.setAttribute('data-signalsloop-widget', 'true');
 
     // Use cssText to set everything at once - don't set top or left at all
-    button.style.cssText = `
-      position: fixed !important;
-      bottom: 20px !important;
-      right: 20px !important;
-      z-index: 2147483647 !important;
-      background-color: ${CONFIG.color} !important;
-      color: white !important;
-      border: none !important;
-      border-radius: 25px !important;
-      padding: 12px 20px !important;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-      font-size: 16px !important;
-      font-weight: 600 !important;
-      line-height: 1 !important;
-      cursor: pointer !important;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-      outline: none !important;
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      pointer-events: auto !important;
-      margin: 0 !important;
-      transform: none !important;
-    `.trim();
+    button.style.cssText =
+      'position: fixed !important;' +
+      'bottom: 20px !important;' +
+      'right: 20px !important;' +
+      'z-index: 2147483647 !important;' +
+      'background-color: ' + CONFIG.color + ' !important;' +
+      'color: white !important;' +
+      'border: none !important;' +
+      'border-radius: 25px !important;' +
+      'padding: 12px 20px !important;' +
+      'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;' +
+      'font-size: 16px !important;' +
+      'font-weight: 600 !important;' +
+      'line-height: 1 !important;' +
+      'cursor: pointer !important;' +
+      'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;' +
+      'outline: none !important;' +
+      'display: block !important;' +
+      'visibility: visible !important;' +
+      'opacity: 1 !important;' +
+      'pointer-events: auto !important;' +
+      'margin: 0 !important;' +
+      'transform: none !important;';
 
     // Hover effects
     button.addEventListener('mouseenter', function() {
