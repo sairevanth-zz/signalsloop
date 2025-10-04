@@ -509,14 +509,22 @@ function generateWidgetScript(config) {
   // Initialize widget
   function initWidget() {
     // Don't load on admin pages or if already loaded
-    if (window.location.href.includes('/admin') || 
+    if (window.location.href.includes('/admin') ||
         window.location.href.includes('/settings') ||
         document.getElementById(WIDGET_ID)) {
       return;
     }
 
+    // Create an isolated container for the widget
+    const container = document.createElement('div');
+    container.id = WIDGET_ID + '-container';
+    container.style.cssText = 'all: initial; position: fixed !important; bottom: 0 !important; right: 0 !important; z-index: 2147483647 !important; pointer-events: none !important;';
+
     const button = createWidgetButton();
-    document.body.appendChild(button);
+    button.style.cssText = button.style.cssText + '; pointer-events: auto !important; margin: 20px !important;';
+
+    container.appendChild(button);
+    document.body.appendChild(container);
 
     // Track widget load
     trackEvent('widget_loaded');
