@@ -228,35 +228,41 @@ function generateWidgetScript(config) {
     // Append iframe to body
     document.body.appendChild(iframe);
 
-    // Aggressively enforce position using JavaScript
+    // Aggressively enforce position to stay fixed to viewport
     function enforceIframePosition() {
-      const windowHeight = window.innerHeight;
-      const windowWidth = window.innerWidth;
+      // Always keep it fixed to viewport, not page
+      iframe.style.setProperty('position', 'fixed', 'important');
 
-      // Calculate actual pixel position based on window size
       if (CONFIG.position === 'bottom-right' || !CONFIG.position) {
-        iframe.style.setProperty('top', (windowHeight - 70) + 'px', 'important');
-        iframe.style.setProperty('left', (windowWidth - 140) + 'px', 'important');
+        iframe.style.setProperty('bottom', '20px', 'important');
+        iframe.style.setProperty('right', '20px', 'important');
+        iframe.style.setProperty('top', 'auto', 'important');
+        iframe.style.setProperty('left', 'auto', 'important');
       } else if (CONFIG.position === 'bottom-left') {
-        iframe.style.setProperty('top', (windowHeight - 70) + 'px', 'important');
+        iframe.style.setProperty('bottom', '20px', 'important');
         iframe.style.setProperty('left', '20px', 'important');
+        iframe.style.setProperty('top', 'auto', 'important');
+        iframe.style.setProperty('right', 'auto', 'important');
       } else if (CONFIG.position === 'top-right') {
         iframe.style.setProperty('top', '20px', 'important');
-        iframe.style.setProperty('left', (windowWidth - 140) + 'px', 'important');
+        iframe.style.setProperty('right', '20px', 'important');
+        iframe.style.setProperty('bottom', 'auto', 'important');
+        iframe.style.setProperty('left', 'auto', 'important');
       } else if (CONFIG.position === 'top-left') {
         iframe.style.setProperty('top', '20px', 'important');
         iframe.style.setProperty('left', '20px', 'important');
+        iframe.style.setProperty('bottom', 'auto', 'important');
+        iframe.style.setProperty('right', 'auto', 'important');
       }
     }
 
     // Enforce immediately
     enforceIframePosition();
 
-    // Re-enforce on scroll and resize
-    window.addEventListener('scroll', enforceIframePosition);
+    // Re-enforce on resize and periodically
     window.addEventListener('resize', enforceIframePosition);
 
-    // Also enforce periodically as backup
+    // Enforce every 100ms to override any interfering scripts
     setInterval(enforceIframePosition, 100);
 
     // Write button HTML into iframe
