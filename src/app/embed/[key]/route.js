@@ -194,6 +194,8 @@ function generateWidgetScript(config) {
     const cssText = \`
       all: initial !important;
       position: fixed !important;
+      top: auto !important;
+      left: auto !important;
       bottom: 20px !important;
       right: 20px !important;
       z-index: 2147483647 !important;
