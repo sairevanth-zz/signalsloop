@@ -200,11 +200,19 @@ function generateWidgetScript(config) {
     iframe.style.zIndex = '2147483647';
     iframe.style.pointerEvents = 'auto';
 
-    // Set position values
-    iframe.style.top = position.top || 'auto';
-    iframe.style.bottom = position.bottom || 'auto';
-    iframe.style.left = position.left || 'auto';
-    iframe.style.right = position.right || 'auto';
+    // Set position values - ONLY set the ones that aren't 'auto'
+    if (position.top && position.top !== 'auto') {
+      iframe.style.top = position.top;
+    }
+    if (position.bottom && position.bottom !== 'auto') {
+      iframe.style.bottom = position.bottom;
+    }
+    if (position.left && position.left !== 'auto') {
+      iframe.style.left = position.left;
+    }
+    if (position.right && position.right !== 'auto') {
+      iframe.style.right = position.right;
+    }
     if (position.transform) {
       iframe.style.transform = position.transform;
     }
