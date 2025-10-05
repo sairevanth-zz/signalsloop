@@ -342,7 +342,7 @@ function generateWidgetScript(config) {
     overlay.id = WIDGET_ID + '-overlay';
     
     // Detect mobile devices
-    const isMobile = window.innerWidth < 768;
+    const isMobile = window.innerWidth <= 1024 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
     Object.assign(overlay.style, {
       position: 'fixed',
