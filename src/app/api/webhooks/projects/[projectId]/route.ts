@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { withRateLimit } from '@/middleware/rate-limit';
 import crypto from 'crypto';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client with service role
+const getSupabaseClient = () => {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE) {
+    throw new Error('Missing Supabase configuration');
+  }
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE
+  );
+};
 
 export async function GET(
   request: NextRequest,
@@ -16,12 +28,6 @@ async function getHandler(
 ) {
   try {
     const { projectId } = await params;
-    const supabase = getSupabaseServiceRoleClient();
-
-    if (!supabase) {
-      console.error('Failed to initialize Supabase client');
-      return NextResponse.json({ error: 'Database connection error' }, { status: 500 });
-    }
 
     // Get API key from header
     const authHeader = request.headers.get('authorization');
@@ -31,34 +37,27 @@ async function getHandler(
 
     const apiKey = authHeader.substring(7);
 
-    // Verify API key belongs to this project
+    // Verify API key - use the same approach as v1 routes
     const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
-    console.log('Webhook GET - Project ID:', projectId);
-    console.log('Webhook GET - Key hash:', keyHash);
 
+    const supabase = getSupabaseClient();
     const { data: apiKeyData, error: keyError } = await supabase
       .from('api_keys')
-      .select('project_id')
+      .select(`
+        *,
+        projects!inner(id, slug, name, plan, user_id)
+      `)
       .eq('key_hash', keyHash)
       .single();
 
-    console.log('Webhook GET - Key error:', keyError);
-    console.log('Webhook GET - Key data:', apiKeyData);
-
     if (keyError || !apiKeyData) {
-      console.log('Webhook GET auth failed: API key not found in database');
       return NextResponse.json({ error: 'Invalid API key' }, { status: 401 });
     }
 
-    if (apiKeyData.project_id !== projectId) {
-      console.log('Webhook GET auth failed: Project ID mismatch', {
-        keyProjectId: apiKeyData.project_id,
-        urlProjectId: projectId
-      });
-      return NextResponse.json({ error: 'Invalid API key' }, { status: 401 });
+    // Verify the API key belongs to the requested project
+    if (apiKeyData.projects.id !== projectId) {
+      return NextResponse.json({ error: 'Invalid API key for this project' }, { status: 401 });
     }
-
-    console.log('Webhook GET auth successful');
 
     // Fetch webhooks
     const { data: webhooks, error } = await supabase
@@ -92,12 +91,6 @@ async function postHandler(
 ) {
   try {
     const { projectId } = await params;
-    const supabase = getSupabaseServiceRoleClient();
-
-    if (!supabase) {
-      console.error('Failed to initialize Supabase client');
-      return NextResponse.json({ error: 'Database connection error' }, { status: 500 });
-    }
 
     // Get API key from header
     const authHeader = request.headers.get('authorization');
@@ -107,16 +100,26 @@ async function postHandler(
 
     const apiKey = authHeader.substring(7);
 
-    // Verify API key belongs to this project
+    // Verify API key - use the same approach as v1 routes
     const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
+
+    const supabase = getSupabaseClient();
     const { data: apiKeyData, error: keyError } = await supabase
       .from('api_keys')
-      .select('project_id')
+      .select(`
+        *,
+        projects!inner(id, slug, name, plan, user_id)
+      `)
       .eq('key_hash', keyHash)
       .single();
 
-    if (keyError || !apiKeyData || apiKeyData.project_id !== projectId) {
+    if (keyError || !apiKeyData) {
       return NextResponse.json({ error: 'Invalid API key' }, { status: 401 });
+    }
+
+    // Verify the API key belongs to the requested project
+    if (apiKeyData.projects.id !== projectId) {
+      return NextResponse.json({ error: 'Invalid API key for this project' }, { status: 401 });
     }
 
     const body = await request.json();
