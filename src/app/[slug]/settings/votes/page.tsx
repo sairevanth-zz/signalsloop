@@ -162,10 +162,10 @@ export default function VotesAdminPage() {
             </p>
           </div>
           <a
-            href={`/${params.slug}`}
+            href={`/${params.slug}/board`}
             className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Back to Dashboard
+            Back to Board
           </a>
         </div>
 
