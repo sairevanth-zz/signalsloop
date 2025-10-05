@@ -463,7 +463,7 @@ function generateFrameHTML(config) {
               <span style="font-size: 18px;">💡</span>
               <span style="font-weight: 500;">Improvement</span>
             </button>
-            <button type="button" class="type-btn active" data-type="general" style="padding: 12px; border: 2px solid ${primaryColor}; background: rgba(99, 102, 241, 0.1); border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
+            <button type="button" class="type-btn active" data-type="general" style="padding: 12px; border: 2px solid ${primaryColor}; background: ${primaryColor}10; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
               <span style="font-size: 18px;">💬</span>
               <span style="font-weight: 500; color: ${primaryColor};">General</span>
             </button>
@@ -488,7 +488,7 @@ function generateFrameHTML(config) {
           <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 14px; color: #374151;">Priority</label>
           <div style="display: flex; gap: 8px;">
             <button type="button" class="priority-btn" data-priority="low" style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">Low</button>
-            <button type="button" class="priority-btn active" data-priority="medium" style="flex: 1; padding: 8px 12px; border: 2px solid ${primaryColor}; background: rgba(99, 102, 241, 0.1); color: ${primaryColor}; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Medium</button>
+            <button type="button" class="priority-btn active" data-priority="medium" style="flex: 1; padding: 8px 12px; border: 2px solid ${primaryColor}; background: ${primaryColor}10; color: ${primaryColor}; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Medium</button>
             <button type="button" class="priority-btn" data-priority="high" style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">High</button>
           </div>
           <input type="hidden" id="priority" name="priority" value="medium">
@@ -581,7 +581,7 @@ function generateFrameHTML(config) {
           b.classList.remove('active');
         });
         btn.style.border = '2px solid ${primaryColor}';
-        btn.style.background = 'rgba(99, 102, 241, 0.1)';
+        btn.style.background = '${primaryColor}10';
         const span = btn.querySelector('span:last-child');
         if (span) span.style.color = '${primaryColor}';
         btn.classList.add('active');
@@ -603,7 +603,7 @@ function generateFrameHTML(config) {
           b.classList.remove('active');
         });
         btn.style.border = '2px solid ${primaryColor}';
-        btn.style.background = 'rgba(99, 102, 241, 0.1)';
+        btn.style.background = '${primaryColor}10';
         btn.style.color = '${primaryColor}';
         btn.style.fontWeight = '500';
         btn.classList.add('active');
@@ -684,7 +684,7 @@ function generateFrameHTML(config) {
         const generalBtn = document.querySelector('[data-type="general"]');
         if (generalBtn) {
           generalBtn.style.border = '2px solid ${primaryColor}';
-          generalBtn.style.background = 'rgba(99, 102, 241, 0.1)';
+          generalBtn.style.background = '${primaryColor}10';
           const span = generalBtn.querySelector('span:last-child');
           if (span) span.style.color = '${primaryColor}';
           generalBtn.classList.add('active');
@@ -702,7 +702,7 @@ function generateFrameHTML(config) {
         const mediumBtn = document.querySelector('[data-priority="medium"]');
         if (mediumBtn) {
           mediumBtn.style.border = '2px solid ${primaryColor}';
-          mediumBtn.style.background = 'rgba(99, 102, 241, 0.1)';
+          mediumBtn.style.background = '${primaryColor}10';
           mediumBtn.style.color = '${primaryColor}';
           mediumBtn.style.fontWeight = '500';
           mediumBtn.classList.add('active');
