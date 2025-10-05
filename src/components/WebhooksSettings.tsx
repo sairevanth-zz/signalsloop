@@ -84,9 +84,23 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
 
   const loadWebhooks = async () => {
     try {
-      console.log('Loading webhooks for project:', projectId, 'with API key:', apiKey?.substring(0, 10) + '...');
+      console.log('=== WEBHOOK DEBUG START ===');
+      console.log('Project ID:', projectId);
+      console.log('API Key prefix:', apiKey?.substring(0, 10));
+
+      // Compute hash client-side for comparison
+      if (apiKey) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(apiKey);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const computedHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        console.log('Computed SHA-256 hash:', computedHash);
+      }
+
       const url = `/api/webhooks/projects/${projectId}`;
       console.log('Fetching from:', url);
+      console.log('Authorization header:', `Bearer ${apiKey?.substring(0, 10)}...`);
 
       const response = await fetch(url, {
         headers: {
@@ -99,11 +113,13 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.error('Error response:', errorData);
+        console.error('=== WEBHOOK DEBUG END (FAILED) ===');
         throw new Error(errorData.error || 'Failed to load webhooks');
       }
 
       const data = await response.json();
       console.log('Webhooks loaded:', data);
+      console.log('=== WEBHOOK DEBUG END (SUCCESS) ===');
       setWebhooks(data.data || []);
     } catch (error) {
       console.error('Error loading webhooks:', error);
