@@ -368,13 +368,13 @@ function generateWidgetScript(config) {
         userAgent: navigator.userAgent
       });
       Object.assign(container.style, {
-        position: 'fixed',
+        position: 'absolute',
         top: '0',
         left: '0',
         right: '0',
         bottom: '0',
         width: '100%',
-        height: '100%',
+        height: '100vh',
         transform: 'translateY(100%)',
         backgroundColor: 'white',
         borderRadius: '0',
