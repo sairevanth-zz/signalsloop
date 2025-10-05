@@ -33,15 +33,32 @@ async function getHandler(
 
     // Verify API key belongs to this project
     const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
+    console.log('Webhook GET - Project ID:', projectId);
+    console.log('Webhook GET - Key hash:', keyHash);
+
     const { data: apiKeyData, error: keyError } = await supabase
       .from('api_keys')
       .select('project_id')
       .eq('key_hash', keyHash)
       .single();
 
-    if (keyError || !apiKeyData || apiKeyData.project_id !== projectId) {
+    console.log('Webhook GET - Key error:', keyError);
+    console.log('Webhook GET - Key data:', apiKeyData);
+
+    if (keyError || !apiKeyData) {
+      console.log('Webhook GET auth failed: API key not found in database');
       return NextResponse.json({ error: 'Invalid API key' }, { status: 401 });
     }
+
+    if (apiKeyData.project_id !== projectId) {
+      console.log('Webhook GET auth failed: Project ID mismatch', {
+        keyProjectId: apiKeyData.project_id,
+        urlProjectId: projectId
+      });
+      return NextResponse.json({ error: 'Invalid API key' }, { status: 401 });
+    }
+
+    console.log('Webhook GET auth successful');
 
     // Fetch webhooks
     const { data: webhooks, error } = await supabase
