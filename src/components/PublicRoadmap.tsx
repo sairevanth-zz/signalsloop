@@ -268,36 +268,33 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
   const handleStatusChange = async (postId: string, newStatus: string) => {
     try {
       console.log('🔄 Status change requested:', { postId, newStatus, projectId: project.id });
-      
+
       setUpdatingStatus(postId);
-      
-      // Use Supabase client directly instead of API route
-      const supabase = getSupabaseClient();
-      if (!supabase) {
-        throw new Error('Supabase client not available');
-      }
-      
-      // Update the post status directly
-      const { error } = await supabase
-        .from('posts')
-        .update({ 
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', postId)
-        .eq('project_id', project.id);
 
-      if (error) {
-        console.error('Database error:', error);
-        throw new Error(`Failed to update post status: ${error.message}`);
+      // Call the API route to update status (this will trigger webhooks)
+      const response = await fetch(`/api/posts/${postId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          postId,
+          projectId: project.id,
+          newStatus,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update post status');
       }
 
-      console.log('Status updated successfully');
+      console.log('✅ Status updated successfully, webhooks triggered');
       toast.success('Post phase updated successfully');
-      
+
       // Refresh the page to show updated data
       window.location.reload();
-      
+
     } catch (error) {
       console.error('Status update error:', error);
       toast.error('Failed to update post phase');

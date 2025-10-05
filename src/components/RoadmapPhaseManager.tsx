@@ -53,6 +53,7 @@ interface RoadmapPhaseManagerProps {
   onPostUpdate: (postId: string, updates: any) => void;
   onBulkUpdate: (postIds: string[], updates: any) => void;
   projectSlug: string;
+  projectId: string;
 }
 
 const statusConfig = {
@@ -63,11 +64,12 @@ const statusConfig = {
   declined: { title: 'Declined', color: 'bg-red-100 text-red-800', icon: <Clock className="w-4 h-4" /> }
 };
 
-export default function RoadmapPhaseManager({ 
-  posts, 
-  onPostUpdate, 
+export default function RoadmapPhaseManager({
+  posts,
+  onPostUpdate,
   onBulkUpdate,
-  projectSlug 
+  projectSlug,
+  projectId
 }: RoadmapPhaseManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
@@ -160,7 +162,12 @@ export default function RoadmapPhaseManager({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updates),
+        body: JSON.stringify({
+          postId,
+          projectId,
+          newStatus: updates.status,
+          adminNote: updates.adminNote,
+        }),
       });
 
       if (!response.ok) {
@@ -169,10 +176,10 @@ export default function RoadmapPhaseManager({
       }
 
       const result = await response.json();
-      
+
       // Update local state immediately
       onPostUpdate(postId, updates);
-      
+
       toast.success('Post updated successfully');
     } catch (error) {
       console.error('Update error:', error);
