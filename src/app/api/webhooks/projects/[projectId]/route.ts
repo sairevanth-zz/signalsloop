@@ -31,6 +31,7 @@ async function getHandler(
 
     // Get API key from header - FIXED: Using capital 'A' Authorization
     const authHeader = request.headers.get('Authorization');
+    console.log('[WEBHOOK] Auth header received:', authHeader ? 'YES' : 'NO');
     if (!authHeader?.startsWith('Bearer ')) {
       console.error('[WEBHOOK] Missing or invalid Authorization header');
       return NextResponse.json({ error: 'Missing API key' }, { status: 401 });
