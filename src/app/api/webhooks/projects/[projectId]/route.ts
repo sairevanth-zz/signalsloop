@@ -35,7 +35,7 @@ async function getHandler(
       return NextResponse.json({ error: 'Missing API key' }, { status: 401 });
     }
 
-    const apiKey = authHeader.substring(7);
+    const apiKey = authHeader.replace('Bearer ', '');
 
     // Verify API key - use the same approach as v1 routes
     const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
@@ -98,7 +98,7 @@ async function postHandler(
       return NextResponse.json({ error: 'Missing API key' }, { status: 401 });
     }
 
-    const apiKey = authHeader.substring(7);
+    const apiKey = authHeader.replace('Bearer ', '');
 
     // Verify API key - use the same approach as v1 routes
     const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');

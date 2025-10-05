@@ -22,7 +22,7 @@ export async function POST(
       return NextResponse.json({ error: 'Missing API key' }, { status: 401 });
     }
 
-    const apiKey = authHeader.substring(7);
+    const apiKey = authHeader.replace('Bearer ', '');
 
     // Verify API key belongs to this project
     const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
