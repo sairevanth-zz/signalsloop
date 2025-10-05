@@ -132,8 +132,13 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
   };
 
   const createWebhook = async () => {
-    if (!webhookUrl.trim() || !webhookUrl.startsWith('http')) {
-      onShowNotification('Please enter a valid HTTPS URL', 'error');
+    if (!webhookUrl.trim()) {
+      onShowNotification('Please enter a webhook URL', 'error');
+      return;
+    }
+
+    if (!webhookUrl.startsWith('http://') && !webhookUrl.startsWith('https://')) {
+      onShowNotification('Webhook URL must start with https:// or http://', 'error');
       return;
     }
 
