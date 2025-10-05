@@ -115,20 +115,13 @@ async function postHandler(
     const supabase = getSupabaseClient();
     const { data: apiKeyData, error: keyError } = await supabase
       .from('api_keys')
-      .select(`
-        *,
-        projects!inner(id, slug, name, plan, user_id)
-      `)
+      .select('*')
       .eq('key_hash', keyHash)
+      .eq('project_id', projectId)
       .single();
 
     if (keyError || !apiKeyData) {
       return NextResponse.json({ error: 'Invalid API key' }, { status: 401 });
-    }
-
-    // Verify the API key belongs to the requested project
-    if (apiKeyData.projects.id !== projectId) {
-      return NextResponse.json({ error: 'Invalid API key for this project' }, { status: 401 });
     }
 
     const body = await request.json();
