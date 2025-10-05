@@ -440,17 +440,9 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => copyToClipboard(atob(apiKey.key_hash), apiKey.id)}
-                          >
-                            {copiedKey === apiKey.id ? (
-                              <Check className="h-4 w-4" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )}
-                          </Button>
+                          <div className="text-xs text-gray-500 italic">
+                            Hidden for security
+                          </div>
                           <Button
                             variant="outline"
                             size="sm"
@@ -724,13 +716,13 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                       <Label>Installation Code</Label>
                       <div className="mt-2 relative">
                         <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
-                          <code>{getEmbedCode(apiKeys[0] ? atob(apiKeys[0].key_hash) : 'your-api-key', selectedPlatform)}</code>
+                          <code>{getEmbedCode('YOUR_API_KEY_HERE', selectedPlatform)}</code>
                         </pre>
                         <Button
                           size="sm"
                           variant="outline"
                           className="absolute top-2 right-2"
-                          onClick={() => copyToClipboard(getEmbedCode(apiKeys[0] ? atob(apiKeys[0].key_hash) : 'your-api-key', selectedPlatform), 'install')}
+                          onClick={() => copyToClipboard(getEmbedCode('YOUR_API_KEY_HERE', selectedPlatform), 'install')}
                         >
                           {copiedKey === 'install' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                         </Button>
