@@ -229,14 +229,19 @@ export async function GET(
     .signalsloop-widget-close:hover {
       background: #e5e7eb;
     }
-    
+
+    .signalsloop-widget-iframe-wrapper {
+      width: 100%;
+      height: 100%;
+      overflow-y: scroll;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
+    }
+
     .signalsloop-widget-iframe {
       width: 100%;
       height: 100%;
       border: none;
-      border-radius: 12px;
-      overflow: scroll;
-      -webkit-overflow-scrolling: touch;
       display: block;
     }
     
@@ -353,34 +358,36 @@ export async function GET(
 
   function createModal() {
     const modal = createElement('div', 'signalsloop-widget-modal');
-    
+
     const content = createElement('div', 'signalsloop-widget-modal-content');
     const closeButton = createElement('button', 'signalsloop-widget-close', '×');
+    const iframeWrapper = createElement('div', 'signalsloop-widget-iframe-wrapper');
     const iframe = createElement('iframe', 'signalsloop-widget-iframe');
     const loading = createElement('div', 'signalsloop-widget-loading', 'Loading...');
 
     iframe.src = CONFIG.widgetUrl;
     iframe.setAttribute('scrolling', 'yes');
     iframe.style.display = 'none';
-    
+
     iframe.onload = function() {
       loading.style.display = 'none';
       iframe.style.display = 'block';
     };
-    
+
     iframe.onerror = function() {
       loading.style.display = 'none';
-      const error = createElement('div', 'signalsloop-widget-error', 
+      const error = createElement('div', 'signalsloop-widget-error',
         '<div style="font-size: 18px; margin-bottom: 8px;">⚠️</div>' +
         '<div style="font-weight: 500; margin-bottom: 4px;">Unable to load widget</div>' +
         '<div style="font-size: 14px;">Please try again later</div>'
       );
       content.appendChild(error);
     };
-    
+
+    iframeWrapper.appendChild(iframe);
     content.appendChild(closeButton);
     content.appendChild(loading);
-    content.appendChild(iframe);
+    content.appendChild(iframeWrapper);
     modal.appendChild(content);
     
     // Close handlers
