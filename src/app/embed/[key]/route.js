@@ -363,10 +363,6 @@ function generateWidgetScript(config) {
     
     // Mobile-first styles
     if (isMobile) {
-      console.log('MOBILE DETECTED - Applying mobile styles', {
-        width: window.innerWidth,
-        userAgent: navigator.userAgent
-      });
       Object.assign(container.style, {
         position: 'absolute',
         top: '0',
@@ -384,7 +380,6 @@ function generateWidgetScript(config) {
         paddingTop: 'env(safe-area-inset-top)',
         paddingBottom: 'env(safe-area-inset-bottom)'
       });
-      console.log('Mobile container with scroll wrapper created');
     } else {
       Object.assign(container.style, {
         position: 'absolute',
@@ -431,9 +426,7 @@ function generateWidgetScript(config) {
 
     // Listen for height messages from iframe for iOS scrolling
     window.addEventListener('message', function(e) {
-      console.log('Message received:', e.data);
       if (e.data && e.data.type === 'signalsloop-resize' && e.data.height) {
-        console.log('Setting iframe height to:', e.data.height + 'px');
         iframe.style.height = e.data.height + 'px';
       }
     });
