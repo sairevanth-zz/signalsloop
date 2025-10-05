@@ -201,6 +201,7 @@ export async function GET(
       position: relative;
       transform: translateY(20px);
       transition: transform 0.3s ease;
+      overflow: hidden;
     }
     
     .signalsloop-widget-modal.open .signalsloop-widget-modal-content {
