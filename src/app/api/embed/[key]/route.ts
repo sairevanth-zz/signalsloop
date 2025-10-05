@@ -233,8 +233,6 @@ export async function GET(
 
     .signalsloop-widget-iframe {
       width: 100%;
-      min-height: 100%;
-      height: auto;
       border: none;
       border-radius: 12px;
       display: block;
@@ -370,7 +368,8 @@ export async function GET(
       // Listen for height messages from iframe for iOS scrolling fix
       window.addEventListener('message', function(e) {
         if (e.data && e.data.type === 'signalsloop-resize' && e.data.height) {
-          iframe.style.height = e.data.height + 'px';
+          iframe.style.setProperty('height', e.data.height + 'px', 'important');
+          console.log('Resized iframe to:', e.data.height + 'px');
         }
       });
     };
