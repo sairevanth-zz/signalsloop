@@ -29,9 +29,10 @@ async function getHandler(
   try {
     const { projectId } = await params;
 
-    // Get API key from header
+    // Get API key from header - FIXED: Using capital 'A' Authorization
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
+      console.error('[WEBHOOK] Missing or invalid Authorization header');
       return NextResponse.json({ error: 'Missing API key' }, { status: 401 });
     }
 
@@ -40,7 +41,7 @@ async function getHandler(
     // Verify API key - use the same approach as v1 routes
     const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
 
-    console.log('[WEBHOOK GET] API Key (first 10 chars):', apiKey.substring(0, 10));
+    console.log('[WEBHOOK GET] API Key prefix:', apiKey.substring(0, 10));
     console.log('[WEBHOOK GET] Key Hash:', keyHash);
 
     const supabase = getSupabaseClient();
