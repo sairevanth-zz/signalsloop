@@ -48,19 +48,13 @@ async function getHandler(
     const supabase = getSupabaseClient();
     const { data: apiKeyData, error: keyError } = await supabase
       .from('api_keys')
-      .select(`
-        *,
-        projects!inner(id, slug, name, plan, user_id)
-      `)
+      .select('*')
       .eq('key_hash', keyHash)
+      .eq('project_id', projectId)
       .single();
 
     console.log('[WEBHOOK GET] Query error:', keyError);
     console.log('[WEBHOOK GET] Query result:', apiKeyData ? 'Found' : 'Not found');
-    if (apiKeyData) {
-      console.log('[WEBHOOK GET] Project ID from DB:', apiKeyData.projects.id);
-      console.log('[WEBHOOK GET] Requested Project ID:', projectId);
-    }
 
     if (keyError || !apiKeyData) {
       console.error('[WEBHOOK GET] Authentication failed - Key not found in database');
@@ -72,11 +66,6 @@ async function getHandler(
           projectId: projectId
         }
       }, { status: 401 });
-    }
-
-    // Verify the API key belongs to the requested project
-    if (apiKeyData.projects.id !== projectId) {
-      return NextResponse.json({ error: 'Invalid API key for this project' }, { status: 401 });
     }
 
     // Fetch webhooks
