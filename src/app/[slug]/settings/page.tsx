@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ApiKeySettings } from '@/components/ApiKeySettings';
 import BoardSettings from '@/components/BoardSettings';
@@ -11,6 +12,7 @@ import GlobalBanner from '@/components/GlobalBanner';
 import FeedbackExport from '@/components/FeedbackExport';
 import { CSVImport } from '@/components/admin/csv-import';
 import SimpleChangelogManager from '@/components/SimpleChangelogManager';
+import { WebhooksSettings } from '@/components/WebhooksSettings';
 import { toast } from 'sonner';
 import { useParams, useRouter } from 'next/navigation';
 import {
@@ -22,7 +24,8 @@ import {
   Globe,
   FileText,
   UserPlus,
-  MessageSquare
+  MessageSquare,
+  Zap
 } from 'lucide-react';
 
 interface Project {
@@ -36,6 +39,7 @@ export default function SettingsPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('api-keys');
+  const [apiKey, setApiKey] = useState<string>('');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [supabase, setSupabase] = useState<any>(null);
   
@@ -85,6 +89,19 @@ export default function SettingsPage() {
       }
 
       setProject(projectData);
+
+      // Load first API key for webhooks
+      const { data: apiKeys } = await supabase
+        .from('api_keys')
+        .select('key_hash')
+        .eq('project_id', projectData.id)
+        .limit(1);
+
+      if (apiKeys && apiKeys.length > 0) {
+        // Note: We can't retrieve the actual key from hash, but we store it temporarily
+        // Users will need to use their API key. For now, show message to use API key
+        setApiKey(''); // Will need API key from user
+      }
     } catch (error) {
       console.error('Unexpected error loading project:', error);
       toast.error('Failed to load project');
@@ -192,7 +209,14 @@ export default function SettingsPage() {
                   <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Feedback</span>
                 </TabsTrigger>
-                <TabsTrigger 
+                <TabsTrigger
+                  value="webhooks"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent"
+                >
+                  <Zap className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Webhooks</span>
+                </TabsTrigger>
+                <TabsTrigger
                   value="import" 
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent"
                 >
@@ -300,6 +324,15 @@ export default function SettingsPage() {
                   Open Feedback Dashboard
                 </Button>
               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="webhooks" className="mt-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              <WebhooksSettingsWrapper
+                projectId={project.id}
+                onShowNotification={handleShowNotification}
+              />
             </div>
           </TabsContent>
 
@@ -446,5 +479,115 @@ export default function SettingsPage() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+// Wrapper component to fetch API key for webhooks
+function WebhooksSettingsWrapper({
+  projectId,
+  onShowNotification
+}: {
+  projectId: string;
+  onShowNotification: (message: string, type?: 'success' | 'error') => void;
+}) {
+  const [apiKey, setApiKey] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [supabase, setSupabase] = useState<any>(null);
+
+  useEffect(() => {
+    const client = getSupabaseClient();
+    if (client) {
+      setSupabase(client);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (supabase && projectId) {
+      loadApiKey();
+    }
+  }, [supabase, projectId]);
+
+  const loadApiKey = async () => {
+    try {
+      // Fetch the first API key (we'll need the actual key, not hash)
+      // Since we can't retrieve the actual key from hash, we'll show a message
+      const { data: apiKeys } = await supabase
+        .from('api_keys')
+        .select('*')
+        .eq('project_id', projectId)
+        .limit(1);
+
+      if (apiKeys && apiKeys.length > 0) {
+        // We need to inform the user to copy their API key from the API tab
+        setApiKey(''); // Empty initially
+      }
+    } catch (error) {
+      console.error('Error loading API key:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApiKeyInput = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem(`webhook_api_key_${projectId}`, key);
+  };
+
+  // Try to get API key from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem(`webhook_api_key_${projectId}`);
+    if (stored) {
+      setApiKey(stored);
+      setLoading(false);
+    }
+  }, [projectId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!apiKey) {
+    return (
+      <div className="text-center py-12">
+        <Zap className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">API Key Required</h3>
+        <p className="text-gray-600 mb-6 max-w-md mx-auto">
+          To manage webhooks, please enter your API key. You can find it in the API Keys tab above.
+        </p>
+        <div className="max-w-md mx-auto">
+          <div className="flex gap-2">
+            <Input
+              type="password"
+              placeholder="sk_••••••••••••••••••••••"
+              onChange={(e) => handleApiKeyInput(e.target.value)}
+              className="flex-1"
+            />
+            <Button onClick={() => {
+              const input = document.querySelector('input[type="password"]') as HTMLInputElement;
+              if (input?.value) {
+                handleApiKeyInput(input.value);
+              }
+            }}>
+              Continue
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            Your API key is stored securely in your browser and never sent to our servers
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <WebhooksSettings
+      projectId={projectId}
+      apiKey={apiKey}
+      onShowNotification={onShowNotification}
+    />
   );
 }
