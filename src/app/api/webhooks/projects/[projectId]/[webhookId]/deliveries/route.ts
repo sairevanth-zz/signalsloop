@@ -16,7 +16,7 @@ export async function GET(
     }
 
     // Get API key from header
-    const authHeader = request.headers.get('authorization');
+    const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Missing API key' }, { status: 401 });
     }

@@ -16,7 +16,7 @@ export async function PATCH(
     }
 
     // Get API key from header
-    const authHeader = request.headers.get('authorization');
+    const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Missing API key' }, { status: 401 });
     }
@@ -78,7 +78,7 @@ export async function DELETE(
     }
 
     // Get API key from header
-    const authHeader = request.headers.get('authorization');
+    const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Missing API key' }, { status: 401 });
     }
