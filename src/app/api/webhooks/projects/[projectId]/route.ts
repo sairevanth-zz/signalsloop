@@ -40,6 +40,9 @@ async function getHandler(
     // Verify API key - use the same approach as v1 routes
     const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
 
+    console.log('[WEBHOOK GET] API Key (first 10 chars):', apiKey.substring(0, 10));
+    console.log('[WEBHOOK GET] Key Hash:', keyHash);
+
     const supabase = getSupabaseClient();
     const { data: apiKeyData, error: keyError } = await supabase
       .from('api_keys')
@@ -49,6 +52,13 @@ async function getHandler(
       `)
       .eq('key_hash', keyHash)
       .single();
+
+    console.log('[WEBHOOK GET] Query error:', keyError);
+    console.log('[WEBHOOK GET] Query result:', apiKeyData ? 'Found' : 'Not found');
+    if (apiKeyData) {
+      console.log('[WEBHOOK GET] Project ID from DB:', apiKeyData.projects.id);
+      console.log('[WEBHOOK GET] Requested Project ID:', projectId);
+    }
 
     if (keyError || !apiKeyData) {
       return NextResponse.json({ error: 'Invalid API key' }, { status: 401 });
