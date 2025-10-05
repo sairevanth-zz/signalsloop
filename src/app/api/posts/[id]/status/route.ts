@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendStatusChangeEmail } from '@/lib/email';
+import { triggerWebhooks } from '@/lib/webhooks';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -76,9 +77,34 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Post status updated successfully' 
+    // Trigger webhooks for post.status_changed event
+    if (oldStatus !== newStatus) {
+      try {
+        await triggerWebhooks(projectId, 'post.status_changed', {
+          post: {
+            id: post.id,
+            title: post.title,
+            description: post.description,
+            old_status: oldStatus,
+            new_status: newStatus,
+            author_name: post.author_name,
+            author_email: post.author_email,
+            updated_at: new Date().toISOString(),
+          },
+          project: {
+            id: projectId,
+          },
+        });
+        console.log(`✅ Webhooks triggered for post.status_changed: ${post.id}`);
+      } catch (webhookError) {
+        // Don't fail the request if webhooks fail
+        console.error('Failed to trigger webhooks:', webhookError);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Post status updated successfully'
     });
 
   } catch (error) {

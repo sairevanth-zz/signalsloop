@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { sendCommentEmail } from '@/lib/email';
+import { triggerWebhooks } from '@/lib/webhooks';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -115,6 +116,31 @@ export async function POST(
         // Don't fail the request if email fails
         console.error('Failed to send comment email:', emailError);
       }
+    }
+
+    // Trigger webhooks for comment.created event
+    try {
+      await triggerWebhooks(post.project_id, 'comment.created', {
+        comment: {
+          id: comment.id,
+          content: comment.content,
+          author_name: comment.author_name,
+          author_email: comment.author_email,
+          parent_id: comment.parent_id,
+          created_at: comment.created_at,
+        },
+        post: {
+          id: post.id,
+          title: post.title,
+        },
+        project: {
+          id: post.project_id,
+        },
+      });
+      console.log(`✅ Webhooks triggered for comment.created: ${comment.id}`);
+    } catch (webhookError) {
+      // Don't fail the request if webhooks fail
+      console.error('Failed to trigger webhooks:', webhookError);
     }
 
     return NextResponse.json({ success: true, comment }, { status: 201 });

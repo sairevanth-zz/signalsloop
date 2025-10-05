@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-client';
 import { categorizeFeedback } from '@/lib/ai-categorization';
 import { sendPostConfirmationEmail } from '@/lib/email';
+import { triggerWebhooks } from '@/lib/webhooks';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -200,6 +201,28 @@ export async function POST(request: NextRequest) {
         // Don't fail the request if email fails
         console.error('Failed to send confirmation email:', emailError);
       }
+    }
+
+    // Trigger webhooks for post.created event
+    try {
+      await triggerWebhooks(project_id, 'post.created', {
+        post: {
+          id: newPost.id,
+          title: newPost.title,
+          description: newPost.description,
+          status: newPost.status,
+          author_name: newPost.author_name,
+          author_email: newPost.author_email,
+          created_at: newPost.created_at,
+        },
+        project: {
+          id: project_id,
+        },
+      });
+      console.log(`✅ Webhooks triggered for post.created: ${newPost.id}`);
+    } catch (webhookError) {
+      // Don't fail the request if webhooks fail
+      console.error('Failed to trigger webhooks:', webhookError);
     }
 
     // Return the post immediately (without AI categorization)

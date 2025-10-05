@@ -140,11 +140,12 @@ export default function APIDocumentationPage() {
 
         {/* API Documentation */}
         <Tabs defaultValue="authentication" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="authentication">Authentication</TabsTrigger>
             <TabsTrigger value="posts">Posts</TabsTrigger>
             <TabsTrigger value="comments">Comments</TabsTrigger>
             <TabsTrigger value="stats">Statistics</TabsTrigger>
+            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
           </TabsList>
 
           {/* Authentication */}
@@ -587,6 +588,299 @@ export default function APIDocumentationPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Webhooks */}
+          <TabsContent value="webhooks" className="space-y-6">
+            <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-purple-600" />
+                  Webhooks Overview
+                </CardTitle>
+                <CardDescription>
+                  Receive real-time notifications when events occur in your project
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Webhooks allow you to subscribe to events happening in your SignalsLoop project.
+                  When an event occurs, we'll send an HTTP POST request to the URL you configure with details about the event.
+                </p>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-800 mb-2">Available Events</h4>
+                  <ul className="space-y-2 text-sm text-blue-700">
+                    <li>• <code className="bg-blue-100 px-2 py-1 rounded">post.created</code> - Triggered when a new post is created</li>
+                    <li>• <code className="bg-blue-100 px-2 py-1 rounded">post.status_changed</code> - Triggered when a post status changes</li>
+                    <li>• <code className="bg-blue-100 px-2 py-1 rounded">post.deleted</code> - Triggered when a post is deleted</li>
+                    <li>• <code className="bg-blue-100 px-2 py-1 rounded">comment.created</code> - Triggered when a new comment is added</li>
+                    <li>• <code className="bg-blue-100 px-2 py-1 rounded">vote.created</code> - Triggered when a new vote is cast</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Create Webhook */}
+            <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
+              <CardHeader>
+                <CardTitle>Create a Webhook</CardTitle>
+                <CardDescription>
+                  Register a new webhook endpoint
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-blue-100 text-blue-800">POST</Badge>
+                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">/api/projects/{`{projectId}`}/webhooks</code>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Request Body</h4>
+                  <CodeBlock id="create-webhook">
+{`{
+  "webhook_url": "https://your-app.com/webhooks/signalsloop",
+  "events": ["post.created", "post.status_changed"],
+  "description": "Production webhook for notifications"
+}`}
+                  </CodeBlock>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Example Request</h4>
+                  <CodeBlock id="create-webhook-curl">
+{`curl -X POST \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "webhook_url": "https://your-app.com/webhooks/signalsloop",
+    "events": ["post.created", "post.status_changed", "comment.created"]
+  }' \\
+  "https://signalsloop.com/api/projects/YOUR_PROJECT_ID/webhooks"`}
+                  </CodeBlock>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Response</h4>
+                  <CodeBlock id="create-webhook-response" language="json">
+{`{
+  "data": {
+    "id": "webhook-abc123",
+    "project_id": "proj-123",
+    "webhook_url": "https://your-app.com/webhooks/signalsloop",
+    "webhook_secret": "whsec_abc123...",
+    "events": ["post.created", "post.status_changed", "comment.created"],
+    "is_active": true,
+    "created_at": "2024-01-15T10:30:00Z"
+  }
+}`}
+                  </CodeBlock>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-yellow-800 mb-2">📝 Note</h4>
+                  <p className="text-sm text-yellow-700">
+                    Save the <code>webhook_secret</code> returned in the response. You'll need it to verify webhook signatures.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Webhook Payload */}
+            <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
+              <CardHeader>
+                <CardTitle>Webhook Payload</CardTitle>
+                <CardDescription>
+                  Structure of webhook event payloads
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  All webhook payloads follow the same structure with an event type and associated data.
+                </p>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Example: post.created</h4>
+                  <CodeBlock id="webhook-payload-post-created" language="json">
+{`{
+  "event": "post.created",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "project_id": "proj-123",
+  "data": {
+    "post": {
+      "id": "post-abc123",
+      "title": "Add dark mode support",
+      "description": "Users want the ability to switch themes",
+      "status": "open",
+      "author_name": "Sarah M.",
+      "author_email": "sarah@example.com",
+      "created_at": "2024-01-15T10:30:00Z"
+    },
+    "project": {
+      "id": "proj-123"
+    }
+  }
+}`}
+                  </CodeBlock>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Example: post.status_changed</h4>
+                  <CodeBlock id="webhook-payload-status-changed" language="json">
+{`{
+  "event": "post.status_changed",
+  "timestamp": "2024-01-15T10:35:00Z",
+  "project_id": "proj-123",
+  "data": {
+    "post": {
+      "id": "post-abc123",
+      "title": "Add dark mode support",
+      "old_status": "open",
+      "new_status": "planned",
+      "updated_at": "2024-01-15T10:35:00Z"
+    },
+    "project": {
+      "id": "proj-123"
+    }
+  }
+}`}
+                  </CodeBlock>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Verify Signatures */}
+            <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
+              <CardHeader>
+                <CardTitle>Verify Webhook Signatures</CardTitle>
+                <CardDescription>
+                  Ensure webhooks are from SignalsLoop
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Each webhook request includes an <code className="bg-gray-100 px-2 py-1 rounded">X-Webhook-Signature</code> header
+                  containing an HMAC SHA-256 signature of the payload.
+                </p>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Verification Example (Node.js)</h4>
+                  <CodeBlock id="webhook-verify-nodejs">
+{`const crypto = require('crypto');
+
+function verifyWebhookSignature(payload, signature, secret) {
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(JSON.stringify(payload))
+    .digest('hex');
+
+  // Remove 'sha256=' prefix from signature header
+  const receivedSignature = signature.replace('sha256=', '');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(expectedSignature),
+    Buffer.from(receivedSignature)
+  );
+}
+
+// In your webhook handler:
+app.post('/webhooks/signalsloop', (req, res) => {
+  const signature = req.headers['x-webhook-signature'];
+  const secret = process.env.WEBHOOK_SECRET;
+
+  if (!verifyWebhookSignature(req.body, signature, secret)) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  // Process the webhook
+  console.log('Event:', req.body.event);
+  console.log('Data:', req.body.data);
+
+  res.status(200).send('OK');
+});`}
+                  </CodeBlock>
+                </div>
+
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-red-800 mb-2">🔒 Security Best Practices</h4>
+                  <ul className="space-y-2 text-sm text-red-700">
+                    <li>• Always verify webhook signatures before processing</li>
+                    <li>• Use HTTPS endpoints only</li>
+                    <li>• Store webhook secrets securely (environment variables)</li>
+                    <li>• Implement replay attack protection using timestamps</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Test Webhook */}
+            <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
+              <CardHeader>
+                <CardTitle>Test a Webhook</CardTitle>
+                <CardDescription>
+                  Send a test payload to verify your endpoint
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-purple-100 text-purple-800">POST</Badge>
+                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">/api/projects/{`{projectId}`}/webhooks/{`{webhookId}`}/test</code>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Example Request</h4>
+                  <CodeBlock id="test-webhook">
+                    curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  "https://signalsloop.com/api/projects/YOUR_PROJECT_ID/webhooks/WEBHOOK_ID/test"
+                  </CodeBlock>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Manage Webhooks */}
+            <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
+              <CardHeader>
+                <CardTitle>Manage Webhooks</CardTitle>
+                <CardDescription>
+                  List, update, and delete webhooks
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <Badge className="bg-green-100 text-green-800">GET</Badge>
+                    List Webhooks
+                  </h4>
+                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">/api/projects/{`{projectId}`}/webhooks</code>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <Badge className="bg-orange-100 text-orange-800">PATCH</Badge>
+                    Update Webhook
+                  </h4>
+                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">/api/projects/{`{projectId}`}/webhooks/{`{webhookId}`}</code>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <Badge className="bg-red-100 text-red-800">DELETE</Badge>
+                    Delete Webhook
+                  </h4>
+                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">/api/projects/{`{projectId}`}/webhooks/{`{webhookId}`}</code>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <Badge className="bg-blue-100 text-blue-800">GET</Badge>
+                    Delivery Logs
+                  </h4>
+                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">/api/projects/{`{projectId}`}/webhooks/{`{webhookId}`}/deliveries</code>
+                  <p className="text-sm text-gray-600 mt-2">View webhook delivery history and troubleshoot issues</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
 
         {/* Rate Limiting & Support */}
@@ -614,22 +908,24 @@ export default function APIDocumentationPage() {
           <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <ExternalLink className="w-5 h-5 text-blue-600" />
-                Webhooks (Coming Soon)
+                <Zap className="w-5 h-5 text-purple-600" />
+                Webhooks
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-4">
-                Real-time webhook notifications are coming soon:
+                Real-time webhook notifications for feedback events:
               </p>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li>• New post created</li>
-                <li>• Post status changed</li>
-                <li>• New comment added</li>
-                <li>• New vote cast</li>
+                <li>• <strong>post.created</strong> - New post created</li>
+                <li>• <strong>post.status_changed</strong> - Post status changed</li>
+                <li>• <strong>post.deleted</strong> - Post deleted</li>
+                <li>• <strong>comment.created</strong> - New comment added</li>
+                <li>• <strong>vote.created</strong> - New vote cast</li>
               </ul>
-              <Badge className="mt-3 bg-yellow-100 text-yellow-800 border-yellow-200">
-                Coming Soon
+              <Badge className="mt-3 bg-green-100 text-green-800 border-green-200">
+                <Check className="w-3 h-3 mr-1" />
+                Available Now
               </Badge>
             </CardContent>
           </Card>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { triggerWebhooks } from '@/lib/webhooks';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -94,10 +95,41 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to update vote count' }, { status: 500 });
     }
 
+    // Get post details for webhooks
+    const { data: post } = await supabase
+      .from('posts')
+      .select('id, title, project_id, vote_count')
+      .eq('id', postId)
+      .single();
+
+    // Trigger webhooks for vote.created event
+    if (post) {
+      try {
+        await triggerWebhooks(post.project_id, 'vote.created', {
+          vote: {
+            post_id: postId,
+            vote_count: post.vote_count || 0,
+            created_at: new Date().toISOString(),
+          },
+          post: {
+            id: post.id,
+            title: post.title,
+          },
+          project: {
+            id: post.project_id,
+          },
+        });
+        console.log(`✅ Webhooks triggered for vote.created on post: ${postId}`);
+      } catch (webhookError) {
+        // Don't fail the request if webhooks fail
+        console.error('Failed to trigger webhooks:', webhookError);
+      }
+    }
+
     // Set cookie for anonymous user ID
-    const response = NextResponse.json({ 
-      message: 'Vote recorded successfully', 
-      new_vote_count: updatedPost 
+    const response = NextResponse.json({
+      message: 'Vote recorded successfully',
+      new_vote_count: updatedPost
     }, { status: 200 });
 
     response.cookies.set('signalsloop_anonymous_id', anonymousId, {
