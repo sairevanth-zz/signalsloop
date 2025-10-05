@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+    },
+  });
+}
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+};
+
 export async function GET(request: NextRequest) {
   try {
     // Test all possible header variations
@@ -21,7 +36,7 @@ export async function GET(request: NextRequest) {
         error: 'Missing API key',
         headers_received: headers,
         all_headers: Object.fromEntries(request.headers.entries())
-      }, { status: 401 });
+      }, { status: 401, headers: corsHeaders });
     }
 
     const apiKey = authHeader.replace('Bearer ', '');
@@ -39,7 +54,7 @@ export async function GET(request: NextRequest) {
         error: 'Missing Supabase env vars',
         has_url: !!supabaseUrl,
         has_service_role: !!supabaseServiceRole
-      }, { status: 500 });
+      }, { status: 500, headers: corsHeaders });
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceRole);
@@ -63,7 +78,7 @@ export async function GET(request: NextRequest) {
         error: 'API key lookup failed',
         supabase_error: keyError,
         key_hash_searched: keyHash
-      }, { status: 401 });
+      }, { status: 401, headers: corsHeaders });
     }
 
     if (!apiKeyData) {
@@ -71,7 +86,7 @@ export async function GET(request: NextRequest) {
         success: false,
         error: 'API key not found in database',
         key_hash_searched: keyHash
-      }, { status: 401 });
+      }, { status: 401, headers: corsHeaders });
     }
 
     return NextResponse.json({
@@ -80,13 +95,13 @@ export async function GET(request: NextRequest) {
       project_id: apiKeyData.projects.id,
       project_slug: apiKeyData.projects.slug,
       api_key_name: apiKeyData.name
-    });
+    }, { headers: corsHeaders });
 
   } catch (error) {
     console.error('Test auth error:', error);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    }, { status: 500, headers: corsHeaders });
   }
 }
