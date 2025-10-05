@@ -466,7 +466,7 @@ export async function GET(
     // Set security headers
     const headers = new Headers({
       'Content-Type': 'application/javascript; charset=utf-8',
-      'Cache-Control': 'public, max-age=300, s-maxage=300', // 5 minutes cache
+      'Cache-Control': 'no-cache, no-store, must-revalidate', // Disable cache for testing
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET',
       'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
