@@ -231,28 +231,19 @@ export async function GET(
     }
 
     .signalsloop-widget-iframe-wrapper {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
+      width: 100%;
+      height: 100%;
+      overflow-y: scroll !important;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch !important;
       border-radius: 12px;
+      position: relative;
     }
 
     .signalsloop-widget-iframe {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
       width: 100%;
-      height: 100%;
+      min-height: 100%;
       border: none;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
       display: block;
     }
     

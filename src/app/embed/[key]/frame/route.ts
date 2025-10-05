@@ -122,20 +122,17 @@ function generateFrameHTML(config) {
     }
     
     html {
-      height: 100%;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      overflow-y: visible;
     }
 
     body {
-      min-height: 100%;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #f8fafc;
       color: #1e293b;
       line-height: 1.6;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      position: relative;
+      margin: 0;
+      padding: 0;
+      overflow-y: visible;
     }
 
     .container {
