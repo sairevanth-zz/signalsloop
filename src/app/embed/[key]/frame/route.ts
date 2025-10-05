@@ -765,7 +765,27 @@ function generateFrameHTML(config) {
         console.error('Analytics error:', error);
       }
     }
-    
+
+    // Send height to parent for iOS scrolling fix
+    function sendHeight() {
+      const height = document.body.scrollHeight;
+      window.parent.postMessage({ type: 'signalsloop-resize', height: height }, '*');
+    }
+
+    // Send height on load and resize
+    window.addEventListener('load', () => {
+      sendHeight();
+      // Also send height after a short delay to catch any dynamic content
+      setTimeout(sendHeight, 100);
+      setTimeout(sendHeight, 500);
+    });
+
+    // Observe DOM changes and send updated height
+    const observer = new ResizeObserver(() => {
+      sendHeight();
+    });
+    observer.observe(document.body);
+
     // Initialize
     trackEvent('widget_loaded');
   </script>
