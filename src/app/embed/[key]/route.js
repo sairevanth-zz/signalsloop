@@ -363,6 +363,10 @@ function generateWidgetScript(config) {
     
     // Mobile-first styles
     if (isMobile) {
+      console.log('MOBILE DETECTED - Applying mobile styles', {
+        width: window.innerWidth,
+        userAgent: navigator.userAgent
+      });
       Object.assign(container.style, {
         position: 'fixed',
         top: '0',
@@ -385,6 +389,7 @@ function generateWidgetScript(config) {
       // Add touch-action for iOS
       container.style.setProperty('touch-action', 'pan-y');
       container.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
+      console.log('Mobile container scroll height:', container.scrollHeight, 'client height:', container.clientHeight);
     } else {
       Object.assign(container.style, {
         position: 'absolute',
