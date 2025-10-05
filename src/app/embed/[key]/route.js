@@ -376,7 +376,8 @@ function generateWidgetScript(config) {
         borderRadius: '0',
         boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.25)',
         transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        overflow: 'hidden',
+        overflow: 'auto',
+        WebkitOverflowScrolling: 'touch',
         paddingTop: 'env(safe-area-inset-top)',
         paddingBottom: 'env(safe-area-inset-bottom)'
       });
