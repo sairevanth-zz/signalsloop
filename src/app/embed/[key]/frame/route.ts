@@ -90,8 +90,7 @@ export async function GET(
       status: 200,
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        'X-Frame-Options': 'SAMEORIGIN',
-        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src *;"
+        'Content-Security-Policy': "frame-ancestors 'self' https://*.signalsloop.com https://signalsloop.com;"
       }
     });
 
