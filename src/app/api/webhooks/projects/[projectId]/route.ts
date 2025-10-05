@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { withRateLimit } from '@/middleware/rate-limit';
 import crypto from 'crypto';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
+) {
+  return withRateLimit(request, async () => getHandler(request, params), 'webhookManagement');
+}
+
+async function getHandler(
+  request: NextRequest,
+  params: Promise<{ projectId: string }>
 ) {
   try {
     const { projectId } = await params;
@@ -52,6 +60,13 @@ export async function GET(
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
+) {
+  return withRateLimit(request, async () => postHandler(request, params), 'webhookManagement');
+}
+
+async function postHandler(
+  request: NextRequest,
+  params: Promise<{ projectId: string }>
 ) {
   try {
     const { projectId } = await params;

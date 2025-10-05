@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { withRateLimit } from '@/middleware/rate-limit';
 
 // Initialize Supabase client with service role
 const getSupabaseClient = () => {
@@ -44,6 +45,10 @@ async function validateApiKey(request: NextRequest) {
 
 // GET /api/v1/stats - Get project statistics
 export async function GET(request: NextRequest) {
+  return withRateLimit(request, async () => getHandler(request), 'api');
+}
+
+async function getHandler(request: NextRequest) {
   try {
     // Validate API key
     const authResult = await validateApiKey(request);

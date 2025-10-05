@@ -896,12 +896,29 @@ app.post('/webhooks/signalsloop', (req, res) => {
               <p className="text-sm text-gray-600 mb-4">
                 API requests are rate limited to ensure fair usage:
               </p>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>• <strong>Free Plan:</strong> 100 requests per hour</li>
-                <li>• <strong>Pro Plan:</strong> 1,000 requests per hour</li>
-                <li>• Rate limit headers included in responses</li>
-                <li>• 429 status code when limit exceeded</li>
-              </ul>
+              <div className="space-y-3">
+                <div>
+                  <h4 className="font-semibold text-sm mb-1">Free Plan</h4>
+                  <ul className="space-y-1 text-sm text-gray-600 ml-4">
+                    <li>• 1,000 requests per hour</li>
+                    <li>• 50 requests per minute (burst protection)</li>
+                    <li>• 10,000 requests per day</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm mb-1">Pro Plan</h4>
+                  <ul className="space-y-1 text-sm text-gray-600 ml-4">
+                    <li>• 10,000 requests per hour</li>
+                    <li>• 200 requests per minute (burst protection)</li>
+                    <li>• Unlimited daily requests</li>
+                  </ul>
+                </div>
+                <div className="pt-2 border-t border-gray-200">
+                  <p className="text-xs text-gray-500">
+                    Rate limit headers included in all responses. Returns 429 status when exceeded.
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 

@@ -83,7 +83,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification }: Webh
 
   const loadWebhooks = async () => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/webhooks`, {
+      const response = await fetch(`/api/webhooks/projects/${projectId}`, {
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -116,7 +116,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification }: Webh
 
     setCreating(true);
     try {
-      const response = await fetch(`/api/projects/${projectId}/webhooks`, {
+      const response = await fetch(`/api/webhooks/projects/${projectId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification }: Webh
     }
 
     try {
-      const response = await fetch(`/api/projects/${projectId}/webhooks/${webhookId}`, {
+      const response = await fetch(`/api/webhooks/projects/${projectId}/${webhookId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -175,7 +175,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification }: Webh
 
   const toggleWebhook = async (webhookId: string, isActive: boolean) => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/webhooks/${webhookId}`, {
+      const response = await fetch(`/api/webhooks/projects/${projectId}/${webhookId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -199,7 +199,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification }: Webh
 
   const testWebhook = async (webhookId: string) => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/webhooks/${webhookId}/test`, {
+      const response = await fetch(`/api/webhooks/projects/${projectId}/${webhookId}/test`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -223,7 +223,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification }: Webh
     setSelectedWebhook(webhookId);
     setLoadingDeliveries(true);
     try {
-      const response = await fetch(`/api/projects/${projectId}/webhooks/${webhookId}/deliveries?limit=20`, {
+      const response = await fetch(`/api/webhooks/projects/${projectId}/${webhookId}/deliveries?limit=20`, {
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
