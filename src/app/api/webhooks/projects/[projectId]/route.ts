@@ -18,6 +18,11 @@ async function getHandler(
     const { projectId } = await params;
     const supabase = getSupabaseServiceRoleClient();
 
+    if (!supabase) {
+      console.error('Failed to initialize Supabase client');
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 });
+    }
+
     // Get API key from header
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -71,6 +76,11 @@ async function postHandler(
   try {
     const { projectId } = await params;
     const supabase = getSupabaseServiceRoleClient();
+
+    if (!supabase) {
+      console.error('Failed to initialize Supabase client');
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 });
+    }
 
     // Get API key from header
     const authHeader = request.headers.get('authorization');
