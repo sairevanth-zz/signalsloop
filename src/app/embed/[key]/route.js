@@ -403,11 +403,19 @@ function generateWidgetScript(config) {
     const iframe = document.createElement('iframe');
     iframe.src = IFRAME_URL;
     iframe.setAttribute('allow', 'clipboard-write');
+    iframe.setAttribute('scrolling', 'no');
     Object.assign(iframe.style, {
       width: '100%',
       height: '100%',
       border: 'none',
       borderRadius: isMobile ? '0' : '12px'
+    });
+
+    // Listen for height messages from iframe for iOS scrolling
+    window.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'signalsloop-resize' && e.data.height) {
+        iframe.style.height = e.data.height + 'px';
+      }
     });
 
     // Create close button
