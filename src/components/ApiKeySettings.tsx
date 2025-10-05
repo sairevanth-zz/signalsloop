@@ -129,11 +129,6 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
 
 
   const generateApiKey = async () => {
-    if (!supabase) {
-      toast.error('Database connection not available. Please refresh the page.');
-      return;
-    }
-
     if (!newKeyName.trim()) {
       toast.error('Please enter a name for the API key');
       return;
@@ -141,30 +136,25 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
 
     setCreatingKey(true);
     try {
-      // Generate a random API key
-      const newKey = 'sk_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-      // Hash the API key with SHA-256
-      const encoder = new TextEncoder();
-      const data = encoder.encode(newKey);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const keyHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-      const { data: insertData, error } = await supabase
-        .from('api_keys')
-        .insert({
-          project_id: projectId,
-          name: newKeyName,
-          key_hash: keyHash,
-          usage_count: 0
+      // Create API key via server-side route to ensure it uses service role
+      const response = await fetch('/api/admin/api-keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: projectId,
+          name: newKeyName
         })
-        .select()
-        .single();
+      });
 
-      if (error) throw error;
+      const result = await response.json();
 
-      setApiKeys([insertData, ...apiKeys]);
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to create API key');
+      }
+
+      const newKey = result.apiKey;
+
+      setApiKeys([result.data, ...apiKeys]);
       setNewKeyName('');
       setNewlyCreatedKey(newKey);
       toast.success('API key created successfully! Copy it now - you won\'t see it again.');
