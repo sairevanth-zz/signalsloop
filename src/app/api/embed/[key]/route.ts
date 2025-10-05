@@ -234,6 +234,8 @@ export async function GET(
       height: 100%;
       border: none;
       border-radius: 12px;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
     }
     
     .signalsloop-widget-loading {
