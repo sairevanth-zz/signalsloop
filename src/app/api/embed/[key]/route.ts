@@ -304,11 +304,19 @@ export async function GET(
     /* Mobile responsive */
     @media (max-width: 768px) {
       .signalsloop-widget-modal-content {
-        width: 95vw;
-        height: 85vh;
-        border-radius: 8px;
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        max-height: none;
+        border-radius: 0;
+        overflow: visible;
       }
-      
+
+      .signalsloop-widget-iframe {
+        height: 100vh;
+        border-radius: 0;
+      }
+
       .signalsloop-widget-button {
         padding: 10px 14px;
         font-size: 13px;
