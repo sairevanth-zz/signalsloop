@@ -121,18 +121,25 @@ function generateFrameHTML(config) {
       box-sizing: border-box;
     }
     
+    html {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #f8fafc;
       color: #1e293b;
       line-height: 1.6;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
-    
+
     .container {
       max-width: 600px;
       margin: 0 auto;
       padding: 20px;
-      min-height: 100vh;
+      padding-bottom: 100px;
     }
     
     .header {
