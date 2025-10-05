@@ -235,8 +235,9 @@ export async function GET(
       height: 100%;
       border: none;
       border-radius: 12px;
-      overflow: auto;
+      overflow: scroll;
       -webkit-overflow-scrolling: touch;
+      display: block;
     }
     
     .signalsloop-widget-loading {
@@ -357,8 +358,9 @@ export async function GET(
     const closeButton = createElement('button', 'signalsloop-widget-close', '×');
     const iframe = createElement('iframe', 'signalsloop-widget-iframe');
     const loading = createElement('div', 'signalsloop-widget-loading', 'Loading...');
-    
+
     iframe.src = CONFIG.widgetUrl;
+    iframe.setAttribute('scrolling', 'yes');
     iframe.style.display = 'none';
     
     iframe.onload = function() {
