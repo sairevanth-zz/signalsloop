@@ -51,6 +51,7 @@ interface WebhooksSettingsProps {
   projectId: string;
   apiKey: string;
   onShowNotification: (message: string, type?: 'success' | 'error') => void;
+  onResetApiKey?: () => void;
 }
 
 const availableEvents = [
@@ -61,7 +62,7 @@ const availableEvents = [
   { value: 'vote.created', label: 'Vote Created', description: 'New vote is cast' },
 ];
 
-export function WebhooksSettings({ projectId, apiKey, onShowNotification }: WebhooksSettingsProps) {
+export function WebhooksSettings({ projectId, apiKey, onShowNotification, onResetApiKey }: WebhooksSettingsProps) {
   const [webhooks, setWebhooks] = useState<Webhook[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -292,6 +293,16 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification }: Webh
             Receive real-time notifications when events occur in your project
           </p>
         </div>
+        {onResetApiKey && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onResetApiKey}
+            className="text-xs"
+          >
+            Reset API Key
+          </Button>
+        )}
         <Button
           onClick={() => setShowCreateForm(!showCreateForm)}
           className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"

@@ -533,6 +533,13 @@ function WebhooksSettingsWrapper({
     localStorage.setItem(`webhook_api_key_${projectId}`, key);
   };
 
+  const handleResetApiKey = () => {
+    if (confirm('Are you sure you want to reset the API key? You will need to re-enter it.')) {
+      localStorage.removeItem(`webhook_api_key_${projectId}`);
+      setApiKey('');
+    }
+  };
+
   // Try to get API key from localStorage
   useEffect(() => {
     const stored = localStorage.getItem(`webhook_api_key_${projectId}`);
@@ -588,6 +595,7 @@ function WebhooksSettingsWrapper({
       projectId={projectId}
       apiKey={apiKey}
       onShowNotification={onShowNotification}
+      onResetApiKey={handleResetApiKey}
     />
   );
 }
