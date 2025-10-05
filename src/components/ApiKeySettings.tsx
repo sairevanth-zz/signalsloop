@@ -68,6 +68,7 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [newKeyName, setNewKeyName] = useState('');
   const [creatingKey, setCreatingKey] = useState(false);
+  const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [supabase, setSupabase] = useState<any>(null);
   const [widgetSettings, setWidgetSettings] = useState<WidgetSettings>({
@@ -165,12 +166,13 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
 
       setApiKeys([insertData, ...apiKeys]);
       setNewKeyName('');
-      toast.success('API key created successfully!');
-      
+      setNewlyCreatedKey(newKey);
+      toast.success('API key created successfully! Copy it now - you won\'t see it again.');
+
       // Auto-copy the new key
       if (typeof window !== 'undefined' && navigator.clipboard) {
         navigator.clipboard.writeText(newKey);
-        setCopiedKey(insertData.id);
+        setCopiedKey('new-key');
         setTimeout(() => setCopiedKey(null), 2000);
       }
       
@@ -419,6 +421,55 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
             </Card>
           ) : (
             <div className="space-y-3">
+              {newlyCreatedKey && (
+                <Card className="border-green-500 bg-green-50">
+                  <CardContent className="pt-6">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-green-800">
+                        <Check className="h-5 w-5" />
+                        <h4 className="font-semibold">New API Key Created!</h4>
+                      </div>
+                      <p className="text-sm text-green-700">
+                        ⚠️ Copy this key now - you won't be able to see it again!
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={newlyCreatedKey}
+                          readOnly
+                          className="font-mono bg-white"
+                        />
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(newlyCreatedKey);
+                            setCopiedKey('new-key');
+                            setTimeout(() => setCopiedKey(null), 2000);
+                            toast.success('Copied to clipboard!');
+                          }}
+                          className="min-w-[100px]"
+                        >
+                          {copiedKey === 'new-key' ? (
+                            <>
+                              <Check className="h-4 w-4 mr-2" />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-4 w-4 mr-2" />
+                              Copy
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setNewlyCreatedKey(null)}
+                        >
+                          Done
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
               {apiKeys.map((apiKey) => {
                 const maskedKey = 'sk_' + '•'.repeat(20) + apiKey.key_hash.slice(-8);
                 return (
