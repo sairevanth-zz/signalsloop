@@ -154,11 +154,19 @@ export default function VotesAdminPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Votes on Behalf</h1>
-          <p className="text-gray-600">
-            View all votes submitted on behalf of customers, including internal notes
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Votes on Behalf</h1>
+            <p className="text-gray-600">
+              View all votes submitted on behalf of customers, including internal notes
+            </p>
+          </div>
+          <a
+            href={`/${params.slug}`}
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Back to Dashboard
+          </a>
         </div>
 
         {/* Stats */}
