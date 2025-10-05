@@ -201,7 +201,8 @@ export async function GET(
       position: relative;
       transform: translateY(20px);
       transition: transform 0.3s ease;
-      overflow: hidden;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
     }
     
     .signalsloop-widget-modal.open .signalsloop-widget-modal-content {
@@ -230,20 +231,11 @@ export async function GET(
       background: #e5e7eb;
     }
 
-    .signalsloop-widget-iframe-wrapper {
-      width: 100%;
-      height: 100%;
-      overflow-y: scroll !important;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch !important;
-      border-radius: 12px;
-      position: relative;
-    }
-
     .signalsloop-widget-iframe {
       width: 100%;
-      min-height: 100%;
+      height: 100%;
       border: none;
+      border-radius: 12px;
       display: block;
     }
     
@@ -363,12 +355,11 @@ export async function GET(
 
     const content = createElement('div', 'signalsloop-widget-modal-content');
     const closeButton = createElement('button', 'signalsloop-widget-close', '×');
-    const iframeWrapper = createElement('div', 'signalsloop-widget-iframe-wrapper');
     const iframe = createElement('iframe', 'signalsloop-widget-iframe');
     const loading = createElement('div', 'signalsloop-widget-loading', 'Loading...');
 
     iframe.src = CONFIG.widgetUrl;
-    iframe.setAttribute('scrolling', 'yes');
+    iframe.setAttribute('scrolling', 'no');
     iframe.style.display = 'none';
 
     iframe.onload = function() {
@@ -386,10 +377,9 @@ export async function GET(
       content.appendChild(error);
     };
 
-    iframeWrapper.appendChild(iframe);
     content.appendChild(closeButton);
     content.appendChild(loading);
-    content.appendChild(iframeWrapper);
+    content.appendChild(iframe);
     modal.appendChild(content);
     
     // Close handlers
