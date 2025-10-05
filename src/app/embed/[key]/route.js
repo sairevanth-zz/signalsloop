@@ -406,15 +406,19 @@ function generateWidgetScript(config) {
     iframe.setAttribute('scrolling', 'no');
     Object.assign(iframe.style, {
       width: '100%',
-      height: '100%',
+      height: isMobile ? '2000px' : '100%', // Set tall height on mobile to force container scroll
       border: 'none',
       borderRadius: isMobile ? '0' : '12px'
     });
 
     // Listen for height messages from iframe for iOS scrolling
     window.addEventListener('message', function(e) {
+      console.log('Message received:', e.data);
       if (e.data && e.data.type === 'signalsloop-resize' && e.data.height) {
+        console.log('Setting iframe height to:', e.data.height + 'px');
         iframe.style.height = e.data.height + 'px';
+        // Force container to recognize new height
+        container.style.overflow = 'auto';
       }
     });
 
