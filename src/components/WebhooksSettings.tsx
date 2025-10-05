@@ -83,17 +83,26 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification }: Webh
 
   const loadWebhooks = async () => {
     try {
-      const response = await fetch(`/api/webhooks/projects/${projectId}`, {
+      console.log('Loading webhooks for project:', projectId, 'with API key:', apiKey?.substring(0, 10) + '...');
+      const url = `/api/webhooks/projects/${projectId}`;
+      console.log('Fetching from:', url);
+
+      const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to load webhooks');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Error response:', errorData);
+        throw new Error(errorData.error || 'Failed to load webhooks');
       }
 
       const data = await response.json();
+      console.log('Webhooks loaded:', data);
       setWebhooks(data.data || []);
     } catch (error) {
       console.error('Error loading webhooks:', error);
