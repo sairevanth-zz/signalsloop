@@ -380,16 +380,11 @@ function generateWidgetScript(config) {
         borderRadius: '0',
         boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.25)',
         transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        overflowY: 'scroll',
-        overflowX: 'hidden',
-        WebkitOverflowScrolling: 'touch',
+        overflow: 'hidden',
         paddingTop: 'env(safe-area-inset-top)',
         paddingBottom: 'env(safe-area-inset-bottom)'
       });
-      // Add touch-action for iOS
-      container.style.setProperty('touch-action', 'pan-y');
-      container.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
-      console.log('Mobile container scroll height:', container.scrollHeight, 'client height:', container.clientHeight);
+      console.log('Mobile container with scroll wrapper created');
     } else {
       Object.assign(container.style, {
         position: 'absolute',
@@ -405,6 +400,20 @@ function generateWidgetScript(config) {
         boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
         transition: 'transform 0.3s ease',
         overflow: 'hidden'
+      });
+    }
+
+    // Create scroll wrapper for iOS fix
+    let scrollWrapper;
+    if (isMobile) {
+      scrollWrapper = document.createElement('div');
+      Object.assign(scrollWrapper.style, {
+        width: '100%',
+        height: '100%',
+        overflowY: 'scroll',
+        overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        position: 'relative'
       });
     }
 
@@ -426,8 +435,6 @@ function generateWidgetScript(config) {
       if (e.data && e.data.type === 'signalsloop-resize' && e.data.height) {
         console.log('Setting iframe height to:', e.data.height + 'px');
         iframe.style.height = e.data.height + 'px';
-        // Force container to recognize new height
-        container.style.overflow = 'auto';
       }
     });
 
@@ -504,8 +511,14 @@ function generateWidgetScript(config) {
       });
     }
 
-    container.appendChild(iframe);
-    container.appendChild(closeButton);
+    if (isMobile) {
+      scrollWrapper.appendChild(iframe);
+      container.appendChild(scrollWrapper);
+      container.appendChild(closeButton);
+    } else {
+      container.appendChild(iframe);
+      container.appendChild(closeButton);
+    }
     overlay.appendChild(container);
 
     // Close on overlay click (desktop only)
