@@ -142,13 +142,20 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
     try {
       // Generate a random API key
       const newKey = 'sk_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      
-      const { data, error } = await supabase
+
+      // Hash the API key with SHA-256
+      const encoder = new TextEncoder();
+      const data = encoder.encode(newKey);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const keyHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      const { data: insertData, error } = await supabase
         .from('api_keys')
         .insert({
           project_id: projectId,
           name: newKeyName,
-          key_hash: btoa(newKey), // In real app, hash this properly
+          key_hash: keyHash,
           usage_count: 0
         })
         .select()
@@ -156,14 +163,14 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
 
       if (error) throw error;
 
-      setApiKeys([data, ...apiKeys]);
+      setApiKeys([insertData, ...apiKeys]);
       setNewKeyName('');
       toast.success('API key created successfully!');
       
       // Auto-copy the new key
       if (typeof window !== 'undefined' && navigator.clipboard) {
         navigator.clipboard.writeText(newKey);
-        setCopiedKey(data.id);
+        setCopiedKey(insertData.id);
         setTimeout(() => setCopiedKey(null), 2000);
       }
       
