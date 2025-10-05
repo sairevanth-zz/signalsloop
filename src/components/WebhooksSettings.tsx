@@ -79,7 +79,9 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
   const [selectedEvents, setSelectedEvents] = useState<string[]>(availableEvents.map(e => e.value));
 
   useEffect(() => {
-    loadWebhooks();
+    if (apiKey) {
+      loadWebhooks();
+    }
   }, [projectId, apiKey]);
 
   const loadWebhooks = async () => {
