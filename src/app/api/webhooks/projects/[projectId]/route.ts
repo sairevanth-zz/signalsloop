@@ -63,7 +63,15 @@ async function getHandler(
     }
 
     if (keyError || !apiKeyData) {
-      return NextResponse.json({ error: 'Invalid API key' }, { status: 401 });
+      console.error('[WEBHOOK GET] Authentication failed - Key not found in database');
+      console.error('[WEBHOOK GET] Searched for hash:', keyHash);
+      return NextResponse.json({
+        error: 'Invalid API key',
+        debug: {
+          keyHash: keyHash.substring(0, 20) + '...',
+          projectId: projectId
+        }
+      }, { status: 401 });
     }
 
     // Verify the API key belongs to the requested project
