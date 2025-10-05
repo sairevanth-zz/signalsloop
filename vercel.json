@@ -17,18 +17,5 @@
         }
       ]
     }
-  ],
-  "redirects": [
-    {
-      "source": "/api/:path*",
-      "has": [
-        {
-          "type": "header",
-          "key": "authorization"
-        }
-      ],
-      "destination": "/api/:path*",
-      "permanent": false
-    }
   ]
 }
