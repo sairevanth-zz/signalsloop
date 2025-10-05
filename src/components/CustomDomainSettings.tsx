@@ -319,13 +319,13 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
                 <Label className="text-sm font-medium text-gray-700">Add this CNAME record:</Label>
                 <div className="flex items-center gap-2 mt-2">
                   <code className="flex-1 bg-white px-3 py-2 rounded border text-sm">
-                    {domainStatus.custom_domain} → signalsloop.vercel.app
+                    {domainStatus.custom_domain} → cname.signalsloop.com
                   </code>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => copyToClipboard(
-                      `${domainStatus.custom_domain} CNAME signalsloop.vercel.app`,
+                      `${domainStatus.custom_domain} CNAME cname.signalsloop.com`,
                       'cname-record'
                     )}
                   >
@@ -374,7 +374,24 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
             <h4 className="font-semibold text-gray-900">
               {domainStatus?.custom_domain ? 'Update Domain' : 'Set Custom Domain'}
             </h4>
-            
+
+            {/* Instructions */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-800 space-y-2">
+                  <p className="font-medium">How to set up your custom domain:</p>
+                  <ol className="list-decimal list-inside space-y-1 ml-2">
+                    <li>Enter your subdomain below (e.g., feedback.yourcompany.com)</li>
+                    <li>Click "Set Domain" to generate DNS records</li>
+                    <li>Add the provided DNS records to your domain provider</li>
+                    <li>Wait for DNS propagation (up to 24 hours)</li>
+                    <li>Click "Verify Domain" to activate your custom domain</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="domain">Domain Name</Label>
               <div className="flex gap-2">
@@ -428,13 +445,13 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
           </div>
           <div className="flex items-center gap-2 mt-2">
             <code className="flex-1 bg-gray-100 px-3 py-2 rounded text-sm">
-              {projectSlug}.signalsloop.vercel.app
+              {projectSlug}.signalsloop.com
             </code>
             <Button
               variant="outline"
               size="sm"
               onClick={() => copyToClipboard(
-                `https://${projectSlug}.signalsloop.vercel.app`,
+                `https://${projectSlug}.signalsloop.com`,
                 'default-domain'
               )}
             >
