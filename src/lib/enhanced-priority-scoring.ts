@@ -14,6 +14,58 @@ const MODELS = {
   PRIORITY_SCORING: process.env.PRIORITY_MODEL || 'gpt-4o-mini',
 };
 
+const BUG_PATTERNS = [
+  /bug/i,
+  /error/i,
+  /broken/i,
+  /not working/i,
+  /doesn['’]?t work/i,
+  /doesn['’]?t open/i,
+  /won['’]?t open/i,
+  /fail/i,
+  /unable/i,
+  /cannot/i,
+  /can't/i,
+  /crash/i,
+  /block/i,
+  /stuck/i,
+  /freeze/i,
+  /glitch/i
+];
+
+const CRITICAL_BUG_COMBINATIONS: string[][] = [
+  ['modal', 'open'],
+  ['modal', 'partial'],
+  ['modal', 'only'],
+  ['modal', 'blocked'],
+  ['cannot', 'open'],
+  ['cannot', 'access'],
+  ['unable', 'access'],
+  ['unable', 'open'],
+  ['can\'t', 'open'],
+  ['can\'t', 'access'],
+  ['only', 'partially'],
+  ['white', 'screen'],
+  ['blank', 'screen'],
+  ['login', 'fails'],
+  ['login', 'error'],
+  ['payment', 'fails'],
+  ['data', 'loss'],
+  ['workflow', 'blocked'],
+  ['blocker']
+];
+
+const TEST_KEYWORD_PATTERNS = [
+  /\btest\b/i,
+  /\btesting\b/i,
+  /\bqa\b/i,
+  /\bdemo\b/i,
+  /\bplaceholder\b/i,
+  /\bsample\b/i,
+  /\bchecking\b/i,
+  /\bverification\b/i
+];
+
 export interface PriorityContext {
   post: {
     id: string;
@@ -108,6 +160,38 @@ async function calculatePriorityScoreInternal(
 ): Promise<PriorityScore> {
   const { post, metrics, user, businessContext } = context;
 
+  const normalizedTitle = (post.title || '').toLowerCase();
+  const normalizedDescription = (post.description || '').toLowerCase();
+  const combinedText = `${normalizedTitle} ${normalizedDescription}`;
+  const wordCount = combinedText.trim().split(/\s+/).filter(Boolean).length;
+
+  const isBugReport = post.category === 'bug' ||
+    BUG_PATTERNS.some(pattern => pattern.test(normalizedTitle)) ||
+    BUG_PATTERNS.some(pattern => pattern.test(normalizedDescription));
+
+  const isTestFeedback = TEST_KEYWORD_PATTERNS.some(pattern => pattern.test(normalizedTitle)) ||
+    TEST_KEYWORD_PATTERNS.some(pattern => pattern.test(normalizedDescription));
+
+  const matchesCriticalCombination = CRITICAL_BUG_COMBINATIONS.some(words =>
+    words.every(word => combinedText.includes(word))
+  );
+
+  const hasCriticalKeywords = /\b(can't|cannot|unable|blocker|blocked|prevent|workflow|crash|white screen|blank screen|freeze|stuck|login error|payment failed|partial)\b/i.test(combinedText);
+
+  const isCriticalBug = isBugReport && (matchesCriticalCombination || hasCriticalKeywords);
+
+  console.log('[PRIORITY SCORING] Heuristics', {
+    title: post.title,
+    isBugReport,
+    isCriticalBug,
+    isTestFeedback,
+    wordCount,
+    votes: metrics.voteCount,
+    comments: metrics.commentCount,
+    similarPosts: metrics.similarPostsCount,
+    tier: user.tier
+  });
+
   const systemPrompt = `You are a senior product strategist with expertise in SaaS prioritization and revenue optimization. Analyze feedback with a strong focus on business impact.
 
 Company Context:
@@ -116,7 +200,7 @@ Company Context:
 - Upcoming Milestone: ${businessContext?.upcomingMilestone || 'none'}
 
 Scoring Guidelines:
-1. Revenue Impact (0-10): Direct effect on MRR, churn reduction, expansion potential.
+1. Revenue Impact (0-10): Direct effect on revenue, churn reduction, expansion potential.
 2. User Reach (0-10): Portion of user base affected, viral/cohort impact.
 3. Strategic Alignment (0-10): How well this supports current company direction.
 4. Implementation Effort (0-10): INVERTED — 10=very easy, 0=very hard (consider tech debt & dependencies).
@@ -124,11 +208,20 @@ Scoring Guidelines:
 6. Risk Mitigation (0-10): Security, compliance, reliability, brand risk.
 7. User Satisfaction (0-10): Friction reduction, delight factor, NPS impact.
 
-Additional Signals:
+Signals Provided:
 - Votes: ${metrics.voteCount} (unique voters: ${metrics.uniqueVoters}, ${metrics.percentageOfActiveUsers.toFixed(1)}% of active base).
-- Comments: ${metrics.commentCount} (${metrics.commentCount > 5 ? 'high' : 'moderate'} engagement).
+- Comments: ${metrics.commentCount} (${metrics.commentCount > 5 ? 'high' : metrics.commentCount > 0 ? 'moderate' : 'none'} engagement).
 - Similar Requests: ${metrics.similarPostsCount} (${metrics.similarPostsCount > 3 ? 'trend' : 'isolated'}).
 - User Tier: ${user.tier} (Pro/Enterprise reports mean higher retention risk).
+- AI Heuristics: ${isBugReport ? 'Detected BUG' : 'Not detected as bug'}${isCriticalBug ? ' • CRITICAL BLOCKER (workflow impacted)' : ''}${isTestFeedback ? ' • QA/TEST PLACEHOLDER' : ''}.
+- Description length: ${wordCount} words.
+
+Behavioural Rules:
+- Treat CRITICAL BLOCKER bugs (cannot proceed, crashes, blank screens, login/payment failures) as top priority: revenueImpact, riskMitigation, and userSatisfaction must land 8-10 and overall priority should be "immediate" unless metrics prove otherwise.
+- QA/TEST placeholders ("test", "QA", demo text) should receive very low scores (typically <=3) and priority level "declined" or "backlog" unless there is clear business impact.
+- Very short descriptions (<15 words) usually indicate low confidence; be conservative unless strong signals contradict.
+- Reference engagement metrics when scoring (votes/comments drive userReach & satisfaction).
+- Provide a concise business justification referencing churn risk, retention, or strategic alignment.
 
 Return JSON only.`;
 
@@ -179,6 +272,31 @@ Provide JSON:
 
     const aiResponse = JSON.parse(content);
 
+    if (isBugReport) {
+      const minRevenue = (user.tier === 'pro' || user.tier === 'enterprise') ? 8 : 7;
+      aiResponse.scores.revenueImpact = Math.max(aiResponse.scores.revenueImpact, minRevenue);
+      aiResponse.scores.riskMitigation = Math.max(aiResponse.scores.riskMitigation, 7);
+      aiResponse.scores.userSatisfaction = Math.max(aiResponse.scores.userSatisfaction, 7);
+    }
+
+    if (isCriticalBug) {
+      const criticalRevenueFloor = user.tier === 'enterprise' ? 9 : 8.5;
+      const criticalRiskFloor = user.tier === 'enterprise' ? 9 : 8.5;
+      aiResponse.scores.revenueImpact = Math.max(aiResponse.scores.revenueImpact, criticalRevenueFloor);
+      aiResponse.scores.riskMitigation = Math.max(aiResponse.scores.riskMitigation, criticalRiskFloor);
+      aiResponse.scores.userSatisfaction = Math.max(aiResponse.scores.userSatisfaction, 8.5);
+      aiResponse.scores.userReach = Math.max(
+        aiResponse.scores.userReach,
+        Math.min(9, metrics.voteCount >= 5 ? 8.5 : metrics.voteCount >= 2 ? 7 : 6)
+      );
+    }
+
+    if (isTestFeedback) {
+      for (const key of Object.keys(aiResponse.scores) as Array<keyof PriorityScore['scores']>) {
+        aiResponse.scores[key] = Math.min(aiResponse.scores[key], 3);
+      }
+    }
+
     const strategy = businessContext?.companyStrategy || 'growth';
     const weights = WEIGHT_PROFILES[strategy];
 
@@ -190,16 +308,29 @@ Provide JSON:
     const tierMultiplier = user.tier === 'enterprise' ? 1.3 : user.tier === 'pro' ? 1.1 : 1.0;
     weightedScore = Math.min(10, weightedScore * tierMultiplier);
 
-    const priorityLevel = getPriorityLevel(weightedScore, aiResponse.scores.riskMitigation);
+    if (isCriticalBug) {
+      const criticalFloor = user.tier === 'enterprise' ? 9.3 : user.tier === 'pro' ? 9.0 : 8.5;
+      weightedScore = Math.max(weightedScore, criticalFloor);
+    }
+
+    if (isTestFeedback) {
+      weightedScore = Math.min(weightedScore, wordCount > 20 ? 3.5 : 2.8);
+    }
+
+    const basePriorityLevel = getPriorityLevel(weightedScore, aiResponse.scores.riskMitigation);
+    const finalPriorityLevel = isCriticalBug
+      ? 'immediate'
+      : (isTestFeedback && weightedScore < 3 ? 'declined' : basePriorityLevel);
+
     const quarterRecommendation = getQuarterRecommendation(
-      priorityLevel,
+      finalPriorityLevel,
       businessContext?.currentQuarter || 'Q1'
     );
 
     return {
       scores: aiResponse.scores,
       weightedScore: Math.round(weightedScore * 10) / 10,
-      priorityLevel,
+      priorityLevel: finalPriorityLevel,
       quarterRecommendation,
       businessJustification: aiResponse.businessJustification,
       suggestedAction: aiResponse.suggestedAction,
