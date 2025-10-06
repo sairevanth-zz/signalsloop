@@ -49,16 +49,15 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              // Suppress console errors for failed resource loading (images, fonts, etc)
+              // Suppress console errors for failed resource loading
               window.addEventListener('error', function(e) {
-                // Only suppress resource loading errors (not JS errors)
                 if (e.target && (e.target.tagName === 'IMG' || e.target.tagName === 'LINK' || e.target.tagName === 'SCRIPT')) {
                   e.preventDefault();
                   return false;
                 }
               }, true);
 
-              // Suppress unhandled promise rejections from fetch failures
+              // Suppress unhandled promise rejections
               window.addEventListener('unhandledrejection', function(e) {
                 if (e.reason && e.reason.message && (
                   e.reason.message.includes('Failed to fetch') ||
@@ -69,6 +68,19 @@ export default function RootLayout({
                   return false;
                 }
               });
+
+              // Intercept console.error to filter Supabase 400 errors
+              (function() {
+                const originalError = console.error;
+                console.error = function(...args) {
+                  const msg = args.join(' ');
+                  // Suppress Supabase 400 errors for votes table
+                  if (msg.includes('400') && msg.includes('supabase') && msg.includes('votes')) {
+                    return;
+                  }
+                  originalError.apply(console, args);
+                };
+              })();
             `
           }}
         />

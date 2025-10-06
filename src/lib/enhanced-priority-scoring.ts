@@ -218,7 +218,13 @@ ${post.description?.toLowerCase().includes('frustrat') || post.description?.toLo
 - revenueImpact should factor in churn risk from frustration
 ` : ''}
 
-Provide scoring as JSON with this exact structure:
+Provide scoring as JSON with this exact structure.
+${isBugReport && (user.tier === 'pro' || user.tier === 'enterprise') ? `
+CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below these minimums:
+- revenueImpact >= 8 (PAYING CUSTOMER BUG = HIGH CHURN RISK)
+- riskMitigation >= 7
+- userSatisfaction >= 7
+` : ''}
 {
   "scores": {
     "revenueImpact": <0-10>,
@@ -261,6 +267,16 @@ Provide scoring as JSON with this exact structure:
     if (!content) throw new Error('No response from AI');
 
     const aiResponse = JSON.parse(content);
+
+    // ENFORCE mandatory minimums for bugs (AI sometimes ignores instructions)
+    if (isBugReport) {
+      const minRevenue = (user.tier === 'pro' || user.tier === 'enterprise') ? 8 : 7;
+      aiResponse.scores.revenueImpact = Math.max(aiResponse.scores.revenueImpact, minRevenue);
+      aiResponse.scores.riskMitigation = Math.max(aiResponse.scores.riskMitigation, 7);
+      aiResponse.scores.userSatisfaction = Math.max(aiResponse.scores.userSatisfaction, 7);
+
+      console.log('[PRIORITY SCORING] Enforced bug minimums:', aiResponse.scores);
+    }
 
     // Calculate weighted score based on strategy
     const strategy = businessContext?.companyStrategy || 'growth';
