@@ -122,7 +122,8 @@ function generateFrameHTML(config) {
     }
     
     html {
-      overflow-y: visible;
+      overflow-y: auto;
+      min-height: 100%;
     }
 
     body {
@@ -132,14 +133,16 @@ function generateFrameHTML(config) {
       line-height: 1.6;
       margin: 0;
       padding: 0;
-      overflow-y: visible;
+      overflow-y: auto;
+      min-height: 100vh;
     }
 
     .container {
       max-width: 600px;
       margin: 0 auto;
       padding: 20px;
-      padding-bottom: 100px;
+      padding-bottom: 150px; /* Increased to ensure submit button is visible */
+      min-height: calc(100vh - 40px);
     }
     
     .header {
