@@ -49,14 +49,38 @@ export function AIDuplicateDetection({
       // Get the current session token
       const supabase = (await import('@/lib/supabase-client')).getSupabaseClient();
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       console.log('Session found:', !!session, 'Token exists:', !!session?.access_token);
-      
+
       if (!session?.access_token) {
         console.error('No session token found');
         onShowNotification?.('Please sign in to use AI features', 'error');
         return;
       }
+
+      // Fetch current post data
+      const { data: currentPost, error: currentPostError } = await supabase
+        .from('posts')
+        .select('title, description')
+        .eq('id', postId)
+        .single();
+
+      if (currentPostError || !currentPost) {
+        throw new Error('Failed to fetch current post data');
+      }
+
+      // Fetch all other posts in the project
+      const { data: boardData } = await supabase
+        .from('posts')
+        .select('id, title, description, board_id')
+        .neq('id', postId)
+        .limit(100);
+
+      const existingPosts = (boardData || []).map(p => ({
+        id: p.id,
+        title: p.title,
+        description: p.description || ''
+      }));
 
       const response = await fetch('/api/ai/duplicate-detection', {
         method: 'POST',
@@ -64,7 +88,16 @@ export function AIDuplicateDetection({
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({ postId, projectId })
+        body: JSON.stringify({
+          mode: 'single',
+          newPost: {
+            id: postId,
+            title: currentPost.title,
+            description: currentPost.description || ''
+          },
+          existingPosts,
+          projectId
+        })
       });
 
       const data = await response.json();
@@ -76,16 +109,27 @@ export function AIDuplicateDetection({
           onShowNotification?.('AI Duplicate Detection is a Pro feature', 'error');
           return;
         }
-        throw new Error(data.error || 'Failed to detect duplicates');
+        throw new Error(data.error || data.message || 'Failed to detect duplicates');
       }
 
-      setDuplicates(data.duplicates || []);
+      // Map duplicates to the expected format
+      const mappedDuplicates = (data.duplicates || []).map((dup: any) => ({
+        id: dup.id || dup.postId,
+        postId: dup.id || dup.postId,
+        title: dup.title,
+        description: dup.description || '',
+        similarity: dup.similarity || dup.similarityScore || 0,
+        reason: dup.reason || '',
+        createdAt: new Date().toISOString()
+      }));
+
+      setDuplicates(mappedDuplicates);
       setIsAnalyzed(true);
-      
-      if (data.duplicates.length === 0) {
+
+      if (mappedDuplicates.length === 0) {
         onShowNotification?.('No duplicates found', 'success');
       } else {
-        onShowNotification?.(`Found ${data.duplicates.length} potential duplicates`, 'success');
+        onShowNotification?.(`Found ${mappedDuplicates.length} potential duplicates`, 'success');
       }
     } catch (error) {
       console.error('Error detecting duplicates:', error);

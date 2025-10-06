@@ -51,13 +51,24 @@ export function AIPriorityScoring({
       // Get the current session token
       const supabase = (await import('@/lib/supabase-client')).getSupabaseClient();
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       console.log('Session found:', !!session, 'Token exists:', !!session?.access_token);
-      
+
       if (!session?.access_token) {
         console.error('No session token found');
         onShowNotification?.('Please sign in to use AI features', 'error');
         return;
+      }
+
+      // Fetch post data first
+      const { data: postData, error: postError } = await supabase
+        .from('posts')
+        .select('title, description, category, created_at, vote_count, comment_count')
+        .eq('id', postId)
+        .single();
+
+      if (postError || !postData) {
+        throw new Error('Failed to fetch post data');
       }
 
       const response = await fetch('/api/ai/priority-scoring', {
@@ -66,7 +77,27 @@ export function AIPriorityScoring({
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({ postId, projectId })
+        body: JSON.stringify({
+          post: {
+            id: postId,
+            title: postData.title,
+            description: postData.description || '',
+            category: postData.category,
+            createdAt: postData.created_at
+          },
+          metrics: {
+            voteCount: postData.vote_count || 0,
+            commentCount: postData.comment_count || 0,
+            uniqueVoters: postData.vote_count || 0,
+            percentageOfActiveUsers: 0,
+            similarPostsCount: 0
+          },
+          user: {
+            tier: userPlan.plan,
+            isChampion: false
+          },
+          projectId
+        })
       });
 
       const data = await response.json();
@@ -78,12 +109,23 @@ export function AIPriorityScoring({
           onShowNotification?.('AI Priority Scoring is a Pro feature', 'error');
           return;
         }
-        throw new Error(data.error || 'Failed to analyze priority');
+        throw new Error(data.error || data.message || 'Failed to analyze priority');
       }
 
-      setPriorityScore(data.priority);
+      // Map the new API response to the old format
+      const score = data.score;
+      setPriorityScore({
+        score: score.weightedScore,
+        level: score.priorityLevel,
+        urgencyScore: Math.round(score.scores.riskMitigation),
+        impactScore: Math.round(score.scores.revenueImpact),
+        reasoning: score.businessJustification,
+        voteCount: postData.vote_count || 0,
+        commentCount: postData.comment_count || 0,
+        analyzedAt: new Date().toISOString()
+      });
       onShowNotification?.(
-        `Priority score: ${data.priority.level} (${data.priority.score}/10)`,
+        `Priority score: ${score.priorityLevel} (${score.weightedScore.toFixed(1)}/10)`,
         'success'
       );
     } catch (error) {
