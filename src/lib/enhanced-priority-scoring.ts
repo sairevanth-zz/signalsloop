@@ -15,6 +15,46 @@ const MODELS = {
   PRIORITY_SCORING: process.env.PRIORITY_MODEL || 'gpt-4o-mini',
 };
 
+const BUG_PATTERNS = [
+  /bug/i,
+  /error/i,
+  /broken/i,
+  /not\s+work/i,
+  /doesn['’]?t\s+work/i,
+  /doesn['’]?t\s+open/i,
+  /won['’]?t\s+open/i,
+  /fail(?:ed|s)?\s+to/i,
+  /unable\s+to/i,
+  /cannot/i,
+  /can't/i,
+  /won't/i,
+  /stuck/i,
+  /block(?:er|ed)?/i,
+  /crash/i,
+  /glitch/i,
+  /freeze/i,
+  /unresponsive/i,
+  /partial(?:ly)?\s+open/i,
+  /modal\s+(?:is\s+)?(?:not|never|won['’]?t|doesn['’]?t)\s+open/i,
+  /loading\s+forever/i
+];
+
+const FRUSTRATION_PATTERNS = [
+  /frustrat/i,
+  /annoy/i,
+  /difficult/i,
+  /pain/i,
+  /disrupt/i,
+  /block/i,
+  /urgent/i,
+  /asap/i,
+  /critical/i,
+  /can't/i,
+  /cannot/i,
+  /unable/i,
+  /stuck/i
+];
+
 export interface PriorityContext {
   post: {
     id: string;
@@ -109,6 +149,15 @@ async function calculatePriorityScoreInternal(
 ): Promise<PriorityScore> {
   const { post, metrics, user, businessContext } = context;
 
+  const normalizedTitle = post.title.toLowerCase();
+  const normalizedDescription = (post.description || '').toLowerCase();
+  const combinedText = `${normalizedTitle} ${normalizedDescription}`;
+  const bugPatternMatch = BUG_PATTERNS.some(pattern => pattern.test(post.title) || pattern.test(post.description || ''));
+  const issueDetected = combinedText.includes('issue') || combinedText.includes('problem');
+  const severitySignal = /(broken|error|fail|failed|failing|cannot|can't|cant|won't|wont|doesn't|doesnt|stuck|block|blocked|blocking|modal|button|open|load|loading|crash|bug|urgent|critical|prevent|unable)/.test(combinedText);
+  const isBugReport = post.category === 'bug' || bugPatternMatch || (issueDetected && severitySignal);
+  const frustrationDetected = FRUSTRATION_PATTERNS.some(pattern => pattern.test(post.title) || pattern.test(post.description || ''));
+
   // Build comprehensive analysis prompt
   const systemPrompt = `You are a senior product strategist with expertise in SaaS prioritization and revenue optimization. Analyze feedback with a strong focus on business impact.
 
@@ -171,24 +220,16 @@ Context Signals:
 
 Return comprehensive JSON analysis only, no markdown or extra text.`;
 
-  // Detect if this is a bug report even without explicit categorization
-  const isBugReport = post.category === 'bug' ||
-                      post.title.toLowerCase().includes('bug') ||
-                      post.title.toLowerCase().includes('error') ||
-                      post.title.toLowerCase().includes('broken') ||
-                      post.title.toLowerCase().includes('not working') ||
-                      post.title.toLowerCase().includes('issue') ||
-                      post.description?.toLowerCase().includes('broken') ||
-                      post.description?.toLowerCase().includes('not working') ||
-                      post.description?.toLowerCase().includes('error') ||
-                      post.description?.toLowerCase().includes('crash');
-
   console.log('[BUG DETECTION]', {
     title: post.title,
     category: post.category,
     isBugReport,
     userTier: user.tier,
-    hasIssueInTitle: post.title.toLowerCase().includes('issue')
+    hasIssueInTitle: normalizedTitle.includes('issue'),
+    bugPatternMatch,
+    issueDetected,
+    severitySignal,
+    frustrationDetected
   });
 
   const userPrompt = `Analyze this feedback for prioritization:
@@ -219,7 +260,7 @@ MANDATORY MINIMUM SCORES FOR BUGS:
 - If description mentions "frustrat", "difficult", "disrupt": revenueImpact = 9-10
 ` : ''}
 
-${post.description?.toLowerCase().includes('frustrat') || post.description?.toLowerCase().includes('difficult') || post.description?.toLowerCase().includes('disrupt') ? `
+${frustrationDetected ? `
 ⚠️ USER FRUSTRATION DETECTED
 - Description mentions frustration/difficulty/disruption
 - This indicates significant UX friction
@@ -300,8 +341,64 @@ CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below the
     const tierMultiplier = user.tier === 'enterprise' ? 1.3 : user.tier === 'pro' ? 1.1 : 1.0;
     weightedScore = Math.min(10, weightedScore * tierMultiplier);
 
+    let highImpactBug = false;
+
+    if (isBugReport) {
+      const signals = {
+        tier: user.tier === 'enterprise' ? 0.9 : user.tier === 'pro' ? 0.65 : 0.4,
+        votes: metrics.voteCount >= 10 ? 0.5 : metrics.voteCount >= 3 ? 0.3 : metrics.voteCount > 0 ? 0.15 : 0,
+        comments: metrics.commentCount >= 3 ? 0.25 : metrics.commentCount >= 1 ? 0.1 : 0,
+        reach: metrics.percentageOfActiveUsers >= 25 ? 0.5 : metrics.percentageOfActiveUsers >= 10 ? 0.3 : metrics.percentageOfActiveUsers >= 5 ? 0.2 : 0,
+        similar: metrics.similarPostsCount >= 3 ? 0.2 : metrics.similarPostsCount >= 1 ? 0.1 : 0,
+        frustration: frustrationDetected ? 0.35 : 0,
+        risk: aiResponse.scores.riskMitigation >= 8 ? 0.2 : 0
+      };
+
+      const bugBoost = Object.values(signals).reduce((total, value) => total + value, 0);
+
+      if (bugBoost > 0) {
+        const beforeBoost = weightedScore;
+        weightedScore = Math.min(10, weightedScore + bugBoost);
+        console.log('[PRIORITY SCORING] Bug boost applied', {
+          beforeBoost,
+          bugBoost,
+          afterBoost: weightedScore,
+          signals
+        });
+      }
+
+      const highImpactSignals = (user.tier === 'pro' || user.tier === 'enterprise') ||
+        metrics.percentageOfActiveUsers >= 5 ||
+        metrics.voteCount >= 3 ||
+        metrics.commentCount >= 2 ||
+        frustrationDetected ||
+        aiResponse.scores.riskMitigation >= 8;
+
+      highImpactBug = highImpactSignals;
+
+      const bugFloor = highImpactSignals
+        ? (user.tier === 'enterprise' ? 9 : user.tier === 'pro' ? 8.6 : 7.5)
+        : (user.tier === 'enterprise' ? 8.4 : user.tier === 'pro' ? 7.8 : 7);
+
+      if (weightedScore < bugFloor) {
+        console.log('[PRIORITY SCORING] Bug floor enforced', {
+          previous: weightedScore,
+          bugFloor
+        });
+        weightedScore = bugFloor;
+      }
+    }
+
     // Determine priority level and quarter recommendation
-    const priorityLevel = getPriorityLevel(weightedScore, aiResponse.scores.riskMitigation);
+    let priorityLevel = getPriorityLevel(weightedScore, aiResponse.scores.riskMitigation);
+
+    if (isBugReport) {
+      if (highImpactBug) {
+        priorityLevel = 'immediate';
+      } else if (priorityLevel === 'next-quarter') {
+        priorityLevel = 'current-quarter';
+      }
+    }
     const quarterRecommendation = getQuarterRecommendation(
       priorityLevel,
       businessContext?.currentQuarter || 'Q1'
