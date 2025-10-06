@@ -82,7 +82,27 @@ export async function POST(request: NextRequest) {
     let scoringUser = user;
     let scoringBusinessContext = businessContext;
 
-    if ((!scoringPost || !scoringPost.title) && requestedPostId) {
+    const hasCompleteMetrics = (candidate?: PriorityContext['metrics']) => {
+      if (!candidate) return false;
+      return [
+        typeof candidate.voteCount === 'number',
+        typeof candidate.commentCount === 'number',
+        typeof candidate.uniqueVoters === 'number',
+        typeof candidate.percentageOfActiveUsers === 'number',
+        typeof candidate.similarPostsCount === 'number'
+      ].every(Boolean);
+    };
+
+    const needsHydration = Boolean(
+      requestedPostId && (
+        !scoringPost?.title ||
+        !hasCompleteMetrics(scoringMetrics) ||
+        !scoringUser?.tier ||
+        !scoringBusinessContext?.companyStrategy
+      )
+    );
+
+    if (needsHydration && requestedPostId) {
       const supabase = getSupabaseServerClient();
 
       if (!supabase) {
@@ -105,15 +125,17 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      scoringPost = {
-        id: postRecord.id,
-        title: postRecord.title,
-        description: postRecord.description || '',
-        category: postRecord.category || undefined,
-        createdAt: new Date(postRecord.created_at)
-      };
+      if (!scoringPost?.title) {
+        scoringPost = {
+          id: postRecord.id,
+          title: postRecord.title,
+          description: postRecord.description || '',
+          category: postRecord.category || undefined,
+          createdAt: new Date(postRecord.created_at)
+        };
+      }
 
-      resolvedProjectId = resolvedProjectId || postRecord.project_id || undefined;
+      resolvedProjectId = resolvedProjectId || postRecord.project_id || resolvedProjectId;
 
       const { data: voterRows, error: votersError } = await supabase
         .from('votes')
@@ -125,7 +147,7 @@ export async function POST(request: NextRequest) {
       }
 
       const uniqueVoters = new Set((voterRows || []).map(v => v.voter_email).filter(Boolean)).size;
-      const voteCount = typeof postRecord.vote_count === 'number'
+      const derivedVoteCount = typeof postRecord.vote_count === 'number'
         ? postRecord.vote_count
         : (voterRows?.length ?? 0);
 
@@ -138,7 +160,7 @@ export async function POST(request: NextRequest) {
         console.error('[PRIORITY SCORING] Failed to fetch comment count', commentsError);
       }
 
-      const commentCount = typeof commentCountRaw === 'number'
+      const derivedCommentCount = typeof commentCountRaw === 'number'
         ? commentCountRaw
         : typeof postRecord.comment_count === 'number'
           ? postRecord.comment_count
@@ -169,11 +191,11 @@ export async function POST(request: NextRequest) {
       const recentVotesCount = recentVotesRaw ?? 0;
       const totalProjectVotesCount = totalProjectVotesRaw ?? 0;
 
-      const percentageOfActiveUsers = totalProjectVotesCount > 0
+      const derivedActivePercentage = totalProjectVotesCount > 0
         ? Math.min(100, Math.round((uniqueVoters / Math.max(recentVotesCount || 1, 1)) * 100))
         : 0;
 
-      let similarPostsCount = 0;
+      let derivedSimilarPosts = 0;
       try {
         const { data: similarPosts } = await supabase
           .from('posts')
@@ -190,7 +212,7 @@ export async function POST(request: NextRequest) {
             .slice(0, 8);
 
           if (keywords.length) {
-            similarPostsCount = similarPosts.filter(entry => {
+            derivedSimilarPosts = similarPosts.filter(entry => {
               const text = `${entry.title} ${entry.description || ''}`.toLowerCase();
               return keywords.some(keyword => text.includes(keyword));
             }).length;
@@ -212,30 +234,39 @@ export async function POST(request: NextRequest) {
         console.error('[PRIORITY SCORING] Failed to fetch project plan', projectError);
       }
 
-      const inferredTier = (projectRecord?.plan === 'pro' || projectRecord?.plan === 'enterprise')
-        ? projectRecord.plan as 'pro' | 'enterprise'
-        : 'free';
-
       scoringMetrics = {
-        voteCount: scoringMetrics?.voteCount ?? voteCount,
-        commentCount: scoringMetrics?.commentCount ?? commentCount,
+        voteCount: scoringMetrics?.voteCount ?? derivedVoteCount,
+        commentCount: scoringMetrics?.commentCount ?? derivedCommentCount,
         uniqueVoters: scoringMetrics?.uniqueVoters ?? uniqueVoters,
-        percentageOfActiveUsers: scoringMetrics?.percentageOfActiveUsers ?? percentageOfActiveUsers,
-        similarPostsCount: scoringMetrics?.similarPostsCount ?? similarPostsCount
+        percentageOfActiveUsers: scoringMetrics?.percentageOfActiveUsers ?? derivedActivePercentage,
+        similarPostsCount: scoringMetrics?.similarPostsCount ?? derivedSimilarPosts
       };
 
+      const inferredTier = projectRecord?.plan === 'enterprise'
+        ? 'enterprise'
+        : projectRecord?.plan === 'pro'
+          ? 'pro'
+          : 'free';
+
+      const normalizedTier = (
+        scoringUser?.tier === 'enterprise' || scoringUser?.tier === 'pro'
+          ? scoringUser.tier
+          : inferredTier
+      ) as 'free' | 'pro' | 'enterprise';
+
       scoringUser = {
-        tier: (scoringUser?.tier as 'free' | 'pro' | 'enterprise') || inferredTier,
+        tier: normalizedTier,
         companySize: scoringUser?.companySize,
         mrr: scoringUser?.mrr,
         isChampion: scoringUser?.isChampion ?? uniqueVoters >= 3
       };
 
       if (!scoringBusinessContext) {
-        let strategy: 'growth' | 'retention' | 'enterprise' | 'profitability' = 'growth';
-
-        if (scoringUser.tier === 'pro') strategy = 'retention';
-        if (scoringUser.tier === 'enterprise') strategy = 'enterprise';
+        const strategy: 'growth' | 'retention' | 'enterprise' | 'profitability' = normalizedTier === 'enterprise'
+          ? 'enterprise'
+          : normalizedTier === 'pro'
+            ? 'retention'
+            : 'growth';
 
         scoringBusinessContext = {
           currentQuarter: `Q${Math.ceil((new Date().getMonth() + 1) / 3)} ${new Date().getFullYear()}`,

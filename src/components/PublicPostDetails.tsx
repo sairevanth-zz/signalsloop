@@ -256,127 +256,27 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     setAnalyzingPriority(true);
     setPriorityResults(null);
     try {
-      const supabase = (await import('@/lib/supabase-client')).getSupabaseClient();
-
-      // Get comment count
-      const { count: commentCount } = await supabase
-        .from('comments')
-        .select('*', { count: 'exact', head: true })
-        .eq('post_id', post.id);
-
-      // Get unique voter count
-      let uniqueVoters = 0;
-      try {
-        const { data: voters } = await supabase
-          .from('votes')
-          .select('voter_email')
-          .eq('post_id', post.id);
-        uniqueVoters = new Set(voters?.map(v => v.voter_email) || []).size;
-      } catch (error) {
-        console.warn('Could not fetch voters:', error);
-      }
-
-      // Calculate active users percentage (voters who've voted in last 30 days)
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      let recentVotersCount = 0;
-      let totalProjectVotes = 0;
-
-      try {
-        const { count: recentCount } = await supabase
-          .from('votes')
-          .select('*', { count: 'exact', head: true })
-          .eq('project_id', project.id)
-          .gte('created_at', thirtyDaysAgo.toISOString());
-        recentVotersCount = recentCount || 0;
-
-        const { count: totalCount } = await supabase
-          .from('votes')
-          .select('*', { count: 'exact', head: true })
-          .eq('project_id', project.id);
-        totalProjectVotes = totalCount || 0;
-      } catch (error) {
-        console.warn('Could not fetch vote counts:', error);
-      }
-
-      const percentageOfActiveUsers = totalProjectVotes
-        ? Math.round((uniqueVoters / (recentVotersCount || 1)) * 100)
-        : 0;
-
-      // Find similar posts based on title/description keywords
-      const keywords = post.title.toLowerCase().split(' ').filter(w => w.length > 3);
-      let similarPostsCount = 0;
-
-      if (keywords.length > 0) {
-        const { data: similarPosts } = await supabase
-          .from('posts')
-          .select('id, title, description')
-          .eq('project_id', project.id)
-          .neq('id', post.id)
-          .limit(50);
-
-        similarPostsCount = (similarPosts || []).filter(p => {
-          const text = `${p.title} ${p.description}`.toLowerCase();
-          return keywords.some(kw => text.includes(kw));
-        }).length;
-      }
-
-      // Determine user tier and characteristics
-      const { data: ownerData } = await supabase
-        .from('users')
-        .select('plan, email')
-        .eq('id', project.owner_id)
-        .single();
-
-      const userTier = ownerData?.plan || project.plan || 'free';
-
-      // Infer business context from project data
-      const postAge = Math.floor((Date.now() - new Date(post.created_at).getTime()) / (1000 * 60 * 60 * 24));
-      const isUrgent = postAge < 7 && (voteCount >= 5 || commentCount >= 3);
-
-      // Default business strategy based on project characteristics
-      let strategy: 'growth' | 'retention' | 'enterprise' | 'profitability' = 'growth';
-      if (userTier === 'pro') strategy = 'retention';
-      if (totalProjectVotes && totalProjectVotes > 100) strategy = 'enterprise';
-
       const response = await fetch('/api/ai/priority-scoring', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          postId: post.id,
+          projectId: project.id,
           post: {
             id: post.id,
             title: post.title,
             description: post.description || '',
-            category: post.category || null, // Don't default to 'general' - let AI detect from content
+            category: post.category || null,
             createdAt: post.created_at
-          },
-          metrics: {
-            voteCount: voteCount || 0,
-            commentCount: commentCount || 0,
-            uniqueVoters: uniqueVoters || 0,
-            percentageOfActiveUsers: Math.min(percentageOfActiveUsers, 100),
-            similarPostsCount: similarPostsCount || 0
-          },
-          user: {
-            tier: userTier as 'free' | 'pro' | 'enterprise',
-            isChampion: uniqueVoters >= 3 // User who has voted multiple times
-          },
-          businessContext: {
-            currentQuarter: `Q${Math.ceil((new Date().getMonth() + 1) / 3)} ${new Date().getFullYear()}`,
-            companyStrategy: strategy,
-            upcomingMilestone: isUrgent ? 'High user engagement detected' : undefined
-          },
-          projectId: project.id
+          }
         })
       });
 
       const data = await response.json();
       if (response.ok) {
-        // Map the new API response to old format
         const score = data.score;
         setPriorityResults({
-          score: Math.round(score.weightedScore * 10), // Convert to 0-100
+          score: Math.round(score.weightedScore * 10),
           level: score.priorityLevel,
           reasoning: score.businessJustification
         });
