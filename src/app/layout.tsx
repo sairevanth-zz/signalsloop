@@ -46,6 +46,32 @@ export default function RootLayout({
       >
         {children}
         <script src="https://www.signalsloop.com/embed/sk_5qfjcjroywm9kbplveuc.js"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Suppress console errors for failed resource loading (images, fonts, etc)
+              window.addEventListener('error', function(e) {
+                // Only suppress resource loading errors (not JS errors)
+                if (e.target && (e.target.tagName === 'IMG' || e.target.tagName === 'LINK' || e.target.tagName === 'SCRIPT')) {
+                  e.preventDefault();
+                  return false;
+                }
+              }, true);
+
+              // Suppress unhandled promise rejections from fetch failures
+              window.addEventListener('unhandledrejection', function(e) {
+                if (e.reason && e.reason.message && (
+                  e.reason.message.includes('Failed to fetch') ||
+                  e.reason.message.includes('NetworkError') ||
+                  e.reason.message.includes('fetch')
+                )) {
+                  e.preventDefault();
+                  return false;
+                }
+              });
+            `
+          }}
+        />
       </body>
     </html>
   );
