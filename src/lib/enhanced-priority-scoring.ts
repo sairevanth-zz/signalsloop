@@ -203,10 +203,11 @@ Return comprehensive JSON analysis only, no markdown or extra text.`;
 **Analysis Instructions:**
 ${isBugReport ? `
 🚨 THIS IS A BUG REPORT ${post.category === 'bug' ? '(explicit)' : '(detected from content)'}
-- Evaluate workflow disruption level (blocking vs. annoying)
-- If it prevents core functionality: revenueImpact should be 8-10
-- Consider ${user.tier} tier: paying customer bugs = higher churn risk
-- Risk mitigation score should be 7-9 for workflow blockers
+MANDATORY MINIMUM SCORES FOR BUGS:
+- revenueImpact: MINIMUM 7 (bugs cause churn, ${user.tier} tier = ${user.tier === 'pro' || user.tier === 'enterprise' ? 'MINIMUM 8' : '7'})
+- riskMitigation: MINIMUM 7 (all bugs are risks)
+- userSatisfaction: MINIMUM 7 (bugs frustrate users)
+- If description mentions "frustrat", "difficult", "disrupt": revenueImpact = 9-10
 ` : ''}
 
 ${post.description?.toLowerCase().includes('frustrat') || post.description?.toLowerCase().includes('difficult') || post.description?.toLowerCase().includes('disrupt') ? `
