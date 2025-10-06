@@ -348,7 +348,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
             id: post.id,
             title: post.title,
             description: post.description || '',
-            category: post.category || 'general',
+            category: post.category || null, // Don't default to 'general' - let AI detect from content
             createdAt: post.created_at
           },
           metrics: {

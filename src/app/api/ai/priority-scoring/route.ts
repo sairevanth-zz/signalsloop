@@ -112,7 +112,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       score,
-      model: process.env.PRIORITY_MODEL || 'gpt-4o-mini'
+      model: process.env.PRIORITY_MODEL || 'gpt-4o-mini',
+      version: 'v2-enforced-minimums', // Version indicator
+      debug: {
+        isBugDetected: score.scores.revenueImpact >= 8,
+        tierMultiplier: user?.tier === 'enterprise' ? 1.3 : user?.tier === 'pro' ? 1.1 : 1.0
+      }
     });
 
   } catch (error) {
