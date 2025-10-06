@@ -58,6 +58,17 @@ const FRUSTRATION_PATTERNS = [
   /stuck/i
 ];
 
+const TEST_KEYWORD_PATTERNS = [
+  /\btest\b/i,
+  /\bdummy\b/i,
+  /\bplaceholder\b/i,
+  /\bignore\b/i,
+  /\bsample\b/i,
+  /\bqa\b/i,
+  /\bchecking\b/i,
+  /\bautomation\b/i
+];
+
 export interface PriorityContext {
   post: {
     id: string;
@@ -350,61 +361,89 @@ CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below the
 
     const engagementSignal = clamp(
       votesSignal * 0.35 +
-      commentsSignal * 0.2 +
+      commentsSignal * 0.25 +
       reachSignal * 0.25 +
-      similarSignal * 0.2,
+      similarSignal * 0.15,
       0,
       1
     );
 
-    let impactSignal = 0;
+    const textContent = `${post.title || ''} ${post.description || ''}`.toLowerCase();
+    const words = textContent.trim().split(/\s+/).filter(Boolean);
+    const wordCount = words.length;
+    const hasTestKeyword = TEST_KEYWORD_PATTERNS.some(pattern => pattern.test(textContent));
+
+    let adjustedScore = baseWeightedScore;
 
     if (isBugReport) {
       const revenueBaseline = (user.tier === 'pro' || user.tier === 'enterprise') ? 8 : 7;
-      const riskDelta = Math.max(0, aiResponse.scores.riskMitigation - 7) / 3;
-      const revenueDelta = Math.max(0, aiResponse.scores.revenueImpact - revenueBaseline) / (10 - revenueBaseline || 1);
-      const satisfactionDelta = Math.max(0, aiResponse.scores.userSatisfaction - 7) / 3;
+      const riskSeverity = clamp((aiResponse.scores.riskMitigation - 6) / 4, 0, 1);
+      const revenueSeverity = clamp((aiResponse.scores.revenueImpact - revenueBaseline) / (10 - revenueBaseline || 1), 0, 1);
+      const satisfactionSeverity = clamp((aiResponse.scores.userSatisfaction - 7) / 3, 0, 1);
 
-      impactSignal = clamp(
-        (riskDelta * 0.5) +
-        (revenueDelta * 0.3) +
-        (satisfactionDelta * 0.15) +
-        (frustrationDetected ? 0.1 : 0),
+      const severityComposite = clamp(
+        (riskSeverity * 0.55) +
+        (revenueSeverity * 0.3) +
+        (satisfactionSeverity * 0.15) +
+        (frustrationDetected ? 0.12 : 0),
         0,
         1
       );
+
+      adjustedScore += severityComposite * 1.2;
+      adjustedScore += engagementSignal * 1.2;
+
+      if (severityComposite >= 0.75) {
+        adjustedScore = Math.max(adjustedScore, 8.5 + (severityComposite - 0.75) * 1.5);
+      } else if (severityComposite >= 0.55) {
+        adjustedScore = Math.max(adjustedScore, 7.2 + (severityComposite - 0.55));
+      }
+
+      if (engagementSignal < 0.1 && severityComposite < 0.6) {
+        adjustedScore -= 1.4;
+      }
+
+      if (hasTestKeyword) {
+        adjustedScore -= wordCount <= 15 ? 4.0 : 2.8;
+      } else if (wordCount < 8) {
+        adjustedScore -= 2.1;
+      } else if (wordCount < 15) {
+        adjustedScore -= 0.6;
+      }
+
+      adjustedScore = Math.max(adjustedScore, severityComposite * 6.5);
     } else {
-      impactSignal = clamp(
-        (aiResponse.scores.revenueImpact / 10) * 0.32 +
-        (aiResponse.scores.userReach / 10) * 0.24 +
-        (aiResponse.scores.strategicAlignment / 10) * 0.18 +
-        ((10 - aiResponse.scores.implementationEffort) / 10) * 0.12 +
-        (aiResponse.scores.competitiveAdvantage / 10) * 0.14,
+      const impactComposite = clamp(
+        (aiResponse.scores.revenueImpact / 10) * 0.35 +
+        (aiResponse.scores.userReach / 10) * 0.25 +
+        (aiResponse.scores.strategicAlignment / 10) * 0.2 +
+        ((10 - aiResponse.scores.implementationEffort) / 10) * 0.1 +
+        (aiResponse.scores.competitiveAdvantage / 10) * 0.1,
         0,
         1
       );
+
+      adjustedScore += impactComposite * 1.4;
+      adjustedScore += engagementSignal * 1.0;
+
+      if (engagementSignal < 0.12) {
+        adjustedScore -= 1.7;
+      }
+
+      if (wordCount < 6) {
+        adjustedScore -= 2.0;
+      }
+
+      adjustedScore = Math.max(adjustedScore, impactComposite * 5.5);
     }
 
-    const qualityBase = clamp((baseWeightedScore - 5.5) / 4.5, 0, 1);
-    const qualitySignal = qualityBase * Math.max(impactSignal, engagementSignal);
-
-    let finalSignal = clamp(
-      (impactSignal * 0.6) +
-      (engagementSignal * 0.25) +
-      (qualitySignal * 0.15),
-      0,
-      1
-    );
-
-    const tierBonus = user.tier === 'enterprise' ? 0.08 : user.tier === 'pro' ? 0.04 : 0;
-    finalSignal = clamp(finalSignal + tierBonus, 0, 1);
-
-    if (isBugReport) {
-      const bugFloorSignal = (impactSignal * 0.55) + (engagementSignal * 0.25) + (qualitySignal * 0.1);
-      finalSignal = Math.max(finalSignal, bugFloorSignal);
+    if (!hasTestKeyword && wordCount > 25 && engagementSignal > 0.35) {
+      adjustedScore += 0.6;
     }
 
-    const finalWeightedScore = Math.round(finalSignal * 100) / 10;
+    adjustedScore = clamp(adjustedScore, 0, 10);
+
+    const finalWeightedScore = Math.round(adjustedScore * 10) / 10;
     const priorityLevel = getPriorityLevel(finalWeightedScore, aiResponse.scores.riskMitigation);
     const quarterRecommendation = getQuarterRecommendation(
       priorityLevel,
@@ -427,9 +466,7 @@ CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below the
       title: post.title,
       priorityLevel,
       weightedScore: result.weightedScore,
-      engagementSignal,
-      impactSignal,
-      qualitySignal
+      engagementSignal
     });
 
     return result;
@@ -445,12 +482,12 @@ function getPriorityLevel(
   riskScore: number
 ): PriorityScore['priorityLevel'] {
   // Override for critical risk items
-  if (riskScore >= 9.2) return 'immediate';
+  if (riskScore >= 9) return 'immediate';
 
-  if (score >= 8.2) return 'immediate';
-  if (score >= 6.5) return 'current-quarter';
-  if (score >= 4.0) return 'next-quarter';
-  if (score >= 2.0) return 'backlog';
+  if (score >= 8.5) return 'immediate';
+  if (score >= 7.0) return 'current-quarter';
+  if (score >= 5.0) return 'next-quarter';
+  if (score >= 3.0) return 'backlog';
   return 'declined';
 }
 
