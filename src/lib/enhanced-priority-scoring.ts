@@ -382,7 +382,8 @@ export const calculatePriorityScore = withCache(
     title: context.post.title,
     category: context.post.category,
     voteCount: context.metrics.voteCount,
-    userTier: context.user.tier
+    userTier: context.user.tier,
+    version: 'v2-bug-detection' // Version bump to invalidate old cached scores
   })
 );
 
