@@ -109,46 +109,101 @@ async function calculatePriorityScoreInternal(
   const { post, metrics, user, businessContext } = context;
 
   // Build comprehensive analysis prompt
-  const systemPrompt = `You are a senior product strategist with expertise in SaaS prioritization. Analyze feedback and provide data-driven priority scoring.
+  const systemPrompt = `You are a senior product strategist with expertise in SaaS prioritization and revenue optimization. Analyze feedback with a strong focus on business impact.
 
 Company Context:
 - Strategy: ${businessContext?.companyStrategy || 'growth'}
 - Current Quarter: ${businessContext?.currentQuarter || 'Q1'}
 - Upcoming Milestone: ${businessContext?.upcomingMilestone || 'none'}
 
-Scoring Guidelines:
-1. Revenue Impact (0-10): Direct effect on MRR, new sales, churn prevention, upsell potential
-2. User Reach (0-10): Percentage of user base affected, viral potential, network effects
-3. Strategic Alignment (0-10): Fits company direction, supports key initiatives
-4. Implementation Effort (0-10): INVERTED - 10=very easy, 0=very hard. Consider technical debt, dependencies
-5. Competitive Advantage (0-10): Differentiation, moat building, market positioning
-6. Risk Mitigation (0-10): Security, compliance, data integrity, reputation protection
-7. User Satisfaction (0-10): NPS impact, delight factor, friction reduction
+CRITICAL SCORING PRINCIPLES:
 
-Additional Factors:
-- User Tier Multiplier: Free=1x, Pro=1.5x, Enterprise=2x
-- Vote Signal: ${metrics.voteCount} votes from ${metrics.uniqueVoters} users (${metrics.percentageOfActiveUsers.toFixed(1)}% of active base)
-- Engagement Signal: ${metrics.commentCount} comments indicate ${metrics.commentCount > 5 ? 'high' : 'moderate'} engagement
-- Similar Requests: ${metrics.similarPostsCount} related posts suggest ${metrics.similarPostsCount > 3 ? 'trending need' : 'isolated request'}
+1. Revenue Impact (0-10):
+   - BUGS THAT BLOCK WORKFLOW = 8-10 (prevent user from doing their job → immediate churn risk)
+   - BUGS WITH WORKAROUNDS = 5-7 (friction → slow churn risk)
+   - Missing features = 3-6 (expansion opportunity)
+   - Nice-to-haves = 0-3
+   - Pro/Enterprise bugs = automatic +2 bonus (higher ARPU at risk)
+
+2. User Reach (0-10):
+   - Based on ${metrics.percentageOfActiveUsers.toFixed(1)}% of active users affected
+   - 0-5% = score 1-3
+   - 5-15% = score 4-6
+   - 15-30% = score 7-8
+   - 30%+ = score 9-10
+
+3. Strategic Alignment (0-10):
+   - ${businessContext?.companyStrategy === 'retention' ? 'RETENTION STRATEGY: Prioritize bugs and UX improvements (score 7-10)' : ''}
+   - ${businessContext?.companyStrategy === 'growth' ? 'GROWTH STRATEGY: Prioritize viral features and onboarding (score 7-10)' : ''}
+   - ${businessContext?.companyStrategy === 'enterprise' ? 'ENTERPRISE STRATEGY: Prioritize scale, security, integrations (score 7-10)' : ''}
+
+4. Implementation Effort (0-10): INVERTED SCALE
+   - 10 = 1-2 days (CSS fix, config change)
+   - 8 = 3-5 days (small feature, simple bug)
+   - 6 = 1-2 weeks (medium feature)
+   - 4 = 3-4 weeks (complex feature)
+   - 2 = 1-2 months (major refactor)
+   - 0 = 3+ months (architectural change)
+
+5. Competitive Advantage (0-10):
+   - Table stakes feature = 6-8
+   - Unique differentiation = 8-10
+   - Me-too feature = 2-4
+
+6. Risk Mitigation (0-10):
+   - Security/data loss bugs = 9-10
+   - Compliance issues = 8-10
+   - Workflow blockers = 7-9
+   - Minor bugs = 2-4
+
+7. User Satisfaction (0-10):
+   - Eliminates major frustration = 8-10
+   - Fixes annoyance = 5-7
+   - Small improvement = 2-4
+
+Context Signals:
+- ${metrics.voteCount} votes from ${metrics.uniqueVoters} unique users
+- ${metrics.percentageOfActiveUsers.toFixed(1)}% of active user base affected
+- ${metrics.commentCount} comments (${metrics.commentCount > 5 ? 'HIGH engagement - users are vocal about this' : 'moderate engagement'})
+- ${metrics.similarPostsCount} similar posts found (${metrics.similarPostsCount > 3 ? 'TRENDING NEED - multiple users reporting' : 'isolated request'})
+- User tier: ${user.tier} (${user.tier === 'pro' || user.tier === 'enterprise' ? 'PAYING CUSTOMER - prioritize to prevent churn' : 'free user'})
 
 Return comprehensive JSON analysis only, no markdown or extra text.`;
 
   const userPrompt = `Analyze this feedback for prioritization:
 
-Title: "${post.title}"
-Description: "${post.description}"
-Category: ${post.category || 'uncategorized'}
+**Title:** "${post.title}"
+**Description:** "${post.description}"
+**Category:** ${post.category || 'uncategorized'}
 
-User Context:
-- Tier: ${user.tier}
+**User Context:**
+- Tier: ${user.tier} ${user.tier === 'pro' || user.tier === 'enterprise' ? '← PAYING CUSTOMER' : ''}
 - Company Size: ${user.companySize || 'unknown'}
-- MRR Contribution: ${user.mrr || 0}
-- Power User: ${user.isChampion ? 'Yes' : 'No'}
+- MRR Contribution: $${user.mrr || 0}
+- Power User: ${user.isChampion ? 'Yes - frequent voter' : 'No'}
 
-Metrics:
-- Votes: ${metrics.voteCount}
-- Comments: ${metrics.commentCount}
-- Affecting ${metrics.percentageOfActiveUsers}% of active users
+**Engagement Metrics:**
+- ${metrics.voteCount} total votes from ${metrics.uniqueVoters} unique users
+- ${metrics.commentCount} comments ${metrics.commentCount > 3 ? '← High engagement!' : ''}
+- Affecting ${metrics.percentageOfActiveUsers.toFixed(1)}% of active users ${metrics.percentageOfActiveUsers > 10 ? '← Significant reach!' : ''}
+- ${metrics.similarPostsCount} similar posts ${metrics.similarPostsCount > 2 ? '← Multiple users reporting this!' : ''}
+
+**Analysis Instructions:**
+${post.category === 'bug' ? `
+🚨 THIS IS A BUG REPORT
+- Evaluate workflow disruption level (blocking vs. annoying)
+- If it prevents core functionality: revenueImpact should be 8-10
+- Consider ${user.tier} tier: paying customer bugs = higher churn risk
+- Risk mitigation score should be 7-9 for workflow blockers
+` : ''}
+
+${post.description?.toLowerCase().includes('frustrat') || post.description?.toLowerCase().includes('difficult') || post.description?.toLowerCase().includes('disrupt') ? `
+⚠️ USER FRUSTRATION DETECTED
+- Description mentions frustration/difficulty/disruption
+- This indicates significant UX friction
+- userSatisfaction score should be 8-10 (high impact on satisfaction)
+- revenueImpact should factor in churn risk from frustration
+` : ''}
 
 Provide scoring as JSON with this exact structure:
 {
