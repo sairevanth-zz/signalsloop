@@ -183,6 +183,14 @@ Return comprehensive JSON analysis only, no markdown or extra text.`;
                       post.description?.toLowerCase().includes('error') ||
                       post.description?.toLowerCase().includes('crash');
 
+  console.log('[BUG DETECTION]', {
+    title: post.title,
+    category: post.category,
+    isBugReport,
+    userTier: user.tier,
+    hasIssueInTitle: post.title.toLowerCase().includes('issue')
+  });
+
   const userPrompt = `Analyze this feedback for prioritization:
 
 **Title:** "${post.title}"
