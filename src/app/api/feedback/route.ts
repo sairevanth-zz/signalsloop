@@ -9,6 +9,8 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('[FEEDBACK] Received submission:', body);
+
     const {
       project_slug,
       title,
@@ -23,7 +25,10 @@ export async function POST(request: NextRequest) {
     const finalContent = content || title;
     const finalTitle = title || content?.substring(0, 100) || 'Feedback';
 
+    console.log('[FEEDBACK] Processed:', { project_slug, finalTitle, finalContent, category });
+
     if (!project_slug || !finalContent) {
+      console.error('[FEEDBACK] Missing required fields');
       return NextResponse.json(
         { error: 'Project slug and content are required' },
         { status: 400 }
@@ -79,12 +84,14 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (postError) {
-      console.error('Error creating post:', postError);
+      console.error('[FEEDBACK] Error creating post:', postError);
       return NextResponse.json(
-        { error: 'Failed to submit feedback' },
+        { error: 'Failed to submit feedback', details: postError.message },
         { status: 500 }
       );
     }
+
+    console.log('[FEEDBACK] Post created successfully:', post.id);
 
     // If project has AI categorization enabled, trigger it
     try {
