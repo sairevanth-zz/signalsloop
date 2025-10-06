@@ -103,7 +103,7 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
     // Get project details
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .select('id, name, slug, plan, created_at')
+      .select('id, name, slug, plan, created_at, owner_id')
       .eq('slug', slug)
       .single();
 
