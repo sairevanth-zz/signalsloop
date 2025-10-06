@@ -40,20 +40,39 @@ export async function checkAIUsageLimit(
     throw new Error('Database connection not available');
   }
 
-  // Get project owner and their plan
+  // Get project plan
   const { data: project, error: projectError } = await supabase
     .from('projects')
-    .select('owner_id, users!inner(plan)')
+    .select('plan')
     .eq('id', projectId)
     .single();
 
-  if (projectError || !project) {
-    throw new Error('Project not found');
+  if (projectError) {
+    console.error('Project lookup error:', projectError, 'for projectId:', projectId);
+    // Fail open - allow usage if we can't check the limit
+    return {
+      allowed: true,
+      current: 0,
+      limit: AI_LIMITS.free[featureType],
+      remaining: AI_LIMITS.free[featureType],
+      isPro: false
+    };
   }
 
-  // Get appropriate limit based on user's plan
-  const userPlan = (project.users as any)?.plan || 'free';
-  const isPro = userPlan === 'pro';
+  if (!project) {
+    console.error('Project not found for projectId:', projectId);
+    // Fail open - allow usage if project doesn't exist
+    return {
+      allowed: true,
+      current: 0,
+      limit: AI_LIMITS.free[featureType],
+      remaining: AI_LIMITS.free[featureType],
+      isPro: false
+    };
+  }
+
+  // Get appropriate limit based on plan
+  const isPro = project.plan === 'pro';
   const limit = isPro ? AI_LIMITS.pro[featureType] : AI_LIMITS.free[featureType];
   
   const { data, error } = await supabase.rpc('check_ai_usage_limit', {

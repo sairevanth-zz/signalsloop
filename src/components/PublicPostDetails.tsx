@@ -210,14 +210,31 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     setCheckingDuplicates(true);
     setDuplicateResults(null);
     try {
+      // Fetch all posts in the project to check for duplicates
+      const supabase = (await import('@/lib/supabase-client')).getSupabaseClient();
+      const { data: allPosts } = await supabase
+        .from('posts')
+        .select('id, title, description')
+        .eq('project_id', project.id)
+        .neq('id', post.id)
+        .limit(100);
+
       const response = await fetch('/api/ai/duplicate-detection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          postId: post.id,
-          projectId: project.id,
-          title: post.title,
-          description: post.description
+          mode: 'single',
+          newPost: {
+            id: post.id,
+            title: post.title,
+            description: post.description || ''
+          },
+          existingPosts: (allPosts || []).map(p => ({
+            id: p.id,
+            title: p.title,
+            description: p.description || ''
+          })),
+          projectId: project.id
         })
       });
 
@@ -225,9 +242,10 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
       if (response.ok) {
         setDuplicateResults(data);
       } else {
-        toast.error(data.error || 'Failed to check duplicates');
+        toast.error(data.message || data.error || 'Failed to check duplicates');
       }
     } catch (error) {
+      console.error('Duplicate check error:', error);
       toast.error('Failed to check duplicates');
     } finally {
       setCheckingDuplicates(false);
@@ -238,25 +256,52 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     setAnalyzingPriority(true);
     setPriorityResults(null);
     try {
+      const supabase = (await import('@/lib/supabase-client')).getSupabaseClient();
+      const { count: commentCount } = await supabase
+        .from('comments')
+        .select('*', { count: 'exact', head: true })
+        .eq('post_id', post.id);
+
       const response = await fetch('/api/ai/priority-scoring', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          postId: post.id,
-          projectId: project.id,
-          title: post.title,
-          description: post.description,
-          voteCount: voteCount
+          post: {
+            id: post.id,
+            title: post.title,
+            description: post.description || '',
+            category: post.category || 'general',
+            createdAt: post.created_at
+          },
+          metrics: {
+            voteCount: voteCount || 0,
+            commentCount: commentCount || 0,
+            uniqueVoters: voteCount || 0,
+            percentageOfActiveUsers: 0,
+            similarPostsCount: 0
+          },
+          user: {
+            tier: project.plan || 'free',
+            isChampion: false
+          },
+          projectId: project.id
         })
       });
 
       const data = await response.json();
       if (response.ok) {
-        setPriorityResults(data.priority);
+        // Map the new API response to old format
+        const score = data.score;
+        setPriorityResults({
+          score: Math.round(score.weightedScore * 10), // Convert to 0-100
+          level: score.priorityLevel,
+          reasoning: score.businessJustification
+        });
       } else {
-        toast.error(data.error || 'Failed to analyze priority');
+        toast.error(data.message || data.error || 'Failed to analyze priority');
       }
     } catch (error) {
+      console.error('Priority analysis error:', error);
       toast.error('Failed to analyze priority');
     } finally {
       setAnalyzingPriority(false);
