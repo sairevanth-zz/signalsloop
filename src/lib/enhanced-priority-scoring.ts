@@ -374,18 +374,9 @@ function getFallbackPriorityScore(context: PriorityContext): PriorityScore {
   };
 }
 
-// Export cached version
-export const calculatePriorityScore = withCache(
-  calculatePriorityScoreInternal,
-  'priorityScoring',
-  (context) => ({
-    title: context.post.title,
-    category: context.post.category,
-    voteCount: context.metrics.voteCount,
-    userTier: context.user.tier,
-    version: 'v2-bug-detection' // Version bump to invalidate old cached scores
-  })
-);
+// Export WITHOUT caching to ensure fresh calculations
+// TODO: Re-enable caching after confirming scoring works correctly
+export const calculatePriorityScore = calculatePriorityScoreInternal;
 
 // Batch scoring for dashboard views
 export async function batchScorePosts(

@@ -416,12 +416,13 @@ function generateWidgetScript(config) {
     const iframe = document.createElement('iframe');
     iframe.src = IFRAME_URL;
     iframe.setAttribute('allow', 'clipboard-write');
-    iframe.setAttribute('scrolling', 'no');
+    iframe.setAttribute('scrolling', 'yes'); // Enable scrolling
     Object.assign(iframe.style, {
       width: '100%',
-      height: isMobile ? '2000px' : '100%', // Set tall height on mobile to force container scroll
+      height: isMobile ? '100vh' : '100%', // Full viewport height for scrolling
       border: 'none',
-      borderRadius: isMobile ? '0' : '12px'
+      borderRadius: isMobile ? '0' : '12px',
+      overflow: 'auto' // Ensure overflow is handled
     });
 
     // Listen for height messages from iframe for iOS scrolling
