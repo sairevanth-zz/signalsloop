@@ -345,22 +345,34 @@ CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below the
     let severitySignal = 0;
 
     if (isBugReport) {
+      const minRevenue = (user.tier === 'pro' || user.tier === 'enterprise') ? 8 : 7;
       const voteSignal = Math.min(metrics.voteCount / 6, 1);
       const commentSignal = Math.min(metrics.commentCount / 4, 1);
       const reachSignal = Math.min(metrics.percentageOfActiveUsers / 20, 1);
       const similarSignal = Math.min(metrics.similarPostsCount / 4, 1);
 
       const engagementSignal = (voteSignal * 0.35) + (commentSignal * 0.2) + (reachSignal * 0.3) + (similarSignal * 0.15);
-      const qualitativeSignal =
-        (frustrationDetected ? 0.15 : 0) +
-        (aiResponse.scores.riskMitigation >= 8 ? 0.25 : 0) +
-        (aiResponse.scores.revenueImpact >= 9 ? 0.1 : 0);
+      const riskDelta = Math.max(0, aiResponse.scores.riskMitigation - 7) / 3; // scaled 0-1
+      const revenueDelta = Math.max(0, aiResponse.scores.revenueImpact - minRevenue) / 3; // scaled 0-1
 
-      severitySignal = Math.min(1, (engagementSignal + qualitativeSignal) * (user.tier === 'enterprise' ? 1.2 : user.tier === 'pro' ? 1.1 : 1));
+      const qualitativeSignal =
+        (frustrationDetected ? 0.18 : 0) +
+        (Math.min(1, riskDelta) * 0.22) +
+        (Math.min(1, revenueDelta) * 0.12);
+
+      const totalSignal = engagementSignal + qualitativeSignal;
+      severitySignal = Math.min(1, totalSignal * (user.tier === 'enterprise' ? 1.15 : user.tier === 'pro' ? 1.05 : 1));
+
+      // soften severity if engagement is extremely low (<0.15) even when qualitative signals are high
+      if (engagementSignal < 0.15) {
+        severitySignal *= 0.75;
+      }
 
       let bugBoost = 0;
-      if (severitySignal >= 0.25) {
-        bugBoost = Math.min(1.4, (severitySignal - 0.25) * 1.6);
+      if (severitySignal >= 0.45) {
+        bugBoost = Math.min(1.0, (severitySignal - 0.45) * 1.4);
+      } else if (severitySignal >= 0.3) {
+        bugBoost = (severitySignal - 0.3) * 0.8;
       }
 
       if (bugBoost > 0) {
@@ -376,16 +388,16 @@ CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below the
         });
       }
 
-      highImpactBug = severitySignal >= 0.65 || aiResponse.scores.riskMitigation >= 9;
-      const moderateImpactBug = severitySignal >= 0.45;
+      highImpactBug = severitySignal >= 0.72 || aiResponse.scores.riskMitigation >= 9.2;
+      const moderateImpactBug = severitySignal >= 0.5;
 
       const bugFloor = highImpactBug
-        ? (user.tier === 'enterprise' ? 8.9 : user.tier === 'pro' ? 8.4 : 7.9)
+        ? (user.tier === 'enterprise' ? 8.8 : user.tier === 'pro' ? 8.2 : 7.6)
         : moderateImpactBug
-          ? (user.tier === 'enterprise' ? 8.1 : user.tier === 'pro' ? 7.6 : 7.0)
+          ? (user.tier === 'enterprise' ? 8.0 : user.tier === 'pro' ? 7.4 : 6.8)
           : severitySignal >= 0.3
-            ? (user.tier === 'enterprise' ? 7.2 : user.tier === 'pro' ? 6.8 : 6.5)
-            : 6.0;
+            ? (user.tier === 'enterprise' ? 7.0 : user.tier === 'pro' ? 6.6 : 6.2)
+            : 2.6;
 
       if (weightedScore < bugFloor) {
         console.log('[PRIORITY SCORING] Bug floor enforced', {
@@ -398,8 +410,16 @@ CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below the
 
       if (!highImpactBug && !moderateImpactBug) {
         // scale back overly high AI outputs for low-signal bugs
-        const lowSeverityCap = 6.2 + (severitySignal * 2);
-        weightedScore = Math.min(weightedScore, lowSeverityCap);
+        if (severitySignal < 0.12) {
+          const veryLowCap = 2 + (severitySignal * 5);
+          weightedScore = Math.min(weightedScore, veryLowCap);
+        } else if (severitySignal < 0.25) {
+          const lowSeverityCap = 3.4 + (severitySignal * 3.2);
+          weightedScore = Math.min(weightedScore, lowSeverityCap);
+        } else {
+          const baselineCap = 5.8 + (severitySignal * 1.4);
+          weightedScore = Math.min(weightedScore, baselineCap);
+        }
       }
     }
 
@@ -409,13 +429,15 @@ CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below the
     if (isBugReport) {
       if (highImpactBug) {
         priorityLevel = 'immediate';
-      } else if (severitySignal >= 0.45) {
+      } else if (moderateImpactBug) {
         if (priorityLevel === 'next-quarter' || priorityLevel === 'backlog') {
           priorityLevel = 'current-quarter';
         }
-      } else if (severitySignal < 0.3 && priorityLevel === 'current-quarter') {
+      } else if (severitySignal < 0.2) {
+        priorityLevel = 'backlog';
+      } else if (severitySignal < 0.32 && priorityLevel === 'current-quarter') {
         priorityLevel = 'next-quarter';
-      } else if (severitySignal < 0.3 && priorityLevel === 'immediate') {
+      } else if (severitySignal < 0.32 && priorityLevel === 'immediate') {
         priorityLevel = 'current-quarter';
       }
     }
