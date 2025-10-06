@@ -15,6 +15,9 @@ const MODELS = {
   PRIORITY_SCORING: process.env.PRIORITY_MODEL || 'gpt-4o-mini',
 };
 
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+const saturate = (value: number, scale: number) => 1 - Math.exp(-(Math.max(value, 0)) / Math.max(scale, 0.0001));
+
 const BUG_PATTERNS = [
   /bug/i,
   /error/i,
@@ -332,123 +335,85 @@ CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below the
     const strategy = businessContext?.companyStrategy || 'growth';
     const weights = WEIGHT_PROFILES[strategy];
 
-    let weightedScore = 0;
+    let baseWeightedScore = 0;
     for (const [factor, score] of Object.entries(aiResponse.scores)) {
-      weightedScore += score * weights[factor as keyof typeof weights];
+      baseWeightedScore += score * weights[factor as keyof typeof weights];
     }
 
-    // Apply user tier multiplier
     const tierMultiplier = user.tier === 'enterprise' ? 1.3 : user.tier === 'pro' ? 1.1 : 1.0;
-    weightedScore = Math.min(10, weightedScore * tierMultiplier);
+    baseWeightedScore = Math.min(10, baseWeightedScore * tierMultiplier);
 
-    let highImpactBug = false;
-    let severitySignal = 0;
+    const votesSignal = saturate(metrics.voteCount || 0, 4);
+    const commentsSignal = saturate(metrics.commentCount || 0, 3);
+    const similarSignal = saturate(metrics.similarPostsCount || 0, 3);
+    const reachSignal = clamp((metrics.percentageOfActiveUsers || 0) / 20, 0, 1);
 
-    if (isBugReport) {
-      const minRevenue = (user.tier === 'pro' || user.tier === 'enterprise') ? 8 : 7;
-      const voteSignal = Math.min(metrics.voteCount / 6, 1);
-      const commentSignal = Math.min(metrics.commentCount / 4, 1);
-      const reachSignal = Math.min(metrics.percentageOfActiveUsers / 20, 1);
-      const similarSignal = Math.min(metrics.similarPostsCount / 4, 1);
+    const engagementSignal = clamp(
+      votesSignal * 0.35 +
+      commentsSignal * 0.2 +
+      reachSignal * 0.25 +
+      similarSignal * 0.2,
+      0,
+      1
+    );
 
-      const engagementSignal = (voteSignal * 0.35) + (commentSignal * 0.2) + (reachSignal * 0.3) + (similarSignal * 0.15);
-      const riskDelta = Math.max(0, aiResponse.scores.riskMitigation - 7) / 3; // scaled 0-1
-      const revenueDelta = Math.max(0, aiResponse.scores.revenueImpact - minRevenue) / 3; // scaled 0-1
-
-      const qualitativeSignal =
-        (frustrationDetected ? 0.18 : 0) +
-        (Math.min(1, riskDelta) * 0.22) +
-        (Math.min(1, revenueDelta) * 0.12);
-
-      const totalSignal = engagementSignal + qualitativeSignal;
-      severitySignal = Math.min(1, totalSignal * (user.tier === 'enterprise' ? 1.15 : user.tier === 'pro' ? 1.05 : 1));
-
-      // soften severity if engagement is extremely low (<0.15) even when qualitative signals are high
-      if (engagementSignal < 0.15) {
-        severitySignal *= 0.75;
-      }
-
-      let bugBoost = 0;
-      if (severitySignal >= 0.45) {
-        bugBoost = Math.min(1.0, (severitySignal - 0.45) * 1.4);
-      } else if (severitySignal >= 0.3) {
-        bugBoost = (severitySignal - 0.3) * 0.8;
-      }
-
-      if (bugBoost > 0) {
-        const beforeBoost = weightedScore;
-        weightedScore = Math.min(10, weightedScore + bugBoost);
-        console.log('[PRIORITY SCORING] Bug boost applied', {
-          beforeBoost,
-          bugBoost,
-          afterBoost: weightedScore,
-          severitySignal,
-          engagementSignal,
-          qualitativeSignal
-        });
-      }
-
-      highImpactBug = severitySignal >= 0.72 || aiResponse.scores.riskMitigation >= 9.2;
-      const moderateImpactBug = severitySignal >= 0.5;
-
-      const bugFloor = highImpactBug
-        ? (user.tier === 'enterprise' ? 8.8 : user.tier === 'pro' ? 8.2 : 7.6)
-        : moderateImpactBug
-          ? (user.tier === 'enterprise' ? 8.0 : user.tier === 'pro' ? 7.4 : 6.8)
-          : severitySignal >= 0.3
-            ? (user.tier === 'enterprise' ? 7.0 : user.tier === 'pro' ? 6.6 : 6.2)
-            : 2.6;
-
-      if (weightedScore < bugFloor) {
-        console.log('[PRIORITY SCORING] Bug floor enforced', {
-          previous: weightedScore,
-          bugFloor,
-          severitySignal
-        });
-        weightedScore = bugFloor;
-      }
-
-      if (!highImpactBug && !moderateImpactBug) {
-        // scale back overly high AI outputs for low-signal bugs
-        if (severitySignal < 0.12) {
-          const veryLowCap = 2 + (severitySignal * 5);
-          weightedScore = Math.min(weightedScore, veryLowCap);
-        } else if (severitySignal < 0.25) {
-          const lowSeverityCap = 3.4 + (severitySignal * 3.2);
-          weightedScore = Math.min(weightedScore, lowSeverityCap);
-        } else {
-          const baselineCap = 5.8 + (severitySignal * 1.4);
-          weightedScore = Math.min(weightedScore, baselineCap);
-        }
-      }
-    }
-
-    // Determine priority level and quarter recommendation
-    let priorityLevel = getPriorityLevel(weightedScore, aiResponse.scores.riskMitigation);
+    let impactSignal = 0;
 
     if (isBugReport) {
-      if (highImpactBug) {
-        priorityLevel = 'immediate';
-      } else if (moderateImpactBug) {
-        if (priorityLevel === 'next-quarter' || priorityLevel === 'backlog') {
-          priorityLevel = 'current-quarter';
-        }
-      } else if (severitySignal < 0.2) {
-        priorityLevel = 'backlog';
-      } else if (severitySignal < 0.32 && priorityLevel === 'current-quarter') {
-        priorityLevel = 'next-quarter';
-      } else if (severitySignal < 0.32 && priorityLevel === 'immediate') {
-        priorityLevel = 'current-quarter';
-      }
+      const revenueBaseline = (user.tier === 'pro' || user.tier === 'enterprise') ? 8 : 7;
+      const riskDelta = Math.max(0, aiResponse.scores.riskMitigation - 7) / 3;
+      const revenueDelta = Math.max(0, aiResponse.scores.revenueImpact - revenueBaseline) / (10 - revenueBaseline || 1);
+      const satisfactionDelta = Math.max(0, aiResponse.scores.userSatisfaction - 7) / 3;
+
+      impactSignal = clamp(
+        (riskDelta * 0.5) +
+        (revenueDelta * 0.3) +
+        (satisfactionDelta * 0.15) +
+        (frustrationDetected ? 0.1 : 0),
+        0,
+        1
+      );
+    } else {
+      impactSignal = clamp(
+        (aiResponse.scores.revenueImpact / 10) * 0.32 +
+        (aiResponse.scores.userReach / 10) * 0.24 +
+        (aiResponse.scores.strategicAlignment / 10) * 0.18 +
+        ((10 - aiResponse.scores.implementationEffort) / 10) * 0.12 +
+        (aiResponse.scores.competitiveAdvantage / 10) * 0.14,
+        0,
+        1
+      );
     }
+
+    const qualityBase = clamp((baseWeightedScore - 5.5) / 4.5, 0, 1);
+    const qualitySignal = qualityBase * Math.max(impactSignal, engagementSignal);
+
+    let finalSignal = clamp(
+      (impactSignal * 0.6) +
+      (engagementSignal * 0.25) +
+      (qualitySignal * 0.15),
+      0,
+      1
+    );
+
+    const tierBonus = user.tier === 'enterprise' ? 0.08 : user.tier === 'pro' ? 0.04 : 0;
+    finalSignal = clamp(finalSignal + tierBonus, 0, 1);
+
+    if (isBugReport) {
+      const bugFloorSignal = (impactSignal * 0.55) + (engagementSignal * 0.25) + (qualitySignal * 0.1);
+      finalSignal = Math.max(finalSignal, bugFloorSignal);
+    }
+
+    const finalWeightedScore = Math.round(finalSignal * 100) / 10;
+    const priorityLevel = getPriorityLevel(finalWeightedScore, aiResponse.scores.riskMitigation);
     const quarterRecommendation = getQuarterRecommendation(
       priorityLevel,
       businessContext?.currentQuarter || 'Q1'
     );
 
-    const result = {
+    const result: PriorityScore = {
       scores: aiResponse.scores,
-      weightedScore: Math.round(weightedScore * 10) / 10,
+      weightedScore: finalWeightedScore,
       priorityLevel,
       quarterRecommendation,
       businessJustification: aiResponse.businessJustification,
@@ -462,7 +427,9 @@ CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below the
       title: post.title,
       priorityLevel,
       weightedScore: result.weightedScore,
-      scores: aiResponse.scores
+      engagementSignal,
+      impactSignal,
+      qualitySignal
     });
 
     return result;
@@ -478,12 +445,12 @@ function getPriorityLevel(
   riskScore: number
 ): PriorityScore['priorityLevel'] {
   // Override for critical risk items
-  if (riskScore >= 9) return 'immediate';
+  if (riskScore >= 9.2) return 'immediate';
 
-  if (score >= 8.5) return 'immediate';
-  if (score >= 7.0) return 'current-quarter';
-  if (score >= 5.0) return 'next-quarter';
-  if (score >= 3.0) return 'backlog';
+  if (score >= 8.2) return 'immediate';
+  if (score >= 6.5) return 'current-quarter';
+  if (score >= 4.0) return 'next-quarter';
+  if (score >= 2.0) return 'backlog';
   return 'declined';
 }
 
