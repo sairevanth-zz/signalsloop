@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { categorizeFeedback, batchCategorizeFeedback, getCurrentModel } from '@/lib/ai-categorization';
+import { categorizePost, SAAS_CATEGORIES } from '@/lib/enhanced-categorization';
 import { createClient } from '@supabase/supabase-js';
 import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
+import { checkDemoRateLimit, incrementDemoUsage, getClientIP, getTimeUntilReset } from '@/lib/demo-rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 /**
  * POST /api/ai/categorize
- * Categorizes feedback posts using AI
+ * Categorizes feedback posts using enhanced AI system
  */
 export async function POST(request: NextRequest) {
   try {
@@ -36,13 +37,31 @@ export async function POST(request: NextRequest) {
           { status: 429 }
         );
       }
+    } else {
+      // Demo/unauthenticated user - use IP-based rate limiting
+      const clientIP = getClientIP(request);
+      const demoCheck = checkDemoRateLimit(clientIP, 'categorization');
+
+      if (!demoCheck.allowed) {
+        return NextResponse.json(
+          {
+            error: 'Demo rate limit exceeded',
+            message: `You've reached the demo limit of ${demoCheck.limit} categorizations per hour. Try again in ${getTimeUntilReset(demoCheck.resetAt)} or sign up for unlimited access!`,
+            limit: demoCheck.limit,
+            remaining: demoCheck.remaining,
+            resetAt: demoCheck.resetAt,
+            isDemo: true
+          },
+          { status: 429 }
+        );
+      }
     }
 
     // Handle single post categorization
     if (body.title) {
-      const { title, description, projectId } = body;
+      const { title, description, projectId, userTier, voteCount } = body;
       console.log('🤖 Categorizing:', { title, description });
-      
+
       if (!title || typeof title !== 'string') {
         return NextResponse.json(
           { error: 'Title is required and must be a string' },
@@ -50,12 +69,20 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const result = await categorizeFeedback(title, description);
+      const result = await categorizePost(title, description || '', {
+        userTier: userTier || 'free',
+        voteCount: voteCount || 0,
+      });
+
       console.log('🤖 Categorization result:', result);
 
       // Increment usage after successful categorization
       if (projectId) {
         await incrementAIUsage(projectId, 'categorization');
+      } else {
+        // Increment demo usage for unauthenticated users
+        const clientIP = getClientIP(request);
+        incrementDemoUsage(clientIP, 'categorization');
       }
 
       // Get updated usage info
@@ -63,7 +90,7 @@ export async function POST(request: NextRequest) {
       if (projectId) {
         const usage = await checkAIUsageLimit(projectId, 'categorization');
         usageInfo = {
-          current: usage.current + 1, // Include the one we just used
+          current: usage.current + 1,
           limit: usage.limit,
           remaining: usage.remaining - 1,
           isPro: usage.isPro
@@ -73,11 +100,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         result,
-        model: getCurrentModel(),
+        model: process.env.CATEGORIZATION_MODEL || 'gpt-4o-mini',
         usage: usageInfo
       });
     }
-    
+
     // Handle batch categorization
     if (Array.isArray(body.posts)) {
       if (body.posts.length === 0) {
@@ -97,12 +124,20 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const results = await batchCategorizeFeedback(body.posts);
-      
+      const results = await Promise.all(
+        body.posts.map(async (post: any) => ({
+          id: post.id,
+          result: await categorizePost(post.title, post.description || '', {
+            userTier: post.userTier || 'free',
+            voteCount: post.voteCount || 0,
+          })
+        }))
+      );
+
       return NextResponse.json({
         success: true,
         results,
-        model: getCurrentModel()
+        model: process.env.CATEGORIZATION_MODEL || 'gpt-4o-mini'
       });
     }
 
@@ -113,9 +148,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error in AI categorization API:', error);
-    
+
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -136,7 +171,7 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE!
     );
     const authHeader = request.headers.get('authorization');
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -146,7 +181,7 @@ export async function GET(request: NextRequest) {
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Invalid authentication' },
@@ -170,7 +205,7 @@ export async function GET(request: NextRequest) {
 
     if (userData.plan !== 'pro') {
       return NextResponse.json(
-        { 
+        {
           error: 'AI categorization is a Pro feature',
           upgrade_required: true,
           feature: 'ai_categorization'
@@ -179,25 +214,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Return enhanced categories
+    const categories = Object.entries(SAAS_CATEGORIES).reduce((acc, [name, config]) => {
+      acc[name] = config.description;
+      return acc;
+    }, {} as Record<string, string>);
+
     return NextResponse.json({
       success: true,
-      categories: {
-        'Bug': 'Reports of broken functionality, errors, or unexpected behavior',
-        'Feature Request': 'Requests for new features or functionality',
-        'Improvement': 'Suggestions to enhance existing features',
-        'UI/UX': 'Issues or suggestions related to user interface or user experience',
-        'Integration': 'Requests or issues related to third-party integrations',
-        'Performance': 'Issues or suggestions related to speed, efficiency, or resource usage',
-        'Documentation': 'Requests for better documentation or help content',
-        'Other': 'Anything that doesn\'t fit the above categories'
-      },
-      model: getCurrentModel()
+      categories,
+      model: process.env.CATEGORIZATION_MODEL || 'gpt-4o-mini'
     });
   } catch (error) {
     console.error('Error in AI categorization GET API:', error);
-    
+
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

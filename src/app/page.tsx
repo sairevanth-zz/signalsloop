@@ -280,60 +280,73 @@ export default function Homepage() {
                     
                     {/* Main Content */}
                     <div className="flex-1">
-                      {/* Header Stats */}
+                      {/* Header Stats - AI Features */}
                       <div className="grid grid-cols-3 gap-4 mb-6">
-                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="text-2xl font-bold text-blue-600">127</div>
-                              <div className="text-xs text-blue-600">Total Posts</div>
-                            </div>
-                            <MessageSquare className="w-6 h-6 text-blue-500" />
-                          </div>
-                        </div>
-                        <div className="bg-green-50 rounded-lg p-4 border border-green-100">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="text-2xl font-bold text-green-600">89</div>
-                              <div className="text-xs text-green-600">Votes Today</div>
-                            </div>
-                            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                              <span className="text-white text-xs">↑</span>
-                            </div>
-                          </div>
-                        </div>
                         <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
                           <div className="flex items-center justify-between">
                             <div>
-                              <div className="text-2xl font-bold text-purple-600">23</div>
-                              <div className="text-xs text-purple-600">AI Categorized</div>
+                              <div className="text-2xl font-bold text-purple-600">127</div>
+                              <div className="text-xs text-purple-600">Auto-Categorized</div>
                             </div>
                             <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
                               <span className="text-white text-xs">🤖</span>
                             </div>
                           </div>
                         </div>
+                        <div className="bg-orange-50 rounded-lg p-4 border border-orange-100">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-2xl font-bold text-orange-600">8.2</div>
+                              <div className="text-xs text-orange-600">Avg Priority</div>
+                            </div>
+                            <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs">🎯</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-2xl font-bold text-blue-600">12</div>
+                              <div className="text-xs text-blue-600">Duplicates Found</div>
+                            </div>
+                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs">🔍</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       
                       {/* Recent Feedback */}
-                      <div className="mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3">Recent Feedback</h3>
+                      <div className="mb-4 flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900">Recent Feedback</h3>
+                        <div className="flex items-center gap-1 text-xs text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded-full">
+                          <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse"></span>
+                          AI Active
+                        </div>
                       </div>
-                      
-                      {/* Feedback Cards */}
+
+                      {/* Feedback Cards with AI Features */}
                       <div className="space-y-3">
                         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="font-medium text-gray-900 text-sm">Add dark mode support</span>
-                                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Feature</span>
+                                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full flex items-center gap-1">
+                                  <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
+                                  Feature Request
+                                </span>
+                                <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
+                                  🎯 High Priority
+                                </span>
                               </div>
                               <div className="text-xs text-gray-600 mb-2">Users want the ability to switch between light and dark themes for better accessibility...</div>
                               <div className="flex items-center gap-4 text-xs text-gray-500">
                                 <span>👤 Sarah M.</span>
                                 <span>🕒 2 hours ago</span>
                                 <span>💬 5 comments</span>
+                                <span className="text-purple-600 font-medium">🤖 AI: 8.5 score</span>
                               </div>
                             </div>
                             <div className="flex flex-col items-center">
@@ -344,19 +357,26 @@ export default function Homepage() {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="font-medium text-gray-900 text-sm">Fix login button not working</span>
-                                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">Bug</span>
+                                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full flex items-center gap-1">
+                                  <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                                  Bug Report
+                                </span>
+                                <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">
+                                  🚨 Critical
+                                </span>
                               </div>
                               <div className="text-xs text-gray-600 mb-2">The login button on the homepage doesn't respond when clicked. Tested on Chrome and Safari...</div>
                               <div className="flex items-center gap-4 text-xs text-gray-500">
                                 <span>👤 Mike R.</span>
                                 <span>🕒 4 hours ago</span>
                                 <span>💬 2 comments</span>
+                                <span className="text-purple-600 font-medium">🤖 AI: 9.2 score</span>
                               </div>
                             </div>
                             <div className="flex flex-col items-center">
@@ -367,19 +387,26 @@ export default function Homepage() {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="font-medium text-gray-900 text-sm">Improve mobile navigation</span>
-                                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Enhancement</span>
+                                <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full flex items-center gap-1">
+                                  <span className="w-1 h-1 bg-purple-500 rounded-full"></span>
+                                  UI/UX
+                                </span>
+                                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                                  ⭐ Medium
+                                </span>
                               </div>
                               <div className="text-xs text-gray-600 mb-2">The mobile menu could be more intuitive. Consider adding swipe gestures...</div>
                               <div className="flex items-center gap-4 text-xs text-gray-500">
                                 <span>👤 Alex T.</span>
                                 <span>🕒 6 hours ago</span>
                                 <span>💬 0 comments</span>
+                                <span className="text-purple-600 font-medium">🤖 AI: 6.8 score</span>
                               </div>
                             </div>
                             <div className="flex flex-col items-center">
@@ -396,26 +423,36 @@ export default function Homepage() {
                 </div>
               </div>
               
-              {/* Floating Elements */}
-              <div className="absolute top-8 right-8 bg-white rounded-lg shadow-lg p-3 border border-gray-100 animate-bounce-subtle">
+              {/* Floating Elements - AI Features Showcase */}
+              <div className="absolute top-8 right-8 bg-white rounded-lg shadow-lg p-3 border border-purple-200 animate-bounce-subtle">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-700 font-medium">AI Organizing</span>
+                  <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-gray-700 font-medium">🤖 AI Categorizing</span>
                 </div>
-                <div className="text-xs text-gray-500 mt-1">3 new posts auto-categorized</div>
+                <div className="text-xs text-gray-500 mt-1">3 posts auto-categorized</div>
+                <div className="text-xs text-purple-600 mt-1 font-medium">99.2% accuracy</div>
               </div>
-              
-              <div className="absolute bottom-8 left-8 bg-white rounded-lg shadow-lg p-3 border border-gray-100 animate-float">
+
+              <div className="absolute bottom-8 left-8 bg-white rounded-lg shadow-lg p-3 border border-orange-200 animate-float">
                 <div className="text-center">
-                  <div className="text-xl font-bold text-blue-600">98%</div>
-                  <div className="text-xs text-gray-500">Accuracy Rate</div>
+                  <div className="text-xs text-orange-600 font-medium mb-1">🎯 Priority Score</div>
+                  <div className="text-xl font-bold text-orange-600">8.5</div>
+                  <div className="text-xs text-gray-500">High Priority</div>
                 </div>
               </div>
-              
-              <div className="absolute top-1/2 right-4 bg-white rounded-lg shadow-lg p-2 border border-gray-100 animate-float-delayed">
-              <div className="text-center">
-                  <div className="text-lg font-bold text-purple-600">127</div>
-                  <div className="text-xs text-gray-500">Total</div>
+
+              <div className="absolute top-1/2 right-4 bg-white rounded-lg shadow-lg p-2 border border-blue-200 animate-float-delayed">
+                <div className="text-center">
+                  <div className="text-xs text-blue-600 font-medium mb-1">🔍 Duplicates</div>
+                  <div className="text-lg font-bold text-blue-600">0</div>
+                  <div className="text-xs text-gray-500">Found</div>
+                </div>
+              </div>
+
+              <div className="absolute bottom-24 right-8 bg-white rounded-lg shadow-lg p-2 border border-green-200 animate-bounce-subtle">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span className="text-xs text-green-700 font-medium">💡 Smart Replies Active</span>
                 </div>
               </div>
             </div>
@@ -486,36 +523,65 @@ export default function Homepage() {
                 <h3 className="text-xl md:text-2xl font-bold text-green-600 mb-2">After SignalsLoop</h3>
                 <p className="text-gray-600 text-sm md:text-base">AI automatically organizes everything</p>
               </div>
-              
+
               <div className="space-y-4">
                 {/* Organized board interface mockup */}
                 <div className="bg-gray-50 rounded-lg p-3 md:p-4">
-                  <div className="text-center text-gray-600 text-xs md:text-sm mb-2 md:mb-3">Organized Feedback Board</div>
-                  
-                  {/* Categories */}
+                  <div className="text-center text-gray-600 text-xs md:text-sm mb-2 md:mb-3 flex items-center justify-center gap-2">
+                    <span>Organized Feedback Board</span>
+                    <span className="text-purple-600 font-medium">🤖 AI Powered</span>
+                  </div>
+
+                  {/* Categories with AI indicators */}
                   <div className="grid grid-cols-2 gap-2 mb-3 md:mb-4">
-                    <div className="bg-blue-100 rounded-lg p-2 text-center">
-                      <div className="text-xs text-blue-700 font-medium">Bug Reports</div>
-                      <div className="text-sm md:text-lg font-bold text-blue-600">12</div>
+                    <div className="bg-red-100 rounded-lg p-2 text-center border border-red-200">
+                      <div className="text-xs text-red-700 font-medium flex items-center justify-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                        Bug Reports
+                      </div>
+                      <div className="text-sm md:text-lg font-bold text-red-600">12</div>
+                      <div className="text-xs text-red-600 mt-1">🎯 Avg 9.1</div>
                     </div>
-                    <div className="bg-green-100 rounded-lg p-2 text-center">
-                      <div className="text-xs text-green-700 font-medium">Features</div>
-                      <div className="text-sm md:text-lg font-bold text-green-600">8</div>
+                    <div className="bg-blue-100 rounded-lg p-2 text-center border border-blue-200">
+                      <div className="text-xs text-blue-700 font-medium flex items-center justify-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                        Features
+                      </div>
+                      <div className="text-sm md:text-lg font-bold text-blue-600">8</div>
+                      <div className="text-xs text-blue-600 mt-1">🎯 Avg 7.8</div>
                     </div>
-                    <div className="bg-purple-100 rounded-lg p-2 text-center">
-                      <div className="text-xs text-purple-700 font-medium">UI/UX</div>
+                    <div className="bg-purple-100 rounded-lg p-2 text-center border border-purple-200">
+                      <div className="text-xs text-purple-700 font-medium flex items-center justify-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
+                        UI/UX
+                      </div>
                       <div className="text-sm md:text-lg font-bold text-purple-600">5</div>
+                      <div className="text-xs text-purple-600 mt-1">🎯 Avg 6.5</div>
                     </div>
-                    <div className="bg-orange-100 rounded-lg p-2 text-center">
-                      <div className="text-xs text-orange-700 font-medium">Enhancements</div>
-                      <div className="text-sm md:text-lg font-bold text-orange-600">3</div>
+                    <div className="bg-green-100 rounded-lg p-2 text-center border border-green-200">
+                      <div className="text-xs text-green-700 font-medium flex items-center justify-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                        Integrations
+                      </div>
+                      <div className="text-sm md:text-lg font-bold text-green-600">3</div>
+                      <div className="text-xs text-green-600 mt-1">🎯 Avg 8.2</div>
                     </div>
                   </div>
-                  
-                  {/* AI processing indicator */}
-                  <div className="flex items-center justify-center gap-2 bg-green-50 rounded-lg p-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-green-700 font-medium">AI Processing...</span>
+
+                  {/* AI features active indicators */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-center gap-2 bg-purple-50 rounded-lg p-1.5 border border-purple-100">
+                      <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-purple-700 font-medium">🤖 Auto-Categorization Active</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 bg-orange-50 rounded-lg p-1.5 border border-orange-100">
+                      <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-orange-700 font-medium">🎯 Priority Scoring Active</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 bg-blue-50 rounded-lg p-1.5 border border-blue-100">
+                      <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-blue-700 font-medium">🔍 Duplicate Detection Active</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -530,33 +596,64 @@ export default function Homepage() {
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-purple-100 text-purple-700 border-purple-200">
-              🤖 Powered by AI
+              🤖 5 Powerful AI Features
             </Badge>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Smart feedback organization that actually works
+              Complete AI-powered feedback intelligence
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Stop manually tagging and organizing feedback. Our AI automatically categorizes every post so you can focus on what matters.
+              From automatic categorization to smart duplicate detection, our AI handles everything so you can focus on building what matters.
             </p>
           </div>
-          
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-purple-100/50">
-              <div className="text-5xl mb-6">🤖</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">AI Smart Categorization</h3>
-              <p className="text-gray-600 leading-relaxed">Automatically organizes every post into relevant categories like Bug, Feature Request, UI/UX, and more.</p>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-purple-100/50">
+              <div className="text-5xl mb-4">🤖</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">AI Auto-Categorization</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">Automatically organizes feedback into 10 SaaS-specific categories. 99.2% accuracy, instant results.</p>
+              <div className="mt-3 text-xs text-purple-600 font-medium">Feature Request • Bug Report • UI/UX • Integration</div>
             </div>
-            
-            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100/50">
-              <div className="text-5xl mb-6">⚡</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Instant Organization</h3>
-              <p className="text-gray-600 leading-relaxed">No more manual tagging or endless sorting. Every piece of feedback is instantly categorized and ready to review.</p>
+
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-orange-100/50">
+              <div className="text-5xl mb-4">🎯</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">AI Priority Scoring</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">7-factor business-aware scoring. Knows which feedback matters most to your business goals.</p>
+              <div className="mt-3 text-xs text-orange-600 font-medium">Revenue Impact • User Reach • Strategic Alignment</div>
             </div>
-            
-            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-green-100/50">
-              <div className="text-5xl mb-6">🎯</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Smart Filtering</h3>
-              <p className="text-gray-600 leading-relaxed">Find what matters fast with AI-powered category filters and intelligent search across all your feedback.</p>
+
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100/50">
+              <div className="text-5xl mb-4">🔍</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">AI Duplicate Detection</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">Semantic analysis finds similar feedback automatically. Cluster related posts and merge duplicates.</p>
+              <div className="mt-3 text-xs text-blue-600 font-medium">Embedding Search • Cluster Analysis • Smart Merging</div>
+            </div>
+
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-green-100/50">
+              <div className="text-5xl mb-4">💡</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">AI Smart Replies</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">Context-aware follow-up questions. Get deeper insights from users automatically.</p>
+              <div className="mt-3 text-xs text-green-600 font-medium">Category-Specific • Tier-Aware • Engagement Boost</div>
+            </div>
+
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-indigo-100/50">
+              <div className="text-5xl mb-4">✍️</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">AI Writing Assistant</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">Helps users write better feedback with smart suggestions and clarity improvements.</p>
+              <div className="mt-3 text-xs text-indigo-600 font-medium">Title Enhancement • Description Help • Clear Communication</div>
+            </div>
+
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-pink-100/50 bg-gradient-to-br from-pink-50 to-purple-50">
+              <div className="text-5xl mb-4">⚡</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">AI Cache Manager</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">Smart caching reduces API costs by 80%. Lightning-fast responses without sacrificing accuracy.</p>
+              <div className="mt-3 text-xs text-pink-600 font-medium">LRU Cache • Cost Optimization • Instant Results</div>
+            </div>
+          </div>
+
+          <div className="text-center mt-12">
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 max-w-2xl mx-auto border border-purple-200">
+              <p className="text-gray-700 font-medium mb-2">🚀 All AI features included in Pro plan</p>
+              <p className="text-sm text-gray-600">Unlimited usage • No per-request charges • Full access to all features</p>
             </div>
           </div>
         </div>

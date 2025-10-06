@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Advanced Priority Scoring</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .form-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .form-section h3 {
+            margin: 0 0 15px 0;
+            color: #334155;
+            font-size: 16px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+            font-size: 13px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        input[type="number"] {
+            width: auto;
+            min-width: 100px;
+        }
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #4f46e5;
+        }
+        button:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 30px;
+        }
+        .priority-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .priority-level {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        .priority-score {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .priority-action {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .score-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 15px;
+        }
+        .score-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .score-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .score-bar {
+            background: #e2e8f0;
+            height: 6px;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+            transition: width 0.3s ease;
+        }
+        .info-box {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info-title {
+            font-weight: 600;
+            color: #0c4a6e;
+            margin-bottom: 8px;
+        }
+        .info-text {
+            color: #0369a1;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .dependencies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .tag {
+            background: #e0e7ff;
+            color: #4338ca;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .examples {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #eff6ff;
+            border-radius: 6px;
+        }
+        .example-btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #333;
+        }
+        .example-btn:hover {
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Test Advanced Priority Scoring</h1>
+        <p class="subtitle">Multi-factor AI-powered prioritization with business context</p>
+
+        <div class="examples">
+            <strong>Quick Test Examples:</strong><br>
+            <button class="example-btn" onclick="loadExample('enterprise-bug')">🏢 Enterprise Critical Bug</button>
+            <button class="example-btn" onclick="loadExample('popular-feature')">🔥 Highly Voted Feature</button>
+            <button class="example-btn" onclick="loadExample('small-request')">💡 Small Request</button>
+            <button class="example-btn" onclick="loadExample('growth-feature')">📈 Growth Strategy Feature</button>
+        </div>
+
+        <form id="testForm">
+            <div class="form-grid">
+                <div class="form-section">
+                    <h3>📝 Post Details</h3>
+                    <div class="form-group">
+                        <label for="title">Title *</label>
+                        <input type="text" id="title" required placeholder="e.g., Add SSO authentication">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" placeholder="Detailed description..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category">
+                            <option value="">None</option>
+                            <option value="feature">Feature Request</option>
+                            <option value="bug">Bug</option>
+                            <option value="performance">Performance</option>
+                            <option value="security">Security</option>
+                            <option value="integration">Integration</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>📈 Metrics</h3>
+                    <div class="form-group">
+                        <label for="voteCount">Vote Count</label>
+                        <input type="number" id="voteCount" value="10" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="commentCount">Comment Count</label>
+                        <input type="number" id="commentCount" value="3" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="uniqueVoters">Unique Voters</label>
+                        <input type="number" id="uniqueVoters" value="8" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="percentageOfActiveUsers">% of Active Users</label>
+                        <input type="number" id="percentageOfActiveUsers" value="5" min="0" max="100" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="similarPostsCount">Similar Posts Count</label>
+                        <input type="number" id="similarPostsCount" value="2" min="0">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>👤 User Context</h3>
+                    <div class="form-group">
+                        <label for="userTier">User Tier</label>
+                        <select id="userTier">
+                            <option value="free">Free</option>
+                            <option value="pro">Pro</option>
+                            <option value="enterprise">Enterprise</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="companySize">Company Size</label>
+                        <input type="number" id="companySize" value="50" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="mrr">MRR ($)</label>
+                        <input type="number" id="mrr" value="500" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="isChampion">
+                            Power User / Champion
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>🎯 Business Context</h3>
+                    <div class="form-group">
+                        <label for="currentQuarter">Current Quarter</label>
+                        <select id="currentQuarter">
+                            <option value="Q1">Q1</option>
+                            <option value="Q2">Q2</option>
+                            <option value="Q3">Q3</option>
+                            <option value="Q4">Q4</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="companyStrategy">Company Strategy</label>
+                        <select id="companyStrategy">
+                            <option value="growth">Growth</option>
+                            <option value="retention">Retention</option>
+                            <option value="enterprise">Enterprise</option>
+                            <option value="profitability">Profitability</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="upcomingMilestone">Upcoming Milestone</label>
+                        <input type="text" id="upcomingMilestone" placeholder="e.g., Series B, Enterprise Launch">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn">Calculate Priority Score</button>
+        </form>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const examples = {
+            'enterprise-bug': {
+                title: 'Data export failing for large datasets',
+                description: 'When exporting more than 10k rows, the system times out and loses all data. Critical for our monthly reporting.',
+                category: 'bug',
+                voteCount: 25,
+                commentCount: 12,
+                uniqueVoters: 20,
+                percentageOfActiveUsers: 15,
+                similarPostsCount: 5,
+                userTier: 'enterprise',
+                companySize: 500,
+                mrr: 5000,
+                isChampion: true,
+                currentQuarter: 'Q2',
+                companyStrategy: 'enterprise',
+                upcomingMilestone: 'Enterprise Launch'
+            },
+            'popular-feature': {
+                title: 'Add dark mode support',
+                description: 'Many users work late at night and would appreciate a dark mode option.',
+                category: 'feature',
+                voteCount: 89,
+                commentCount: 23,
+                uniqueVoters: 85,
+                percentageOfActiveUsers: 25,
+                similarPostsCount: 8,
+                userTier: 'pro',
+                companySize: 20,
+                mrr: 99,
+                isChampion: false,
+                currentQuarter: 'Q2',
+                companyStrategy: 'growth',
+                upcomingMilestone: ''
+            },
+            'small-request': {
+                title: 'Add keyboard shortcut for search',
+                description: 'Would be nice to have Cmd+K to open search',
+                category: 'feature',
+                voteCount: 3,
+                commentCount: 1,
+                uniqueVoters: 3,
+                percentageOfActiveUsers: 0.5,
+                similarPostsCount: 0,
+                userTier: 'free',
+                companySize: 1,
+                mrr: 0,
+                isChampion: false,
+                currentQuarter: 'Q2',
+                companyStrategy: 'profitability',
+                upcomingMilestone: ''
+            },
+            'growth-feature': {
+                title: 'Social sharing and referrals program',
+                description: 'Let users share their content and earn credits for referrals',
+                category: 'feature',
+                voteCount: 45,
+                commentCount: 18,
+                uniqueVoters: 40,
+                percentageOfActiveUsers: 12,
+                similarPostsCount: 3,
+                userTier: 'pro',
+                companySize: 10,
+                mrr: 199,
+                isChampion: true,
+                currentQuarter: 'Q2',
+                companyStrategy: 'growth',
+                upcomingMilestone: 'Series A'
+            }
+        };
+
+        function loadExample(type) {
+            const ex = examples[type];
+            document.getElementById('title').value = ex.title;
+            document.getElementById('description').value = ex.description;
+            document.getElementById('category').value = ex.category;
+            document.getElementById('voteCount').value = ex.voteCount;
+            document.getElementById('commentCount').value = ex.commentCount;
+            document.getElementById('uniqueVoters').value = ex.uniqueVoters;
+            document.getElementById('percentageOfActiveUsers').value = ex.percentageOfActiveUsers;
+            document.getElementById('similarPostsCount').value = ex.similarPostsCount;
+            document.getElementById('userTier').value = ex.userTier;
+            document.getElementById('companySize').value = ex.companySize;
+            document.getElementById('mrr').value = ex.mrr;
+            document.getElementById('isChampion').checked = ex.isChampion;
+            document.getElementById('currentQuarter').value = ex.currentQuarter;
+            document.getElementById('companyStrategy').value = ex.companyStrategy;
+            document.getElementById('upcomingMilestone').value = ex.upcomingMilestone;
+        }
+
+        const form = document.getElementById('testForm');
+        const resultsDiv = document.getElementById('results');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                post: {
+                    id: 'test-' + Date.now(),
+                    title: document.getElementById('title').value,
+                    description: document.getElementById('description').value,
+                    category: document.getElementById('category').value || undefined,
+                    createdAt: new Date().toISOString()
+                },
+                metrics: {
+                    voteCount: parseInt(document.getElementById('voteCount').value) || 0,
+                    commentCount: parseInt(document.getElementById('commentCount').value) || 0,
+                    uniqueVoters: parseInt(document.getElementById('uniqueVoters').value) || 0,
+                    percentageOfActiveUsers: parseFloat(document.getElementById('percentageOfActiveUsers').value) || 0,
+                    similarPostsCount: parseInt(document.getElementById('similarPostsCount').value) || 0
+                },
+                user: {
+                    tier: document.getElementById('userTier').value,
+                    companySize: parseInt(document.getElementById('companySize').value) || undefined,
+                    mrr: parseInt(document.getElementById('mrr').value) || undefined,
+                    isChampion: document.getElementById('isChampion').checked
+                },
+                businessContext: {
+                    currentQuarter: document.getElementById('currentQuarter').value,
+                    companyStrategy: document.getElementById('companyStrategy').value,
+                    upcomingMilestone: document.getElementById('upcomingMilestone').value || undefined
+                }
+            };
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Calculating...';
+            resultsDiv.innerHTML = '<div class="loading">🤖 Analyzing and calculating priority score...</div>';
+
+            try {
+                const response = await fetch('/api/ai/priority-score-v2', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to calculate score');
+                }
+
+                displayResults(result);
+
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Calculate Priority Score';
+            }
+        });
+
+        function displayResults(response) {
+            const { score, metadata } = response;
+
+            const priorityColors = {
+                immediate: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+                'current-quarter': 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                'next-quarter': 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                backlog: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                declined: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)'
+            };
+
+            let html = `
+                <div class="results">
+                    <div class="priority-header" style="background: ${priorityColors[score.priorityLevel]}">
+                        <div class="priority-level">Priority Level: ${score.priorityLevel.toUpperCase().replace('-', ' ')}</div>
+                        <div class="priority-score">${score.weightedScore.toFixed(1)}/10</div>
+                        <div class="priority-action">
+                            📅 ${score.quarterRecommendation} |
+                            🎯 ${score.suggestedAction.toUpperCase()}
+                            ${score.estimatedDays ? ` | ⏱️ ~${score.estimatedDays} days` : ''}
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-title">Business Justification</div>
+                        <div class="info-text">${score.businessJustification}</div>
+                    </div>
+
+                    <div class="scores-grid">
+            `;
+
+            for (const [factor, value] of Object.entries(score.scores)) {
+                const label = factor.replace(/([A-Z])/g, ' $1').trim();
+                html += `
+                    <div class="score-card">
+                        <div class="score-label">${label}</div>
+                        <div class="score-value">${value.toFixed(1)}</div>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${value * 10}%"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+
+            if (score.dependencies && score.dependencies.length > 0) {
+                html += `
+                    <div class="info-box">
+                        <div class="info-title">Dependencies</div>
+                        <div class="dependencies">
+                            ${score.dependencies.map(d => `<span class="tag">${d}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                    <p style="color: #94a3b8; font-size: 12px; margin-top: 20px;">
+                        Generated: ${new Date(metadata.timestamp).toLocaleString()}
+                    </p>
+                </div>
+            `;
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Load default example
+        loadExample('popular-feature');
+    </script>
+</body>
+</html>

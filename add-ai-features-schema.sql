@@ -28,6 +28,11 @@ CREATE INDEX IF NOT EXISTS idx_posts_ai_analyzed_at ON posts(ai_analyzed_at);
 -- 4. Add RLS policies for post_similarities
 ALTER TABLE post_similarities ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view similarities for their project posts" ON post_similarities;
+DROP POLICY IF EXISTS "Users can update similarities for their project posts" ON post_similarities;
+DROP POLICY IF EXISTS "System can insert similarities" ON post_similarities;
+
 -- Allow project owners to view similarities for their posts
 CREATE POLICY "Users can view similarities for their project posts" ON post_similarities
   FOR SELECT USING (
@@ -66,6 +71,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 6. Trigger for similarity timestamp updates
+DROP TRIGGER IF EXISTS update_similarity_timestamp_trigger ON post_similarities;
 CREATE TRIGGER update_similarity_timestamp_trigger
   BEFORE UPDATE ON post_similarities
   FOR EACH ROW

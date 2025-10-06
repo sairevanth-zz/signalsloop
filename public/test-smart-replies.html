@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Enhanced Smart Replies</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background: #4f46e5;
+        }
+        button:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .results h3 {
+            margin-top: 0;
+            color: #334155;
+        }
+        .reply-item {
+            background: white;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #6366f1;
+        }
+        .reply-text {
+            font-size: 15px;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        .reply-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+        .error {
+            background: #fee;
+            border-left-color: #dc2626;
+            color: #991b1b;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Enhanced Smart Replies</h1>
+        <p class="subtitle">Test the new AI-powered follow-up questions generator</p>
+
+        <form id="testForm">
+            <div class="form-group">
+                <label for="title">Feedback Title *</label>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    required
+                    placeholder="e.g., Dashboard is loading very slowly"
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Additional details about the feedback..."
+                ></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                    <option value="">Auto-detect</option>
+                    <option value="bug">Bug</option>
+                    <option value="feature">Feature Request</option>
+                    <option value="improvement">Improvement</option>
+                    <option value="integration">Integration</option>
+                    <option value="performance">Performance</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="userTier">User Tier</label>
+                <select id="userTier" name="userTier">
+                    <option value="free">Free</option>
+                    <option value="pro">Pro</option>
+                    <option value="enterprise">Enterprise</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="voteCount">Vote Count</label>
+                <input
+                    type="number"
+                    id="voteCount"
+                    name="voteCount"
+                    min="0"
+                    value="0"
+                    placeholder="0"
+                />
+            </div>
+
+            <button type="submit" id="submitBtn">Generate Smart Replies</button>
+        </form>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('testForm');
+        const resultsDiv = document.getElementById('results');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const data = {
+                title: formData.get('title'),
+                description: formData.get('description') || '',
+                category: formData.get('category') || undefined,
+                userTier: formData.get('userTier'),
+                voteCount: parseInt(formData.get('voteCount')) || 0
+            };
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Generating...';
+            resultsDiv.innerHTML = '<div class="loading">🤖 Generating smart replies...</div>';
+
+            try {
+                const response = await fetch('/api/ai/smart-replies-v2', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to generate replies');
+                }
+
+                displayResults(result);
+
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="results">
+                        <div class="reply-item error">
+                            <strong>Error:</strong> ${error.message}
+                        </div>
+                    </div>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Generate Smart Replies';
+            }
+        });
+
+        function displayResults(result) {
+            const { replies, metadata } = result;
+
+            let html = `
+                <div class="results">
+                    <h3>✨ Generated Smart Replies (${replies.length})</h3>
+                    <p style="color: #64748b; font-size: 13px; margin-bottom: 20px;">
+                        Version: ${metadata.version} | ${new Date(metadata.timestamp).toLocaleString()}
+                    </p>
+            `;
+
+            replies.forEach((reply, index) => {
+                const priorityColors = {
+                    high: '#dc2626',
+                    medium: '#f59e0b',
+                    low: '#10b981'
+                };
+
+                html += `
+                    <div class="reply-item">
+                        <div class="reply-text">${reply.text}</div>
+                        <div class="reply-meta">
+                            <span class="badge" style="background: ${priorityColors[reply.priority]}20; color: ${priorityColors[reply.priority]}">
+                                ${reply.priority} priority
+                            </span>
+                            <span class="badge">${reply.type}</span>
+                            ${reply.metadata?.expectedResponseType ?
+                                `<span class="badge">expects: ${reply.metadata.expectedResponseType}</span>` : ''
+                            }
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+
+        // Pre-fill with example data
+        document.getElementById('title').value = 'Dashboard loading is very slow';
+        document.getElementById('description').value = 'When I open the dashboard, it takes over 30 seconds to load all the charts and metrics. This happens every time I visit.';
+        document.getElementById('category').value = 'performance';
+    </script>
+</body>
+</html>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Enhanced Categorization</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background: #4f46e5;
+        }
+        button:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .results h3 {
+            margin-top: 0;
+            color: #334155;
+        }
+        .category-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .info-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .info-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-size: 15px;
+            color: #1e293b;
+            font-weight: 500;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            background: #e0e7ff;
+            color: #4338ca;
+            font-size: 12px;
+            margin: 2px;
+        }
+        .keywords {
+            margin: 15px 0;
+        }
+        .reasoning {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #6366f1;
+            margin: 15px 0;
+            color: #475569;
+            font-style: italic;
+        }
+        .confidence-bar {
+            background: #e2e8f0;
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+            transition: width 0.3s ease;
+        }
+        .error {
+            background: #fee;
+            border-left-color: #dc2626;
+            color: #991b1b;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+        .examples {
+            margin-top: 20px;
+            padding: 15px;
+            background: #eff6ff;
+            border-radius: 6px;
+            border: 1px solid #bfdbfe;
+        }
+        .example-btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .example-btn:hover {
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test Enhanced Categorization</h1>
+        <p class="subtitle">Test the new AI-powered feedback categorization system</p>
+
+        <div class="examples">
+            <strong>Quick Test Examples:</strong><br>
+            <button class="example-btn" onclick="loadExample('bug')">🐛 Bug Example</button>
+            <button class="example-btn" onclick="loadExample('critical')">🚨 Critical Bug</button>
+            <button class="example-btn" onclick="loadExample('feature')">✨ Feature Request</button>
+            <button class="example-btn" onclick="loadExample('performance')">⚡ Performance Issue</button>
+            <button class="example-btn" onclick="loadExample('billing')">💳 Billing Issue</button>
+        </div>
+
+        <form id="testForm">
+            <div class="form-group">
+                <label for="title">Feedback Title *</label>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    required
+                    placeholder="e.g., Dashboard is loading very slowly"
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Additional details about the feedback..."
+                ></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="userTier">User Tier</label>
+                <select id="userTier" name="userTier">
+                    <option value="">Not specified</option>
+                    <option value="free">Free</option>
+                    <option value="pro">Pro</option>
+                    <option value="enterprise">Enterprise</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="voteCount">Vote Count</label>
+                <input
+                    type="number"
+                    id="voteCount"
+                    name="voteCount"
+                    min="0"
+                    value="0"
+                    placeholder="0"
+                />
+            </div>
+
+            <button type="submit" id="submitBtn">Categorize Feedback</button>
+        </form>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const examples = {
+            bug: {
+                title: 'Export button not working',
+                description: 'When I click the export button, nothing happens. This used to work last week.',
+                userTier: 'pro',
+                voteCount: 3
+            },
+            critical: {
+                title: 'Data loss after saving',
+                description: 'All my work was lost when I clicked save. This is a critical issue affecting our entire team.',
+                userTier: 'enterprise',
+                voteCount: 12
+            },
+            feature: {
+                title: 'Add dark mode support',
+                description: 'Would be great to have a dark mode option for late-night work sessions.',
+                userTier: 'free',
+                voteCount: 45
+            },
+            performance: {
+                title: 'Dashboard loading very slowly',
+                description: 'Takes over 30 seconds to load dashboard with charts. This happens every time.',
+                userTier: 'pro',
+                voteCount: 8
+            },
+            billing: {
+                title: 'Payment failed but subscription cancelled',
+                description: 'My payment failed once and now my entire subscription is cancelled. Need help ASAP.',
+                userTier: 'enterprise',
+                voteCount: 1
+            }
+        };
+
+        function loadExample(type) {
+            const example = examples[type];
+            document.getElementById('title').value = example.title;
+            document.getElementById('description').value = example.description;
+            document.getElementById('userTier').value = example.userTier;
+            document.getElementById('voteCount').value = example.voteCount;
+        }
+
+        const form = document.getElementById('testForm');
+        const resultsDiv = document.getElementById('results');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const data = {
+                title: formData.get('title'),
+                description: formData.get('description') || '',
+                userTier: formData.get('userTier') || undefined,
+                voteCount: parseInt(formData.get('voteCount')) || 0
+            };
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Categorizing...';
+            resultsDiv.innerHTML = '<div class="loading">🤖 Analyzing feedback...</div>';
+
+            try {
+                const response = await fetch('/api/ai/categorize-v2', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to categorize');
+                }
+
+                displayResults(result);
+
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="results">
+                        <div class="reasoning error">
+                            <strong>Error:</strong> ${error.message}
+                        </div>
+                    </div>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Categorize Feedback';
+            }
+        });
+
+        function displayResults(response) {
+            const { result, metadata } = response;
+            const {
+                primaryCategory,
+                secondaryCategories,
+                urgencyLevel,
+                userSegment,
+                estimatedComplexity,
+                revenueImpact,
+                confidence,
+                keywords,
+                reasoning,
+                suggestedTags,
+                autoResponse,
+                color
+            } = result;
+
+            const confidencePercent = Math.round(confidence * 100);
+
+            let html = `
+                <div class="results">
+                    <h3>📊 Categorization Result</h3>
+                    <p style="color: #64748b; font-size: 13px; margin-bottom: 20px;">
+                        Version: ${metadata.version} | ${new Date(metadata.timestamp).toLocaleString()}
+                    </p>
+
+                    <div class="category-badge" style="background-color: ${color}20; color: ${color}; border: 2px solid ${color};">
+                        ${primaryCategory}
+                    </div>
+
+                    ${secondaryCategories && secondaryCategories.length > 0 ? `
+                        <div style="margin: 10px 0;">
+                            <strong style="font-size: 13px; color: #64748b;">Secondary Categories:</strong><br>
+                            ${secondaryCategories.map(cat => `<span class="badge">${cat}</span>`).join(' ')}
+                        </div>
+                    ` : ''}
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Urgency</div>
+                            <div class="info-value" style="color: ${urgencyLevel === 'critical' ? '#dc2626' : urgencyLevel === 'high' ? '#f59e0b' : urgencyLevel === 'medium' ? '#3b82f6' : '#10b981'};">
+                                ${urgencyLevel.toUpperCase()}
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">User Segment</div>
+                            <div class="info-value">${userSegment}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Complexity</div>
+                            <div class="info-value">${estimatedComplexity}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Revenue Impact</div>
+                            <div class="info-value">${revenueImpact ? '💰 Yes' : '❌ No'}</div>
+                        </div>
+                    </div>
+
+                    <div class="reasoning">
+                        <strong>AI Reasoning:</strong> ${reasoning}
+                    </div>
+
+                    <div class="keywords">
+                        <strong style="font-size: 13px; color: #64748b;">Extracted Keywords:</strong><br>
+                        ${keywords.map(kw => `<span class="badge">${kw}</span>`).join(' ')}
+                    </div>
+
+                    ${suggestedTags && suggestedTags.length > 0 ? `
+                        <div class="keywords">
+                            <strong style="font-size: 13px; color: #64748b;">Suggested Tags:</strong><br>
+                            ${suggestedTags.map(tag => `<span class="badge" style="background: #d1fae5; color: #065f46;">${tag}</span>`).join(' ')}
+                        </div>
+                    ` : ''}
+
+                    <div>
+                        <strong style="font-size: 13px; color: #64748b;">Confidence: ${confidencePercent}%</strong>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${confidencePercent}%"></div>
+                        </div>
+                    </div>
+
+                    ${autoResponse ? `
+                        <div style="margin-top: 20px; padding: 15px; background: #f0fdf4; border-radius: 6px; border: 1px solid #86efac;">
+                            <strong style="color: #166534;">💬 Suggested Auto-Response:</strong>
+                            <p style="margin: 10px 0 0 0; color: #166534;">${autoResponse}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Load default example
+        loadExample('performance');
+    </script>
+</body>
+</html>
