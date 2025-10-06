@@ -394,7 +394,7 @@ function generateWidgetScript(config) {
         borderRadius: '12px',
         boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
         transition: 'transform 0.3s ease',
-        overflow: 'hidden'
+        overflow: 'auto' // CHANGED: enable scrolling in container
       });
     }
 
@@ -416,13 +416,12 @@ function generateWidgetScript(config) {
     const iframe = document.createElement('iframe');
     iframe.src = IFRAME_URL;
     iframe.setAttribute('allow', 'clipboard-write');
-    iframe.setAttribute('scrolling', 'yes'); // Enable scrolling
+    // Don't set scrolling attribute - let it be auto
     Object.assign(iframe.style, {
       width: '100%',
-      height: isMobile ? '100vh' : '100%', // Full viewport height for scrolling
+      height: '100%',
       border: 'none',
-      borderRadius: isMobile ? '0' : '12px',
-      overflow: 'auto' // Ensure overflow is handled
+      borderRadius: isMobile ? '0' : '12px'
     });
 
     // Listen for height messages from iframe for iOS scrolling

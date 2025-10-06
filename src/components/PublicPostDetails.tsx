@@ -265,27 +265,40 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
         .eq('post_id', post.id);
 
       // Get unique voter count
-      const { data: voters } = await supabase
-        .from('votes')
-        .select('voter_email')
-        .eq('post_id', post.id);
-
-      const uniqueVoters = new Set(voters?.map(v => v.voter_email) || []).size;
+      let uniqueVoters = 0;
+      try {
+        const { data: voters } = await supabase
+          .from('votes')
+          .select('voter_email')
+          .eq('post_id', post.id);
+        uniqueVoters = new Set(voters?.map(v => v.voter_email) || []).size;
+      } catch (error) {
+        console.warn('Could not fetch voters:', error);
+      }
 
       // Calculate active users percentage (voters who've voted in last 30 days)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const { count: recentVotersCount } = await supabase
-        .from('votes')
-        .select('*', { count: 'exact', head: true })
-        .eq('project_id', project.id)
-        .gte('created_at', thirtyDaysAgo.toISOString());
+      let recentVotersCount = 0;
+      let totalProjectVotes = 0;
 
-      const { count: totalProjectVotes } = await supabase
-        .from('votes')
-        .select('*', { count: 'exact', head: true })
-        .eq('project_id', project.id);
+      try {
+        const { count: recentCount } = await supabase
+          .from('votes')
+          .select('*', { count: 'exact', head: true })
+          .eq('project_id', project.id)
+          .gte('created_at', thirtyDaysAgo.toISOString());
+        recentVotersCount = recentCount || 0;
+
+        const { count: totalCount } = await supabase
+          .from('votes')
+          .select('*', { count: 'exact', head: true })
+          .eq('project_id', project.id);
+        totalProjectVotes = totalCount || 0;
+      } catch (error) {
+        console.warn('Could not fetch vote counts:', error);
+      }
 
       const percentageOfActiveUsers = totalProjectVotes
         ? Math.round((uniqueVoters / (recentVotersCount || 1)) * 100)
