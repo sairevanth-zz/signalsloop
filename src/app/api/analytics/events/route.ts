@@ -14,9 +14,20 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { event, apiKey, url, timestamp, ...properties } = body;
 
-    // Validate required fields
+    // Validate required fields - return 200 with warning instead of 400 to avoid console errors
     if (!event || !apiKey) {
-      return NextResponse.json({ error: 'Event and API key are required' }, { status: 400 });
+      console.warn('Analytics event missing required fields:', { event, apiKey });
+      return NextResponse.json({
+        success: false,
+        warning: 'Event and API key are required'
+      }, {
+        status: 200, // Return 200 instead of 400 to avoid console errors
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        }
+      });
     }
 
     // Get client IP and user agent
