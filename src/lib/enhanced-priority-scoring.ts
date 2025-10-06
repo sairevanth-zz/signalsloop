@@ -1,7 +1,6 @@
 /**
  * Advanced Priority Scoring System
  * Multi-factor analysis for intelligent prioritization
- * Updated: 2025-01-06 - Enforced bug minimums
  */
 
 import OpenAI from 'openai';
@@ -14,60 +13,6 @@ const openai = new OpenAI({
 const MODELS = {
   PRIORITY_SCORING: process.env.PRIORITY_MODEL || 'gpt-4o-mini',
 };
-
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
-const saturate = (value: number, scale: number) => 1 - Math.exp(-(Math.max(value, 0)) / Math.max(scale, 0.0001));
-
-const BUG_PATTERNS = [
-  /bug/i,
-  /error/i,
-  /broken/i,
-  /not\s+work/i,
-  /doesn['’]?t\s+work/i,
-  /doesn['’]?t\s+open/i,
-  /won['’]?t\s+open/i,
-  /fail(?:ed|s)?\s+to/i,
-  /unable\s+to/i,
-  /cannot/i,
-  /can't/i,
-  /won't/i,
-  /stuck/i,
-  /block(?:er|ed)?/i,
-  /crash/i,
-  /glitch/i,
-  /freeze/i,
-  /unresponsive/i,
-  /partial(?:ly)?\s+open/i,
-  /modal\s+(?:is\s+)?(?:not|never|won['’]?t|doesn['’]?t)\s+open/i,
-  /loading\s+forever/i
-];
-
-const FRUSTRATION_PATTERNS = [
-  /frustrat/i,
-  /annoy/i,
-  /difficult/i,
-  /pain/i,
-  /disrupt/i,
-  /block/i,
-  /urgent/i,
-  /asap/i,
-  /critical/i,
-  /can't/i,
-  /cannot/i,
-  /unable/i,
-  /stuck/i
-];
-
-const TEST_KEYWORD_PATTERNS = [
-  /\btest\b/i,
-  /\bdummy\b/i,
-  /\bplaceholder\b/i,
-  /\bignore\b/i,
-  /\bsample\b/i,
-  /\bqa\b/i,
-  /\bchecking\b/i,
-  /\bautomation\b/i
-];
 
 export interface PriorityContext {
   post: {
@@ -163,16 +108,6 @@ async function calculatePriorityScoreInternal(
 ): Promise<PriorityScore> {
   const { post, metrics, user, businessContext } = context;
 
-  const normalizedTitle = post.title.toLowerCase();
-  const normalizedDescription = (post.description || '').toLowerCase();
-  const combinedText = `${normalizedTitle} ${normalizedDescription}`;
-  const bugPatternMatch = BUG_PATTERNS.some(pattern => pattern.test(post.title) || pattern.test(post.description || ''));
-  const issueDetected = combinedText.includes('issue') || combinedText.includes('problem');
-  const severitySignal = /(broken|error|fail|failed|failing|cannot|can't|cant|won't|wont|doesn't|doesnt|stuck|block|blocked|blocking|modal|button|open|load|loading|crash|bug|urgent|critical|prevent|unable)/.test(combinedText);
-  const isBugReport = post.category === 'bug' || bugPatternMatch || (issueDetected && severitySignal);
-  const frustrationDetected = FRUSTRATION_PATTERNS.some(pattern => pattern.test(post.title) || pattern.test(post.description || ''));
-
-  // Build comprehensive analysis prompt
   const systemPrompt = `You are a senior product strategist with expertise in SaaS prioritization and revenue optimization. Analyze feedback with a strong focus on business impact.
 
 Company Context:
@@ -180,115 +115,36 @@ Company Context:
 - Current Quarter: ${businessContext?.currentQuarter || 'Q1'}
 - Upcoming Milestone: ${businessContext?.upcomingMilestone || 'none'}
 
-CRITICAL SCORING PRINCIPLES:
+Scoring Guidelines:
+1. Revenue Impact (0-10): Direct effect on MRR, churn reduction, expansion potential.
+2. User Reach (0-10): Portion of user base affected, viral/cohort impact.
+3. Strategic Alignment (0-10): How well this supports current company direction.
+4. Implementation Effort (0-10): INVERTED — 10=very easy, 0=very hard (consider tech debt & dependencies).
+5. Competitive Advantage (0-10): Differentiation, parity gaps, defensibility.
+6. Risk Mitigation (0-10): Security, compliance, reliability, brand risk.
+7. User Satisfaction (0-10): Friction reduction, delight factor, NPS impact.
 
-1. Revenue Impact (0-10):
-   - BUGS THAT BLOCK WORKFLOW = 8-10 (prevent user from doing their job → immediate churn risk)
-   - BUGS WITH WORKAROUNDS = 5-7 (friction → slow churn risk)
-   - Missing features = 3-6 (expansion opportunity)
-   - Nice-to-haves = 0-3
-   - Pro/Enterprise bugs = automatic +2 bonus (higher ARPU at risk)
+Additional Signals:
+- Votes: ${metrics.voteCount} (unique voters: ${metrics.uniqueVoters}, ${metrics.percentageOfActiveUsers.toFixed(1)}% of active base).
+- Comments: ${metrics.commentCount} (${metrics.commentCount > 5 ? 'high' : 'moderate'} engagement).
+- Similar Requests: ${metrics.similarPostsCount} (${metrics.similarPostsCount > 3 ? 'trend' : 'isolated'}).
+- User Tier: ${user.tier} (Pro/Enterprise reports mean higher retention risk).
 
-2. User Reach (0-10):
-   - Based on ${metrics.percentageOfActiveUsers.toFixed(1)}% of active users affected
-   - 0-5% = score 1-3
-   - 5-15% = score 4-6
-   - 15-30% = score 7-8
-   - 30%+ = score 9-10
+Return JSON only.`;
 
-3. Strategic Alignment (0-10):
-   - ${businessContext?.companyStrategy === 'retention' ? 'RETENTION STRATEGY: Prioritize bugs and UX improvements (score 7-10)' : ''}
-   - ${businessContext?.companyStrategy === 'growth' ? 'GROWTH STRATEGY: Prioritize viral features and onboarding (score 7-10)' : ''}
-   - ${businessContext?.companyStrategy === 'enterprise' ? 'ENTERPRISE STRATEGY: Prioritize scale, security, integrations (score 7-10)' : ''}
+  const userPrompt = `Analyze this feedback:
 
-4. Implementation Effort (0-10): INVERTED SCALE
-   - 10 = 1-2 days (CSS fix, config change)
-   - 8 = 3-5 days (small feature, simple bug)
-   - 6 = 1-2 weeks (medium feature)
-   - 4 = 3-4 weeks (complex feature)
-   - 2 = 1-2 months (major refactor)
-   - 0 = 3+ months (architectural change)
+Title: "${post.title}"
+Description: "${post.description}"
+Category: ${post.category || 'uncategorized'}
 
-5. Competitive Advantage (0-10):
-   - Table stakes feature = 6-8
-   - Unique differentiation = 8-10
-   - Me-too feature = 2-4
-
-6. Risk Mitigation (0-10):
-   - Security/data loss bugs = 9-10
-   - Compliance issues = 8-10
-   - Workflow blockers = 7-9
-   - Minor bugs = 2-4
-
-7. User Satisfaction (0-10):
-   - Eliminates major frustration = 8-10
-   - Fixes annoyance = 5-7
-   - Small improvement = 2-4
-
-Context Signals:
-- ${metrics.voteCount} votes from ${metrics.uniqueVoters} unique users
-- ${metrics.percentageOfActiveUsers.toFixed(1)}% of active user base affected
-- ${metrics.commentCount} comments (${metrics.commentCount > 5 ? 'HIGH engagement - users are vocal about this' : 'moderate engagement'})
-- ${metrics.similarPostsCount} similar posts found (${metrics.similarPostsCount > 3 ? 'TRENDING NEED - multiple users reporting' : 'isolated request'})
-- User tier: ${user.tier} (${user.tier === 'pro' || user.tier === 'enterprise' ? 'PAYING CUSTOMER - prioritize to prevent churn' : 'free user'})
-
-Return comprehensive JSON analysis only, no markdown or extra text.`;
-
-  console.log('[BUG DETECTION]', {
-    title: post.title,
-    category: post.category,
-    isBugReport,
-    userTier: user.tier,
-    hasIssueInTitle: normalizedTitle.includes('issue'),
-    bugPatternMatch,
-    issueDetected,
-    severitySignal,
-    frustrationDetected
-  });
-
-  const userPrompt = `Analyze this feedback for prioritization:
-
-**Title:** "${post.title}"
-**Description:** "${post.description}"
-**Category:** ${post.category || 'uncategorized'} ${isBugReport && !post.category ? '(DETECTED AS BUG REPORT from content)' : ''}
-
-**User Context:**
-- Tier: ${user.tier} ${user.tier === 'pro' || user.tier === 'enterprise' ? '← PAYING CUSTOMER' : ''}
+User Context:
+- Tier: ${user.tier}
 - Company Size: ${user.companySize || 'unknown'}
-- MRR Contribution: $${user.mrr || 0}
-- Power User: ${user.isChampion ? 'Yes - frequent voter' : 'No'}
+- MRR: ${user.mrr || 0}
+- Champion: ${user.isChampion ? 'Yes' : 'No'}
 
-**Engagement Metrics:**
-- ${metrics.voteCount} total votes from ${metrics.uniqueVoters} unique users
-- ${metrics.commentCount} comments ${metrics.commentCount > 3 ? '← High engagement!' : ''}
-- Affecting ${metrics.percentageOfActiveUsers.toFixed(1)}% of active users ${metrics.percentageOfActiveUsers > 10 ? '← Significant reach!' : ''}
-- ${metrics.similarPostsCount} similar posts ${metrics.similarPostsCount > 2 ? '← Multiple users reporting this!' : ''}
-
-**Analysis Instructions:**
-${isBugReport ? `
-🚨 THIS IS A BUG REPORT ${post.category === 'bug' ? '(explicit)' : '(detected from content)'}
-MANDATORY MINIMUM SCORES FOR BUGS:
-- revenueImpact: MINIMUM 7 (bugs cause churn, ${user.tier} tier = ${user.tier === 'pro' || user.tier === 'enterprise' ? 'MINIMUM 8' : '7'})
-- riskMitigation: MINIMUM 7 (all bugs are risks)
-- userSatisfaction: MINIMUM 7 (bugs frustrate users)
-- If description mentions "frustrat", "difficult", "disrupt": revenueImpact = 9-10
-` : ''}
-
-${frustrationDetected ? `
-⚠️ USER FRUSTRATION DETECTED
-- Description mentions frustration/difficulty/disruption
-- This indicates significant UX friction
-- userSatisfaction score should be 8-10 (high impact on satisfaction)
-- revenueImpact should factor in churn risk from frustration
-` : ''}
-
-Provide scoring as JSON with this exact structure.
-${isBugReport && (user.tier === 'pro' || user.tier === 'enterprise') ? `
-CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below these minimums:
-- revenueImpact >= 8 (PAYING CUSTOMER BUG = HIGH CHURN RISK)
-- riskMitigation >= 7
-- userSatisfaction >= 7
-` : ''}
+Provide JSON:
 {
   "scores": {
     "revenueImpact": <0-10>,
@@ -299,32 +155,23 @@ CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below the
     "riskMitigation": <0-10>,
     "userSatisfaction": <0-10>
   },
-  "estimatedDays": <number or null>,
-  "dependencies": [<list of technical dependencies>],
+  "estimatedDays": <number|null>,
+  "dependencies": [<technical dependencies>],
   "businessJustification": "<1-2 sentence business case>",
   "suggestedAction": "implement|investigate|prototype|combine|defer|decline",
   "relatedPosts": []
 }`;
 
   try {
-    // Log the data being analyzed for debugging
-    console.log('[PRIORITY SCORING] Analyzing:', {
-      title: post.title,
-      category: post.category,
-      metrics: metrics,
-      userTier: user.tier,
-      strategy: businessContext?.companyStrategy
-    });
-
     const response = await openai.chat.completions.create({
       model: MODELS.PRIORITY_SCORING,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
-      temperature: 0.1, // Lower temperature for more consistent results
-      max_tokens: 500,
-      response_format: { type: "json_object" }
+      temperature: 0.3,
+      max_tokens: 450,
+      response_format: { type: 'json_object' }
     });
 
     const content = response.choices[0]?.message?.content;
@@ -332,127 +179,26 @@ CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below the
 
     const aiResponse = JSON.parse(content);
 
-    // ENFORCE mandatory minimums for bugs (AI sometimes ignores instructions)
-    if (isBugReport) {
-      const minRevenue = (user.tier === 'pro' || user.tier === 'enterprise') ? 8 : 7;
-      aiResponse.scores.revenueImpact = Math.max(aiResponse.scores.revenueImpact, minRevenue);
-      aiResponse.scores.riskMitigation = Math.max(aiResponse.scores.riskMitigation, 7);
-      aiResponse.scores.userSatisfaction = Math.max(aiResponse.scores.userSatisfaction, 7);
-
-      console.log('[PRIORITY SCORING] Enforced bug minimums:', aiResponse.scores);
-    }
-
-    // Calculate weighted score based on strategy
     const strategy = businessContext?.companyStrategy || 'growth';
     const weights = WEIGHT_PROFILES[strategy];
 
-    let baseWeightedScore = 0;
+    let weightedScore = 0;
     for (const [factor, score] of Object.entries(aiResponse.scores)) {
-      baseWeightedScore += score * weights[factor as keyof typeof weights];
+      weightedScore += score * weights[factor as keyof typeof weights];
     }
 
     const tierMultiplier = user.tier === 'enterprise' ? 1.3 : user.tier === 'pro' ? 1.1 : 1.0;
-    baseWeightedScore = Math.min(10, baseWeightedScore * tierMultiplier);
+    weightedScore = Math.min(10, weightedScore * tierMultiplier);
 
-    const votesSignal = saturate(metrics.voteCount || 0, 4);
-    const commentsSignal = saturate(metrics.commentCount || 0, 3);
-    const similarSignal = saturate(metrics.similarPostsCount || 0, 3);
-    const reachSignal = clamp((metrics.percentageOfActiveUsers || 0) / 20, 0, 1);
-
-    const engagementSignal = clamp(
-      votesSignal * 0.35 +
-      commentsSignal * 0.25 +
-      reachSignal * 0.25 +
-      similarSignal * 0.15,
-      0,
-      1
-    );
-
-    const textContent = `${post.title || ''} ${post.description || ''}`.toLowerCase();
-    const words = textContent.trim().split(/\s+/).filter(Boolean);
-    const wordCount = words.length;
-    const hasTestKeyword = TEST_KEYWORD_PATTERNS.some(pattern => pattern.test(textContent));
-
-    let adjustedScore = baseWeightedScore;
-
-    if (isBugReport) {
-      const revenueBaseline = (user.tier === 'pro' || user.tier === 'enterprise') ? 8 : 7;
-      const riskSeverity = clamp((aiResponse.scores.riskMitigation - 6) / 4, 0, 1);
-      const revenueSeverity = clamp((aiResponse.scores.revenueImpact - revenueBaseline) / (10 - revenueBaseline || 1), 0, 1);
-      const satisfactionSeverity = clamp((aiResponse.scores.userSatisfaction - 7) / 3, 0, 1);
-
-      const severityComposite = clamp(
-        (riskSeverity * 0.55) +
-        (revenueSeverity * 0.3) +
-        (satisfactionSeverity * 0.15) +
-        (frustrationDetected ? 0.12 : 0),
-        0,
-        1
-      );
-
-      adjustedScore += severityComposite * 1.2;
-      adjustedScore += engagementSignal * 1.2;
-
-      if (severityComposite >= 0.75) {
-        adjustedScore = Math.max(adjustedScore, 8.5 + (severityComposite - 0.75) * 1.5);
-      } else if (severityComposite >= 0.55) {
-        adjustedScore = Math.max(adjustedScore, 7.2 + (severityComposite - 0.55));
-      }
-
-      if (engagementSignal < 0.1 && severityComposite < 0.6) {
-        adjustedScore -= 1.4;
-      }
-
-      if (hasTestKeyword) {
-        adjustedScore -= wordCount <= 15 ? 4.0 : 2.8;
-      } else if (wordCount < 8) {
-        adjustedScore -= 2.1;
-      } else if (wordCount < 15) {
-        adjustedScore -= 0.6;
-      }
-
-      adjustedScore = Math.max(adjustedScore, severityComposite * 6.5);
-    } else {
-      const impactComposite = clamp(
-        (aiResponse.scores.revenueImpact / 10) * 0.35 +
-        (aiResponse.scores.userReach / 10) * 0.25 +
-        (aiResponse.scores.strategicAlignment / 10) * 0.2 +
-        ((10 - aiResponse.scores.implementationEffort) / 10) * 0.1 +
-        (aiResponse.scores.competitiveAdvantage / 10) * 0.1,
-        0,
-        1
-      );
-
-      adjustedScore += impactComposite * 1.4;
-      adjustedScore += engagementSignal * 1.0;
-
-      if (engagementSignal < 0.12) {
-        adjustedScore -= 1.7;
-      }
-
-      if (wordCount < 6) {
-        adjustedScore -= 2.0;
-      }
-
-      adjustedScore = Math.max(adjustedScore, impactComposite * 5.5);
-    }
-
-    if (!hasTestKeyword && wordCount > 25 && engagementSignal > 0.35) {
-      adjustedScore += 0.6;
-    }
-
-    adjustedScore = clamp(adjustedScore, 0, 10);
-
-    const finalWeightedScore = Math.round(adjustedScore * 10) / 10;
-    const priorityLevel = getPriorityLevel(finalWeightedScore, aiResponse.scores.riskMitigation);
+    const priorityLevel = getPriorityLevel(weightedScore, aiResponse.scores.riskMitigation);
     const quarterRecommendation = getQuarterRecommendation(
       priorityLevel,
       businessContext?.currentQuarter || 'Q1'
     );
 
-    const result: PriorityScore = {
+    return {
       scores: aiResponse.scores,
-      weightedScore: finalWeightedScore,
+      weightedScore: Math.round(weightedScore * 10) / 10,
       priorityLevel,
       quarterRecommendation,
       businessJustification: aiResponse.businessJustification,
@@ -461,18 +207,8 @@ CRITICAL: This is a ${user.tier.toUpperCase()} USER BUG - DO NOT score below the
       dependencies: aiResponse.dependencies || [],
       relatedPosts: aiResponse.relatedPosts || []
     };
-
-    console.log('[PRIORITY SCORING] Result:', {
-      title: post.title,
-      priorityLevel,
-      weightedScore: result.weightedScore,
-      engagementSignal
-    });
-
-    return result;
-
   } catch (error) {
-    console.error('Priority scoring error:', error);
+    console.error('[PRIORITY SCORING] Error:', error);
     return getFallbackPriorityScore(context);
   }
 }
@@ -481,9 +217,7 @@ function getPriorityLevel(
   score: number,
   riskScore: number
 ): PriorityScore['priorityLevel'] {
-  // Override for critical risk items
   if (riskScore >= 9) return 'immediate';
-
   if (score >= 8.5) return 'immediate';
   if (score >= 7.0) return 'current-quarter';
   if (score >= 5.0) return 'next-quarter';
@@ -513,7 +247,6 @@ function getQuarterRecommendation(
 }
 
 function getFallbackPriorityScore(context: PriorityContext): PriorityScore {
-  // Simple heuristic-based scoring when AI fails
   const { metrics, user } = context;
 
   const voteScore = Math.min(10, metrics.voteCount / 10);
@@ -543,23 +276,26 @@ function getFallbackPriorityScore(context: PriorityContext): PriorityScore {
   };
 }
 
-// Export WITHOUT caching to ensure fresh calculations
-// TODO: Re-enable caching after confirming scoring works correctly
-export const calculatePriorityScore = calculatePriorityScoreInternal;
+export const calculatePriorityScore = withCache(
+  calculatePriorityScoreInternal,
+  'priorityScoring',
+  (context) => ({
+    title: context.post.title,
+    category: context.post.category,
+    voteCount: context.metrics.voteCount,
+    userTier: context.user.tier
+  })
+);
 
-// Batch scoring for dashboard views
 export async function batchScorePosts(
   posts: PriorityContext[]
 ): Promise<Map<string, PriorityScore>> {
   const results = new Map<string, PriorityScore>();
 
-  // Process in parallel with concurrency limit
   const batchSize = 5;
   for (let i = 0; i < posts.length; i += batchSize) {
     const batch = posts.slice(i, i + batchSize);
-    const scores = await Promise.all(
-      batch.map(post => calculatePriorityScore(post))
-    );
+    const scores = await Promise.all(batch.map(post => calculatePriorityScore(post)));
 
     batch.forEach((post, index) => {
       results.set(post.post.id, scores[index]);
