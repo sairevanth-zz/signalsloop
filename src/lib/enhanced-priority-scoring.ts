@@ -1,6 +1,7 @@
 /**
  * Advanced Priority Scoring System
  * Multi-factor analysis for intelligent prioritization
+ * Updated: 2025-01-06 - Enforced bug minimums
  */
 
 import OpenAI from 'openai';
