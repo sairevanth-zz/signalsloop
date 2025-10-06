@@ -170,11 +170,23 @@ Context Signals:
 
 Return comprehensive JSON analysis only, no markdown or extra text.`;
 
+  // Detect if this is a bug report even without explicit categorization
+  const isBugReport = post.category === 'bug' ||
+                      post.title.toLowerCase().includes('bug') ||
+                      post.title.toLowerCase().includes('error') ||
+                      post.title.toLowerCase().includes('broken') ||
+                      post.title.toLowerCase().includes('not working') ||
+                      post.title.toLowerCase().includes('issue') ||
+                      post.description?.toLowerCase().includes('broken') ||
+                      post.description?.toLowerCase().includes('not working') ||
+                      post.description?.toLowerCase().includes('error') ||
+                      post.description?.toLowerCase().includes('crash');
+
   const userPrompt = `Analyze this feedback for prioritization:
 
 **Title:** "${post.title}"
 **Description:** "${post.description}"
-**Category:** ${post.category || 'uncategorized'}
+**Category:** ${post.category || 'uncategorized'} ${isBugReport && !post.category ? '(DETECTED AS BUG REPORT from content)' : ''}
 
 **User Context:**
 - Tier: ${user.tier} ${user.tier === 'pro' || user.tier === 'enterprise' ? '← PAYING CUSTOMER' : ''}
@@ -189,8 +201,8 @@ Return comprehensive JSON analysis only, no markdown or extra text.`;
 - ${metrics.similarPostsCount} similar posts ${metrics.similarPostsCount > 2 ? '← Multiple users reporting this!' : ''}
 
 **Analysis Instructions:**
-${post.category === 'bug' ? `
-🚨 THIS IS A BUG REPORT
+${isBugReport ? `
+🚨 THIS IS A BUG REPORT ${post.category === 'bug' ? '(explicit)' : '(detected from content)'}
 - Evaluate workflow disruption level (blocking vs. annoying)
 - If it prevents core functionality: revenueImpact should be 8-10
 - Consider ${user.tier} tier: paying customer bugs = higher churn risk
@@ -224,14 +236,23 @@ Provide scoring as JSON with this exact structure:
 }`;
 
   try {
+    // Log the data being analyzed for debugging
+    console.log('[PRIORITY SCORING] Analyzing:', {
+      title: post.title,
+      category: post.category,
+      metrics: metrics,
+      userTier: user.tier,
+      strategy: businessContext?.companyStrategy
+    });
+
     const response = await openai.chat.completions.create({
       model: MODELS.PRIORITY_SCORING,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
-      temperature: 0.3,
-      max_tokens: 400,
+      temperature: 0.1, // Lower temperature for more consistent results
+      max_tokens: 500,
       response_format: { type: "json_object" }
     });
 
@@ -260,7 +281,7 @@ Provide scoring as JSON with this exact structure:
       businessContext?.currentQuarter || 'Q1'
     );
 
-    return {
+    const result = {
       scores: aiResponse.scores,
       weightedScore: Math.round(weightedScore * 10) / 10,
       priorityLevel,
@@ -271,6 +292,15 @@ Provide scoring as JSON with this exact structure:
       dependencies: aiResponse.dependencies || [],
       relatedPosts: aiResponse.relatedPosts || []
     };
+
+    console.log('[PRIORITY SCORING] Result:', {
+      title: post.title,
+      priorityLevel,
+      weightedScore: result.weightedScore,
+      scores: aiResponse.scores
+    });
+
+    return result;
 
   } catch (error) {
     console.error('Priority scoring error:', error);
