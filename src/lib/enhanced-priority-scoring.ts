@@ -1,6 +1,12 @@
 /**
  * Advanced Priority Scoring System
  * Multi-factor analysis for intelligent prioritization
+ * 
+ * Features:
+ * - AI-powered priority scoring
+ * - User engagement metrics
+ * - Content quality assessment
+ * - Multi-dimensional priority calculation
  */
 
 import OpenAI from 'openai';
