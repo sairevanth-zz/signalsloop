@@ -117,10 +117,8 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    if (activeTab !== derivedTab) {
-      setActiveTab(derivedTab);
-    }
-  }, [derivedTab, activeTab]);
+    setActiveTab(derivedTab);
+  }, [derivedTab]);
 
   useEffect(() => {
     if (!slackStatus) return;
