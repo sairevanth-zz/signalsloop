@@ -23,6 +23,18 @@ interface SlackMessage {
   blocks?: unknown[];
 }
 
+const PRIORITY_LABELS: Record<string, { label: string; emoji: string }> = {
+  must_have: { label: 'Must Have', emoji: '🔴' },
+  important: { label: 'Important', emoji: '🟡' },
+  nice_to_have: { label: 'Nice to Have', emoji: '🟢' },
+};
+
+const formatPriority = (raw?: string | null) => {
+  if (!raw) return null;
+  const key = raw.toLowerCase();
+  return PRIORITY_LABELS[key] || null;
+};
+
 const projectMetaCache = new Map<
   string,
   { slug: string | null; name: string | null }
@@ -241,12 +253,13 @@ async function buildSlackMessage(
 
     case 'vote.created': {
       const post = payload.post as { id: string; title: string };
-      const vote = payload.vote as { vote_count?: number };
+      const vote = payload.vote as { vote_count?: number; priority?: string | null };
 
       if (!post?.id) return null;
 
       const postUrl = buildProjectLink(meta.slug, `/post/${post.id}`);
       const total = vote?.vote_count ?? 0;
+      const priorityMeta = formatPriority(vote?.priority);
 
       return {
         text: `New vote on ${formatSlackText(post.title)}`,
@@ -258,7 +271,18 @@ async function buildSlackMessage(
               text: `:ballot_box_with_ballot: *New vote received*\n<${postUrl}|${formatSlackText(post.title)}> now has *${total}* vote${total === 1 ? '' : 's'}.`,
             },
           },
-        ],
+          priorityMeta
+            ? {
+                type: 'context',
+                elements: [
+                  {
+                    type: 'mrkdwn',
+                    text: `${priorityMeta.emoji} Marked as *${priorityMeta.label}*`,
+                  },
+                ],
+              }
+            : undefined,
+        ].filter(Boolean),
       };
     }
 

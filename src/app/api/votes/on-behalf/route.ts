@@ -104,6 +104,7 @@ export async function POST(request: NextRequest) {
       .insert({
         post_id: postId,
         voter_hash: voterHash,
+        priority: priority,
         created_at: new Date().toISOString(),
       })
       .select()
@@ -234,4 +235,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

@@ -1,8 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { ThumbsUp, Loader2, CheckCircle } from 'lucide-react';
 
 interface VoteButtonProps {
@@ -15,32 +23,43 @@ interface VoteButtonProps {
   variant?: 'default' | 'compact';
 }
 
-// Generate voter hash for anonymous users
-const generateVoterHash = (): string => {
-  // Only run on client side
-  if (typeof window === 'undefined') return '';
-  
-  // Try to get existing hash from localStorage first
-  const existingHash = localStorage.getItem('signalsloop_voter_hash');
-  if (existingHash) {
-    return existingHash;
-  }
+const PRIORITY_STORAGE_KEY = 'signalsloop_vote_priority';
 
-  // Generate new hash based on browser fingerprint
-  const userAgent = navigator.userAgent;
-  const language = navigator.language;
-  const platform = navigator.platform;
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  
-  // Simple hash function (in production, use a proper hash library)
-  const fingerprint = `${userAgent}-${language}-${platform}-${timezone}`;
-  const hash = btoa(fingerprint).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
-  
-  // Store for future use
-  localStorage.setItem('signalsloop_voter_hash', hash);
-  
-  return hash;
+const PRIORITY_OPTIONS = [
+  {
+    value: 'must_have',
+    title: 'Must Have',
+    description: 'Critical for our success or customers',
+    accentClass: 'border-red-400 bg-red-50 text-red-700',
+    indicator: '🔴',
+  },
+  {
+    value: 'important',
+    title: 'Important',
+    description: 'Significant business impact',
+    accentClass: 'border-amber-300 bg-amber-50 text-amber-700',
+    indicator: '🟡',
+  },
+  {
+    value: 'nice_to_have',
+    title: 'Nice to Have',
+    description: 'Helpful improvement or quality-of-life',
+    accentClass: 'border-emerald-300 bg-emerald-50 text-emerald-700',
+    indicator: '🟢',
+  },
+] as const;
+
+type VotePriority = (typeof PRIORITY_OPTIONS)[number]['value'];
+
+const PRIORITY_LABEL: Record<VotePriority, string> = {
+  must_have: 'Must Have',
+  important: 'Important',
+  nice_to_have: 'Nice to Have',
 };
+
+const isValidPriority = (value: unknown): value is VotePriority =>
+  typeof value === 'string' &&
+  PRIORITY_OPTIONS.some((option) => option.value === value);
 
 export function VoteButton({
   postId,
@@ -54,108 +73,119 @@ export function VoteButton({
   const [voteCount, setVoteCount] = useState(initialVoteCount);
   const [userVoted, setUserVoted] = useState(initialUserVoted);
   const [loading, setLoading] = useState(false);
-  const [voterHash, setVoterHash] = useState<string>('');
-  const supabase = getSupabaseClient();
+  const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
+  const [selectedPriority, setSelectedPriority] = useState<VotePriority>('important');
+  const [pendingPriority, setPendingPriority] = useState<VotePriority>('important');
 
-  const checkUserVoteStatus = useCallback(async (hash: string) => {
-    if (!supabase) return;
-    
-    const { data, error } = await supabase
-      .from('votes')
-      .select('id')
-      .eq('post_id', postId)
-      .eq('ip_address', hash)
-      .maybeSingle();
-
-    if (!error && data) {
-      setUserVoted(true);
-    }
-  }, [supabase, postId]);
-
-  // Initialize Supabase client and voter hash
   useEffect(() => {
-    // Generate voter hash
-    const hash = generateVoterHash();
-    setVoterHash(hash);
-    
-    // Check if user has already voted on this post
-    if (hash && supabase) {
-      checkUserVoteStatus(hash);
+    if (typeof window === 'undefined') return;
+    const stored = window.localStorage.getItem(PRIORITY_STORAGE_KEY);
+    if (isValidPriority(stored)) {
+      setSelectedPriority(stored);
+      setPendingPriority(stored);
     }
-  }, [postId, supabase, checkUserVoteStatus]);
+  }, []);
+
+  const submitVote = async (priority: VotePriority) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/posts/${postId}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ priority }),
+        credentials: 'same-origin',
+      });
+
+      if (response.status === 409) {
+        setUserVoted(true);
+        onShowNotification?.('You have already voted on this post', 'info');
+        setPriorityDialogOpen(false);
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Error recording vote:', errorData);
+        onShowNotification?.(errorData.error || 'Error recording vote', 'error');
+        return;
+      }
+
+      const data = await response.json();
+      const newCount =
+        typeof data.new_vote_count === 'number'
+          ? data.new_vote_count
+          : voteCount + 1;
+
+      setVoteCount(newCount);
+      setUserVoted(true);
+      setSelectedPriority(priority);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(PRIORITY_STORAGE_KEY, priority);
+      }
+
+      onVoteChange?.(newCount, true);
+      onShowNotification?.(
+        `Vote recorded as ${PRIORITY_LABEL[priority]}`,
+        'success'
+      );
+    } catch (error) {
+      console.error('Error handling vote:', error);
+      onShowNotification?.('Something went wrong', 'error');
+    } finally {
+      setLoading(false);
+      setPriorityDialogOpen(false);
+    }
+  };
+
+  const removeVote = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/posts/${postId}/vote`, {
+        method: 'DELETE',
+        credentials: 'same-origin',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Error removing vote:', errorData);
+        onShowNotification?.(errorData.error || 'Error removing vote', 'error');
+        return;
+      }
+
+      const data = await response.json();
+      const newCount =
+        typeof data.new_vote_count === 'number'
+          ? data.new_vote_count
+          : Math.max(0, voteCount - 1);
+
+      setVoteCount(newCount);
+      setUserVoted(false);
+      onVoteChange?.(newCount, false);
+      onShowNotification?.('Vote removed', 'info');
+    } catch (error) {
+      console.error('Error removing vote:', error);
+      onShowNotification?.('Failed to remove vote', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleVote = async (event: React.MouseEvent) => {
     // Prevent event bubbling to parent elements (like card onClick)
     event.stopPropagation();
     event.preventDefault();
     
-    if (loading || !voterHash || !supabase) {
-      onShowNotification?.('Voting system not available. Please refresh the page.', 'error');
+    if (loading) {
       return;
     }
 
-    try {
-      setLoading(true);
-
-      if (userVoted) {
-        // Remove vote (unvote)
-        const { error } = await supabase
-          .from('votes')
-          .delete()
-          .eq('post_id', postId)
-          .eq('ip_address', voterHash);
-
-        if (error) {
-          console.error('Error removing vote:', error);
-          console.error('Vote removal details:', { postId, voterHash, error });
-          onShowNotification?.('Error removing vote', 'error');
-          return;
-        }
-
-        // Update local state
-        const newCount = Math.max(0, voteCount - 1);
-        setVoteCount(newCount);
-        setUserVoted(false);
-        
-        onVoteChange?.(newCount, false);
-        onShowNotification?.('Vote removed', 'info');
-
-      } else {
-        // Add vote
-        const { error } = await supabase
-          .from('votes')
-          .insert([{
-            post_id: postId,
-            ip_address: voterHash,
-            created_at: new Date().toISOString()
-          }]);
-
-        if (error) {
-          if (error.code === '23505') { // Unique constraint violation
-            onShowNotification?.('You have already voted on this post', 'error');
-            setUserVoted(true); // Update local state to match database
-          } else {
-            console.error('Error adding vote:', error);
-            console.error('Vote addition details:', { postId, voterHash, error });
-            onShowNotification?.('Error recording vote', 'error');
-          }
-          return;
-        }
-
-        // Update local state
-        const newCount = voteCount + 1;
-        setVoteCount(newCount);
-        setUserVoted(true);
-        
-        onVoteChange?.(newCount, true);
-        onShowNotification?.('Vote recorded!', 'success');
-      }
-
-    } catch (error) {
-      console.error('Error handling vote:', error);
-      onShowNotification?.('Something went wrong', 'error');
-    } finally {
-      setLoading(false);
+    if (userVoted) {
+      await removeVote();
+    } else {
+      setPendingPriority(selectedPriority);
+      setPriorityDialogOpen(true);
     }
   };
 
@@ -178,28 +208,112 @@ export function VoteButton({
     }
   };
 
+  const priorityBadge = userVoted
+    ? PRIORITY_OPTIONS.find((option) => option.value === selectedPriority)
+    : null;
+
+  const renderPriorityDialog = () => (
+    <Dialog
+      open={priorityDialogOpen}
+      onOpenChange={(open) => {
+        if (!loading) {
+          setPriorityDialogOpen(open);
+        }
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>How important is this request?</DialogTitle>
+          <DialogDescription>
+            Sharing the priority helps the product team understand the urgency
+            behind your vote.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-2">
+          {PRIORITY_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setPendingPriority(option.value)}
+              className={`w-full text-left rounded-lg border-2 p-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                pendingPriority === option.value
+                  ? option.accentClass
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-sm flex items-center gap-2">
+                  <span>{option.indicator}</span>
+                  {option.title}
+                </span>
+                {pendingPriority === option.value && (
+                  <CheckCircle className="w-4 h-4" />
+                )}
+              </div>
+              <p className="text-xs mt-2 opacity-90">{option.description}</p>
+            </button>
+          ))}
+        </div>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setPriorityDialogOpen(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={() => submitVote(pendingPriority)}
+            disabled={loading}
+            className="min-w-[120px]"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              'Submit Vote'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (variant === 'compact') {
     return (
-      <Button
-        variant={userVoted ? "default" : "outline"}
-        size="sm"
-        onClick={handleVote}
-        disabled={loading}
-        className={`flex items-center gap-1 ${
-          userVoted 
-            ? 'bg-blue-600 text-white border-blue-600' 
-            : 'text-gray-600 border-gray-300 hover:border-blue-600 hover:text-blue-600'
-        } ${sizeClasses[size].button}`}
-      >
-        {loading ? (
-          <Loader2 className={`${sizeClasses[size].icon} animate-spin`} />
-        ) : (
-          <ThumbsUp className={`${sizeClasses[size].icon} ${userVoted ? 'fill-current' : ''}`} />
-        )}
-        <span className={`font-medium ${sizeClasses[size].text}`}>
-          {voteCount}
-        </span>
-      </Button>
+      <>
+        <Button
+          variant={userVoted ? 'default' : 'outline'}
+          size="sm"
+          onClick={handleVote}
+          disabled={loading}
+          className={`flex items-center gap-1 ${
+            userVoted
+              ? 'bg-blue-600 text-white border-blue-600'
+              : 'text-gray-600 border-gray-300 hover:border-blue-600 hover:text-blue-600'
+          } ${sizeClasses[size].button}`}
+        >
+          {loading ? (
+            <Loader2 className={`${sizeClasses[size].icon} animate-spin`} />
+          ) : (
+            <ThumbsUp
+              className={`${sizeClasses[size].icon} ${
+                userVoted ? 'fill-current' : ''
+              }`}
+            />
+          )}
+          <span className={`font-medium ${sizeClasses[size].text}`}>
+            {voteCount}
+          </span>
+        </Button>
+        {renderPriorityDialog()}
+      </>
     );
   }
 
@@ -212,30 +326,40 @@ export function VoteButton({
         onClick={handleVote}
         disabled={loading}
         className={`flex flex-col h-auto py-2 px-3 ${
-          userVoted 
-            ? 'text-blue-600 bg-blue-50' 
+          userVoted
+            ? 'text-blue-600 bg-blue-50'
             : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
         }`}
       >
         {loading ? (
           <Loader2 className={`${sizeClasses[size].icon} mb-1 animate-spin`} />
         ) : (
-          <ThumbsUp className={`${sizeClasses[size].icon} mb-1 ${userVoted ? 'fill-current' : ''}`} />
+          <ThumbsUp
+            className={`${sizeClasses[size].icon} mb-1 ${
+              userVoted ? 'fill-current' : ''
+            }`}
+          />
         )}
         <span className={`font-medium ${sizeClasses[size].text}`}>
           {voteCount}
         </span>
       </Button>
-      
+
       {userVoted && (
-        <div className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+        <div className="text-xs mt-1 flex items-center gap-1 text-blue-600">
           <CheckCircle className="w-3 h-3" />
-          <span>Voted</span>
+          <span>
+            Voted{priorityBadge ? ` · ${priorityBadge.title}` : ''}
+          </span>
         </div>
       )}
+
+      {renderPriorityDialog()}
     </div>
   );
 }
+
+export default VoteButton;
 
 // Enhanced voting statistics component
 interface VoteStatsProps {
@@ -251,6 +375,13 @@ export function VoteStats({ postId, onShowNotification }: VoteStatsProps) {
   });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [supabase, setSupabase] = useState<any>(null);
+
+  useEffect(() => {
+    const client = getSupabaseClient();
+    if (client) {
+      setSupabase(client);
+    }
+  }, []);
 
   const loadVoteStats = useCallback(async () => {
     if (!supabase) return;
@@ -323,64 +454,3 @@ export function VoteStats({ postId, onShowNotification }: VoteStatsProps) {
     </div>
   );
 }
-
-// Rate limiting hook for vote spam prevention
-export function useVoteRateLimit(voterHash: string) {
-  const [canVote, setCanVote] = useState(true);
-  const [timeUntilReset, setTimeUntilReset] = useState(0);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [supabase, setSupabase] = useState<any>(null);
-
-  const checkRateLimit = useCallback(async () => {
-    if (!supabase) return;
-    
-    try {
-      // Check votes in the last hour
-      const oneHourAgo = new Date();
-      oneHourAgo.setHours(oneHourAgo.getHours() - 1);
-
-      const { data, error } = await supabase
-        .from('votes')
-        .select('created_at')
-        .eq('ip_address', voterHash)
-        .gte('created_at', oneHourAgo.toISOString())
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error checking rate limit:', error);
-        return;
-      }
-
-      // Allow max 10 votes per hour
-      const maxVotesPerHour = 10;
-      const recentVotes = data?.length || 0;
-
-      if (recentVotes >= maxVotesPerHour) {
-        setCanVote(false);
-        
-        // Calculate time until reset
-        const oldestVote = new Date(data[data.length - 1].created_at);
-        const resetTime = new Date(oldestVote.getTime() + 60 * 60 * 1000); // 1 hour later
-        const timeUntil = Math.max(0, resetTime.getTime() - Date.now());
-        
-        setTimeUntilReset(timeUntil);
-      } else {
-        setCanVote(true);
-        setTimeUntilReset(0);
-      }
-
-    } catch (error) {
-      console.error('Error checking rate limit:', error);
-    }
-  }, [supabase, voterHash]);
-
-  useEffect(() => {
-    if (voterHash && supabase) {
-      checkRateLimit();
-    }
-  }, [voterHash, supabase, checkRateLimit]);
-
-  return { canVote, timeUntilReset, checkRateLimit };
-}
-
-export default VoteButton;

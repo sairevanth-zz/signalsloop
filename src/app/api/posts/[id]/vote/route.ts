@@ -3,6 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 import { triggerWebhooks } from '@/lib/webhooks';
 import { triggerSlackNotification } from '@/lib/slack';
 
+const PRIORITY_VALUES = ['must_have', 'important', 'nice_to_have'] as const;
+type VotePriority = typeof PRIORITY_VALUES[number];
+
+const isValidPriority = (value: unknown): value is VotePriority =>
+  typeof value === 'string' && PRIORITY_VALUES.includes(value as VotePriority);
+
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
@@ -48,6 +54,23 @@ export async function POST(
     const postId = resolvedParams.id;
     const ipAddress = getClientIp(request);
     const anonymousId = getAnonymousUserId(request);
+    let requestedPriority: VotePriority | undefined;
+
+    try {
+      const body = await request.json();
+      if (body && isValidPriority(body.priority)) {
+        requestedPriority = body.priority;
+      } else if (body && typeof body.priority === 'string') {
+        const lower = body.priority.toLowerCase();
+        if (isValidPriority(lower)) {
+          requestedPriority = lower;
+        }
+      }
+    } catch (_error) {
+      // No body provided – fall back to default priority
+    }
+
+    const normalizedPriority: VotePriority = requestedPriority ?? 'important';
 
     if (!postId) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
@@ -77,6 +100,7 @@ export async function POST(
         post_id: postId, 
         ip_address: ipAddress,
         anonymous_id: anonymousId,
+        priority: normalizedPriority,
         created_at: new Date().toISOString()
       });
 
@@ -108,6 +132,7 @@ export async function POST(
       const webhookPayload = {
         vote: {
           post_id: postId,
+          priority: normalizedPriority,
           vote_count: post.vote_count || 0,
           created_at: new Date().toISOString(),
         },
@@ -140,7 +165,8 @@ export async function POST(
     // Set cookie for anonymous user ID
     const response = NextResponse.json({
       message: 'Vote recorded successfully',
-      new_vote_count: updatedPost
+      new_vote_count: updatedPost,
+      priority: normalizedPriority
     }, { status: 200 });
 
     response.cookies.set('signalsloop_anonymous_id', anonymousId, {
