@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
 
       const { data: postRecord, error: postError } = await supabase
         .from('posts')
-        .select('id, project_id, title, description, category, created_at, vote_count, comment_count')
+        .select('id, project_id, title, description, category, created_at, vote_count, comment_count, must_have_votes, important_votes, nice_to_have_votes, total_priority_score')
         .eq('id', requestedPostId)
         .single();
 
@@ -253,7 +253,11 @@ export async function POST(request: NextRequest) {
         commentCount: scoringMetrics?.commentCount ?? derivedCommentCount,
         uniqueVoters: scoringMetrics?.uniqueVoters ?? uniqueVoters,
         percentageOfActiveUsers: scoringMetrics?.percentageOfActiveUsers ?? derivedActivePercentage,
-        similarPostsCount: scoringMetrics?.similarPostsCount ?? derivedSimilarPosts
+        similarPostsCount: scoringMetrics?.similarPostsCount ?? derivedSimilarPosts,
+        mustHaveVotes: scoringMetrics?.mustHaveVotes ?? postRecord.must_have_votes ?? 0,
+        importantVotes: scoringMetrics?.importantVotes ?? postRecord.important_votes ?? 0,
+        niceToHaveVotes: scoringMetrics?.niceToHaveVotes ?? postRecord.nice_to_have_votes ?? 0,
+        priorityScore: scoringMetrics?.priorityScore ?? postRecord.total_priority_score ?? undefined
       };
 
       const inferredTier = projectRecord?.plan === 'enterprise'
@@ -309,7 +313,11 @@ export async function POST(request: NextRequest) {
       commentCount: scoringMetrics?.commentCount ?? 0,
       uniqueVoters: scoringMetrics?.uniqueVoters ?? 0,
       percentageOfActiveUsers: Math.min(100, scoringMetrics?.percentageOfActiveUsers ?? 0),
-      similarPostsCount: scoringMetrics?.similarPostsCount ?? 0
+      similarPostsCount: scoringMetrics?.similarPostsCount ?? 0,
+      mustHaveVotes: scoringMetrics?.mustHaveVotes ?? 0,
+      importantVotes: scoringMetrics?.importantVotes ?? 0,
+      niceToHaveVotes: scoringMetrics?.niceToHaveVotes ?? 0,
+      priorityScore: scoringMetrics?.priorityScore
     };
 
     const resolveTier = (tier?: string): 'free' | 'pro' | 'enterprise' => {

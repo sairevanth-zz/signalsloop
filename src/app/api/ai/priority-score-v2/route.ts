@@ -47,7 +47,11 @@ export async function POST(request: NextRequest) {
         commentCount: singleContext.metrics?.commentCount || 0,
         uniqueVoters: singleContext.metrics?.uniqueVoters || 0,
         percentageOfActiveUsers: singleContext.metrics?.percentageOfActiveUsers || 0,
-        similarPostsCount: singleContext.metrics?.similarPostsCount || 0
+        similarPostsCount: singleContext.metrics?.similarPostsCount || 0,
+        mustHaveVotes: singleContext.metrics?.mustHaveVotes || 0,
+        importantVotes: singleContext.metrics?.importantVotes || 0,
+        niceToHaveVotes: singleContext.metrics?.niceToHaveVotes || 0,
+        priorityScore: singleContext.metrics?.priorityScore
       },
       user: {
         tier: singleContext.user?.tier || 'free',
