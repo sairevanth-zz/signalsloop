@@ -13,8 +13,9 @@ import FeedbackExport from '@/components/FeedbackExport';
 import { CSVImport } from '@/components/admin/csv-import';
 import SimpleChangelogManager from '@/components/SimpleChangelogManager';
 import { WebhooksSettings } from '@/components/WebhooksSettings';
+import { SlackIntegrationSettings } from '@/components/SlackIntegrationSettings';
 import { toast } from 'sonner';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   Key,
   Settings,
@@ -25,7 +26,8 @@ import {
   FileText,
   UserPlus,
   MessageSquare,
-  Zap
+  Zap,
+  Slack
 } from 'lucide-react';
 
 interface Project {
@@ -38,7 +40,10 @@ interface Project {
 export default function SettingsPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('api-keys');
+  const searchParams = useSearchParams();
+  const slackStatus = searchParams.get('slack');
+  const derivedTab = searchParams.get('tab') ?? (slackStatus ? 'integrations' : 'api-keys');
+  const [activeTab, setActiveTab] = useState(derivedTab);
   const [apiKey, setApiKey] = useState<string>('');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [supabase, setSupabase] = useState<any>(null);
@@ -110,6 +115,36 @@ export default function SettingsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (activeTab !== derivedTab) {
+      setActiveTab(derivedTab);
+    }
+  }, [derivedTab, activeTab]);
+
+  useEffect(() => {
+    if (!slackStatus) return;
+
+    if (slackStatus === 'connected') {
+      toast.success('Slack workspace connected successfully!');
+    } else if (slackStatus === 'error') {
+      toast.error('Slack connection failed. Please try again.');
+    }
+
+    if (typeof window !== 'undefined') {
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.delete('slack');
+      if (!currentUrl.searchParams.has('tab')) {
+        currentUrl.searchParams.set('tab', 'integrations');
+      }
+      router.replace(
+        `${currentUrl.pathname}${
+          currentUrl.searchParams.size > 0 ? `?${currentUrl.searchParams.toString()}` : ''
+        }`,
+        { scroll: false }
+      );
+    }
+  }, [slackStatus, router]);
 
   const handleShowNotification = (message: string, type: 'success' | 'error' = 'success') => {
     if (type === 'success') {
@@ -196,6 +231,13 @@ export default function SettingsPage() {
                   <span className="hidden sm:inline">Domain</span>
                 </TabsTrigger>
                 <TabsTrigger
+                  value="integrations"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent"
+                >
+                  <Slack className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Slack</span>
+                </TabsTrigger>
+                <TabsTrigger
                   value="votes"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent"
                 >
@@ -276,6 +318,15 @@ export default function SettingsPage() {
               projectId={project.id}
               projectSlug={project.slug}
               userPlan={project.plan}
+            />
+          </TabsContent>
+
+          <TabsContent value="integrations" className="mt-6">
+            <SlackIntegrationSettings
+              projectId={project.id}
+              projectSlug={project.slug}
+              userPlan={project.plan}
+              onShowNotification={handleShowNotification}
             />
           </TabsContent>
 

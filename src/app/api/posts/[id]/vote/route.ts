@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { triggerWebhooks } from '@/lib/webhooks';
+import { triggerSlackNotification } from '@/lib/slack';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -104,26 +105,36 @@ export async function POST(
 
     // Trigger webhooks for vote.created event
     if (post) {
+      const webhookPayload = {
+        vote: {
+          post_id: postId,
+          vote_count: post.vote_count || 0,
+          created_at: new Date().toISOString(),
+        },
+        post: {
+          id: post.id,
+          title: post.title,
+        },
+        project: {
+          id: post.project_id,
+        },
+      };
+
       try {
-        await triggerWebhooks(post.project_id, 'vote.created', {
-          vote: {
-            post_id: postId,
-            vote_count: post.vote_count || 0,
-            created_at: new Date().toISOString(),
-          },
-          post: {
-            id: post.id,
-            title: post.title,
-          },
-          project: {
-            id: post.project_id,
-          },
-        });
+        await triggerWebhooks(post.project_id, 'vote.created', webhookPayload);
         console.log(`✅ Webhooks triggered for vote.created on post: ${postId}`);
       } catch (webhookError) {
         // Don't fail the request if webhooks fail
         console.error('Failed to trigger webhooks:', webhookError);
       }
+
+      triggerSlackNotification(
+        post.project_id,
+        'vote.created',
+        webhookPayload
+      ).catch((slackError) => {
+        console.error('Failed to notify Slack:', slackError);
+      });
     }
 
     // Set cookie for anonymous user ID

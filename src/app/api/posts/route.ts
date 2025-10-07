@@ -3,6 +3,7 @@ import { getSupabaseServerClient } from '@/lib/supabase-client';
 import { categorizeFeedback } from '@/lib/ai-categorization';
 import { sendPostConfirmationEmail } from '@/lib/email';
 import { triggerWebhooks } from '@/lib/webhooks';
+import { triggerSlackNotification } from '@/lib/slack';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -204,26 +205,34 @@ export async function POST(request: NextRequest) {
     }
 
     // Trigger webhooks for post.created event
+    const webhookPayload = {
+      post: {
+        id: newPost.id,
+        title: newPost.title,
+        description: newPost.description,
+        status: newPost.status,
+        author_name: newPost.author_name,
+        author_email: newPost.author_email,
+        created_at: newPost.created_at,
+      },
+      project: {
+        id: project_id,
+      },
+    };
+
     try {
-      await triggerWebhooks(project_id, 'post.created', {
-        post: {
-          id: newPost.id,
-          title: newPost.title,
-          description: newPost.description,
-          status: newPost.status,
-          author_name: newPost.author_name,
-          author_email: newPost.author_email,
-          created_at: newPost.created_at,
-        },
-        project: {
-          id: project_id,
-        },
-      });
+      await triggerWebhooks(project_id, 'post.created', webhookPayload);
       console.log(`✅ Webhooks triggered for post.created: ${newPost.id}`);
     } catch (webhookError) {
       // Don't fail the request if webhooks fail
       console.error('Failed to trigger webhooks:', webhookError);
     }
+
+    triggerSlackNotification(project_id, 'post.created', webhookPayload).catch(
+      (slackError) => {
+        console.error('Failed to notify Slack:', slackError);
+      }
+    );
 
     // Return the post immediately (without AI categorization)
     return NextResponse.json({

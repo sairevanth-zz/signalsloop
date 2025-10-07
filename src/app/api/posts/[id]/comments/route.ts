@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { sendCommentEmail } from '@/lib/email';
 import { triggerWebhooks } from '@/lib/webhooks';
+import { triggerSlackNotification } from '@/lib/slack';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -119,29 +120,39 @@ export async function POST(
     }
 
     // Trigger webhooks for comment.created event
+    const webhookPayload = {
+      comment: {
+        id: comment.id,
+        content: comment.content,
+        author_name: comment.author_name,
+        author_email: comment.author_email,
+        parent_id: comment.parent_id,
+        created_at: comment.created_at,
+      },
+      post: {
+        id: post.id,
+        title: post.title,
+      },
+      project: {
+        id: post.project_id,
+      },
+    };
+
     try {
-      await triggerWebhooks(post.project_id, 'comment.created', {
-        comment: {
-          id: comment.id,
-          content: comment.content,
-          author_name: comment.author_name,
-          author_email: comment.author_email,
-          parent_id: comment.parent_id,
-          created_at: comment.created_at,
-        },
-        post: {
-          id: post.id,
-          title: post.title,
-        },
-        project: {
-          id: post.project_id,
-        },
-      });
+      await triggerWebhooks(post.project_id, 'comment.created', webhookPayload);
       console.log(`✅ Webhooks triggered for comment.created: ${comment.id}`);
     } catch (webhookError) {
       // Don't fail the request if webhooks fail
       console.error('Failed to trigger webhooks:', webhookError);
     }
+
+    triggerSlackNotification(
+      post.project_id,
+      'comment.created',
+      webhookPayload
+    ).catch((slackError) => {
+      console.error('Failed to notify Slack:', slackError);
+    });
 
     return NextResponse.json({ success: true, comment }, { status: 201 });
   } catch (error) {
@@ -149,4 +160,3 @@ export async function POST(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
