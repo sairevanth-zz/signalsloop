@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const supabase = getSupabase();
 
     // Find or create user by email using Supabase Auth
-    let { data: users, error: userError } = await supabase.auth.admin.listUsers();
+    const { data: users, error: userError } = await supabase.auth.admin.listUsers();
     
     let user = null;
     
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user's primary project
-    let { data: projects, error: projectError } = await supabase
+    const { data: projects, error: projectError } = await supabase
       .from('projects')
       .select('*')
       .eq('owner_id', user.id)

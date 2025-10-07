@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +51,7 @@ import {
   Target
 } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { PriorityMixBar, getPriorityTotals } from '@/components/PriorityMix';
 
 interface AdminPost {
   id: string;
@@ -181,6 +182,62 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
     aiSuccessRate: 0
   });
 
+  const [filteredPriorityBreakdown, setFilteredPriorityBreakdown] = useState({
+    mustHave: 0,
+    important: 0,
+    niceToHave: 0
+  });
+
+  const [priorityTrend, setPriorityTrend] = useState({
+    mustHave: 0,
+    important: 0,
+    niceToHave: 0
+  });
+
+  const summarizePriority = useCallback((collection: AdminPost[]) => {
+    return collection.reduce(
+      (acc, post) => {
+        acc.mustHave += post.must_have_votes || 0;
+        acc.important += post.important_votes || 0;
+        acc.niceToHave += post.nice_to_have_votes || 0;
+        return acc;
+      },
+      { mustHave: 0, important: 0, niceToHave: 0 }
+    );
+  }, []);
+
+  const filteredTotalVotes = useMemo(
+    () => getPriorityTotals(filteredPriorityBreakdown),
+    [filteredPriorityBreakdown]
+  );
+
+  const hasActiveFilter = useMemo(
+    () => statusFilter !== 'all' || !!searchTerm,
+    [statusFilter, searchTerm]
+  );
+
+  const formatDelta = (value: number) => {
+    if (value > 0) return `+${value}`;
+    if (value < 0) return `${value}`;
+    return '0';
+  };
+
+  const renderTrendChip = (emoji: string, label: string, delta: number) => {
+    const tone =
+      delta > 0 ? 'text-green-600' : delta < 0 ? 'text-gray-500' : 'text-gray-400';
+
+    return (
+      <span
+        key={label}
+        className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1"
+      >
+        <span aria-hidden="true">{emoji}</span>
+        <span className="font-medium text-gray-700">{label}</span>
+        <span className={`font-semibold ${tone}`}>{formatDelta(delta)}</span>
+      </span>
+    );
+  };
+
   // Moderation state
   const [editingPost, setEditingPost] = useState<AdminPost | null>(null);
   const [bulkAction, setBulkAction] = useState<string>('');
@@ -282,6 +339,34 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
         niceToHaveVotes
       });
 
+      setFilteredPriorityBreakdown(summarizePriority(processedPosts));
+
+      const now = new Date();
+      const sevenDaysAgo = new Date(now);
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      const fourteenDaysAgo = new Date(now);
+      fourteenDaysAgo.setDate(now.getDate() - 14);
+
+      const withinRange = (dateString: string | undefined | null, start: Date, end: Date) => {
+        if (!dateString) return false;
+        const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) return false;
+        return date >= start && date < end;
+      };
+
+      const currentWindow = summarizePriority(
+        processedPosts.filter(post => withinRange(post.created_at, sevenDaysAgo, now))
+      );
+      const previousWindow = summarizePriority(
+        processedPosts.filter(post => withinRange(post.created_at, fourteenDaysAgo, sevenDaysAgo))
+      );
+
+      setPriorityTrend({
+        mustHave: currentWindow.mustHave - previousWindow.mustHave,
+        important: currentWindow.important - previousWindow.important,
+        niceToHave: currentWindow.niceToHave - previousWindow.niceToHave
+      });
+
       // Calculate AI analytics
       const aiCategorizedPosts = processedPosts.filter(p => p.ai_categorized);
       const totalAiCategorized = aiCategorizedPosts.length;
@@ -378,6 +463,8 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
       }
     });
 
+    const breakdown = summarizePriority(filtered);
+    setFilteredPriorityBreakdown(breakdown);
     setFilteredPosts(filtered);
   };
 
@@ -589,29 +676,48 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
           </Card>
 
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-purple-600" />
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Total Votes</p>
+                    <p className="text-xs text-gray-500">
+                      Signal mix across {hasActiveFilter ? 'filtered posts' : 'all posts'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Total Votes</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalVotes}</p>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-gray-900">{filteredTotalVotes}</p>
+                  <p className="text-xs text-gray-500">
+                    {hasActiveFilter
+                      ? `Filtered total (${filteredPosts.length} posts)`
+                      : 'All posts'}
+                  </p>
+                  {hasActiveFilter && (
+                    <p className="text-xs text-gray-400">Overall: {stats.totalVotes}</p>
+                  )}
                 </div>
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-                <span className="flex flex-col items-center justify-center rounded-lg bg-red-50 text-red-600 py-2">
-                  <span className="font-semibold">{stats.mustHaveVotes}</span>
-                  <span>Must</span>
-                </span>
-                <span className="flex flex-col items-center justify-center rounded-lg bg-amber-50 text-amber-600 py-2">
-                  <span className="font-semibold">{stats.importantVotes}</span>
-                  <span>Important</span>
-                </span>
-                <span className="flex flex-col items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 py-2">
-                  <span className="font-semibold">{stats.niceToHaveVotes}</span>
-                  <span>Nice</span>
-                </span>
+
+              <PriorityMixBar
+                mustHave={filteredPriorityBreakdown.mustHave}
+                important={filteredPriorityBreakdown.important}
+                niceToHave={filteredPriorityBreakdown.niceToHave}
+                size="sm"
+                showLegend
+                layout="side"
+              />
+
+              <div className="text-xs text-gray-600">
+                <p className="font-medium text-gray-700">Trend vs last 7 days</p>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {renderTrendChip('🔴', 'Must', priorityTrend.mustHave)}
+                  {renderTrendChip('🟡', 'Important', priorityTrend.important)}
+                  {renderTrendChip('🟢', 'Nice', priorityTrend.niceToHave)}
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -370,14 +370,27 @@ export function VoteButton({
 export default VoteButton;
 
 // Enhanced voting statistics component
+export interface VoteStatsSnapshot {
+  totalVotes: number;
+  recentVotes: number;
+  mustHave: number;
+  important: number;
+  niceToHave: number;
+}
+
+interface VoteStatsState extends VoteStatsSnapshot {
+  loading: boolean;
+}
+
 interface VoteStatsProps {
   postId: string;
   refreshToken?: unknown;
   onShowNotification?: (message: string, type: 'success' | 'error' | 'info') => void;
+  onStatsChange?: (stats: VoteStatsSnapshot) => void;
 }
 
-export function VoteStats({ postId, refreshToken, onShowNotification }: VoteStatsProps) {
-  const [stats, setStats] = useState({
+export function VoteStats({ postId, refreshToken, onShowNotification, onStatsChange }: VoteStatsProps) {
+  const [stats, setStats] = useState<VoteStatsState>({
     totalVotes: 0,
     recentVotes: 0,
     mustHave: 0,
@@ -439,13 +452,22 @@ export function VoteStats({ postId, refreshToken, onShowNotification }: VoteStat
         }
       });
 
-      setStats({
+      const nextStats: VoteStatsState = {
         totalVotes,
         recentVotes,
         mustHave,
         important,
         niceToHave,
         loading: false
+      };
+
+      setStats(nextStats);
+      onStatsChange?.({
+        totalVotes,
+        recentVotes,
+        mustHave,
+        important,
+        niceToHave,
       });
 
     } catch (error) {
@@ -453,7 +475,7 @@ export function VoteStats({ postId, refreshToken, onShowNotification }: VoteStat
       onShowNotification?.('Error loading vote statistics', 'error');
       setStats(prev => ({ ...prev, loading: false }));
     }
-  }, [supabase, postId, onShowNotification]);
+  }, [supabase, postId, onShowNotification, onStatsChange]);
 
   useEffect(() => {
     if (supabase) {

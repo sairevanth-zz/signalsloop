@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Brain, 
   TrendingUp, 
@@ -19,6 +21,17 @@ import {
   Frown,
   Heart
 } from 'lucide-react';
+import { PriorityMixBar } from '@/components/PriorityMix';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from 'recharts';
 
 
 interface AIInsights {
@@ -44,6 +57,30 @@ interface AIInsights {
     negative: number;
     mixed: number;
   };
+  prioritySummary: {
+    totals: {
+      mustHave: number;
+      important: number;
+      niceToHave: number;
+    };
+    posts: Array<{
+      id: string;
+      title: string;
+      status: string;
+      mustHave: number;
+      important: number;
+      niceToHave: number;
+      total: number;
+      timeframe?: string | null;
+    }>;
+    weeklySnapshots: Array<{
+      weekStart: string;
+      weekEnd: string;
+      mustHave: number;
+      important: number;
+      niceToHave: number;
+    }>;
+  };
 }
 
 interface AIInsightsPanelProps {
@@ -54,6 +91,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
   const [insights, setInsights] = useState<AIInsights | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [urgencyViewMode, setUrgencyViewMode] = useState<'count' | 'percent'>('count');
 
   useEffect(() => {
     loadAIInsights();
@@ -77,7 +115,14 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
       const insightsData = await response.json();
       console.log('AI insights loaded successfully:', insightsData);
 
-      setInsights(insightsData);
+      setInsights({
+        ...insightsData,
+        prioritySummary: insightsData.prioritySummary ?? {
+          totals: { mustHave: 0, important: 0, niceToHave: 0 },
+          posts: [],
+          weeklySnapshots: []
+        }
+      });
     } catch (err) {
       console.error('Error loading AI insights:', err);
       setError(err instanceof Error ? err.message : 'Failed to load insights');
@@ -173,271 +218,487 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
     return colors[category] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
+  const prioritySummary = insights.prioritySummary;
+  const priorityTotals = prioritySummary.totals;
+  const priorityTotalVotes =
+    priorityTotals.mustHave + priorityTotals.important + priorityTotals.niceToHave;
+  const weeklySnapshots = prioritySummary.weeklySnapshots.slice(-4);
+
+  const urgencyChartData = prioritySummary.posts.map((post) => {
+    const total =
+      post.total > 0
+        ? post.total
+        : post.mustHave + post.important + post.niceToHave || 1;
+    const shortTitle =
+      post.title.length > 28 ? `${post.title.slice(0, 25)}…` : post.title;
+
+    const mustHaveValue =
+      urgencyViewMode === 'percent'
+        ? Number(((post.mustHave / total) * 100).toFixed(1))
+        : post.mustHave;
+    const importantValue =
+      urgencyViewMode === 'percent'
+        ? Number(((post.important / total) * 100).toFixed(1))
+        : post.important;
+    const niceToHaveValue =
+      urgencyViewMode === 'percent'
+        ? Number(((post.niceToHave / total) * 100).toFixed(1))
+        : post.niceToHave;
+
+    return {
+      key: post.id,
+      name: shortTitle,
+      fullTitle: post.title,
+      timeframe: post.timeframe,
+      status: post.status,
+      mustHave: mustHaveValue,
+      important: importantValue,
+      niceToHave: niceToHaveValue,
+      rawMustHave: post.mustHave,
+      rawImportant: post.important,
+      rawNiceToHave: post.niceToHave,
+      total,
+    };
+  });
+
   return (
     <div className="space-y-6">
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-700">
-              Total Posts Analyzed
-            </CardTitle>
-            <Brain className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
-              {insights.totalPosts}
-            </div>
-            <p className="text-xs text-gray-500">
-              {insights.categorizedPosts} auto-categorized
-            </p>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="categorization" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-none">
+          <TabsTrigger value="categorization" className="text-sm">
+            Categorization
+          </TabsTrigger>
+          <TabsTrigger value="urgency" className="text-sm">
+            Urgency Mix
+          </TabsTrigger>
+        </TabsList>
 
-        <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-700">
-              Categorization Rate
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {insights.categorizationRate.toFixed(1)}%
-            </div>
-            <Progress 
-              value={insights.categorizationRate} 
-              className="mt-2"
-            />
-          </CardContent>
-        </Card>
+        <TabsContent value="categorization" className="space-y-6">
+          {/* Key Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-700">
+                  Total Posts Analyzed
+                </CardTitle>
+                <Brain className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">
+                  {insights.totalPosts}
+                </div>
+                <p className="text-xs text-gray-500">
+                  {insights.categorizedPosts} auto-categorized
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-700">
-              Time Saved
-            </CardTitle>
-            <Clock className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {insights.timeSaved}m
-            </div>
-            <p className="text-xs text-gray-500">
-              ~{Math.round(insights.timeSaved / 60)} hours
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-700">
+                  Categorization Rate
+                </CardTitle>
+                <TrendingUp className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {insights.categorizationRate.toFixed(1)}%
+                </div>
+                <Progress 
+                  value={insights.categorizationRate} 
+                  className="mt-2"
+                />
+              </CardContent>
+            </Card>
 
-      {/* Top Category */}
-      <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-700">
-            <Target className="h-5 w-5 text-orange-600" />
-            Most Common Category
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-3">
-            {insights.topCategory === 'None' ? (
-              <div className="flex items-center gap-3">
-                <Badge className="px-3 py-1 bg-gray-100 text-gray-600 border-gray-200">
-                  No categories yet
-                </Badge>
-                <span className="text-sm text-gray-500">
-                  Posts will be auto-categorized by AI
-                </span>
-              </div>
-            ) : (
-              <>
-                <Badge className={`px-3 py-1 ${getCategoryColor(insights.topCategory)}`}>
-                  {insights.topCategory}
-                </Badge>
-                <span className="text-sm text-gray-600">
-                  {insights.categoryBreakdown[0]?.count || 0} posts
-                </span>
-                {insights.averageConfidence > 0 && (
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <CheckCircle className="w-3 h-3" />
-                    {insights.averageConfidence.toFixed(0)}% avg confidence
-                  </div>
-                )}
-              </>
-            )}
+            <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-700">
+                  Time Saved
+                </CardTitle>
+                <Clock className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {insights.timeSaved}m
+                </div>
+                <p className="text-xs text-gray-500">
+                  ~{Math.round(insights.timeSaved / 60)} hours
+                </p>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Category Breakdown */}
-      <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-700">
-            <BarChart3 className="h-5 w-5 text-indigo-600" />
-            Category Distribution
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {insights.categoryBreakdown.length === 0 ? (
-            <div className="text-center py-6">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <BarChart3 className="w-6 h-6 text-gray-400" />
-              </div>
-              <p className="text-sm text-gray-500">No categories assigned yet</p>
-              <p className="text-xs text-gray-400 mt-1">
-                AI will automatically categorize posts as they're added
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {insights.categoryBreakdown.slice(0, 5).map((item) => (
-                <div key={item.category} className="flex items-center justify-between">
+          {/* Top Category */}
+          <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <Target className="h-5 w-5 text-orange-600" />
+                Most Common Category
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-3">
+                {insights.topCategory === 'None' ? (
                   <div className="flex items-center gap-3">
-                    <Badge className={`px-2 py-1 text-xs ${getCategoryColor(item.category)}`}>
-                      {item.category}
+                    <Badge className="px-3 py-1 bg-gray-100 text-gray-600 border-gray-200">
+                      No categories yet
                     </Badge>
+                    <span className="text-sm text-gray-500">
+                      Posts will be auto-categorized by AI
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <Badge className={`px-3 py-1 ${getCategoryColor(insights.topCategory)}`}>
+                      {insights.topCategory}
+                    </Badge>
+                    <span className="text-sm text-gray-600">
+                      {insights.categoryBreakdown[0]?.count || 0} posts
+                    </span>
+                    {insights.averageConfidence > 0 && (
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <CheckCircle className="w-3 h-3" />
+                        {insights.averageConfidence.toFixed(0)}% avg confidence
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Category Breakdown */}
+          <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <BarChart3 className="h-5 w-5 text-indigo-600" />
+                Category Distribution
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {insights.categoryBreakdown.length === 0 ? (
+                <div className="text-center py-6">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <BarChart3 className="w-6 h-6 text-gray-400" />
+                  </div>
+                  <p className="text-sm text-gray-500">No categories assigned yet</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    AI will automatically categorize posts as they're added
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {insights.categoryBreakdown.slice(0, 5).map((item) => (
+                    <div key={item.category} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Badge className={`px-2 py-1 text-xs ${getCategoryColor(item.category)}`}>
+                          {item.category}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-gray-700">
+                          {item.count}
+                        </span>
+                        <div className="w-20">
+                          <Progress value={item.percentage} className="h-2" />
+                        </div>
+                        <span className="text-xs text-gray-500 w-12 text-right">
+                          {item.percentage.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Sentiment Analysis */}
+          <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <Heart className="h-5 w-5 text-pink-600" />
+                Sentiment Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Positive */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Smile className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-medium text-gray-700">Positive</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-700">
-                      {item.count}
-                    </span>
-                    <div className="w-20">
-                      <Progress value={item.percentage} className="h-2" />
+                    <div className="w-32">
+                      <Progress 
+                        value={insights.totalPosts > 0 ? (insights.sentimentBreakdown.positive / insights.totalPosts) * 100 : 0} 
+                        className="h-2 bg-green-100"
+                      />
                     </div>
-                    <span className="text-xs text-gray-500 w-12 text-right">
-                      {item.percentage.toFixed(1)}%
+                    <span className="text-sm font-bold text-green-600 w-12 text-right">
+                      {insights.sentimentBreakdown.positive}
                     </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Sentiment Analysis */}
-      <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-700">
-            <Heart className="h-5 w-5 text-pink-600" />
-            Sentiment Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Positive */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Smile className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-gray-700">Positive</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-32">
-                  <Progress 
-                    value={insights.totalPosts > 0 ? (insights.sentimentBreakdown.positive / insights.totalPosts) * 100 : 0} 
-                    className="h-2 bg-green-100"
-                  />
-                </div>
-                <span className="text-sm font-bold text-green-600 w-12 text-right">
-                  {insights.sentimentBreakdown.positive}
-                </span>
-              </div>
-            </div>
-
-            {/* Neutral */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Meh className="h-4 w-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Neutral</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-32">
-                  <Progress 
-                    value={insights.totalPosts > 0 ? (insights.sentimentBreakdown.neutral / insights.totalPosts) * 100 : 0} 
-                    className="h-2 bg-gray-100"
-                  />
-                </div>
-                <span className="text-sm font-bold text-gray-600 w-12 text-right">
-                  {insights.sentimentBreakdown.neutral}
-                </span>
-              </div>
-            </div>
-
-            {/* Negative */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Frown className="h-4 w-4 text-red-600" />
-                <span className="text-sm font-medium text-gray-700">Negative</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-32">
-                  <Progress 
-                    value={insights.totalPosts > 0 ? (insights.sentimentBreakdown.negative / insights.totalPosts) * 100 : 0} 
-                    className="h-2 bg-red-100"
-                  />
-                </div>
-                <span className="text-sm font-bold text-red-600 w-12 text-right">
-                  {insights.sentimentBreakdown.negative}
-                </span>
-              </div>
-            </div>
-
-            {/* Mixed */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-yellow-600" />
-                <span className="text-sm font-medium text-gray-700">Mixed</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-32">
-                  <Progress 
-                    value={insights.totalPosts > 0 ? (insights.sentimentBreakdown.mixed / insights.totalPosts) * 100 : 0} 
-                    className="h-2 bg-yellow-100"
-                  />
-                </div>
-                <span className="text-sm font-bold text-yellow-600 w-12 text-right">
-                  {insights.sentimentBreakdown.mixed}
-                </span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent Trends */}
-      <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-700">
-            <PieChart className="h-5 w-5 text-pink-600" />
-            Recent Trends (Last 7 Days)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {insights.recentTrends.map((trend) => (
-              <div key={trend.date} className="flex items-center justify-between py-1">
-                <span className="text-sm text-gray-600">
-                  {new Date(trend.date).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}
-                </span>
-                <div className="flex items-center gap-4">
+                {/* Neutral */}
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <span className="text-xs text-gray-600">
-                      {trend.categorized} categorized
+                    <Meh className="h-4 w-4 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700">Neutral</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-32">
+                      <Progress 
+                        value={insights.totalPosts > 0 ? (insights.sentimentBreakdown.neutral / insights.totalPosts) * 100 : 0} 
+                        className="h-2 bg-gray-100"
+                      />
+                    </div>
+                    <span className="text-sm font-bold text-gray-600 w-12 text-right">
+                      {insights.sentimentBreakdown.neutral}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-500">
-                    {trend.total} total
-                  </span>
+                </div>
+
+                {/* Negative */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Frown className="h-4 w-4 text-red-600" />
+                    <span className="text-sm font-medium text-gray-700">Negative</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-32">
+                      <Progress 
+                        value={insights.totalPosts > 0 ? (insights.sentimentBreakdown.negative / insights.totalPosts) * 100 : 0} 
+                        className="h-2 bg-red-100"
+                      />
+                    </div>
+                    <span className="text-sm font-bold text-red-600 w-12 text-right">
+                      {insights.sentimentBreakdown.negative}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Mixed */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-yellow-600" />
+                    <span className="text-sm font-medium text-gray-700">Mixed</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-32">
+                      <Progress 
+                        value={insights.totalPosts > 0 ? (insights.sentimentBreakdown.mixed / insights.totalPosts) * 100 : 0} 
+                        className="h-2 bg-yellow-100"
+                      />
+                    </div>
+                    <span className="text-sm font-bold text-yellow-600 w-12 text-right">
+                      {insights.sentimentBreakdown.mixed}
+                    </span>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+
+          {/* Recent Trends */}
+          <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <PieChart className="h-5 w-5 text-pink-600" />
+                Recent Trends (Last 7 Days)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {insights.recentTrends.map((trend) => (
+                  <div key={trend.date} className="flex items-center justify-between py-1">
+                    <span className="text-sm text-gray-600">
+                      {new Date(trend.date).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}
+                    </span>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                        <span className="text-xs text-gray-600">
+                          {trend.categorized} categorized
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {trend.total} total
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="urgency" className="space-y-6">
+          <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <Target className="h-5 w-5 text-red-500" />
+                Overall Signal Mix
+              </CardTitle>
+              <p className="text-xs text-gray-500 mt-1">
+                {priorityTotalVotes > 0
+                  ? `${priorityTotalVotes} votes captured across all posts`
+                  : 'Votes will appear here once feedback starts rolling in'}
+              </p>
+            </CardHeader>
+            <CardContent>
+              {priorityTotalVotes === 0 ? (
+                <div className="text-sm text-gray-500">
+                  No urgency data yet. Encourage users to vote with priorities to populate this view.
+                </div>
+              ) : (
+                <PriorityMixBar
+                  mustHave={priorityTotals.mustHave}
+                  important={priorityTotals.important}
+                  niceToHave={priorityTotals.niceToHave}
+                  size="sm"
+                  showLegend
+                  layout="side"
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-gray-700">
+                  <BarChart3 className="h-5 w-5 text-indigo-600" />
+                  Vote Urgency by Post
+                </CardTitle>
+                <p className="text-xs text-gray-500">
+                  Sorted by must-have volume to spotlight weekly hot items.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant={urgencyViewMode === 'count' ? 'default' : 'outline'}
+                  onClick={() => setUrgencyViewMode('count')}
+                >
+                  Counts
+                </Button>
+                <Button
+                  size="sm"
+                  variant={urgencyViewMode === 'percent' ? 'default' : 'outline'}
+                  onClick={() => setUrgencyViewMode('percent')}
+                >
+                  Share %
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {urgencyChartData.length === 0 ? (
+                <div className="text-center py-8 text-sm text-gray-500">
+                  No votes yet. As signals roll in, we’ll chart the breakdown per post.
+                </div>
+              ) : (
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={urgencyChartData}
+                      margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="name" />
+                      <YAxis
+                        tickFormatter={(value) =>
+                          urgencyViewMode === 'percent' ? `${value}%` : value
+                        }
+                        domain={urgencyViewMode === 'percent' ? [0, 100] : undefined}
+                        allowDecimals={urgencyViewMode === 'percent'}
+                      />
+                      <Tooltip
+                        labelFormatter={(_, payload) =>
+                          payload?.[0]?.payload?.fullTitle || ''
+                        }
+                        formatter={(value: number, name: string, entry) => {
+                          if (!entry || !entry.payload) return [value, name];
+                          const rawKey =
+                            name === 'Must Have'
+                              ? 'rawMustHave'
+                              : name === 'Important'
+                              ? 'rawImportant'
+                              : 'rawNiceToHave';
+                          const rawValue = entry.payload[rawKey] as number;
+                          if (urgencyViewMode === 'percent') {
+                            return [`${value.toFixed(1)}% (${rawValue})`, name];
+                          }
+                          return [rawValue, name];
+                        }}
+                      />
+                      <Legend />
+                      <Bar dataKey="mustHave" stackId="a" fill="#ef4444" name="Must Have" />
+                      <Bar dataKey="important" stackId="a" fill="#f59e0b" name="Important" />
+                      <Bar dataKey="niceToHave" stackId="a" fill="#10b981" name="Nice to Have" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <Clock className="h-5 w-5 text-blue-600" />
+                Weekly Snapshots
+              </CardTitle>
+              <p className="text-xs text-gray-500">
+                Quick view of the mix over the last few weeks.
+              </p>
+            </CardHeader>
+            <CardContent>
+              {weeklySnapshots.length === 0 ? (
+                <div className="text-center py-8 text-sm text-gray-500">
+                  We’ll summarize weekly shifts once votes arrive.
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {weeklySnapshots.map((snapshot) => (
+                    <div
+                      key={snapshot.weekStart}
+                      className="rounded-lg border border-gray-200 bg-white/80 p-4"
+                    >
+                      <p className="text-xs font-medium text-gray-500">
+                        Week of {new Date(snapshot.weekStart).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </p>
+                      <div className="mt-3 space-y-2 text-sm">
+                        <div className="flex items-center justify-between text-red-600">
+                          <span>🔴 Must</span>
+                          <span className="font-semibold">{snapshot.mustHave}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-amber-600">
+                          <span>🟡 Important</span>
+                          <span className="font-semibold">{snapshot.important}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-emerald-600">
+                          <span>🟢 Nice</span>
+                          <span className="font-semibold">{snapshot.niceToHave}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

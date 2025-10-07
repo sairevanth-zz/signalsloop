@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +32,8 @@ import AIAutoResponse from './AIAutoResponse';
 import VoteOnBehalfModal from './VoteOnBehalfModal';
 import { useAuth } from '@/hooks/useAuth';
 import { getSupabaseClient } from '@/lib/supabase-client';
-import VoteButton, { VoteStats } from '@/components/VoteButton';
+import VoteButton, { VoteStats, VoteStatsSnapshot } from '@/components/VoteButton';
+import { PriorityMixBar } from '@/components/PriorityMix';
 
 interface Project {
   id: string;
@@ -51,6 +52,9 @@ interface Post {
   description: string;
   category: string;
   vote_count: number;
+  must_have_votes?: number;
+  important_votes?: number;
+  nice_to_have_votes?: number;
   created_at: string;
   author_email?: string;
   status: string;
@@ -67,6 +71,19 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const { user, loading: authLoading } = useAuth();
   const [hasVoted, setHasVoted] = useState(false);
   const [voteCount, setVoteCount] = useState(post.vote_count);
+  const [priorityMix, setPriorityMix] = useState({
+    mustHave: post.must_have_votes ?? 0,
+    important: post.important_votes ?? 0,
+    niceToHave: post.nice_to_have_votes ?? 0,
+  });
+  const handlePriorityStatsChange = useCallback((next: VoteStatsSnapshot) => {
+    setPriorityMix({
+      mustHave: next.mustHave,
+      important: next.important,
+      niceToHave: next.niceToHave,
+    });
+    setVoteCount((prev) => (prev === next.totalVotes ? prev : next.totalVotes));
+  }, []);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
   const [analyzingPriority, setAnalyzingPriority] = useState(false);
   const [duplicateResults, setDuplicateResults] = useState<any>(null);
@@ -559,8 +576,18 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                     <h1 className="text-3xl font-bold text-gray-900 mb-4">
                       {post.title}
                     </h1>
-                    
-                  <p className="text-gray-700 leading-relaxed">
+                  
+                  <PriorityMixBar
+                    mustHave={priorityMix.mustHave}
+                    important={priorityMix.important}
+                    niceToHave={priorityMix.niceToHave}
+                    size="sm"
+                    showLegend
+                    className="max-w-md border-dashed bg-white/70"
+                    layout="side"
+                  />
+                  
+                  <p className="mt-4 text-gray-700 leading-relaxed">
                     {post.description}
                   </p>
                   
@@ -606,16 +633,6 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                     }}
                   />
 
-                  <VoteStats
-                    postId={post.id}
-                    refreshToken={voteCount}
-                    onShowNotification={(message, type) => {
-                      if (type === 'success') toast.success(message);
-                      else if (type === 'error') toast.error(message);
-                      else toast.info(message);
-                    }}
-                  />
-
                   {/* Vote on Behalf Button (Admin Only) */}
                   {isOwner && (
                     <Button
@@ -632,6 +649,24 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                 </div>
               </CardContent>
             </Card>
+
+            <details className="mb-6 rounded-lg border border-gray-200 bg-white/70 shadow-sm">
+              <summary className="cursor-pointer list-none rounded-lg px-4 py-3 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50">
+                View full breakdown
+              </summary>
+              <div className="px-4 pb-4">
+                <VoteStats
+                  postId={post.id}
+                  refreshToken={voteCount}
+                  onShowNotification={(message, type) => {
+                    if (type === 'success') toast.success(message);
+                    else if (type === 'error') toast.error(message);
+                    else toast.info(message);
+                  }}
+                  onStatsChange={handlePriorityStatsChange}
+                />
+              </div>
+            </details>
 
             {/* AI Auto-Response - Owner/Admin Only */}
             {isOwner && user && (

@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import PublicBoardHomepage from '@/components/PublicBoardHomepage';
 
@@ -111,18 +112,18 @@ export default async function PublicBoardPage({ params }: PublicBoardPageProps) 
               This feedback board is private and requires authentication to access.
             </p>
             <div className="space-y-3">
-              <a
+              <Link
                 href={`/login?redirect=${encodeURIComponent(`/${slug}`)}`}
                 className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
               >
                 Sign In
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/"
                 className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors inline-block"
               >
                 Create Your Own Board
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -149,6 +150,10 @@ export default async function PublicBoardPage({ params }: PublicBoardPageProps) 
         description,
         category,
         vote_count,
+        must_have_votes,
+        important_votes,
+        nice_to_have_votes,
+        total_priority_score,
         created_at,
         author_email,
         status,

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -219,7 +220,7 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
               asChild
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
-              <a href="/app/billing">Upgrade to Pro</a>
+              <Link href="/app/billing">Upgrade to Pro</Link>
             </Button>
           </div>
         </CardContent>

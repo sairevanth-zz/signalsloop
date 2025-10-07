@@ -57,6 +57,38 @@ export async function GET(request: NextRequest) {
     const categorizedPosts = typedPosts.filter(p => p.ai_categorized).length;
     const categorizationRate = totalPosts > 0 ? (categorizedPosts / totalPosts) * 100 : 0;
 
+    const priorityTotals = typedPosts.reduce(
+      (acc, post) => {
+        acc.mustHave += post.must_have_votes || 0;
+        acc.important += post.important_votes || 0;
+        acc.niceToHave += post.nice_to_have_votes || 0;
+        return acc;
+      },
+      { mustHave: 0, important: 0, niceToHave: 0 }
+    );
+
+    const priorityByPost = typedPosts
+      .map((post) => {
+        const mustHave = post.must_have_votes || 0;
+        const important = post.important_votes || 0;
+        const niceToHave = post.nice_to_have_votes || 0;
+        const total = mustHave + important + niceToHave;
+
+        return {
+          id: post.id,
+          title: post.title,
+          status: post.status,
+          mustHave,
+          important,
+          niceToHave,
+          total,
+          timeframe: post.created_at,
+        };
+      })
+      .filter((entry) => entry.total > 0)
+      .sort((a, b) => b.mustHave - a.mustHave)
+      .slice(0, 12);
+
     // Calculate category breakdown
     const categoryCounts = typedPosts.reduce((acc: Record<string, number>, post) => {
       if (post.category) {
@@ -112,6 +144,37 @@ export async function GET(request: NextRequest) {
       negative: Math.round(totalPosts * 0.15), // 15% negative
       mixed: Math.round(totalPosts * 0.05)     // 5% mixed
     };
+
+    const weeklySnapshots = Array.from({ length: 6 }, (_, index) => {
+      const weekStart = new Date(now);
+      weekStart.setDate(weekStart.getDate() - index * 7);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 7);
+
+      const inRange = (dateString?: string | null) => {
+        if (!dateString) return false;
+        const parsed = new Date(dateString);
+        if (Number.isNaN(parsed.getTime())) return false;
+        return parsed >= weekStart && parsed < weekEnd;
+      };
+
+      const windowPosts = typedPosts.filter((post) => inRange(post.created_at));
+      const windowTotals = windowPosts.reduce(
+        (acc, post) => {
+          acc.mustHave += post.must_have_votes || 0;
+          acc.important += post.important_votes || 0;
+          acc.niceToHave += post.nice_to_have_votes || 0;
+          return acc;
+        },
+        { mustHave: 0, important: 0, niceToHave: 0 }
+      );
+
+      return {
+        weekStart: weekStart.toISOString().split('T')[0],
+        weekEnd: weekEnd.toISOString().split('T')[0],
+        ...windowTotals,
+      };
+    }).reverse();
     
     const insights = {
       totalPosts,
@@ -122,7 +185,12 @@ export async function GET(request: NextRequest) {
       timeSaved,
       averageConfidence,
       recentTrends,
-      sentimentBreakdown
+      sentimentBreakdown,
+      prioritySummary: {
+        totals: priorityTotals,
+        posts: priorityByPost,
+        weeklySnapshots,
+      }
     };
 
     return NextResponse.json(insights);

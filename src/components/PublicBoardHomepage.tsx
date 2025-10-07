@@ -33,6 +33,8 @@ import {
 import { toast } from 'sonner';
 import Link from 'next/link';
 import PostSubmissionForm from '@/components/PostSubmissionForm';
+import posthog from 'posthog-js';
+import { PriorityMixCompact } from '@/components/PriorityMix';
 
 interface Project {
   id: string;
@@ -58,6 +60,10 @@ interface Post {
   has_voted?: boolean;
   comment_count?: number;
   board_id?: string | null;
+  must_have_votes?: number;
+  important_votes?: number;
+  nice_to_have_votes?: number;
+  total_priority_score?: number;
 }
 
 interface PublicBoardHomepageProps {
@@ -436,19 +442,27 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
                       </p>
                     </div>
                     
-                    <Button
-                      variant={votedPosts.has(post.id) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleVote(post.id)}
-                      className={`ml-4 ${
-                        votedPosts.has(post.id) 
-                          ? 'bg-blue-600 hover:bg-blue-700' 
-                          : 'hover:bg-blue-50'
-                      }`}
-                    >
-                      <ChevronUp className="h-4 w-4 mr-1" />
-                      {post.vote_count}
-                    </Button>
+                    <div className="ml-4 flex min-w-[72px] flex-col items-end gap-1">
+                      <Button
+                        variant={votedPosts.has(post.id) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleVote(post.id)}
+                        className={
+                          votedPosts.has(post.id) 
+                            ? 'bg-blue-600 hover:bg-blue-700'
+                            : 'hover:bg-blue-50'
+                        }
+                      >
+                        <ChevronUp className="h-4 w-4 mr-1" />
+                        {post.vote_count}
+                      </Button>
+                      <PriorityMixCompact
+                        mustHave={post.must_have_votes ?? 0}
+                        important={post.important_votes ?? 0}
+                        niceToHave={post.nice_to_have_votes ?? 0}
+                        className="w-full justify-end text-[11px] leading-tight"
+                      />
+                    </div>
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -475,7 +489,22 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
                     </div>
                     
                     <Link href={`/${project.slug}/post/${post.id}`}>
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if ((post.must_have_votes ?? 0) > 0) {
+                            posthog.capture('signal_mix_click', {
+                              post_id: post.id,
+                              project_id: project.id,
+                              must_have_votes: post.must_have_votes ?? 0,
+                              important_votes: post.important_votes ?? 0,
+                              nice_to_have_votes: post.nice_to_have_votes ?? 0,
+                              source: 'board_card',
+                            });
+                          }
+                        }}
+                      >
                         View Details
                       </Button>
                     </Link>

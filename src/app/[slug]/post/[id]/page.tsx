@@ -114,7 +114,22 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
     // Get post details
     const { data: post, error: postError } = await supabase
       .from('posts')
-      .select('id, title, description, status, created_at, author_email, author_name, project_id, category')
+      .select(`
+        id,
+        title,
+        description,
+        status,
+        created_at,
+        author_email,
+        author_name,
+        project_id,
+        category,
+        vote_count,
+        must_have_votes,
+        important_votes,
+        nice_to_have_votes,
+        total_priority_score
+      `)
       .eq('id', id)
       .eq('project_id', project.id)
       .single();
@@ -122,16 +137,13 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
     if (postError || !post) {
       notFound();
     }
-    
-    // Get actual vote count
-    const { count: voteCount } = await supabase
-      .from('votes')
-      .select('*', { count: 'exact', head: true })
-      .eq('post_id', post.id);
-    
     const enrichedPost = {
       ...post,
-      vote_count: voteCount || 0
+      vote_count: post.vote_count ?? 0,
+      must_have_votes: post.must_have_votes ?? 0,
+      important_votes: post.important_votes ?? 0,
+      nice_to_have_votes: post.nice_to_have_votes ?? 0,
+      total_priority_score: post.total_priority_score ?? 0,
     };
 
     // Get related posts

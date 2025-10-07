@@ -87,7 +87,7 @@ const priorities = [
 export default function PostSubmissionForm({ 
   isOpen, 
   onClose, 
-  projectId, // eslint-disable-line @typescript-eslint/no-unused-vars
+  projectId,  
   boardId, 
   onPostSubmitted 
 }: PostSubmissionFormProps) {
