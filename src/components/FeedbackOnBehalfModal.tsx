@@ -119,14 +119,22 @@ export default function FeedbackOnBehalfModal({
 
       if (response.ok) {
         const data = await response.json();
-        setAiCategory(data.result);
+        const suggested =
+          data.result?.primaryCategory || data.result?.category || '';
+        const normalizedCategory = isValidCategory(suggested)
+          ? (suggested as (typeof categoryOptions)[number]['value'])
+          : 'Other';
+
+        setAiCategory({
+          category: normalizedCategory,
+          confidence: data.result?.confidence ?? 0,
+          reasoning: data.result?.reasoning,
+        });
         setShowAICategory(true);
-        if (data.result?.category && isValidCategory(data.result.category)) {
-          setFormData((prev) => ({
-            ...prev,
-            category: data.result.category,
-          }));
-        }
+        setFormData((prev) => ({
+          ...prev,
+          category: normalizedCategory,
+        }));
         if (data.usage) {
           setAiUsage(data.usage);
         }

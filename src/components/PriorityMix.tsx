@@ -14,28 +14,28 @@ const PRIORITY_META = {
     label: 'Must Have',
     shortLabel: 'Must',
     emoji: '🔴',
-    color: 'bg-red-500',
-    softBg: 'bg-red-100',
-    text: 'text-red-700',
-    border: 'border-red-200',
+    color: '#EF4444',
+    softBg: '#FEE2E2',
+    text: '#991B1B',
+    border: '#FECACA',
   },
   important: {
     label: 'Important',
     shortLabel: 'Important',
     emoji: '🟡',
-    color: 'bg-amber-400',
-    softBg: 'bg-amber-100',
-    text: 'text-amber-700',
-    border: 'border-amber-200',
+    color: '#F59E0B',
+    softBg: '#FEF3C7',
+    text: '#92400E',
+    border: '#FDE68A',
   },
   niceToHave: {
     label: 'Nice to Have',
     shortLabel: 'Nice',
     emoji: '🟢',
-    color: 'bg-emerald-500',
-    softBg: 'bg-emerald-100',
-    text: 'text-emerald-700',
-    border: 'border-emerald-200',
+    color: '#10B981',
+    softBg: '#D1FAE5',
+    text: '#065F46',
+    border: '#A7F3D0',
   },
 } as const;
 
@@ -68,7 +68,7 @@ export function PriorityMixCompact({
   return (
     <span
       className={clsx(
-        'flex flex-wrap items-center gap-1 text-xs text-gray-500',
+        'flex flex-wrap items-center gap-1 text-xs text-gray-700',
         align === 'start' ? 'justify-start' : align === 'center' ? 'justify-center' : 'justify-end',
         className
       )}
@@ -128,7 +128,7 @@ export function PriorityMixBar({
   return (
     <div
       className={clsx(
-        'flex w-full flex-col gap-3 rounded-lg border border-gray-200/70 bg-white/50 p-3 shadow-sm',
+        'flex w-full flex-col gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm',
         className
       )}
       aria-label={ariaLabel}
@@ -140,8 +140,8 @@ export function PriorityMixBar({
           return (
             <div
               key={key}
-              className={clsx(meta.color, barHeight)}
-              style={{ width: `${width}%` }}
+              className={barHeight}
+              style={{ width: `${width}%`, backgroundColor: meta.color }}
               role="presentation"
             />
           );
@@ -165,12 +165,12 @@ export function PriorityMixBar({
             return (
               <span
                 key={key}
-                className={clsx(
-                  'flex min-w-[90px] items-center gap-1 rounded-full border px-2 py-1',
-                  meta.softBg,
-                  meta.text,
-                  meta.border
-                )}
+                className="flex min-w-[100px] items-center gap-1 rounded-full border px-2 py-1"
+                style={{
+                  backgroundColor: meta.softBg,
+                  color: meta.text,
+                  borderColor: meta.border,
+                }}
               >
                 <span aria-hidden="true">{meta.emoji}</span>
                 <span className="font-medium">{count}</span>

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { triggerWebhooks } from '@/lib/webhooks';
+import { triggerSlackNotification } from '@/lib/slack';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -166,6 +168,43 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('✅ Feedback metadata created successfully');
+
+    const webhookPayload = {
+      post: {
+        id: post.id,
+        title: post.title,
+        description: post.description,
+        status: post.status,
+        author_name: post.author_name,
+        author_email: post.author_email,
+        category: post.category,
+        created_at: post.created_at,
+      },
+      metadata: {
+        priority,
+        feedback_source: feedbackSource,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        customer_company: customerCompany,
+      },
+      project: {
+        id: projectId,
+        slug: project.slug,
+        name: project.name,
+      },
+    };
+
+    try {
+      await triggerWebhooks(projectId, 'post.created', webhookPayload);
+    } catch (webhookError) {
+      console.error('Failed to trigger webhooks for on-behalf feedback:', webhookError);
+    }
+
+    triggerSlackNotification(projectId, 'post.created', webhookPayload).catch(
+      (slackError) => {
+        console.error('Failed to notify Slack for on-behalf feedback:', slackError);
+      }
+    );
 
     // Send customer notification email if requested
     if (notifyCustomer && metadata) {

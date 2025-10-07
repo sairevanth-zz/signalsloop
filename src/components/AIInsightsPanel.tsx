@@ -135,7 +135,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+            <Card key={i} className="bg-white shadow-lg border border-gray-100">
               <CardHeader>
                 <Skeleton className="h-4 w-32" />
               </CardHeader>
@@ -145,7 +145,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
             </Card>
           ))}
         </div>
-        <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+        <Card className="bg-white shadow-lg border border-gray-100">
           <CardHeader>
             <Skeleton className="h-6 w-48" />
           </CardHeader>
@@ -265,7 +265,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
       <section className="space-y-6">
         {/* Key Metrics */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+          <Card className="bg-white shadow-lg border border-gray-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-700">
                 Total Posts Analyzed
@@ -282,7 +282,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+          <Card className="bg-white shadow-lg border border-gray-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-700">
                 Categorization Rate
@@ -297,7 +297,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+          <Card className="bg-white shadow-lg border border-gray-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-700">
                 Time Saved
@@ -316,7 +316,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
         </div>
 
         {/* Top Category */}
-        <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+        <Card className="bg-white shadow-lg border border-gray-100">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-700">
               <Target className="h-5 w-5 text-orange-600" />
@@ -355,7 +355,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
         </Card>
 
         {/* Category Breakdown */}
-        <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+        <Card className="bg-white shadow-lg border border-gray-100">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-700">
               <BarChart3 className="h-5 w-5 text-indigo-600" />
@@ -399,7 +399,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
         </Card>
 
         {/* Sentiment Analysis */}
-        <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+        <Card className="bg-white shadow-lg border border-gray-100">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-700">
               <Heart className="h-5 w-5 text-pink-600" />
@@ -461,7 +461,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
         </Card>
 
         {/* Recent Trends */}
-        <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+        <Card className="bg-white shadow-lg border border-gray-100">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-700">
               <PieChart className="h-5 w-5 text-pink-600" />
@@ -504,7 +504,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
           </div>
         </div>
 
-        <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+        <Card className="bg-white shadow-lg border border-gray-100">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-700">
               <Target className="h-5 w-5 text-red-500" />
@@ -534,7 +534,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+        <Card className="bg-white shadow-lg border border-gray-100">
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle className="flex items-center gap-2 text-gray-700">
@@ -601,9 +601,9 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
                       }}
                     />
                     <Legend />
-                    <Bar dataKey="mustHave" stackId="a" fill="#ef4444" name="Must Have" />
-                    <Bar dataKey="important" stackId="a" fill="#f59e0b" name="Important" />
-                    <Bar dataKey="niceToHave" stackId="a" fill="#10b981" name="Nice to Have" />
+                    <Bar dataKey="mustHave" stackId="a" fill="#EF4444" fillOpacity={1} name="Must Have" />
+                    <Bar dataKey="important" stackId="a" fill="#F59E0B" fillOpacity={1} name="Important" />
+                    <Bar dataKey="niceToHave" stackId="a" fill="#10B981" fillOpacity={1} name="Nice to Have" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -611,7 +611,7 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/70 backdrop-blur-lg shadow-lg border-none">
+        <Card className="bg-white shadow-lg border border-gray-100">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-700">
               <Clock className="h-5 w-5 text-blue-600" />

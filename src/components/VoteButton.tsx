@@ -503,13 +503,31 @@ export function VoteStats({ postId, refreshToken, onShowNotification, onStatsCha
         )}
       </div>
       <div className="grid grid-cols-3 gap-2">
-        <span className="flex items-center justify-center gap-1 rounded-full bg-red-50 text-red-600 py-1">
+        <span
+          className="flex items-center justify-center gap-1 rounded-full py-1"
+          style={{
+            backgroundColor: '#FEE2E2',
+            color: '#991B1B',
+          }}
+        >
           🔴 Must Have {stats.mustHave}
         </span>
-        <span className="flex items-center justify-center gap-1 rounded-full bg-amber-50 text-amber-600 py-1">
+        <span
+          className="flex items-center justify-center gap-1 rounded-full py-1"
+          style={{
+            backgroundColor: '#FEF3C7',
+            color: '#92400E',
+          }}
+        >
           🟡 Important {stats.important}
         </span>
-        <span className="flex items-center justify-center gap-1 rounded-full bg-emerald-50 text-emerald-600 py-1">
+        <span
+          className="flex items-center justify-center gap-1 rounded-full py-1"
+          style={{
+            backgroundColor: '#D1FAE5',
+            color: '#065F46',
+          }}
+        >
           🟢 Nice to Have {stats.niceToHave}
         </span>
       </div>
