@@ -84,7 +84,7 @@ export default function Homepage() {
               <Link href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors min-touch-target">
                 Pricing
               </Link>
-              <Link href="/demo/interactive" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors flex items-center gap-1 min-touch-target">
+              <Link href="/demo/board" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors flex items-center gap-1 min-touch-target">
                 🎯 Demo
               </Link>
               
@@ -102,6 +102,14 @@ export default function Homepage() {
             </nav>
             
             <div className="flex items-center gap-2">
+              <Link href="/demo/board" className="lg:hidden">
+                <Button
+                  variant="outline"
+                  className="text-sm md:text-base min-touch-target px-3 md:px-4 tap-highlight-transparent"
+                >
+                  Demo
+                </Button>
+              </Link>
               <Link href="/login" className="hidden sm:block">
                 <Button variant="ghost" className="text-sm md:text-base min-touch-target px-3 md:px-4 tap-highlight-transparent">
                   Sign In
@@ -175,7 +183,7 @@ export default function Homepage() {
               <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
             <div className="w-full sm:w-auto">
-              <Link href="/demo/interactive">
+              <Link href="/demo/board">
                 <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 md:px-10 py-3 sm:py-4 rounded-xl border-2 border-purple-300 hover:bg-purple-50 hover:border-purple-400 transition-all duration-200 min-h-[44px] w-full font-semibold text-purple-700 shadow-md hover:shadow-lg">
                   🎯 Try Interactive Demo
                 </Button>

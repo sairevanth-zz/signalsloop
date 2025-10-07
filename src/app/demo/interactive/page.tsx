@@ -568,6 +568,21 @@ export default function InteractiveDemoPage() {
         </div>
       </div>
 
+      {/* Redirect hint to enhanced AI board */}
+      <div className="border-y bg-blue-50/80">
+        <div className="container mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-blue-900">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-blue-500" />
+            <span>Looking for the full AI showcase? Our new demo board has dedicated AI tabs and test lab.</span>
+          </div>
+          <Link href="/demo/board">
+            <Button size="sm" variant="outline" className="border-blue-400 text-blue-700 hover:bg-blue-100">
+              Open AI Demo Board
+            </Button>
+          </Link>
+        </div>
+      </div>
+
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
@@ -577,6 +592,12 @@ export default function InteractiveDemoPage() {
               <p className="text-sm text-gray-600">Experience the full Pro dashboard</p>
             </div>
             <div className="flex gap-3">
+              <Link href="/demo/board">
+                <Button variant="outline" className="hidden md:inline-flex border-purple-300 text-purple-700 hover:bg-purple-50">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  AI Demo Board
+                </Button>
+              </Link>
               <Button
                 onClick={() => setShowSubmitForm(true)}
                 className="bg-green-600 hover:bg-green-700"
@@ -760,12 +781,17 @@ export default function InteractiveDemoPage() {
                           size="sm"
                           className="w-full bg-purple-600 hover:bg-purple-700 mb-3"
                           onClick={analyzeSentiment}
-                          disabled={analyzingSentiment || aiUsage.sentiment >= 5}
+                          disabled={
+                            analyzingSentiment ||
+                            aiUsage.sentiment.used >= aiUsage.sentiment.limit
+                          }
                         >
                           {analyzingSentiment ? (
                             <><Loader2 className="h-3 w-3 mr-2 animate-spin" />Analyzing...</>
                           ) : (
-                            <><Brain className="h-3 w-3 mr-2" />Analyze ({aiUsage.sentiment}/5)</>
+                            <>
+                              <Brain className="h-3 w-3 mr-2" />Analyze ({aiUsage.sentiment.used}/{aiUsage.sentiment.limit})
+                            </>
                           )}
                         </Button>
                         {aiSentiment && (
@@ -793,12 +819,17 @@ export default function InteractiveDemoPage() {
                           size="sm"
                           className="w-full bg-orange-600 hover:bg-orange-700 mb-3"
                           onClick={analyzePriority}
-                          disabled={analyzingPriority || aiUsage.priority >= 5}
+                          disabled={
+                            analyzingPriority ||
+                            aiUsage.priority.used >= aiUsage.priority.limit
+                          }
                         >
                           {analyzingPriority ? (
                             <><Loader2 className="h-3 w-3 mr-2 animate-spin" />Analyzing...</>
                           ) : (
-                            <><Brain className="h-3 w-3 mr-2" />Analyze ({aiUsage.priority}/5)</>
+                            <>
+                              <Brain className="h-3 w-3 mr-2" />Analyze ({aiUsage.priority.used}/{aiUsage.priority.limit})
+                            </>
                           )}
                         </Button>
                         {aiPriority && (
@@ -825,12 +856,17 @@ export default function InteractiveDemoPage() {
                           size="sm"
                           className="w-full bg-blue-600 hover:bg-blue-700 mb-3"
                           onClick={checkDuplicates}
-                          disabled={analyzingDuplicate || aiUsage.duplicate >= 10}
+                          disabled={
+                            analyzingDuplicate ||
+                            aiUsage.duplicate.used >= aiUsage.duplicate.limit
+                          }
                         >
                           {analyzingDuplicate ? (
                             <><Loader2 className="h-3 w-3 mr-2 animate-spin" />Checking...</>
                           ) : (
-                            <><Brain className="h-3 w-3 mr-2" />Check ({aiUsage.duplicate}/10)</>
+                            <>
+                              <Brain className="h-3 w-3 mr-2" />Check ({aiUsage.duplicate.used}/{aiUsage.duplicate.limit})
+                            </>
                           )}
                         </Button>
                         {aiDuplicate && (
@@ -875,7 +911,11 @@ export default function InteractiveDemoPage() {
                         variant="ghost"
                         className="absolute top-2 right-2"
                         onClick={enhanceWithAI}
-                        disabled={generatingAI || !comment.trim() || aiUsage.assistant >= 10}
+                        disabled={
+                          generatingAI ||
+                          !comment.trim() ||
+                          aiUsage.assistant.used >= aiUsage.assistant.limit
+                        }
                         title="AI Writing Assistant"
                       >
                         {generatingAI ? (
@@ -991,7 +1031,11 @@ export default function InteractiveDemoPage() {
                       variant="ghost"
                       className="absolute top-2 right-2"
                       onClick={enhanceWithAI}
-                      disabled={generatingAI || !newFeedback.description.trim() || aiUsage.assistant >= 10}
+                      disabled={
+                        generatingAI ||
+                        !newFeedback.description.trim() ||
+                        aiUsage.assistant.used >= aiUsage.assistant.limit
+                      }
                       title="Enhance with AI"
                     >
                       {generatingAI ? (
