@@ -142,15 +142,39 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
         },
       });
 
+      if (response.status === 409) {
+        // Already voted on another session/device (IP match)
+        toast.info('You have already voted on this post');
+        const updated = new Set(votedPosts);
+        updated.add(postId);
+        setVotedPosts(updated);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`voted_posts_${project.id}`, JSON.stringify([...updated]));
+        }
+        await loadLatestPosts();
+        return;
+      }
+
       if (!response.ok) {
         throw new Error('Failed to update vote');
       }
 
-      // Update local state
+      const data = await response.json().catch(() => ({}));
+      const newVoteCount = typeof data.new_vote_count === 'number' ? data.new_vote_count : undefined;
+
+      // Update local state with authoritative count when available
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post.id === postId 
-            ? { ...post, vote_count: isVoted ? post.vote_count - 1 : post.vote_count + 1 }
+            ? {
+                ...post,
+                vote_count:
+                  typeof newVoteCount === 'number'
+                    ? newVoteCount
+                    : isVoted
+                      ? Math.max(0, post.vote_count - 1)
+                      : post.vote_count + 1,
+              }
             : post
         )
       );
@@ -164,8 +188,9 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
       }
       setVotedPosts(newVotedPosts);
       
-      // Save to localStorage
-      localStorage.setItem(`voted_posts_${project.id}`, JSON.stringify([...newVotedPosts]));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`voted_posts_${project.id}`, JSON.stringify([...newVotedPosts]));
+      }
 
       toast.success(isVoted ? 'Vote removed' : 'Vote added');
     } catch (error) {
