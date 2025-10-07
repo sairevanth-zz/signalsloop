@@ -70,10 +70,12 @@ export default function SettingsPage() {
     if (!supabase) return;
 
     try {
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        console.error('Error getting user:', userError);
+      // Get current session/user
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user || null;
+
+      if (sessionError || !user) {
+        console.error('Error getting session:', sessionError);
         router.push('/login');
         return;
       }
