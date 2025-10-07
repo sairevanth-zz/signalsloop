@@ -1,0 +1,112 @@
+# CodeRabbit Configuration for SignalsLoop
+# Automated code review and improvement suggestions
+
+# Review settings
+review:
+  # Enable automated reviews
+  enabled: true
+  
+  # Review types to enable
+  types:
+    - "potential_issue"
+    - "suggestion"
+    - "question"
+    - "praise"
+  
+  # Files to include in reviews
+  include:
+    - "src/**/*.ts"
+    - "src/**/*.tsx"
+    - "src/**/*.js"
+    - "src/**/*.jsx"
+    - "src/**/*.json"
+    - "*.md"
+    - "*.yaml"
+    - "*.yml"
+  
+  # Files to exclude from reviews
+  exclude:
+    - "node_modules/**"
+    - ".next/**"
+    - "dist/**"
+    - "build/**"
+    - "*.log"
+    - "*.lock"
+    - "package-lock.json"
+    - "yarn.lock"
+  
+  # Review triggers
+  triggers:
+    - "commit"
+    - "push"
+    - "pull_request"
+  
+  # Output format
+  output:
+    format: "plain"
+    include_prompts: true
+    include_suggestions: true
+
+# AI Agent settings
+ai:
+  # Model preferences
+  model: "claude-3.5-sonnet"
+  
+  # Review focus areas
+  focus:
+    - "code_quality"
+    - "security"
+    - "performance"
+    - "maintainability"
+    - "best_practices"
+    - "typescript"
+    - "react"
+    - "nextjs"
+    - "api_design"
+    - "error_handling"
+  
+  # Custom instructions
+  instructions: |
+    This is a Next.js application called SignalsLoop - a feedback management platform.
+    
+    Key technologies:
+    - Next.js 15 with App Router
+    - TypeScript
+    - React 19
+    - Supabase (PostgreSQL)
+    - Tailwind CSS
+    - Stripe integration
+    - AI features (OpenAI)
+    - Webhook system
+    
+    Focus on:
+    - TypeScript best practices
+    - React/Next.js patterns
+    - API design and error handling
+    - Security considerations
+    - Performance optimizations
+    - Database query efficiency
+    - Webhook reliability
+    - AI integration patterns
+
+# Project-specific settings
+project:
+  name: "SignalsLoop"
+  type: "web_application"
+  framework: "nextjs"
+  language: "typescript"
+  
+  # Key directories
+  directories:
+    api: "src/app/api"
+    components: "src/components"
+    lib: "src/lib"
+    pages: "src/app"
+  
+  # Important files
+  important_files:
+    - "src/lib/enhanced-priority-scoring.ts"
+    - "src/lib/webhooks.ts"
+    - "src/app/api/webhooks/**"
+    - "src/app/api/ai/**"
+    - "src/app/api/posts/**"
