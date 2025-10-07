@@ -27,7 +27,7 @@ function getClientIp(request: NextRequest): string {
 }
 
 // Helper to get or create anonymous user ID from cookies
-function getAnonymousUserId(request: NextRequest): string {
+function getAnonymousIdentity(request: NextRequest): { id: string; hadCookie: boolean } {
   const cookieHeader = request.headers.get('cookie');
   const cookies = cookieHeader?.split(';').reduce((acc, cookie) => {
     const [key, value] = cookie.trim().split('=');
@@ -35,14 +35,19 @@ function getAnonymousUserId(request: NextRequest): string {
     return acc;
   }, {} as Record<string, string>) || {};
 
-  let anonymousId = cookies['signalsloop_anonymous_id'];
-  
-  if (!anonymousId) {
-    // Generate a new anonymous ID
-    anonymousId = 'anon_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  const existingId = cookies['signalsloop_anonymous_id'];
+
+  if (existingId) {
+    return { id: existingId, hadCookie: true };
   }
 
-  return anonymousId;
+  // Generate a new anonymous ID for this request
+  const newId =
+    'anon_' +
+    Math.random().toString(36).substring(2, 15) +
+    Math.random().toString(36).substring(2, 15);
+
+  return { id: newId, hadCookie: false };
 }
 
 export async function POST(
@@ -53,7 +58,7 @@ export async function POST(
     const resolvedParams = await params; // Await params for Next.js 15
     const postId = resolvedParams.id;
     const ipAddress = getClientIp(request);
-    const anonymousId = getAnonymousUserId(request);
+    const { id: anonymousId, hadCookie } = getAnonymousIdentity(request);
     let requestedPriority: VotePriority | undefined;
 
     try {
@@ -77,12 +82,18 @@ export async function POST(
     }
 
     // Check if user has already voted (using IP + anonymous ID for better tracking)
-    const { data: existingVote, error: voteError } = await supabase
+    let voteQuery = supabase
       .from('votes')
       .select('id')
-      .eq('post_id', postId)
-      .or(`ip_address.eq.${ipAddress},anonymous_id.eq.${anonymousId}`)
-      .maybeSingle();
+      .eq('post_id', postId);
+
+    if (hadCookie) {
+      voteQuery = voteQuery.or(`ip_address.eq.${ipAddress},anonymous_id.eq.${anonymousId}`);
+    } else {
+      voteQuery = voteQuery.eq('anonymous_id', anonymousId);
+    }
+
+    const { data: existingVote, error: voteError } = await voteQuery.maybeSingle();
 
     if (voteError) {
       console.error('Error checking existing vote:', voteError);
@@ -209,7 +220,7 @@ export async function DELETE(
     const resolvedParams = await params; // Await params for Next.js 15
     const postId = resolvedParams.id;
     const ipAddress = getClientIp(request);
-    const anonymousId = getAnonymousUserId(request);
+    const { id: anonymousId } = getAnonymousIdentity(request);
 
     if (!postId) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
