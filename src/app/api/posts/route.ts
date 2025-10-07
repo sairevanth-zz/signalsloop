@@ -8,10 +8,29 @@ import { triggerSlackNotification } from '@/lib/slack';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
+const ALLOWED_CATEGORIES = new Set([
+  'Feature Request',
+  'Bug',
+  'Improvement',
+  'UI/UX',
+  'Integration',
+  'Performance',
+  'Documentation',
+  'Other'
+]);
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { project_id, board_id, title, description, author_name, author_email } = body;
+    const {
+      project_id,
+      board_id,
+      title,
+      description,
+      author_name,
+      author_email,
+      category
+    } = body;
 
     // Validate required fields
     if (!project_id || !board_id || !title || !author_name) {
@@ -60,6 +79,13 @@ export async function POST(request: NextRequest) {
     }
 
     // First, create the post without AI categorization
+    const normalizedCategory =
+      typeof category === 'string' && category.trim().length > 0
+        ? ALLOWED_CATEGORIES.has(category.trim())
+          ? category.trim()
+          : 'Other'
+        : null;
+
     const { data: newPost, error: insertError } = await supabase
       .from('posts')
       .insert({
@@ -70,7 +96,7 @@ export async function POST(request: NextRequest) {
         author_name: author_name.trim(),
         author_email: author_email?.trim() || null,
         status: 'open',
-        category: null,
+        category: normalizedCategory,
         ai_categorized: false,
         ai_confidence: null,
         ai_reasoning: null
@@ -99,6 +125,14 @@ export async function POST(request: NextRequest) {
       categorizeFeedback(title, description)
         .then(async (aiResult) => {
           try {
+            const shouldOverwrite =
+              !newPost.category ||
+              newPost.category.toLowerCase() === 'other';
+
+            if (!shouldOverwrite) {
+              return;
+            }
+
             // Update the post with AI categorization results
             const { error: updateError } = await supabase
               .from('posts')
@@ -213,6 +247,7 @@ export async function POST(request: NextRequest) {
         status: newPost.status,
         author_name: newPost.author_name,
         author_email: newPost.author_email,
+        category: newPost.category,
         created_at: newPost.created_at,
       },
       project: {

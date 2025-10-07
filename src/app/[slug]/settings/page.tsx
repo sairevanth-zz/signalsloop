@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import type { User } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,6 +48,7 @@ export default function SettingsPage() {
   const [apiKey, setApiKey] = useState<string>('');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [supabase, setSupabase] = useState<any>(null);
+  const [authUser, setAuthUser] = useState<User | null | undefined>(undefined);
   
   const params = useParams();
   const router = useRouter();
@@ -61,25 +63,53 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    if (supabase && projectSlug) {
-      loadProject();
-    }
-  }, [supabase, projectSlug]);
+    if (!supabase) return;
 
-  const loadProject = async () => {
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!mounted) return;
+      if (error) {
+        console.error('Error getting session:', error);
+        setAuthUser(null);
+        return;
+      }
+      setAuthUser(data.session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setAuthUser(session?.user ?? null);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!supabase || authUser === undefined || !projectSlug) {
+      return;
+    }
+
+    if (authUser === null) {
+      setProject(null);
+      setLoading(false);
+      return;
+    }
+
+    loadProject(authUser);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase, authUser, projectSlug]);
+
+  const loadProject = async (user: User) => {
     if (!supabase) return;
 
     try {
-      // Get current session/user
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user || null;
-
-      if (sessionError || !user) {
-        console.error('Error getting session:', sessionError);
-        router.push('/login');
-        return;
-      }
-
+      setLoading(true);
       // Get project details
       const { data: projectData, error: projectError } = await supabase
         .from('projects')
@@ -160,6 +190,24 @@ export default function SettingsPage() {
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (authUser === null) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="text-center space-y-4">
+            <h1 className="text-2xl font-bold text-gray-900">Session Needed</h1>
+            <p className="text-gray-600">
+              Please sign in to manage settings for this project.
+            </p>
+            <Button onClick={() => router.push(`/login?redirect=/${projectSlug}/settings`)}>
+              Sign In
+            </Button>
           </div>
         </div>
       </div>

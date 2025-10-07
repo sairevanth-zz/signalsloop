@@ -89,6 +89,7 @@ async function buildSlackMessage(
         description?: string | null;
         author_name?: string | null;
         author_email?: string | null;
+        category?: string | null;
       };
 
       if (!post?.id) return null;
@@ -123,6 +124,10 @@ async function buildSlackMessage(
                 text: post.author_name
                   ? `Submitted by *${formatSlackText(post.author_name)}*`
                   : 'Submitted by community member',
+              },
+              {
+                type: 'mrkdwn',
+                text: `Category: *${formatSlackText(post.category || 'Uncategorized')}*`,
               },
             ],
           },
@@ -294,7 +299,7 @@ export async function triggerSlackNotification(
       return;
     }
 
-    await fetch(integration.webhook_url, {
+    const response = await fetch(integration.webhook_url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -305,6 +310,14 @@ export async function triggerSlackNotification(
       }),
       signal: AbortSignal.timeout(5000),
     });
+
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => '');
+      console.error(
+        `Slack webhook error (${response.status}) for project ${projectId}:`,
+        errorBody
+      );
+    }
 
     await supabase
       .from('slack_integrations')
