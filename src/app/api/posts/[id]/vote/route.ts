@@ -57,8 +57,12 @@ export async function POST(
   try {
     const resolvedParams = await params; // Await params for Next.js 15
     const postId = resolvedParams.id;
-    const ipAddress = getClientIp(request);
-    const { id: anonymousId, hadCookie } = getAnonymousIdentity(request);
+    let ipAddress = getClientIp(request);
+    const { id: anonymousId } = getAnonymousIdentity(request);
+
+    if (!ipAddress || ipAddress === 'unknown') {
+      ipAddress = `anon-${anonymousId}`;
+    }
     let requestedPriority: VotePriority | undefined;
 
     try {
@@ -87,11 +91,7 @@ export async function POST(
       .select('id')
       .eq('post_id', postId);
 
-    if (hadCookie) {
-      voteQuery = voteQuery.or(`ip_address.eq.${ipAddress},anonymous_id.eq.${anonymousId}`);
-    } else {
-      voteQuery = voteQuery.eq('anonymous_id', anonymousId);
-    }
+    voteQuery = voteQuery.or(`ip_address.eq.${ipAddress},anonymous_id.eq.${anonymousId}`);
 
     const { data: existingVote, error: voteError } = await voteQuery.maybeSingle();
 
@@ -117,18 +117,16 @@ export async function POST(
 
     if (insertError) {
       console.error('Error inserting vote:', insertError);
-      return NextResponse.json({ error: 'Failed to record vote' }, { status: 500 });
+      return NextResponse.json({ error: insertError.message || 'Failed to record vote' }, { status: 500 });
     }
 
     // Increment vote_count in posts table
-    const { data: updatedPost, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .rpc('increment_vote_count', { post_id_param: postId });
 
     if (updateError) {
       console.error('Error incrementing vote count:', updateError);
-      // Optionally, delete the vote if increment failed to maintain consistency
-      await supabase.from('votes').delete().eq('post_id', postId).eq('ip_address', ipAddress);
-      return NextResponse.json({ error: 'Failed to update vote count' }, { status: 500 });
+      return NextResponse.json({ error: updateError.message || 'Failed to update vote count' }, { status: 500 });
     }
 
     try {
@@ -219,8 +217,12 @@ export async function DELETE(
   try {
     const resolvedParams = await params; // Await params for Next.js 15
     const postId = resolvedParams.id;
-    const ipAddress = getClientIp(request);
+    let ipAddress = getClientIp(request);
     const { id: anonymousId } = getAnonymousIdentity(request);
+
+    if (!ipAddress || ipAddress === 'unknown') {
+      ipAddress = `anon-${anonymousId}`;
+    }
 
     if (!postId) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
