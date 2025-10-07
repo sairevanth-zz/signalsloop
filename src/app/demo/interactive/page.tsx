@@ -115,17 +115,126 @@ export default function InteractiveDemoPage() {
   const [generatingAI, setGeneratingAI] = useState(false);
   
   // AI Features
-  const [aiSentiment, setAiSentiment] = useState<any>(null);
+  const [aiSentiment, setAiSentiment] = useState<{
+    label: string;
+    emoji: string;
+    color: string;
+    confidence: number;
+    reasoning: string;
+    category: string;
+    urgency: string;
+    tags: string[];
+  } | null>(null);
   const [analyzingSentiment, setAnalyzingSentiment] = useState(false);
   
-  const [aiPriority, setAiPriority] = useState<any>(null);
+  const [aiPriority, setAiPriority] = useState<{
+    score: number;
+    level: string;
+    color: string;
+    bg: string;
+    reasoning: string;
+    action: string;
+  } | null>(null);
   const [analyzingPriority, setAnalyzingPriority] = useState(false);
   
-  const [aiDuplicate, setAiDuplicate] = useState<any>(null);
+  const [aiDuplicate, setAiDuplicate] = useState<{
+    found: boolean;
+    duplicates: Array<{ post: { id: string; title: string; description: string }; analysis: any }>;
+    metadata?: Record<string, unknown>;
+  } | null>(null);
   const [analyzingDuplicate, setAnalyzingDuplicate] = useState(false);
   
   const [comment, setComment] = useState('');
-  const [aiUsage, setAiUsage] = useState({ sentiment: 0, priority: 0, duplicate: 0, assistant: 0 });
+
+  const DEMO_LIMITS = {
+    sentiment: 10,
+    priority: 10,
+    duplicate: 5,
+    assistant: 10
+  } as const;
+
+  type DemoUsageKey = keyof typeof DEMO_LIMITS;
+  type UsageState = Record<DemoUsageKey, { used: number; limit: number }>;
+
+  const buildInitialUsage = (): UsageState => ({
+    sentiment: { used: 0, limit: DEMO_LIMITS.sentiment },
+    priority: { used: 0, limit: DEMO_LIMITS.priority },
+    duplicate: { used: 0, limit: DEMO_LIMITS.duplicate },
+    assistant: { used: 0, limit: DEMO_LIMITS.assistant }
+  });
+
+  const [aiUsage, setAiUsage] = useState<UsageState>(buildInitialUsage);
+
+  const updateUsage = (feature: DemoUsageKey, usage?: { limit?: number; remaining?: number }) => {
+    if (!usage) return;
+    setAiUsage(prev => {
+      const limit = usage.limit ?? prev[feature].limit;
+      const remaining = usage.remaining ?? Math.max(limit - prev[feature].used, 0);
+      const used = Math.min(limit, limit - Math.max(remaining, 0));
+      return {
+        ...prev,
+        [feature]: { limit, used }
+      };
+    });
+  };
+
+  const deriveUserTier = (post: DemoPost): 'free' | 'pro' | 'enterprise' => {
+    if (post.votes >= 120) return 'enterprise';
+    if (post.votes >= 60) return 'pro';
+    return 'free';
+  };
+
+  const buildDemoMetrics = (post: DemoPost) => {
+    const similarCount = posts.filter(p => p.id !== post.id && p.category === post.category).length;
+    return {
+      voteCount: post.votes,
+      commentCount: post.comments,
+      uniqueVoters: Math.max(1, Math.round(post.votes * 0.8)),
+      percentageOfActiveUsers: Math.min(75, Math.max(5, Math.round(post.votes / 2))),
+      similarPostsCount: similarCount
+    };
+  };
+
+  const mapCategorizationToSentiment = (result: any) => {
+    if (!result) return null;
+    const urgency = result.urgencyLevel;
+    let label = 'Neutral';
+    let emoji = '😐';
+    let color = 'text-yellow-600';
+
+    if (urgency === 'critical' || urgency === 'high') {
+      label = 'Frustrated';
+      emoji = '😟';
+      color = 'text-red-600';
+    } else if (urgency === 'low') {
+      label = 'Positive';
+      emoji = '😊';
+      color = 'text-green-600';
+    }
+
+    const confidence = Math.round((result.confidence || 0) * 100);
+
+    return {
+      label,
+      emoji,
+      color,
+      confidence,
+      reasoning: result.reasoning,
+      category: result.primaryCategory,
+      urgency: result.urgencyLevel,
+      tags: result.suggestedTags || []
+    };
+  };
+
+  const priorityStyles: Record<string, { color: string; bg: string }> = {
+    immediate: { color: 'text-red-600', bg: 'bg-red-50' },
+    'current-quarter': { color: 'text-orange-600', bg: 'bg-orange-50' },
+    'next-quarter': { color: 'text-yellow-600', bg: 'bg-yellow-50' },
+    backlog: { color: 'text-gray-600', bg: 'bg-gray-100' },
+    declined: { color: 'text-gray-500', bg: 'bg-gray-50' }
+  };
+
+  const getPriorityStyle = (level: string) => priorityStyles[level] || priorityStyles.backlog;
 
   const handleVote = (postId: string) => {
     setPosts(posts.map(p => {
@@ -137,87 +246,224 @@ export default function InteractiveDemoPage() {
     toast.success(posts.find(p => p.id === postId)?.userVoted ? 'Vote removed' : 'Voted! 🎉');
   };
 
-  const analyzeSentiment = () => {
-    if (aiUsage.sentiment >= 5) {
-      toast.error('Demo limit reached (5/day). Upgrade to Pro for unlimited!');
+  const analyzeSentiment = async () => {
+    if (!selectedPost) {
+      toast.error('Select a feedback post to analyze');
       return;
     }
-    
+
+    if (aiUsage.sentiment.used >= aiUsage.sentiment.limit) {
+      toast.error(`Demo limit reached (${aiUsage.sentiment.limit} per hour).`);
+      return;
+    }
+
     setAnalyzingSentiment(true);
-    setTimeout(() => {
-      const sentiments = [
-        { type: 'positive', emoji: '😊', color: 'text-green-600', label: 'Positive', confidence: 92 },
-        { type: 'neutral', emoji: '😐', color: 'text-gray-600', label: 'Neutral', confidence: 78 },
-        { type: 'negative', emoji: '😟', color: 'text-orange-600', label: 'Frustrated', confidence: 85 },
-      ];
-      const result = sentiments[Math.floor(Math.random() * sentiments.length)];
-      setAiSentiment(result);
-      setAiUsage(prev => ({ ...prev, sentiment: prev.sentiment + 1 }));
-      setAnalyzingSentiment(false);
-      toast.success('AI Sentiment Analysis complete!');
-    }, 2000);
-  };
-
-  const analyzePriority = () => {
-    if (aiUsage.priority >= 5) {
-      toast.error('Demo limit reached (5/day). Upgrade to Pro for unlimited!');
-      return;
-    }
-    
-    setAnalyzingPriority(true);
-    setTimeout(() => {
-      const priorities = [
-        { level: 'Critical', score: 95, color: 'text-red-600', bg: 'bg-red-50' },
-        { level: 'High', score: 82, color: 'text-orange-600', bg: 'bg-orange-50' },
-        { level: 'Medium', score: 64, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-      ];
-      const result = priorities[Math.floor(Math.random() * priorities.length)];
-      setAiPriority(result);
-      setAiUsage(prev => ({ ...prev, priority: prev.priority + 1 }));
-      setAnalyzingPriority(false);
-      toast.success('AI Priority Scoring complete!');
-    }, 2000);
-  };
-
-  const checkDuplicates = () => {
-    if (aiUsage.duplicate >= 10) {
-      toast.error('Demo limit reached (10/day). Upgrade to Pro for unlimited!');
-      return;
-    }
-    
-    setAnalyzingDuplicate(true);
-    setTimeout(() => {
-      const hasDuplicates = Math.random() > 0.5;
-      setAiDuplicate({
-        found: hasDuplicates,
-        count: hasDuplicates ? Math.floor(Math.random() * 3) + 1 : 0
+    try {
+      const response = await fetch('/api/ai/categorize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: selectedPost.title,
+          description: selectedPost.description,
+          userTier: deriveUserTier(selectedPost),
+          voteCount: selectedPost.votes
+        })
       });
-      setAiUsage(prev => ({ ...prev, duplicate: prev.duplicate + 1 }));
-      setAnalyzingDuplicate(false);
-      toast.success('AI Duplicate Check complete!');
-    }, 1500);
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Failed to analyze sentiment');
+      }
+
+      const sentiment = mapCategorizationToSentiment(data.result);
+      if (sentiment) {
+        setAiSentiment(sentiment);
+        toast.success('AI Sentiment Analysis complete!');
+      }
+
+      updateUsage('sentiment', data.usage);
+    } catch (error) {
+      console.error('Sentiment analysis error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to analyze sentiment');
+    } finally {
+      setAnalyzingSentiment(false);
+    }
   };
 
-  const enhanceWithAI = () => {
-    if (aiUsage.assistant >= 10) {
-      toast.error('Demo limit reached (10/day). Upgrade to Pro for unlimited!');
+  const analyzePriority = async () => {
+    if (!selectedPost) {
+      toast.error('Select a feedback post to analyze');
       return;
     }
 
-    const text = newFeedback.description || comment;
-    if (!text.trim()) {
+    if (aiUsage.priority.used >= aiUsage.priority.limit) {
+      toast.error(`Demo limit reached (${aiUsage.priority.limit} per hour).`);
+      return;
+    }
+
+    setAnalyzingPriority(true);
+    try {
+      const metricsPayload = buildDemoMetrics(selectedPost);
+      const response = await fetch('/api/ai/priority-scoring', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          post: {
+            id: selectedPost.id,
+            title: selectedPost.title,
+            description: selectedPost.description,
+            category: selectedPost.category,
+            createdAt: new Date().toISOString()
+          },
+          metrics: metricsPayload,
+          user: {
+            tier: deriveUserTier(selectedPost),
+            isChampion: selectedPost.votes > 75
+          },
+          businessContext: {
+            currentQuarter: `Q${Math.ceil((new Date().getMonth() + 1) / 3)} ${new Date().getFullYear()}`,
+            companyStrategy: 'retention',
+            upcomingMilestone: 'Public Demo Showcase'
+          }
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Failed to analyze priority');
+      }
+
+      const priorityLevel: string = data.score.priorityLevel;
+      const styles = getPriorityStyle(priorityLevel);
+      setAiPriority({
+        score: Math.round(data.score.weightedScore * 10),
+        level: priorityLevel,
+        color: styles.color,
+        bg: styles.bg,
+        reasoning: data.score.businessJustification,
+        action: data.score.suggestedAction
+      });
+      updateUsage('priority', data.usage);
+      toast.success('AI Priority Scoring complete!');
+    } catch (error) {
+      console.error('Priority scoring error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to analyze priority');
+    } finally {
+      setAnalyzingPriority(false);
+    }
+  };
+
+  const checkDuplicates = async () => {
+    if (!selectedPost) {
+      toast.error('Select a feedback post to analyze');
+      return;
+    }
+
+    if (aiUsage.duplicate.used >= aiUsage.duplicate.limit) {
+      toast.error(`Demo limit reached (${aiUsage.duplicate.limit} per hour).`);
+      return;
+    }
+
+    setAnalyzingDuplicate(true);
+    try {
+      const existingPostsPayload = posts
+        .filter(p => p.id !== selectedPost.id)
+        .map(p => ({
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          category: p.category,
+          voteCount: p.votes,
+          createdAt: new Date().toISOString()
+        }));
+
+      const response = await fetch('/api/ai/duplicate-detection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'single',
+          newPost: {
+            id: selectedPost.id,
+            title: selectedPost.title,
+            description: selectedPost.description,
+            category: selectedPost.category,
+            voteCount: selectedPost.votes,
+            createdAt: new Date().toISOString()
+          },
+          existingPosts: existingPostsPayload,
+          options: {
+            threshold: 0.7,
+            includeRelated: true,
+            maxResults: 5
+          }
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Failed to check duplicates');
+      }
+
+      setAiDuplicate({
+        found: data.duplicates?.length > 0,
+        duplicates: data.duplicates || [],
+        metadata: data.metadata
+      });
+      updateUsage('duplicate', data.usage);
+      toast.success('AI Duplicate Check complete!');
+    } catch (error) {
+      console.error('Duplicate detection error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to check duplicates');
+    } finally {
+      setAnalyzingDuplicate(false);
+    }
+  };
+
+  const enhanceWithAI = async () => {
+    if (aiUsage.assistant.used >= aiUsage.assistant.limit) {
+      toast.error(`Demo limit reached (${aiUsage.assistant.limit} per hour).`);
+      return;
+    }
+
+    const sourceText = comment || newFeedback.description || selectedPost?.description || '';
+    if (!sourceText.trim()) {
       toast.error('Please enter some text first');
       return;
     }
 
-    setGeneratingAI(true);
-    setTimeout(() => {
-      const enhanced = `${text}\n\nAdditionally, this would improve user experience by reducing friction in the workflow and align with our goal of making the platform more accessible.`;
+    const contextTitle = selectedPost?.title || newFeedback.title || 'Feedback';
+    const category = (selectedPost?.category || 'general').toLowerCase();
+
+    try {
+      setGeneratingAI(true);
+      const response = await fetch('/api/ai/smart-replies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: contextTitle,
+          description: sourceText,
+          category,
+          userTier: selectedPost ? deriveUserTier(selectedPost) : 'free',
+          voteCount: selectedPost?.votes || 0
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Failed to generate AI assistance');
+      }
+
+      const replies = data.replies || [];
+      const enhanced = replies.map((reply: { text: string }) => `• ${reply.text}`).join('\n');
       setAiAssistant(enhanced);
-      setAiUsage(prev => ({ ...prev, assistant: prev.assistant + 1 }));
-      setGeneratingAI(false);
+      updateUsage('assistant', data.usage);
       toast.success('AI enhanced your text!');
-    }, 1500);
+    } catch (error) {
+      console.error('Smart replies error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to generate AI assistance');
+    } finally {
+      setGeneratingAI(false);
+    }
   };
 
   const useAIText = () => {
@@ -309,7 +555,7 @@ export default function InteractiveDemoPage() {
               <div>
                 <div className="font-bold text-sm">🎯 Pro Demo - Try All AI Features!</div>
                 <div className="text-xs text-white/90">
-                  AI Usage: Sentiment ({aiUsage.sentiment}/5) • Priority ({aiUsage.priority}/5) • Duplicate ({aiUsage.duplicate}/10) • Assistant ({aiUsage.assistant}/10)
+                  AI Usage: Sentiment ({aiUsage.sentiment.used}/{aiUsage.sentiment.limit}) • Priority ({aiUsage.priority.used}/{aiUsage.priority.limit}) • Duplicate ({aiUsage.duplicate.used}/{aiUsage.duplicate.limit}) • Assistant ({aiUsage.assistant.used}/{aiUsage.assistant.limit})
                 </div>
               </div>
             </div>
@@ -802,4 +1048,3 @@ export default function InteractiveDemoPage() {
     </div>
   );
 }
-

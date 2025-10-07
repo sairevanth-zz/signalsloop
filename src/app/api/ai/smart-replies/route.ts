@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { title, description, category, userTier, voteCount, projectId } = body;
+    let demoUsageInfo: { limit: number; remaining: number; resetAt: number } | null = null;
 
     if (!title) {
       return NextResponse.json(
@@ -40,6 +41,12 @@ export async function POST(request: NextRequest) {
           { status: 429 }
         );
       }
+
+      demoUsageInfo = {
+        limit: demoCheck.limit,
+        remaining: Math.max(demoCheck.remaining, 0),
+        resetAt: demoCheck.resetAt
+      };
     }
 
     // Generate smart replies using enhanced system
@@ -55,12 +62,19 @@ export async function POST(request: NextRequest) {
     if (!projectId) {
       const clientIP = getClientIP(request);
       incrementDemoUsage(clientIP, 'smart_replies');
+      if (demoUsageInfo) {
+        demoUsageInfo = {
+          ...demoUsageInfo,
+          remaining: Math.max(demoUsageInfo.remaining, 0)
+        };
+      }
     }
 
     return NextResponse.json({
       success: true,
       replies,
-      message: 'Smart replies generated successfully'
+      message: 'Smart replies generated successfully',
+      usage: demoUsageInfo || undefined
     });
 
   } catch (error) {

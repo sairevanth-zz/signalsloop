@@ -18,6 +18,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('🤖 Request body:', body);
 
+    let demoUsageInfo: { limit: number; remaining: number; resetAt: number } | null = null;
+
     // Check rate limit if projectId is provided
     if (body.projectId) {
       const usageCheck = await checkAIUsageLimit(body.projectId, 'categorization');
@@ -55,6 +57,12 @@ export async function POST(request: NextRequest) {
           { status: 429 }
         );
       }
+
+      demoUsageInfo = {
+        limit: demoCheck.limit,
+        remaining: Math.max(demoCheck.remaining, 0),
+        resetAt: demoCheck.resetAt
+      };
     }
 
     // Handle single post categorization
@@ -80,12 +88,10 @@ export async function POST(request: NextRequest) {
       if (projectId) {
         await incrementAIUsage(projectId, 'categorization');
       } else {
-        // Increment demo usage for unauthenticated users
         const clientIP = getClientIP(request);
         incrementDemoUsage(clientIP, 'categorization');
       }
 
-      // Get updated usage info
       let usageInfo = null;
       if (projectId) {
         const usage = await checkAIUsageLimit(projectId, 'categorization');
@@ -94,6 +100,11 @@ export async function POST(request: NextRequest) {
           limit: usage.limit,
           remaining: usage.remaining - 1,
           isPro: usage.isPro
+        };
+      } else if (demoUsageInfo) {
+        usageInfo = {
+          limit: demoUsageInfo.limit,
+          remaining: Math.max(demoUsageInfo.remaining, 0)
         };
       }
 
@@ -134,10 +145,25 @@ export async function POST(request: NextRequest) {
         }))
       );
 
+      if (projectId) {
+        await incrementAIUsage(projectId, 'categorization', body.posts.length);
+      } else if (demoUsageInfo) {
+        const clientIP = getClientIP(request);
+        incrementDemoUsage(clientIP, 'categorization', body.posts.length);
+        demoUsageInfo = {
+          ...demoUsageInfo,
+          remaining: Math.max(demoUsageInfo.remaining - Math.max(body.posts.length - 1, 0), 0)
+        };
+      } else if (!projectId) {
+        const clientIP = getClientIP(request);
+        incrementDemoUsage(clientIP, 'categorization', body.posts.length);
+      }
+
       return NextResponse.json({
         success: true,
         results,
-        model: process.env.CATEGORIZATION_MODEL || 'gpt-4o-mini'
+        model: process.env.CATEGORIZATION_MODEL || 'gpt-4o-mini',
+        usage: demoUsageInfo || undefined
       });
     }
 

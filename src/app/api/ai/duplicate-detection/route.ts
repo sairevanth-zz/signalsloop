@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { mode = 'single', newPost, existingPosts, posts, options = {}, projectId } = body;
+    let demoUsageInfo: { limit: number; remaining: number; resetAt: number } | null = null;
 
     // Check rate limit if projectId is provided
     if (projectId) {
@@ -52,6 +53,12 @@ export async function POST(request: NextRequest) {
           { status: 429 }
         );
       }
+
+      demoUsageInfo = {
+        limit: demoCheck.limit,
+        remaining: Math.max(demoCheck.remaining, 0),
+        resetAt: demoCheck.resetAt
+      };
     }
 
     if (mode === 'cluster') {
@@ -70,6 +77,12 @@ export async function POST(request: NextRequest) {
       } else {
         const clientIP = getClientIP(request);
         incrementDemoUsage(clientIP, 'duplicate_detection', Math.min(posts.length, 5));
+        if (demoUsageInfo) {
+          demoUsageInfo = {
+            ...demoUsageInfo,
+            remaining: Math.max(demoUsageInfo.remaining - Math.max(posts.length - 1, 0), 0)
+          };
+        }
       }
 
       return NextResponse.json({
@@ -80,7 +93,8 @@ export async function POST(request: NextRequest) {
           totalPosts: posts.length,
           clustersFound: clusters.length,
           timestamp: new Date().toISOString()
-        }
+        },
+        usage: demoUsageInfo || undefined
       });
     } else {
       // Single duplicate detection mode
@@ -105,6 +119,12 @@ export async function POST(request: NextRequest) {
       } else {
         const clientIP = getClientIP(request);
         incrementDemoUsage(clientIP, 'duplicate_detection');
+        if (demoUsageInfo) {
+          demoUsageInfo = {
+            ...demoUsageInfo,
+            remaining: Math.max(demoUsageInfo.remaining, 0)
+          };
+        }
       }
 
       return NextResponse.json({
@@ -115,7 +135,8 @@ export async function POST(request: NextRequest) {
           candidatesAnalyzed: existingPosts.length,
           duplicatesFound: duplicates.length,
           timestamp: new Date().toISOString()
-        }
+        },
+        usage: demoUsageInfo || undefined
       });
     }
 

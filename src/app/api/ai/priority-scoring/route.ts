@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { batch, post, metrics, user, businessContext, projectId } = body;
+    let demoUsageInfo: { limit: number; remaining: number; resetAt: number } | null = null;
 
     // Check rate limit if projectId is provided
     if (projectId) {
@@ -53,6 +54,12 @@ export async function POST(request: NextRequest) {
           { status: 429 }
         );
       }
+
+      demoUsageInfo = {
+        limit: demoCheck.limit,
+        remaining: Math.max(demoCheck.remaining, 0),
+        resetAt: demoCheck.resetAt
+      };
     }
 
     // Handle batch scoring
@@ -64,12 +71,19 @@ export async function POST(request: NextRequest) {
       } else {
         const clientIP = getClientIP(request);
         incrementDemoUsage(clientIP, 'prioritization', batch.length);
+        if (demoUsageInfo) {
+          demoUsageInfo = {
+            ...demoUsageInfo,
+            remaining: Math.max(demoUsageInfo.remaining - Math.max(batch.length - 1, 0), 0)
+          };
+        }
       }
 
       return NextResponse.json({
         success: true,
         scores: Object.fromEntries(scores),
-        model: process.env.PRIORITY_MODEL || 'gpt-4o-mini'
+        model: process.env.PRIORITY_MODEL || 'gpt-4o-mini',
+        usage: demoUsageInfo || undefined
       });
     }
 
@@ -337,6 +351,12 @@ export async function POST(request: NextRequest) {
     } else {
       const clientIP = getClientIP(request);
       incrementDemoUsage(clientIP, 'prioritization');
+      if (demoUsageInfo) {
+        demoUsageInfo = {
+          ...demoUsageInfo,
+          remaining: Math.max(demoUsageInfo.remaining, 0)
+        };
+      }
     }
 
     return NextResponse.json({
@@ -347,7 +367,8 @@ export async function POST(request: NextRequest) {
       debug: {
         isBugDetected: score.priorityLevel === 'immediate',
         tierMultiplier: normalizedUser.tier === 'enterprise' ? 1.3 : normalizedUser.tier === 'pro' ? 1.1 : 1.0
-      }
+      },
+      usage: demoUsageInfo || undefined
     });
 
   } catch (error) {
