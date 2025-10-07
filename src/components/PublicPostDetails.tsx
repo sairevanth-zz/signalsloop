@@ -6,8 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CategoryBadge } from '@/components/CategoryBadge';
 import {
-  ChevronUp,
-  ChevronDown,
   MessageSquare,
   Calendar,
   Clock,
@@ -34,6 +32,7 @@ import AIAutoResponse from './AIAutoResponse';
 import VoteOnBehalfModal from './VoteOnBehalfModal';
 import { useAuth } from '@/hooks/useAuth';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import VoteButton, { VoteStats } from '@/components/VoteButton';
 
 interface Project {
   id: string;
@@ -68,7 +67,6 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const { user, loading: authLoading } = useAuth();
   const [hasVoted, setHasVoted] = useState(false);
   const [voteCount, setVoteCount] = useState(post.vote_count);
-  const [isVoting, setIsVoting] = useState(false);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
   const [analyzingPriority, setAnalyzingPriority] = useState(false);
   const [duplicateResults, setDuplicateResults] = useState<any>(null);
@@ -164,47 +162,6 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   useEffect(() => {
     loadComments();
   }, [post.id]);
-
-  const handleVote = async () => {
-    if (isVoting) return;
-    
-    setIsVoting(true);
-    const wasVoted = hasVoted;
-    
-    try {
-      const response = await fetch(`/api/posts/${post.id}/vote`, {
-        method: wasVoted ? 'DELETE' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update vote');
-      }
-
-      // Update local state
-      setHasVoted(!wasVoted);
-      setVoteCount(prev => wasVoted ? prev - 1 : prev + 1);
-
-      // Update localStorage
-      const voted = JSON.parse(localStorage.getItem(`voted_posts_${project.id}`) || '[]');
-      if (wasVoted) {
-        const newVoted = voted.filter((id: string) => id !== post.id);
-        localStorage.setItem(`voted_posts_${project.id}`, JSON.stringify(newVoted));
-      } else {
-        voted.push(post.id);
-        localStorage.setItem(`voted_posts_${project.id}`, JSON.stringify(voted));
-      }
-
-      toast.success(wasVoted ? 'Vote removed' : 'Vote added');
-    } catch (error) {
-      console.error('Voting error:', error);
-      toast.error('Failed to update vote');
-    } finally {
-      setIsVoting(false);
-    }
-  };
 
   const handleCheckDuplicates = async () => {
     setCheckingDuplicates(true);
@@ -616,25 +573,49 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                   )}
                   </div>
                   
-                <div className="flex flex-col items-center gap-3">
-                    <Button
-                      variant={hasVoted ? "default" : "outline"}
-                      size="lg"
-                      onClick={handleVote}
-                      disabled={isVoting}
-                      className={`min-w-[80px] ${
-                        hasVoted 
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                        : 'hover:bg-blue-50 border-2'
-                      }`}
-                  >
-                    <div className="flex flex-col items-center">
-                      <ChevronUp className="h-5 w-5" />
-                      <span className="text-lg font-bold">{voteCount}</span>
-                </div>
-                    </Button>
-                  <span className="text-xs text-gray-500">votes</span>
-                  
+                <div
+                  className="flex flex-col items-center gap-3"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <VoteButton
+                    postId={post.id}
+                    initialVoteCount={voteCount}
+                    initialUserVoted={hasVoted}
+                    onVoteChange={(newCount, userVoted) => {
+                      setVoteCount(newCount);
+                      setHasVoted(userVoted);
+                      if (typeof window !== 'undefined') {
+                        const voted = JSON.parse(window.localStorage.getItem(`voted_posts_${project.id}`) || '[]');
+                        if (userVoted) {
+                          if (!voted.includes(post.id)) {
+                            voted.push(post.id);
+                          }
+                        } else {
+                          const index = voted.indexOf(post.id);
+                          if (index >= 0) {
+                            voted.splice(index, 1);
+                          }
+                        }
+                        window.localStorage.setItem(`voted_posts_${project.id}`, JSON.stringify(voted));
+                      }
+                    }}
+                    onShowNotification={(message, type) => {
+                      if (type === 'success') toast.success(message);
+                      else if (type === 'error') toast.error(message);
+                      else toast.info(message);
+                    }}
+                  />
+
+                  <VoteStats
+                    postId={post.id}
+                    refreshToken={voteCount}
+                    onShowNotification={(message, type) => {
+                      if (type === 'success') toast.success(message);
+                      else if (type === 'error') toast.error(message);
+                      else toast.info(message);
+                    }}
+                  />
+
                   {/* Vote on Behalf Button (Admin Only) */}
                   {isOwner && (
                     <Button
@@ -647,7 +628,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                       Vote on Behalf
                     </Button>
                   )}
-                  </div>
+                </div>
                 </div>
               </CardContent>
             </Card>

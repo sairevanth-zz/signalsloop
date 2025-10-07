@@ -78,6 +78,14 @@ export function VoteButton({
   const [pendingPriority, setPendingPriority] = useState<VotePriority>('important');
 
   useEffect(() => {
+    setVoteCount(initialVoteCount);
+  }, [initialVoteCount]);
+
+  useEffect(() => {
+    setUserVoted(initialUserVoted);
+  }, [initialUserVoted]);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
     const stored = window.localStorage.getItem(PRIORITY_STORAGE_KEY);
     if (isValidPriority(stored)) {
@@ -364,13 +372,17 @@ export default VoteButton;
 // Enhanced voting statistics component
 interface VoteStatsProps {
   postId: string;
+  refreshToken?: unknown;
   onShowNotification?: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
-export function VoteStats({ postId, onShowNotification }: VoteStatsProps) {
+export function VoteStats({ postId, refreshToken, onShowNotification }: VoteStatsProps) {
   const [stats, setStats] = useState({
     totalVotes: 0,
     recentVotes: 0,
+    mustHave: 0,
+    important: 0,
+    niceToHave: 0,
     loading: true
   });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -387,35 +399,52 @@ export function VoteStats({ postId, onShowNotification }: VoteStatsProps) {
     if (!supabase) return;
     
     try {
-      // Get total votes
-      const { data: totalData, error: totalError } = await supabase
+      // Fetch votes for this post
+      const { data: voteRows, error: voteError } = await supabase
         .from('votes')
-        .select('id', { count: 'exact' })
+        .select('priority, created_at')
         .eq('post_id', postId);
 
-      if (totalError) {
-        console.error('Error loading total votes:', totalError);
+      if (voteError) {
+        console.error('Error loading votes:', voteError);
         return;
       }
 
-      // Get recent votes (last 7 days)
+      const totalVotes = voteRows?.length || 0;
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      const { data: recentData, error: recentError } = await supabase
-        .from('votes')
-        .select('id', { count: 'exact' })
-        .eq('post_id', postId)
-        .gte('created_at', sevenDaysAgo.toISOString());
+      let recentVotes = 0;
+      let mustHave = 0;
+      let important = 0;
+      let niceToHave = 0;
 
-      if (recentError) {
-        console.error('Error loading recent votes:', recentError);
-        return;
-      }
+      voteRows?.forEach((row) => {
+        if (row.created_at && new Date(row.created_at) >= sevenDaysAgo) {
+          recentVotes += 1;
+        }
+
+        const key = (row.priority as VotePriority | null) ?? 'important';
+        switch (key) {
+          case 'must_have':
+            mustHave += 1;
+            break;
+          case 'nice_to_have':
+            niceToHave += 1;
+            break;
+          case 'important':
+          default:
+            important += 1;
+            break;
+        }
+      });
 
       setStats({
-        totalVotes: totalData?.length || 0,
-        recentVotes: recentData?.length || 0,
+        totalVotes,
+        recentVotes,
+        mustHave,
+        important,
+        niceToHave,
         loading: false
       });
 
@@ -430,7 +459,7 @@ export function VoteStats({ postId, onShowNotification }: VoteStatsProps) {
     if (supabase) {
       loadVoteStats();
     }
-  }, [postId, supabase, loadVoteStats]);
+  }, [postId, supabase, loadVoteStats, refreshToken]);
 
   if (stats.loading) {
     return (
@@ -441,16 +470,27 @@ export function VoteStats({ postId, onShowNotification }: VoteStatsProps) {
   }
 
   return (
-    <div className="text-xs text-gray-500 space-y-1">
+    <div className="text-xs text-gray-500 space-y-2">
       <div className="flex items-center gap-1">
         <ThumbsUp className="w-3 h-3" />
         <span>{stats.totalVotes} total votes</span>
+        {stats.recentVotes > 0 && (
+          <span className="text-green-600 ml-2">
+            +{stats.recentVotes} this week
+          </span>
+        )}
       </div>
-      {stats.recentVotes > 0 && (
-        <div className="text-green-600">
-          +{stats.recentVotes} this week
-        </div>
-      )}
+      <div className="grid grid-cols-3 gap-2">
+        <span className="flex items-center justify-center gap-1 rounded-full bg-red-50 text-red-600 py-1">
+          🔴 Must Have {stats.mustHave}
+        </span>
+        <span className="flex items-center justify-center gap-1 rounded-full bg-amber-50 text-amber-600 py-1">
+          🟡 Important {stats.important}
+        </span>
+        <span className="flex items-center justify-center gap-1 rounded-full bg-emerald-50 text-emerald-600 py-1">
+          🟢 Nice to Have {stats.niceToHave}
+        </span>
+      </div>
     </div>
   );
 }

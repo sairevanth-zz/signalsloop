@@ -61,6 +61,10 @@ interface AdminPost {
   created_at: string;
   vote_count: number;
   comment_count: number;
+  must_have_votes?: number;
+  important_votes?: number;
+  nice_to_have_votes?: number;
+  total_priority_score?: number;
   tags?: string[];
   duplicate_of?: string;
   board_id: string;
@@ -162,7 +166,10 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
     totalPosts: 0,
     openPosts: 0,
     completedPosts: 0,
-    totalVotes: 0
+    totalVotes: 0,
+    mustHaveVotes: 0,
+    importantVotes: 0,
+    niceToHaveVotes: 0
   });
 
   // AI Analytics
@@ -240,6 +247,10 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
         created_at: post.created_at,
         vote_count: post.vote_count?.[0]?.count || 0,
         comment_count: post.comment_count?.[0]?.count || 0,
+        must_have_votes: post.must_have_votes || 0,
+        important_votes: post.important_votes || 0,
+        nice_to_have_votes: post.nice_to_have_votes || 0,
+        total_priority_score: post.total_priority_score || 0,
         tags: [], // TODO: Add tags functionality
         duplicate_of: post.duplicate_of,
         board_id: post.board_id,
@@ -257,12 +268,18 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
       const openPosts = processedPosts.filter(p => p.status === 'open').length;
       const completedPosts = processedPosts.filter(p => p.status === 'done').length;
       const totalVotes = processedPosts.reduce((sum, p) => sum + p.vote_count, 0);
+      const mustHaveVotes = processedPosts.reduce((sum, p) => sum + (p.must_have_votes || 0), 0);
+      const importantVotes = processedPosts.reduce((sum, p) => sum + (p.important_votes || 0), 0);
+      const niceToHaveVotes = processedPosts.reduce((sum, p) => sum + (p.nice_to_have_votes || 0), 0);
 
       setStats({
         totalPosts,
         openPosts,
         completedPosts,
-        totalVotes
+        totalVotes,
+        mustHaveVotes,
+        importantVotes,
+        niceToHaveVotes
       });
 
       // Calculate AI analytics
@@ -581,6 +598,20 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
                   <p className="text-sm text-gray-600">Total Votes</p>
                   <p className="text-2xl font-bold text-gray-900">{stats.totalVotes}</p>
                 </div>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
+                <span className="flex flex-col items-center justify-center rounded-lg bg-red-50 text-red-600 py-2">
+                  <span className="font-semibold">{stats.mustHaveVotes}</span>
+                  <span>Must</span>
+                </span>
+                <span className="flex flex-col items-center justify-center rounded-lg bg-amber-50 text-amber-600 py-2">
+                  <span className="font-semibold">{stats.importantVotes}</span>
+                  <span>Important</span>
+                </span>
+                <span className="flex flex-col items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 py-2">
+                  <span className="font-semibold">{stats.niceToHaveVotes}</span>
+                  <span>Nice</span>
+                </span>
               </div>
             </CardContent>
           </Card>

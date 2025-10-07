@@ -120,6 +120,12 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to update vote count' }, { status: 500 });
     }
 
+    try {
+      await supabase.rpc('update_post_priority_counts', { p_post_id: postId });
+    } catch (priorityError) {
+      console.error('Error updating priority counts:', priorityError);
+    }
+
     // Get post details for webhooks
     const { data: post } = await supabase
       .from('posts')
@@ -217,6 +223,12 @@ export async function DELETE(
     if (updateError) {
       console.error('Error decrementing vote count:', updateError);
       return NextResponse.json({ error: 'Failed to update vote count' }, { status: 500 });
+    }
+
+    try {
+      await supabase.rpc('update_post_priority_counts', { p_post_id: postId });
+    } catch (priorityError) {
+      console.error('Error updating priority counts:', priorityError);
     }
 
     return NextResponse.json({ 
