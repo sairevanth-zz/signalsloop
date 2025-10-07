@@ -25,6 +25,20 @@ import {
 import { toast } from 'sonner';
 import AIWritingAssistant from '@/components/AIWritingAssistant';
 
+const POST_FEATURE_LIMITS = {
+  sentiment: { limit: 10, label: 'sentiment analyses' },
+  categorize: { limit: 10, label: 'AI categorizations' },
+  priority: { limit: 10, label: 'priority scorings' },
+  duplicate: { limit: 5, label: 'duplicate checks' },
+  writingAssistant: { limit: 10, label: 'AI writing improvements' },
+  comment: { limit: 10, label: 'new comments' },
+  vote: { limit: 20, label: 'vote actions' }
+} as const;
+
+type PostFeatureKey = keyof typeof POST_FEATURE_LIMITS;
+
+type PostFeatureUsage = Record<PostFeatureKey, { used: number; limit: number }>;
+
 interface DemoPost {
   id: string;
   title: string;
@@ -98,6 +112,33 @@ export default function DemoPostPage() {
     urgency: string;
   } | null>(null);
   const [isAnalyzingSentiment, setIsAnalyzingSentiment] = useState(false);
+
+  const createUsage = (): PostFeatureUsage => {
+    const entries = Object.entries(POST_FEATURE_LIMITS).map(([key, config]) => [key, { used: 0, limit: config.limit }]);
+    return Object.fromEntries(entries) as PostFeatureUsage;
+  };
+
+  const [featureUsage, setFeatureUsage] = useState<PostFeatureUsage>(() => createUsage());
+
+  const checkLimit = (feature: PostFeatureKey) => {
+    const usage = featureUsage[feature];
+    if (!usage) return true;
+    if (usage.used >= usage.limit) {
+      toast.error(`Demo limit reached for ${POST_FEATURE_LIMITS[feature].label}. Please try again later.`);
+      return false;
+    }
+    return true;
+  };
+
+  const recordUsage = (feature: PostFeatureKey, amount = 1) => {
+    setFeatureUsage(prev => ({
+      ...prev,
+      [feature]: {
+        ...prev[feature],
+        used: Math.min(prev[feature].used + amount, prev[feature].limit)
+      }
+    }));
+  };
 
   const uniqueComments = useMemo(() => {
     const seen = new Set<string>();
@@ -179,6 +220,10 @@ export default function DemoPostPage() {
   const runSentimentAnalysis = () => {
     if (!post) return;
 
+    if (!checkLimit('sentiment')) {
+      return;
+    }
+
     setIsAnalyzingSentiment(true);
     const text = `${post.title} ${post.description}`.toLowerCase();
 
@@ -239,6 +284,7 @@ export default function DemoPostPage() {
         impact,
         urgency
       });
+      recordUsage('sentiment');
       setIsAnalyzingSentiment(false);
       toast.success('AI sentiment analysis complete');
     }, 600);
@@ -246,6 +292,9 @@ export default function DemoPostPage() {
 
   const runCategorization = async () => {
     if (!post) return;
+    if (!checkLimit('categorize')) {
+      return;
+    }
     setIsCategorizing(true);
     try {
       const response = await fetch('/api/ai/categorize', {
@@ -268,6 +317,7 @@ export default function DemoPostPage() {
 
       const data = await response.json();
       setAiCategory(data.result);
+      recordUsage('categorize');
       toast.success(`AI categorized this as ${data.result.category}`);
     } catch (error) {
       console.error('Categorization error:', error);
@@ -279,6 +329,9 @@ export default function DemoPostPage() {
 
   const runPriorityScoring = async () => {
     if (!post) return;
+    if (!checkLimit('priority')) {
+      return;
+    }
     setIsAnalyzingPriority(true);
     try {
       const metricsPayload = {
@@ -334,6 +387,7 @@ export default function DemoPostPage() {
         bg: styles.bg
       });
 
+      recordUsage('priority');
       toast.success('AI priority scoring complete');
     } catch (error) {
       console.error('Priority scoring error:', error);
@@ -345,6 +399,9 @@ export default function DemoPostPage() {
 
   const runDuplicateCheck = async () => {
     if (!post) return;
+    if (!checkLimit('duplicate')) {
+      return;
+    }
     setIsCheckingDuplicates(true);
     try {
       const existingPostsPayload = allPosts
@@ -395,6 +452,7 @@ export default function DemoPostPage() {
 
       setAiDuplicates(mapped);
       setDuplicatesAnalyzed(true);
+      recordUsage('duplicate');
       toast.success(mapped.length ? `Found ${mapped.length} potential duplicates` : 'No duplicates detected');
     } catch (error) {
       console.error('Duplicate detection error:', error);
@@ -410,8 +468,12 @@ export default function DemoPostPage() {
       setUserVoted(false);
       toast.success('Vote removed');
     } else {
+      if (!checkLimit('vote')) {
+        return;
+      }
       setVoteCount(prev => prev + 1);
       setUserVoted(true);
+      recordUsage('vote');
       toast.success('Thanks for voting!');
     }
   };
@@ -419,6 +481,10 @@ export default function DemoPostPage() {
   const handleCommentSubmit = () => {
     if (!newComment.trim()) {
       toast.error('Please enter a comment before posting');
+      return;
+    }
+
+    if (!checkLimit('comment')) {
       return;
     }
 
@@ -431,6 +497,7 @@ export default function DemoPostPage() {
 
     setComments(prev => [comment, ...prev]);
     setNewComment('');
+    recordUsage('comment');
     toast.success('Comment added');
   };
 
@@ -543,6 +610,7 @@ export default function DemoPostPage() {
                     ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' 
                     : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
                 }`}
+                disabled={!userVoted && featureUsage.vote.used >= featureUsage.vote.limit}
               >
                 <svg className="w-5 h-5 mb-1" fill={userVoted ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
@@ -563,6 +631,16 @@ export default function DemoPostPage() {
             <h2 className="text-sm font-semibold text-purple-700 uppercase tracking-wide">AI control room</h2>
             <span className="text-sm text-gray-500">Run the exact automations your admins see in production.</span>
           </div>
+          <div className="text-xs text-gray-500 bg-white/70 border border-gray-200 rounded-lg px-4 py-2 flex flex-wrap gap-x-4 gap-y-1">
+            <span className="font-semibold text-gray-700">Demo limits</span>
+            <span>Sentiment ({featureUsage.sentiment.used}/{featureUsage.sentiment.limit})</span>
+            <span>Categorize ({featureUsage.categorize.used}/{featureUsage.categorize.limit})</span>
+            <span>Priority ({featureUsage.priority.used}/{featureUsage.priority.limit})</span>
+            <span>Duplicates ({featureUsage.duplicate.used}/{featureUsage.duplicate.limit})</span>
+            <span>AI writing ({featureUsage.writingAssistant.used}/{featureUsage.writingAssistant.limit})</span>
+            <span>Comments ({featureUsage.comment.used}/{featureUsage.comment.limit})</span>
+            <span>Votes ({featureUsage.vote.used}/{featureUsage.vote.limit})</span>
+          </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             {/* Sentiment Card */}
@@ -576,7 +654,7 @@ export default function DemoPostPage() {
               <CardContent className="space-y-4">
                 <Button
                   onClick={runSentimentAnalysis}
-                  disabled={isAnalyzingSentiment}
+                  disabled={isAnalyzingSentiment || featureUsage.sentiment.used >= featureUsage.sentiment.limit}
                   variant="outline"
                   className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
                 >
@@ -588,7 +666,7 @@ export default function DemoPostPage() {
                   ) : (
                     <>
                       <Brain className="h-4 w-4 mr-2" />
-                      Run sentiment intelligence
+                      Run sentiment intelligence ({featureUsage.sentiment.used}/{featureUsage.sentiment.limit})
                     </>
                   )}
                 </Button>
@@ -634,7 +712,7 @@ export default function DemoPostPage() {
               <CardContent className="space-y-4">
                 <Button
                   onClick={runCategorization}
-                  disabled={isCategorizing}
+                  disabled={isCategorizing || featureUsage.categorize.used >= featureUsage.categorize.limit}
                   className="w-full bg-indigo-600 hover:bg-indigo-700"
                 >
                   {isCategorizing ? (
@@ -645,7 +723,7 @@ export default function DemoPostPage() {
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4 mr-2" />
-                      Categorize with AI
+                      Categorize with AI ({featureUsage.categorize.used}/{featureUsage.categorize.limit})
                     </>
                   )}
                 </Button>
@@ -676,7 +754,7 @@ export default function DemoPostPage() {
                 </CardTitle>
                 <Button
                   onClick={runPriorityScoring}
-                  disabled={isAnalyzingPriority}
+                  disabled={isAnalyzingPriority || featureUsage.priority.used >= featureUsage.priority.limit}
                   variant="outline"
                   className="border-amber-300 text-amber-700 hover:bg-amber-100"
                 >
@@ -688,7 +766,7 @@ export default function DemoPostPage() {
                   ) : (
                     <>
                       <TrendingUp className="h-4 w-4 mr-2" />
-                      Analyze priority
+                      Analyze priority ({featureUsage.priority.used}/{featureUsage.priority.limit})
                     </>
                   )}
                 </Button>
@@ -726,7 +804,7 @@ export default function DemoPostPage() {
                 </CardTitle>
                 <Button
                   onClick={runDuplicateCheck}
-                  disabled={isCheckingDuplicates}
+                  disabled={isCheckingDuplicates || featureUsage.duplicate.used >= featureUsage.duplicate.limit}
                   variant="outline"
                   className="border-blue-300 text-blue-700 hover:bg-blue-100"
                 >
@@ -738,7 +816,7 @@ export default function DemoPostPage() {
                   ) : (
                     <>
                       <Layers className="h-4 w-4 mr-2" />
-                      Check for duplicates
+                      Check for duplicates ({featureUsage.duplicate.used}/{featureUsage.duplicate.limit})
                     </>
                   )}
                 </Button>
@@ -786,8 +864,14 @@ export default function DemoPostPage() {
                 currentText={newComment}
                 context={`Post title: ${post.title}. Sentiment score: ${aiSentiment?.score ?? 'pending'}. Priority: ${aiPriority?.level ?? 'unknown'}`}
                 onTextImprove={setNewComment}
+                usage={featureUsage.writingAssistant}
+                onCheckLimit={() => checkLimit('writingAssistant')}
+                onUsage={() => recordUsage('writingAssistant')}
               />
-              <Button onClick={handleCommentSubmit} disabled={!newComment.trim()}>
+              <Button
+                onClick={handleCommentSubmit}
+                disabled={!newComment.trim() || featureUsage.comment.used >= featureUsage.comment.limit}
+              >
                 Post Comment
               </Button>
             </div>

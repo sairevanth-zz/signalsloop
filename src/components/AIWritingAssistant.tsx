@@ -18,13 +18,22 @@ interface AIWritingAssistantProps {
   context: string; // The comment/post being replied to
   onTextImprove: (improvedText: string) => void;
   placeholder?: string;
+  usage?: {
+    used: number;
+    limit: number;
+  };
+  onCheckLimit?: (action: 'improve' | 'expand' | 'clarify' | 'professional') => boolean;
+  onUsage?: (action: 'improve' | 'expand' | 'clarify' | 'professional') => void;
 }
 
 export default function AIWritingAssistant({ 
   currentText, 
   context, 
   onTextImprove,
-  placeholder = "Start typing your thoughts..."
+  placeholder = "Start typing your thoughts...",
+  usage,
+  onCheckLimit,
+  onUsage
 }: AIWritingAssistantProps) {
   const [isImproving, setIsImproving] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -32,6 +41,10 @@ export default function AIWritingAssistant({
   const improveText = async (action: 'improve' | 'expand' | 'clarify' | 'professional') => {
     if (!currentText.trim()) {
       toast.error('Please type something first');
+      return;
+    }
+
+    if (onCheckLimit && !onCheckLimit(action)) {
       return;
     }
 
@@ -63,6 +76,8 @@ export default function AIWritingAssistant({
         toast.success('Text improved!');
       }
 
+      onUsage?.(action);
+
     } catch (error) {
       console.error('Error improving text:', error);
       toast.error('Failed to improve text');
@@ -85,6 +100,11 @@ export default function AIWritingAssistant({
           <Sparkles className="h-3 w-3 text-purple-600" />
           <span className="text-xs font-medium text-purple-700">AI Writing Assistant</span>
         </div>
+        {usage && (
+          <span className={`text-xs ${usage.used >= usage.limit ? 'text-red-500' : 'text-gray-500'}`}>
+            {usage.used}/{usage.limit}
+          </span>
+        )}
         {!currentText.trim() && (
           <span className="text-xs text-gray-500 italic">Type something to get AI suggestions</span>
         )}
@@ -95,7 +115,7 @@ export default function AIWritingAssistant({
         <div className="flex flex-wrap gap-2">
           <Button
             onClick={() => improveText('improve')}
-            disabled={isImproving}
+            disabled={isImproving || (usage ? usage.used >= usage.limit : false)}
             size="sm"
             variant="outline"
             className="text-purple-600 border-purple-200 hover:bg-purple-50"
@@ -110,7 +130,7 @@ export default function AIWritingAssistant({
           
           <Button
             onClick={() => improveText('expand')}
-            disabled={isImproving}
+            disabled={isImproving || (usage ? usage.used >= usage.limit : false)}
             size="sm"
             variant="outline"
             className="text-blue-600 border-blue-200 hover:bg-blue-50"
@@ -121,7 +141,7 @@ export default function AIWritingAssistant({
           
           <Button
             onClick={() => improveText('clarify')}
-            disabled={isImproving}
+            disabled={isImproving || (usage ? usage.used >= usage.limit : false)}
             size="sm"
             variant="outline"
             className="text-green-600 border-green-200 hover:bg-green-50"
@@ -132,7 +152,7 @@ export default function AIWritingAssistant({
           
           <Button
             onClick={() => improveText('professional')}
-            disabled={isImproving}
+            disabled={isImproving || (usage ? usage.used >= usage.limit : false)}
             size="sm"
             variant="outline"
             className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
@@ -191,4 +211,3 @@ export default function AIWritingAssistant({
     </div>
   );
 }
-

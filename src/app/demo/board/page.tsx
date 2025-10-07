@@ -44,6 +44,17 @@ import {
 import { toast } from 'sonner';
 import AIWritingAssistant from '@/components/AIWritingAssistant';
 
+const BOARD_FEATURE_LIMITS = {
+  submit: { limit: 5, label: 'feedback submissions' },
+  categorize: { limit: 10, label: 'AI categorizations' },
+  writingAssistant: { limit: 10, label: 'AI writing improvements' },
+  vote: { limit: 20, label: 'vote actions' }
+} as const;
+
+type BoardFeatureKey = keyof typeof BOARD_FEATURE_LIMITS;
+
+type FeatureUsageMap = Record<BoardFeatureKey, { used: number; limit: number }>;
+
 interface DemoPost {
   id: string;
   title: string;
@@ -58,6 +69,9 @@ interface DemoPost {
 
 interface DemoProFeedbackFormProps {
   onSubmit: (post: DemoPost) => void;
+  usage: FeatureUsageMap;
+  checkLimit: (feature: BoardFeatureKey) => boolean;
+  recordUsage: (feature: BoardFeatureKey, amount?: number) => void;
 }
 
 const demoPostTypes = [
@@ -73,7 +87,7 @@ const demoPriorities = [
   { value: 'high', label: 'Critical', color: 'text-rose-600 bg-rose-50 border-rose-200' }
 ];
 
-function DemoProFeedbackForm({ onSubmit }: DemoProFeedbackFormProps) {
+function DemoProFeedbackForm({ onSubmit, usage, checkLimit, recordUsage }: DemoProFeedbackFormProps) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -102,6 +116,10 @@ function DemoProFeedbackForm({ onSubmit }: DemoProFeedbackFormProps) {
       return;
     }
 
+    if (!checkLimit('categorize')) {
+      return;
+    }
+
     setIsCategorizing(true);
     try {
       const response = await fetch('/api/ai/categorize', {
@@ -123,6 +141,7 @@ function DemoProFeedbackForm({ onSubmit }: DemoProFeedbackFormProps) {
 
       const data = await response.json();
       setAiCategory(data.result);
+      recordUsage('categorize');
       toast.success(`AI suggests ${data.result.category}`);
     } catch (error) {
       console.error('AI categorization error:', error);
@@ -165,6 +184,10 @@ function DemoProFeedbackForm({ onSubmit }: DemoProFeedbackFormProps) {
       return;
     }
 
+    if (!checkLimit('submit')) {
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const now = new Date();
@@ -183,6 +206,7 @@ function DemoProFeedbackForm({ onSubmit }: DemoProFeedbackFormProps) {
       onSubmit(newPost);
       setShowSuccess(true);
       toast.success('Feedback submitted! AI will analyze it instantly.');
+      recordUsage('submit');
 
       setFormData({
         title: '',
@@ -279,7 +303,13 @@ function DemoProFeedbackForm({ onSubmit }: DemoProFeedbackFormProps) {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="block text-sm font-medium text-gray-700">Description</label>
-                <Button size="sm" type="button" variant="ghost" onClick={categorizeWithAI} disabled={isCategorizing}>
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="ghost"
+                  onClick={categorizeWithAI}
+                  disabled={isCategorizing || usage.categorize.used >= usage.categorize.limit}
+                >
                   {isCategorizing ? (
                     <>
                       <Loader2 className="h-3 w-3 mr-2 animate-spin" />
@@ -288,7 +318,7 @@ function DemoProFeedbackForm({ onSubmit }: DemoProFeedbackFormProps) {
                   ) : (
                     <>
                       <Brain className="h-3 w-3 mr-2" />
-                      Categorize with AI
+                      Categorize with AI ({usage.categorize.used}/{usage.categorize.limit})
                     </>
                   )}
                 </Button>
@@ -307,6 +337,9 @@ function DemoProFeedbackForm({ onSubmit }: DemoProFeedbackFormProps) {
                 context={`Feedback type: ${formData.type}, Priority: ${formData.priority}`}
                 onTextImprove={(text) => handleInput('description', text)}
                 placeholder="Describe your idea..."
+                usage={usage.writingAssistant}
+                onCheckLimit={() => checkLimit('writingAssistant')}
+                onUsage={() => recordUsage('writingAssistant')}
               />
 
               {aiCategory && (
@@ -358,9 +391,9 @@ function DemoProFeedbackForm({ onSubmit }: DemoProFeedbackFormProps) {
               <Button
                 type="submit"
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                disabled={isSubmitting}
+                disabled={isSubmitting || usage.submit.used >= usage.submit.limit}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
+                {isSubmitting ? 'Submitting...' : `Submit Feedback (${usage.submit.used}/${usage.submit.limit})`}
               </Button>
               <Button
                 type="button"
@@ -408,6 +441,34 @@ export default function DemoBoard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewPostForm, setShowNewPostForm] = useState(true);
   const [showDemoLimitBanner, setShowDemoLimitBanner] = useState(true);
+
+  const createInitialUsage = (): FeatureUsageMap => {
+    const entries = Object.entries(BOARD_FEATURE_LIMITS).map(([feature, config]) => [feature, { used: 0, limit: config.limit }]);
+    return Object.fromEntries(entries) as FeatureUsageMap;
+  };
+
+  const [featureUsage, setFeatureUsage] = useState<FeatureUsageMap>(() => createInitialUsage());
+
+  const checkLimit = (feature: BoardFeatureKey) => {
+    const usage = featureUsage[feature];
+    if (!usage) return true;
+
+    if (usage.used >= usage.limit) {
+      toast.error(`Demo limit reached for ${BOARD_FEATURE_LIMITS[feature].label}. Please try again later.`);
+      return false;
+    }
+    return true;
+  };
+
+  const recordUsage = (feature: BoardFeatureKey, amount = 1) => {
+    setFeatureUsage(prev => ({
+      ...prev,
+      [feature]: {
+        ...prev[feature],
+        used: Math.min(prev[feature].used + amount, prev[feature].limit)
+      }
+    }));
+  };
 
   // Load demo data from API
   useEffect(() => {
@@ -624,6 +685,14 @@ export default function DemoBoard() {
               </div>
             </div>
 
+            <div className="bg-white/70 border border-gray-200 rounded-lg px-4 py-3 text-xs text-gray-600 flex flex-wrap gap-x-4 gap-y-1">
+              <span className="font-semibold text-gray-700">Demo limits</span>
+              <span>Submit ({featureUsage.submit.used}/{featureUsage.submit.limit})</span>
+              <span>AI categorize ({featureUsage.categorize.used}/{featureUsage.categorize.limit})</span>
+              <span>AI writing ({featureUsage.writingAssistant.used}/{featureUsage.writingAssistant.limit})</span>
+              <span>Votes ({featureUsage.vote.used}/{featureUsage.vote.limit})</span>
+            </div>
+
             <div className="space-y-4">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                 <div className="flex items-center gap-2 text-gray-700">
@@ -647,6 +716,9 @@ export default function DemoBoard() {
                     setPosts(prev => [post, ...prev]);
                     setActiveTab('feedback');
                   }}
+                  usage={featureUsage}
+                  checkLimit={checkLimit}
+                  recordUsage={recordUsage}
                 />
               )}
             </div>
@@ -701,6 +773,9 @@ export default function DemoBoard() {
                         <button
                           onClick={() => {
                             const alreadyVoted = post.user_voted;
+                            if (!alreadyVoted && !checkLimit('vote')) {
+                              return;
+                            }
                             setPosts(prev => prev.map(p =>
                               p.id === post.id
                                 ? { 
@@ -710,6 +785,9 @@ export default function DemoBoard() {
                                   }
                                 : p
                             ));
+                            if (!alreadyVoted) {
+                              recordUsage('vote');
+                            }
                             toast.success(alreadyVoted ? 'Vote removed' : 'Vote added');
                           }}
                           className={`flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors ${
@@ -717,6 +795,7 @@ export default function DemoBoard() {
                               ? 'text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
                               : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
                           }`}
+                          disabled={!post.user_voted && featureUsage.vote.used >= featureUsage.vote.limit}
                         >
                           <svg className="w-4 h-4 mb-1" fill={post.user_voted ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
