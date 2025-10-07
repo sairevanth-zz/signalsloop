@@ -126,10 +126,21 @@ export async function POST(
       console.error('Error updating priority counts:', priorityError);
     }
 
+    const { count: totalVotes, error: countError } = await supabase
+      .from('votes')
+      .select('*', { count: 'exact', head: true })
+      .eq('post_id', postId);
+
+    if (countError) {
+      console.error('Error counting votes:', countError);
+    }
+
+    const safeTotalVotes = totalVotes ?? 0;
+
     // Get post details for webhooks
     const { data: post } = await supabase
       .from('posts')
-      .select('id, title, project_id, vote_count')
+      .select('id, title, project_id')
       .eq('id', postId)
       .single();
 
@@ -139,7 +150,7 @@ export async function POST(
         vote: {
           post_id: postId,
           priority: normalizedPriority,
-          vote_count: post.vote_count || 0,
+          vote_count: safeTotalVotes,
           created_at: new Date().toISOString(),
         },
         post: {
@@ -171,7 +182,7 @@ export async function POST(
     // Set cookie for anonymous user ID
     const response = NextResponse.json({
       message: 'Vote recorded successfully',
-      new_vote_count: updatedPost,
+      new_vote_count: safeTotalVotes,
       priority: normalizedPriority
     }, { status: 200 });
 
@@ -231,9 +242,18 @@ export async function DELETE(
       console.error('Error updating priority counts:', priorityError);
     }
 
+    const { count: totalVotes, error: countError } = await supabase
+      .from('votes')
+      .select('*', { count: 'exact', head: true })
+      .eq('post_id', postId);
+
+    if (countError) {
+      console.error('Error counting votes after removal:', countError);
+    }
+
     return NextResponse.json({ 
       message: 'Vote removed successfully', 
-      new_vote_count: updatedPost 
+      new_vote_count: totalVotes ?? updatedPost ?? 0 
     }, { status: 200 });
 
   } catch (error) {
