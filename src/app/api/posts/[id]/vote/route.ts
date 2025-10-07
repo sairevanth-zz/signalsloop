@@ -57,12 +57,12 @@ export async function POST(
   try {
     const resolvedParams = await params; // Await params for Next.js 15
     const postId = resolvedParams.id;
-    let ipAddress = getClientIp(request);
+    const rawIp = getClientIp(request);
     const { id: anonymousId } = getAnonymousIdentity(request);
-
-    if (!ipAddress || ipAddress === 'unknown') {
-      ipAddress = `anon-${anonymousId}`;
-    }
+    const ipAddressKey =
+      rawIp && rawIp !== 'unknown'
+        ? `${rawIp}:${anonymousId}`
+        : `anon-${anonymousId}`;
     let requestedPriority: VotePriority | undefined;
 
     try {
@@ -86,14 +86,12 @@ export async function POST(
     }
 
     // Check if user has already voted (using IP + anonymous ID for better tracking)
-    let voteQuery = supabase
+    const { data: existingVote, error: voteError } = await supabase
       .from('votes')
       .select('id')
-      .eq('post_id', postId);
-
-    voteQuery = voteQuery.or(`ip_address.eq.${ipAddress},anonymous_id.eq.${anonymousId}`);
-
-    const { data: existingVote, error: voteError } = await voteQuery.maybeSingle();
+      .eq('post_id', postId)
+      .eq('anonymous_id', anonymousId)
+      .maybeSingle();
 
     if (voteError) {
       console.error('Error checking existing vote:', voteError);
@@ -109,7 +107,7 @@ export async function POST(
       .from('votes')
       .insert({ 
         post_id: postId, 
-        ip_address: ipAddress,
+        ip_address: ipAddressKey,
         anonymous_id: anonymousId,
         priority: normalizedPriority,
         created_at: new Date().toISOString()
@@ -217,12 +215,12 @@ export async function DELETE(
   try {
     const resolvedParams = await params; // Await params for Next.js 15
     const postId = resolvedParams.id;
-    let ipAddress = getClientIp(request);
+    const rawIp = getClientIp(request);
     const { id: anonymousId } = getAnonymousIdentity(request);
-
-    if (!ipAddress || ipAddress === 'unknown') {
-      ipAddress = `anon-${anonymousId}`;
-    }
+    const ipAddressKey =
+      rawIp && rawIp !== 'unknown'
+        ? `${rawIp}:${anonymousId}`
+        : `anon-${anonymousId}`;
 
     if (!postId) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
@@ -233,7 +231,7 @@ export async function DELETE(
       .from('votes')
       .delete()
       .eq('post_id', postId)
-      .or(`ip_address.eq.${ipAddress},anonymous_id.eq.${anonymousId}`);
+      .or(`ip_address.eq.${ipAddressKey},anonymous_id.eq.${anonymousId}`);
 
     if (deleteError) {
       console.error('Error deleting vote:', deleteError);
