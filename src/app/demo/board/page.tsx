@@ -11,7 +11,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   MessageSquare,
-  Plus,
   Filter,
   Search,
   Calendar,
@@ -37,8 +36,13 @@ import {
   Bot,
   Loader2,
   Brain,
-  Copy
+  Copy,
+  Lightbulb,
+  Bug,
+  Star
 } from 'lucide-react';
+import { toast } from 'sonner';
+import AIWritingAssistant from '@/components/AIWritingAssistant';
 
 interface DemoPost {
   id: string;
@@ -52,17 +56,357 @@ interface DemoPost {
   comments_count: number;
 }
 
+interface DemoProFeedbackFormProps {
+  onSubmit: (post: DemoPost) => void;
+}
+
+const demoPostTypes = [
+  { value: 'feature', label: 'Feature Request', icon: Star, description: 'Suggest a new capability' },
+  { value: 'bug', label: 'Bug Report', icon: Bug, description: 'Something is broken' },
+  { value: 'improvement', label: 'Improvement', icon: Lightbulb, description: 'Enhance an existing flow' },
+  { value: 'general', label: 'General Feedback', icon: MessageSquare, description: 'Open-ended idea or thought' }
+];
+
+const demoPriorities = [
+  { value: 'low', label: 'Nice to have', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
+  { value: 'medium', label: 'Important', color: 'text-amber-600 bg-amber-50 border-amber-200' },
+  { value: 'high', label: 'Critical', color: 'text-rose-600 bg-rose-50 border-rose-200' }
+];
+
+function DemoProFeedbackForm({ onSubmit }: DemoProFeedbackFormProps) {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    type: 'feature',
+    priority: 'medium',
+    name: 'Taylor (Product Manager)',
+    email: 'taylor@signalsloop.com'
+  });
+  const [errors, setErrors] = useState<Partial<typeof formData>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [aiCategory, setAiCategory] = useState<{ category: string; confidence: number; reasoning?: string } | null>(null);
+  const [isCategorizing, setIsCategorizing] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const handleInput = (field: keyof typeof formData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const categorizeWithAI = async () => {
+    if (!formData.title.trim()) {
+      setErrors(prev => ({ ...prev, title: 'Add a short title so AI has context' }));
+      toast.error('Please add a title before running AI categorization');
+      return;
+    }
+
+    setIsCategorizing(true);
+    try {
+      const response = await fetch('/api/ai/categorize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          projectId: null
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || 'Categorization failed');
+      }
+
+      const data = await response.json();
+      setAiCategory(data.result);
+      toast.success(`AI suggests ${data.result.category}`);
+    } catch (error) {
+      console.error('AI categorization error:', error);
+      toast.error(error instanceof Error ? error.message : 'AI categorization unavailable');
+    } finally {
+      setIsCategorizing(false);
+    }
+  };
+
+  const validate = () => {
+    const nextErrors: Partial<typeof formData> = {};
+
+    if (!formData.title.trim()) {
+      nextErrors.title = 'Title is required';
+    } else if (formData.title.trim().length < 5) {
+      nextErrors.title = 'Use at least 5 characters';
+    }
+
+    if (!formData.description.trim()) {
+      nextErrors.description = 'Add a short description';
+    } else if (formData.description.trim().length < 15) {
+      nextErrors.description = 'Tell us a bit more (15+ characters)';
+    }
+
+    if (!formData.name.trim()) {
+      nextErrors.name = 'Name helps your team personalize responses';
+    }
+
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      nextErrors.email = 'Enter a valid email address';
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!validate()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const now = new Date();
+      const newPost: DemoPost = {
+        id: `demo-${now.getTime()}`,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        status: 'open',
+        vote_count: 42,
+        user_voted: true,
+        author: formData.name.trim() || 'Demo User',
+        created_at: now.toISOString(),
+        comments_count: 0
+      };
+
+      onSubmit(newPost);
+      setShowSuccess(true);
+      toast.success('Feedback submitted! AI will analyze it instantly.');
+
+      setFormData({
+        title: '',
+        description: '',
+        type: 'feature',
+        priority: 'medium',
+        name: 'Taylor (Product Manager)',
+        email: 'taylor@signalsloop.com'
+      });
+      setAiCategory(null);
+      setErrors({});
+
+      setTimeout(() => setShowSuccess(false), 2000);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Card className="bg-white/80 backdrop-blur border border-purple-100 shadow-sm">
+      <CardHeader className="pb-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Sparkles className="h-4 w-4 text-purple-600" />
+              <CardTitle className="text-xl text-gray-900">Submit New Feedback</CardTitle>
+              <Badge className="bg-purple-100 text-purple-700 border-purple-200">Pro</Badge>
+            </div>
+            <p className="text-sm text-gray-600">
+              Crafted for product teams—AI assists with writing, categorization, and prioritization instantly.
+            </p>
+          </div>
+          <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-sm">
+            Live AI Demo
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Feedback Type</label>
+              <div className="grid grid-cols-2 gap-2">
+                {demoPostTypes.map(option => (
+                  <button
+                    type="button"
+                    key={option.value}
+                    onClick={() => handleInput('type', option.value)}
+                    className={`flex items-start gap-2 rounded-lg border p-3 text-left transition-colors ${
+                      formData.type === option.value ? 'border-purple-400 bg-purple-50' : 'border-gray-200 hover:border-purple-200'
+                    }`}
+                  >
+                    <option.icon className={`h-4 w-4 mt-1 ${formData.type === option.value ? 'text-purple-600' : 'text-gray-400'}`} />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{option.label}</p>
+                      <p className="text-xs text-gray-500">{option.description}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Business Impact</label>
+              <div className="grid gap-2">
+                {demoPriorities.map(option => (
+                  <button
+                    type="button"
+                    key={option.value}
+                    onClick={() => handleInput('priority', option.value)}
+                    className={`rounded-lg border p-3 text-left transition-colors ${
+                      formData.priority === option.value ? option.color : 'border-gray-200 hover:border-purple-200 text-gray-600'
+                    }`}
+                  >
+                    <p className="text-sm font-semibold capitalize">{option.label}</p>
+                    <p className="text-xs opacity-80">AI uses this to understand urgency</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <Input
+                value={formData.title}
+                onChange={(e) => handleInput('title', e.target.value)}
+                placeholder="What would you like to see?"
+                className={errors.title ? 'border-red-300 focus-visible:ring-red-300' : ''}
+              />
+              {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <Button size="sm" type="button" variant="ghost" onClick={categorizeWithAI} disabled={isCategorizing}>
+                  {isCategorizing ? (
+                    <>
+                      <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="h-3 w-3 mr-2" />
+                      Categorize with AI
+                    </>
+                  )}
+                </Button>
+              </div>
+              <Textarea
+                value={formData.description}
+                onChange={(e) => handleInput('description', e.target.value)}
+                rows={4}
+                placeholder="Share the problem, context, and why it matters. AI will help polish it."
+                className={errors.description ? 'border-red-300 focus-visible:ring-red-300' : ''}
+              />
+              {errors.description && <p className="text-xs text-red-500">{errors.description}</p>}
+
+              <AIWritingAssistant
+                currentText={formData.description}
+                context={`Feedback type: ${formData.type}, Priority: ${formData.priority}`}
+                onTextImprove={(text) => handleInput('description', text)}
+                placeholder="Describe your idea..."
+              />
+
+              {aiCategory && (
+                <div className="mt-3 rounded-lg border border-purple-200 bg-purple-50 p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles className="h-4 w-4 text-purple-600" />
+                    <span className="text-sm font-semibold text-purple-900">AI categorization complete</span>
+                  </div>
+                  <p className="text-sm text-gray-700">
+                    <strong>{aiCategory.category}</strong> &middot; Confidence {(aiCategory.confidence * 100).toFixed(0)}%
+                  </p>
+                  {aiCategory.reasoning && (
+                    <p className="text-xs text-gray-500 mt-1">{aiCategory.reasoning}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+              <Input
+                value={formData.name}
+                onChange={(e) => handleInput('name', e.target.value)}
+                placeholder="Who should we follow up with?"
+                className={errors.name ? 'border-red-300 focus-visible:ring-red-300' : ''}
+              />
+              {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email (optional)</label>
+              <Input
+                value={formData.email}
+                onChange={(e) => handleInput('email', e.target.value)}
+                placeholder="We'll send updates to this address"
+                type="email"
+                className={errors.email ? 'border-red-300 focus-visible:ring-red-300' : ''}
+              />
+              {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="text-xs text-gray-500">
+              AI will auto-detect duplicates, prioritize urgency, and notify your team immediately.
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="submit"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setFormData({
+                    title: '',
+                    description: '',
+                    type: 'feature',
+                    priority: 'medium',
+                    name: 'Taylor (Product Manager)',
+                    email: 'taylor@signalsloop.com'
+                  });
+                  setErrors({});
+                  setAiCategory(null);
+                }}
+              >
+                Reset
+              </Button>
+            </div>
+          </div>
+
+          {showSuccess && (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                New feedback added to the board. Scroll down to see how AI enriches it in real time.
+              </div>
+            </div>
+          )}
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function DemoBoard() {
   const router = useRouter();
   const [posts, setPosts] = useState<DemoPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('roadmap'); // Default to roadmap to showcase features
+  const [activeTab, setActiveTab] = useState('feedback');
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('votes');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showNewPostForm, setShowNewPostForm] = useState(false);
-  const [newPost, setNewPost] = useState({ title: '', description: '' });
+  const [showNewPostForm, setShowNewPostForm] = useState(true);
   const [showDemoLimitBanner, setShowDemoLimitBanner] = useState(true);
 
   // Load demo data from API
@@ -127,30 +471,6 @@ export default function DemoBoard() {
         default: return b.vote_count - a.vote_count;
       }
     });
-
-  const handleSubmitPost = () => {
-    if (!newPost.title.trim() || !newPost.description.trim()) {
-      alert('Please fill in both title and description');
-      return;
-    }
-
-    const post: DemoPost = {
-      id: Date.now().toString(),
-      title: newPost.title,
-      description: newPost.description,
-      status: 'open',
-      vote_count: 0,
-      user_voted: false,
-      author: 'Demo User',
-      created_at: new Date().toISOString(),
-      comments_count: 0
-    };
-
-    setPosts(prev => [post, ...prev]);
-    setNewPost({ title: '', description: '' });
-    setShowNewPostForm(false);
-    alert('Post submitted successfully!');
-  };
 
   const handlePostClick = (postId: string) => {
     console.log('Post clicked:', postId);
@@ -304,48 +624,32 @@ export default function DemoBoard() {
               </div>
             </div>
 
-            {/* New Post Form */}
-            {showNewPostForm && (
-              <Card className="bg-white/80 backdrop-blur-sm border border-gray-200">
-                <CardHeader>
-                  <CardTitle className="text-xl font-semibold text-gray-900">Submit New Feedback</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Title
-                    </label>
-                    <Input
-                      placeholder="What would you like to see?"
-                      value={newPost.title}
-                      onChange={(e) => setNewPost(prev => ({ ...prev, title: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Description
-                    </label>
-                    <Textarea
-                      placeholder="Tell us more about your idea..."
-                      value={newPost.description}
-                      onChange={(e) => setNewPost(prev => ({ ...prev, description: e.target.value }))}
-                      rows={3}
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={handleSubmitPost}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                    >
-                      Submit Post
-                    </Button>
-                    <Button variant="outline" onClick={() => setShowNewPostForm(false)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <div className="space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm font-semibold uppercase tracking-wide text-purple-700">AI-powered submission</span>
+                  <span className="hidden md:inline text-sm text-gray-500">Every post flows through categorization, duplicate detection, and priority scoring.</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowNewPostForm((prev) => !prev)}
+                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                >
+                  {showNewPostForm ? 'Hide form' : 'Open pro submission form'}
+                </Button>
+              </div>
+
+              {showNewPostForm && (
+                <DemoProFeedbackForm
+                  onSubmit={(post) => {
+                    setPosts(prev => [post, ...prev]);
+                    setActiveTab('feedback');
+                  }}
+                />
+              )}
+            </div>
 
             {/* Posts List */}
             <div className="space-y-4">
@@ -396,6 +700,7 @@ export default function DemoBoard() {
                       <div onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => {
+                            const alreadyVoted = post.user_voted;
                             setPosts(prev => prev.map(p =>
                               p.id === post.id
                                 ? { 
@@ -405,7 +710,7 @@ export default function DemoBoard() {
                                   }
                                 : p
                             ));
-                            alert(post.user_voted ? 'Vote removed!' : 'Vote added!');
+                            toast.success(alreadyVoted ? 'Vote removed' : 'Vote added');
                           }}
                           className={`flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors ${
                             post.user_voted 
@@ -431,27 +736,6 @@ export default function DemoBoard() {
               )}
             </div>
 
-            {/* Call to Action */}
-            {!showNewPostForm && (
-              <div className="mt-12 text-center">
-                <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-8">
-                  <Button
-                    onClick={() => setShowNewPostForm(true)}
-                    size="lg"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Submit Your Feedback
-                  </Button>
-                  <p className="text-gray-600 mt-4">
-                    This demo shows real data from our seeded demo project. <Link href="/login" className="text-blue-600 hover:underline font-medium">Create your own board</Link> to get started.
-                  </p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    All posts, votes, and comments above are real data stored in our database.
-                  </p>
-                </div>
-              </div>
-            )}
           </TabsContent>
 
           {/* Roadmap Tab */}
