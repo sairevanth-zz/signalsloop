@@ -33,7 +33,7 @@ import VoteOnBehalfModal from './VoteOnBehalfModal';
 import { useAuth } from '@/hooks/useAuth';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import VoteButton, { VoteStats, VoteStatsSnapshot } from '@/components/VoteButton';
-import { PriorityMixBar } from '@/components/PriorityMix';
+import { PriorityMixCompact } from '@/components/PriorityMix';
 
 interface Project {
   id: string;
@@ -577,14 +577,12 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                       {post.title}
                     </h1>
                   
-                  <PriorityMixBar
+                  <PriorityMixCompact
                     mustHave={priorityMix.mustHave}
                     important={priorityMix.important}
                     niceToHave={priorityMix.niceToHave}
-                    size="sm"
-                    showLegend
-                    className="max-w-md border-dashed bg-white/70"
-                    layout="side"
+                    align="start"
+                    className="mt-2 gap-3 text-sm text-gray-600"
                   />
                   
                   <p className="mt-4 text-gray-700 leading-relaxed">

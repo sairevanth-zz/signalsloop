@@ -30,21 +30,21 @@ const PRIORITY_OPTIONS = [
     value: 'must_have',
     title: 'Must Have',
     description: 'Critical for our success or customers',
-    accentClass: 'border-red-400 bg-red-50 text-red-700',
+    accentClass: 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm',
     indicator: '🔴',
   },
   {
     value: 'important',
     title: 'Important',
     description: 'Significant business impact',
-    accentClass: 'border-amber-300 bg-amber-50 text-amber-700',
+    accentClass: 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm',
     indicator: '🟡',
   },
   {
     value: 'nice_to_have',
     title: 'Nice to Have',
     description: 'Helpful improvement or quality-of-life',
-    accentClass: 'border-emerald-300 bg-emerald-50 text-emerald-700',
+    accentClass: 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm',
     indicator: '🟢',
   },
 ] as const;
@@ -244,10 +244,10 @@ export function VoteButton({
               key={option.value}
               type="button"
               onClick={() => setPendingPriority(option.value)}
-              className={`w-full text-left rounded-lg border-2 p-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+              className={`w-full text-left rounded-lg border-2 bg-white p-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
                 pendingPriority === option.value
                   ? option.accentClass
-                  : 'border-gray-200 hover:border-gray-300'
+                  : 'border-gray-200 hover:border-blue-200'
               }`}
             >
               <div className="flex items-center justify-between">

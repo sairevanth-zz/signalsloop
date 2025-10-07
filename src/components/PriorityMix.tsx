@@ -48,6 +48,7 @@ export const getPriorityTotals = (counts: PriorityCounts) =>
 
 interface PriorityMixCompactProps extends PriorityCounts {
   className?: string;
+  align?: 'start' | 'center' | 'end';
   'data-testid'?: string;
 }
 
@@ -56,6 +57,7 @@ export function PriorityMixCompact({
   important,
   niceToHave,
   className,
+  align = 'end',
   ...rest
 }: PriorityMixCompactProps) {
   const total = getPriorityTotals({ mustHave, important, niceToHave });
@@ -66,7 +68,8 @@ export function PriorityMixCompact({
   return (
     <span
       className={clsx(
-        'flex flex-wrap items-center justify-end gap-1 text-xs text-gray-500',
+        'flex flex-wrap items-center gap-1 text-xs text-gray-500',
+        align === 'start' ? 'justify-start' : align === 'center' ? 'justify-center' : 'justify-end',
         className
       )}
       aria-label={ariaLabel}

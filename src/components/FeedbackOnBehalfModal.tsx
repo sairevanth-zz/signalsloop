@@ -4,7 +4,21 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, AlertCircle, CheckCircle, Star, Bug, Lightbulb, MessageSquare, Brain, Sparkles } from 'lucide-react';
+import {
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  Star,
+  Bug,
+  Lightbulb,
+  MessageSquare,
+  Brain,
+  Sparkles,
+  Palette,
+  Share2,
+  Gauge,
+  BookOpen
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { analytics } from '@/lib/analytics';
@@ -19,12 +33,19 @@ interface FeedbackOnBehalfModalProps {
   onSuccess?: () => void;
 }
 
-const feedbackTypes = [
-  { value: 'feature', label: 'Feature Request', icon: Star, description: 'Suggest a new feature' },
-  { value: 'bug', label: 'Bug Report', icon: Bug, description: 'Report a problem' },
-  { value: 'improvement', label: 'Improvement', icon: Lightbulb, description: 'Improve existing feature' },
-  { value: 'general', label: 'General Feedback', icon: MessageSquare, description: 'General thoughts' }
+const categoryOptions = [
+  { value: 'Feature Request', label: 'Feature Request', icon: Star, description: 'Suggest a new feature or capability' },
+  { value: 'Bug', label: 'Bug Report', icon: Bug, description: 'Report a problem or defect' },
+  { value: 'Improvement', label: 'Improvement', icon: Lightbulb, description: 'Enhance an existing feature or workflow' },
+  { value: 'UI/UX', label: 'UI / UX', icon: Palette, description: 'Design, usability, or experience feedback' },
+  { value: 'Integration', label: 'Integration', icon: Share2, description: 'Connect with other tools or APIs' },
+  { value: 'Performance', label: 'Performance', icon: Gauge, description: 'Speed, stability, or reliability issues' },
+  { value: 'Documentation', label: 'Documentation', icon: BookOpen, description: 'Guides, onboarding, or help content' },
+  { value: 'Other', label: 'Other', icon: MessageSquare, description: 'Anything else not covered above' }
 ];
+
+const isValidCategory = (value: string): value is (typeof categoryOptions)[number]['value'] =>
+  categoryOptions.some((option) => option.value === value);
 
 const PRIORITY_OPTIONS = [
   { value: 'must_have', label: 'Must Have', description: 'Critical for customer' },
@@ -57,7 +78,7 @@ export default function FeedbackOnBehalfModal({
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [formData, setFormData] = useState({
-    type: 'feature',
+    category: 'Feature Request' as (typeof categoryOptions)[number]['value'],
     title: '',
     description: '',
     customerName: '',
@@ -100,6 +121,12 @@ export default function FeedbackOnBehalfModal({
         const data = await response.json();
         setAiCategory(data.result);
         setShowAICategory(true);
+        if (data.result?.category && isValidCategory(data.result.category)) {
+          setFormData((prev) => ({
+            ...prev,
+            category: data.result.category,
+          }));
+        }
         if (data.usage) {
           setAiUsage(data.usage);
         }
@@ -178,6 +205,7 @@ export default function FeedbackOnBehalfModal({
           customerCompany: formData.customerCompany.trim() || null,
           feedbackTitle: formData.title.trim(),
           feedbackDescription: formData.description.trim(),
+          category: formData.category,
           priority: formData.priority,
           feedbackSource: formData.source,
           internalNote: formData.internalNote.trim() || null,
@@ -194,7 +222,8 @@ export default function FeedbackOnBehalfModal({
       try {
         analytics.track('Feedback Submitted On Behalf', {
           project_id: projectId,
-          type: formData.type,
+          category: formData.category,
+          type: formData.category,
           priority: formData.priority,
           has_company: !!formData.customerCompany,
         });
@@ -221,7 +250,7 @@ export default function FeedbackOnBehalfModal({
 
   const handleClose = () => {
     setFormData({
-      type: 'feature',
+      category: 'Feature Request',
       title: '',
       description: '',
       customerName: '',
@@ -315,25 +344,25 @@ export default function FeedbackOnBehalfModal({
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   What type of feedback is this?
                 </label>
-                <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
-                  {feedbackTypes.map((type) => {
-                    const Icon = type.icon;
+                <div className="grid grid-cols-1 gap-3 xs:grid-cols-2">
+                  {categoryOptions.map((category) => {
+                    const Icon = category.icon;
                     return (
                       <button
-                        key={type.value}
+                        key={category.value}
                         type="button"
-                        onClick={() => handleInputChange('type', type.value)}
+                        onClick={() => handleInputChange('category', category.value)}
                         className={`p-3 rounded-lg border-2 transition-all text-left min-touch-target tap-highlight-transparent active:scale-95 ${
-                          formData.type === type.value
+                          formData.category === category.value
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
                         <div className="flex items-center gap-2 mb-1">
                           <Icon className="h-4 w-4 text-gray-600" />
-                          <span className="font-medium text-sm">{type.label}</span>
+                          <span className="font-medium text-sm">{category.label}</span>
                         </div>
-                        <p className="text-xs text-gray-500">{type.description}</p>
+                        <p className="text-xs text-gray-500">{category.description}</p>
                       </button>
                     );
                   })}
@@ -379,7 +408,7 @@ export default function FeedbackOnBehalfModal({
                 {/* AI Writing Assistant */}
                 <AIWritingAssistant
                   currentText={formData.description}
-                  context={`Feedback type: ${formData.type}, Title: ${formData.title}`}
+                  context={`Feedback category: ${formData.category}, Title: ${formData.title}`}
                   onTextImprove={(improved) => handleInputChange('description', improved)}
                   placeholder="Describe the feedback..."
                 />

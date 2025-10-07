@@ -11,6 +11,7 @@ interface FeedbackOnBehalfRequest {
   customerCompany?: string;
   feedbackTitle: string;
   feedbackDescription: string;
+  category?: string;
   priority: 'must_have' | 'important' | 'nice_to_have';
   feedbackSource: string;
   internalNote?: string;
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
       customerCompany,
       feedbackTitle,
       feedbackDescription,
+      category,
       priority,
       feedbackSource,
       internalNote,
@@ -58,6 +60,18 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const allowedCategories = new Set([
+      'Feature Request',
+      'Bug',
+      'Improvement',
+      'UI/UX',
+      'Integration',
+      'Performance',
+      'Documentation',
+      'Other'
+    ]);
+    const normalizedCategory = category && allowedCategories.has(category) ? category : 'Other';
 
     // Verify admin owns this project
     const { data: project, error: projectError } = await supabase
@@ -104,6 +118,7 @@ export async function POST(request: NextRequest) {
         author_name: customerName.trim(),
         author_email: customerEmail.toLowerCase().trim(),
         status: 'open',
+        category: normalizedCategory,
         created_at: new Date().toISOString(),
       })
       .select()
@@ -191,6 +206,7 @@ export async function POST(request: NextRequest) {
       console.log('Analytics: Feedback on behalf', {
         admin_id: admin.id,
         post_id: post.id,
+        category: normalizedCategory,
         priority,
         feedback_source: feedbackSource,
         has_company: !!customerCompany,
