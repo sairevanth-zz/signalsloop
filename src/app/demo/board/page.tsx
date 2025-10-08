@@ -1155,7 +1155,6 @@ export default function DemoBoard() {
                       </ul>
                     </div>
                   </div>
-                  <Badge className="bg-purple-100 text-purple-700 border-purple-200">Model: gpt-4o-mini</Badge>
                 </CardContent>
               </Card>
 
