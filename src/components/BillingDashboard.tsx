@@ -133,7 +133,7 @@ export function BillingDashboard({
           .eq('plan', 'pro')
           .order('created_at', { ascending: true })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (projectError) {
           console.error('❌ Error getting primary project:', projectError);
@@ -152,6 +152,25 @@ export function BillingDashboard({
             trial_cancelled_at: null
           };
           console.log('✅ Account billing info set (fallback):', accountBillingInfo);
+          setBillingInfo(accountBillingInfo);
+          return;
+        }
+
+        if (!primaryProject) {
+          const accountBillingInfo = {
+            plan: userData.plan || 'free',
+            stripe_customer_id: null,
+            subscription_status: null,
+            current_period_end: null,
+            cancel_at_period_end: false,
+            // Trial fields
+            trial_start_date: null,
+            trial_end_date: null,
+            trial_status: 'none' as const,
+            is_trial: false,
+            trial_cancelled_at: null
+          };
+          console.log('✅ Account billing info set (no pro project):', accountBillingInfo);
           setBillingInfo(accountBillingInfo);
           return;
         }

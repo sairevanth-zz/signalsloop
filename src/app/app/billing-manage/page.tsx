@@ -48,11 +48,18 @@ export default function BillingManagePage() {
         .eq('plan', 'pro')
         .order('created_at', { ascending: true })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (projectError || !project) {
-        toast.error('No Pro subscription found');
+      if (projectError) {
+        console.error('Error fetching pro project for billing manage:', projectError);
+        toast.error('Failed to load billing information');
         router.push('/app/billing');
+        return;
+      }
+
+      if (!project) {
+        toast.info('No active Pro subscription to manage.');
+        router.replace('/app/billing');
         return;
       }
 
