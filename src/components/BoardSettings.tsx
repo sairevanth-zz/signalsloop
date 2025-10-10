@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import {
   Select,
   SelectContent,
@@ -76,116 +76,102 @@ export default function BoardSettings({
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [supabase, setSupabase] = useState<any>(null);
 
   // Form state
   const [formData, setFormData] = useState<Partial<BoardConfig>>({});
 
-  const loadBoardSettings = useCallback(async () => {
+  const supabase = useMemo(() => getSupabaseClient(), []);
+  const notificationRef = useRef(onShowNotification);
+
+  useEffect(() => {
+    notificationRef.current = onShowNotification;
+  }, [onShowNotification]);
+
+  const notify = (
+    message: string,
+    type: 'success' | 'error' | 'info' = 'success'
+  ) => {
+    notificationRef.current?.(message, type);
+  };
+
+  useEffect(() => {
     if (!supabase) {
-      onShowNotification?.('Database connection not available. Please refresh the page.', 'error');
+      notificationRef.current?.('Database connection not available. Please refresh the page.', 'error');
       setLoading(false);
       return;
     }
 
-    try {
-      setLoading(true);
+    let isMounted = true;
 
-      // Get project
-      const { data: projectData, error: projectError } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('slug', projectSlug)
-        .single();
+    const loadBoardSettings = async () => {
+      try {
+        setLoading(true);
 
-      if (projectError || !projectData) {
-        onShowNotification?.('Project not found', 'error');
-        return;
+        const { data: projectData, error: projectError } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('slug', projectSlug)
+          .single();
+
+        if (projectError || !projectData) {
+          notificationRef.current?.('Project not found', 'error');
+          return;
+        }
+
+        if (!isMounted) return;
+        setProject(projectData);
+
+        const { data: boardData, error: boardError } = await supabase
+          .from('boards')
+          .select('*')
+          .eq('project_id', projectData.id)
+          .single();
+
+        if (boardError || !boardData) {
+          notificationRef.current?.('Board not found', 'error');
+          return;
+        }
+
+        // Normalize board values with safe defaults
+        const boardConfig: BoardConfig = {
+          id: boardData.id,
+          name: boardData.name || 'Feedback Board',
+          description: boardData.description || '',
+          is_private: boardData.is_private ?? false,
+          allow_anonymous_posts: boardData.allow_anonymous_posts ?? true,
+          require_approval: boardData.require_approval ?? false,
+          auto_close_days: boardData.auto_close_days ?? undefined,
+          custom_css: boardData.custom_css || '',
+          welcome_message: boardData.welcome_message || '',
+          sort_default: boardData.sort_default || 'votes',
+          posts_per_page: boardData.posts_per_page || 20,
+          show_author_emails: boardData.show_author_emails ?? true,
+          enable_comments: boardData.enable_comments ?? true,
+          enable_voting: boardData.enable_voting ?? true,
+          custom_statuses: Array.isArray(boardData.custom_statuses)
+            ? boardData.custom_statuses
+            : []
+        };
+
+        if (!isMounted) return;
+        setBoard(boardConfig);
+        setFormData(boardConfig);
+      } catch (error) {
+        console.error('Error loading board settings:', error);
+        notificationRef.current?.('Something went wrong while loading board settings.', 'error');
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
+    };
 
-      setProject(projectData);
+    loadBoardSettings();
 
-      // Get board settings
-      console.log('🔍 Loading board for project:', projectData.id);
-      const { data: boardData, error: boardError } = await supabase
-        .from('boards')
-        .select('*')
-        .eq('project_id', projectData.id)
-        .single();
-
-      console.log('🔍 Board query result:', { boardData, boardError });
-      console.log('📋 Board data fields:', {
-        name: boardData?.name,
-        description: boardData?.description,
-        is_private: boardData?.is_private,
-        allow_anonymous_posts: boardData?.allow_anonymous_posts,
-        require_approval: boardData?.require_approval,
-        auto_close_days: boardData?.auto_close_days,
-        custom_css: boardData?.custom_css,
-        welcome_message: boardData?.welcome_message,
-        sort_default: boardData?.sort_default,
-        posts_per_page: boardData?.posts_per_page,
-        show_author_emails: boardData?.show_author_emails,
-        enable_comments: boardData?.enable_comments,
-        enable_voting: boardData?.enable_voting,
-        custom_statuses: boardData?.custom_statuses
-      });
-
-      if (boardError || !boardData) {
-        console.error('❌ Board not found:', { boardError, boardData });
-        onShowNotification?.('Board not found', 'error');
-        return;
-      }
-
-      // Set default values for missing properties
-      const boardConfig: BoardConfig = {
-        id: boardData.id,
-        name: boardData.name || 'Feedback Board',
-        description: boardData.description || '',
-        is_private: boardData.is_private || false,
-        allow_anonymous_posts: boardData.allow_anonymous_posts ?? true,
-        require_approval: boardData.require_approval || false,
-        auto_close_days: boardData.auto_close_days,
-        custom_css: boardData.custom_css || '',
-        welcome_message: boardData.welcome_message || '',
-        sort_default: boardData.sort_default || 'votes',
-        posts_per_page: boardData.posts_per_page || 20,
-        show_author_emails: boardData.show_author_emails ?? true,
-        enable_comments: boardData.enable_comments ?? true,
-        enable_voting: boardData.enable_voting ?? true,
-        custom_statuses: boardData.custom_statuses || []
-      };
-
-      setBoard(boardConfig);
-      setFormData(boardConfig);
-      
-      console.log('✅ Final board config set:', boardConfig);
-
-    } catch (error) {
-      console.error('Error loading board settings:', error);
-      onShowNotification?.('Something went wrong', 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase, projectSlug, onShowNotification]);
-
-  // Initialize Supabase client safely
-  useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
-      setSupabase(client);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (supabase) {
-      loadBoardSettings();
-    }
-  }, [projectSlug, supabase, loadBoardSettings]);
+    return () => {
+      isMounted = false;
+    };
+  }, [projectSlug, supabase]);
 
   useEffect(() => {
     // Check if form data differs from original board config
@@ -207,7 +193,7 @@ export default function BoardSettings({
 
   const handleSave = async () => {
     if (!board || !project || !supabase) {
-      onShowNotification?.('Database connection not available. Please refresh the page.', 'error');
+      notify('Database connection not available. Please refresh the page.', 'error');
       return;
     }
 
@@ -217,7 +203,7 @@ export default function BoardSettings({
       // Check Pro feature restrictions
       if (userPlan === 'free' || project.plan === 'free') {
         if (formData.is_private) {
-          onShowNotification?.(
+          notify(
             'Private boards are only available on Pro plans. Upgrade to enable this feature.', 
             'error'
           );
@@ -225,7 +211,7 @@ export default function BoardSettings({
         }
         
         if (formData.custom_css) {
-          onShowNotification?.(
+          notify(
             'Custom CSS is only available on Pro plans. Upgrade to enable this feature.', 
             'error'
           );
@@ -256,7 +242,7 @@ export default function BoardSettings({
 
       if (error) {
         console.error('Error saving settings:', error);
-        onShowNotification?.('Error saving settings', 'error');
+        notify('Error saving settings', 'error');
         return;
       }
 
@@ -264,11 +250,11 @@ export default function BoardSettings({
       setBoard({ ...board, ...formData });
       setHasChanges(false);
       
-      onShowNotification?.('Settings saved successfully', 'success');
+      notify('Settings saved successfully', 'success');
 
     } catch (error) {
       console.error('Error saving settings:', error);
-      onShowNotification?.('Something went wrong', 'error');
+      notify('Something went wrong', 'error');
     } finally {
       setSaving(false);
     }
@@ -296,13 +282,13 @@ export default function BoardSettings({
         supabase: !!supabase, 
         project: project ? { id: project.id, slug: project.slug } : null 
       });
-      onShowNotification?.('Database connection not available. Please refresh the page.', 'error');
+      notify('Database connection not available. Please refresh the page.', 'error');
       return;
     }
 
     if (!board.id) {
       console.error('❌ Board ID is missing:', board);
-      onShowNotification?.('Board ID is missing. Please refresh the page.', 'error');
+      notify('Board ID is missing. Please refresh the page.', 'error');
       return;
     }
 
@@ -332,7 +318,7 @@ export default function BoardSettings({
       }
 
       console.log('✅ Board deleted successfully');
-      onShowNotification?.('Board deleted successfully', 'success');
+      notify('Board deleted successfully', 'success');
       
       // Close dialog and navigate to project dashboard (not board page since board is deleted)
       setShowDeleteDialog(false);
@@ -340,7 +326,8 @@ export default function BoardSettings({
 
     } catch (error) {
       console.error('Error deleting board:', error);
-      onShowNotification?.(`Something went wrong: ${error.message}`, 'error');
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      notify(`Something went wrong: ${message}`, 'error');
     }
   };
 

@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ApiKeySettings } from '@/components/ApiKeySettings';
-import BoardSettings from '@/components/BoardSettings';
 import { CustomDomainSettings } from '@/components/CustomDomainSettings';
 import GlobalBanner from '@/components/GlobalBanner';
 import FeedbackExport from '@/components/FeedbackExport';
@@ -17,6 +16,7 @@ import { WebhooksSettings } from '@/components/WebhooksSettings';
 import { SlackIntegrationSettings } from '@/components/SlackIntegrationSettings';
 import { toast } from 'sonner';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import BoardSettings from '@/components/BoardSettings';
 import {
   Key,
   Settings,

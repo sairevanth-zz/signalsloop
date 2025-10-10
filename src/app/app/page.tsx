@@ -12,7 +12,6 @@ import BoardShare from '@/components/BoardShare';
 import EnhancedProjectCard from '@/components/EnhancedProjectCard';
 import DashboardAnalytics from '@/components/DashboardAnalytics';
 import QuickActionsSidebar from '@/components/QuickActionsSidebar';
-import EnhancedEmptyState from '@/components/EnhancedEmptyState';
 import DashboardSearchFilters from '@/components/DashboardSearchFilters';
 import { 
   Plus, 
@@ -27,7 +26,7 @@ import {
   BarChart3,
   Brain,
   Zap,
-  Share2
+  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -415,11 +414,6 @@ export default function EnhancedDashboardPage() {
     router.push(`/app/create?template=${template}`);
   };
 
-  const handleLoadSampleData = () => {
-    toast.info('Loading sample data...');
-    // TODO: Implement sample data loading
-  };
-
   if (loading || projectsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 safe-top safe-bottom">
@@ -470,11 +464,34 @@ export default function EnhancedDashboardPage() {
       <main className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
         {/* Enhanced Dashboard Layout */}
         {projects.length === 0 ? (
-          <EnhancedEmptyState 
-            onCreateProject={() => router.push('/app/create')}
-            onLoadSampleData={handleLoadSampleData}
-            userPlan={userPlan}
-          />
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="max-w-xl w-full bg-white/80 backdrop-blur-sm border border-white/40 rounded-2xl shadow-lg p-8 sm:p-10 text-center space-y-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mx-auto flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900">
+                  Welcome to SignalsLoop
+                </h2>
+                <p className="text-sm sm:text-base text-slate-600">
+                  You’re ready to start collecting product feedback. Create your first project to spin up a board and share it with your customers.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+                <Button
+                  size="lg"
+                  onClick={() => router.push('/app/create')}
+                  className="w-full sm:w-auto"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Create Project
+                </Button>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-500">
+                Prefer to explore first? You can always set up widgets or invite teammates later from your project dashboard.
+              </p>
+            </div>
+          </div>
         ) : (
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
             {/* Main Content */}
