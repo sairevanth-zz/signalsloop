@@ -15,7 +15,7 @@ const demoLimits = new Map<string, RateLimitEntry>();
 // Rate limits for demo users (per IP per hour)
 const DEMO_LIMITS = {
   categorization: 10,
-  prioritization: 10,
+  priority_scoring: 10,
   duplicate_detection: 5,
   smart_replies: 10,
   cache_stats: 50, // Higher limit for cache stats since it's read-only

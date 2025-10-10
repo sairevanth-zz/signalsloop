@@ -31,6 +31,7 @@ import AIPostIntelligence from './AIPostIntelligence';
 import AIAutoResponse from './AIAutoResponse';
 import VoteOnBehalfModal from './VoteOnBehalfModal';
 import { useAuth } from '@/hooks/useAuth';
+import { useAIUsage } from '@/hooks/useAIUsage';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import VoteButton, { VoteStats, VoteStatsSnapshot } from '@/components/VoteButton';
 import { PriorityMixCompact } from '@/components/PriorityMix';
@@ -99,6 +100,20 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const [isOwner, setIsOwner] = useState(false);
   const [ownerCheckLoading, setOwnerCheckLoading] = useState(true);
 
+  const {
+    usageInfo: duplicateUsage,
+    refreshUsage: refreshDuplicateUsage,
+    setUsageInfo: setDuplicateUsageInfo
+  } = useAIUsage(project.id, 'duplicate_detection');
+
+  const {
+    usageInfo: priorityUsage,
+    refreshUsage: refreshPriorityUsage,
+    setUsageInfo: setPriorityUsageInfo
+  } = useAIUsage(project.id, 'priority_scoring');
+
+  const duplicateLimitReached = Boolean(duplicateUsage && !duplicateUsage.isPro && duplicateUsage.remaining <= 0);
+  const priorityLimitReached = Boolean(priorityUsage && !priorityUsage.isPro && priorityUsage.remaining <= 0);
   const createdDate = new Date(post.created_at);
   const formattedDate = createdDate.toLocaleDateString('en-US', {
     month: 'short',
@@ -184,6 +199,12 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     setCheckingDuplicates(true);
     setDuplicateResults(null);
     try {
+      const usage = await refreshDuplicateUsage({ silent: true });
+      if (usage && !usage.allowed) {
+        toast.error('Free tier limit reached. Upgrade to Pro for unlimited duplicate detection!');
+        return;
+      }
+
       // Fetch all posts in the project to check for duplicates
       const supabase = (await import('@/lib/supabase-client')).getSupabaseClient();
       const { data: allPosts } = await supabase
@@ -215,7 +236,15 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
       const data = await response.json();
       if (response.ok) {
         setDuplicateResults(data);
+        await refreshDuplicateUsage({ silent: true });
       } else {
+        if (response.status === 429) {
+          setDuplicateUsageInfo({ ...data, allowed: false });
+          toast.error(
+            data.message || 'You have reached the monthly limit for duplicate detection.'
+          );
+          return;
+        }
         toast.error(data.message || data.error || 'Failed to check duplicates');
       }
     } catch (error) {
@@ -230,6 +259,12 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     setAnalyzingPriority(true);
     setPriorityResults(null);
     try {
+      const usage = await refreshPriorityUsage({ silent: true });
+      if (usage && !usage.allowed) {
+        toast.error('Free tier limit reached. Upgrade to Pro for unlimited priority analyses!');
+        return;
+      }
+
       const response = await fetch('/api/ai/priority-scoring', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -254,7 +289,15 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
           level: score.priorityLevel,
           reasoning: score.businessJustification
         });
+        await refreshPriorityUsage({ silent: true });
       } else {
+        if (response.status === 429) {
+          setPriorityUsageInfo({ ...data, allowed: false });
+          toast.error(
+            data.message || 'You have reached the monthly limit for priority analyses.'
+          );
+          return;
+        }
         toast.error(data.message || data.error || 'Failed to analyze priority');
       }
     } catch (error) {
@@ -688,6 +731,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                   title={post.title}
                   description={post.description}
                   postType="feature"
+                  projectId={project.id}
                 />
               </div>
             )}
@@ -708,10 +752,20 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                     variant="default" 
                     className="w-full bg-gray-900 hover:bg-gray-800 text-white"
                     onClick={handleCheckDuplicates}
-                    disabled={checkingDuplicates}
+                    disabled={checkingDuplicates || duplicateLimitReached}
                   >
-                    {checkingDuplicates ? 'Checking...' : 'Check for Duplicates'}
+                    {duplicateLimitReached ? 'Limit Reached' : checkingDuplicates ? 'Checking...' : 'Check for Duplicates'}
                   </Button>
+                  {duplicateUsage && !duplicateUsage.isPro && (
+                    <p className="mt-2 text-xs text-orange-700 text-center">
+                      Used {Math.max(duplicateUsage.limit - duplicateUsage.remaining, 0)}/{duplicateUsage.limit} • {duplicateUsage.remaining} left this month
+                    </p>
+                  )}
+                  {duplicateLimitReached && (
+                    <p className="text-xs text-red-600 text-center mt-1">
+                      Upgrade to Pro for unlimited duplicate detection.
+                    </p>
+                  )}
                   <p className="text-xs text-gray-600 mt-3 text-center">
                     AI will analyze this post against all other posts in your project
                   </p>
@@ -750,11 +804,21 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
                     variant="default" 
                     className="w-full bg-gray-900 hover:bg-gray-800 text-white"
                     onClick={handleAnalyzePriority}
-                    disabled={analyzingPriority}
+                    disabled={analyzingPriority || priorityLimitReached}
                   >
                     <span className="mr-2">✨</span>
-                    {analyzingPriority ? 'Analyzing...' : 'Analyze Priority'}
+                    {priorityLimitReached ? 'Limit Reached' : analyzingPriority ? 'Analyzing...' : 'Analyze Priority'}
                   </Button>
+                  {priorityUsage && !priorityUsage.isPro && (
+                    <p className="mt-2 text-xs text-blue-700 text-center">
+                      Used {Math.max(priorityUsage.limit - priorityUsage.remaining, 0)}/{priorityUsage.limit} • {priorityUsage.remaining} left this month
+                    </p>
+                  )}
+                  {priorityLimitReached && (
+                    <p className="text-xs text-red-600 text-center mt-1">
+                      Upgrade to Pro for unlimited priority scoring.
+                    </p>
+                  )}
                   <p className="text-xs text-gray-600 mt-3 text-center">
                     AI will analyze urgency, impact, and engagement to score this post
                   </p>

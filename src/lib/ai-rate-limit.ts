@@ -101,7 +101,8 @@ export async function checkAIUsageLimit(
 
 export async function incrementAIUsage(
   projectId: string,
-  featureType: AIFeatureType
+  featureType: AIFeatureType,
+  increment = 1
 ): Promise<void> {
   const supabase = getSupabaseServerClient();
 
@@ -109,11 +110,14 @@ export async function incrementAIUsage(
     return;
   }
 
-  // Increment usage for all users (both free and pro)
-  await supabase.rpc('increment_ai_usage', {
-    p_project_id: projectId,
-    p_feature_type: featureType
-  });
+  const times = Number.isFinite(increment) && increment > 1 ? Math.floor(increment) : 1;
+
+  for (let i = 0; i < times; i += 1) {
+    await supabase.rpc('increment_ai_usage', {
+      p_project_id: projectId,
+      p_feature_type: featureType
+    });
+  }
 }
 
 export function getFeatureName(featureType: AIFeatureType): string {
@@ -132,4 +136,3 @@ export function getUpgradeMessage(featureType: AIFeatureType, limit: number): st
   const featureName = getFeatureName(featureType);
   return `You've reached your free tier limit of ${limit} ${featureName} uses this month. Upgrade to Pro for unlimited AI features!`;
 }
-

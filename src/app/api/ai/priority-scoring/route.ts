@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     // Check rate limit if projectId is provided
     if (projectId) {
-      const usageCheck = await checkAIUsageLimit(projectId, 'prioritization');
+      const usageCheck = await checkAIUsageLimit(projectId, 'priority_scoring');
 
       if (!usageCheck.allowed) {
         return NextResponse.json(
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Demo/unauthenticated user - use IP-based rate limiting
       const clientIP = getClientIP(request);
-      const demoCheck = checkDemoRateLimit(clientIP, 'prioritization');
+      const demoCheck = checkDemoRateLimit(clientIP, 'priority_scoring');
 
       if (!demoCheck.allowed) {
         return NextResponse.json(
@@ -67,10 +67,10 @@ export async function POST(request: NextRequest) {
       const scores = await batchScorePosts(batch);
 
       if (projectId) {
-        await incrementAIUsage(projectId, 'prioritization', batch.length);
+        await incrementAIUsage(projectId, 'priority_scoring', batch.length);
       } else {
         const clientIP = getClientIP(request);
-        incrementDemoUsage(clientIP, 'prioritization', batch.length);
+        incrementDemoUsage(clientIP, 'priority_scoring', batch.length);
         if (demoUsageInfo) {
           demoUsageInfo = {
             ...demoUsageInfo,
@@ -355,10 +355,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (resolvedProjectId) {
-      await incrementAIUsage(resolvedProjectId, 'prioritization');
+      await incrementAIUsage(resolvedProjectId, 'priority_scoring');
     } else {
       const clientIP = getClientIP(request);
-      incrementDemoUsage(clientIP, 'prioritization');
+      incrementDemoUsage(clientIP, 'priority_scoring');
       if (demoUsageInfo) {
         demoUsageInfo = {
           ...demoUsageInfo,

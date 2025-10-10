@@ -16,6 +16,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAIUsage } from '@/hooks/useAIUsage';
 
 interface PostIntelligence {
   sentiment: 'positive' | 'neutral' | 'negative' | 'mixed';
@@ -32,12 +33,15 @@ interface AIPostIntelligenceProps {
   title: string;
   description?: string;
   postType?: string;
+  projectId: string;
 }
 
-export default function AIPostIntelligence({ title, description, postType }: AIPostIntelligenceProps) {
+export default function AIPostIntelligence({ title, description, postType, projectId }: AIPostIntelligenceProps) {
   const [intelligence, setIntelligence] = useState<PostIntelligence | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const { usageInfo, refreshUsage, setUsageInfo } = useAIUsage(projectId, 'sentiment_analysis');
+  const isFreeLimitReached = Boolean(usageInfo && !usageInfo.isPro && usageInfo.remaining <= 0);
 
   const analyzePost = async () => {
     if (!title.trim()) {
@@ -47,6 +51,13 @@ export default function AIPostIntelligence({ title, description, postType }: AIP
 
     try {
       setIsAnalyzing(true);
+
+      const usage = await refreshUsage({ silent: true });
+      if (usage && !usage.allowed) {
+        toast.error('Free tier limit reached. Upgrade to Pro for unlimited analyses!');
+        setIsAnalyzing(false);
+        return;
+      }
       
       const response = await fetch('/api/ai/post-intelligence', {
         method: 'POST',
@@ -56,18 +67,30 @@ export default function AIPostIntelligence({ title, description, postType }: AIP
         body: JSON.stringify({
           title,
           description,
-          postType: postType || 'general'
+          postType: postType || 'general',
+          projectId
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to analyze post');
+        const errorPayload = await response.json().catch(() => null);
+        if (response.status === 429 && errorPayload) {
+          setUsageInfo({ ...errorPayload, allowed: false });
+          toast.error(
+            errorPayload.message ||
+              'Free tier limit reached. Upgrade to Pro for unlimited analyses!'
+          );
+          setIsAnalyzing(false);
+          return;
+        }
+        throw new Error(errorPayload?.error || 'Failed to analyze post');
       }
 
       const data = await response.json();
       setIntelligence(data.intelligence);
       setIsVisible(true);
       toast.success('Analysis complete!');
+      await refreshUsage({ silent: true });
 
     } catch (error) {
       console.error('Error analyzing post:', error);
@@ -121,7 +144,7 @@ export default function AIPostIntelligence({ title, description, postType }: AIP
       {!isVisible && (
         <Button
           onClick={analyzePost}
-          disabled={isAnalyzing || !title.trim()}
+          disabled={isAnalyzing || !title.trim() || isFreeLimitReached}
           variant="outline"
           size="sm"
           className="w-full border-purple-200 text-purple-600 hover:bg-purple-50"
@@ -131,6 +154,11 @@ export default function AIPostIntelligence({ title, description, postType }: AIP
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               Analyzing...
             </>
+          ) : isFreeLimitReached ? (
+            <>
+              <Brain className="h-4 w-4 mr-2" />
+              Limit Reached
+            </>
           ) : (
             <>
               <Brain className="h-4 w-4 mr-2" />
@@ -138,6 +166,16 @@ export default function AIPostIntelligence({ title, description, postType }: AIP
             </>
           )}
         </Button>
+      )}
+      {usageInfo && !usageInfo.isPro && (
+        <p className="mt-2 text-center text-xs text-purple-700">
+          Used {Math.max(usageInfo.limit - usageInfo.remaining, 0)}/{usageInfo.limit} • {usageInfo.remaining} left this month
+        </p>
+      )}
+      {isFreeLimitReached && (
+        <p className="mt-1 text-center text-xs text-red-600">
+          Upgrade to Pro for unlimited analyses.
+        </p>
       )}
 
       {/* Intelligence Display */}
@@ -262,4 +300,3 @@ export default function AIPostIntelligence({ title, description, postType }: AIP
     </div>
   );
 }
-

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import AIUpgradePrompt from './AIUpgradePrompt';
+import { useAIUsage } from '@/hooks/useAIUsage';
 
 interface AIAutoResponseProps {
   postId: string;
@@ -42,13 +43,11 @@ export default function AIAutoResponse({
   const [isEditing, setIsEditing] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
   const [adminName, setAdminName] = useState('');
-  const [usageInfo, setUsageInfo] = useState<{
-    allowed: boolean;
-    current: number;
-    limit: number;
-    remaining: number;
-    isPro: boolean;
-  } | null>(null);
+  const {
+    usageInfo,
+    refreshUsage,
+    setUsageInfo
+  } = useAIUsage(projectId, 'auto_response');
 
   // Don't auto-generate - let admin trigger manually
   // useEffect(() => {
@@ -58,18 +57,13 @@ export default function AIAutoResponse({
   const generateResponse = async () => {
     try {
       setIsGenerating(true);
-      
-      // Check rate limit first
-      const limitRes = await fetch(`/api/ai/check-limit?projectId=${projectId}&feature=auto_response`);
-      if (limitRes.ok) {
-        const limitData = await limitRes.json();
-        setUsageInfo(limitData);
-        
-        if (!limitData.allowed) {
-          toast.error('Free tier limit reached. Upgrade to Pro for unlimited AI features!');
-          setIsGenerating(false);
-          return;
-        }
+
+      // Refresh usage to get the latest counts and enforce limit
+      const limitData = await refreshUsage({ silent: true });
+      if (limitData && !limitData.allowed) {
+        toast.error('Free tier limit reached. Upgrade to Pro for unlimited AI features!');
+        setIsGenerating(false);
+        return;
       }
       
       const res = await fetch('/api/ai/auto-response', {
@@ -88,12 +82,23 @@ export default function AIAutoResponse({
       });
 
       if (!res.ok) {
-        throw new Error('Failed to generate response');
+        const errorPayload = await res.json().catch(() => null);
+        if (res.status === 429 && errorPayload) {
+          setUsageInfo({ ...errorPayload, allowed: false });
+          toast.error(
+            errorPayload.message ||
+              'Free tier limit reached. Upgrade to Pro for unlimited AI features!'
+          );
+          setIsGenerating(false);
+          return;
+        }
+        throw new Error(errorPayload?.error || 'Failed to generate response');
       }
 
       const data = await res.json();
       setResponse(data.response);
       setHasGenerated(true);
+      await refreshUsage({ silent: true });
 
     } catch (error) {
       console.error('Error generating response:', error);
@@ -215,6 +220,11 @@ export default function AIAutoResponse({
             <CardTitle className="text-base">AI Auto-Response</CardTitle>
             <Badge variant="outline" className="text-xs bg-white">Pro</Badge>
           </div>
+          {usageInfo && !usageInfo.isPro && (
+            <div className="text-xs text-purple-700 bg-white/70 border border-purple-200 rounded-full px-3 py-1">
+              Used {Math.max(usageInfo.limit - usageInfo.remaining, 0)}/{usageInfo.limit} • {usageInfo.remaining} left this month
+            </div>
+          )}
           <div className="flex items-center gap-2">
             {hasGenerated && !isEditing && (
               <Button
@@ -317,4 +327,3 @@ export default function AIAutoResponse({
     </>
   );
 }
-
