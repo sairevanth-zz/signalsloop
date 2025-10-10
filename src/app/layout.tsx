@@ -45,45 +45,6 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased touch-manipulation`}
       >
         {children}
-        <script src="https://www.signalsloop.com/embed/sk_5qfjcjroywm9kbplveuc.js"></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Suppress console errors for failed resource loading
-              window.addEventListener('error', function(e) {
-                if (e.target && (e.target.tagName === 'IMG' || e.target.tagName === 'LINK' || e.target.tagName === 'SCRIPT')) {
-                  e.preventDefault();
-                  return false;
-                }
-              }, true);
-
-              // Suppress unhandled promise rejections
-              window.addEventListener('unhandledrejection', function(e) {
-                if (e.reason && e.reason.message && (
-                  e.reason.message.includes('Failed to fetch') ||
-                  e.reason.message.includes('NetworkError') ||
-                  e.reason.message.includes('fetch')
-                )) {
-                  e.preventDefault();
-                  return false;
-                }
-              });
-
-              // Intercept console.error to filter Supabase 400 errors
-              (function() {
-                const originalError = console.error;
-                console.error = function(...args) {
-                  const msg = args.join(' ');
-                  // Suppress Supabase 400 errors for votes table
-                  if (msg.includes('400') && msg.includes('supabase') && msg.includes('votes')) {
-                    return;
-                  }
-                  originalError.apply(console, args);
-                };
-              })();
-            `
-          }}
-        />
       </body>
     </html>
   );
