@@ -1,0 +1,4 @@
+Title,Status,Votes,Last Updated,Summary
+"Dark mode for dashboard","Planned",128,"2024-01-12","Customers request better nighttime usability with dark theme."
+"Slack message actions","In Progress",94,"2024-01-08","Allow voting and linking posts directly from Slack threads."
+"Advanced analytics export","Under Review",61,"2024-01-03","Push SignalsLoop reports to Google Sheets via CSV export."
