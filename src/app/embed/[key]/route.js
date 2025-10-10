@@ -155,10 +155,21 @@ function generateWidgetScript(config) {
   return `
 (function() {
   'use strict';
+
+  const BLOCKED_HOST_PATTERNS = ['stripe.com'];
+  const hostname = window.location.hostname || '';
+  if (BLOCKED_HOST_PATTERNS.some(pattern => hostname === pattern || hostname.endsWith('.' + pattern))) {
+    if (window.console && typeof window.console.debug === 'function') {
+      console.debug('SignalsLoop widget disabled on host', hostname);
+    }
+    return;
+  }
   
   // Prevent multiple widget loads
   if (window.SignalsLoopWidget) {
-    console.warn('SignalsLoop widget already loaded');
+    if (window.console && typeof window.console.debug === 'function') {
+      console.debug('SignalsLoop widget already loaded');
+    }
     return;
   }
 
@@ -217,13 +228,15 @@ function generateWidgetScript(config) {
       iframe.style.setProperty('transform', position.transform, 'important');
     }
 
-    console.log('Widget iframe position:', {
-      top: iframe.style.top,
-      bottom: iframe.style.bottom,
-      left: iframe.style.left,
-      right: iframe.style.right,
-      position: CONFIG.position
-    });
+    if (window.console && typeof window.console.debug === 'function') {
+      console.debug('Widget iframe position:', {
+        top: iframe.style.top,
+        bottom: iframe.style.bottom,
+        left: iframe.style.left,
+        right: iframe.style.right,
+        position: CONFIG.position
+      });
+    }
 
     // Append iframe to body
     document.body.appendChild(iframe);
@@ -652,7 +665,9 @@ function generateWidgetScript(config) {
       version: '1.0.0'
     };
 
-    console.log('✅ SignalsLoop widget loaded for', CONFIG.projectName);
+    if (window.console && typeof window.console.debug === 'function') {
+      console.debug('SignalsLoop widget loaded for', CONFIG.projectName);
+    }
   }
 
   // Wait for DOM to be ready

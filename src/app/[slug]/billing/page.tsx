@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { BillingDashboard } from '@/components/BillingDashboard';
 import { toast } from 'sonner';
 import { useParams } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface Project {
   id: string;
@@ -28,21 +27,9 @@ export default function BillingPage() {
   const [stripeSettings, setStripeSettings] = useState<StripeSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [supabase, setSupabase] = useState<any>(null);
-
-  // Initialize Supabase client safely
-  useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
-      setSupabase(client);
-    }
-  }, []);
 
   const loadProjectAndSettings = useCallback(async () => {
+    const supabase = getSupabaseClient();
     if (!supabase || !projectSlug) {
       setError('Database connection not available or project slug missing. Please refresh the page.');
       setLoading(false);
@@ -67,7 +54,9 @@ export default function BillingPage() {
       setProject(projectData);
 
       // Stripe settings - using default configuration since stripe_settings table doesn't exist
-      console.log('⚠️ stripe_settings table not found, using default configuration');
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('stripe_settings table not found, using default configuration');
+      }
       setStripeSettings({ configured: true, payment_method: 'checkout_link', stripe_price_id: '' });
 
     } catch (err: unknown) {
@@ -78,13 +67,13 @@ export default function BillingPage() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, projectSlug]);
+  }, [projectSlug]);
 
   useEffect(() => {
-    if (supabase && projectSlug) {
+    if (projectSlug) {
       loadProjectAndSettings();
     }
-  }, [supabase, projectSlug, loadProjectAndSettings]);
+  }, [projectSlug, loadProjectAndSettings]);
 
   if (loading) {
     return (

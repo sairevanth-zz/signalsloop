@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { BillingDashboard } from '@/components/BillingDashboard';
 import GlobalBanner from '@/components/GlobalBanner';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface User {
   id: string;
@@ -26,21 +25,9 @@ export default function AccountBillingPage() {
   const [stripeSettings, setStripeSettings] = useState<StripeSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [supabase, setSupabase] = useState<any>(null);
-
-  // Initialize Supabase client safely
-  useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      const client = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
-      setSupabase(client);
-    }
-  }, []);
 
   const loadUserAndSettings = useCallback(async () => {
+    const supabase = getSupabaseClient();
     if (!supabase) {
       setError('Database connection not available or project slug missing. Please refresh the page.');
       setLoading(false);
@@ -64,7 +51,9 @@ export default function AccountBillingPage() {
       const accountProjectId = user.id; // Using user ID as account identifier
 
       // Stripe settings - using default configuration since stripe_settings table doesn't exist
-      console.log('⚠️ stripe_settings table not found, using default configuration');
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('stripe_settings table not found, using default configuration');
+      }
       setStripeSettings({ configured: true, payment_method: 'checkout_link', stripe_price_id: '' });
 
     } catch (err: unknown) {
@@ -75,13 +64,11 @@ export default function AccountBillingPage() {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, [router]);
 
   useEffect(() => {
-    if (supabase) {
-      loadUserAndSettings();
-    }
-  }, [supabase, loadUserAndSettings]);
+    loadUserAndSettings();
+  }, [loadUserAndSettings]);
 
   if (loading) {
     return (
