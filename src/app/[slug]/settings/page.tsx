@@ -94,6 +94,38 @@ export default function SettingsPage() {
   }, [supabase]);
 
   useEffect(() => {
+    if (!supabase) return;
+    if (authUser !== null) return;
+    if (!slackStatus && !discordStatus) return;
+
+    let cancelled = false;
+
+    const attemptSessionRefresh = async () => {
+      try {
+        const { data, error } = await supabase.auth.refreshSession();
+        if (cancelled) return;
+        if (error) {
+          console.error('Error refreshing session:', error);
+          return;
+        }
+        if (data?.session?.user) {
+          setAuthUser(data.session.user);
+        }
+      } catch (refreshError) {
+        if (!cancelled) {
+          console.error('Unexpected session refresh error:', refreshError);
+        }
+      }
+    };
+
+    attemptSessionRefresh();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, authUser, slackStatus, discordStatus]);
+
+  useEffect(() => {
     if (!supabase || authUser === undefined || !projectSlug) {
       return;
     }
