@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type PostgrestError } from '@supabase/supabase-js';
 import { triggerWebhooks } from '@/lib/webhooks';
 import { triggerSlackNotification } from '@/lib/slack';
 import { triggerDiscordNotification } from '@/lib/discord';
@@ -124,19 +124,57 @@ export async function POST(
     }
 
     // Insert new vote
-    const { error: insertError } = await supabase
+    let priorityColumnAvailable = true;
+
+    const { data: insertedVote, error: insertError } = await supabase
       .from('votes')
-      .insert({ 
-        post_id: postId, 
+      .insert({
+        post_id: postId,
         ip_address: normalizedIp,
         anonymous_id: anonymousId,
         priority: normalizedPriority,
-        created_at: new Date().toISOString()
-      });
+        created_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
 
     if (insertError) {
-      console.error('Error inserting vote:', insertError);
-      return NextResponse.json({ error: insertError.message || 'Failed to record vote' }, { status: 500 });
+      // If the database is missing the new priority column, fall back to a plain vote insert
+      if ((insertError as PostgrestError)?.code === '42703') {
+        console.warn(
+          'Votes table missing priority column, falling back to legacy structure. Please run latest database migration.'
+        );
+        priorityColumnAvailable = false;
+
+        const { data: legacyVote, error: legacyInsertError } = await supabase
+          .from('votes')
+          .insert({
+            post_id: postId,
+            ip_address: normalizedIp,
+            anonymous_id: anonymousId,
+            created_at: new Date().toISOString(),
+          })
+          .select('id')
+          .single();
+
+        if (legacyInsertError) {
+          console.error('Error inserting vote (legacy fallback):', legacyInsertError);
+          return NextResponse.json(
+            {
+              error:
+                legacyInsertError.message ||
+                'Failed to record vote (legacy fallback failed). Please run the latest database migrations.',
+            },
+            { status: 500 }
+          );
+        }
+
+      } else {
+        console.error('Error inserting vote:', insertError);
+        return NextResponse.json({ error: insertError.message || 'Failed to record vote' }, { status: 500 });
+      }
+    } else {
+      // Successfully inserted with priority column present
     }
 
     // Increment vote_count in posts table
@@ -148,10 +186,12 @@ export async function POST(
       return NextResponse.json({ error: updateError.message || 'Failed to update vote count' }, { status: 500 });
     }
 
-    try {
-      await supabase.rpc('update_post_priority_counts', { p_post_id: postId });
-    } catch (priorityError) {
-      console.error('Error updating priority counts:', priorityError);
+    if (priorityColumnAvailable) {
+      try {
+        await supabase.rpc('update_post_priority_counts', { p_post_id: postId });
+      } catch (priorityError) {
+        console.error('Error updating priority counts:', priorityError);
+      }
     }
 
     const { count: totalVotes, error: countError } = await supabase
@@ -177,14 +217,14 @@ export async function POST(
       const webhookPayload = {
         vote: {
           post_id: postId,
-          priority: normalizedPriority,
-          vote_count: safeTotalVotes,
-          created_at: new Date().toISOString(),
-        },
-        post: {
-          id: post.id,
-          title: post.title,
-        },
+        priority: normalizedPriority,
+        vote_count: safeTotalVotes,
+        created_at: new Date().toISOString(),
+      },
+      post: {
+        id: post.id,
+        title: post.title,
+      },
         project: {
           id: post.project_id,
         },
