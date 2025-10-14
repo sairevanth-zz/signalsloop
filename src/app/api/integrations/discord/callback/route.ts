@@ -29,6 +29,24 @@ function buildRedirectUrl(baseUrl: string, path: string) {
   return `${trimmedBase}/${path}`;
 }
 
+function resolveRedirectUrl(
+  appBaseUrl: string,
+  target: string | null,
+  fallbackPath: string,
+  extraParams: Record<string, string>
+) {
+  const redirectTarget = (target && target.trim().length > 0) ? target : fallbackPath;
+  const url = redirectTarget.startsWith('http://') || redirectTarget.startsWith('https://')
+    ? new URL(redirectTarget)
+    : new URL(redirectTarget.startsWith('/') ? redirectTarget : `/${redirectTarget}`, appBaseUrl);
+
+  Object.entries(extraParams).forEach(([key, value]) => {
+    url.searchParams.set(key, value);
+  });
+
+  return url.toString();
+}
+
 export async function GET(request: NextRequest) {
   const { clientId, clientSecret, redirectUri, appBaseUrl } = getDiscordEnv();
 
@@ -83,7 +101,7 @@ export async function GET(request: NextRequest) {
     const defaultRedirectPath = project?.slug
       ? `/${project.slug}/settings?tab=integrations`
       : '/app';
-    const baseRedirectPath = redirectTo || defaultRedirectPath;
+    const baseRedirectPath = redirectTo || null;
 
     if (error) {
       await supabase
@@ -91,10 +109,9 @@ export async function GET(request: NextRequest) {
         .delete()
         .eq('state', stateValue);
 
-      const redirectUrl = buildRedirectUrl(
-        appBaseUrl,
-        `${baseRedirectPath}${baseRedirectPath.includes('?') ? '&' : '?'}discord=error`
-      );
+      const redirectUrl = resolveRedirectUrl(appBaseUrl, baseRedirectPath, defaultRedirectPath, {
+        discord: 'error',
+      });
 
       return NextResponse.redirect(redirectUrl);
     }
@@ -126,10 +143,9 @@ export async function GET(request: NextRequest) {
         .delete()
         .eq('state', stateValue);
 
-      const redirectUrl = buildRedirectUrl(
-        appBaseUrl,
-        `${baseRedirectPath}${baseRedirectPath.includes('?') ? '&' : '?'}discord=error`
-      );
+      const redirectUrl = resolveRedirectUrl(appBaseUrl, baseRedirectPath, defaultRedirectPath, {
+        discord: 'error',
+      });
 
       return NextResponse.redirect(redirectUrl);
     }
@@ -170,10 +186,9 @@ export async function GET(request: NextRequest) {
         .delete()
         .eq('state', stateValue);
 
-      const redirectUrl = buildRedirectUrl(
-        appBaseUrl,
-        `${baseRedirectPath}${baseRedirectPath.includes('?') ? '&' : '?'}discord=error`
-      );
+      const redirectUrl = resolveRedirectUrl(appBaseUrl, baseRedirectPath, defaultRedirectPath, {
+        discord: 'error',
+      });
 
       return NextResponse.redirect(redirectUrl);
     }
@@ -183,12 +198,11 @@ export async function GET(request: NextRequest) {
       .delete()
       .eq('state', stateValue);
 
-    const successUrl = buildRedirectUrl(
-      appBaseUrl,
-      `${baseRedirectPath}${baseRedirectPath.includes('?') ? '&' : '?'}discord=connected`
-    );
+    const finalUrl = resolveRedirectUrl(appBaseUrl, baseRedirectPath, defaultRedirectPath, {
+      discord: 'connected',
+    });
 
-    return NextResponse.redirect(successUrl);
+    return NextResponse.redirect(finalUrl);
   } catch (callbackError) {
     console.error('Discord callback error:', callbackError);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

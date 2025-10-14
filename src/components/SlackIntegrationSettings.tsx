@@ -126,6 +126,9 @@ export function SlackIntegrationSettings({
         return;
       }
 
+      const origin =
+        typeof window !== 'undefined' ? window.location.origin : undefined;
+
       const response = await fetch('/api/integrations/slack/authorize', {
         method: 'POST',
         headers: {
@@ -134,7 +137,7 @@ export function SlackIntegrationSettings({
         },
         body: JSON.stringify({
           projectId,
-          redirectTo: redirectPath,
+          redirectTo: origin ? `${origin}${redirectPath}` : redirectPath,
         }),
       });
 

@@ -15,18 +15,22 @@ function getSlackEnv() {
   };
 }
 
-function buildRedirectUrl(baseUrl: string, path: string) {
-  const trimmedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+function resolveRedirectUrl(
+  appBaseUrl: string,
+  target: string | null,
+  fallbackPath: string,
+  extraParams: Record<string, string>
+) {
+  const redirectTarget = (target && target.trim().length > 0) ? target : fallbackPath;
+  const url = redirectTarget.startsWith('http://') || redirectTarget.startsWith('https://')
+    ? new URL(redirectTarget)
+    : new URL(redirectTarget.startsWith('/') ? redirectTarget : `/${redirectTarget}`, appBaseUrl);
 
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
-  }
+  Object.entries(extraParams).forEach(([key, value]) => {
+    url.searchParams.set(key, value);
+  });
 
-  if (path.startsWith('/')) {
-    return `${trimmedBase}${path}`;
-  }
-
-  return `${trimmedBase}/${path}`;
+  return url.toString();
 }
 
 export async function GET(request: NextRequest) {
@@ -75,7 +79,7 @@ export async function GET(request: NextRequest) {
     const defaultRedirectPath = project?.slug
       ? `/${project.slug}/settings?tab=integrations`
       : '/app';
-    const baseRedirectPath = redirectTo || defaultRedirectPath;
+    const baseRedirectPath = redirectTo || null;
 
     if (error) {
       await supabase
@@ -83,10 +87,9 @@ export async function GET(request: NextRequest) {
         .delete()
         .eq('state', stateValue);
 
-      const redirectUrl = buildRedirectUrl(
-        appBaseUrl,
-        `${baseRedirectPath}${baseRedirectPath.includes('?') ? '&' : '?'}slack=error`
-      );
+      const redirectUrl = resolveRedirectUrl(appBaseUrl, baseRedirectPath, defaultRedirectPath, {
+        slack: 'error',
+      });
 
       return NextResponse.redirect(redirectUrl);
     }
@@ -112,10 +115,10 @@ export async function GET(request: NextRequest) {
 
     if (!tokenJson.ok) {
       console.error('Slack OAuth error:', tokenJson);
-      const redirectUrl = buildRedirectUrl(
-        appBaseUrl,
-        `${baseRedirectPath}${baseRedirectPath.includes('?') ? '&' : '?'}slack=error`
-      );
+
+      const redirectUrl = resolveRedirectUrl(appBaseUrl, baseRedirectPath, defaultRedirectPath, {
+        slack: 'error',
+      });
 
       await supabase
         .from('slack_integration_states')
@@ -127,10 +130,10 @@ export async function GET(request: NextRequest) {
 
     if (!tokenJson.incoming_webhook?.url) {
       console.error('Slack OAuth missing incoming_webhook information');
-      const redirectUrl = buildRedirectUrl(
-        appBaseUrl,
-        `${baseRedirectPath}${baseRedirectPath.includes('?') ? '&' : '?'}slack=error`
-      );
+
+      const redirectUrl = resolveRedirectUrl(appBaseUrl, baseRedirectPath, defaultRedirectPath, {
+        slack: 'error',
+      });
 
       await supabase
         .from('slack_integration_states')
@@ -163,10 +166,9 @@ export async function GET(request: NextRequest) {
       .delete()
       .eq('state', stateValue);
 
-    const successUrl = buildRedirectUrl(
-      appBaseUrl,
-      `${baseRedirectPath}${baseRedirectPath.includes('?') ? '&' : '?'}slack=connected`
-    );
+    const successUrl = resolveRedirectUrl(appBaseUrl, baseRedirectPath, defaultRedirectPath, {
+      slack: 'connected',
+    });
 
     return NextResponse.redirect(successUrl);
   } catch (callbackError) {

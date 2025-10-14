@@ -143,6 +143,9 @@ export function DiscordIntegrationSettings({
         console.warn('Unable to persist Supabase session for Discord reconnect:', storageError);
       }
 
+      const origin =
+        typeof window !== 'undefined' ? window.location.origin : undefined;
+
       const response = await fetch('/api/integrations/discord/authorize', {
         method: 'POST',
         headers: {
@@ -151,7 +154,7 @@ export function DiscordIntegrationSettings({
         },
         body: JSON.stringify({
           projectId,
-          redirectTo: redirectPath,
+          redirectTo: origin ? `${origin}${redirectPath}` : redirectPath,
         }),
       });
 
