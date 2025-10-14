@@ -118,12 +118,32 @@ $$;
 ALTER TABLE public.votes
   ADD COLUMN IF NOT EXISTS voter_hash VARCHAR(255),
   ADD COLUMN IF NOT EXISTS voter_email TEXT,
+  ADD COLUMN IF NOT EXISTS anonymous_id TEXT,
   ADD COLUMN IF NOT EXISTS priority VARCHAR(50)
     CHECK (priority IN ('must_have', 'important', 'nice_to_have'))
     DEFAULT 'important';
 
+UPDATE public.votes
+SET priority = COALESCE(priority, 'important')
+WHERE priority IS NULL;
+
 CREATE INDEX IF NOT EXISTS idx_votes_voter_hash ON public.votes(voter_hash);
 CREATE INDEX IF NOT EXISTS idx_votes_post_voter ON public.votes(post_id, voter_hash);
+CREATE INDEX IF NOT EXISTS idx_votes_anonymous_id ON public.votes(anonymous_id);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_indexes
+    WHERE schemaname = 'public'
+      AND tablename = 'votes'
+      AND indexname = 'idx_votes_post_anonymous_unique'
+  ) THEN
+    EXECUTE 'CREATE UNIQUE INDEX idx_votes_post_anonymous_unique ON public.votes(post_id, anonymous_id) WHERE anonymous_id IS NOT NULL';
+  END IF;
+END;
+$$;
 
 ------------------------------------------------------------
 -- Add priority columns to posts
@@ -191,8 +211,8 @@ BEGIN
       0
     )
   INTO v_must_have, v_important, v_nice_to_have
-  FROM vote_metadata vm
-  JOIN votes v ON vm.vote_id = v.id
+  FROM votes v
+  LEFT JOIN vote_metadata vm ON vm.vote_id = v.id
   WHERE v.post_id = p_post_id;
   
   v_total_score := calculate_priority_score(v_must_have, v_important, v_nice_to_have);
