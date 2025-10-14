@@ -4,13 +4,13 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ThumbsUp, Loader2, CheckCircle } from 'lucide-react';
 
 interface VoteButtonProps {
@@ -73,9 +73,8 @@ export function VoteButton({
   const [voteCount, setVoteCount] = useState(initialVoteCount);
   const [userVoted, setUserVoted] = useState(initialUserVoted);
   const [loading, setLoading] = useState(false);
-  const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
   const [selectedPriority, setSelectedPriority] = useState<VotePriority>('important');
-  const [pendingPriority, setPendingPriority] = useState<VotePriority>('important');
+  const [priorityMenuOpen, setPriorityMenuOpen] = useState(false);
 
   useEffect(() => {
     setVoteCount(initialVoteCount);
@@ -90,7 +89,6 @@ export function VoteButton({
     const stored = window.localStorage.getItem(PRIORITY_STORAGE_KEY);
     if (isValidPriority(stored)) {
       setSelectedPriority(stored);
-      setPendingPriority(stored);
     }
   }, []);
 
@@ -143,7 +141,7 @@ export function VoteButton({
       onShowNotification?.('Something went wrong', 'error');
     } finally {
       setLoading(false);
-      setPriorityDialogOpen(false);
+      setPriorityMenuOpen(false);
     }
   };
 
@@ -177,23 +175,22 @@ export function VoteButton({
       onShowNotification?.('Failed to remove vote', 'error');
     } finally {
       setLoading(false);
+      setPriorityMenuOpen(false);
     }
   };
 
-  const handleVote = async (event: React.MouseEvent) => {
-    // Prevent event bubbling to parent elements (like card onClick)
+  const handleTriggerClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
-    
+
     if (loading) {
       return;
     }
 
     if (userVoted) {
-      await removeVote();
+      void removeVote();
     } else {
-      setPendingPriority(selectedPriority);
-      setPriorityDialogOpen(true);
+      setPriorityMenuOpen((open) => !open);
     }
   };
 
@@ -220,107 +217,110 @@ export function VoteButton({
     ? PRIORITY_OPTIONS.find((option) => option.value === selectedPriority)
     : null;
 
-  const renderPriorityDialog = () => (
-    <Dialog
-      open={priorityDialogOpen}
+  const menuItems = PRIORITY_OPTIONS.map((option) => (
+    <DropdownMenuItem
+      key={option.value}
+      className="px-3 py-2"
+      onSelect={(event) => {
+        event.preventDefault();
+        submitVote(option.value);
+      }}
+    >
+      <div className="flex items-start gap-3">
+        <span className="text-lg">{option.indicator}</span>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-sm text-gray-900">
+              {option.title}
+            </span>
+            {selectedPriority === option.value && !loading && (
+              <CheckCircle className="w-3 h-3 text-blue-600" />
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">{option.description}</p>
+        </div>
+      </div>
+    </DropdownMenuItem>
+  ));
+
+  const VoteTriggerButton = (
+    <Button
+      variant={userVoted ? 'default' : variant === 'compact' ? 'outline' : 'ghost'}
+      size={variant === 'compact' ? 'sm' : 'sm'}
+      onClick={handleTriggerClick}
+      disabled={loading}
+      className={
+        variant === 'compact'
+          ? `flex items-center gap-1 ${
+              userVoted
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'text-gray-600 border-gray-300 hover:border-blue-600 hover:text-blue-600'
+            } ${sizeClasses[size].button}`
+          : `flex flex-col h-auto py-2 px-3 ${
+              userVoted
+                ? 'text-blue-600 bg-blue-50'
+                : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
+            }`
+      }
+    >
+      {loading ? (
+        <Loader2
+          className={`${sizeClasses[size].icon} ${
+            variant === 'compact' ? '' : 'mb-1'
+          } animate-spin`}
+        />
+      ) : (
+        <ThumbsUp
+          className={`${sizeClasses[size].icon} ${
+            variant === 'compact' ? '' : 'mb-1'
+          } ${userVoted ? 'fill-current' : ''}`}
+        />
+      )}
+      <span
+        className={`font-medium ${
+          variant === 'compact' ? sizeClasses[size].text : sizeClasses[size].text
+        }`}
+      >
+        {voteCount}
+      </span>
+    </Button>
+  );
+
+  const renderPriorityMenu = (children: React.ReactNode) => (
+    <DropdownMenu
+      open={priorityMenuOpen}
       onOpenChange={(open) => {
         if (!loading) {
-          setPriorityDialogOpen(open);
+          setPriorityMenuOpen(open);
         }
       }}
     >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>How important is this request?</DialogTitle>
-          <DialogDescription>
-            Sharing the priority helps the product team understand the urgency
-            behind your vote.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-2">
-          {PRIORITY_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setPendingPriority(option.value)}
-              className={`w-full text-left rounded-lg border-2 bg-white p-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
-                pendingPriority === option.value
-                  ? option.accentClass
-                  : 'border-gray-200 hover:border-blue-200'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-sm flex items-center gap-2">
-                  <span>{option.indicator}</span>
-                  {option.title}
-                </span>
-                {pendingPriority === option.value && (
-                  <CheckCircle className="w-4 h-4" />
-                )}
-              </div>
-              <p className="text-xs mt-2 opacity-90">{option.description}</p>
-            </button>
-          ))}
-        </div>
-
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setPriorityDialogOpen(false)}
-            disabled={loading}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={() => submitVote(pendingPriority)}
-            disabled={loading}
-            className="min-w-[120px]"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              'Submit Vote'
-            )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="center"
+        side="top"
+        className="w-72 space-y-1"
+        forceMount
+      >
+        <DropdownMenuLabel className="font-semibold text-gray-900">
+          How important is this request?
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {menuItems}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 
   if (variant === 'compact') {
     return (
       <>
-        <Button
-          variant={userVoted ? 'default' : 'outline'}
-          size="sm"
-          onClick={handleVote}
-          disabled={loading}
-          className={`flex items-center gap-1 ${
-            userVoted
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'text-gray-600 border-gray-300 hover:border-blue-600 hover:text-blue-600'
-          } ${sizeClasses[size].button}`}
-        >
-          {loading ? (
-            <Loader2 className={`${sizeClasses[size].icon} animate-spin`} />
-          ) : (
-            <ThumbsUp
-              className={`${sizeClasses[size].icon} ${
-                userVoted ? 'fill-current' : ''
-              }`}
-            />
-          )}
-          <span className={`font-medium ${sizeClasses[size].text}`}>
-            {voteCount}
-          </span>
-        </Button>
-        {renderPriorityDialog()}
+        {userVoted ? VoteTriggerButton : renderPriorityMenu(VoteTriggerButton)}
+        {userVoted && priorityBadge && (
+          <div className="text-xs mt-1 flex items-center gap-1 text-blue-600">
+            <CheckCircle className="w-3 h-3" />
+            <span>{priorityBadge.title}</span>
+          </div>
+        )}
       </>
     );
   }
@@ -328,30 +328,7 @@ export function VoteButton({
   // Default vertical layout
   return (
     <div className="flex flex-col items-center">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleVote}
-        disabled={loading}
-        className={`flex flex-col h-auto py-2 px-3 ${
-          userVoted
-            ? 'text-blue-600 bg-blue-50'
-            : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
-        }`}
-      >
-        {loading ? (
-          <Loader2 className={`${sizeClasses[size].icon} mb-1 animate-spin`} />
-        ) : (
-          <ThumbsUp
-            className={`${sizeClasses[size].icon} mb-1 ${
-              userVoted ? 'fill-current' : ''
-            }`}
-          />
-        )}
-        <span className={`font-medium ${sizeClasses[size].text}`}>
-          {voteCount}
-        </span>
-      </Button>
+      {userVoted ? VoteTriggerButton : renderPriorityMenu(VoteTriggerButton)}
 
       {userVoted && (
         <div className="text-xs mt-1 flex items-center gap-1 text-blue-600">
@@ -361,8 +338,6 @@ export function VoteButton({
           </span>
         </div>
       )}
-
-      {renderPriorityDialog()}
     </div>
   );
 }
