@@ -39,10 +39,26 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      participants: data || []
-    });
+    const participants = Array.isArray(data)
+      ? data.map((participant) => {
+          const rawCount =
+            (participant as { participation_count?: number | string | null }).participation_count ??
+            0;
+          const numericCount = Number(rawCount);
+
+          return {
+            ...participant,
+            participation_count: Number.isNaN(numericCount) ? 0 : numericCount,
+          };
+        })
+      : [];
+
+    return NextResponse.json(
+      {
+        success: true,
+        participants,
+      }
+    );
 
   } catch (error) {
     console.error('Error in participants API:', error);

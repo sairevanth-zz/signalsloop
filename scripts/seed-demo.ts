@@ -18,19 +18,28 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// Demo data
-const demoProject = {
-  id: '00000000-0000-0000-0000-000000000001',
-  owner_id: '00000000-0000-0000-0000-000000000001', 
+const DEMO_OWNER_EMAIL = 'demo-owner@example.com';
+const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000001';
+const DEMO_BOARD_ID = '00000000-0000-0000-0000-000000000001';
+
+const buildDemoProject = (ownerId: string) => ({
+  id: DEMO_PROJECT_ID,
+  owner_id: ownerId,
   name: 'SignalsLoop Demo',
   slug: 'demo',
   plan: 'free',
   created_at: new Date().toISOString()
-};
+});
+
+const buildDemoMember = (ownerId: string) => ({
+  project_id: DEMO_PROJECT_ID,
+  user_id: ownerId,
+  role: 'owner'
+});
 
 const demoBoard = {
-  id: '00000000-0000-0000-0000-000000000001',
-  project_id: demoProject.id,
+  id: DEMO_BOARD_ID,
+  project_id: DEMO_PROJECT_ID,
   name: 'General Feedback',
   description: 'Share your feedback, feature requests, and ideas for our product.'
 };
@@ -38,7 +47,7 @@ const demoBoard = {
 const demoPosts = [
   {
     id: '00000000-0000-0000-0000-000000000001',
-    board_id: demoBoard.id,
+    board_id: DEMO_BOARD_ID,
     title: 'Add dark mode theme',
     description: 'Would love to have a dark mode option for better usability during nighttime coding sessions. This would be great for reducing eye strain.',
     status: 'planned',
@@ -47,7 +56,7 @@ const demoPosts = [
   },
   {
     id: '00000000-0000-0000-0000-000000000002', 
-    board_id: demoBoard.id,
+    board_id: DEMO_BOARD_ID,
     title: 'API rate limiting issues',
     description: 'Experiencing occasional 429 errors when making rapid API calls. Could we increase the rate limits for paid plans?',
     status: 'in_progress',
@@ -56,7 +65,7 @@ const demoPosts = [
   },
   {
     id: '00000000-0000-0000-0000-000000000003',
-    board_id: demoBoard.id, 
+    board_id: DEMO_BOARD_ID, 
     title: 'Slack integration for notifications',
     description: 'Integration with Slack to get notified when new feedback is submitted or status changes occur.',
     status: 'open',
@@ -65,7 +74,7 @@ const demoPosts = [
   },
   {
     id: '00000000-0000-0000-0000-000000000004',
-    board_id: demoBoard.id,
+    board_id: DEMO_BOARD_ID,
     title: 'Keyboard shortcuts for power users', 
     description: 'Add keyboard shortcuts like "C" to create new post, "R" to refresh, etc. This would speed up the workflow significantly.',
     status: 'open',
@@ -74,7 +83,7 @@ const demoPosts = [
   },
   {
     id: '00000000-0000-0000-0000-000000000005',
-    board_id: demoBoard.id,
+    board_id: DEMO_BOARD_ID,
     title: 'Export feedback to CSV',
     description: 'Ability to export all feedback data to CSV format for analysis and reporting purposes.',
     status: 'done',
@@ -83,7 +92,7 @@ const demoPosts = [
   },
   {
     id: '00000000-0000-0000-0000-000000000006',
-    board_id: demoBoard.id,
+    board_id: DEMO_BOARD_ID,
     title: 'Mobile app for iOS and Android',
     description: 'Native mobile apps would be amazing for on-the-go feedback management.',
     status: 'declined', 
@@ -92,7 +101,7 @@ const demoPosts = [
   },
   {
     id: '00000000-0000-0000-0000-000000000007',
-    board_id: demoBoard.id,
+    board_id: DEMO_BOARD_ID,
     title: 'Better search and filtering',
     description: 'More advanced search with filters by date, status, author, and tags. Current search is too basic.',
     status: 'in_progress',
@@ -101,7 +110,7 @@ const demoPosts = [
   },
   {
     id: '00000000-0000-0000-0000-000000000008',
-    board_id: demoBoard.id,
+    board_id: DEMO_BOARD_ID,
     title: 'Email digest for team members',
     description: 'Weekly email digest with summary of new feedback, trending requests, and status updates.',
     status: 'planned',
@@ -110,7 +119,7 @@ const demoPosts = [
   },
   {
     id: '00000000-0000-0000-0000-000000000009',
-    board_id: demoBoard.id,
+    board_id: DEMO_BOARD_ID,
     title: 'Custom webhook endpoints',
     description: 'Allow custom webhook URLs for integration with existing tools and workflows.',
     status: 'open',
@@ -119,7 +128,7 @@ const demoPosts = [
   },
   {
     id: '00000000-0000-0000-0000-000000000010',
-    board_id: demoBoard.id,
+    board_id: DEMO_BOARD_ID,
     title: 'Widget customization options',
     description: 'More customization options for the feedback widget - colors, position, text, and styling to match brand.',
     status: 'done',
@@ -179,7 +188,7 @@ const demoComments = [
 const demoChangelog = [
   {
     id: '00000000-0000-0000-0000-000000000001',
-    project_id: demoProject.id,
+    project_id: DEMO_PROJECT_ID,
     title: 'CSV Export Feature Released',
     description: 'You can now export all your feedback data to CSV format for analysis. Find the export button in your admin dashboard.',
     type: 'feature',
@@ -187,7 +196,7 @@ const demoChangelog = [
   },
   {
     id: '00000000-0000-0000-0000-000000000002', 
-    project_id: demoProject.id,
+    project_id: DEMO_PROJECT_ID,
     title: 'Improved Widget Customization',
     description: 'Enhanced the feedback widget with more color options, position settings, and custom text. Check out the new customization panel in settings.',
     type: 'improvement',
@@ -195,7 +204,7 @@ const demoChangelog = [
   },
   {
     id: '00000000-0000-0000-0000-000000000003',
-    project_id: demoProject.id,
+    project_id: DEMO_PROJECT_ID,
     title: 'Performance Improvements',
     description: 'Faster page loading, better mobile experience, and improved search functionality. Your feedback boards should feel much snappier now!',
     type: 'improvement',
@@ -203,9 +212,98 @@ const demoChangelog = [
   }
 ];
 
+async function ensureDemoOwner(): Promise<string> {
+  const { data: existingPublicUser, error: publicUserError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', DEMO_OWNER_EMAIL)
+    .maybeSingle();
+
+  const usersTableExists = !publicUserError || !['PGRST205'].includes(publicUserError.code ?? '');
+
+  if (publicUserError && !['PGRST116', 'PGRST205'].includes(publicUserError.code ?? '')) {
+    throw publicUserError;
+  }
+
+  if (usersTableExists && existingPublicUser?.id) {
+    return existingPublicUser.id;
+  }
+
+  const { data: listData, error: listError } = await supabase.auth.admin.listUsers({ page: 1, perPage: 200 });
+  if (listError) {
+    throw listError;
+  }
+
+  const existing = listData?.users?.find((user) => user.email?.toLowerCase() === DEMO_OWNER_EMAIL);
+  if (existing?.id) {
+    if (usersTableExists) {
+      const { error } = await supabase
+        .from('users')
+        .upsert(
+          {
+            id: existing.id,
+            email: DEMO_OWNER_EMAIL,
+            full_name: 'Demo Owner',
+            provider: 'email'
+          },
+          { onConflict: 'id' }
+        );
+
+      if (error) {
+        console.warn('⚠️ Failed to upsert users table for demo owner:', error);
+      }
+    }
+
+    return existing.id;
+  }
+
+  const { data: created, error: createError } = await supabase.auth.admin.createUser({
+    email: DEMO_OWNER_EMAIL,
+    password: 'password123',
+    email_confirm: true,
+    user_metadata: {
+      seed_demo: true,
+      full_name: 'Demo Owner'
+    }
+  });
+
+  if (createError) {
+    throw createError;
+  }
+
+  const ownerId = created?.user?.id;
+  if (!ownerId) {
+    throw new Error('Failed to create demo owner user');
+  }
+
+  if (usersTableExists) {
+    const { error } = await supabase
+      .from('users')
+      .upsert(
+        {
+          id: ownerId,
+          email: DEMO_OWNER_EMAIL,
+          full_name: 'Demo Owner',
+          provider: 'email'
+        },
+        { onConflict: 'id' }
+      );
+
+    if (error) {
+      console.warn('⚠️ Failed to upsert users table for demo owner:', error);
+    }
+  }
+
+  return ownerId;
+}
+
 export async function seedDemo() {
   try {
     console.log('🌱 Seeding demo data...');
+
+    const ownerId = await ensureDemoOwner();
+    const demoProject = buildDemoProject(ownerId);
+    const demoMember = buildDemoMember(ownerId);
 
     // Insert demo project
     const { error: projectError } = await supabase
@@ -224,6 +322,16 @@ export async function seedDemo() {
       
     if (boardError) {
       console.error('Error creating demo board:', boardError);
+      return;
+    }
+
+    // Ensure owner membership entry exists
+    const { error: memberError } = await supabase
+      .from('members')
+      .upsert([demoMember], { onConflict: 'project_id,user_id' });
+
+    if (memberError) {
+      console.error('Error creating demo member:', memberError);
       return;
     }
 
@@ -288,7 +396,5 @@ export async function seedDemo() {
   }
 }
 
-// Run this if called directly
-if (require.main === module) {
-  seedDemo().then(() => process.exit(0));
-}
+// Execute when run directly
+seedDemo().finally(() => process.exit(0));

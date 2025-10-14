@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
 
     // Update regular vote count
     try {
-      await supabase.rpc('increment_vote_count', { post_id: postId });
+      await supabase.rpc('increment_vote_count', { post_id_param: postId });
     } catch (error) {
       console.error('Error incrementing vote count:', error);
     }

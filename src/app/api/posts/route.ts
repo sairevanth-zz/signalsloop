@@ -4,6 +4,7 @@ import { categorizeFeedback } from '@/lib/ai-categorization';
 import { sendPostConfirmationEmail } from '@/lib/email';
 import { triggerWebhooks } from '@/lib/webhooks';
 import { triggerSlackNotification } from '@/lib/slack';
+import { triggerDiscordNotification } from '@/lib/discord';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -266,6 +267,12 @@ export async function POST(request: NextRequest) {
     triggerSlackNotification(project_id, 'post.created', webhookPayload).catch(
       (slackError) => {
         console.error('Failed to notify Slack:', slackError);
+      }
+    );
+
+    triggerDiscordNotification(project_id, 'post.created', webhookPayload).catch(
+      (discordError) => {
+        console.error('Failed to notify Discord:', discordError);
       }
     );
 

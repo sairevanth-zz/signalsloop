@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { sendStatusChangeEmail } from '@/lib/email';
 import { triggerWebhooks } from '@/lib/webhooks';
 import { triggerSlackNotification } from '@/lib/slack';
+import { triggerDiscordNotification } from '@/lib/discord';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -110,6 +111,14 @@ export async function PATCH(request: NextRequest) {
         webhookPayload
       ).catch((slackError) => {
         console.error('Failed to notify Slack:', slackError);
+      });
+
+      triggerDiscordNotification(
+        projectId,
+        'post.status_changed',
+        webhookPayload
+      ).catch((discordError) => {
+        console.error('Failed to notify Discord:', discordError);
       });
     }
 

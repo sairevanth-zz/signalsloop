@@ -3,6 +3,7 @@ import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { sendCommentEmail } from '@/lib/email';
 import { triggerWebhooks } from '@/lib/webhooks';
 import { triggerSlackNotification } from '@/lib/slack';
+import { triggerDiscordNotification } from '@/lib/discord';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -152,6 +153,14 @@ export async function POST(
       webhookPayload
     ).catch((slackError) => {
       console.error('Failed to notify Slack:', slackError);
+    });
+
+    triggerDiscordNotification(
+      post.project_id,
+      'comment.created',
+      webhookPayload
+    ).catch((discordError) => {
+      console.error('Failed to notify Discord:', discordError);
     });
 
     return NextResponse.json({ success: true, comment }, { status: 201 });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { triggerWebhooks } from '@/lib/webhooks';
 import { triggerSlackNotification } from '@/lib/slack';
+import { triggerDiscordNotification } from '@/lib/discord';
 
 const PRIORITY_VALUES = ['must_have', 'important', 'nice_to_have'] as const;
 type VotePriority = typeof PRIORITY_VALUES[number];
@@ -24,6 +25,29 @@ function getClientIp(request: NextRequest): string {
     return xForwardedFor.split(',')[0].trim();
   }
   return request.ip || 'unknown';
+}
+
+function sanitizeIp(value: string | null | undefined): string | null {
+  if (!value || value === 'unknown') {
+    return null;
+  }
+
+  let ip = value.trim();
+
+  if (ip.startsWith('::ffff:')) {
+    ip = ip.slice(7);
+  }
+
+  if (ip === '::1') {
+    return '127.0.0.1';
+  }
+
+  const percentIndex = ip.indexOf('%');
+  if (percentIndex !== -1) {
+    ip = ip.slice(0, percentIndex);
+  }
+
+  return ip.length > 0 ? ip : null;
 }
 
 // Helper to get or create anonymous user ID from cookies
@@ -58,11 +82,8 @@ export async function POST(
     const resolvedParams = await params; // Await params for Next.js 15
     const postId = resolvedParams.id;
     const rawIp = getClientIp(request);
+    const normalizedIp = sanitizeIp(rawIp);
     const { id: anonymousId } = getAnonymousIdentity(request);
-    const ipAddressKey =
-      rawIp && rawIp !== 'unknown'
-        ? `${rawIp}:${anonymousId}`
-        : `anon-${anonymousId}`;
     let requestedPriority: VotePriority | undefined;
 
     try {
@@ -75,7 +96,7 @@ export async function POST(
           requestedPriority = lower;
         }
       }
-    } catch (_error) {
+    } catch {
       // No body provided – fall back to default priority
     }
 
@@ -107,7 +128,7 @@ export async function POST(
       .from('votes')
       .insert({ 
         post_id: postId, 
-        ip_address: ipAddressKey,
+        ip_address: normalizedIp,
         anonymous_id: anonymousId,
         priority: normalizedPriority,
         created_at: new Date().toISOString()
@@ -184,6 +205,14 @@ export async function POST(
       ).catch((slackError) => {
         console.error('Failed to notify Slack:', slackError);
       });
+
+      triggerDiscordNotification(
+        post.project_id,
+        'vote.created',
+        webhookPayload
+      ).catch((discordError) => {
+        console.error('Failed to notify Discord:', discordError);
+      });
     }
 
     // Set cookie for anonymous user ID
@@ -215,12 +244,7 @@ export async function DELETE(
   try {
     const resolvedParams = await params; // Await params for Next.js 15
     const postId = resolvedParams.id;
-    const rawIp = getClientIp(request);
     const { id: anonymousId } = getAnonymousIdentity(request);
-    const ipAddressKey =
-      rawIp && rawIp !== 'unknown'
-        ? `${rawIp}:${anonymousId}`
-        : `anon-${anonymousId}`;
 
     if (!postId) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
@@ -231,7 +255,7 @@ export async function DELETE(
       .from('votes')
       .delete()
       .eq('post_id', postId)
-      .or(`ip_address.eq.${ipAddressKey},anonymous_id.eq.${anonymousId}`);
+      .eq('anonymous_id', anonymousId);
 
     if (deleteError) {
       console.error('Error deleting vote:', deleteError);

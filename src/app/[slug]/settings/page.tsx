@@ -14,6 +14,7 @@ import { CSVImport } from '@/components/admin/csv-import';
 import SimpleChangelogManager from '@/components/SimpleChangelogManager';
 import { WebhooksSettings } from '@/components/WebhooksSettings';
 import { SlackIntegrationSettings } from '@/components/SlackIntegrationSettings';
+import { DiscordIntegrationSettings } from '@/components/DiscordIntegrationSettings';
 import { toast } from 'sonner';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import BoardSettings from '@/components/BoardSettings';
@@ -28,7 +29,7 @@ import {
   UserPlus,
   MessageSquare,
   Zap,
-  Slack
+  Plug
 } from 'lucide-react';
 
 interface Project {
@@ -43,7 +44,9 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   const slackStatus = searchParams.get('slack');
-  const derivedTab = searchParams.get('tab') ?? (slackStatus ? 'integrations' : 'api-keys');
+  const discordStatus = searchParams.get('discord');
+  const derivedTab =
+    searchParams.get('tab') ?? (slackStatus || discordStatus ? 'integrations' : 'api-keys');
   const [activeTab, setActiveTab] = useState(derivedTab);
   const [apiKey, setApiKey] = useState<string>('');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -176,6 +179,41 @@ export default function SettingsPage() {
     }
   }, [slackStatus, router]);
 
+  useEffect(() => {
+    if (!discordStatus || !project) return;
+
+    if (discordStatus === 'connected') {
+      toast.success('Discord channel connected successfully!');
+    } else if (discordStatus === 'error') {
+      toast.error('Discord connection failed. Please try again.');
+    }
+
+    if (typeof window !== 'undefined') {
+      if (discordStatus === 'connected' || discordStatus === 'error') {
+        window.localStorage.setItem(
+          'signalsloop_discord_refresh',
+          JSON.stringify({
+            projectId: project.id,
+            status: discordStatus,
+            timestamp: Date.now(),
+          })
+        );
+      }
+
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.delete('discord');
+      if (!currentUrl.searchParams.has('tab')) {
+        currentUrl.searchParams.set('tab', 'integrations');
+      }
+      router.replace(
+        `${currentUrl.pathname}${
+          currentUrl.searchParams.size > 0 ? `?${currentUrl.searchParams.toString()}` : ''
+        }`,
+        { scroll: false }
+      );
+    }
+  }, [discordStatus, router, project?.id]);
+
   const handleShowNotification = (message: string, type: 'success' | 'error' = 'success') => {
     if (type === 'success') {
       toast.success(message);
@@ -282,8 +320,8 @@ export default function SettingsPage() {
                   value="integrations"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent"
                 >
-                  <Slack className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Slack</span>
+                  <Plug className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Integrations</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="votes"
@@ -369,8 +407,14 @@ export default function SettingsPage() {
             />
           </TabsContent>
 
-          <TabsContent value="integrations" className="mt-6">
+          <TabsContent value="integrations" className="mt-6 space-y-6">
             <SlackIntegrationSettings
+              projectId={project.id}
+              projectSlug={project.slug}
+              userPlan={project.plan}
+              onShowNotification={handleShowNotification}
+            />
+            <DiscordIntegrationSettings
               projectId={project.id}
               projectSlug={project.slug}
               userPlan={project.plan}

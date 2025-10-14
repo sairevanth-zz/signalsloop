@@ -389,6 +389,16 @@ RESEND_API_KEY=your_resend_api_key
    - Test voting and commenting functionality
    - Verify authentication works
 
+### 🔄 Keep Dev/Prod Parity (priority voting & helpers)
+
+If you spin up a fresh Supabase project (for dev or staging), run `sync-dev-database.sql` **after** the core schema above.  
+This script mirrors the production-only fixes: priority vote columns, vote metadata table, updated helper functions, and the participant view tweaks.
+
+```
+-- Supabase SQL Editor
+-- Paste the contents of sync-dev-database.sql and run it once.
+```
+
 ## ✅ Verification Checklist
 
 - [ ] Supabase project created

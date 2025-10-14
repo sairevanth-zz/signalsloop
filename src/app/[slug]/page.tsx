@@ -144,21 +144,7 @@ export default async function PublicBoardPage({ params }: PublicBoardPageProps) 
     // Get recent posts for the board
     const { data: posts, error: postsError } = await supabase
       .from('posts')
-      .select(`
-        id,
-        title,
-        description,
-        category,
-        vote_count,
-        must_have_votes,
-        important_votes,
-        nice_to_have_votes,
-        total_priority_score,
-        created_at,
-        author_email,
-        status,
-        board_id
-      `)
+      .select('*')
       .eq('project_id', project.id)
       .eq('status', 'open')
       .order('created_at', { ascending: false })
@@ -168,12 +154,65 @@ export default async function PublicBoardPage({ params }: PublicBoardPageProps) 
       console.error('Error fetching posts:', postsError);
     }
 
-    const resolvedBoardId = board?.id ?? posts?.[0]?.board_id ?? null;
+    let processedPosts = posts || [];
+
+    if (processedPosts.length > 0) {
+      const { data: voteRows, error: voteRowsError } = await supabase
+        .from('votes')
+        .select('post_id, priority')
+        .in(
+          'post_id',
+          processedPosts.map((post) => post.id)
+        );
+
+      if (voteRowsError) {
+        console.error('Error fetching vote stats:', voteRowsError);
+      } else {
+        const voteMap = new Map<
+          string,
+          { total: number; mustHave: number; important: number; niceToHave: number }
+        >();
+
+        (voteRows || []).forEach((vote) => {
+          const postId = (vote as { post_id: string }).post_id;
+          const priority = (vote as { priority?: string | null }).priority?.toLowerCase();
+          if (!voteMap.has(postId)) {
+            voteMap.set(postId, { total: 0, mustHave: 0, important: 0, niceToHave: 0 });
+          }
+          const stats = voteMap.get(postId)!;
+          stats.total += 1;
+          if (priority === 'must_have') {
+            stats.mustHave += 1;
+          } else if (priority === 'important') {
+            stats.important += 1;
+          } else if (priority === 'nice_to_have') {
+            stats.niceToHave += 1;
+          }
+        });
+
+        processedPosts = processedPosts.map((post) => {
+          const stats = voteMap.get(post.id);
+          const fallbackScore = stats
+            ? stats.mustHave * 3 + stats.important * 2 + stats.niceToHave
+            : 0;
+          return {
+            ...post,
+            vote_count: post.vote_count ?? stats?.total ?? 0,
+            must_have_votes: post.must_have_votes ?? stats?.mustHave ?? 0,
+            important_votes: post.important_votes ?? stats?.important ?? 0,
+            nice_to_have_votes: post.nice_to_have_votes ?? stats?.niceToHave ?? 0,
+            total_priority_score: post.total_priority_score ?? fallbackScore,
+          };
+        });
+      }
+    }
+
+    const resolvedBoardId = board?.id ?? processedPosts?.[0]?.board_id ?? null;
 
     return (
       <PublicBoardHomepage 
         project={project}
-        posts={posts || []}
+        posts={processedPosts}
         boardId={resolvedBoardId}
       />
     );

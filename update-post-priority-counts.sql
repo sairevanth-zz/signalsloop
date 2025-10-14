@@ -8,9 +8,18 @@ DECLARE
   v_total_score INTEGER := 0;
 BEGIN
   SELECT 
-    COUNT(*) FILTER (WHERE COALESCE(v.priority, vm.priority) = 'must_have'),
-    COUNT(*) FILTER (WHERE COALESCE(v.priority, vm.priority) = 'important'),
-    COUNT(*) FILTER (WHERE COALESCE(v.priority, vm.priority) = 'nice_to_have')
+    COALESCE(
+      SUM(CASE WHEN COALESCE(v.priority, vm.priority) = 'must_have' THEN 1 ELSE 0 END),
+      0
+    ),
+    COALESCE(
+      SUM(CASE WHEN COALESCE(v.priority, vm.priority) = 'important' THEN 1 ELSE 0 END),
+      0
+    ),
+    COALESCE(
+      SUM(CASE WHEN COALESCE(v.priority, vm.priority) = 'nice_to_have' THEN 1 ELSE 0 END),
+      0
+    )
   INTO v_must_have, v_important, v_nice_to_have
   FROM votes v
   LEFT JOIN vote_metadata vm ON vm.vote_id = v.id

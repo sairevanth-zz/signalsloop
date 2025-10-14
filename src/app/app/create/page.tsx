@@ -81,9 +81,13 @@ function ProjectWizardContent() {
       
       if (user) {
         // For authenticated users, add user context to make slug unique
-        const userSlug = user.email?.split('@')[0] || user.id.substring(0, 8);
+        const rawUserSlug = (user.email?.split('@')[0] || user.id.substring(0, 8))
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '');
+        const userSlug = rawUserSlug || user.id.substring(0, 8);
         const fullSlug = `${baseSlug}-${userSlug}`;
-        return fullSlug.substring(0, 50);
+        return fullSlug.replace(/^-|-$/g, '').substring(0, 50);
       } else {
         // For anonymous users, add random suffix
         const randomSuffix = Math.random().toString(36).substring(2, 8);

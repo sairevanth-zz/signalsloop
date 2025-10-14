@@ -103,9 +103,18 @@ DECLARE
 BEGIN
   -- Count votes by priority
   SELECT 
-    COUNT(*) FILTER (WHERE priority = 'must_have'),
-    COUNT(*) FILTER (WHERE priority = 'important'),
-    COUNT(*) FILTER (WHERE priority = 'nice_to_have')
+    COALESCE(
+      SUM(CASE WHEN priority = 'must_have' THEN 1 ELSE 0 END),
+      0
+    ),
+    COALESCE(
+      SUM(CASE WHEN priority = 'important' THEN 1 ELSE 0 END),
+      0
+    ),
+    COALESCE(
+      SUM(CASE WHEN priority = 'nice_to_have' THEN 1 ELSE 0 END),
+      0
+    )
   INTO v_must_have, v_important, v_nice_to_have
   FROM vote_metadata vm
   JOIN votes v ON vm.vote_id = v.id
@@ -261,4 +270,3 @@ BEGIN
   RAISE NOTICE '';
   RAISE NOTICE '🎯 Vote on Behalf feature is ready!';
 END $$;
-
