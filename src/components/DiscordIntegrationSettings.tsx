@@ -152,7 +152,10 @@ export function DiscordIntegrationSettings({
       }
 
       if (data?.url) {
-        window.location.href = data.url;
+        const popup = window.open(data.url, '_blank', 'noopener,noreferrer');
+        if (!popup || popup.closed) {
+          window.location.href = data.url;
+        }
       }
     } catch (connectError) {
       console.error('Discord connect error:', connectError);
