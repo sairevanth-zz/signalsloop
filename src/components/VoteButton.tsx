@@ -4,13 +4,14 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '@/components/ui/dialog';
 import { ThumbsUp, Loader2, CheckCircle } from 'lucide-react';
 
 interface VoteButtonProps {
@@ -74,7 +75,8 @@ export function VoteButton({
   const [userVoted, setUserVoted] = useState(initialUserVoted);
   const [loading, setLoading] = useState(false);
   const [selectedPriority, setSelectedPriority] = useState<VotePriority>('important');
-  const [priorityMenuOpen, setPriorityMenuOpen] = useState(false);
+  const [pendingPriority, setPendingPriority] = useState<VotePriority>('important');
+  const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
 
   useEffect(() => {
     setVoteCount(initialVoteCount);
@@ -141,7 +143,7 @@ export function VoteButton({
       onShowNotification?.('Something went wrong', 'error');
     } finally {
       setLoading(false);
-      setPriorityMenuOpen(false);
+      setPriorityDialogOpen(false);
     }
   };
 
@@ -175,7 +177,7 @@ export function VoteButton({
       onShowNotification?.('Failed to remove vote', 'error');
     } finally {
       setLoading(false);
-      setPriorityMenuOpen(false);
+      setPriorityDialogOpen(false);
     }
   };
 
@@ -190,7 +192,8 @@ export function VoteButton({
     if (userVoted) {
       void removeVote();
     } else {
-      setPriorityMenuOpen((open) => !open);
+      setPendingPriority(selectedPriority);
+      setPriorityDialogOpen(true);
     }
   };
 
@@ -216,32 +219,6 @@ export function VoteButton({
   const priorityBadge = userVoted
     ? PRIORITY_OPTIONS.find((option) => option.value === selectedPriority)
     : null;
-
-  const menuItems = PRIORITY_OPTIONS.map((option) => (
-    <DropdownMenuItem
-      key={option.value}
-      className="px-3 py-2"
-      onSelect={(event) => {
-        event.preventDefault();
-        submitVote(option.value);
-      }}
-    >
-      <div className="flex items-start gap-3">
-        <span className="text-lg">{option.indicator}</span>
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm text-gray-900">
-              {option.title}
-            </span>
-            {selectedPriority === option.value && !loading && (
-              <CheckCircle className="w-3 h-3 text-blue-600" />
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">{option.description}</p>
-        </div>
-      </div>
-    </DropdownMenuItem>
-  ));
 
   const VoteTriggerButton = (
     <Button
@@ -286,35 +263,84 @@ export function VoteButton({
     </Button>
   );
 
-  const renderPriorityMenu = (children: React.ReactNode) => (
-    <DropdownMenu
-      open={priorityMenuOpen}
+  const renderPriorityDialog = () => (
+    <Dialog
+      open={priorityDialogOpen}
       onOpenChange={(open) => {
         if (!loading) {
-          setPriorityMenuOpen(open);
+          setPriorityDialogOpen(open);
         }
       }}
     >
-      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="center"
-        side="top"
-        className="w-72 space-y-1"
-        forceMount
-      >
-        <DropdownMenuLabel className="font-semibold text-gray-900">
-          How important is this request?
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {menuItems}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>How important is this request?</DialogTitle>
+          <DialogDescription>
+            Sharing the priority helps the product team understand the urgency behind your vote.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-2">
+          {PRIORITY_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setPendingPriority(option.value)}
+              className={`w-full text-left rounded-lg border-2 bg-white p-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
+                pendingPriority === option.value
+                  ? option.accentClass
+                  : 'border-gray-200 hover:border-blue-200'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-sm flex items-center gap-2">
+                  <span>{option.indicator}</span>
+                  {option.title}
+                </span>
+                {pendingPriority === option.value && (
+                  <CheckCircle className="w-4 h-4" />
+                )}
+              </div>
+              <p className="text-xs mt-2 opacity-90">{option.description}</p>
+            </button>
+          ))}
+        </div>
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button
+            type="button"
+            onClick={() => submitVote(pendingPriority)}
+            disabled={loading}
+            className="min-w-[120px]"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              'Submit Vote'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 
   if (variant === 'compact') {
     return (
       <>
-        {userVoted ? VoteTriggerButton : renderPriorityMenu(VoteTriggerButton)}
+        {VoteTriggerButton}
+        {renderPriorityDialog()}
         {userVoted && priorityBadge && (
           <div className="text-xs mt-1 flex items-center gap-1 text-blue-600">
             <CheckCircle className="w-3 h-3" />
@@ -328,7 +354,8 @@ export function VoteButton({
   // Default vertical layout
   return (
     <div className="flex flex-col items-center">
-      {userVoted ? VoteTriggerButton : renderPriorityMenu(VoteTriggerButton)}
+      {VoteTriggerButton}
+      {renderPriorityDialog()}
 
       {userVoted && (
         <div className="text-xs mt-1 flex items-center gap-1 text-blue-600">
