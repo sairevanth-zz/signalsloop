@@ -126,6 +126,49 @@ export default function SettingsPage() {
   }, [supabase, authUser, slackStatus, discordStatus]);
 
   useEffect(() => {
+    if (!supabase) return;
+    if (authUser !== null) return;
+
+    try {
+      const storedSession = sessionStorage.getItem('signalsloop_saved_session');
+      if (!storedSession) {
+        return;
+      }
+
+      const parsed = JSON.parse(storedSession) as {
+        access_token?: string;
+        refresh_token?: string;
+      };
+
+      sessionStorage.removeItem('signalsloop_saved_session');
+
+      if (!parsed?.access_token || !parsed?.refresh_token) {
+        return;
+      }
+
+      supabase.auth
+        .setSession({
+          access_token: parsed.access_token,
+          refresh_token: parsed.refresh_token,
+        })
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Error restoring Supabase session:', error);
+            return;
+          }
+          if (data.session?.user) {
+            setAuthUser(data.session.user);
+          }
+        })
+        .catch((error) => {
+          console.error('Unexpected error restoring Supabase session:', error);
+        });
+    } catch (error) {
+      console.error('Failed to restore saved Supabase session:', error);
+    }
+  }, [supabase, authUser]);
+
+  useEffect(() => {
     if (!supabase || authUser === undefined || !projectSlug) {
       return;
     }

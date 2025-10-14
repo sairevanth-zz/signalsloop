@@ -132,6 +132,17 @@ export function DiscordIntegrationSettings({
         return;
       }
 
+      try {
+        const storedSession = {
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+          stored_at: Date.now(),
+        };
+        sessionStorage.setItem('signalsloop_saved_session', JSON.stringify(storedSession));
+      } catch (storageError) {
+        console.warn('Unable to persist Supabase session for Discord reconnect:', storageError);
+      }
+
       const response = await fetch('/api/integrations/discord/authorize', {
         method: 'POST',
         headers: {
