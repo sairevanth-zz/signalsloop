@@ -233,34 +233,14 @@ async function buildDiscordMessage(
 
       const postUrl = buildProjectLink(meta.slug, `/post/${post.id}`);
       const priorityMeta = formatPriorityMeta(vote?.priority);
-      const embed = buildEmbedBase(
-        `Vote received: ${post.title}`,
-        postUrl,
-        undefined,
-        priorityMeta?.color ?? 0x3498db
-      );
-
-      const fields = [
-        {
-          name: 'Total Votes',
-          value: `${vote?.vote_count ?? 0}`,
-          inline: true,
-        },
-      ];
-
-      if (priorityMeta) {
-        fields.push({
-          name: 'Priority',
-          value: `${priorityMeta.emoji} ${priorityMeta.label}`,
-          inline: true,
-        });
-      }
-
-      embed['fields'] = fields;
-
       return {
-        content: `🗳️ New vote on **${sanitizeDiscordText(post.title)}**`,
-        embeds: [embed],
+        content: priorityMeta
+          ? `🗳️ New ${priorityMeta.emoji} **${priorityMeta.label}** vote on **${sanitizeDiscordText(
+              post.title
+            )}** · Total votes: ${vote?.vote_count ?? 0}\n${postUrl}`
+          : `🗳️ New vote on **${sanitizeDiscordText(
+              post.title
+            )}** · Total votes: ${vote?.vote_count ?? 0}\n${postUrl}`,
       };
     }
 
