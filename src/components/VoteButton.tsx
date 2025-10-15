@@ -1,16 +1,9 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { ThumbsUp, Loader2, CheckCircle } from 'lucide-react';
 
 interface VoteButtonProps {
@@ -74,6 +67,7 @@ export function VoteButton({
   const [userVoted, setUserVoted] = useState(initialUserVoted);
   const [loading, setLoading] = useState(false);
   const [selectedPriority, setSelectedPriority] = useState<VotePriority>('important');
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
     setVoteCount(initialVoteCount);
@@ -139,6 +133,7 @@ export function VoteButton({
       onShowNotification?.('Something went wrong', 'error');
     } finally {
       setLoading(false);
+      setMenuPosition(null);
     }
   };
 
@@ -172,6 +167,7 @@ export function VoteButton({
       onShowNotification?.('Failed to remove vote', 'error');
     } finally {
       setLoading(false);
+      setMenuPosition(null);
     }
   };
 
@@ -185,6 +181,52 @@ export function VoteButton({
 
     void removeVote();
   };
+
+  const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (loading) {
+      return;
+    }
+
+    if (menuPosition) {
+      setMenuPosition(null);
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    setMenuPosition({
+      top: rect.bottom + window.scrollY + 8,
+      left: rect.left + rect.width / 2 + window.scrollX,
+    });
+  };
+
+  useEffect(() => {
+    if (!menuPosition) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (target.closest('[data-vote-menu]')) {
+        return;
+      }
+      setMenuPosition(null);
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuPosition(null);
+      }
+    };
+
+    window.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [menuPosition]);
 
   // Size classes
   const sizeClasses = {
@@ -238,6 +280,48 @@ export function VoteButton({
     </>
   );
 
+  const renderMenu = () =>
+    menuPosition &&
+    typeof document !== 'undefined' &&
+    createPortal(
+      <div
+        data-vote-menu
+        className="fixed z-[1000] w-72 space-y-1 rounded-lg border border-gray-200 bg-white p-3 shadow-xl"
+        style={{
+          top: menuPosition.top,
+          left: menuPosition.left,
+          transform: 'translateX(-50%)',
+        }}
+      >
+        <div className="font-semibold text-gray-900">
+          How important is this request?
+        </div>
+        <div className="border-b border-gray-200" />
+        {PRIORITY_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            className="flex w-full items-start gap-3 rounded-md px-3 py-2 text-left hover:bg-gray-50"
+            onClick={() => submitVote(option.value)}
+          >
+            <span className="text-lg">{option.indicator}</span>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm text-gray-900">
+                  {option.title}
+                </span>
+                {selectedPriority === option.value && (
+                  <CheckCircle className="w-3 h-3 text-blue-600" />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">{option.description}</p>
+            </div>
+          </button>
+        ))}
+      </div>,
+      document.body
+    );
+
   if (userVoted) {
     return (
       <div className="flex flex-col items-center">
@@ -263,52 +347,18 @@ export function VoteButton({
   }
 
   return (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant={variant === 'compact' ? 'outline' : 'ghost'}
-          size="sm"
-          disabled={loading}
-          className={defaultButtonClass}
-        >
-          {renderButtonContent(false)}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="center"
-        side="bottom"
-        sideOffset={8}
-        collisionPadding={8}
-        className="w-72 space-y-1"
+    <>
+      <Button
+        variant={variant === 'compact' ? 'outline' : 'ghost'}
+        size="sm"
+        disabled={loading}
+        onClick={handleOpenMenu}
+        className={defaultButtonClass}
       >
-        <DropdownMenuLabel className="font-semibold text-gray-900">
-          How important is this request?
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {PRIORITY_OPTIONS.map((option) => (
-          <DropdownMenuItem
-            key={option.value}
-            className="px-3 py-2"
-            onSelect={() => submitVote(option.value)}
-          >
-            <div className="flex items-start gap-3">
-              <span className="text-lg">{option.indicator}</span>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-sm text-gray-900">
-                    {option.title}
-                  </span>
-                  {selectedPriority === option.value && (
-                    <CheckCircle className="w-3 h-3 text-blue-600" />
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">{option.description}</p>
-              </div>
-            </div>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+        {renderButtonContent(false)}
+      </Button>
+      {renderMenu()}
+    </>
   );
 }
 
