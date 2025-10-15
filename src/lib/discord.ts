@@ -286,7 +286,7 @@ export async function triggerDiscordNotification(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         content: message.content,
-        embeds: message.embeds,
+        embeds: message.embeds ?? [],
         allowed_mentions: { parse: [] },
       }),
       signal: AbortSignal.timeout(5000),
