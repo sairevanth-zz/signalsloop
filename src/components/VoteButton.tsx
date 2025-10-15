@@ -106,7 +106,6 @@ export function VoteButton({
       if (response.status === 409) {
         setUserVoted(true);
         onShowNotification?.('You have already voted on this post', 'info');
-        setPriorityMenuOpen(false);
         return;
       }
 
