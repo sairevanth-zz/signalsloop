@@ -88,6 +88,7 @@ const maybeSendProWelcomeEmail = async (supabase: SupabaseClient, projectId: str
   }
 
   try {
+    console.log('[PRO WELCOME] Attempting to send Pro welcome email to:', owner.email);
     await sendProWelcomeEmail({
       email: owner.email,
       name: owner.name,
@@ -99,9 +100,10 @@ const maybeSendProWelcomeEmail = async (supabase: SupabaseClient, projectId: str
       .update({ pro_welcome_email_sent_at: new Date().toISOString() })
       .eq('id', projectId);
 
-    console.log('Sent Pro welcome email for project:', projectId);
+    console.log('[PRO WELCOME] ✅ Sent Pro welcome email for project:', projectId);
   } catch (emailError) {
-    console.error('Failed to send Pro welcome email:', emailError);
+    console.error('[PRO WELCOME] ❌ Failed to send Pro welcome email:', emailError);
+    console.error('[PRO WELCOME] Error details:', JSON.stringify(emailError, null, 2));
   }
 };
 
@@ -172,6 +174,7 @@ const sendCancellationEmailsForCustomer = async (
 
     try {
       const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.signalsloop.com';
+      console.log('[CANCELLATION] Attempting to send cancellation email to:', owner.email);
       await sendCancellationEmail({
         email: owner.email,
         name: owner.name,
@@ -184,12 +187,13 @@ const sendCancellationEmailsForCustomer = async (
         .update({ cancellation_email_sent_at: new Date().toISOString() })
         .eq('id', project.id);
 
-      console.log('Sent cancellation email for project:', project.id);
+      console.log('[CANCELLATION] ✅ Sent cancellation email for project:', project.id);
     } catch (emailError) {
-      console.error('Failed to send cancellation email:', {
+      console.error('[CANCELLATION] ❌ Failed to send cancellation email:', {
         projectId: project.id,
         error: emailError,
       });
+      console.error('[CANCELLATION] Error details:', JSON.stringify(emailError, null, 2));
     }
   }
 };

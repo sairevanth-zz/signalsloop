@@ -47,14 +47,23 @@ export async function GET(request: NextRequest) {
         console.log('User created at:', data.user.created_at);
 
         try {
+          console.log('[WELCOME EMAIL] Starting welcome email check for user:', data.user.id);
           const serviceClient = getSupabaseServiceRoleClient();
           if (!serviceClient) {
-            console.error('Service role client unavailable; skipping welcome email check');
+            console.error('[WELCOME EMAIL] Service role client unavailable; skipping welcome email check');
           } else {
+            console.log('[WELCOME EMAIL] Service client obtained successfully');
             try {
               const userRecord = await ensureUserRecord(serviceClient, data.user.id);
+              console.log('[WELCOME EMAIL] User record:', {
+                id: userRecord.id,
+                email: userRecord.email,
+                name: userRecord.name,
+                welcome_email_sent_at: userRecord.welcome_email_sent_at
+              });
 
               if (userRecord.email && !userRecord.welcome_email_sent_at) {
+                console.log('[WELCOME EMAIL] Attempting to send welcome email to:', userRecord.email);
                 try {
                   await sendFreeWelcomeEmail({
                     email: userRecord.email,
@@ -66,19 +75,24 @@ export async function GET(request: NextRequest) {
                     .update({ welcome_email_sent_at: new Date().toISOString() })
                     .eq('id', userRecord.id);
 
-                  console.log('Free welcome email sent for user:', data.user.id);
+                  console.log('[WELCOME EMAIL] ✅ Free welcome email sent successfully for user:', data.user.id);
                 } catch (welcomeError) {
-                  console.error('Failed to send free welcome email:', welcomeError);
+                  console.error('[WELCOME EMAIL] ❌ Failed to send free welcome email:', welcomeError);
+                  console.error('[WELCOME EMAIL] Error details:', JSON.stringify(welcomeError, null, 2));
                 }
               } else if (!userRecord.email) {
-                console.warn('User record missing email; cannot send welcome message');
+                console.warn('[WELCOME EMAIL] User record missing email; cannot send welcome message');
+              } else {
+                console.log('[WELCOME EMAIL] Welcome email already sent at:', userRecord.welcome_email_sent_at);
               }
             } catch (recordError) {
-              console.error('Failed to ensure user record before welcome email:', recordError);
+              console.error('[WELCOME EMAIL] Failed to ensure user record before welcome email:', recordError);
+              console.error('[WELCOME EMAIL] Record error details:', JSON.stringify(recordError, null, 2));
             }
           }
         } catch (welcomeInitError) {
-          console.error('Unexpected error during welcome email processing:', welcomeInitError);
+          console.error('[WELCOME EMAIL] Unexpected error during welcome email processing:', welcomeInitError);
+          console.error('[WELCOME EMAIL] Init error details:', JSON.stringify(welcomeInitError, null, 2));
         }
         
         // Check if this is a new user (created_at is very recent)
