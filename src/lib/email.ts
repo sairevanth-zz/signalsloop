@@ -1,9 +1,13 @@
 import { Resend } from 'resend';
 import { getSupabaseServiceRoleClient } from './supabase-client';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = new Resend(resendApiKey);
 const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.signalsloop.com';
-const FROM_ADDRESS = 'SignalsLoop Team <hello@signalsloop.com>';
+const FROM_ADDRESS =
+  process.env.RESEND_FROM_ADDRESS ||
+  process.env.NEXT_PUBLIC_RESEND_FROM_ADDRESS ||
+  'SignalsLoop <onboarding@resend.dev>';
 
 interface BaseEmailParams {
   email: string;
@@ -112,6 +116,12 @@ function buildEmailHtml({
 }
 
 async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+  if (!resendApiKey) {
+    const message = 'RESEND_API_KEY is not configured';
+    console.error(message);
+    throw new Error(message);
+  }
+
   const { data, error } = await resend.emails.send({
     from: FROM_ADDRESS,
     to: [to],

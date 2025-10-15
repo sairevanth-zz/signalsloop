@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import type { User, SupabaseClient } from '@supabase/supabase-js';
 
@@ -8,7 +8,6 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
-  const lastWelcomeUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Only run on client side to prevent hydration mismatches
@@ -76,53 +75,6 @@ export function useAuth() {
       await supabase.auth.signOut();
     }
   };
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    if (!user?.id) {
-      lastWelcomeUserIdRef.current = null;
-      return;
-    }
-
-    if (lastWelcomeUserIdRef.current === user.id) {
-      return;
-    }
-
-    lastWelcomeUserIdRef.current = user.id;
-
-    const controller = new AbortController();
-
-    const ensureWelcomeEmail = async () => {
-      try {
-        const response = await fetch('/api/users/welcome', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          const errorBody = await response.json().catch(() => ({}));
-          console.error('Failed to trigger welcome email:', {
-            status: response.status,
-            body: errorBody,
-          });
-        }
-      } catch (error) {
-        if (controller.signal.aborted) return;
-        console.error('Error triggering welcome email:', error);
-      }
-    };
-
-    ensureWelcomeEmail();
-
-    return () => controller.abort();
-  }, [user?.id]);
 
   return { user, loading, signOut };
 }

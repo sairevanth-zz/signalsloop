@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { sendProWelcomeEmail, sendCancellationEmail } from '@/lib/email';
+import { ensureUserRecord } from '@/lib/users';
 
 const getStripe = () => {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -46,17 +47,42 @@ const maybeSendProWelcomeEmail = async (supabase: SupabaseClient, projectId: str
     return;
   }
 
-  const { data: owner, error: ownerError } = await supabase
+  let owner = null;
+
+  const { data: ownerRecord, error: ownerError } = await supabase
     .from('users')
-    .select('email, name')
+    .select('id, email, name')
     .eq('id', project.owner_id)
     .maybeSingle();
 
-  if (ownerError || !owner?.email) {
+  if (ownerError && ownerError.code !== 'PGRST116') {
     console.error('Unable to load owner for Pro welcome email:', {
       projectId,
       ownerId: project.owner_id,
       error: ownerError,
+    });
+    return;
+  }
+
+  owner = ownerRecord;
+
+  if (!owner?.email) {
+    try {
+      owner = await ensureUserRecord(supabase, project.owner_id);
+    } catch (ensureError) {
+      console.error('Failed to ensure project owner before Pro welcome email:', {
+        projectId,
+        ownerId: project.owner_id,
+        error: ensureError,
+      });
+      return;
+    }
+  }
+
+  if (!owner?.email) {
+    console.error('Project owner missing email for Pro welcome email:', {
+      projectId,
+      ownerId: project.owner_id,
     });
     return;
   }
@@ -104,17 +130,42 @@ const sendCancellationEmailsForCustomer = async (
       continue;
     }
 
-    const { data: owner, error: ownerError } = await supabase
+    let owner = null;
+
+    const { data: ownerRecord, error: ownerError } = await supabase
       .from('users')
-      .select('email, name')
+      .select('id, email, name')
       .eq('id', project.owner_id)
       .maybeSingle();
 
-    if (ownerError || !owner?.email) {
+    if (ownerError && ownerError.code !== 'PGRST116') {
       console.error('Unable to load owner for cancellation email:', {
         projectId: project.id,
         ownerId: project.owner_id,
         error: ownerError,
+      });
+      continue;
+    }
+
+    owner = ownerRecord;
+
+    if (!owner?.email) {
+      try {
+        owner = await ensureUserRecord(supabase, project.owner_id);
+      } catch (ensureError) {
+        console.error('Failed to ensure project owner before cancellation email:', {
+          projectId: project.id,
+          ownerId: project.owner_id,
+          error: ensureError,
+        });
+        continue;
+      }
+    }
+
+    if (!owner?.email) {
+      console.error('Project owner missing email for cancellation email:', {
+        projectId: project.id,
+        ownerId: project.owner_id,
       });
       continue;
     }

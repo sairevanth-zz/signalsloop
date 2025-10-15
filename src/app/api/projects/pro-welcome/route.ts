@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { sendProWelcomeEmail } from '@/lib/email';
+import { ensureUserRecord } from '@/lib/users';
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,13 +33,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Project is not on the Pro plan' }, { status: 400 });
     }
 
-    const { data: owner } = await supabase
-      .from('users')
-      .select('email, name')
-      .eq('id', project.owner_id)
-      .maybeSingle();
+    let owner;
 
-    if (!owner?.email) {
+    try {
+      owner = await ensureUserRecord(supabase, project.owner_id);
+    } catch (ensureError) {
+      console.error('Failed to ensure project owner before pro welcome email:', ensureError);
+      return NextResponse.json({ error: 'Failed to load project owner' }, { status: 500 });
+    }
+
+    if (!owner.email) {
       return NextResponse.json({ error: 'Project owner does not have an email address' }, { status: 400 });
     }
 
