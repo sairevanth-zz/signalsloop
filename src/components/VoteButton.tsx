@@ -74,7 +74,6 @@ export function VoteButton({
   const [userVoted, setUserVoted] = useState(initialUserVoted);
   const [loading, setLoading] = useState(false);
   const [selectedPriority, setSelectedPriority] = useState<VotePriority>('important');
-  const [priorityMenuOpen, setPriorityMenuOpen] = useState(false);
 
   useEffect(() => {
     setVoteCount(initialVoteCount);
@@ -141,7 +140,6 @@ export function VoteButton({
       onShowNotification?.('Something went wrong', 'error');
     } finally {
       setLoading(false);
-      setPriorityMenuOpen(false);
     }
   };
 
@@ -175,11 +173,10 @@ export function VoteButton({
       onShowNotification?.('Failed to remove vote', 'error');
     } finally {
       setLoading(false);
-      setPriorityMenuOpen(false);
     }
   };
 
-  const handleTriggerClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleRemoveClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
 
@@ -187,11 +184,7 @@ export function VoteButton({
       return;
     }
 
-    if (userVoted) {
-      void removeVote();
-    } else {
-      setPriorityMenuOpen(true);
-    }
+    void removeVote();
   };
 
   // Size classes
@@ -217,64 +210,77 @@ export function VoteButton({
     ? PRIORITY_OPTIONS.find((option) => option.value === selectedPriority)
     : null;
 
-  const VoteTriggerButton = (
-    <Button
-      variant={userVoted ? 'default' : variant === 'compact' ? 'outline' : 'ghost'}
-      size={variant === 'compact' ? 'sm' : 'sm'}
-      onClick={handleTriggerClick}
-      disabled={loading}
-      className={
-        variant === 'compact'
-          ? `flex items-center gap-1 ${
-              userVoted
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'text-gray-600 border-gray-300 hover:border-blue-600 hover:text-blue-600'
-            } ${sizeClasses[size].button}`
-          : `flex flex-col h-auto py-2 px-3 ${
-              userVoted
-                ? 'text-blue-600 bg-blue-50'
-                : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
-            }`
-      }
-    >
+  const buttonBaseClass =
+    variant === 'compact'
+      ? `${sizeClasses[size].button} flex items-center gap-1`
+      : `flex flex-col h-auto py-2 px-3`;
+
+  const defaultButtonClass =
+    variant === 'compact'
+      ? `${buttonBaseClass} text-gray-600 border-gray-300 hover:border-blue-600 hover:text-blue-600`
+      : `${buttonBaseClass} text-gray-500 hover:text-blue-600 hover:bg-blue-50`;
+
+  const votedButtonClass =
+    variant === 'compact'
+      ? `${buttonBaseClass} bg-blue-600 text-white border-blue-600`
+      : `${buttonBaseClass} text-blue-600 bg-blue-50`;
+
+  const iconClass = `${sizeClasses[size].icon}${variant === 'compact' ? '' : ' mb-1'}`;
+  const textClass = sizeClasses[size].text;
+
+  const renderButtonContent = (fillActive: boolean) => (
+    <>
       {loading ? (
-        <Loader2
-          className={`${sizeClasses[size].icon} ${
-            variant === 'compact' ? '' : 'mb-1'
-          } animate-spin`}
-        />
+        <Loader2 className={`${iconClass} animate-spin`} />
       ) : (
-        <ThumbsUp
-          className={`${sizeClasses[size].icon} ${
-            variant === 'compact' ? '' : 'mb-1'
-          } ${userVoted ? 'fill-current' : ''}`}
-        />
+        <ThumbsUp className={`${iconClass} ${fillActive ? 'fill-current' : ''}`} />
       )}
-      <span
-        className={`font-medium ${
-          variant === 'compact' ? sizeClasses[size].text : sizeClasses[size].text
-        }`}
-      >
-        {voteCount}
-      </span>
-    </Button>
+      <span className={`font-medium ${textClass}`}>{voteCount}</span>
+    </>
   );
 
-  const renderPriorityMenu = (children: React.ReactNode) => (
-    <DropdownMenu
-      open={priorityMenuOpen}
-      onOpenChange={(open) => {
-        if (!loading) {
-          setPriorityMenuOpen(open);
-        }
-      }}
-    >
-      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+  if (userVoted) {
+    return (
+      <div className="flex flex-col items-center">
+        <Button
+          variant={variant === 'compact' ? 'default' : 'ghost'}
+          size="sm"
+          disabled={loading}
+          onClick={handleRemoveClick}
+          className={votedButtonClass}
+        >
+          {renderButtonContent(true)}
+        </Button>
+        {priorityBadge && (
+          <div className="text-xs mt-1 flex items-center gap-1 text-blue-600">
+            <CheckCircle className="w-3 h-3" />
+            <span>
+              Voted{priorityBadge ? ` · ${priorityBadge.title}` : ''}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant={variant === 'compact' ? 'outline' : 'ghost'}
+          size="sm"
+          disabled={loading}
+          className={defaultButtonClass}
+        >
+          {renderButtonContent(false)}
+        </Button>
+      </DropdownMenuTrigger>
       <DropdownMenuContent
         align="center"
-        side="top"
+        side="bottom"
+        sideOffset={8}
+        collisionPadding={8}
         className="w-72 space-y-1"
-        forceMount
       >
         <DropdownMenuLabel className="font-semibold text-gray-900">
           How important is this request?
@@ -284,10 +290,7 @@ export function VoteButton({
           <DropdownMenuItem
             key={option.value}
             className="px-3 py-2"
-            onSelect={(event) => {
-              event.preventDefault();
-              submitVote(option.value);
-            }}
+            onSelect={() => submitVote(option.value)}
           >
             <div className="flex items-start gap-3">
               <span className="text-lg">{option.indicator}</span>
@@ -296,7 +299,7 @@ export function VoteButton({
                   <span className="font-semibold text-sm text-gray-900">
                     {option.title}
                   </span>
-                  {selectedPriority === option.value && !loading && (
+                  {selectedPriority === option.value && (
                     <CheckCircle className="w-3 h-3 text-blue-600" />
                   )}
                 </div>
@@ -307,36 +310,6 @@ export function VoteButton({
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-
-  if (variant === 'compact') {
-    return (
-      <>
-        {userVoted ? VoteTriggerButton : renderPriorityMenu(VoteTriggerButton)}
-        {userVoted && priorityBadge && (
-          <div className="text-xs mt-1 flex items-center gap-1 text-blue-600">
-            <CheckCircle className="w-3 h-3" />
-            <span>{priorityBadge.title}</span>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  // Default vertical layout
-  return (
-    <div className="flex flex-col items-center">
-      {userVoted ? VoteTriggerButton : renderPriorityMenu(VoteTriggerButton)}
-
-      {userVoted && (
-        <div className="text-xs mt-1 flex items-center gap-1 text-blue-600">
-          <CheckCircle className="w-3 h-3" />
-          <span>
-            Voted{priorityBadge ? ` · ${priorityBadge.title}` : ''}
-          </span>
-        </div>
-      )}
-    </div>
   );
 }
 
