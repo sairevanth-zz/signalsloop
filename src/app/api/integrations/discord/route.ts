@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     const { data: integration, error: integrationError } = await supabase
       .from('discord_integrations')
       .select(
-        'guild_name, guild_id, channel_name, channel_id, webhook_url, created_at, updated_at'
+        'guild_name, guild_id, channel_name, channel_id, webhook_url, created_at, updated_at, scope'
       )
       .eq('project_id', projectId)
       .maybeSingle();
@@ -80,8 +80,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to load integration' }, { status: 500 });
     }
 
+    const isInvalid = integration?.scope === 'invalid';
+
     return NextResponse.json({
-      connected: !!integration,
+      connected: !!integration && !isInvalid,
+      integrationStatus: integration
+        ? (isInvalid ? 'invalid' : 'active')
+        : 'disconnected',
       integration: integration
         ? {
             guildName: integration.guild_name,
@@ -91,6 +96,7 @@ export async function GET(request: NextRequest) {
             webhookUrl: integration.webhook_url,
             connectedAt: integration.created_at,
             updatedAt: integration.updated_at,
+            scope: integration.scope,
           }
         : null,
     });

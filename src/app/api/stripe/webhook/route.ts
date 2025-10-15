@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { sendProWelcomeEmail, sendCancellationEmail } from '@/lib/email';
 
 const getStripe = () => {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -26,6 +27,120 @@ const getEndpointSecret = () => {
     throw new Error('STRIPE_WEBHOOK_SECRET is not configured');
   }
   return process.env.STRIPE_WEBHOOK_SECRET;
+};
+
+const maybeSendProWelcomeEmail = async (supabase: SupabaseClient, projectId: string) => {
+  const { data: project, error } = await supabase
+    .from('projects')
+    .select('id, name, owner_id, pro_welcome_email_sent_at')
+    .eq('id', projectId)
+    .maybeSingle();
+
+  if (error || !project) {
+    console.error('Unable to load project for Pro welcome email:', { projectId, error });
+    return;
+  }
+
+  if (project.pro_welcome_email_sent_at) {
+    console.log('Pro welcome email already sent for project:', projectId);
+    return;
+  }
+
+  const { data: owner, error: ownerError } = await supabase
+    .from('users')
+    .select('email, name')
+    .eq('id', project.owner_id)
+    .maybeSingle();
+
+  if (ownerError || !owner?.email) {
+    console.error('Unable to load owner for Pro welcome email:', {
+      projectId,
+      ownerId: project.owner_id,
+      error: ownerError,
+    });
+    return;
+  }
+
+  try {
+    await sendProWelcomeEmail({
+      email: owner.email,
+      name: owner.name,
+      projectName: project.name,
+    });
+
+    await supabase
+      .from('projects')
+      .update({ pro_welcome_email_sent_at: new Date().toISOString() })
+      .eq('id', projectId);
+
+    console.log('Sent Pro welcome email for project:', projectId);
+  } catch (emailError) {
+    console.error('Failed to send Pro welcome email:', emailError);
+  }
+};
+
+const sendCancellationEmailsForCustomer = async (
+  supabase: SupabaseClient,
+  stripeCustomerId: string
+) => {
+  const { data: projects, error } = await supabase
+    .from('projects')
+    .select('id, name, owner_id, cancellation_email_sent_at')
+    .eq('stripe_customer_id', stripeCustomerId);
+
+  if (error) {
+    console.error('Failed to load projects for cancellation email:', { stripeCustomerId, error });
+    return;
+  }
+
+  if (!projects?.length) {
+    console.warn('No projects found for cancellation email send:', stripeCustomerId);
+    return;
+  }
+
+  for (const project of projects) {
+    if (project.cancellation_email_sent_at) {
+      console.log('Cancellation email already sent for project:', project.id);
+      continue;
+    }
+
+    const { data: owner, error: ownerError } = await supabase
+      .from('users')
+      .select('email, name')
+      .eq('id', project.owner_id)
+      .maybeSingle();
+
+    if (ownerError || !owner?.email) {
+      console.error('Unable to load owner for cancellation email:', {
+        projectId: project.id,
+        ownerId: project.owner_id,
+        error: ownerError,
+      });
+      continue;
+    }
+
+    try {
+      const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.signalsloop.com';
+      await sendCancellationEmail({
+        email: owner.email,
+        name: owner.name,
+        projectName: project.name,
+        reactivationUrl: `${appUrl}/app`,
+      });
+
+      await supabase
+        .from('projects')
+        .update({ cancellation_email_sent_at: new Date().toISOString() })
+        .eq('id', project.id);
+
+      console.log('Sent cancellation email for project:', project.id);
+    } catch (emailError) {
+      console.error('Failed to send cancellation email:', {
+        projectId: project.id,
+        error: emailError,
+      });
+    }
+  }
 };
 
 export async function POST(request: NextRequest) {
@@ -92,6 +207,8 @@ export async function POST(request: NextRequest) {
               });
 
             console.log(`Project ${projectId} upgraded to Pro via Stripe`);
+
+            await maybeSendProWelcomeEmail(supabase, projectId);
           } else if (source === 'homepage') {
             // Homepage checkout - find or create user's primary project
             const customerId = session.customer as string;
@@ -120,7 +237,7 @@ export async function POST(request: NextRequest) {
             // Find user's primary project
             const { data: projectData, error: projectError } = await supabase
               .from('projects')
-              .select('id')
+              .select('id, owner_id, name')
               .eq('owner_id', userData.id)
               .order('created_at', { ascending: true })
               .limit(1)
@@ -149,6 +266,8 @@ export async function POST(request: NextRequest) {
               console.error('Failed to upgrade project:', updateError);
               throw updateError;
             }
+
+            await maybeSendProWelcomeEmail(supabase, projectData.id);
 
             // Log the upgrade event
             await supabase
@@ -232,6 +351,8 @@ export async function POST(request: NextRequest) {
           console.error('Failed to downgrade project:', error);
           throw error;
         }
+
+        await sendCancellationEmailsForCustomer(supabase, subscription.customer as string);
 
         // Log the cancellation
         await supabase

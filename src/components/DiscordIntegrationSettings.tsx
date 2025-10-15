@@ -24,8 +24,11 @@ interface DiscordIntegrationSettingsProps {
   onShowNotification?: (message: string, type?: 'success' | 'error') => void;
 }
 
+type IntegrationStatus = 'active' | 'invalid' | 'disconnected';
+
 interface DiscordIntegrationResponse {
   connected: boolean;
+  integrationStatus: IntegrationStatus;
   integration: {
     guildName?: string | null;
     guildId?: string | null;
@@ -34,6 +37,7 @@ interface DiscordIntegrationResponse {
     webhookUrl?: string | null;
     connectedAt?: string | null;
     updatedAt?: string | null;
+    scope?: string | null;
   } | null;
 }
 
@@ -429,6 +433,34 @@ export function DiscordIntegrationSettings({
             <AlertTriangle className="h-4 w-4 text-red-600" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
+        ) : integration?.integrationStatus === 'invalid' ? (
+          <div className="space-y-4">
+            <Alert className="border-red-200 bg-red-50">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="space-y-2">
+                <div className="font-semibold text-red-900">
+                  Discord webhook expired
+                </div>
+                <p className="text-red-800/80 text-sm">
+                  Discord rejected the last vote notification because the stored webhook token is
+                  no longer valid. Reconnect to generate a fresh webhook so vote alerts resume.
+                </p>
+              </AlertDescription>
+            </Alert>
+            <Button onClick={handleConnect} disabled={authorizing}>
+              {authorizing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Reconnecting…
+                </>
+              ) : (
+                <>
+                  <Plug className="h-4 w-4 mr-2" />
+                  Reconnect Discord
+                </>
+              )}
+            </Button>
+          </div>
         ) : integration?.connected && integration.integration ? (
           <div className="space-y-3">
             <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-4">

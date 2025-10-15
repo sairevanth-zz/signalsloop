@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { sendFreeWelcomeEmail } from '@/lib/email';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -42,6 +44,50 @@ export async function GET(request: NextRequest) {
         console.log('User authenticated:', data.user.email);
         console.log('User metadata:', data.user.user_metadata);
         console.log('User created at:', data.user.created_at);
+
+        try {
+          const serviceClient = getSupabaseServiceRoleClient();
+          if (!serviceClient) {
+            console.error('Service role client unavailable; skipping welcome email check');
+          } else if (data.user.email) {
+            const { data: existingUser, error: fetchError } = await serviceClient
+              .from('users')
+              .select('id, welcome_email_sent_at')
+              .eq('id', data.user.id)
+              .maybeSingle();
+
+            if (fetchError) {
+              console.error('Failed to load user for welcome email check:', fetchError);
+            } else if (!existingUser?.welcome_email_sent_at) {
+              const metadata = (data.user.user_metadata ?? {}) as Record<string, unknown>;
+              const userName =
+                (metadata.full_name as string | undefined) ??
+                (metadata.name as string | undefined) ??
+                (metadata.first_name as string | undefined) ??
+                null;
+
+              try {
+                await sendFreeWelcomeEmail({
+                  email: data.user.email,
+                  name: userName,
+                });
+
+                await serviceClient
+                  .from('users')
+                  .update({ welcome_email_sent_at: new Date().toISOString() })
+                  .eq('id', data.user.id);
+
+                console.log('Free welcome email sent for user:', data.user.id);
+              } catch (welcomeError) {
+                console.error('Failed to send free welcome email:', welcomeError);
+              }
+            }
+          } else {
+            console.warn('Authenticated user missing email; cannot send welcome message');
+          }
+        } catch (welcomeInitError) {
+          console.error('Unexpected error during welcome email processing:', welcomeInitError);
+        }
         
         // Check if this is a new user (created_at is very recent)
         const userCreatedAt = new Date(data.user.created_at);

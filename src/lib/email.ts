@@ -3,6 +3,198 @@ import { getSupabaseServiceRoleClient } from './supabase-client';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.signalsloop.com';
+const FROM_ADDRESS = 'SignalsLoop Team <hello@signalsloop.com>';
+
+interface BaseEmailParams {
+  email: string;
+  name?: string | null;
+}
+
+interface ProWelcomeEmailParams extends BaseEmailParams {
+  projectName?: string | null;
+}
+
+interface CancellationEmailParams extends BaseEmailParams {
+  projectName?: string | null;
+  reactivationUrl?: string | null;
+}
+
+function buildEmailHtml({
+  title,
+  greeting,
+  paragraphs,
+  bullets = [],
+  ctaLabel,
+  ctaUrl,
+  outro,
+}: {
+  title: string;
+  greeting: string;
+  paragraphs: string[];
+  bullets?: string[];
+  ctaLabel?: string;
+  ctaUrl?: string;
+  outro?: string;
+}) {
+  const paragraphHtml = paragraphs
+    .map(
+      (text) =>
+        `<p style="margin: 0 0 18px; font-size: 16px; line-height: 1.6; color: #374151;">${text}</p>`
+    )
+    .join('');
+
+  const bulletsHtml =
+    bullets.length > 0
+      ? `<ul style="margin: 0 0 24px; padding-left: 20px; color: #374151;">
+          ${bullets
+            .map(
+              (item) => `<li style="margin-bottom: 12px; font-size: 15px; line-height: 1.6;">${item}</li>`
+            )
+            .join('')}
+        </ul>`
+      : '';
+
+  const ctaHtml =
+    ctaLabel && ctaUrl
+      ? `<div style="text-align: center; margin: 30px 0;">
+          <a href="${ctaUrl}" style="display: inline-block; padding: 14px 32px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            ${ctaLabel}
+          </a>
+        </div>`
+      : '';
+
+  const outroHtml =
+    outro
+      ? `<p style="margin: 30px 0 18px; font-size: 16px; line-height: 1.6; color: #374151;">${outro}</p>`
+      : '';
+
+  return `<!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>${title}</title>
+    </head>
+    <body style="margin:0; padding:0; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color:#f9fafb;">
+      <table role="presentation" style="width:100%; border-collapse:collapse; background-color:#f9fafb;">
+        <tr>
+          <td align="center" style="padding:40px 16px;">
+            <table role="presentation" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:16px; box-shadow:0 12px 32px rgba(15, 23, 42, 0.1); overflow:hidden;">
+              <tr>
+                <td style="padding:40px 40px 24px; text-align:center; background:linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+                  <h1 style="margin:0; color:#ffffff; font-size:28px; font-weight:700;">${title}</h1>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:36px 40px 24px;">
+                  <p style="margin:0 0 18px; font-size:16px; line-height:1.6; color:#374151;">${greeting}</p>
+                  ${paragraphHtml}
+                  ${bulletsHtml}
+                  ${ctaHtml}
+                  ${outroHtml}
+                  <p style="margin:30px 0 0; font-size:16px; line-height:1.6; color:#374151;">Warmly,<br/>The SignalsLoop Team</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:24px 40px; background-color:#f3f4f6; text-align:center;">
+                  <p style="margin:0; font-size:13px; color:#6b7280;">
+                    Need a hand? Reply to this email or reach us at <a href="mailto:support@signalsloop.com" style="color:#4f46e5; text-decoration:none;">support@signalsloop.com</a>
+                  </p>
+                  <p style="margin:12px 0 0; font-size:12px; color:#9ca3af;">© ${new Date().getFullYear()} SignalsLoop. All rights reserved.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>`;
+}
+
+async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: [to],
+    subject,
+    html,
+  });
+
+  if (error) {
+    console.error('Email send error:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function sendFreeWelcomeEmail({ email, name }: BaseEmailParams) {
+  const html = buildEmailHtml({
+    title: 'Welcome to SignalsLoop 👋',
+    greeting: `Hi${name ? ` ${name}` : ''},`,
+    paragraphs: [
+      'Thanks for joining SignalsLoop! We built this space to help product teams capture feedback, understand what matters most, and keep customers in the loop. We’re excited to have you with us.',
+      'Here are a few quick things you can do right away:',
+    ],
+    bullets: [
+      'Create your first public board and invite your team.',
+      'Capture ideas or feedback from customers in seconds.',
+      'Keep everyone aligned by sharing roadmap updates effortlessly.',
+    ],
+    ctaLabel: 'Start Building Your Board',
+    ctaUrl: `${APP_URL}/app`,
+    outro: 'Have questions or want tips? Just reply—our team reads every message.',
+  });
+
+  await sendEmail({ to: email, subject: '👋 Welcome to SignalsLoop', html });
+}
+
+export async function sendProWelcomeEmail({ email, name, projectName }: ProWelcomeEmailParams) {
+  const workspaceLabel = projectName ? ` ${projectName}` : '';
+  const html = buildEmailHtml({
+    title: 'Welcome to SignalsLoop Pro 🚀',
+    greeting: `Hi${name ? ` ${name}` : ''},`,
+    paragraphs: [
+      `Thank you for upgrading${workspaceLabel} to SignalsLoop Pro! You now have everything you need to run a world-class feedback program.`,
+      'Here’s what you can start using right away:',
+    ],
+    bullets: [
+      'Unlimited feedback boards and advanced AI insights.',
+      'Priority support with faster responses from our team.',
+      'Custom branding to give your portal the exact look you want.',
+      'Deep analytics to understand sentiment, themes, and demand.',
+    ],
+    ctaLabel: 'Explore Pro Features',
+    ctaUrl: `${APP_URL}/app`,
+    outro: 'If there’s anything you’d like help with—from migration to best practices—just reply. We’re here for you.',
+  });
+
+  await sendEmail({ to: email, subject: '🚀 Your SignalsLoop Pro workspace is ready', html });
+}
+
+export async function sendCancellationEmail({
+  email,
+  name,
+  projectName,
+  reactivationUrl,
+}: CancellationEmailParams) {
+  const html = buildEmailHtml({
+    title: 'We’re sad to see you go 💜',
+    greeting: `Hi${name ? ` ${name}` : ''},`,
+    paragraphs: [
+      `Thanks for spending time with SignalsLoop${projectName ? ` and building ${projectName}` : ''}. We’ve canceled your subscription, but your workspace and feedback are safe if you decide to return.`,
+    ],
+    bullets: [
+      'You can continue using the free plan any time.',
+      'Need an export of your data? Reply and we’ll send it over.',
+      'We’re always iterating—tell us what would bring you back!',
+    ],
+    ctaLabel: reactivationUrl ? 'Reactivate Your Subscription' : undefined,
+    ctaUrl: reactivationUrl ?? undefined,
+    outro: 'Got a minute to share feedback? Hit reply—your input makes SignalsLoop better for everyone.',
+  });
+
+  await sendEmail({ to: email, subject: '💜 We’ve canceled your SignalsLoop subscription', html });
+}
 
 interface SendGiftNotificationParams {
   recipientEmail: string;
@@ -985,4 +1177,3 @@ export async function sendVoteOnBehalfEmail(params: SendVoteOnBehalfEmailParams)
     throw error;
   }
 }
-
