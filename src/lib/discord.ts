@@ -298,6 +298,19 @@ export async function triggerDiscordNotification(
         `Discord webhook error (${response.status}) for project ${projectId}:`,
         errorBody
       );
+
+      if (response.status === 401 || response.status === 404) {
+        await supabase
+          .from('discord_integrations')
+          .update({
+            access_token: null,
+            refresh_token: null,
+            expires_at: null,
+            scope: 'invalid',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', (integration as DiscordIntegration).id);
+      }
     }
 
     await supabase
