@@ -177,15 +177,15 @@ export default function LoginPage() {
 
       const supabase = createClient(supabaseUrl, supabaseKey);
       const redirectUrl = window.location.origin + '/auth/callback?next=/app';
-      
+
       console.log('Starting Google OAuth with redirectTo:', redirectUrl);
       console.log('Supabase URL:', supabaseUrl);
       console.log('Supabase Key exists:', !!supabaseKey);
-      
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/login`
+          redirectTo: redirectUrl
         }
       });
 
