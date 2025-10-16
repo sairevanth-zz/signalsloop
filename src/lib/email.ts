@@ -7,7 +7,7 @@ const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.signalsloop.com
 const FROM_ADDRESS =
   process.env.RESEND_FROM_ADDRESS ||
   process.env.NEXT_PUBLIC_RESEND_FROM_ADDRESS ||
-  'SignalsLoop <onboarding@resend.dev>';
+  'SignalsLoop <noreply@signalsloop.com>';
 
 interface BaseEmailParams {
   email: string;
