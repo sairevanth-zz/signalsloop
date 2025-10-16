@@ -31,9 +31,52 @@ export default function Homepage() {
     // Check if there's an access_token in the hash (magic link redirect)
     const hash = window.location.hash;
     if (hash && hash.includes('access_token')) {
-      console.log('Found access_token in hash, redirecting to app');
-      router.push(`/app${hash}`);
-      return;
+      console.log('Found access_token in hash, checking if new user');
+      // Extract tokens and check if new user
+      const urlParams = new URLSearchParams(hash.substring(1));
+      const accessToken = urlParams.get('access_token');
+
+      if (accessToken) {
+        // Set session and check if new user
+        const checkAndRedirect = async () => {
+          try {
+            const { createClient } = await import('@supabase/supabase-js');
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+            const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+            if (supabaseUrl && supabaseKey) {
+              const supabase = createClient(supabaseUrl, supabaseKey);
+              const { data } = await supabase.auth.getUser(accessToken);
+
+              if (data.user) {
+                const userCreatedAt = new Date(data.user.created_at);
+                const timeSinceCreation = Date.now() - userCreatedAt.getTime();
+                const isNewUser = timeSinceCreation < 300000; // 5 minutes
+
+                console.log('Homepage new user check:', {
+                  created_at: data.user.created_at,
+                  time_since_creation_ms: timeSinceCreation,
+                  is_new_user: isNewUser
+                });
+
+                if (isNewUser) {
+                  console.log('New user, redirecting to welcome');
+                  router.push('/welcome');
+                  return;
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error checking user status:', error);
+          }
+
+          // Default: redirect to app
+          router.push('/app');
+        };
+
+        checkAndRedirect();
+        return;
+      }
     }
 
     // If user is already authenticated, redirect to dashboard
