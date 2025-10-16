@@ -31,14 +31,15 @@ export default function Homepage() {
     // Check if there's an access_token in the hash (magic link redirect)
     const hash = window.location.hash;
     if (hash && hash.includes('access_token')) {
-      console.log('Found access_token in hash, checking if new user');
-      // Extract tokens and check if new user
+      console.log('Found access_token in hash, setting session and checking if new user');
+      // Extract tokens
       const urlParams = new URLSearchParams(hash.substring(1));
       const accessToken = urlParams.get('access_token');
+      const refreshToken = urlParams.get('refresh_token');
 
-      if (accessToken) {
+      if (accessToken && refreshToken) {
         // Set session and check if new user
-        const checkAndRedirect = async () => {
+        const setSessionAndRedirect = async () => {
           try {
             const { createClient } = await import('@supabase/supabase-js');
             const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -46,15 +47,28 @@ export default function Homepage() {
 
             if (supabaseUrl && supabaseKey) {
               const supabase = createClient(supabaseUrl, supabaseKey);
-              const { data } = await supabase.auth.getUser(accessToken);
 
-              if (data.user) {
-                const userCreatedAt = new Date(data.user.created_at);
+              // First, set the session with both tokens
+              const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken
+              });
+
+              if (sessionError) {
+                console.error('Error setting session:', sessionError);
+                router.push('/app');
+                return;
+              }
+
+              console.log('Session set successfully');
+
+              if (sessionData.user) {
+                const userCreatedAt = new Date(sessionData.user.created_at);
                 const timeSinceCreation = Date.now() - userCreatedAt.getTime();
                 const isNewUser = timeSinceCreation < 300000; // 5 minutes
 
                 console.log('Homepage new user check:', {
-                  created_at: data.user.created_at,
+                  created_at: sessionData.user.created_at,
                   time_since_creation_ms: timeSinceCreation,
                   is_new_user: isNewUser
                 });
@@ -63,14 +77,14 @@ export default function Homepage() {
                   console.log('New user detected, sending welcome email and redirecting');
 
                   // Send welcome email for new users
-                  if (data.user.email) {
+                  if (sessionData.user.email) {
                     try {
-                      await fetch('/api/users/welcome', {
+                      const emailResponse = await fetch('/api/users/welcome', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: data.user.id })
+                        body: JSON.stringify({ userId: sessionData.user.id })
                       });
-                      console.log('Welcome email API called');
+                      console.log('Welcome email API response:', emailResponse.status);
                     } catch (emailError) {
                       console.error('Failed to send welcome email:', emailError);
                       // Don't block the flow if email fails
@@ -83,14 +97,14 @@ export default function Homepage() {
               }
             }
           } catch (error) {
-            console.error('Error checking user status:', error);
+            console.error('Error in session setup:', error);
           }
 
           // Default: redirect to app
           router.push('/app');
         };
 
-        checkAndRedirect();
+        setSessionAndRedirect();
         return;
       }
     }
