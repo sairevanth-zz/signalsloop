@@ -173,23 +173,32 @@ export default function LoginPage() {
 
     // If user is already authenticated (and no tokens in URL), check if new user
     if (!loading && user && !window.location.hash.includes('access_token=')) {
-      const userCreatedAt = new Date(user.created_at || new Date());
-      const timeSinceCreation = Date.now() - userCreatedAt.getTime();
-      const isNewUser = timeSinceCreation < 300000; // 5 minutes
-
-      console.log('User already authenticated check:', {
+      console.log('User already authenticated, checking if new user:', {
+        email: user.email,
         created_at: user.created_at,
-        time_since_creation_ms: timeSinceCreation,
-        is_new_user: isNewUser
+        has_created_at: !!user.created_at
       });
 
-      if (isNewUser) {
-        console.log('New user already authenticated, redirecting to welcome');
-        router.push('/welcome');
-      } else {
-        console.log('Existing user already authenticated, redirecting to dashboard');
-        router.push('/app');
+      // Only check new user status if we have created_at
+      if (user.created_at) {
+        const userCreatedAt = new Date(user.created_at);
+        const timeSinceCreation = Date.now() - userCreatedAt.getTime();
+        const isNewUser = timeSinceCreation < 300000; // 5 minutes
+
+        console.log('New user check result:', {
+          time_since_creation_ms: timeSinceCreation,
+          is_new_user: isNewUser
+        });
+
+        if (isNewUser) {
+          console.log('New user detected, redirecting to welcome');
+          router.push('/welcome');
+          return;
+        }
       }
+
+      console.log('Existing user, redirecting to dashboard');
+      router.push('/app');
     }
   }, [user, loading, router]);
 
