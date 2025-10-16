@@ -59,15 +59,8 @@ export default function LoginPage() {
   // Ensure we're on client side
   useEffect(() => {
     setIsClient(true);
-    
-    // If user is already authenticated, redirect to dashboard
-    if (!loading && user) {
-      console.log('User already authenticated, redirecting to dashboard');
-      router.push('/app');
-      return;
-    }
-    
-    // Check for OAuth tokens in URL hash
+
+    // Check for OAuth tokens in URL hash first (before checking auth state)
     if (typeof window !== 'undefined') {
       const hash = window.location.hash;
       if (hash.includes('access_token=')) {
@@ -176,6 +169,27 @@ export default function LoginPage() {
       
       setError(errorMessage);
       window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // If user is already authenticated (and no tokens in URL), check if new user
+    if (!loading && user && !window.location.hash.includes('access_token=')) {
+      const userCreatedAt = new Date(user.created_at || new Date());
+      const timeSinceCreation = Date.now() - userCreatedAt.getTime();
+      const isNewUser = timeSinceCreation < 300000; // 5 minutes
+
+      console.log('User already authenticated check:', {
+        created_at: user.created_at,
+        time_since_creation_ms: timeSinceCreation,
+        is_new_user: isNewUser
+      });
+
+      if (isNewUser) {
+        console.log('New user already authenticated, redirecting to welcome');
+        router.push('/welcome');
+      } else {
+        console.log('Existing user already authenticated, redirecting to dashboard');
+        router.push('/app');
+      }
     }
   }, [user, loading, router]);
 
