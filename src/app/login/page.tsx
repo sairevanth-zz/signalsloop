@@ -120,7 +120,23 @@ export default function LoginPage() {
 
                   // Redirect to welcome page for new users, app for existing users
                   if (isNewUser) {
-                    console.log('New user detected, redirecting to welcome page');
+                    console.log('New user detected, sending welcome email and redirecting to welcome page');
+
+                    // Send welcome email for new users
+                    if (data.user.email) {
+                      try {
+                        const emailResponse = await fetch('/api/users/welcome', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ userId: data.user.id })
+                        });
+                        console.log('Welcome email API response:', emailResponse.status);
+                      } catch (emailError) {
+                        console.error('Failed to send welcome email:', emailError);
+                        // Don't block the flow if email fails
+                      }
+                    }
+
                     window.location.href = '/welcome';
                     return;
                   }
