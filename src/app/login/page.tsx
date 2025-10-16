@@ -91,16 +91,16 @@ export default function LoginPage() {
               const { createClient } = require('@supabase/supabase-js');
               const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
               const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-              
+
               if (supabaseUrl && supabaseKey) {
                 const supabase = createClient(supabaseUrl, supabaseKey);
-                
+
                 // Set the session with the tokens
                 const { data, error } = await supabase.auth.setSession({
                   access_token: accessToken,
                   refresh_token: refreshToken || ''
                 });
-                
+
                 if (error) {
                   console.error('Error setting session:', error);
                   setError('Authentication failed. Please try again.');
@@ -109,6 +109,29 @@ export default function LoginPage() {
                 } else {
                   console.log('Session set successfully:', data.user?.email);
                 }
+
+                // Check if this is a new user (created within last 5 minutes)
+                if (data.user) {
+                  const userCreatedAt = new Date(data.user.created_at);
+                  const timeSinceCreation = Date.now() - userCreatedAt.getTime();
+                  const isNewUser = timeSinceCreation < 300000; // 5 minutes
+
+                  console.log('User creation check:', {
+                    created_at: data.user.created_at,
+                    time_since_creation_ms: timeSinceCreation,
+                    is_new_user: isNewUser
+                  });
+
+                  // Clean up the URL
+                  window.history.replaceState({}, document.title, window.location.pathname);
+
+                  // Redirect to welcome page for new users, app for existing users
+                  if (isNewUser) {
+                    console.log('New user detected, redirecting to welcome page');
+                    window.location.href = '/welcome';
+                    return;
+                  }
+                }
               }
             } catch (error) {
               console.error('Error processing OAuth tokens:', error);
@@ -116,8 +139,8 @@ export default function LoginPage() {
               setIsGoogleLoading(false);
               return;
             }
-            
-            // Clean up the URL and redirect to app
+
+            // Clean up the URL and redirect to app for existing users
             window.history.replaceState({}, document.title, window.location.pathname);
             window.location.href = '/app';
           };
