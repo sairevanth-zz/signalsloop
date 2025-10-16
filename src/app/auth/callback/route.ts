@@ -95,14 +95,48 @@ export async function GET(request: NextRequest) {
           console.error('[WELCOME EMAIL] Init error details:', JSON.stringify(welcomeInitError, null, 2));
         }
         
-        // Check if this is a new user (created_at is very recent)
+        // Check if this is a new user
+        // Use a more reliable check: compare created_at with current time
         const userCreatedAt = new Date(data.user.created_at);
-        const isNewUser = (Date.now() - userCreatedAt.getTime()) < 60000; // Within last minute
-        
-        console.log('Is new user:', isNewUser, 'Time difference:', Date.now() - userCreatedAt.getTime());
-        
+        const timeSinceCreation = Date.now() - userCreatedAt.getTime();
+        const isRecentlyCreated = timeSinceCreation < 300000; // Within last 5 minutes (more generous window)
+
+        console.log('User creation check:', {
+          created_at: data.user.created_at,
+          time_since_creation_ms: timeSinceCreation,
+          is_recently_created: isRecentlyCreated
+        });
+
+        // Additional check: See if user has completed onboarding by checking users table
+        let shouldShowWelcome = false;
+
+        try {
+          const serviceClient = getSupabaseServiceRoleClient();
+          if (serviceClient && isRecentlyCreated) {
+            const { data: userRecord } = await serviceClient
+              .from('users')
+              .select('name, welcome_email_sent_at')
+              .eq('id', data.user.id)
+              .maybeSingle();
+
+            console.log('User record check:', userRecord);
+
+            // Show welcome page if user is new OR hasn't set a name yet
+            // This handles cases where they skipped the name step initially
+            shouldShowWelcome = isRecentlyCreated && (!userRecord || !userRecord.name);
+          } else if (isRecentlyCreated) {
+            // Fallback to time-based check if can't query database
+            shouldShowWelcome = true;
+          }
+        } catch (checkError) {
+          console.error('Error checking user onboarding status:', checkError);
+          // Fallback to time-based check on error
+          shouldShowWelcome = isRecentlyCreated;
+        }
+
         // For new users, redirect to welcome page first
-        if (isNewUser) {
+        // This gives them a chance to set their name
+        if (shouldShowWelcome) {
           console.log('New user detected, redirecting to welcome page');
           return NextResponse.redirect(`${origin}/welcome`);
         }

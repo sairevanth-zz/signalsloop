@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,7 @@ export default function WelcomePage() {
   const [nameInput, setNameInput] = useState('');
   const [isSavingName, setIsSavingName] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -40,12 +41,15 @@ export default function WelcomePage() {
       const defaultName = profile.name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || '';
       setNameInput(defaultName);
 
-      // Show name editor if user doesn't have a custom name set
-      if (!profile.name) {
+      // Show name editor if:
+      // 1. User doesn't have a custom name set
+      // 2. OR force=true query parameter is present (for testing)
+      const forceEdit = searchParams.get('force') === 'true';
+      if (!profile.name || forceEdit) {
         setIsEditingName(true);
       }
     }
-  }, [profile, user]);
+  }, [profile, user, searchParams]);
 
   const handleSaveName = async () => {
     if (!nameInput.trim()) {
