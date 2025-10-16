@@ -224,8 +224,9 @@ export default function LoginPage() {
       }
 
       const supabase = createClient(supabaseUrl, supabaseKey);
-      const redirectUrl = window.location.origin + '/app';
-      
+      // Use auth callback for magic links too, so new users see welcome page
+      const redirectUrl = window.location.origin + '/auth/callback?next=/app';
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
