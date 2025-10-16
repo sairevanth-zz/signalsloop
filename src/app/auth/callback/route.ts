@@ -107,37 +107,10 @@ export async function GET(request: NextRequest) {
           is_recently_created: isRecentlyCreated
         });
 
-        // Additional check: See if user has completed onboarding by checking users table
-        let shouldShowWelcome = false;
-
-        try {
-          const serviceClient = getSupabaseServiceRoleClient();
-          if (serviceClient && isRecentlyCreated) {
-            const { data: userRecord } = await serviceClient
-              .from('users')
-              .select('name, welcome_email_sent_at')
-              .eq('id', data.user.id)
-              .maybeSingle();
-
-            console.log('User record check:', userRecord);
-
-            // Show welcome page if user is new OR hasn't set a name yet
-            // This handles cases where they skipped the name step initially
-            shouldShowWelcome = isRecentlyCreated && (!userRecord || !userRecord.name);
-          } else if (isRecentlyCreated) {
-            // Fallback to time-based check if can't query database
-            shouldShowWelcome = true;
-          }
-        } catch (checkError) {
-          console.error('Error checking user onboarding status:', checkError);
-          // Fallback to time-based check on error
-          shouldShowWelcome = isRecentlyCreated;
-        }
-
-        // For new users, redirect to welcome page first
-        // This gives them a chance to set their name
-        if (shouldShowWelcome) {
-          console.log('New user detected, redirecting to welcome page');
+        // For new users (within 5 minutes), always show welcome page
+        // This gives them a chance to set or customize their name
+        if (isRecentlyCreated) {
+          console.log('New user detected (created within 5 minutes), redirecting to welcome page');
           return NextResponse.redirect(`${origin}/welcome`);
         }
       }
