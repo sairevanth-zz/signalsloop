@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Menu, CreditCard, LogOut, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function GlobalBanner({ 
   projectSlug,
@@ -102,13 +103,66 @@ export default function GlobalBanner({
     router.push('/');
   };
 
-  const handleManageBilling = () => {
-    // Redirect to our custom billing management page
-    const billingUrl = projectSlug === 'account' || !projectSlug
-      ? '/app/billing-manage'
-      : `/${projectSlug}/billing-manage`;
-    
-    router.push(billingUrl);
+  const handleManageBilling = async () => {
+    try {
+      const supabase = getSupabaseClient();
+
+      // Get the project to find stripe_customer_id
+      const { data: projects, error: projectError } = await supabase
+        .from('projects')
+        .select('id, slug, stripe_customer_id, plan')
+        .eq('owner_id', user?.id);
+
+      if (projectError) {
+        console.error('Project query error:', projectError);
+        toast.error('Failed to load project information');
+        return;
+      }
+
+      if (!projects || projects.length === 0) {
+        toast.error('No project found');
+        return;
+      }
+
+      const project = projectSlug
+        ? projects.find(p => p.slug === projectSlug) || projects[0]
+        : projects[0];
+
+      console.log('Selected project:', project);
+
+      if (project.plan !== 'pro') {
+        toast.info('You need to upgrade to Pro first to access billing management.');
+        return;
+      }
+
+      // Handle subscriptions without Stripe customer ID (e.g., gifted)
+      if (!project.stripe_customer_id) {
+        toast.info('Your Pro subscription is not managed through Stripe. Contact support for assistance.');
+        return;
+      }
+
+      // Create Stripe Customer Portal session
+      const response = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customerId: project.stripe_customer_id,
+          returnUrl: window.location.href
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create portal session');
+      }
+
+      const { url } = await response.json();
+      window.location.href = url;
+    } catch (error) {
+      console.error('Error opening billing portal:', error);
+      toast.error('Failed to open billing portal. Please try again.');
+    }
   };
 
   const handleCancelTrial = async () => {

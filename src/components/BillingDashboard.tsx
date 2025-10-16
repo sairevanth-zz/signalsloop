@@ -432,19 +432,48 @@ export function BillingDashboard({
   const handleManageBilling = async () => {
     console.log('🔧 Manage billing clicked');
     console.log('📋 Billing info:', billingInfo);
-    
+
     if (billingInfo.plan !== 'pro') {
       console.log('⚠️ User is not on Pro plan');
       toast.info('You need to upgrade to Pro first to access billing management. Click "Upgrade Now" to get started!');
       return;
     }
 
-    // Redirect to our custom billing management page
-    const billingUrl = projectSlug === 'account' 
-      ? '/app/billing-manage'
-      : `/${projectSlug}/billing-manage`;
-    
-    window.location.href = billingUrl;
+    // Handle subscriptions without Stripe customer ID (e.g., gifted)
+    if (!billingInfo.stripe_customer_id) {
+      console.log('ℹ️ Subscription not managed through Stripe');
+      toast.info('Your Pro subscription is not managed through Stripe. Contact support for assistance.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('🚀 Creating Stripe Customer Portal session...');
+
+      const response = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customerId: billingInfo.stripe_customer_id,
+          returnUrl: window.location.href
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create portal session');
+      }
+
+      const { url } = await response.json();
+      console.log('✅ Redirecting to Stripe Customer Portal');
+      window.location.href = url;
+    } catch (error) {
+      console.error('❌ Error opening billing portal:', error);
+      toast.error('Failed to open billing portal. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpgradeToYearly = async () => {
