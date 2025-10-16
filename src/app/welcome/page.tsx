@@ -5,20 +5,27 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
+import { Input } from '@/components/ui/input';
+import {
   CheckCircle,
   Plus,
   ArrowRight,
   User,
   Calendar,
-  Sparkles
+  Sparkles,
+  Edit2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 export default function WelcomePage() {
   const { user, loading } = useAuth();
+  const { profile, loading: profileLoading, updateProfile } = useUserProfile(user?.id);
   const [isCreating, setIsCreating] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+  const [isSavingName, setIsSavingName] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -26,6 +33,42 @@ export default function WelcomePage() {
       router.push('/login');
     }
   }, [user, loading, router]);
+
+  useEffect(() => {
+    if (profile) {
+      // Pre-fill with existing name or derive from email
+      const defaultName = profile.name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || '';
+      setNameInput(defaultName);
+
+      // Show name editor if user doesn't have a custom name set
+      if (!profile.name) {
+        setIsEditingName(true);
+      }
+    }
+  }, [profile, user]);
+
+  const handleSaveName = async () => {
+    if (!nameInput.trim()) {
+      toast.error('Please enter a name');
+      return;
+    }
+
+    setIsSavingName(true);
+    try {
+      await updateProfile({ name: nameInput.trim() });
+      toast.success('Name saved successfully!');
+      setIsEditingName(false);
+    } catch (error) {
+      console.error('Error saving name:', error);
+      toast.error('Failed to save name');
+    } finally {
+      setIsSavingName(false);
+    }
+  };
+
+  const handleSkipName = () => {
+    setIsEditingName(false);
+  };
 
   const createFirstProject = async () => {
     setIsCreating(true);
@@ -44,7 +87,7 @@ export default function WelcomePage() {
     router.push('/app');
   };
 
-  if (loading) {
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -55,6 +98,8 @@ export default function WelcomePage() {
   if (!user) {
     return null; // Will redirect to login
   }
+
+  const displayName = profile?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'there';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -81,6 +126,71 @@ export default function WelcomePage() {
             </Badge>
           </div>
         </div>
+
+        {/* Name Customization Section */}
+        {isEditingName && (
+          <Card className="mb-8 border-blue-200 bg-blue-50/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Edit2 className="h-5 w-5 text-blue-600" />
+                What should we call you?
+              </CardTitle>
+              <CardDescription>
+                {profile?.name
+                  ? `We found your name as "${displayName}". You can change it if you'd like.`
+                  : "Let us know your preferred name for a personalized experience."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Input
+                    type="text"
+                    placeholder="Enter your name"
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSaveName();
+                      }
+                    }}
+                    className="flex-1"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSaveName}
+                      disabled={isSavingName || !nameInput.trim()}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {isSavingName ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Save
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleSkipName}
+                      disabled={isSavingName}
+                    >
+                      Skip for now
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Don't worry, you can always change this later in your profile settings.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Getting Started Steps */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
