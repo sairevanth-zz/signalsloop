@@ -60,7 +60,23 @@ export default function Homepage() {
                 });
 
                 if (isNewUser) {
-                  console.log('New user, redirecting to welcome');
+                  console.log('New user detected, sending welcome email and redirecting');
+
+                  // Send welcome email for new users
+                  if (data.user.email) {
+                    try {
+                      await fetch('/api/users/welcome', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: data.user.id })
+                      });
+                      console.log('Welcome email API called');
+                    } catch (emailError) {
+                      console.error('Failed to send welcome email:', emailError);
+                      // Don't block the flow if email fails
+                    }
+                  }
+
                   router.push('/welcome');
                   return;
                 }
