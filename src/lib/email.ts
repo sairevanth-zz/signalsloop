@@ -194,15 +194,15 @@ export async function sendCancellationEmail({
     ],
     bullets: [
       'You can continue using the free plan any time.',
-      'Need an export of your data? Reply and we'll send it over.',
-      'We're always iterating—tell us what would bring you back!',
+      'Need an export of your data? Reply and we\'ll send it over.',
+      'We\'re always iterating—tell us what would bring you back!',
     ],
     ctaLabel: reactivationUrl ? 'Reactivate Your Pro Subscription' : undefined,
     ctaUrl: reactivationUrl ?? undefined,
     outro: 'Got a minute to share feedback? Hit reply—your input makes SignalsLoop better for everyone.',
   });
 
-  await sendEmail({ to: email, subject: '💜 We've canceled your SignalsLoop Pro subscription', html });
+  await sendEmail({ to: email, subject: '💜 We\'ve canceled your SignalsLoop Pro subscription', html });
 }
 
 interface SendGiftNotificationParams {
