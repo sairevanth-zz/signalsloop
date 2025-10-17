@@ -204,9 +204,9 @@ export async function POST(request: NextRequest) {
     const sig = request.headers.get('stripe-signature')!;
 
     let event: Stripe.Event;
+    const stripe = getStripe();
 
     try {
-      const stripe = getStripe();
       const endpointSecret = getEndpointSecret();
       event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
     } catch (err) {
