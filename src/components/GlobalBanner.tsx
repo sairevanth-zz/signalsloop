@@ -288,6 +288,14 @@ export default function GlobalBanner({
                       >
                         Manage Billing
                       </Button>
+                    ) : billingInfo.plan === 'pro' && !billingInfo.stripe_customer_id ? (
+                      <Button
+                        onClick={() => router.push('/app/billing')}
+                        variant="outline"
+                        size="sm"
+                      >
+                        View Billing
+                      </Button>
                     ) : billingInfo.plan === 'free' ? (
                       <Button
                         onClick={() => router.push('/app/billing')}
@@ -355,13 +363,18 @@ export default function GlobalBanner({
                           <CreditCard className="mr-2 h-4 w-4" />
                           Manage Billing
                         </DropdownMenuItem>
+                      ) : billingInfo.plan === 'pro' && !billingInfo.stripe_customer_id ? (
+                        <DropdownMenuItem onClick={() => router.push('/app/billing')}>
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          View Billing
+                        </DropdownMenuItem>
                       ) : billingInfo.plan === 'free' ? (
                         <DropdownMenuItem onClick={() => router.push('/app/billing')}>
                           <Crown className="mr-2 h-4 w-4" />
                           Upgrade to Pro
                         </DropdownMenuItem>
                       ) : null}
-                      {(billingInfo.is_trial || billingInfo.stripe_customer_id || billingInfo.plan === 'free') && <DropdownMenuSeparator />}
+                      <DropdownMenuSeparator />
                     </>
                   )}
                   <DropdownMenuItem onClick={handleSignOut}>
