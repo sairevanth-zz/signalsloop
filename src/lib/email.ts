@@ -164,7 +164,7 @@ export async function sendProWelcomeEmail({ email, name, projectName }: ProWelco
     greeting: `Hi${name ? ` ${name}` : ''},`,
     paragraphs: [
       `Thank you for upgrading to SignalsLoop Pro! You now have everything you need to run a world-class feedback program across all your projects.`,
-      'Here's what you can start using right away:',
+      "Here's what you can start using right away:",
     ],
     bullets: [
       'Unlimited feedback boards and advanced AI insights.',
