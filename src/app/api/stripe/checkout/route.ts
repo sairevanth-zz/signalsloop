@@ -65,6 +65,12 @@ export async function POST(request: NextRequest) {
       tax_id_collection: {
         enabled: true,
       },
+      automatic_tax: {
+        enabled: true,
+      },
+      customer_update: {
+        address: 'auto',
+      },
     });
 
     return NextResponse.json({ url: session.url });

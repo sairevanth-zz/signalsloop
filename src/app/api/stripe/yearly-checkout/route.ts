@@ -43,6 +43,16 @@ export async function POST(request: Request) {
           },
         ],
         mode: 'subscription',
+        billing_address_collection: 'required',
+        tax_id_collection: {
+          enabled: true,
+        },
+        automatic_tax: {
+          enabled: true,
+        },
+        customer_update: {
+          address: 'auto',
+        },
         subscription_data: {
           metadata: {
             account_id: projectId,
@@ -92,6 +102,16 @@ export async function POST(request: Request) {
           },
         ],
         mode: 'subscription',
+        billing_address_collection: 'required',
+        tax_id_collection: {
+          enabled: true,
+        },
+        automatic_tax: {
+          enabled: true,
+        },
+        customer_update: {
+          address: 'auto',
+        },
         subscription_data: {
           metadata: {
             project_id: projectId,
@@ -125,6 +145,16 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'subscription',
+      billing_address_collection: 'required',
+      tax_id_collection: {
+        enabled: true,
+      },
+      automatic_tax: {
+        enabled: true,
+      },
+      customer_update: {
+        address: 'auto',
+      },
       subscription_data: {
         metadata: {
           project_id: projectId,

@@ -39,6 +39,16 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'subscription',
+      billing_address_collection: 'required',
+      tax_id_collection: {
+        enabled: true,
+      },
+      automatic_tax: {
+        enabled: true,
+      },
+      customer_update: {
+        address: 'auto',
+      },
       success_url: successUrl || `${request.nextUrl.origin}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl || `${request.nextUrl.origin}/payment-test`,
       metadata: {

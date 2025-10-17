@@ -86,6 +86,7 @@ export function BillingDashboard({
   const [upgrading, setUpgrading] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [supabase, setSupabase] = useState<any>(null);
+  const [selectedBillingCycle, setSelectedBillingCycle] = useState<'monthly' | 'annual'>('monthly');
 
   // Initialize Supabase client safely
   useEffect(() => {
@@ -387,8 +388,16 @@ export function BillingDashboard({
     }
   }, [supabase, loadBillingInfo, loadUsage]);
 
+  useEffect(() => {
+    if (billingInfo.plan === 'pro' && billingInfo.is_yearly) {
+      setSelectedBillingCycle('annual');
+    } else {
+      setSelectedBillingCycle('monthly');
+    }
+  }, [billingInfo.plan, billingInfo.is_yearly]);
+
   const handleUpgrade = async () => {
-    console.log('🚀 Upgrade button clicked');
+    console.log('🚀 Upgrade button clicked', selectedBillingCycle);
     
     setUpgrading(true);
     
@@ -400,7 +409,7 @@ export function BillingDashboard({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          billingType: 'monthly', // Default to monthly
+          billingType: selectedBillingCycle,
           projectId: projectId,
           returnUrl: `${window.location.origin}/${projectSlug}/billing/success`
         })
@@ -678,24 +687,50 @@ export function BillingDashboard({
               )}
             </div>
             {billingInfo.plan === 'free' ? (
-              <Button 
-                onClick={handleUpgrade}
-                disabled={upgrading}
-                size="lg"
-                className="min-w-[120px]"
-              >
-                {upgrading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                    Upgrading...
-                  </div>
-                ) : (
-                  <>
-                    <Crown className="h-4 w-4 mr-2" />
-                    Upgrade to Pro
-                  </>
-                )}
-              </Button>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    type="button"
+                    variant={selectedBillingCycle === 'monthly' ? 'default' : 'outline'}
+                    className="flex-1 justify-start"
+                    onClick={() => setSelectedBillingCycle('monthly')}
+                  >
+                    <div className="flex flex-col items-start">
+                      <span className="font-semibold">Monthly</span>
+                      <span className="text-sm text-muted-foreground">$19 billed monthly</span>
+                    </div>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={selectedBillingCycle === 'annual' ? 'default' : 'outline'}
+                    className="flex-1 justify-start"
+                    onClick={() => setSelectedBillingCycle('annual')}
+                  >
+                    <div className="flex flex-col items-start">
+                      <span className="font-semibold">Yearly</span>
+                      <span className="text-sm text-muted-foreground">$180 billed yearly (save 20%)</span>
+                    </div>
+                  </Button>
+                </div>
+                <Button 
+                  onClick={handleUpgrade}
+                  disabled={upgrading}
+                  size="lg"
+                  className="min-w-[160px]"
+                >
+                  {upgrading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                      Starting checkout...
+                    </div>
+                  ) : (
+                    <>
+                      <Crown className="h-4 w-4 mr-2" />
+                      {selectedBillingCycle === 'annual' ? 'Upgrade to Yearly' : 'Upgrade to Monthly'}
+                    </>
+                  )}
+                </Button>
+              </div>
             ) : (
               <div className="flex flex-col gap-2">
                 <div className="flex gap-2 mb-2">
