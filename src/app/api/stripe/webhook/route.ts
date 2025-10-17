@@ -347,14 +347,19 @@ export async function POST(request: NextRequest) {
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
-        
+
         const updateData: any = {
           subscription_status: subscription.status,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           cancel_at_period_end: (subscription as any).cancel_at_period_end,
         };
+
+        // Only add current_period_end if it exists
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((subscription as any).current_period_end) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          updateData.current_period_end = new Date((subscription as any).current_period_end * 1000).toISOString();
+        }
 
 
         // Update subscription status in database
