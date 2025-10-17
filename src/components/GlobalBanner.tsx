@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Menu, CreditCard, LogOut, X } from 'lucide-react';
+import { Menu, CreditCard, LogOut, X, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function GlobalBanner({ 
@@ -280,13 +280,22 @@ export default function GlobalBanner({
                       >
                         Cancel Trial
                       </Button>
-                    ) : billingInfo.stripe_customer_id ? (
+                    ) : billingInfo.plan === 'pro' && billingInfo.stripe_customer_id ? (
                       <Button
                         onClick={handleManageBilling}
                         variant="outline"
                         size="sm"
                       >
                         Manage Billing
+                      </Button>
+                    ) : billingInfo.plan === 'free' ? (
+                      <Button
+                        onClick={() => router.push('/app/billing')}
+                        variant="default"
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        Upgrade to Pro
                       </Button>
                     ) : null}
                   </>
@@ -341,13 +350,18 @@ export default function GlobalBanner({
                           <X className="mr-2 h-4 w-4" />
                           Cancel Trial
                         </DropdownMenuItem>
-                      ) : billingInfo.stripe_customer_id ? (
+                      ) : billingInfo.plan === 'pro' && billingInfo.stripe_customer_id ? (
                         <DropdownMenuItem onClick={handleManageBilling}>
                           <CreditCard className="mr-2 h-4 w-4" />
                           Manage Billing
                         </DropdownMenuItem>
+                      ) : billingInfo.plan === 'free' ? (
+                        <DropdownMenuItem onClick={() => router.push('/app/billing')}>
+                          <Crown className="mr-2 h-4 w-4" />
+                          Upgrade to Pro
+                        </DropdownMenuItem>
                       ) : null}
-                      {(billingInfo.is_trial || billingInfo.stripe_customer_id) && <DropdownMenuSeparator />}
+                      {(billingInfo.is_trial || billingInfo.stripe_customer_id || billingInfo.plan === 'free') && <DropdownMenuSeparator />}
                     </>
                   )}
                   <DropdownMenuItem onClick={handleSignOut}>
