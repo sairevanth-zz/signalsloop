@@ -174,7 +174,7 @@ export async function sendProWelcomeEmail({ email, name, projectName }: ProWelco
     ],
     ctaLabel: 'Explore Pro Features',
     ctaUrl: `${APP_URL}/app`,
-    outro: 'If there's anything you'd like help with—from migration to best practices—just reply. We're here for you.',
+    outro: "If there's anything you'd like help with—from migration to best practices—just reply. We're here for you.",
   });
 
   await sendEmail({ to: email, subject: '🚀 Your SignalsLoop Pro account is ready', html });
