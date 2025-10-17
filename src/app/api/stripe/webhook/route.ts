@@ -368,6 +368,12 @@ export async function POST(request: NextRequest) {
           throw error;
         }
 
+        // Send cancellation email immediately when user cancels (sets cancel_at_period_end to true)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((subscription as any).cancel_at_period_end === true) {
+          await sendCancellationEmailsForCustomer(supabase, subscription.customer as string);
+        }
+
         // Log the event
         await supabase
           .from('billing_events')
