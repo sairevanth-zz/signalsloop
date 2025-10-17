@@ -231,7 +231,6 @@ export async function POST(request: NextRequest) {
               stripe_customer_id: session.customer as string,
               subscription_id: session.subscription as string,
               subscription_status: 'active',
-              upgraded_at: new Date().toISOString(),
             };
 
             // Update project to Pro plan
@@ -308,7 +307,6 @@ export async function POST(request: NextRequest) {
               stripe_customer_id: session.customer as string,
               subscription_id: session.subscription as string,
               subscription_status: 'active',
-              upgraded_at: new Date().toISOString(),
             };
 
             // Update project to Pro plan
@@ -393,7 +391,6 @@ export async function POST(request: NextRequest) {
           plan: 'free',
           subscription_status: 'canceled',
           subscription_id: null,
-          downgraded_at: new Date().toISOString(),
         };
 
         // Downgrade project to free plan

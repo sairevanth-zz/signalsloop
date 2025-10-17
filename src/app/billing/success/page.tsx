@@ -190,7 +190,7 @@ function BillingSuccessContent() {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </Link>
-              <Link href="/billing" className="flex-1">
+              <Link href="/app/billing" className="flex-1">
                 <Button variant="outline" className="w-full">
                   Manage Billing
                 </Button>
