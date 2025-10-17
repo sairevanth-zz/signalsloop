@@ -273,22 +273,22 @@ export default function GlobalBanner({
                     </Badge>
                     
                     {billingInfo.is_trial ? (
-                      <Button 
+                      <Button
                         onClick={handleCancelTrial}
-                        variant="outline" 
+                        variant="outline"
                         size="sm"
                       >
                         Cancel Trial
                       </Button>
-                    ) : (
-                      <Button 
+                    ) : billingInfo.stripe_customer_id ? (
+                      <Button
                         onClick={handleManageBilling}
-                        variant="outline" 
+                        variant="outline"
                         size="sm"
                       >
                         Manage Billing
                       </Button>
-                    )}
+                    ) : null}
                   </>
                 )}
                 
@@ -341,13 +341,13 @@ export default function GlobalBanner({
                           <X className="mr-2 h-4 w-4" />
                           Cancel Trial
                         </DropdownMenuItem>
-                      ) : (
+                      ) : billingInfo.stripe_customer_id ? (
                         <DropdownMenuItem onClick={handleManageBilling}>
                           <CreditCard className="mr-2 h-4 w-4" />
                           Manage Billing
                         </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
+                      ) : null}
+                      {(billingInfo.is_trial || billingInfo.stripe_customer_id) && <DropdownMenuSeparator />}
                     </>
                   )}
                   <DropdownMenuItem onClick={handleSignOut}>
