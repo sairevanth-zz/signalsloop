@@ -159,26 +159,25 @@ export async function sendFreeWelcomeEmail({ email, name }: BaseEmailParams) {
 }
 
 export async function sendProWelcomeEmail({ email, name, projectName }: ProWelcomeEmailParams) {
-  const workspaceLabel = projectName ? ` ${projectName}` : '';
   const html = buildEmailHtml({
     title: 'Welcome to SignalsLoop Pro 🚀',
     greeting: `Hi${name ? ` ${name}` : ''},`,
     paragraphs: [
-      `Thank you for upgrading${workspaceLabel} to SignalsLoop Pro! You now have everything you need to run a world-class feedback program.`,
-      'Here’s what you can start using right away:',
+      `Thank you for upgrading to SignalsLoop Pro! You now have everything you need to run a world-class feedback program across all your projects.`,
+      'Here's what you can start using right away:',
     ],
     bullets: [
       'Unlimited feedback boards and advanced AI insights.',
       'Priority support with faster responses from our team.',
-      'Custom branding to give your portal the exact look you want.',
+      'Custom branding to give your portals the exact look you want.',
       'Deep analytics to understand sentiment, themes, and demand.',
     ],
     ctaLabel: 'Explore Pro Features',
     ctaUrl: `${APP_URL}/app`,
-    outro: 'If there’s anything you’d like help with—from migration to best practices—just reply. We’re here for you.',
+    outro: 'If there's anything you'd like help with—from migration to best practices—just reply. We're here for you.',
   });
 
-  await sendEmail({ to: email, subject: '🚀 Your SignalsLoop Pro workspace is ready', html });
+  await sendEmail({ to: email, subject: '🚀 Your SignalsLoop Pro account is ready', html });
 }
 
 export async function sendCancellationEmail({
@@ -188,22 +187,22 @@ export async function sendCancellationEmail({
   reactivationUrl,
 }: CancellationEmailParams) {
   const html = buildEmailHtml({
-    title: 'We’re sad to see you go 💜',
+    title: 'Sorry to see you go 💜',
     greeting: `Hi${name ? ` ${name}` : ''},`,
     paragraphs: [
-      `Thanks for spending time with SignalsLoop${projectName ? ` and building ${projectName}` : ''}. We’ve canceled your subscription, but your workspace and feedback are safe if you decide to return.`,
+      `Thanks for spending time with SignalsLoop. We've canceled your Pro subscription, but all your projects and feedback are safe if you decide to return.`,
     ],
     bullets: [
       'You can continue using the free plan any time.',
-      'Need an export of your data? Reply and we’ll send it over.',
-      'We’re always iterating—tell us what would bring you back!',
+      'Need an export of your data? Reply and we'll send it over.',
+      'We're always iterating—tell us what would bring you back!',
     ],
-    ctaLabel: reactivationUrl ? 'Reactivate Your Subscription' : undefined,
+    ctaLabel: reactivationUrl ? 'Reactivate Your Pro Subscription' : undefined,
     ctaUrl: reactivationUrl ?? undefined,
     outro: 'Got a minute to share feedback? Hit reply—your input makes SignalsLoop better for everyone.',
   });
 
-  await sendEmail({ to: email, subject: '💜 We’ve canceled your SignalsLoop subscription', html });
+  await sendEmail({ to: email, subject: '💜 We've canceled your SignalsLoop Pro subscription', html });
 }
 
 interface SendGiftNotificationParams {
