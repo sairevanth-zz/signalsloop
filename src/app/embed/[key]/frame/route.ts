@@ -106,6 +106,7 @@ function generateFrameHTML(config) {
   // Use custom color if provided, otherwise default to blue
   const primaryColor = customColor || '#6366f1';
   const primaryColorHover = adjustBrightness(primaryColor, -10);
+  const primaryColorSoft = hexToRgba(primaryColor, 0.12);
   
   return `
 <!DOCTYPE html>
@@ -119,6 +120,12 @@ function generateFrameHTML(config) {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+    }
+    
+    :root {
+      --sl-primary: ${primaryColor};
+      --sl-primary-hover: ${primaryColorHover};
+      --sl-primary-soft: ${primaryColorSoft};
     }
     
     html {
@@ -199,7 +206,96 @@ function generateFrameHTML(config) {
       border-color: ${primaryColor};
       box-shadow: 0 0 0 3px ${primaryColor}20;
     }
-    
+
+    .form-label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #374151;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .category-option {
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: white;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .category-option:hover {
+      border-color: var(--sl-primary);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+
+    .category-option.active {
+      border-color: var(--sl-primary);
+      background: var(--sl-primary-soft);
+      box-shadow: 0 6px 18px rgba(99, 102, 241, 0.15);
+    }
+
+    .category-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #111827;
+      font-size: 14px;
+    }
+
+    .category-option.active .category-title {
+      color: var(--sl-primary);
+    }
+
+    .category-emoji {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .category-description {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    .priority-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .priority-btn {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .priority-btn:hover {
+      border-color: var(--sl-primary);
+    }
+
+    .priority-btn.active {
+      border: 2px solid var(--sl-primary);
+      color: var(--sl-primary);
+      background: var(--sl-primary-soft);
+    }
+
     .form-group textarea {
       resize: vertical;
       min-height: 80px;
@@ -444,6 +540,11 @@ function generateFrameHTML(config) {
         flex-direction: column;
         align-items: flex-start;
       }
+
+      .category-grid {
+        grid-template-columns: 1fr;
+      }
+
     }
   </style>
 </head>
@@ -456,28 +557,11 @@ function generateFrameHTML(config) {
     
     <div class="form-container">
       <form id="feedback-form">
-        <!-- Feedback Type -->
+        <!-- Feedback Category -->
         <div class="form-group">
-          <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 14px; color: #374151;">Feedback Type *</label>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-            <button type="button" class="type-btn" data-type="feature" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
-              <span style="font-size: 18px;">⭐</span>
-              <span style="font-weight: 500;">Feature</span>
-            </button>
-            <button type="button" class="type-btn" data-type="bug" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
-              <span style="font-size: 18px;">🐛</span>
-              <span style="font-weight: 500;">Bug</span>
-            </button>
-            <button type="button" class="type-btn" data-type="improvement" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
-              <span style="font-size: 18px;">💡</span>
-              <span style="font-weight: 500;">Improvement</span>
-            </button>
-            <button type="button" class="type-btn active" data-type="general" style="padding: 12px; border: 2px solid ${primaryColor}; background: rgba(99, 102, 241, 0.1); border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
-              <span style="font-size: 18px;">💬</span>
-              <span style="font-weight: 500; color: ${primaryColor};">General</span>
-            </button>
-          </div>
-          <input type="hidden" id="category" name="category" value="general">
+          <label class="form-label">Feedback Category *</label>
+          <div class="category-grid" id="category-grid"></div>
+          <input type="hidden" id="category" name="category" value="Feature Request">
         </div>
 
         <div class="form-group">
@@ -494,11 +578,11 @@ function generateFrameHTML(config) {
 
         <!-- Priority -->
         <div class="form-group">
-          <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 14px; color: #374151;">Priority</label>
-          <div style="display: flex; gap: 8px;">
-            <button type="button" class="priority-btn" data-priority="low" style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">Low</button>
-            <button type="button" class="priority-btn active" data-priority="medium" style="flex: 1; padding: 8px 12px; border: 2px solid ${primaryColor}; background: rgba(99, 102, 241, 0.1); color: ${primaryColor}; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Medium</button>
-            <button type="button" class="priority-btn" data-priority="high" style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">High</button>
+          <label class="form-label">Priority</label>
+          <div class="priority-group">
+            <button type="button" class="priority-btn" data-priority="low">Low</button>
+            <button type="button" class="priority-btn active" data-priority="medium">Medium</button>
+            <button type="button" class="priority-btn" data-priority="high">High</button>
           </div>
           <input type="hidden" id="priority" name="priority" value="medium">
         </div>
@@ -544,21 +628,32 @@ function generateFrameHTML(config) {
   </div>
 
   <script>
-    // Configuration
     const CONFIG = {
-      projectSlug: '${project.slug}',
-      isPro: ${isPro}
+      projectSlug: '${project.slug}'
     };
     
-    // DOM elements
     const form = document.getElementById('feedback-form');
     const titleInput = document.getElementById('title');
     const descInput = document.getElementById('description');
     const titleCount = document.getElementById('title-count');
     const descCount = document.getElementById('desc-count');
     const submitBtn = document.getElementById('submit-btn');
-    
-    // Character counters
+    const categoryInput = document.getElementById('category');
+    const categoryGrid = document.getElementById('category-grid');
+    const priorityButtons = document.querySelectorAll('.priority-btn');
+    const priorityInput = document.getElementById('priority');
+
+    const CATEGORY_OPTIONS = [
+      { value: 'Feature Request', label: 'Feature Request', emoji: '✨', description: 'Suggest a new feature or capability' },
+      { value: 'Bug', label: 'Bug Report', emoji: '🐞', description: 'Report a problem or defect' },
+      { value: 'Improvement', label: 'Improvement', emoji: '💡', description: 'Enhance an existing feature or workflow' },
+      { value: 'UI/UX', label: 'UI / UX', emoji: '🎨', description: 'Share design, usability, or user experience feedback' },
+      { value: 'Integration', label: 'Integration', emoji: '🔌', description: 'Connect SignalsLoop with other tools or APIs' },
+      { value: 'Performance', label: 'Performance', emoji: '🚀', description: 'Speed, stability, or reliability issues' },
+      { value: 'Documentation', label: 'Documentation', emoji: '📚', description: 'Guides, onboarding, or help content' },
+      { value: 'Other', label: 'Other', emoji: '💬', description: 'Anything else that doesn’t fit above' }
+    ];
+
     function updateCharCount(input, counter, max) {
       const count = input.value.length;
       counter.textContent = count + '/' + max;
@@ -576,49 +671,61 @@ function generateFrameHTML(config) {
     titleInput.addEventListener('input', () => updateCharCount(titleInput, titleCount, 100));
     descInput.addEventListener('input', () => updateCharCount(descInput, descCount, 500));
 
-    // Interactive functionality for type buttons
-    const typeButtons = document.querySelectorAll('.type-btn');
-    const categoryInput = document.getElementById('category');
-    typeButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const type = btn.dataset.type;
-        typeButtons.forEach(b => {
-          b.style.border = '2px solid #e5e7eb';
-          b.style.background = 'white';
-          const span = b.querySelector('span:last-child');
-          if (span) span.style.color = '';
-          b.classList.remove('active');
-        });
-        btn.style.border = '2px solid ${primaryColor}';
-        btn.style.background = 'rgba(99, 102, 241, 0.1)';
-        const span = btn.querySelector('span:last-child');
-        if (span) span.style.color = '${primaryColor}';
-        btn.classList.add('active');
-        categoryInput.value = type;
+    let categoryButtons = [];
+
+    function renderCategoryOptions() {
+      categoryGrid.innerHTML = '';
+      CATEGORY_OPTIONS.forEach((option) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'category-option';
+        button.dataset.value = option.value;
+        button.innerHTML = `
+          <div class="category-title">
+            <span class="category-emoji">${option.emoji}</span>
+            ${option.label}
+          </div>
+          <p class="category-description">${option.description}</p>
+        `;
+        button.addEventListener('click', () => setActiveCategory(option.value));
+        categoryGrid.appendChild(button);
       });
+      categoryButtons = Array.from(categoryGrid.querySelectorAll('.category-option'));
+    }
+
+    function setActiveCategory(value) {
+      categoryInput.value = value;
+      categoryButtons.forEach((button) => {
+        if (button.dataset.value === value) {
+          button.classList.add('active');
+        } else {
+          button.classList.remove('active');
+        }
+      });
+    }
+
+    renderCategoryOptions();
+    setActiveCategory(categoryInput.value || 'Feature Request');
+
+    function setActivePriority(value) {
+      priorityInput.value = value;
+      priorityButtons.forEach((button) => {
+        if (button.dataset.priority === value) {
+          button.classList.add('active');
+        } else {
+          button.classList.remove('active');
+        }
+      });
+    }
+
+    priorityButtons.forEach((button) => {
+      button.addEventListener('click', () => setActivePriority(button.dataset.priority));
     });
 
-    // Interactive functionality for priority buttons
-    const priorityButtons = document.querySelectorAll('.priority-btn');
-    const priorityInput = document.getElementById('priority');
-    priorityButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const priority = btn.dataset.priority;
-        priorityButtons.forEach(b => {
-          b.style.border = '1px solid #d1d5db';
-          b.style.background = 'white';
-          b.style.color = '';
-          b.style.fontWeight = '400';
-          b.classList.remove('active');
-        });
-        btn.style.border = '2px solid ${primaryColor}';
-        btn.style.background = 'rgba(99, 102, 241, 0.1)';
-        btn.style.color = '${primaryColor}';
-        btn.style.fontWeight = '500';
-        btn.classList.add('active');
-        priorityInput.value = priority;
-      });
-    });
+    setActivePriority(priorityInput.value || 'medium');
+
+    updateCharCount(titleInput, titleCount, 100);
+    updateCharCount(descInput, descCount, 500);
 
     // Form submission
     form.addEventListener('submit', async (e) => {
@@ -682,41 +789,8 @@ function generateFrameHTML(config) {
         updateCharCount(titleInput, titleCount, 100);
         updateCharCount(descInput, descCount, 500);
 
-        // Reset type buttons to default (general)
-        typeButtons.forEach(b => {
-          b.style.border = '2px solid #e5e7eb';
-          b.style.background = 'white';
-          const span = b.querySelector('span:last-child');
-          if (span) span.style.color = '';
-          b.classList.remove('active');
-        });
-        const generalBtn = document.querySelector('[data-type="general"]');
-        if (generalBtn) {
-          generalBtn.style.border = '2px solid ${primaryColor}';
-          generalBtn.style.background = 'rgba(99, 102, 241, 0.1)';
-          const span = generalBtn.querySelector('span:last-child');
-          if (span) span.style.color = '${primaryColor}';
-          generalBtn.classList.add('active');
-        }
-        categoryInput.value = 'general';
-
-        // Reset priority buttons to default (medium)
-        priorityButtons.forEach(b => {
-          b.style.border = '1px solid #d1d5db';
-          b.style.background = 'white';
-          b.style.color = '';
-          b.style.fontWeight = '400';
-          b.classList.remove('active');
-        });
-        const mediumBtn = document.querySelector('[data-priority="medium"]');
-        if (mediumBtn) {
-          mediumBtn.style.border = '2px solid ${primaryColor}';
-          mediumBtn.style.background = 'rgba(99, 102, 241, 0.1)';
-          mediumBtn.style.color = '${primaryColor}';
-          mediumBtn.style.fontWeight = '500';
-          mediumBtn.classList.add('active');
-        }
-        priorityInput.value = 'medium';
+        setActiveCategory('Feature Request');
+        setActivePriority('medium');
 
         // Track event
         trackEvent('feedback_submitted', {
@@ -867,4 +941,16 @@ function adjustBrightness(color, percent) {
   return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
     (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
     (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+}
+
+function hexToRgba(hex, alpha) {
+  let cleaned = hex.replace('#', '');
+  if (cleaned.length === 3) {
+    cleaned = cleaned.split('').map(char => char + char).join('');
+  }
+  const bigint = parseInt(cleaned, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
