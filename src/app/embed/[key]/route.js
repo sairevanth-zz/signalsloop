@@ -477,17 +477,22 @@ function generateWidgetScript(config) {
       borderRadius: isMobile ? '0' : '12px'
     });
 
+    function updateIframeHeight(contentHeight) {
+      if (!contentHeight) return;
+      const minHeight = isMobile ? window.innerHeight : 380;
+      const targetHeight = Math.max(contentHeight + 40, minHeight);
+      iframe.style.height = targetHeight + 'px';
+    }
+
     // Listen for height messages from iframe for iOS scrolling
     window.addEventListener('message', function(e) {
       if (e.data && e.data.type === 'signalsloop-resize' && e.data.height) {
-        if (isMobile) {
-          // Keep iframe height tied to viewport; internal iframe scroll handles content
-          iframe.style.height = '100%';
-        } else {
-          iframe.style.height = e.data.height + 'px';
-        }
+        updateIframeHeight(e.data.height);
       }
     });
+
+    // Ensure initial sizing
+    updateIframeHeight(window.innerHeight);
 
     // Create close button
     const closeButton = document.createElement('button');
