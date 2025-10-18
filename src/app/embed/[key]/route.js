@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -60,6 +61,9 @@ export async function GET(
     let projectSlug = key;
     
     // First, try to find by API key in api_keys table
+    const keyHashBase64 = Buffer.from(key, 'utf8').toString('base64');
+    const sha256Hash = crypto.createHash('sha256').update(key).digest('hex');
+
     const { data: apiKeyData, error: apiKeyError } = await supabase
       .from('api_keys')
       .select(`
@@ -69,7 +73,7 @@ export async function GET(
         usage_count,
         projects!inner(id, name, slug, plan)
       `)
-      .eq('key_hash', btoa(key))
+      .eq('key_hash', keyHashBase64)
       .single();
 
     if (apiKeyData && apiKeyData.projects) {
@@ -88,6 +92,33 @@ export async function GET(
         
       console.log('Valid API key found:', key, 'for project:', project.name);
     } else {
+      // Fallback to legacy hashed key (sha256 hex)
+      const { data: hashedKeyData } = await supabase
+        .from('api_keys')
+        .select(`
+          id,
+          project_id,
+          name,
+          usage_count,
+          projects!inner(id, name, slug, plan)
+        `)
+        .eq('key_hash', sha256Hash)
+        .single();
+
+      if (hashedKeyData && hashedKeyData.projects) {
+        project = hashedKeyData.projects;
+        projectSlug = project.slug;
+
+        await supabase
+          .from('api_keys')
+          .update({
+            usage_count: (hashedKeyData.usage_count || 0) + 1,
+            last_used_at: new Date().toISOString()
+          })
+          .eq('id', hashedKeyData.id);
+
+        console.log('Valid (legacy) API key found:', key, 'for project:', project.name);
+      } else {
       // Fallback: try to find project by slug (for demo purposes)
       const { data: projectData, error: projectError } = await supabase
         .from('projects')
@@ -102,6 +133,7 @@ export async function GET(
       } else {
         // If no valid API key or project found, return error
         return new NextResponse('Invalid API key', { status: 401 });
+      }
       }
     }
 

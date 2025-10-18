@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -20,9 +21,11 @@ export async function GET(
 
     // Validate API key and get project info
     let project = null;
-    
-    // First, try to find by API key in api_keys table
-    const { data: apiKeyData, error: apiKeyError } = await supabase
+
+    const keyHashBase64 = Buffer.from(key, 'utf8').toString('base64');
+    const sha256Hash = crypto.createHash('sha256').update(key).digest('hex');
+
+    const { data: apiKeyData } = await supabase
       .from('api_keys')
       .select(`
         id,
@@ -31,26 +34,41 @@ export async function GET(
         usage_count,
         projects!inner(id, name, slug, plan)
       `)
-      .eq('key_hash', btoa(key))
+      .eq('key_hash', keyHashBase64)
       .single();
 
     if (apiKeyData && apiKeyData.projects) {
-      // Valid API key found
       project = apiKeyData.projects;
       console.log('Valid API key found in frame:', key, 'for project:', project.name);
     } else {
-      // Fallback: try to find project by slug (for demo purposes)
-      const { data: projectData, error: projectError } = await supabase
-        .from('projects')
-        .select('id, name, slug, plan')
-        .eq('slug', key)
+      const { data: hashedKeyData } = await supabase
+        .from('api_keys')
+        .select(`
+          id,
+          project_id,
+          name,
+          usage_count,
+          projects!inner(id, name, slug, plan)
+        `)
+        .eq('key_hash', sha256Hash)
         .single();
 
-      if (projectData) {
-        project = projectData;
-        console.log('Project found by slug in frame:', key, 'project:', project.name);
+      if (hashedKeyData && hashedKeyData.projects) {
+        project = hashedKeyData.projects;
+        console.log('Valid (legacy) API key found in frame:', key, 'for project:', project.name);
       } else {
-        return new NextResponse('Invalid API key', { status: 401 });
+        const { data: projectData } = await supabase
+          .from('projects')
+          .select('id, name, slug, plan')
+          .eq('slug', key)
+          .single();
+
+        if (projectData) {
+          project = projectData;
+          console.log('Project found by slug in frame:', key, 'project:', project.name);
+        } else {
+          return new NextResponse('Invalid API key', { status: 401 });
+        }
       }
     }
 

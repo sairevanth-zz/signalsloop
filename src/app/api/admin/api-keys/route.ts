@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
 
 // Use service role to bypass RLS
 const getSupabaseAdmin = () => {
@@ -28,10 +27,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate API key
-    const apiKey = 'sk_' + crypto.randomBytes(16).toString('hex');
+    const apiKey = 'sk_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    // Hash it
-    const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
+    // Encode for storage – other services expect base64 of the key
+    const keyHash = Buffer.from(apiKey, 'utf8').toString('base64');
 
     const supabase = getSupabaseAdmin();
 
