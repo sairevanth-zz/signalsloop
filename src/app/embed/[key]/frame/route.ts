@@ -680,13 +680,12 @@ function generateFrameHTML(config) {
         button.type = 'button';
         button.className = 'category-option';
         button.dataset.value = option.value;
-        button.innerHTML = `
-          <div class="category-title">
-            <span class="category-emoji">\${option.emoji}</span>
-            \${option.label}
-          </div>
-          <p class="category-description">\${option.description}</p>
-        `;
+        button.innerHTML =
+          '<div class="category-title">' +
+            '<span class="category-emoji">' + option.emoji + '</span>' +
+            option.label +
+          '</div>' +
+          '<p class="category-description">' + option.description + '</p>';
         button.addEventListener('click', () => setActiveCategory(option.value));
         categoryGrid.appendChild(button);
       });
