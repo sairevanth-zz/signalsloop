@@ -138,6 +138,8 @@ export async function GET(
     }
 
     // Generate the widget JavaScript
+    const planValue = typeof project?.plan === 'string' ? project.plan.toLowerCase() : '';
+    const isPro = planValue === 'pro' || planValue.startsWith('pro_');
     const widgetScript = generateWidgetScript({
       apiKey: key,
       projectSlug: projectSlug,
@@ -147,7 +149,7 @@ export async function GET(
       text,
       size,
       theme,
-      isPro: project?.plan === 'pro' || false
+      isPro
     });
 
     console.log('Generated widget script for key:', key, 'project:', project?.name);
@@ -455,12 +457,18 @@ function generateWidgetScript(config) {
         WebkitOverflowScrolling: 'touch',
         position: 'relative'
       });
+      scrollWrapper.style.height = 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))';
+      scrollWrapper.style.maxHeight = '100vh';
+      scrollWrapper.style.paddingBottom = 'env(safe-area-inset-bottom)';
     }
 
     // Create iframe
     const iframe = document.createElement('iframe');
     iframe.src = IFRAME_URL;
     iframe.setAttribute('allow', 'clipboard-write');
+    if (isMobile) {
+      iframe.setAttribute('scrolling', 'yes');
+    }
     // Don't set scrolling attribute - let it be auto
     Object.assign(iframe.style, {
       width: '100%',
@@ -472,7 +480,12 @@ function generateWidgetScript(config) {
     // Listen for height messages from iframe for iOS scrolling
     window.addEventListener('message', function(e) {
       if (e.data && e.data.type === 'signalsloop-resize' && e.data.height) {
-        iframe.style.height = e.data.height + 'px';
+        if (isMobile) {
+          // Keep iframe height tied to viewport; internal iframe scroll handles content
+          iframe.style.height = '100%';
+        } else {
+          iframe.style.height = e.data.height + 'px';
+        }
       }
     });
 
@@ -740,3 +753,8 @@ export async function OPTIONS() {
     },
   });
 }
+    if (isMobile) {
+      scrollWrapper.style.height = 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))';
+      scrollWrapper.style.maxHeight = '100vh';
+      scrollWrapper.style.paddingBottom = 'env(safe-area-inset-bottom)';
+    }

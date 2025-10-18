@@ -17,7 +17,8 @@ export async function GET(
     const url = new URL(request.url);
     const theme = url.searchParams.get('theme') || 'light';
     const customColor = url.searchParams.get('color');
-    const hideBranding = url.searchParams.get('hide_branding') === 'true';
+    const hideBrandingParam = url.searchParams.get('hide_branding');
+    const hideBranding = hideBrandingParam === 'true' || hideBrandingParam === '1' || hideBrandingParam === 'yes';
 
     // Validate API key and get project info
     let project = null;
@@ -95,12 +96,14 @@ export async function GET(
     }
 
     // Generate the iframe HTML
+    const planValue = typeof project.plan === 'string' ? project.plan.toLowerCase() : '';
+    const isPro = planValue === 'pro' || planValue.startsWith('pro_');
     const html = generateFrameHTML({
       project,
       posts: posts || [],
       theme,
       customColor,
-      hideBranding: hideBranding && project.plan === 'pro'
+      hideBranding: isPro || hideBranding
     });
 
     return new NextResponse(html, {
@@ -570,11 +573,13 @@ function generateFrameHTML(config) {
 </head>
 <body>
   <div class="container">
+    ${hideBranding ? '' : `
     <div class="header">
       <h1>${project.name}</h1>
       <p>Share your feedback and ideas</p>
     </div>
-    
+    `}
+
     <div class="form-container">
       <form id="feedback-form">
         <!-- Feedback Category -->

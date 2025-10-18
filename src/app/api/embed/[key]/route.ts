@@ -93,7 +93,9 @@ export async function GET(
     const text = url.searchParams.get('text') || 'Feedback';
     const size = url.searchParams.get('size') || 'medium';
     const theme = url.searchParams.get('theme') || 'light';
-    const hideBranding = project.plan === 'pro';
+    const planValue = typeof project.plan === 'string' ? project.plan.toLowerCase() : '';
+    const isPro = planValue === 'pro' || planValue.startsWith('pro_');
+    const hideBranding = isPro;
 
     // Generate widget ID for this instance
     const widgetId = `signalsloop-${project.slug}-${Date.now()}`;
