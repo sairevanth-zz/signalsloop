@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -45,13 +45,14 @@ interface Project {
 interface Post {
   id: string;
   title: string;
-  description: string;
-  category: string;
+  description?: string;
+  category?: string;
   vote_count: number;
   created_at: string;
   author_email?: string;
   author_name?: string;
   status: string;
+  completion_date?: string;
 }
 
 interface RoadmapData {
@@ -116,6 +117,18 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('All Time');
   const [isOwner, setIsOwner] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+
+  const categoryOptions = useMemo(() => {
+    const categories = new Set<string>();
+    Object.values(roadmapData).forEach((posts) => {
+      posts.forEach((post) => {
+        if (post.category) {
+          categories.add(post.category);
+        }
+      });
+    });
+    return Array.from(categories).sort((a, b) => a.localeCompare(b));
+  }, [roadmapData]);
 
   // Load voted posts from localStorage
   useEffect(() => {
@@ -312,25 +325,72 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
     });
   };
 
-  // Filter posts based on search and filters
-  const filteredData = {
-    open: roadmapData.open.filter(post => 
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.description.toLowerCase().includes(searchTerm.toLowerCase())
-    ),
-    planned: roadmapData.planned.filter(post => 
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.description.toLowerCase().includes(searchTerm.toLowerCase())
-    ),
-    in_progress: roadmapData.in_progress.filter(post => 
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.description.toLowerCase().includes(searchTerm.toLowerCase())
-    ),
-    completed: roadmapData.completed.filter(post => 
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.description.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  };
+  // Filter posts based on search term, category, and time filters
+  const filteredData = useMemo(() => {
+    const searchValue = searchTerm.trim().toLowerCase();
+    const normalizedCategory = selectedCategory.toLowerCase();
+    const timeFilter = selectedTimeFilter;
+    const now = new Date();
+
+    const isWithinTimeRange = (post: Post) => {
+      if (timeFilter === 'All Time') return true;
+
+      const referenceDateString =
+        post.status === 'done' && post.completion_date
+          ? post.completion_date
+          : post.created_at;
+
+      if (!referenceDateString) return true;
+
+      const referenceDate = new Date(referenceDateString);
+      if (Number.isNaN(referenceDate.getTime())) {
+        return true;
+      }
+
+      switch (timeFilter) {
+        case 'This Week': {
+          const weekAgo = new Date(now);
+          weekAgo.setDate(now.getDate() - 7);
+          return referenceDate >= weekAgo && referenceDate <= now;
+        }
+        case 'This Month':
+          return (
+            referenceDate.getFullYear() === now.getFullYear() &&
+            referenceDate.getMonth() === now.getMonth()
+          );
+        case 'This Year':
+          return referenceDate.getFullYear() === now.getFullYear();
+        default:
+          return true;
+      }
+    };
+
+    const matchesFilters = (post: Post) => {
+      const title = post.title?.toLowerCase() ?? '';
+      const description = post.description?.toLowerCase() ?? '';
+
+      const matchesSearch =
+        !searchValue ||
+        title.includes(searchValue) ||
+        description.includes(searchValue);
+
+      const matchesCategory =
+        selectedCategory === 'All Categories' ||
+        (post.category &&
+          post.category.toLowerCase() === normalizedCategory);
+
+      return matchesSearch && matchesCategory && isWithinTimeRange(post);
+    };
+
+    const applyFilters = (posts: Post[]) => posts.filter(matchesFilters);
+
+    return {
+      open: applyFilters(roadmapData.open),
+      planned: applyFilters(roadmapData.planned),
+      in_progress: applyFilters(roadmapData.in_progress),
+      completed: applyFilters(roadmapData.completed),
+    };
+  }, [roadmapData, searchTerm, selectedCategory, selectedTimeFilter]);
 
   const totalPosts = Object.values(filteredData).reduce((sum, posts) => sum + posts.length, 0);
   const thisMonthCount = Object.values(filteredData).reduce((sum, posts) => {
@@ -456,11 +516,12 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="appearance-none bg-white/50 border border-gray-200 rounded-lg px-4 py-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option>All Categories</option>
-                <option>Feature</option>
-                <option>Bug</option>
-                <option>Improvement</option>
-                <option>General Feedback</option>
+                <option value="All Categories">All Categories</option>
+                {categoryOptions.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
               </select>
               <Filter className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             </div>
@@ -471,10 +532,10 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
                 onChange={(e) => setSelectedTimeFilter(e.target.value)}
                 className="appearance-none bg-white/50 border border-gray-200 rounded-lg px-4 py-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option>All Time</option>
-                <option>This Week</option>
-                <option>This Month</option>
-                <option>This Year</option>
+                <option value="All Time">All Time</option>
+                <option value="This Week">This Week</option>
+                <option value="This Month">This Month</option>
+                <option value="This Year">This Year</option>
               </select>
               <Filter className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             </div>
