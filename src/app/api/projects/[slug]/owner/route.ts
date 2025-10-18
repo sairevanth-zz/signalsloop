@@ -35,40 +35,62 @@ export async function GET(
       return NextResponse.json({ error: 'Project not found', isOwner: false }, { status: 200 });
     }
 
-    // Try to get current user from cookies
-    const cookieHeader = request.headers.get('cookie');
-    
-    console.log('🍪 Cookie header present:', !!cookieHeader);
-    
-    if (!cookieHeader) {
-      console.log('❌ No cookie header found');
-      return NextResponse.json({ isOwner: false, debug: 'no_cookie_header' }, { status: 200 });
+    // Try to get current user from Authorization header first
+    const authHeader =
+      request.headers.get('authorization') ||
+      request.headers.get('Authorization');
+
+    let accessToken: string | null = null;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      accessToken = authHeader.slice('Bearer '.length).trim();
+      console.log('🔐 Access token provided via Authorization header:', !!accessToken);
     }
 
-    // Try multiple cookie patterns for Supabase
-    let authTokenMatch = cookieHeader.match(/sb-[^=]+-auth-token=([^;]+)/);
-    
-    if (!authTokenMatch) {
-      // Try alternative pattern
-      authTokenMatch = cookieHeader.match(/sb-[^-]+-[^-]+-auth-token=([^;]+)/);
+    // Fall back to cookies if Authorization header not present
+    if (!accessToken) {
+      const cookieHeader = request.headers.get('cookie');
+      
+      console.log('🍪 Cookie header present:', !!cookieHeader);
+      
+      if (!cookieHeader) {
+        console.log('❌ No cookie header found');
+        return NextResponse.json({ isOwner: false, debug: 'no_cookie_header' }, { status: 200 });
+      }
+
+      // Try multiple cookie patterns for Supabase
+      let authTokenMatch = cookieHeader.match(/sb-[^=]+-auth-token=([^;]+)/);
+      
+      if (!authTokenMatch) {
+        // Try alternative pattern
+        authTokenMatch = cookieHeader.match(/sb-[^-]+-[^-]+-auth-token=([^;]+)/);
+      }
+      
+      console.log('🔑 Auth token found in cookies:', !!authTokenMatch);
+      
+      if (!authTokenMatch) {
+        console.log('❌ No auth token in cookies. Available cookies:', cookieHeader.split(';').map(c => c.trim().split('=')[0]));
+        return NextResponse.json({ isOwner: false, debug: 'no_auth_token' }, { status: 200 });
+      }
+
+      try {
+        const tokenString = authTokenMatch[1];
+        console.log('📦 Raw token string length:', tokenString.length);
+        
+        const tokenData = JSON.parse(decodeURIComponent(tokenString));
+        accessToken = tokenData?.access_token || tokenData || null;
+      } catch (tokenParseError) {
+        console.error('❌ Token parsing error:', tokenParseError);
+        return NextResponse.json({ isOwner: false, debug: 'token_parse_error', error: String(tokenParseError) }, { status: 200 });
+      }
     }
-    
-    console.log('🔑 Auth token found in cookies:', !!authTokenMatch);
-    
-    if (!authTokenMatch) {
-      console.log('❌ No auth token in cookies. Available cookies:', cookieHeader.split(';').map(c => c.trim().split('=')[0]));
-      return NextResponse.json({ isOwner: false, debug: 'no_auth_token' }, { status: 200 });
+
+    if (!accessToken) {
+      console.log('❌ No access token available after header/cookie checks');
+      return NextResponse.json({ isOwner: false, debug: 'no_access_token' }, { status: 200 });
     }
 
     try {
-      const tokenString = authTokenMatch[1];
-      console.log('📦 Raw token string length:', tokenString.length);
-      
-      const tokenData = JSON.parse(decodeURIComponent(tokenString));
-      const accessToken = tokenData?.access_token || tokenData;
-      
-      console.log('🎫 Access token extracted:', !!accessToken);
-      
       // Verify the JWT token and get user
       const { data: { user }, error: userError } = await supabase.auth.getUser(accessToken);
       
@@ -97,9 +119,9 @@ export async function GET(
         userEmail: user.email,
         debug: 'success'
       });
-    } catch (tokenError) {
-      console.error('❌ Token parsing error:', tokenError);
-      return NextResponse.json({ isOwner: false, debug: 'token_parse_error', error: String(tokenError) }, { status: 200 });
+    } catch (authError) {
+      console.error('❌ Authentication error:', authError);
+      return NextResponse.json({ isOwner: false, debug: 'auth_exception', error: String(authError) }, { status: 200 });
     }
 
   } catch (error) {
