@@ -459,9 +459,9 @@ function generateWidgetScript(config) {
         WebkitOverflowScrolling: 'touch',
         position: 'relative'
       });
-      scrollWrapper.style.height = 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))';
-      scrollWrapper.style.maxHeight = '100vh';
-      scrollWrapper.style.paddingBottom = 'env(safe-area-inset-bottom)';
+      scrollWrapper.style.height = 'calc(100vh - env(safe-area-inset-top))';
+      scrollWrapper.style.maxHeight = 'calc(100vh - env(safe-area-inset-top))';
+      scrollWrapper.style.paddingBottom = 'calc(env(safe-area-inset-bottom) + 80px)';
     }
 
     // Create iframe
@@ -586,10 +586,60 @@ function generateWidgetScript(config) {
       });
     }
 
+    let mobileBoardLinkWrapper = null;
+    let mobileBoardLinkHeight = 0;
+
     if (isMobile) {
       scrollWrapper.appendChild(iframe);
       container.appendChild(scrollWrapper);
       container.appendChild(closeButton);
+
+      if (CONFIG.boardUrl) {
+        mobileBoardLinkWrapper = document.createElement('div');
+        Object.assign(mobileBoardLinkWrapper.style, {
+          position: 'absolute',
+          left: '16px',
+          right: '16px',
+          bottom: 'calc(env(safe-area-inset-bottom) + 12px)',
+          display: 'flex',
+          justifyContent: 'center',
+          pointerEvents: 'auto'
+        });
+
+        const mobileBoardLink = document.createElement('a');
+        mobileBoardLink.href = CONFIG.boardUrl;
+        mobileBoardLink.target = '_blank';
+        mobileBoardLink.rel = 'noopener noreferrer';
+        Object.assign(mobileBoardLink.style, {
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '12px 16px',
+          borderRadius: '9999px',
+          backgroundColor: '#ffffff',
+          color: '#6366f1',
+          fontWeight: '600',
+          fontSize: '14px',
+          textDecoration: 'none',
+          boxShadow: '0 8px 20px rgba(99, 102, 241, 0.25)'
+        });
+        mobileBoardLink.textContent = 'View all feedback & vote';
+
+        const mobileBoardLinkIcon = document.createElement('span');
+        mobileBoardLinkIcon.textContent = '→';
+        Object.assign(mobileBoardLinkIcon.style, {
+          fontSize: '16px',
+          lineHeight: '1',
+          marginLeft: '4px'
+        });
+
+        mobileBoardLink.appendChild(mobileBoardLinkIcon);
+        mobileBoardLinkWrapper.appendChild(mobileBoardLink);
+        container.appendChild(mobileBoardLinkWrapper);
+
+        mobileBoardLinkHeight = mobileBoardLinkWrapper.getBoundingClientRect().height + 24;
+        scrollWrapper.style.paddingBottom = `calc(env(safe-area-inset-bottom) + ${mobileBoardLinkHeight}px)`;
+      }
     } else {
       container.appendChild(iframe);
       container.appendChild(closeButton);
@@ -615,7 +665,7 @@ function generateWidgetScript(config) {
     // Store mobile state for later use
     overlay.dataset.isMobile = isMobile.toString();
 
-    return { overlay, container, iframe, isMobile, attachSizingListener, detachSizingListener };
+    return { overlay, container, iframe, isMobile, attachSizingListener, detachSizingListener, mobileBoardLinkWrapper };
   }
 
   // Widget state
@@ -637,6 +687,9 @@ function generateWidgetScript(config) {
 
     isOpen = true;
     modal.overlay.style.display = 'block';
+    if (modal.mobileBoardLinkWrapper) {
+      modal.mobileBoardLinkWrapper.style.pointerEvents = 'auto';
+    }
     
     // Animate in with mobile-specific transforms
     requestAnimationFrame(() => {
@@ -677,6 +730,10 @@ function generateWidgetScript(config) {
 
     if (typeof modal.detachSizingListener === 'function') {
       modal.detachSizingListener();
+    }
+
+    if (modal.mobileBoardLinkWrapper) {
+      modal.mobileBoardLinkWrapper.style.pointerEvents = 'none';
     }
     
     setTimeout(() => {

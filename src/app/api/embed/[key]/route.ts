@@ -100,8 +100,10 @@ export async function GET(
     // Generate widget ID for this instance
     const widgetId = `signalsloop-${project.slug}-${Date.now()}`;
     
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://signalsloop.com').replace(/\/+$/, '');
     // Construct the widget URL - use the new frame endpoint
-    const widgetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://signalsloop.com'}/embed/${key}/frame?theme=${theme}&color=${encodeURIComponent(color)}&hide_branding=${hideBranding}`;
+    const widgetUrl = `${appUrl}/embed/${key}/frame?theme=${theme}&color=${encodeURIComponent(color)}&hide_branding=${hideBranding}`;
+    const boardUrl = `${appUrl}/${project.slug}/board`;
     
     // Generate the JavaScript code
     const jsCode = `
@@ -117,7 +119,8 @@ export async function GET(
     text: '${text}',
     size: '${size}',
     widgetId: '${widgetId}',
-    hideBranding: ${hideBranding}
+    hideBranding: ${hideBranding},
+    boardUrl: '${boardUrl}'
   };
 
   // CSS Styles
