@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   CreditCard, 
   Crown, 
@@ -694,41 +693,41 @@ export function BillingDashboard({
             </div>
             {billingInfo.plan === 'free' ? (
               <div className="flex flex-col gap-4">
-                <Tabs
-                  value={selectedBillingCycle}
-                  onValueChange={(value) => setSelectedBillingCycle(value as 'monthly' | 'annual')}
-                  className="w-full"
-                >
-                  <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl bg-muted/80 p-1 sm:p-1.5">
-                    <TabsTrigger
-                      value="monthly"
-                      className={cn(
-                        'flex flex-col gap-1 rounded-lg border border-transparent px-4 py-3 text-left text-sm font-medium transition-colors',
-                        'hover:border-border hover:text-foreground/90',
-                        'data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm'
-                      )}
-                    >
-                      <span className="text-sm font-semibold">Monthly</span>
-                      <span className="text-xs text-muted-foreground">$19 billed monthly</span>
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="annual"
-                      className={cn(
-                        'flex flex-col gap-1 rounded-lg border border-transparent px-4 py-3 text-left text-sm font-medium transition-colors',
-                        'hover:border-border hover:text-foreground/90',
-                        'data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm'
-                      )}
-                    >
-                      <span className="flex items-center gap-2 text-sm font-semibold">
-                        Yearly
-                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-                          Save 20%
-                        </Badge>
-                      </span>
-                      <span className="text-xs text-muted-foreground">$180 billed yearly</span>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <div className="flex w-full max-w-md gap-1 overflow-hidden rounded-2xl border border-border/60 bg-muted/70 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBillingCycle('monthly')}
+                    className={cn(
+                      'flex-1 rounded-xl border border-transparent px-4 py-3 text-left transition-colors',
+                      'flex flex-col gap-1 text-sm',
+                      selectedBillingCycle === 'monthly'
+                        ? 'border-border bg-background text-primary shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    <span className="font-semibold">Monthly</span>
+                    <span className="text-xs text-muted-foreground">$19 billed monthly</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBillingCycle('annual')}
+                    className={cn(
+                      'flex-1 rounded-xl border border-transparent px-4 py-3 text-left transition-colors',
+                      'flex flex-col gap-1 text-sm',
+                      selectedBillingCycle === 'annual'
+                        ? 'border-border bg-background text-primary shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    <span className="flex items-center gap-2 font-semibold">
+                      Yearly
+                      <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                        Save 20%
+                      </Badge>
+                    </span>
+                    <span className="text-xs text-muted-foreground">$180 billed yearly</span>
+                  </button>
+                </div>
                 <Button 
                   onClick={handleUpgrade}
                   disabled={upgrading}

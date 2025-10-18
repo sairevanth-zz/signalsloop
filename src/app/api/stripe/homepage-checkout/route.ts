@@ -136,9 +136,6 @@ export async function POST(request: NextRequest) {
       automatic_tax: {
         enabled: true,
       },
-      customer_update: {
-        address: 'auto',
-      },
       metadata: {
         billingType,
         source: 'homepage',
