@@ -753,8 +753,3 @@ export async function OPTIONS() {
     },
   });
 }
-    if (isMobile) {
-      scrollWrapper.style.height = 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))';
-      scrollWrapper.style.maxHeight = '100vh';
-      scrollWrapper.style.paddingBottom = 'env(safe-area-inset-bottom)';
-    }
