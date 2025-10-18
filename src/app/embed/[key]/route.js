@@ -638,7 +638,7 @@ function generateWidgetScript(config) {
         container.appendChild(mobileBoardLinkWrapper);
 
         mobileBoardLinkHeight = mobileBoardLinkWrapper.getBoundingClientRect().height + 24;
-        scrollWrapper.style.paddingBottom = `calc(env(safe-area-inset-bottom) + ${mobileBoardLinkHeight}px)`;
+        scrollWrapper.style.paddingBottom = 'calc(env(safe-area-inset-bottom) + ' + mobileBoardLinkHeight + 'px)';
       }
     } else {
       container.appendChild(iframe);
