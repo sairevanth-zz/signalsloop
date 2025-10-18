@@ -100,8 +100,7 @@ export async function GET(
       posts: posts || [],
       theme,
       customColor,
-      hideBranding: hideBranding && project.plan === 'pro',
-      isPro: project.plan === 'pro'
+      hideBranding: hideBranding && project.plan === 'pro'
     });
 
     return new NextResponse(html, {
@@ -119,12 +118,15 @@ export async function GET(
 }
 
 function generateFrameHTML(config) {
-  const { project, posts, theme, customColor, hideBranding, isPro } = config;
+  const { project, posts, theme, customColor, hideBranding } = config;
   
   // Use custom color if provided, otherwise default to blue
   const primaryColor = customColor || '#6366f1';
   const primaryColorHover = adjustBrightness(primaryColor, -10);
   const primaryColorSoft = hexToRgba(primaryColor, 0.12);
+  const integrationDescription = hideBranding
+    ? 'Connect with other tools or APIs'
+    : 'Connect SignalsLoop with other tools or APIs';
   
   return `
 <!DOCTYPE html>
@@ -623,17 +625,18 @@ function generateFrameHTML(config) {
           Submit Feedback
         </button>
       </form>
-
-      <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-        <a href="https://www.signalsloop.com/${project.slug}/board" target="_blank" style="color: ${primaryColor}; text-decoration: none; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;">
-          View all feedback & vote
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <line x1="10" y1="14" x2="21" y2="3"></line>
-          </svg>
-        </a>
-      </div>
+      ${!hideBranding ? `
+        <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+          <a href="https://www.signalsloop.com/${project.slug}/board" target="_blank" style="color: ${primaryColor}; text-decoration: none; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;">
+            View all feedback & vote
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </a>
+        </div>
+      ` : ''}
     </div>
     
     ${!hideBranding ? `
@@ -666,7 +669,7 @@ function generateFrameHTML(config) {
       { value: 'Bug', label: 'Bug Report', emoji: '🐞', description: 'Report a problem or defect' },
       { value: 'Improvement', label: 'Improvement', emoji: '💡', description: 'Enhance an existing feature or workflow' },
       { value: 'UI/UX', label: 'UI / UX', emoji: '🎨', description: 'Share design, usability, or user experience feedback' },
-      { value: 'Integration', label: 'Integration', emoji: '🔌', description: 'Connect SignalsLoop with other tools or APIs' },
+      { value: 'Integration', label: 'Integration', emoji: '🔌', description: '${integrationDescription}' },
       { value: 'Performance', label: 'Performance', emoji: '🚀', description: 'Speed, stability, or reliability issues' },
       { value: 'Documentation', label: 'Documentation', emoji: '📚', description: 'Guides, onboarding, or help content' },
       { value: 'Other', label: 'Other', emoji: '💬', description: 'Anything else that doesn’t fit above' }

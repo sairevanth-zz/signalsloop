@@ -93,12 +93,13 @@ export async function GET(
     const text = url.searchParams.get('text') || 'Feedback';
     const size = url.searchParams.get('size') || 'medium';
     const theme = url.searchParams.get('theme') || 'light';
+    const hideBranding = project.plan === 'pro';
 
     // Generate widget ID for this instance
     const widgetId = `signalsloop-${project.slug}-${Date.now()}`;
     
     // Construct the widget URL - use the new frame endpoint
-    const widgetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://signalsloop.com'}/embed/${key}/frame?theme=${theme}&color=${encodeURIComponent(color)}&hide_branding=${project.plan === 'pro'}`;
+    const widgetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://signalsloop.com'}/embed/${key}/frame?theme=${theme}&color=${encodeURIComponent(color)}&hide_branding=${hideBranding}`;
     
     // Generate the JavaScript code
     const jsCode = `
@@ -113,7 +114,8 @@ export async function GET(
     color: '${color}',
     text: '${text}',
     size: '${size}',
-    widgetId: '${widgetId}'
+    widgetId: '${widgetId}',
+    hideBranding: ${hideBranding}
   };
 
   // CSS Styles
@@ -348,10 +350,12 @@ export async function GET(
   function createWidgetButton() {
     const button = createElement('button', 'signalsloop-widget-button');
     
-    const logo = createElement('div', 'signalsloop-widget-logo', 'S');
     const text = createElement('span', 'signalsloop-widget-text', CONFIG.text);
     
-    button.appendChild(logo);
+    if (!CONFIG.hideBranding) {
+      const logo = createElement('div', 'signalsloop-widget-logo', 'S');
+      button.appendChild(logo);
+    }
     button.appendChild(text);
     
     return button;
@@ -444,6 +448,7 @@ export async function GET(
     widget.id = CONFIG.widgetId;
     widget.setAttribute('data-position', getPosition());
     widget.setAttribute('data-size', CONFIG.size);
+    widget.setAttribute('data-hide-branding', CONFIG.hideBranding ? 'true' : 'false');
     
     // Create and add button
     const button = createWidgetButton();
