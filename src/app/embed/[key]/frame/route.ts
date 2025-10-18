@@ -682,10 +682,10 @@ function generateFrameHTML(config) {
         button.dataset.value = option.value;
         button.innerHTML = `
           <div class="category-title">
-            <span class="category-emoji">${option.emoji}</span>
-            ${option.label}
+            <span class="category-emoji">\${option.emoji}</span>
+            \${option.label}
           </div>
-          <p class="category-description">${option.description}</p>
+          <p class="category-description">\${option.description}</p>
         `;
         button.addEventListener('click', () => setActiveCategory(option.value));
         categoryGrid.appendChild(button);
