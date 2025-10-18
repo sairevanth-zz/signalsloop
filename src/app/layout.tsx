@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -45,6 +46,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased touch-manipulation`}
       >
         {children}
+        <Script
+          src="https://signalsloop.com/embed/sk_89efe32edf48184f641432ff26c6c5df.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
