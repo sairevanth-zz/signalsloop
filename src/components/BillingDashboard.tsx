@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   CreditCard, 
   Crown, 
@@ -22,6 +23,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface BillingInfo {
   plan: 'free' | 'pro';
@@ -87,6 +89,10 @@ export function BillingDashboard({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [supabase, setSupabase] = useState<any>(null);
   const [selectedBillingCycle, setSelectedBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const upgradeButtonLabel =
+    selectedBillingCycle === 'annual'
+      ? 'Upgrade to Yearly – $180/yr'
+      : 'Upgrade to Monthly – $19/mo';
 
   // Initialize Supabase client safely
   useEffect(() => {
@@ -419,7 +425,7 @@ export function BillingDashboard({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create checkout session');
+        throw new Error(errorData.details || errorData.error || 'Failed to create checkout session');
       }
 
       const { url } = await response.json();
@@ -688,35 +694,46 @@ export function BillingDashboard({
             </div>
             {billingInfo.plan === 'free' ? (
               <div className="flex flex-col gap-4">
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button
-                    type="button"
-                    variant={selectedBillingCycle === 'monthly' ? 'default' : 'outline'}
-                    className="flex-1 justify-start"
-                    onClick={() => setSelectedBillingCycle('monthly')}
-                  >
-                    <div className="flex flex-col items-start">
-                      <span className="font-semibold">Monthly</span>
-                      <span className="text-sm text-muted-foreground">$19 billed monthly</span>
-                    </div>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={selectedBillingCycle === 'annual' ? 'default' : 'outline'}
-                    className="flex-1 justify-start"
-                    onClick={() => setSelectedBillingCycle('annual')}
-                  >
-                    <div className="flex flex-col items-start">
-                      <span className="font-semibold">Yearly</span>
-                      <span className="text-sm text-muted-foreground">$180 billed yearly (save 20%)</span>
-                    </div>
-                  </Button>
-                </div>
+                <Tabs
+                  value={selectedBillingCycle}
+                  onValueChange={(value) => setSelectedBillingCycle(value as 'monthly' | 'annual')}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl bg-muted/80 p-1 sm:p-1.5">
+                    <TabsTrigger
+                      value="monthly"
+                      className={cn(
+                        'flex flex-col gap-1 rounded-lg border border-transparent px-4 py-3 text-left text-sm font-medium transition-colors',
+                        'hover:border-border hover:text-foreground/90',
+                        'data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm'
+                      )}
+                    >
+                      <span className="text-sm font-semibold">Monthly</span>
+                      <span className="text-xs text-muted-foreground">$19 billed monthly</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="annual"
+                      className={cn(
+                        'flex flex-col gap-1 rounded-lg border border-transparent px-4 py-3 text-left text-sm font-medium transition-colors',
+                        'hover:border-border hover:text-foreground/90',
+                        'data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm'
+                      )}
+                    >
+                      <span className="flex items-center gap-2 text-sm font-semibold">
+                        Yearly
+                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                          Save 20%
+                        </Badge>
+                      </span>
+                      <span className="text-xs text-muted-foreground">$180 billed yearly</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
                 <Button 
                   onClick={handleUpgrade}
                   disabled={upgrading}
                   size="lg"
-                  className="min-w-[160px]"
+                  className="min-w-[180px]"
                 >
                   {upgrading ? (
                     <div className="flex items-center gap-2">
@@ -726,7 +743,7 @@ export function BillingDashboard({
                   ) : (
                     <>
                       <Crown className="h-4 w-4 mr-2" />
-                      {selectedBillingCycle === 'annual' ? 'Upgrade to Yearly' : 'Upgrade to Monthly'}
+                      {upgradeButtonLabel}
                     </>
                   )}
                 </Button>
@@ -952,7 +969,7 @@ export function BillingDashboard({
                 disabled={upgrading}
                 className="w-full mt-4"
               >
-                {upgrading ? 'Starting Upgrade...' : 'Upgrade Now'}
+                {upgrading ? 'Starting upgrade...' : upgradeButtonLabel}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
