@@ -2,6 +2,35 @@
 
 import { useState, useEffect } from 'react';
 
+const CATEGORY_OPTIONS = [
+  { value: 'Feature Request', label: 'Feature Request', emoji: '✨', description: 'Suggest a new feature or capability' },
+  { value: 'Bug', label: 'Bug Report', emoji: '🐞', description: 'Report a problem or defect' },
+  { value: 'Improvement', label: 'Improvement', emoji: '💡', description: 'Enhance an existing feature or workflow' },
+  { value: 'UI/UX', label: 'UI / UX', emoji: '🎨', description: 'Share design, usability, or user experience feedback' },
+  { value: 'Integration', label: 'Integration', emoji: '🔌', description: 'Connect SignalsLoop with other tools or APIs' },
+  { value: 'Performance', label: 'Performance', emoji: '🚀', description: 'Speed, stability, or reliability concerns' },
+  { value: 'Documentation', label: 'Documentation', emoji: '📚', description: 'Guides, onboarding, or help content' },
+  { value: 'Other', label: 'Other', emoji: '💬', description: 'Anything else not covered above' }
+];
+
+const PRIORITY_OPTIONS = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' }
+];
+
+const hexToRgba = (hex: string, alpha: number) => {
+  const cleaned = hex.replace('#', '');
+  const full = cleaned.length === 3
+    ? cleaned.split('').map((char) => char + char).join('')
+    : cleaned;
+  const bigint = parseInt(full, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 export default function WidgetTestPage() {
   const [apiKey, setApiKey] = useState('');
   const [position, setPosition] = useState('bottom-right');
@@ -107,9 +136,10 @@ export default function WidgetTestPage() {
       background-color: rgba(0, 0, 0, 0.5);
       z-index: 1000000;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
-      padding-top: 20px;
+      padding: 20px;
+      box-sizing: border-box;
     `;
 
     // Create modal content
@@ -118,88 +148,128 @@ export default function WidgetTestPage() {
       background: white;
       border-radius: 12px;
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-      width: 90%;
-      max-width: 500px;
-      max-height: calc(100vh - 40px);
+      width: 100%;
+      max-width: 560px;
+      max-height: calc(100vh - 80px);
       overflow-y: auto;
       position: relative;
     `;
 
+    const activeBg = hexToRgba(color, 0.12);
+
+    const categoryButtonsMarkup = CATEGORY_OPTIONS.map((option) => {
+      const isActive = option.value === 'Feature Request';
+      return `
+        <button
+          type="button"
+          class="category-option${isActive ? ' active' : ''}"
+          data-value="${option.value}"
+          style="
+            border: 2px solid ${isActive ? color : '#e5e7eb'};
+            background: ${isActive ? activeBg : '#ffffff'};
+            border-radius: 12px;
+            padding: 14px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.2s ease;
+          "
+        >
+          <div class="category-title" style="
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: ${isActive ? color : '#111827'};
+          ">
+            <span class="category-emoji" style="font-size: 18px;">${option.emoji}</span>
+            ${option.label}
+          </div>
+          <p class="category-description" style="font-size: 12px; color: #6b7280; line-height: 1.45;">
+            ${option.description}
+          </p>
+        </button>
+      `;
+    }).join('');
+
+    const priorityButtonsMarkup = PRIORITY_OPTIONS.map((option) => {
+      const isActive = option.value === 'medium';
+      return `
+        <button
+          type="button"
+          class="priority-option${isActive ? ' active' : ''}"
+          data-value="${option.value}"
+          style="
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: ${isActive ? `2px solid ${color}` : '1px solid #d1d5db'};
+            background: ${isActive ? activeBg : '#ffffff'};
+            font-size: 14px;
+            font-weight: ${isActive ? '600' : '500'};
+            color: ${isActive ? color : '#111827'};
+            cursor: pointer;
+            transition: all 0.2s ease;
+          "
+        >
+          ${option.label}
+        </button>
+      `;
+    }).join('');
+
     modal.innerHTML = `
-      <div style="padding: 20px; padding-bottom: 24px; max-height: calc(100vh - 40px); overflow-y: auto; -webkit-overflow-scrolling: touch;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <div style="padding: 26px 28px 30px 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 16px;">
           <div>
-            <h2 style="margin: 0; font-size: 20px; font-weight: 600; color: #111;">Submit Feedback</h2>
-            <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">Help us improve by sharing your thoughts and ideas</p>
+            <h2 style="margin: 0; font-size: 22px; font-weight: 600; color: #111827;">Submit Feedback</h2>
+            <p style="margin: 6px 0 0 0; font-size: 14px; color: #6b7280;">Help us improve by sharing your thoughts and ideas</p>
           </div>
-          <button id="close-preview" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280; padding: 0; line-height: 1;">×</button>
+          <button id="close-preview" style="background: none; border: none; font-size: 24px; color: #6b7280; cursor: pointer; line-height: 1;">×</button>
         </div>
 
-        <!-- Feedback Type Selection -->
         <div style="margin-bottom: 20px;">
-          <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 14px; color: #374151;">Feedback Type *</label>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-            <button type="button" class="type-btn" data-type="feature" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
-              <span style="font-size: 18px;">⭐</span>
-              <span style="font-weight: 500;">Feature</span>
-            </button>
-            <button type="button" class="type-btn" data-type="bug" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
-              <span style="font-size: 18px;">🐛</span>
-              <span style="font-weight: 500;">Bug</span>
-            </button>
-            <button type="button" class="type-btn" data-type="improvement" style="padding: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
-              <span style="font-size: 18px;">💡</span>
-              <span style="font-weight: 500;">Improvement</span>
-            </button>
-            <button type="button" class="type-btn active" data-type="general" style="padding: 12px; border: 2px solid ${color}; background: ${color}10; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.2s;">
-              <span style="font-size: 18px;">💬</span>
-              <span style="font-weight: 500; color: ${color};">General</span>
-            </button>
+          <label style="display: block; margin-bottom: 10px; font-weight: 600; font-size: 14px; color: #374151;">Which category best fits this feedback?</label>
+          <div class="category-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            ${categoryButtonsMarkup}
           </div>
         </div>
 
-        <!-- Title -->
         <div style="margin-bottom: 20px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #374151;">Title *</label>
-          <input type="text" placeholder="Brief summary of your feedback" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #374151;">Title *</label>
+          <input type="text" placeholder="Brief summary of your feedback" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 16px; box-sizing: border-box;">
         </div>
 
-        <!-- Description -->
         <div style="margin-bottom: 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <label style="font-weight: 500; font-size: 14px; color: #374151;">Description *</label>
+            <label style="font-weight: 600; font-size: 14px; color: #374151;">Description *</label>
             <span style="font-size: 12px; color: #9ca3af;">0/500</span>
           </div>
-          <textarea placeholder="Describe your feedback in detail..." rows="4" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; resize: vertical; box-sizing: border-box;"></textarea>
+          <textarea placeholder="Describe your feedback in detail..." rows="4" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 16px; resize: vertical; box-sizing: border-box;"></textarea>
         </div>
 
-        <!-- Priority -->
         <div style="margin-bottom: 20px;">
-          <label style="display: block; margin-bottom: 10px; font-weight: 500; font-size: 14px; color: #374151;">Priority</label>
-          <div style="display: flex; gap: 8px;">
-            <button type="button" class="priority-btn" data-priority="low" style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">Low</button>
-            <button type="button" class="priority-btn active" data-priority="medium" style="flex: 1; padding: 8px 12px; border: 2px solid ${color}; background: ${color}10; color: ${color}; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Medium</button>
-            <button type="button" class="priority-btn" data-priority="high" style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; font-size: 14px;">High</button>
+          <label style="display: block; margin-bottom: 10px; font-weight: 600; font-size: 14px; color: #374151;">Priority</label>
+          <div style="display: flex; gap: 10px;">
+            ${priorityButtonsMarkup}
           </div>
         </div>
 
-        <!-- Your Name -->
         <div style="margin-bottom: 20px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #374151;">Your Name *</label>
-          <input type="text" placeholder="John Doe" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #374151;">Your Name *</label>
+          <input type="text" placeholder="John Doe" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 16px; box-sizing: border-box;">
         </div>
 
-        <!-- Email (MANDATORY) -->
         <div style="margin-bottom: 24px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #374151;">Email *</label>
-          <input type="email" placeholder="your@email.com" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; box-sizing: border-box;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #374151;">Email *</label>
+          <input type="email" placeholder="your@email.com" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 16px; box-sizing: border-box;">
           <p style="margin: 6px 0 0 0; font-size: 12px; color: #6b7280;">We'll notify you about updates on your feedback</p>
         </div>
 
-        <!-- Action Buttons -->
-        <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-          <button id="cancel-preview" style="padding: 12px 24px; border: 1px solid #d1d5db; background: white; color: #374151; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 14px;">Cancel</button>
-          <button id="submit-feedback" style="padding: 12px 24px; background: ${color}; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Submit Feedback</button>
+        <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 18px; border-top: 1px solid #e5e7eb;">
+          <button id="cancel-preview" style="padding: 12px 24px; border: 1px solid #d1d5db; background: white; color: #374151; border-radius: 10px; cursor: pointer; font-weight: 500; font-size: 14px;">Cancel</button>
+          <button id="submit-feedback" style="padding: 12px 24px; background: ${color}; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Submit Feedback</button>
         </div>
       </div>
     `;
@@ -207,42 +277,45 @@ export default function WidgetTestPage() {
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
-    // Add interactive functionality for type buttons
-    const typeButtons = modal.querySelectorAll('.type-btn');
-    typeButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        typeButtons.forEach(b => {
-          b.style.border = '2px solid #e5e7eb';
-          b.style.background = 'white';
-          const span = b.querySelector('span:last-child');
-          if (span) span.style.color = '';
+    const categoryButtons = modal.querySelectorAll<HTMLButtonElement>('.category-option');
+    categoryButtons.forEach((buttonEl) => {
+      buttonEl.addEventListener('click', () => {
+        categoryButtons.forEach((btn) => {
+          btn.style.border = '2px solid #e5e7eb';
+          btn.style.background = '#ffffff';
+          const title = btn.querySelector<HTMLElement>('.category-title');
+          if (title) {
+            title.style.color = '#111827';
+          }
         });
-        btn.style.border = `2px solid ${color}`;
-        btn.style.background = `${color}10`;
-        const span = btn.querySelector('span:last-child');
-        if (span) span.style.color = color;
+        buttonEl.style.border = `2px solid ${color}`;
+        buttonEl.style.background = activeBg;
+        const title = buttonEl.querySelector<HTMLElement>('.category-title');
+        if (title) {
+          title.style.color = color;
+        }
       });
     });
 
-    // Add interactive functionality for priority buttons
-    const priorityButtons = modal.querySelectorAll('.priority-btn');
-    priorityButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        priorityButtons.forEach(b => {
-          b.style.border = '1px solid #d1d5db';
-          b.style.background = 'white';
-          b.style.color = '';
-          b.style.fontWeight = '400';
+    const priorityButtons = modal.querySelectorAll<HTMLButtonElement>('.priority-option');
+    priorityButtons.forEach((buttonEl) => {
+      buttonEl.addEventListener('click', () => {
+        priorityButtons.forEach((btn) => {
+          btn.style.border = '1px solid #d1d5db';
+          btn.style.background = '#ffffff';
+          btn.style.color = '#111827';
+          btn.style.fontWeight = '500';
         });
-        btn.style.border = `2px solid ${color}`;
-        btn.style.background = `${color}10`;
-        btn.style.color = color;
-        btn.style.fontWeight = '500';
+        buttonEl.style.border = `2px solid ${color}`;
+        buttonEl.style.background = activeBg;
+        buttonEl.style.color = color;
+        buttonEl.style.fontWeight = '600';
       });
     });
 
     // Add close handlers
     const closeModal = () => {
+      document.removeEventListener('keydown', handleEscape);
       overlay.remove();
     };
 
@@ -259,7 +332,7 @@ export default function WidgetTestPage() {
     });
 
     // Close on escape key
-    const handleEscape = (e) => {
+    const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         closeModal();
         document.removeEventListener('keydown', handleEscape);
