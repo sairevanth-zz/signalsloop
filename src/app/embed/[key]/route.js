@@ -390,6 +390,9 @@ function generateWidgetScript(config) {
     
     // Detect mobile devices
     const isMobile = window.innerWidth <= 1024 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const desktopPadding = 32;
+    const desktopMinHeight = 360;
+    const desktopMaxHeight = Math.min(window.innerHeight - 40, 640);
     
     Object.assign(overlay.style, {
       position: 'fixed',
@@ -435,13 +438,12 @@ function generateWidgetScript(config) {
         transform: 'translateX(-50%) scale(0.9)',
         width: '90%',
         maxWidth: '500px',
-        height: 'calc(100vh - 40px)',
-        maxHeight: '600px',
+        maxHeight: desktopMaxHeight + 'px',
         backgroundColor: 'white',
         borderRadius: '12px',
         boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
         transition: 'transform 0.3s ease',
-        overflow: 'auto' // CHANGED: enable scrolling in container
+        overflow: 'hidden'
       });
     }
 
@@ -477,22 +479,39 @@ function generateWidgetScript(config) {
       borderRadius: isMobile ? '0' : '12px'
     });
 
-    function updateIframeHeight(contentHeight) {
-      if (!contentHeight) return;
-      const minHeight = isMobile ? window.innerHeight : 380;
-      const targetHeight = Math.max(contentHeight + 40, minHeight);
-      iframe.style.height = targetHeight + 'px';
+    function updateDesktopSizing(contentHeight) {
+      if (isMobile) return;
+      const safeHeight = Math.max(
+        desktopMinHeight,
+        Math.min(contentHeight + desktopPadding, desktopMaxHeight)
+      );
+      iframe.style.height = safeHeight + 'px';
+      container.style.height = safeHeight + 'px';
+      container.style.overflow = contentHeight + desktopPadding > desktopMaxHeight ? 'auto' : 'hidden';
     }
 
-    // Listen for height messages from iframe for iOS scrolling
-    window.addEventListener('message', function(e) {
-      if (e.data && e.data.type === 'signalsloop-resize' && e.data.height) {
-        updateIframeHeight(e.data.height);
-      }
-    });
+    if (isMobile) {
+      iframe.style.height = '100%';
+    } else {
+      updateDesktopSizing(desktopMinHeight);
+    }
 
-    // Ensure initial sizing
-    updateIframeHeight(window.innerHeight);
+    let sizingListenerAttached = false;
+    const handleResizeMessage = function(e) {
+      if (!e.data || e.data.type !== 'signalsloop-resize' || !e.data.height) return;
+      updateDesktopSizing(e.data.height);
+    };
+    const attachSizingListener = () => {
+      if (sizingListenerAttached) return;
+      window.addEventListener('message', handleResizeMessage);
+      sizingListenerAttached = true;
+    };
+    const detachSizingListener = () => {
+      if (!sizingListenerAttached) return;
+      window.removeEventListener('message', handleResizeMessage);
+      sizingListenerAttached = false;
+    };
+    attachSizingListener();
 
     // Create close button
     const closeButton = document.createElement('button');
@@ -596,7 +615,7 @@ function generateWidgetScript(config) {
     // Store mobile state for later use
     overlay.dataset.isMobile = isMobile.toString();
 
-    return { overlay, container, iframe, isMobile };
+    return { overlay, container, iframe, isMobile, attachSizingListener, detachSizingListener };
   }
 
   // Widget state
@@ -610,6 +629,10 @@ function generateWidgetScript(config) {
     if (!modal) {
       modal = createModal();
       document.body.appendChild(modal.overlay);
+    }
+
+    if (typeof modal.attachSizingListener === 'function') {
+      modal.attachSizingListener();
     }
 
     isOpen = true;
@@ -651,6 +674,10 @@ function generateWidgetScript(config) {
     } else {
       modal.container.style.transform = 'translateX(-50%) scale(0.9)';
     }
+
+    if (typeof modal.detachSizingListener === 'function') {
+      modal.detachSizingListener();
+    }
     
     setTimeout(() => {
       modal.overlay.style.display = 'none';
@@ -665,6 +692,7 @@ function generateWidgetScript(config) {
       if (scrollY > 0) {
         window.scrollTo(0, scrollY);
       }
+
     }, 300);
 
     // Track widget close
