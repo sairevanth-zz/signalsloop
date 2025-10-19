@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS email_preferences (
   comment_reply_emails BOOLEAN DEFAULT TRUE,
   vote_milestone_emails BOOLEAN DEFAULT TRUE, -- When post reaches 10, 25, 50 votes
   weekly_digest BOOLEAN DEFAULT FALSE,
+  team_feedback_alert_emails BOOLEAN DEFAULT TRUE,
   mention_emails BOOLEAN DEFAULT TRUE,
   
   -- Metadata
@@ -30,7 +31,7 @@ CREATE TABLE IF NOT EXISTS email_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   
   -- Email details
-  email_type VARCHAR(50) NOT NULL, -- 'status_change', 'comment', 'confirmation', 'vote_milestone', 'mention', 'weekly_digest'
+  email_type VARCHAR(50) NOT NULL, -- 'status_change', 'comment', 'confirmation', 'vote_milestone', 'team_feedback_alert', 'mention', 'weekly_digest'
   to_email VARCHAR(255) NOT NULL,
   from_email VARCHAR(255) DEFAULT 'noreply@signalsloop.com',
   subject TEXT,
@@ -183,6 +184,7 @@ BEGIN
     WHEN 'status_change' THEN can_send := prefs.status_change_emails;
     WHEN 'comment' THEN can_send := prefs.comment_reply_emails;
     WHEN 'vote_milestone' THEN can_send := prefs.vote_milestone_emails;
+    WHEN 'team_feedback_alert' THEN can_send := prefs.team_feedback_alert_emails;
     WHEN 'mention' THEN can_send := prefs.mention_emails;
     WHEN 'weekly_digest' THEN can_send := prefs.weekly_digest;
     ELSE can_send := TRUE; -- Default for new types
@@ -224,4 +226,3 @@ BEGIN
   RAISE NOTICE '';
   RAISE NOTICE '🎯 Next: Run this SQL script in Supabase!';
 END $$;
-

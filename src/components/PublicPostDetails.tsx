@@ -354,7 +354,12 @@ export default function PublicPostDetails({
                     commentText: commentText,
                     postTitle: post.title,
                     postUrl: `${window.location.origin}/${project.slug}/post/${post.id}`,
-                    projectName: project.name
+                    projectName: project.name,
+                    projectSlug: project.slug,
+                    postId: post.id,
+                    projectId: project.id,
+                    commentId: newComment.id,
+                    mentionId: mention.id
                   })
                 });
               }
@@ -448,7 +453,12 @@ export default function PublicPostDetails({
                     commentText: replyText,
                     postTitle: post.title,
                     postUrl: `${window.location.origin}/${project.slug}/post/${post.id}`,
-                    projectName: project.name
+                    projectName: project.name,
+                    projectSlug: project.slug,
+                    postId: post.id,
+                    projectId: project.id,
+                    commentId: newReply.id,
+                    mentionId: mention.id
                   })
                 });
               }

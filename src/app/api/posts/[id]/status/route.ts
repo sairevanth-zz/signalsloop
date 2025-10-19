@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendStatusChangeEmail } from '@/lib/email';
+import { notifyStatusChangeParticipants, sendStatusChangeEmail } from '@/lib/email';
 import { triggerWebhooks } from '@/lib/webhooks';
 import { triggerSlackNotification } from '@/lib/slack';
 import { triggerDiscordNotification } from '@/lib/discord';
@@ -57,8 +57,10 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to update post status' }, { status: 500 });
     }
 
+    const statusChanged = oldStatus !== newStatus;
+
     // Send email notification if status actually changed
-    if (oldStatus !== newStatus && post.author_email) {
+    if (statusChanged && post.author_email) {
       try {
         await sendStatusChangeEmail({
           toEmail: post.author_email,
@@ -79,8 +81,25 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    if (statusChanged) {
+      try {
+        await notifyStatusChangeParticipants({
+          postId: post.id,
+          projectId,
+          projectSlug: post.projects?.slug || '',
+          postTitle: post.title,
+          oldStatus,
+          newStatus,
+          adminNote,
+          authorEmail: post.author_email,
+        });
+      } catch (participantError) {
+        console.error('Failed to notify additional participants about status change:', participantError);
+      }
+    }
+
     // Trigger webhooks for post.status_changed event
-    if (oldStatus !== newStatus) {
+    if (statusChanged) {
       const webhookPayload = {
         post: {
           id: post.id,

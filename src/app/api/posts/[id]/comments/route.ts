@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
-import { sendCommentEmail } from '@/lib/email';
+import { notifyCommentParticipants, sendCommentEmail } from '@/lib/email';
 import { triggerWebhooks } from '@/lib/webhooks';
 import { triggerSlackNotification } from '@/lib/slack';
 import { triggerDiscordNotification } from '@/lib/discord';
@@ -100,13 +100,19 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to create comment' }, { status: 500 });
     }
 
+    let isAdmin = false;
+    if (email && post.projects?.owner_id) {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.admin.getUserById(post.projects.owner_id);
+        isAdmin = (authUser?.email || '').toLowerCase() === email.trim().toLowerCase();
+      } catch (adminLookupError) {
+        console.error('Failed to determine if commenter is admin:', adminLookupError);
+      }
+    }
+
     // Send email notification to post author (if not commenting on their own post)
     if (post.author_email && post.author_email !== email) {
       try {
-        // Check if commenter is the project owner (admin)
-        const { data: { user: authUser } } = await supabase.auth.admin.getUserById(post.projects?.owner_id || '');
-        const isAdmin = authUser?.email === email;
-
         await sendCommentEmail({
           toEmail: post.author_email,
           toName: post.author_name,
@@ -118,13 +124,30 @@ export async function POST(
           commentId: comment.id,
           commentText: content.trim(),
           commenterName: name.trim(),
-          isAdmin: isAdmin || false,
+          isAdmin: isAdmin,
         });
         console.log(`✅ Comment email sent to ${post.author_email}`);
       } catch (emailError) {
         // Don't fail the request if email fails
         console.error('Failed to send comment email:', emailError);
       }
+    }
+
+    try {
+      await notifyCommentParticipants({
+        postId: post.id,
+        projectId: post.project_id,
+        projectSlug: post.projects?.slug || '',
+        postTitle: post.title,
+        commentId: comment.id,
+        commentText: content.trim(),
+        commenterName: name.trim(),
+        commentAuthorEmail: email || null,
+        postAuthorEmail: post.author_email,
+        isAdminComment: isAdmin,
+      });
+    } catch (participantError) {
+      console.error('Failed to notify additional participants about comment:', participantError);
     }
 
     // Trigger webhooks for comment.created event

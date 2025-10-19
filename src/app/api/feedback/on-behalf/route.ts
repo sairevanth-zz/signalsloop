@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { sendTeamFeedbackAlertEmail } from '@/lib/email';
 import { triggerWebhooks } from '@/lib/webhooks';
 import { triggerSlackNotification } from '@/lib/slack';
 import { triggerDiscordNotification } from '@/lib/discord';
@@ -227,6 +228,7 @@ export async function POST(request: NextRequest) {
             feedbackTitle,
             feedbackDescription,
             postId: post.id,
+            projectId,
             projectSlug: project.slug,
             projectName: project.name,
             adminName: admin.user_metadata?.full_name || 'Your team',
@@ -244,6 +246,35 @@ export async function POST(request: NextRequest) {
       } catch (emailError) {
         console.error('Error sending notification email:', emailError);
         // Don't fail the request
+      }
+    }
+
+    if (admin.email) {
+      try {
+        await sendTeamFeedbackAlertEmail({
+          toEmail: admin.email,
+          toName: (typeof admin.user_metadata?.full_name === 'string' ? admin.user_metadata.full_name : null),
+          userId: project.owner_id,
+          projectId,
+          projectSlug: project.slug,
+          projectName: project.name,
+          postId: post.id,
+          feedbackTitle: feedbackTitle.trim(),
+          feedbackDescription: feedbackDescription.trim(),
+          submitterName: customerName.trim(),
+          submitterEmail: customerEmail.toLowerCase().trim(),
+          submitterCompany: customerCompany?.trim() || null,
+          submittedByAdminName:
+            (typeof admin.user_metadata?.full_name === 'string' ? admin.user_metadata.full_name : null) || admin.email,
+          submittedByAdminEmail: admin.email,
+          submissionType: 'on_behalf',
+          submissionSource: feedbackSource,
+          feedbackCategory: normalizedCategory,
+          feedbackPriority: priority,
+        });
+        console.log(`✅ Team alert email sent to ${admin.email}`);
+      } catch (teamEmailError) {
+        console.error('Failed to send team feedback alert (on behalf):', teamEmailError);
       }
     }
 

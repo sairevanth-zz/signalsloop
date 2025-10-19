@@ -115,6 +115,15 @@ function buildEmailHtml({
   </html>`;
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
   if (!resendApiKey) {
     const message = 'RESEND_API_KEY is not configured';
@@ -549,14 +558,14 @@ async function checkEmailPreferences(
 }
 
 // Helper: Check rate limit
-async function checkRateLimit(email: string): Promise<boolean> {
+async function checkRateLimit(email: string, maxPerDay = 5): Promise<boolean> {
   const supabase = getSupabaseServiceRoleClient();
   if (!supabase) return true; // Fail open
 
   try {
     const { data: rpcResult, error } = await supabase.rpc('check_email_rate_limit', {
       p_email: email,
-      p_max_per_day: 5, // Max 5 emails per day
+      p_max_per_day: maxPerDay,
     });
 
     if (error) {
@@ -622,6 +631,100 @@ async function getOrCreateUnsubscribeToken(email: string, userId: string | null)
     console.error('Failed to get/create unsubscribe token:', error);
     return '';
   }
+}
+
+interface CollectPostNotificationRecipientsOptions {
+  postId: string;
+  authorEmail?: string | null;
+  includeAuthor?: boolean;
+  includeVoters?: boolean;
+  includeCommenters?: boolean;
+  includeMentions?: boolean;
+  includeOnBehalfCustomers?: boolean;
+  excludeEmails?: Array<string | null | undefined>;
+}
+
+async function collectPostNotificationRecipients(
+  options: CollectPostNotificationRecipientsOptions
+): Promise<string[]> {
+  const {
+    postId,
+    authorEmail,
+    includeAuthor = false,
+    includeVoters = true,
+    includeCommenters = true,
+    includeMentions = true,
+    includeOnBehalfCustomers = true,
+    excludeEmails = [],
+  } = options;
+
+  const supabase = getSupabaseServiceRoleClient();
+  if (!supabase) return [];
+
+  const normalizedExclude = new Set(
+    excludeEmails
+      .map((email) => email?.trim().toLowerCase())
+      .filter((email): email is string => !!email)
+  );
+
+  const recipients = new Map<string, string>();
+  const addRecipient = (email?: string | null) => {
+    if (!email) return;
+    const normalized = email.trim().toLowerCase();
+    if (!normalized || normalizedExclude.has(normalized)) return;
+    if (!recipients.has(normalized)) {
+      recipients.set(normalized, email.trim());
+    }
+  };
+
+  if (includeAuthor) {
+    addRecipient(authorEmail);
+  }
+
+  const [votesResult, commentsResult, mentionsResult, metadataResult] = await Promise.all([
+    includeVoters
+      ? supabase.from('votes').select('voter_email').eq('post_id', postId)
+      : Promise.resolve({ data: [], error: null }),
+    includeCommenters
+      ? supabase.from('comments').select('author_email').eq('post_id', postId)
+      : Promise.resolve({ data: [], error: null }),
+    includeMentions
+      ? supabase.from('comment_mentions').select('mentioned_user_email').eq('post_id', postId)
+      : Promise.resolve({ data: [], error: null }),
+    includeOnBehalfCustomers
+      ? supabase.from('feedback_metadata').select('customer_email').eq('post_id', postId)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  if (votesResult.error) {
+    console.error('Failed to load vote recipients:', votesResult.error);
+  } else {
+    votesResult.data?.forEach((row: { voter_email?: string | null }) => addRecipient(row?.voter_email));
+  }
+
+  if (commentsResult.error) {
+    console.error('Failed to load comment recipients:', commentsResult.error);
+  } else {
+    commentsResult.data?.forEach((row: { author_email?: string | null }) => addRecipient(row?.author_email));
+  }
+
+  if (mentionsResult.error) {
+    console.error('Failed to load mention recipients:', mentionsResult.error);
+  } else {
+    mentionsResult.data?.forEach((row: { mentioned_user_email?: string | null }) =>
+      addRecipient(row?.mentioned_user_email)
+    );
+  }
+
+  if (metadataResult.error) {
+    console.error('Failed to load feedback metadata recipients:', metadataResult.error);
+  } else {
+    metadataResult.data?.forEach((row: { customer_email?: string | null }) =>
+      addRecipient(row?.customer_email)
+    );
+  }
+
+  return Array.from(recipients.values());
 }
 
 // ==================== TEMPLATE 1: Status Change ====================
@@ -780,6 +883,50 @@ export async function sendStatusChangeEmail(params: SendStatusChangeEmailParams)
   }
 }
 
+interface NotifyStatusChangeParticipantsParams {
+  postId: string;
+  projectId: string;
+  projectSlug: string;
+  postTitle: string;
+  oldStatus: string;
+  newStatus: string;
+  adminNote?: string;
+  authorEmail?: string | null;
+  triggeredByEmail?: string | null;
+}
+
+export async function notifyStatusChangeParticipants(
+  params: NotifyStatusChangeParticipantsParams
+): Promise<void> {
+  const recipients = await collectPostNotificationRecipients({
+    postId: params.postId,
+    authorEmail: params.authorEmail,
+    includeAuthor: false,
+    includeVoters: true,
+    includeCommenters: true,
+    includeMentions: true,
+    includeOnBehalfCustomers: true,
+    excludeEmails: [params.authorEmail, params.triggeredByEmail],
+  });
+
+  for (const email of recipients) {
+    try {
+      await sendStatusChangeEmail({
+        toEmail: email,
+        postTitle: params.postTitle,
+        postId: params.postId,
+        projectId: params.projectId,
+        projectSlug: params.projectSlug,
+        oldStatus: params.oldStatus,
+        newStatus: params.newStatus,
+        adminNote: params.adminNote,
+      });
+    } catch (error) {
+      console.error('Failed to notify participant of status change:', email, error);
+    }
+  }
+}
+
 // ==================== TEMPLATE 2: New Comment ====================
 
 interface SendCommentEmailParams {
@@ -924,6 +1071,52 @@ export async function sendCommentEmail(params: SendCommentEmailParams) {
   }
 }
 
+interface NotifyCommentParticipantsParams {
+  postId: string;
+  projectId: string;
+  projectSlug: string;
+  postTitle: string;
+  commentId: string;
+  commentText: string;
+  commenterName: string;
+  commentAuthorEmail?: string | null;
+  postAuthorEmail?: string | null;
+  isAdminComment?: boolean;
+}
+
+export async function notifyCommentParticipants(
+  params: NotifyCommentParticipantsParams
+): Promise<void> {
+  const recipients = await collectPostNotificationRecipients({
+    postId: params.postId,
+    authorEmail: params.postAuthorEmail,
+    includeAuthor: false,
+    includeVoters: true,
+    includeCommenters: true,
+    includeMentions: true,
+    includeOnBehalfCustomers: true,
+    excludeEmails: [params.postAuthorEmail, params.commentAuthorEmail],
+  });
+
+  for (const email of recipients) {
+    try {
+      await sendCommentEmail({
+        toEmail: email,
+        postTitle: params.postTitle,
+        postId: params.postId,
+        projectId: params.projectId,
+        projectSlug: params.projectSlug,
+        commentId: params.commentId,
+        commentText: params.commentText,
+        commenterName: params.commenterName,
+        isAdmin: params.isAdminComment ?? false,
+      });
+    } catch (error) {
+      console.error('Failed to notify participant of new comment:', email, error);
+    }
+  }
+}
+
 // ==================== TEMPLATE 3: Post Submitted (Confirmation) ====================
 
 interface SendPostConfirmationEmailParams {
@@ -1063,7 +1256,153 @@ export async function sendPostConfirmationEmail(params: SendPostConfirmationEmai
   }
 }
 
-// ==================== TEMPLATE 4: Vote on Behalf Notification ====================
+// ==================== TEMPLATE 4: Feedback Submitted On Behalf ====================
+
+interface SendFeedbackOnBehalfEmailParams {
+  toEmail: string;
+  toName: string;
+  feedbackTitle: string;
+  feedbackDescription?: string | null;
+  postId: string;
+  projectId: string;
+  projectSlug: string;
+  projectName: string;
+  adminName: string;
+}
+
+export async function sendFeedbackOnBehalfEmail(params: SendFeedbackOnBehalfEmailParams) {
+  const {
+    toEmail,
+    toName,
+    feedbackTitle,
+    feedbackDescription,
+    postId,
+    projectId,
+    projectSlug,
+    projectName,
+    adminName,
+  } = params;
+
+  const shouldSend = await checkEmailPreferences(toEmail, null, 'feedback_on_behalf');
+  if (!shouldSend) {
+    console.log(`User ${toEmail} has opted out of feedback on behalf emails`);
+    return { success: false, reason: 'opted_out' };
+  }
+
+  const withinLimit = await checkRateLimit(toEmail);
+  if (!withinLimit) {
+    console.log(`Rate limit exceeded for ${toEmail}`);
+    return { success: false, reason: 'rate_limit' };
+  }
+
+  const postUrl = `${APP_URL}/${projectSlug}/post/${postId}`;
+  const unsubscribeToken = await getOrCreateUnsubscribeToken(toEmail, null);
+  const unsubscribeUrl = `${APP_URL}/unsubscribe?token=${unsubscribeToken}`;
+  const safeDescription =
+    feedbackDescription && feedbackDescription.trim().length > 0
+      ? feedbackDescription.replace(/\n/g, '<br />')
+      : null;
+
+  const content = `
+    <!-- Header -->
+    <tr>
+      <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px 12px 0 0;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">✓ Feedback Submitted</h1>
+      </td>
+    </tr>
+
+    <!-- Content -->
+    <tr>
+      <td style="padding: 40px;">
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
+          Hi${toName ? ` ${toName}` : ''},
+        </p>
+
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
+          ${adminName} from <strong>${projectName}</strong> just submitted your feedback to our board.
+        </p>
+
+        <div style="margin: 30px 0; padding: 24px; background-color: #f9fafb; border-radius: 8px; border-left: 4px solid #667eea;">
+          <p style="margin: 0 0 12px; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">
+            Your Feedback
+          </p>
+          <p style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #111827;">
+            ${feedbackTitle}
+          </p>
+          ${
+            safeDescription
+              ? `<p style="margin: 0; font-size: 14px; line-height: 1.7; color: #4b5563;">${safeDescription}</p>`
+              : ''
+          }
+        </div>
+
+        <p style="margin: 0 0 20px; font-size: 15px; line-height: 1.6; color: #374151;">
+          You can follow the conversation, add more context, or vote to show it's important to you.
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${postUrl}" style="display: inline-block; padding: 14px 32px; background-color: #667eea; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            View Your Feedback
+          </a>
+        </div>
+
+        <div style="margin: 30px 0; padding: 20px; background-color: #f3f4f6; border-radius: 8px;">
+          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #4b5563;">
+            We'll keep you updated as the status changes. You can reply to this email if you have additional thoughts.
+          </p>
+        </div>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+        <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+          Questions? Contact us at <a href="mailto:support@signalsloop.com" style="color: #667eea; text-decoration: none;">support@signalsloop.com</a>
+        </p>
+        <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+          © ${new Date().getFullYear()} SignalsLoop. All rights reserved.
+        </p>
+        <p style="margin: 0; font-size: 11px;">
+          <a href="${unsubscribeUrl}" style="color: #9ca3af; text-decoration: underline;">Unsubscribe from these emails</a>
+        </p>
+      </td>
+    </tr>
+  `;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'SignalsLoop <noreply@signalsloop.com>',
+      to: [toEmail],
+      subject: `Your feedback has been submitted to ${projectName}`,
+      html: getEmailTemplate(content),
+    });
+
+    if (error) {
+      console.error('Error sending feedback on behalf email:', error);
+      throw error;
+    }
+
+    await logEmail({
+      emailType: 'feedback_on_behalf',
+      toEmail,
+      subject: `Your feedback has been submitted to ${projectName}`,
+      postId,
+      projectId,
+      resendId: data?.id,
+      metadata: { adminName },
+    });
+
+    await incrementEmailCount(toEmail);
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Failed to send feedback on behalf email:', error);
+    throw error;
+  }
+}
+
+// ==================== TEMPLATE 5: Vote on Behalf Notification ====================
 
 interface SendVoteOnBehalfEmailParams {
   customerEmail: string;
@@ -1087,6 +1426,20 @@ export async function sendVoteOnBehalfEmail(params: SendVoteOnBehalfEmailParams)
   } = params;
 
   const postUrl = `${APP_URL}/${projectSlug}/post/${postId}`;
+  const shouldSend = await checkEmailPreferences(customerEmail, null, 'vote_on_behalf');
+  if (!shouldSend) {
+    console.log(`User ${customerEmail} has opted out of vote on behalf emails`);
+    return { success: false, reason: 'opted_out' };
+  }
+
+  const withinLimit = await checkRateLimit(customerEmail);
+  if (!withinLimit) {
+    console.log(`Rate limit exceeded for ${customerEmail}`);
+    return { success: false, reason: 'rate_limit' };
+  }
+
+  const unsubscribeToken = await getOrCreateUnsubscribeToken(customerEmail, null);
+  const unsubscribeUrl = `${APP_URL}/unsubscribe?token=${unsubscribeToken}`;
 
   const content = `
     <!-- Header -->
@@ -1153,6 +1506,9 @@ export async function sendVoteOnBehalfEmail(params: SendVoteOnBehalfEmailParams)
         <p style="margin: 0; font-size: 12px; color: #9ca3af;">
           © 2025 SignalsLoop. All rights reserved.
         </p>
+        <p style="margin: 0; font-size: 11px;">
+          <a href="${unsubscribeUrl}" style="color: #9ca3af; text-decoration: underline;">Unsubscribe from these emails</a>
+        </p>
       </td>
     </tr>
   `;
@@ -1180,9 +1536,711 @@ export async function sendVoteOnBehalfEmail(params: SendVoteOnBehalfEmailParams)
       metadata: { adminName, projectName },
     });
 
+    await incrementEmailCount(customerEmail);
+
     return { success: true, data };
   } catch (error) {
     console.error('Failed to send vote on behalf email:', error);
+    throw error;
+  }
+}
+
+// ==================== TEMPLATE 6: Mention Notification ====================
+
+interface SendMentionNotificationEmailParams {
+  toEmail: string;
+  toName?: string | null;
+  commentText: string;
+  commenterName: string;
+  postTitle: string;
+  postId: string;
+  projectId: string;
+  projectName: string;
+  projectSlug?: string;
+  commentId?: string;
+  postUrl?: string;
+  userId?: string | null;
+}
+
+export async function sendMentionNotificationEmail(params: SendMentionNotificationEmailParams) {
+  const {
+    toEmail,
+    toName,
+    commentText,
+    commenterName,
+    postTitle,
+    postId,
+    projectId,
+    projectName,
+    projectSlug,
+    commentId,
+    postUrl,
+    userId,
+  } = params;
+
+  const shouldSend = await checkEmailPreferences(toEmail, userId || null, 'mention');
+  if (!shouldSend) {
+    console.log(`User ${toEmail} has opted out of mention emails`);
+    return { success: false, reason: 'opted_out' };
+  }
+
+  const withinLimit = await checkRateLimit(toEmail);
+  if (!withinLimit) {
+    console.log(`Rate limit exceeded for ${toEmail}`);
+    return { success: false, reason: 'rate_limit' };
+  }
+
+  const url =
+    postUrl ||
+    (projectSlug ? `${APP_URL}/${projectSlug}/board?post=${postId}` : `${APP_URL}/post/${postId}`);
+  const unsubscribeToken = await getOrCreateUnsubscribeToken(toEmail, userId || null);
+  const unsubscribeUrl = `${APP_URL}/unsubscribe?token=${unsubscribeToken}`;
+  const preview =
+    commentText.length > 180 ? `${commentText.substring(0, 180).trimEnd()}...` : commentText;
+
+  const content = `
+    <!-- Header -->
+    <tr>
+      <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 12px 12px 0 0;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">💬 You Were Mentioned</h1>
+      </td>
+    </tr>
+
+    <!-- Content -->
+    <tr>
+      <td style="padding: 40px;">
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
+          Hi${toName ? ` ${toName}` : ''},
+        </p>
+
+        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
+          <strong>${commenterName}</strong> mentioned you in a discussion on <strong>${projectName}</strong>.
+        </p>
+
+        <div style="margin: 30px 0; padding: 24px; background-color: #f3f4f6; border-radius: 8px; border-left: 4px solid #6366f1;">
+          <p style="margin: 0 0 12px; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">
+            In the thread
+          </p>
+          <p style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #111827;">
+            ${postTitle}
+          </p>
+          <p style="margin: 0; font-size: 14px; line-height: 1.7; color: #4b5563; font-style: italic;">
+            “${preview}”
+          </p>
+        </div>
+
+        <p style="margin: 0 0 20px; font-size: 15px; line-height: 1.6; color: #374151;">
+          Join the conversation to keep things moving forward.
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${url}" style="display: inline-block; padding: 14px 32px; background-color: #6366f1; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            View Comment
+          </a>
+        </div>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+        <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+          Questions? Contact us at <a href="mailto:support@signalsloop.com" style="color: #6366f1; text-decoration: none;">support@signalsloop.com</a>
+        </p>
+        <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+          © ${new Date().getFullYear()} SignalsLoop. All rights reserved.
+        </p>
+        <p style="margin: 0; font-size: 11px;">
+          <a href="${unsubscribeUrl}" style="color: #9ca3af; text-decoration: underline;">Unsubscribe from these emails</a>
+        </p>
+      </td>
+    </tr>
+  `;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'SignalsLoop <noreply@signalsloop.com>',
+      to: [toEmail],
+      subject: `${commenterName} mentioned you in ${projectName}`,
+      html: getEmailTemplate(content),
+    });
+
+    if (error) {
+      console.error('Error sending mention notification email:', error);
+      throw error;
+    }
+
+    await logEmail({
+      emailType: 'mention',
+      toEmail,
+      subject: `${commenterName} mentioned you in ${projectName}`,
+      postId,
+      commentId,
+      projectId,
+      resendId: data?.id,
+      metadata: { commenterName },
+    });
+
+    await incrementEmailCount(toEmail);
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Failed to send mention notification email:', error);
+    throw error;
+  }
+}
+
+// ==================== TEMPLATE 7: Team Feedback Alert ====================
+
+interface SendTeamFeedbackAlertEmailParams {
+  toEmail: string;
+  toName?: string | null;
+  userId?: string | null;
+  projectId: string;
+  projectSlug: string;
+  projectName: string;
+  postId: string;
+  feedbackTitle: string;
+  feedbackDescription?: string | null;
+  submitterName?: string | null;
+  submitterEmail?: string | null;
+  submitterCompany?: string | null;
+  submittedByAdminName?: string | null;
+  submittedByAdminEmail?: string | null;
+  submissionType: 'public_widget' | 'on_behalf';
+  submissionSource?: string | null;
+  feedbackCategory?: string | null;
+  feedbackPriority?: string | null;
+}
+
+export async function sendTeamFeedbackAlertEmail(
+  params: SendTeamFeedbackAlertEmailParams
+): Promise<{ success: boolean; reason?: string; data?: unknown }> {
+  const {
+    toEmail,
+    toName,
+    userId,
+    projectId,
+    projectSlug,
+    projectName,
+    postId,
+    feedbackTitle,
+    feedbackDescription,
+    submitterName,
+    submitterEmail,
+    submitterCompany,
+    submittedByAdminName,
+    submittedByAdminEmail,
+    submissionType,
+    submissionSource,
+    feedbackCategory,
+    feedbackPriority,
+  } = params;
+
+  if (!toEmail) {
+    return { success: false, reason: 'missing_recipient' };
+  }
+
+  const shouldSend = await checkEmailPreferences(toEmail, userId || null, 'team_feedback_alert');
+  if (!shouldSend) {
+    console.log(`User ${toEmail} has opted out of team feedback alerts`);
+    return { success: false, reason: 'opted_out' };
+  }
+
+  const withinLimit = await checkRateLimit(toEmail, 20);
+  if (!withinLimit) {
+    console.log(`Team alert rate limit exceeded for ${toEmail}`);
+    return { success: false, reason: 'rate_limit' };
+  }
+
+  const submissionLabel =
+    submissionType === 'on_behalf' ? 'On-Behalf Submission' : 'New Widget Feedback';
+  const headerGradient =
+    submissionType === 'on_behalf' ? '#0ea5e9 0%, #6366f1 100%' : '#22c55e 0%, #16a34a 100%';
+  const introLine =
+    submissionType === 'on_behalf'
+      ? `${submittedByAdminName || 'A teammate'} captured feedback on behalf of ${
+          submitterName || submitterEmail || 'a customer'
+        }.`
+      : `${submitterName || submitterEmail || 'A customer'} just submitted new feedback via your widget.`;
+
+  const postUrl = `${APP_URL}/${projectSlug}/post/${postId}`;
+  const unsubscribeToken = await getOrCreateUnsubscribeToken(toEmail, userId || null);
+  const unsubscribeUrl = `${APP_URL}/unsubscribe?token=${unsubscribeToken}`;
+
+  const formatMultiValue = (...values: Array<string | null | undefined>) =>
+    values.filter((value): value is string => !!value).join('<br />');
+
+  const formatEmail = (email?: string | null) =>
+    email
+      ? `<a href="mailto:${encodeURIComponent(email)}" style="color: #4f46e5; text-decoration: none;">${escapeHtml(email)}</a>`
+      : null;
+
+  const formatTitleCase = (value?: string | null) =>
+    value
+      ? escapeHtml(
+          value
+            .split(/[_\s]+/)
+            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+            .join(' ')
+        )
+      : null;
+
+  const detailRows: string[] = [];
+  const addDetailRow = (label: string, rawValue?: string | null) => {
+    if (!rawValue) return;
+    detailRows.push(`
+      <tr>
+        <td style="width: 40%; padding: 12px 16px; background-color: #f9fafb; color: #6b7280; font-size: 14px; border: 1px solid #e5e7eb;">
+          ${escapeHtml(label)}
+        </td>
+        <td style="padding: 12px 16px; font-size: 15px; color: #111827; border: 1px solid #e5e7eb;">
+          ${rawValue}
+        </td>
+      </tr>
+    `);
+  };
+
+  addDetailRow(
+    'Submitted By',
+    formatMultiValue(
+      submitterName ? escapeHtml(submitterName) : undefined,
+      formatEmail(submitterEmail),
+      submitterCompany ? escapeHtml(submitterCompany) : undefined
+    )
+  );
+  addDetailRow('Submission Type', escapeHtml(submissionLabel));
+  addDetailRow('Source', submissionSource ? escapeHtml(submissionSource) : undefined);
+  addDetailRow('Category', formatTitleCase(feedbackCategory));
+  addDetailRow('Priority', formatTitleCase(feedbackPriority));
+
+  if (submittedByAdminName || submittedByAdminEmail) {
+    addDetailRow(
+      'Recorded By',
+      formatMultiValue(
+        submittedByAdminName ? escapeHtml(submittedByAdminName) : undefined,
+        formatEmail(submittedByAdminEmail)
+      )
+    );
+  }
+
+  const detailTableHtml = detailRows.length
+    ? `
+      <table style="width: 100%; border-collapse: collapse; margin: 30px 0;">
+        ${detailRows.join('')}
+      </table>
+    `
+    : '';
+
+  const descriptionHtml = feedbackDescription
+    ? `
+      <div style="margin: 30px 0; padding: 20px; background-color: #f3f4f6; border-left: 4px solid #4f46e5; border-radius: 8px;">
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #374151;">
+          ${escapeHtml(feedbackDescription).replace(/\n/g, '<br />')}
+        </p>
+      </div>
+    `
+    : '';
+
+  const content = `
+    <!-- Header -->
+    <tr>
+      <td style="padding: 40px 40px 24px; text-align: center; background: linear-gradient(135deg, ${headerGradient}); border-radius: 12px 12px 0 0;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">${submissionType === 'on_behalf' ? '🤝 Team Alert' : '📥 New Feedback'}</h1>
+        <p style="margin: 12px 0 0; color: rgba(255, 255, 255, 0.85); font-size: 16px;">
+          ${escapeHtml(projectName)}
+        </p>
+      </td>
+    </tr>
+
+    <!-- Content -->
+    <tr>
+      <td style="padding: 40px;">
+        <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.6; color: #374151;">
+          Hi${toName ? ` ${escapeHtml(toName)}` : ''},
+        </p>
+
+        <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #374151;">
+          ${escapeHtml(introLine)}
+        </p>
+
+        <div style="margin: 0 0 24px; padding: 24px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <p style="margin: 0 0 12px; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">
+            Feedback
+          </p>
+          <p style="margin: 0; font-size: 18px; font-weight: 600; color: #111827;">
+            ${escapeHtml(feedbackTitle)}
+          </p>
+        </div>
+
+        ${detailTableHtml}
+        ${descriptionHtml}
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${postUrl}" style="display: inline-block; padding: 14px 32px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            Review Feedback
+          </a>
+        </div>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+        <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+          Need to adjust alerts? Update your notification settings or contact <a href="mailto:support@signalsloop.com" style="color: #4f46e5; text-decoration: none;">support@signalsloop.com</a>
+        </p>
+        <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+          © ${new Date().getFullYear()} SignalsLoop. All rights reserved.
+        </p>
+        <p style="margin: 0; font-size: 11px;">
+          <a href="${unsubscribeUrl}" style="color: #9ca3af; text-decoration: underline;">Unsubscribe from these emails</a>
+        </p>
+      </td>
+    </tr>
+  `;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'SignalsLoop <noreply@signalsloop.com>',
+      to: [toEmail],
+      subject: `New feedback captured: ${feedbackTitle}`,
+      html: getEmailTemplate(content),
+    });
+
+    if (error) {
+      console.error('Error sending team feedback alert email:', error);
+      throw error;
+    }
+
+    await logEmail({
+      emailType: 'team_feedback_alert',
+      toEmail,
+      subject: `New feedback captured: ${feedbackTitle}`,
+      postId,
+      projectId,
+      resendId: data?.id,
+      metadata: {
+        submissionType,
+        submissionSource,
+        submitterEmail,
+        submitterName,
+        submittedByAdminEmail,
+        submittedByAdminName,
+        feedbackCategory,
+        feedbackPriority,
+      },
+    });
+
+    await incrementEmailCount(toEmail);
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Failed to send team feedback alert email:', error);
+    throw error;
+  }
+}
+
+// ==================== TEMPLATE 8: Weekly Digest ====================
+
+interface WeeklyDigestPostItem {
+  postId: string;
+  title: string;
+  status?: string | null;
+  createdAt?: string | null;
+  totalVotes?: number | null;
+  newVotes?: number | null;
+  newComments?: number | null;
+}
+
+interface WeeklyDigestProjectSection {
+  projectId: string;
+  projectName: string;
+  projectSlug: string;
+  totalNewPosts: number;
+  totalNewVotes: number;
+  totalNewComments: number;
+  newPosts: WeeklyDigestPostItem[];
+  topVotedPosts: WeeklyDigestPostItem[];
+  topCommentedPosts: WeeklyDigestPostItem[];
+}
+
+interface SendWeeklyDigestEmailParams {
+  toEmail: string;
+  toName?: string | null;
+  userId?: string | null;
+  timeframeStart: string;
+  timeframeEnd: string;
+  projects: WeeklyDigestProjectSection[];
+}
+
+export async function sendWeeklyDigestEmail(
+  params: SendWeeklyDigestEmailParams
+): Promise<{ success: boolean; reason?: string; data?: unknown }> {
+  const { toEmail, toName, userId, timeframeStart, timeframeEnd, projects } = params;
+
+  if (!projects || projects.length === 0) {
+    return { success: false, reason: 'no_projects' };
+  }
+
+  const activeProjects = projects.filter(
+    (project) =>
+      project.totalNewPosts > 0 || project.totalNewVotes > 0 || project.totalNewComments > 0
+  );
+
+  if (activeProjects.length === 0) {
+    return { success: false, reason: 'no_activity' };
+  }
+
+  const shouldSend = await checkEmailPreferences(toEmail, userId || null, 'weekly_digest');
+  if (!shouldSend) {
+    console.log(`User ${toEmail} has opted out of weekly digest emails`);
+    return { success: false, reason: 'opted_out' };
+  }
+
+  const withinLimit = await checkRateLimit(toEmail, 2);
+  if (!withinLimit) {
+    console.log(`Weekly digest rate limit exceeded for ${toEmail}`);
+    return { success: false, reason: 'rate_limit' };
+  }
+
+  const timeframeStartDate = new Date(timeframeStart);
+  const timeframeEndDate = new Date(timeframeEnd);
+
+  const formatDateLabel = (iso?: string | null) => {
+    if (!iso) return '';
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const startLabel = timeframeStartDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+  const endLabel = timeframeEndDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+
+  const detailsLine = (parts: Array<string | null | undefined>) =>
+    parts.filter((part): part is string => !!part && part.trim().length > 0).join(' • ');
+
+  const projectSectionsHtml = activeProjects
+    .map((project) => {
+      const projectUrl = `${APP_URL}/${project.projectSlug}/board`;
+
+      const newPostsHtml = project.newPosts.length
+        ? `
+          <div style="margin-top: 20px;">
+            <h3 style="margin: 0 0 12px; font-size: 16px; color: #111827;">Latest Posts</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              ${project.newPosts
+                .map((post) => {
+                  const postUrl = `${APP_URL}/${project.projectSlug}/post/${post.postId}`;
+                  const statusBadge = getStatusBadge(post.status || 'open');
+                  const details = detailsLine([
+                    post.createdAt ? `Submitted ${formatDateLabel(post.createdAt)}` : null,
+                    post.totalVotes !== undefined ? `${post.totalVotes ?? 0} total votes` : null,
+                  ]);
+                  return `
+                    <li style="margin-bottom: 16px;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                        <a href="${postUrl}" style="flex: 1; font-weight: 600; color: #1f2937; text-decoration: none;">
+                          ${escapeHtml(post.title)}
+                        </a>
+                        ${statusBadge}
+                      </div>
+                      ${
+                        details
+                          ? `<div style="margin-top: 6px; font-size: 13px; color: #6b7280;">${details}</div>`
+                          : ''
+                      }
+                    </li>
+                  `;
+                })
+                .join('')}
+            </ul>
+          </div>
+        `
+        : '';
+
+      const topVotesHtml = project.topVotedPosts.length
+        ? `
+          <div style="margin-top: 24px;">
+            <h3 style="margin: 0 0 12px; font-size: 16px; color: #111827;">Most Voted This Week</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              ${project.topVotedPosts
+                .map((post) => {
+                  const postUrl = `${APP_URL}/${project.projectSlug}/post/${post.postId}`;
+                  const voteDetails = detailsLine([
+                    post.newVotes !== undefined ? `+${post.newVotes ?? 0} new votes` : null,
+                    post.totalVotes !== undefined ? `${post.totalVotes ?? 0} total votes` : null,
+                  ]);
+                  return `
+                    <li style="margin-bottom: 14px;">
+                      <a href="${postUrl}" style="font-weight: 600; color: #1f2937; text-decoration: none;">
+                        ${escapeHtml(post.title)}
+                      </a>
+                      ${
+                        voteDetails
+                          ? `<div style="margin-top: 6px; font-size: 13px; color: #6b7280;">${voteDetails}</div>`
+                          : ''
+                      }
+                    </li>
+                  `;
+                })
+                .join('')}
+            </ul>
+          </div>
+        `
+        : '';
+
+      const topCommentsHtml = project.topCommentedPosts.length
+        ? `
+          <div style="margin-top: 24px;">
+            <h3 style="margin: 0 0 12px; font-size: 16px; color: #111827;">Most Discussed</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              ${project.topCommentedPosts
+                .map((post) => {
+                  const postUrl = `${APP_URL}/${project.projectSlug}/post/${post.postId}`;
+                  const commentDetails =
+                    post.newComments !== undefined
+                      ? `+${post.newComments ?? 0} new comments`
+                      : null;
+                  return `
+                    <li style="margin-bottom: 14px;">
+                      <a href="${postUrl}" style="font-weight: 600; color: #1f2937; text-decoration: none;">
+                        ${escapeHtml(post.title)}
+                      </a>
+                      ${
+                        commentDetails
+                          ? `<div style="margin-top: 6px; font-size: 13px; color: #6b7280;">${commentDetails}</div>`
+                          : ''
+                      }
+                    </li>
+                  `;
+                })
+                .join('')}
+            </ul>
+          </div>
+        `
+        : '';
+
+      return `
+        <div style="margin-top: 30px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+          <div style="background-color: #f9fafb; padding: 20px;">
+            <h2 style="margin: 0 0 8px; font-size: 20px; color: #111827;">
+              ${escapeHtml(project.projectName)}
+            </h2>
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">
+              ${escapeHtml(
+                `New posts: ${project.totalNewPosts} · New comments: ${project.totalNewComments} · New votes: ${project.totalNewVotes}`
+              )}
+            </p>
+            <p style="margin: 8px 0 0; font-size: 13px;">
+              <a href="${projectUrl}" style="color: #4f46e5; text-decoration: none;">Open board</a>
+            </p>
+          </div>
+          <div style="padding: 24px;">
+            ${newPostsHtml}
+            ${topVotesHtml}
+            ${topCommentsHtml}
+            ${
+              !newPostsHtml && !topVotesHtml && !topCommentsHtml
+                ? `<p style="margin: 0; font-size: 14px; color: #6b7280;">No detailed highlights this week, but we recorded activity on this project.</p>`
+                : ''
+            }
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  const unsubscribeToken = await getOrCreateUnsubscribeToken(toEmail, userId || null);
+  const unsubscribeUrl = `${APP_URL}/unsubscribe?token=${unsubscribeToken}`;
+  const primaryProject = activeProjects[0];
+  const primaryCtaUrl = `${APP_URL}/${primaryProject.projectSlug}/board`;
+
+  const content = `
+    <!-- Header -->
+    <tr>
+      <td style="padding: 40px 40px 24px; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #22c55e 100%); border-radius: 12px 12px 0 0;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">📊 Weekly Feedback Digest</h1>
+        <p style="margin: 12px 0 0; color: rgba(255, 255, 255, 0.85); font-size: 16px;">
+          ${escapeHtml(`${startLabel} – ${endLabel}`)}
+        </p>
+      </td>
+    </tr>
+
+    <!-- Content -->
+    <tr>
+      <td style="padding: 40px;">
+        <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.6; color: #374151;">
+          Hi${toName ? ` ${escapeHtml(toName)}` : ''},
+        </p>
+
+        <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #374151;">
+          Here's what customers talked about over the past week. Use these highlights to prioritize, follow up, or share wins with your team.
+        </p>
+
+        ${projectSectionsHtml}
+
+        <div style="text-align: center; margin: 40px 0 10px;">
+          <a href="${primaryCtaUrl}" style="display: inline-block; padding: 14px 32px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            Review Boards
+          </a>
+        </div>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center;">
+        <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+          Want to tweak these digests? Update notification preferences or contact <a href="mailto:support@signalsloop.com" style="color: #4f46e5; text-decoration: none;">support@signalsloop.com</a>
+        </p>
+        <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+          © ${new Date().getFullYear()} SignalsLoop. All rights reserved.
+        </p>
+        <p style="margin: 0; font-size: 11px;">
+          <a href="${unsubscribeUrl}" style="color: #9ca3af; text-decoration: underline;">Unsubscribe from weekly digests</a>
+        </p>
+      </td>
+    </tr>
+  `;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'SignalsLoop <noreply@signalsloop.com>',
+      to: [toEmail],
+      subject: `Your weekly SignalsLoop digest (${startLabel} – ${endLabel})`,
+      html: getEmailTemplate(content),
+    });
+
+    if (error) {
+      console.error('Error sending weekly digest email:', error);
+      throw error;
+    }
+
+    await logEmail({
+      emailType: 'weekly_digest',
+      toEmail,
+      subject: `Your weekly SignalsLoop digest (${startLabel} – ${endLabel})`,
+      projectId: activeProjects[0]?.projectId,
+      resendId: data?.id,
+      metadata: {
+        timeframeStart,
+        timeframeEnd,
+        projectIds: activeProjects.map((project) => project.projectId),
+      },
+    });
+
+    await incrementEmailCount(toEmail);
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Failed to send weekly digest email:', error);
     throw error;
   }
 }

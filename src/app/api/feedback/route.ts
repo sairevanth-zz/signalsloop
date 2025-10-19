@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendPostConfirmationEmail, sendTeamFeedbackAlertEmail } from '@/lib/email';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Get project details
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .select('id, name, slug')
+      .select('id, name, slug, owner_id')
       .eq('slug', project_slug)
       .single();
 
@@ -62,6 +63,32 @@ export async function POST(request: NextRequest) {
         { error: 'Board not found' },
         { status: 404 }
       );
+    }
+
+    let projectOwnerEmail: string | null = null;
+    let projectOwnerName: string | null = null;
+
+    if (project.owner_id) {
+      try {
+        const { data: ownerData, error: ownerError } = await supabase.auth.admin.getUserById(project.owner_id);
+        if (ownerError) {
+          throw ownerError;
+        }
+        const ownerUser = ownerData?.user;
+        if (ownerUser) {
+          projectOwnerEmail =
+            ownerUser.email ||
+            (typeof ownerUser.user_metadata?.email === 'string' ? ownerUser.user_metadata.email : null);
+          projectOwnerName =
+            (typeof ownerUser.user_metadata?.full_name === 'string'
+              ? ownerUser.user_metadata.full_name
+              : null) ||
+            ownerUser.email ||
+            null;
+        }
+      } catch (ownerLookupError) {
+        console.error('[FEEDBACK] Failed to load project owner for alerts:', ownerLookupError);
+      }
     }
 
     // Create feedback post
@@ -92,6 +119,49 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[FEEDBACK] Post created successfully:', post.id);
+
+    if (user_email) {
+      try {
+        await sendPostConfirmationEmail({
+          toEmail: user_email.trim(),
+          toName: author_name?.trim() || null,
+          postTitle: post.title,
+          postId: post.id,
+          projectId: project.id,
+          projectSlug: project.slug,
+          projectName: project.name,
+          voteCount: post.vote_count ?? 0,
+        });
+        console.log(`✅ Confirmation email sent to ${user_email}`);
+      } catch (emailError) {
+        console.error('[FEEDBACK] Failed to send confirmation email:', emailError);
+      }
+    }
+
+    if (projectOwnerEmail) {
+      try {
+        await sendTeamFeedbackAlertEmail({
+          toEmail: projectOwnerEmail,
+          toName: projectOwnerName,
+          userId: project.owner_id || null,
+          projectId: project.id,
+          projectSlug: project.slug,
+          projectName: project.name,
+          postId: post.id,
+          feedbackTitle: post.title,
+          feedbackDescription: post.description,
+          submitterName: author_name?.trim() || null,
+          submitterEmail: user_email?.trim() || null,
+          submissionType: 'public_widget',
+          submissionSource: 'Public Widget',
+          feedbackCategory: category,
+          feedbackPriority: priority,
+        });
+        console.log(`✅ Team alert email sent to ${projectOwnerEmail}`);
+      } catch (teamEmailError) {
+        console.error('[FEEDBACK] Failed to send team feedback alert:', teamEmailError);
+      }
+    }
 
     // If project has AI categorization enabled, trigger it
     try {
