@@ -70,6 +70,9 @@ interface Post {
   ai_categorized?: boolean;
   ai_confidence?: number;
   ai_reasoning?: string;
+  duplicate_of?: string | null;
+  mergedDuplicates?: Array<{ id: string; title: string }>;
+  mergedDuplicateCount?: number;
 }
 
 interface Project {
@@ -332,6 +335,28 @@ export default function BoardPage() {
         return;
       }
 
+      const { data: mergedDuplicatesData, error: mergedDuplicatesError } = await supabase
+        .from('posts')
+        .select('id, title, duplicate_of')
+        .eq('board_id', boardData.id)
+        .not('duplicate_of', 'is', null);
+
+      if (mergedDuplicatesError) {
+        console.error('Error loading merged duplicates:', mergedDuplicatesError);
+      }
+
+      const duplicatesByTarget: Record<string, Array<{ id: string; title: string }>> = {};
+
+      mergedDuplicatesData?.forEach((dup: Record<string, unknown>) => {
+        const targetId = dup.duplicate_of as string | null;
+        if (!targetId) return;
+        duplicatesByTarget[targetId] = duplicatesByTarget[targetId] || [];
+        duplicatesByTarget[targetId].push({
+          id: dup.id as string,
+          title: (dup.title as string) || 'Merged post'
+        });
+      });
+
       // Process posts data
       const processedPosts = postsData?.map((post: Record<string, unknown>) => ({
         id: post.id as string,
@@ -346,7 +371,10 @@ export default function BoardPage() {
         category: post.category as string | null,
         ai_categorized: post.ai_categorized as boolean,
         ai_confidence: post.ai_confidence as number,
-        ai_reasoning: post.ai_reasoning as string
+        ai_reasoning: post.ai_reasoning as string,
+        duplicate_of: post.duplicate_of as string | null,
+        mergedDuplicates: duplicatesByTarget[post.id as string] || [],
+        mergedDuplicateCount: (duplicatesByTarget[post.id as string] || []).length
       })) || [];
 
       setPosts(processedPosts);
@@ -770,6 +798,14 @@ export default function BoardPage() {
                           >
                             {statusConfig[post.status].label}
                           </Badge>
+                          {post.mergedDuplicateCount && post.mergedDuplicateCount > 0 && (
+                            <Badge
+                              variant="outline"
+                              className="border-orange-300 bg-orange-50 text-orange-700"
+                            >
+                              {post.mergedDuplicateCount} merged
+                            </Badge>
+                          )}
                           {isProjectOwner && (
                             <Button
                               variant="ghost"
@@ -803,6 +839,30 @@ export default function BoardPage() {
                         <p className="text-gray-600 line-clamp-3 mb-3">
                           {post.description}
                         </p>
+                      )}
+
+                      {isProjectOwner && post.mergedDuplicates && post.mergedDuplicates.length > 0 && (
+                        <div className="mb-3 rounded border border-orange-200 bg-orange-50 p-3 text-xs text-orange-800">
+                          <div className="flex items-center gap-1 font-semibold mb-2">
+                            <AlertTriangle className="h-3 w-3" />
+                            <span>Merged duplicates</span>
+                          </div>
+                          <div className="space-y-1">
+                            {post.mergedDuplicates.map((duplicate) => (
+                              <button
+                                key={duplicate.id}
+                                type="button"
+                                className="underline underline-offset-2 hover:text-orange-600"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/${project?.slug || params?.slug}/post/${duplicate.id}`);
+                                }}
+                              >
+                                {duplicate.title}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       )}
 
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-gray-500">

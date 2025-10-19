@@ -233,11 +233,45 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
       }
     }
 
+    const { data: mergedDuplicates, error: mergedDuplicatesError } = await supabase
+      .from('posts')
+      .select('id, title, status, vote_count, created_at')
+      .eq('duplicate_of', post.id)
+      .order('created_at', { ascending: false });
+
+    if (mergedDuplicatesError) {
+      console.error('Merged duplicates fetch error', mergedDuplicatesError, 'post', post.id);
+    }
+
+    let canonicalPost: {
+      id: string;
+      title: string;
+      status: string;
+      vote_count: number | null;
+      created_at: string;
+    } | null = null;
+
+    if (post.duplicate_of) {
+      const { data: canonicalData, error: canonicalError } = await supabase
+        .from('posts')
+        .select('id, title, status, vote_count, created_at')
+        .eq('id', post.duplicate_of)
+        .single();
+
+      if (canonicalError) {
+        console.error('Canonical post fetch error', canonicalError, 'canonical', post.duplicate_of);
+      } else {
+        canonicalPost = canonicalData ?? null;
+      }
+    }
+
     return (
       <PublicPostDetails 
         project={project}
         post={enrichedPost}
         relatedPosts={enrichedRelated}
+        mergedDuplicates={mergedDuplicates || []}
+        canonicalPost={canonicalPost}
       />
     );
   } catch (error) {

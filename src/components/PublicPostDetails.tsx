@@ -21,7 +21,8 @@ import {
   Facebook,
   Link as LinkIcon,
   UserPlus,
-  Trash2
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -36,6 +37,7 @@ import { useAIUsage } from '@/hooks/useAIUsage';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import VoteButton, { VoteStats, VoteStatsSnapshot } from '@/components/VoteButton';
 import { PriorityMixCompact } from '@/components/PriorityMix';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Project {
   id: string;
@@ -43,7 +45,7 @@ interface Project {
   description?: string;
   slug: string;
   custom_domain?: string;
-  is_private: boolean;
+  is_private?: boolean;
   plan: string;
   created_at: string;
 }
@@ -61,15 +63,36 @@ interface Post {
   author_email?: string;
   status: string;
   project_id: string;
+  duplicate_of?: string | null;
 }
 
 interface PublicPostDetailsProps {
   project: Project;
   post: Post;
   relatedPosts: Post[];
+  mergedDuplicates?: Array<{
+    id: string;
+    title: string;
+    status: string;
+    vote_count: number | null;
+    created_at: string;
+  }>;
+  canonicalPost?: {
+    id: string;
+    title: string;
+    status: string;
+    vote_count: number | null;
+    created_at: string;
+  } | null;
 }
 
-export default function PublicPostDetails({ project, post, relatedPosts }: PublicPostDetailsProps) {
+export default function PublicPostDetails({
+  project,
+  post,
+  relatedPosts,
+  mergedDuplicates = [],
+  canonicalPost = null
+}: PublicPostDetailsProps) {
   const { user, loading: authLoading } = useAuth();
   const [hasVoted, setHasVoted] = useState(false);
   const [voteCount, setVoteCount] = useState(post.vote_count);
@@ -118,6 +141,9 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const statusLabel = post.status === 'in_progress'
     ? 'In Progress'
     : post.status.charAt(0).toUpperCase() + post.status.slice(1);
+  const mergedDuplicatePosts = mergedDuplicates || [];
+  const isMergedDuplicate = Boolean(post.duplicate_of);
+  const canonicalLink = canonicalPost ? `/${project.slug}/post/${canonicalPost.id}` : null;
 
   // Load voted status from localStorage
   useEffect(() => {
@@ -515,6 +541,56 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
           {/* Main Post Card */}
           <Card className="mb-6">
               <CardContent className="p-5 sm:p-8">
+              {isMergedDuplicate && canonicalPost && (
+                <Alert className="mb-6 border border-orange-200 bg-orange-50 text-orange-900">
+                  <AlertTriangle className="h-4 w-4 text-orange-600" />
+                  <AlertDescription>
+                    <p className="font-semibold">
+                      This post has been merged into{' '}
+                      {canonicalLink ? (
+                        <Link href={canonicalLink} className="underline underline-offset-4">
+                          {canonicalPost.title}
+                        </Link>
+                      ) : (
+                        canonicalPost.title
+                      )}
+                      .
+                    </p>
+                    <p className="mt-1 text-sm text-orange-700">
+                      Votes and comments should be tracked on the original post.
+                    </p>
+                  </AlertDescription>
+                </Alert>
+              )}
+              {isOwner && mergedDuplicatePosts.length > 0 && (
+                <div className="mb-6 rounded-lg border border-orange-200 bg-orange-50 p-4">
+                  <div className="flex items-center gap-2 text-orange-800">
+                    <AlertTriangle className="h-4 w-4" />
+                    <p className="text-sm font-semibold">
+                      Merged duplicates ({mergedDuplicatePosts.length})
+                    </p>
+                  </div>
+                  <ul className="mt-3 space-y-2 text-sm text-orange-900">
+                    {mergedDuplicatePosts.map((duplicate) => {
+                      const statusText = (duplicate.status || 'open').replace(/_/g, ' ');
+                      const duplicateVoteCount = duplicate.vote_count ?? 0;
+                      return (
+                        <li key={duplicate.id} className="flex flex-wrap items-center gap-2">
+                          <Link
+                            href={`/${project.slug}/post/${duplicate.id}`}
+                            className="font-medium underline underline-offset-4"
+                          >
+                            {duplicate.title}
+                          </Link>
+                          <span className="text-xs text-orange-700">
+                            · {statusText} · {duplicateVoteCount} votes
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                   <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
@@ -670,18 +746,42 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
             {/* AI Features Section - Owner/Admin Only */}
             {isOwner && user && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="h-full">
-                <AIDuplicateDetection
-                  postId={post.id}
-                  projectId={project.id}
-                  userPlan={{ plan: project.plan === 'pro' ? 'pro' : 'free', features: [] }}
-                  onShowNotification={(message, type) => {
-                    if (type === 'success') toast.success(message);
-                    else if (type === 'error') toast.error(message);
-                    else toast(message);
-                  }}
-                />
-              </div>
+              {!isMergedDuplicate ? (
+                <div className="h-full">
+                  <AIDuplicateDetection
+                    postId={post.id}
+                    projectId={project.id}
+                    userPlan={{ plan: project.plan === 'pro' ? 'pro' : 'free', features: [] }}
+                    onShowNotification={(message, type) => {
+                      if (type === 'success') toast.success(message);
+                      else if (type === 'error') toast.error(message);
+                      else toast(message);
+                    }}
+                  />
+                </div>
+              ) : (
+                <Card className="border-orange-200 bg-orange-50">
+                  <CardContent className="p-6 text-sm text-orange-800">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold">Duplicate already merged</p>
+                        <p className="mt-1">
+                          This post is linked to{' '}
+                          {canonicalLink ? (
+                            <Link href={canonicalLink} className="underline underline-offset-4">
+                              {canonicalPost?.title}
+                            </Link>
+                          ) : (
+                            canonicalPost?.title
+                          )}
+                          . Manage the canonical post to continue updating feedback.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* AI Priority Scoring */}
               <Card className="border-blue-200 bg-blue-50">

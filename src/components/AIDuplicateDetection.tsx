@@ -57,6 +57,7 @@ export function AIDuplicateDetection({
   const [isAnalyzed, setIsAnalyzed] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ id: string; action: 'confirmed' | 'dismissed' | 'merged' } | null>(null);
   const [mergeCandidate, setMergeCandidate] = useState<DuplicatePost | null>(null);
+  const [lastMergeTarget, setLastMergeTarget] = useState<DuplicatePost | null>(null);
   const featurePlan = {
     plan: userPlan.plan,
     features: userPlan.features ?? []
@@ -166,6 +167,7 @@ export function AIDuplicateDetection({
       });
 
       setDuplicates(mappedDuplicates);
+      setLastMergeTarget(null);
       setIsAnalyzed(true);
 
       if (mappedDuplicates.length === 0) {
@@ -224,12 +226,15 @@ export function AIDuplicateDetection({
       setDuplicates(prev => prev.filter(d => d.id !== duplicate.id));
 
       if (action === 'merged') {
+        setLastMergeTarget(duplicate);
         setDuplicates([]);
         setIsAnalyzed(false);
         onShowNotification?.(`Merged into "${duplicate.title}"`, 'success');
       } else if (action === 'confirmed') {
+        setLastMergeTarget(null);
         onShowNotification?.(`Marked "${duplicate.title}" as duplicate`, 'success');
       } else {
+        setLastMergeTarget(null);
         onShowNotification?.(`Dismissed "${duplicate.title}"`, 'success');
       }
     } catch (error) {
@@ -260,6 +265,23 @@ export function AIDuplicateDetection({
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {lastMergeTarget && (
+            <Alert className="mb-4 border border-orange-200 bg-orange-50 text-orange-900">
+              <GitMerge className="h-4 w-4 text-orange-600" />
+              <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <span className="text-sm">
+                  Merged into <span className="font-semibold">{lastMergeTarget.title}</span>. Manage feedback on the canonical post.
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => window.open(`/post/${lastMergeTarget.postId}`, '_blank')}
+                >
+                  View Post
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
           {!isAnalyzed ? (
             <div className="text-center py-4">
               <Button 
