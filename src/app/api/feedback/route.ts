@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendPostConfirmationEmail, sendTeamFeedbackAlertEmail } from '@/lib/email';
+import {
+  getAllProjectNotificationRecipients,
+  getProjectNotificationRecipientsByType,
+  sendPostConfirmationEmail,
+  sendTeamFeedbackAlertEmail,
+} from '@/lib/email';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -138,29 +143,57 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (projectOwnerEmail) {
-      try {
-        await sendTeamFeedbackAlertEmail({
-          toEmail: projectOwnerEmail,
-          toName: projectOwnerName,
-          userId: project.owner_id || null,
-          projectId: project.id,
-          projectSlug: project.slug,
-          projectName: project.name,
-          postId: post.id,
-          feedbackTitle: post.title,
-          feedbackDescription: post.description,
-          submitterName: author_name?.trim() || null,
-          submitterEmail: user_email?.trim() || null,
-          submissionType: 'public_widget',
-          submissionSource: 'Public Widget',
-          feedbackCategory: category,
-          feedbackPriority: priority,
+    try {
+      const [allRecipients, typeRecipients] = await Promise.all([
+        getAllProjectNotificationRecipients(project.id),
+        getProjectNotificationRecipientsByType(project.id, 'team_alert'),
+      ]);
+
+      const targets = new Map<string, { email: string; name: string | null }>();
+
+      typeRecipients.forEach((recipient) => {
+        const normalized = recipient.email.trim().toLowerCase();
+        if (!normalized) return;
+        if (!targets.has(normalized)) {
+          targets.set(normalized, {
+            email: recipient.email,
+            name: recipient.name,
+          });
+        }
+      });
+
+      if (targets.size === 0 && allRecipients.length === 0 && projectOwnerEmail) {
+        targets.set(projectOwnerEmail.trim().toLowerCase(), {
+          email: projectOwnerEmail.trim().toLowerCase(),
+          name: projectOwnerName,
         });
-        console.log(`✅ Team alert email sent to ${projectOwnerEmail}`);
-      } catch (teamEmailError) {
-        console.error('[FEEDBACK] Failed to send team feedback alert:', teamEmailError);
       }
+
+      for (const target of targets.values()) {
+        try {
+          await sendTeamFeedbackAlertEmail({
+            toEmail: target.email,
+            toName: target.name,
+            userId: project.owner_id || null,
+            projectId: project.id,
+            projectSlug: project.slug,
+            projectName: project.name,
+            postId: post.id,
+            feedbackTitle: post.title,
+            feedbackDescription: post.description,
+            submitterName: author_name?.trim() || null,
+            submitterEmail: user_email?.trim() || null,
+            submissionType: 'public_widget',
+            submissionSource: 'Public Widget',
+            feedbackCategory: category,
+            feedbackPriority: priority,
+          });
+        } catch (teamEmailError) {
+          console.error('[FEEDBACK] Failed to send team feedback alert:', teamEmailError);
+        }
+      }
+    } catch (recipientError) {
+      console.error('[FEEDBACK] Unable to load team alert recipients:', recipientError);
     }
 
     // If project has AI categorization enabled, trigger it

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
-import { sendTeamFeedbackAlertEmail } from '@/lib/email';
+import {
+  getAllProjectNotificationRecipients,
+  getProjectNotificationRecipientsByType,
+  sendTeamFeedbackAlertEmail,
+} from '@/lib/email';
 import { triggerWebhooks } from '@/lib/webhooks';
 import { triggerSlackNotification } from '@/lib/slack';
 import { triggerDiscordNotification } from '@/lib/discord';
@@ -249,33 +253,66 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (admin.email) {
-      try {
-        await sendTeamFeedbackAlertEmail({
-          toEmail: admin.email,
-          toName: (typeof admin.user_metadata?.full_name === 'string' ? admin.user_metadata.full_name : null),
-          userId: project.owner_id,
-          projectId,
-          projectSlug: project.slug,
-          projectName: project.name,
-          postId: post.id,
-          feedbackTitle: feedbackTitle.trim(),
-          feedbackDescription: feedbackDescription.trim(),
-          submitterName: customerName.trim(),
-          submitterEmail: customerEmail.toLowerCase().trim(),
-          submitterCompany: customerCompany?.trim() || null,
-          submittedByAdminName:
-            (typeof admin.user_metadata?.full_name === 'string' ? admin.user_metadata.full_name : null) || admin.email,
-          submittedByAdminEmail: admin.email,
-          submissionType: 'on_behalf',
-          submissionSource: feedbackSource,
-          feedbackCategory: normalizedCategory,
-          feedbackPriority: priority,
+    try {
+      const [allRecipients, typeRecipients] = await Promise.all([
+        getAllProjectNotificationRecipients(projectId),
+        getProjectNotificationRecipientsByType(projectId, 'team_alert'),
+      ]);
+
+      const targets = new Map<string, { email: string; name: string | null }>();
+
+      typeRecipients.forEach((recipient) => {
+        const normalized = recipient.email.trim().toLowerCase();
+        if (!normalized) return;
+        if (!targets.has(normalized)) {
+          targets.set(normalized, {
+            email: recipient.email,
+            name: recipient.name,
+          });
+        }
+      });
+
+      if (targets.size === 0 && allRecipients.length === 0 && admin.email) {
+        targets.set(admin.email.trim().toLowerCase(), {
+          email: admin.email.trim().toLowerCase(),
+          name:
+            (typeof admin.user_metadata?.full_name === 'string'
+              ? admin.user_metadata.full_name
+              : null) || admin.email,
         });
-        console.log(`✅ Team alert email sent to ${admin.email}`);
-      } catch (teamEmailError) {
-        console.error('Failed to send team feedback alert (on behalf):', teamEmailError);
       }
+
+      for (const target of targets.values()) {
+        try {
+          await sendTeamFeedbackAlertEmail({
+            toEmail: target.email,
+            toName: target.name,
+            userId: project.owner_id,
+            projectId,
+            projectSlug: project.slug,
+            projectName: project.name,
+            postId: post.id,
+            feedbackTitle: feedbackTitle.trim(),
+            feedbackDescription: feedbackDescription.trim(),
+            submitterName: customerName.trim(),
+            submitterEmail: customerEmail.toLowerCase().trim(),
+            submitterCompany: customerCompany?.trim() || null,
+            submittedByAdminName:
+              (typeof admin.user_metadata?.full_name === 'string'
+                ? admin.user_metadata.full_name
+                : null) || admin.email,
+            submittedByAdminEmail: admin.email,
+            submissionType: 'on_behalf',
+            submissionSource: feedbackSource,
+            feedbackCategory: normalizedCategory,
+            feedbackPriority: priority,
+          });
+        } catch (teamEmailError) {
+          console.error('Failed to send team feedback alert (on behalf):', teamEmailError);
+        }
+      }
+    } catch (recipientError) {
+      console.error('Failed to load team alert recipients (on behalf):', recipientError);
     }
 
     // Track analytics

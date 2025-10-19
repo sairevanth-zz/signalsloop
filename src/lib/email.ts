@@ -727,6 +727,84 @@ async function collectPostNotificationRecipients(
   return Array.from(recipients.values());
 }
 
+interface ProjectNotificationRecipientRecord {
+  id: string;
+  email: string;
+  name: string | null;
+  receive_weekly_digest: boolean;
+  receive_team_alerts: boolean;
+}
+
+export interface ProjectNotificationRecipient {
+  email: string;
+  name: string | null;
+  receiveWeeklyDigest: boolean;
+  receiveTeamAlerts: boolean;
+}
+
+export async function getAllProjectNotificationRecipients(
+  projectId: string
+): Promise<ProjectNotificationRecipient[]> {
+  const supabase = getSupabaseServiceRoleClient();
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('project_notification_recipients')
+      .select('id, email, name, receive_weekly_digest, receive_team_alerts')
+      .eq('project_id', projectId);
+
+    if (error) {
+      console.error('Failed to load project notification recipients:', error);
+      return [];
+    }
+
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    const unique = new Map<string, ProjectNotificationRecipient>();
+    data.forEach((row: ProjectNotificationRecipientRecord) => {
+      if (!row?.email) return;
+      const normalized = row.email.trim().toLowerCase();
+      if (!normalized) return;
+      if (!unique.has(normalized)) {
+        unique.set(normalized, {
+          email: normalized,
+          name: row.name ?? null,
+          receiveWeeklyDigest: Boolean(row.receive_weekly_digest),
+          receiveTeamAlerts: Boolean(row.receive_team_alerts),
+        });
+      } else {
+        const existing = unique.get(normalized)!;
+        existing.receiveWeeklyDigest =
+          existing.receiveWeeklyDigest || Boolean(row.receive_weekly_digest);
+        existing.receiveTeamAlerts =
+          existing.receiveTeamAlerts || Boolean(row.receive_team_alerts);
+        if (!existing.name && row.name) {
+          existing.name = row.name;
+        }
+      }
+    });
+
+    return Array.from(unique.values());
+  } catch (error) {
+    console.error('Unexpected error loading project notification recipients:', error);
+    return [];
+  }
+}
+
+export async function getProjectNotificationRecipientsByType(
+  projectId: string,
+  type: 'team_alert' | 'weekly_digest'
+): Promise<ProjectNotificationRecipient[]> {
+  const recipients = await getAllProjectNotificationRecipients(projectId);
+  if (type === 'team_alert') {
+    return recipients.filter((recipient) => recipient.receiveTeamAlerts);
+  }
+  return recipients.filter((recipient) => recipient.receiveWeeklyDigest);
+}
+
 // ==================== TEMPLATE 1: Status Change ====================
 
 interface SendStatusChangeEmailParams {
@@ -1998,7 +2076,7 @@ export async function sendWeeklyDigestEmail(
     return { success: false, reason: 'opted_out' };
   }
 
-  const withinLimit = await checkRateLimit(toEmail, 2);
+  const withinLimit = await checkRateLimit(toEmail, 10);
   if (!withinLimit) {
     console.log(`Weekly digest rate limit exceeded for ${toEmail}`);
     return { success: false, reason: 'rate_limit' };

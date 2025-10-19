@@ -29,8 +29,10 @@ import {
   UserPlus,
   MessageSquare,
   Zap,
-  Plug
+  Plug,
+  Mail
 } from 'lucide-react';
+import { NotificationRecipientsManager } from '@/components/NotificationRecipientsManager';
 
 interface Project {
   id: string;
@@ -425,6 +427,13 @@ export default function SettingsPage() {
                   <span className="hidden sm:inline">Feedback</span>
                 </TabsTrigger>
                 <TabsTrigger
+                  value="notifications"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent"
+                >
+                  <Mail className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Emails</span>
+                </TabsTrigger>
+                <TabsTrigger
                   value="webhooks"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent"
                 >
@@ -555,6 +564,10 @@ export default function SettingsPage() {
                 </Button>
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="notifications" className="mt-6">
+            <NotificationRecipientsManager projectId={project.id} />
           </TabsContent>
 
           <TabsContent value="webhooks" className="mt-6">

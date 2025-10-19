@@ -24,6 +24,7 @@ type VoteRecord = {
   post_id: string;
   created_at: string;
   posts?: {
+    id: string;
     project_id: string;
   } | null;
 };
@@ -33,6 +34,7 @@ type CommentRecord = {
   post_id: string;
   created_at: string;
   posts?: {
+    id: string;
     project_id: string;
   } | null;
 };
@@ -59,6 +61,18 @@ type ProjectActivity = {
 type OwnerSummary = {
   ownerId: string;
   projects: Map<string, ProjectActivity>;
+};
+
+type WeeklyDigestProjectSection = {
+  projectId: string;
+  projectName: string;
+  projectSlug: string;
+  totalNewPosts: number;
+  totalNewVotes: number;
+  totalNewComments: number;
+  newPosts: DigestPost[];
+  topVotedPosts: DigestPost[];
+  topCommentedPosts: DigestPost[];
 };
 
 const DAYS_BACK = 7;
@@ -111,7 +125,7 @@ async function main() {
 
   const { data: recentVotesData, error: recentVotesError } = await supabase
     .from('votes')
-    .select('id, post_id, created_at, posts(post_id, project_id)')
+    .select('id, post_id, created_at, posts(id, project_id)')
     .gte('created_at', timeframeStart);
 
   if (recentVotesError) {
@@ -122,7 +136,7 @@ async function main() {
 
   const { data: recentCommentsData, error: recentCommentsError } = await supabase
     .from('comments')
-    .select('id, post_id, created_at, posts(post_id, project_id)')
+    .select('id, post_id, created_at, posts(id, project_id)')
     .gte('created_at', timeframeStart);
 
   if (recentCommentsError) {
@@ -272,120 +286,255 @@ async function main() {
     activity.totalNewComments += 1;
   });
 
+  const { data: recipientRows, error: recipientError } = await supabase
+    .from('project_notification_recipients')
+    .select('project_id, email, name, receive_weekly_digest');
+
+  if (recipientError) {
+    console.error('Failed to load project notification recipients:', recipientError);
+  }
+
+  const projectRecipientState = new Map<
+    string,
+    { configured: boolean; recipients: Map<string, { email: string; name: string | null }> }
+  >();
+
+  (recipientRows ?? []).forEach((row) => {
+    if (!row?.project_id || !row?.email) {
+      return;
+    }
+    const normalized = row.email.trim().toLowerCase();
+    if (!normalized) {
+      return;
+    }
+    let state = projectRecipientState.get(row.project_id);
+    if (!state) {
+      state = { configured: false, recipients: new Map() };
+      projectRecipientState.set(row.project_id, state);
+    }
+    state.configured = true;
+    if (row.receive_weekly_digest) {
+      if (!state.recipients.has(normalized)) {
+        state.recipients.set(normalized, {
+          email: normalized,
+          name: row.name ?? null,
+        });
+      }
+    }
+  });
+
   if (owners.size === 0) {
     console.log('No qualifying activity for weekly digest window.');
     return;
   }
 
+  const ownerUserCache = new Map<string, { email: string | null; name: string | null }>();
+
+  const getOwnerContact = async (ownerId: string | null) => {
+    if (!ownerId) {
+      return null;
+    }
+    if (ownerUserCache.has(ownerId)) {
+      const cached = ownerUserCache.get(ownerId)!;
+      if (!cached.email) {
+        return null;
+      }
+      return cached;
+    }
+
+    const { data, error } = await supabase.auth.admin.getUserById(ownerId);
+    if (error) {
+      console.error(`Failed to load owner ${ownerId} for weekly digest:`, error);
+      ownerUserCache.set(ownerId, { email: null, name: null });
+      return null;
+    }
+
+    const user = data?.user;
+    if (!user?.email) {
+      console.warn(`Owner ${ownerId} has no email. Skipping digest fallback.`);
+      ownerUserCache.set(ownerId, { email: null, name: null });
+      return null;
+    }
+
+    const contact = {
+      email: user.email,
+      name:
+        typeof user.user_metadata?.full_name === 'string' ? user.user_metadata.full_name : null,
+    };
+    ownerUserCache.set(ownerId, contact);
+    return contact;
+  };
+
+  const buildProjectSection = (activity: ProjectActivity): WeeklyDigestProjectSection | null => {
+    const newPostsList = activity.newPosts
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+      )
+      .slice(0, 5);
+
+    const voteHighlights = Array.from(activity.voteCounts.entries())
+      .map(([postId, newVotes]) => ({
+        postId,
+        newVotes,
+      }))
+      .sort((a, b) => (b.newVotes ?? 0) - (a.newVotes ?? 0))
+      .slice(0, 5)
+      .map(({ postId, newVotes }) => {
+        const meta = postMeta.get(postId);
+        return {
+          postId,
+          title: meta?.title ?? 'Feedback',
+          totalVotes: meta?.totalVotes ?? 0,
+          newVotes,
+        };
+      });
+
+    const commentHighlights = Array.from(activity.commentCounts.entries())
+      .map(([postId, newComments]) => ({
+        postId,
+        newComments,
+      }))
+      .sort((a, b) => (b.newComments ?? 0) - (a.newComments ?? 0))
+      .slice(0, 5)
+      .map(({ postId, newComments }) => {
+        const meta = postMeta.get(postId);
+        return {
+          postId,
+          title: meta?.title ?? 'Feedback',
+          newComments,
+        };
+      });
+
+    const hasActivity =
+      newPostsList.length > 0 ||
+      voteHighlights.length > 0 ||
+      commentHighlights.length > 0 ||
+      activity.totalNewComments > 0 ||
+      activity.totalNewVotes > 0;
+
+    if (!hasActivity) {
+      return null;
+    }
+
+    return {
+      projectId: activity.project.id,
+      projectName: activity.project.name,
+      projectSlug: activity.project.slug,
+      totalNewPosts: activity.newPosts.length,
+      totalNewVotes: activity.totalNewVotes,
+      totalNewComments: activity.totalNewComments,
+      newPosts: newPostsList,
+      topVotedPosts: voteHighlights,
+      topCommentedPosts: commentHighlights,
+    };
+  };
+
+  type RecipientSummary = {
+    email: string;
+    name: string | null;
+    userId: string | null;
+    projectSections: Map<string, WeeklyDigestProjectSection>;
+  };
+
+  const recipientSummaries = new Map<string, RecipientSummary>();
+
+  const ensureRecipientSummary = (
+    email: string,
+    name: string | null,
+    userId: string | null
+  ) => {
+    const normalized = email.trim().toLowerCase();
+    if (!normalized) {
+      return null;
+    }
+
+    let summary = recipientSummaries.get(normalized);
+    if (!summary) {
+      summary = {
+        email: normalized,
+        name: name ?? null,
+        userId: userId ?? null,
+        projectSections: new Map(),
+      };
+      recipientSummaries.set(normalized, summary);
+    } else {
+      if (!summary.name && name) {
+        summary.name = name;
+      }
+      if (!summary.userId && userId) {
+        summary.userId = userId;
+      }
+    }
+
+    return summary;
+  };
+
   for (const [ownerId, summary] of owners.entries()) {
-    const { data: ownerData, error: ownerError } = await supabase.auth.admin.getUserById(ownerId);
+    for (const activity of summary.projects.values()) {
+      const section = buildProjectSection(activity);
+      if (!section) {
+        continue;
+      }
 
-    if (ownerError) {
-      console.error(`Failed to load owner ${ownerId} for weekly digest:`, ownerError);
-      continue;
+      const state = projectRecipientState.get(activity.project.id);
+      const configured = state?.configured ?? false;
+      const recipientsForProject = Array.from(state?.recipients.values() ?? []);
+
+      if (recipientsForProject.length === 0 && !configured) {
+        const ownerContact = await getOwnerContact(ownerId);
+        if (!ownerContact?.email) {
+          continue;
+        }
+        const recipient = ensureRecipientSummary(
+          ownerContact.email,
+          ownerContact.name,
+          ownerId
+        );
+        if (recipient) {
+          recipient.projectSections.set(section.projectId, section);
+        }
+      } else {
+        recipientsForProject.forEach((recipientInfo) => {
+          const recipient = ensureRecipientSummary(recipientInfo.email, recipientInfo.name, null);
+          if (recipient) {
+            recipient.projectSections.set(section.projectId, section);
+          }
+        });
+      }
     }
+  }
 
-    const ownerUser = ownerData?.user;
-    if (!ownerUser?.email) {
-      console.warn(`Owner ${ownerId} has no email. Skipping weekly digest.`);
-      continue;
-    }
+  if (recipientSummaries.size === 0) {
+    console.log('No recipients qualified for weekly digest.');
+    return;
+  }
 
-    const toEmail = ownerUser.email;
-    const toName =
-      typeof ownerUser.user_metadata?.full_name === 'string'
-        ? ownerUser.user_metadata.full_name
-        : null;
-
-    const projectSections = Array.from(summary.projects.values())
-      .map((activity) => {
-        const newPostsList = activity.newPosts
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
-          )
-          .slice(0, 5);
-
-        const voteHighlights = Array.from(activity.voteCounts.entries())
-          .map(([postId, newVotes]) => ({
-            postId,
-            newVotes,
-          }))
-          .sort((a, b) => (b.newVotes ?? 0) - (a.newVotes ?? 0))
-          .slice(0, 5)
-          .map(({ postId, newVotes }) => {
-            const meta = postMeta.get(postId);
-            return {
-              postId,
-              title: meta?.title ?? 'Feedback',
-              totalVotes: meta?.totalVotes ?? 0,
-              newVotes,
-            };
-          });
-
-        const commentHighlights = Array.from(activity.commentCounts.entries())
-          .map(([postId, newComments]) => ({
-            postId,
-            newComments,
-          }))
-          .sort((a, b) => (b.newComments ?? 0) - (a.newComments ?? 0))
-          .slice(0, 5)
-          .map(({ postId, newComments }) => {
-            const meta = postMeta.get(postId);
-            return {
-              postId,
-              title: meta?.title ?? 'Feedback',
-              newComments,
-            };
-          });
-
-        const hasActivity =
-          newPostsList.length > 0 ||
-          voteHighlights.length > 0 ||
-          commentHighlights.length > 0 ||
-          activity.totalNewComments > 0 ||
-          activity.totalNewVotes > 0;
-
-        return hasActivity
-          ? {
-              projectId: activity.project.id,
-              projectName: activity.project.name,
-              projectSlug: activity.project.slug,
-              totalNewPosts: activity.newPosts.length,
-              totalNewVotes: activity.totalNewVotes,
-              totalNewComments: activity.totalNewComments,
-              newPosts: newPostsList,
-              topVotedPosts: voteHighlights,
-              topCommentedPosts: commentHighlights,
-            }
-          : null;
-      })
-      .filter((section): section is NonNullable<typeof section> => !!section);
-
-    if (projectSections.length === 0) {
-      console.log(`No digest-worthy activity for ${toEmail}. Skipping.`);
+  for (const recipient of recipientSummaries.values()) {
+    const projectsForRecipient = Array.from(recipient.projectSections.values());
+    if (projectsForRecipient.length === 0) {
       continue;
     }
 
     try {
       const result = await sendWeeklyDigestEmail({
-        toEmail,
-        toName,
-        userId: ownerId,
+        toEmail: recipient.email,
+        toName: recipient.name,
+        userId: recipient.userId,
         timeframeStart,
         timeframeEnd,
-        projects: projectSections,
+        projects: projectsForRecipient,
       });
 
       if (result.success) {
-        console.log(`✅ Weekly digest sent to ${toEmail}`);
+        console.log(`✅ Weekly digest sent to ${recipient.email}`);
       } else {
         console.log(
-          `ℹ️ Weekly digest skipped for ${toEmail} (${result.reason ?? 'unknown reason'})`
+          `ℹ️ Weekly digest skipped for ${recipient.email} (${result.reason ?? 'unknown reason'})`
         );
       }
     } catch (error) {
-      console.error(`Failed to send weekly digest to ${toEmail}:`, error);
+      console.error(`Failed to send weekly digest to ${recipient.email}:`, error);
     }
   }
 }
