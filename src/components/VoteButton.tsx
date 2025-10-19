@@ -14,6 +14,8 @@ interface VoteButtonProps {
   onShowNotification?: (message: string, type: 'success' | 'error' | 'info') => void;
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'compact';
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 const PRIORITY_STORAGE_KEY = 'signalsloop_vote_priority';
@@ -61,7 +63,9 @@ export function VoteButton({
   onVoteChange,
   onShowNotification,
   size = 'md',
-  variant = 'default'
+  variant = 'default',
+  disabled = false,
+  disabledReason = 'Voting is disabled for this post.'
 }: VoteButtonProps) {
   const [voteCount, setVoteCount] = useState(initialVoteCount);
   const [userVoted, setUserVoted] = useState(initialUserVoted);
@@ -86,6 +90,11 @@ export function VoteButton({
   }, []);
 
   const submitVote = async (priority: VotePriority) => {
+    if (disabled) {
+      onShowNotification?.(disabledReason, 'info');
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await fetch(`/api/posts/${postId}/vote`, {
@@ -138,6 +147,11 @@ export function VoteButton({
   };
 
   const removeVote = async () => {
+    if (disabled) {
+      onShowNotification?.(disabledReason, 'info');
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await fetch(`/api/posts/${postId}/vote`, {
@@ -175,7 +189,10 @@ export function VoteButton({
     event.stopPropagation();
     event.preventDefault();
 
-    if (loading) {
+    if (loading || disabled) {
+      if (disabled) {
+        onShowNotification?.(disabledReason, 'info');
+      }
       return;
     }
 
@@ -186,7 +203,10 @@ export function VoteButton({
     event.stopPropagation();
     event.preventDefault();
 
-    if (loading) {
+    if (loading || disabled) {
+      if (disabled) {
+        onShowNotification?.(disabledReason, 'info');
+      }
       return;
     }
 
@@ -203,7 +223,7 @@ export function VoteButton({
   };
 
   useEffect(() => {
-    if (!menuPosition) return;
+    if (!menuPosition || disabled) return;
 
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -282,6 +302,7 @@ export function VoteButton({
 
   const renderMenu = () =>
     menuPosition &&
+    !disabled &&
     typeof document !== 'undefined' &&
     createPortal(
       <div
@@ -328,9 +349,9 @@ export function VoteButton({
         <Button
           variant={variant === 'compact' ? 'default' : 'ghost'}
           size="sm"
-          disabled={loading}
+          disabled={loading || disabled}
           onClick={handleRemoveClick}
-          className={votedButtonClass}
+          className={`${votedButtonClass} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
         >
           {renderButtonContent(true)}
         </Button>
@@ -351,9 +372,9 @@ export function VoteButton({
       <Button
         variant={variant === 'compact' ? 'outline' : 'ghost'}
         size="sm"
-        disabled={loading}
+        disabled={loading || disabled}
         onClick={handleOpenMenu}
-        className={defaultButtonClass}
+        className={`${defaultButtonClass} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
       >
         {renderButtonContent(false)}
       </Button>

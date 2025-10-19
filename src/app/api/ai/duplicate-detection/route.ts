@@ -113,6 +113,34 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      if (newPost?.id) {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE;
+
+        if (supabaseUrl && serviceRoleKey) {
+          const supabase = createClient(supabaseUrl, serviceRoleKey, {
+            auth: { autoRefreshToken: false, persistSession: false }
+          });
+
+          const { data: postRecord, error: postError } = await supabase
+            .from('posts')
+            .select('id, duplicate_of')
+            .eq('id', newPost.id)
+            .maybeSingle();
+
+          if (postError) {
+            console.error('[DUPLICATE DETECTION] Failed to verify post duplicate status:', postError);
+          } else if (postRecord?.duplicate_of) {
+            return NextResponse.json(
+              {
+                error: 'This post has been merged into another post. Duplicate analysis is disabled.',
+              },
+              { status: 403 }
+            );
+          }
+        }
+      }
+
       const duplicates = await detectDuplicates(newPost, existingPosts, options);
 
       if (projectId) {

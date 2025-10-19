@@ -213,6 +213,11 @@ export default function PublicPostDetails({
   }, [post.id]);
 
   const handleAnalyzePriority = async () => {
+    if (isMergedDuplicate) {
+      toast.info('AI analysis is disabled for merged posts.');
+      return;
+    }
+
     setAnalyzingPriority(true);
     setPriorityResults(null);
     try {
@@ -283,6 +288,11 @@ export default function PublicPostDetails({
   const commentFormRef = useRef<HTMLDivElement>(null);
 
   const handleSubmitComment = async () => {
+    if (isMergedDuplicate) {
+      toast.info('Comments are disabled for merged posts.');
+      return;
+    }
+
     if (!commentText.trim()) {
       toast.error('Please enter a comment');
       return;
@@ -372,6 +382,11 @@ export default function PublicPostDetails({
   };
 
   const handleSubmitReply = async (parentId: string) => {
+    if (isMergedDuplicate) {
+      toast.info('Replies are disabled for merged posts.');
+      return;
+    }
+
     if (!replyText.trim()) {
       toast.error('Please enter a reply');
       return;
@@ -656,6 +671,8 @@ export default function PublicPostDetails({
                     postId={post.id}
                     initialVoteCount={voteCount}
                     initialUserVoted={hasVoted}
+                    disabled={isMergedDuplicate}
+                    disabledReason="Voting is disabled for merged posts."
                     onVoteChange={(newCount, userVoted) => {
                       setVoteCount(newCount);
                       setHasVoted(userVoted);
@@ -682,7 +699,7 @@ export default function PublicPostDetails({
                   />
 
                   {/* Vote on Behalf Button (Admin Only) */}
-                  {isOwner && (
+                  {isOwner && !isMergedDuplicate && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -717,7 +734,7 @@ export default function PublicPostDetails({
             </details>
 
             {/* AI Auto-Response - Owner/Admin Only */}
-            {isOwner && user && (
+            {isOwner && user && !isMergedDuplicate && (
               <div className="mb-6">
                 <AIAutoResponse 
                   postId={post.id}
@@ -732,7 +749,7 @@ export default function PublicPostDetails({
             )}
 
             {/* AI Post Intelligence - Owner/Admin Only */}
-            {isOwner && user && (
+            {isOwner && user && !isMergedDuplicate && (
               <div className="mb-6">
                 <AIPostIntelligence 
                   title={post.title}
@@ -796,20 +813,28 @@ export default function PublicPostDetails({
                     variant="default" 
                     className="w-full bg-gray-900 hover:bg-gray-800 text-white"
                     onClick={handleAnalyzePriority}
-                    disabled={analyzingPriority || priorityLimitReached}
+                    disabled={analyzingPriority || priorityLimitReached || isMergedDuplicate}
                   >
                     <span className="mr-2">✨</span>
-                    {priorityLimitReached ? 'Limit Reached' : analyzingPriority ? 'Analyzing...' : 'Analyze Priority'}
+                    {isMergedDuplicate ? 'Unavailable' : priorityLimitReached ? 'Limit Reached' : analyzingPriority ? 'Analyzing...' : 'Analyze Priority'}
                   </Button>
-                  {priorityUsage && !priorityUsage.isPro && (
-                    <p className="mt-2 text-xs text-blue-700 text-center">
-                      Used {Math.max(priorityUsage.limit - priorityUsage.remaining, 0)}/{priorityUsage.limit} • {priorityUsage.remaining} left this month
+                  {isMergedDuplicate ? (
+                    <p className="mt-2 text-xs text-orange-700 text-center">
+                      Priority analysis is disabled for merged posts.
                     </p>
-                  )}
-                  {priorityLimitReached && (
-                    <p className="text-xs text-red-600 text-center mt-1">
-                      Upgrade to Pro for unlimited priority scoring.
-                    </p>
+                  ) : (
+                    <>
+                      {priorityUsage && !priorityUsage.isPro && (
+                        <p className="mt-2 text-xs text-blue-700 text-center">
+                          Used {Math.max(priorityUsage.limit - priorityUsage.remaining, 0)}/{priorityUsage.limit} • {priorityUsage.remaining} left this month
+                        </p>
+                      )}
+                      {priorityLimitReached && (
+                        <p className="text-xs text-red-600 text-center mt-1">
+                          Upgrade to Pro for unlimited priority scoring.
+                        </p>
+                      )}
+                    </>
                   )}
                   <p className="text-xs text-gray-600 mt-3 text-center">
                     AI will analyze urgency, impact, and engagement to score this post
@@ -881,17 +906,19 @@ export default function PublicPostDetails({
                               )}
                             </div>
                             <p className="text-sm text-gray-700 mb-2">{comment.content}</p>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setReplyingTo(comment.id)}
-                              className="text-xs text-blue-600 hover:text-blue-700 p-0 h-auto"
-                            >
-                              Reply
-                            </Button>
+                            {!isMergedDuplicate && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setReplyingTo(comment.id)}
+                                className="text-xs text-blue-600 hover:text-blue-700 p-0 h-auto"
+                              >
+                                Reply
+                              </Button>
+                            )}
                             
                             {/* Reply Form */}
-                            {replyingTo === comment.id && (
+                            {replyingTo === comment.id && !isMergedDuplicate && (
                               <div className="mt-3 ml-0 p-3 bg-gray-50 rounded-lg border">
                                 <MentionTextarea
                                   value={replyText}
@@ -999,48 +1026,59 @@ export default function PublicPostDetails({
               <div ref={commentFormRef} className="mt-6 pt-6 border-t scroll-mt-20">
                 <h4 className="font-medium text-gray-900 mb-3">Add a comment</h4>
 
-                <MentionTextarea
-                  value={commentText}
-                  onChange={setCommentText}
-                  postId={post.id}
-                  placeholder="Share your thoughts... (use @ to mention someone)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm mb-2"
-                  minRows={4}
-                  maxRows={10}
-                />
-                
-                {/* AI Writing Assistant */}
-                <AIWritingAssistant
-                  currentText={commentText}
-                  context={`${post.title}${post.description ? ': ' + post.description : ''}`}
-                  onTextImprove={(improved) => setCommentText(improved)}
-                  placeholder="Share your thoughts..."
-                />
-                <input
-                  type="text"
-                  value={commentName}
-                  onChange={(e) => setCommentName(e.target.value)}
-                  placeholder="Your name *"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-2 text-sm"
-                  required
-                />
-                <input
-                  type="email"
-                  value={commentEmail}
-                  onChange={(e) => setCommentEmail(e.target.value)}
-                  placeholder="Your email *"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-2 text-sm"
-                  required
-                />
-                <Button
-                  onClick={handleSubmitComment}
-                  disabled={isSubmittingComment || !commentText.trim() || !commentName.trim() || !commentEmail.trim()}
-                  className="mt-3 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
-                  size="sm"
-                >
-                  <MessageSquare className="h-3 w-3 mr-2" />
-                  {isSubmittingComment ? 'Posting...' : 'Post Comment'}
-                </Button>
+                {isMergedDuplicate ? (
+                  <Alert className="border border-orange-200 bg-orange-50 text-orange-900">
+                    <AlertTriangle className="h-4 w-4 text-orange-600" />
+                    <AlertDescription>
+                      Comments are disabled for posts that have been merged into another thread.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <>
+                    <MentionTextarea
+                      value={commentText}
+                      onChange={setCommentText}
+                      postId={post.id}
+                      placeholder="Share your thoughts... (use @ to mention someone)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm mb-2"
+                      minRows={4}
+                      maxRows={10}
+                    />
+                    
+                    {/* AI Writing Assistant */}
+                    <AIWritingAssistant
+                      currentText={commentText}
+                      context={`${post.title}${post.description ? ': ' + post.description : ''}`}
+                      onTextImprove={(improved) => setCommentText(improved)}
+                      placeholder="Share your thoughts..."
+                    />
+                    <input
+                      type="text"
+                      value={commentName}
+                      onChange={(e) => setCommentName(e.target.value)}
+                      placeholder="Your name *"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-2 text-sm"
+                      required
+                    />
+                    <input
+                      type="email"
+                      value={commentEmail}
+                      onChange={(e) => setCommentEmail(e.target.value)}
+                      placeholder="Your email *"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-2 text-sm"
+                      required
+                    />
+                    <Button
+                      onClick={handleSubmitComment}
+                      disabled={isSubmittingComment || !commentText.trim() || !commentName.trim() || !commentEmail.trim()}
+                      className="mt-3 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                      size="sm"
+                    >
+                      <MessageSquare className="h-3 w-3 mr-2" />
+                      {isSubmittingComment ? 'Posting...' : 'Post Comment'}
+                    </Button>
+                  </>
+                )}
                 </div>
               </CardContent>
             </Card>

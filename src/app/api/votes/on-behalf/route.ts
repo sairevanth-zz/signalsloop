@@ -73,6 +73,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Not authorized for this project' }, { status: 403 });
     }
 
+    const { data: postRecord, error: postError } = await supabase
+      .from('posts')
+      .select('id, project_id, duplicate_of')
+      .eq('id', postId)
+      .single();
+
+    if (postError || !postRecord) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+
+    if (postRecord.project_id !== projectId) {
+      return NextResponse.json({ error: 'Post does not belong to the selected project' }, { status: 400 });
+    }
+
+    if (postRecord.duplicate_of) {
+      return NextResponse.json(
+        { error: 'This post has been merged into another post. Voting is disabled.' },
+        { status: 403 }
+      );
+    }
+
     // Generate voter hash from customer email
     const voterHash = createHash('sha256')
       .update(customerEmail.toLowerCase().trim())

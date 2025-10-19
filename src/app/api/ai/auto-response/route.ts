@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
 import { checkDemoRateLimit, incrementDemoUsage, getClientIP, getTimeUntilReset } from '@/lib/demo-rate-limit';
+import { getSupabaseServerClient } from '@/lib/supabase-client';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -63,6 +64,37 @@ export async function POST(request: NextRequest) {
             isDemo: true
           },
           { status: 429 }
+        );
+      }
+    }
+
+    if (postId) {
+      const supabase = getSupabaseServerClient();
+
+      if (!supabase) {
+        return NextResponse.json(
+          { error: 'Database connection not available' },
+          { status: 500 }
+        );
+      }
+
+      const { data: postRecord, error: postError } = await supabase
+        .from('posts')
+        .select('id, duplicate_of')
+        .eq('id', postId)
+        .single();
+
+      if (postError || !postRecord) {
+        return NextResponse.json(
+          { error: 'Post not found' },
+          { status: 404 }
+        );
+      }
+
+      if (postRecord.duplicate_of) {
+        return NextResponse.json(
+          { error: 'This post has been merged into another post. AI responses are disabled.' },
+          { status: 403 }
         );
       }
     }

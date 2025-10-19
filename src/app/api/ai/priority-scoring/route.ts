@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { calculatePriorityScore, batchScorePosts } from '@/lib/enhanced-priority-scoring';
+import { calculatePriorityScore, batchScorePosts, type PriorityContext } from '@/lib/enhanced-priority-scoring';
 import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
 import { checkDemoRateLimit, incrementDemoUsage, getClientIP, getTimeUntilReset } from '@/lib/demo-rate-limit';
 import { getSupabaseServerClient } from '@/lib/supabase-client';
@@ -116,26 +116,56 @@ export async function POST(request: NextRequest) {
       )
     );
 
-    if (needsHydration && requestedPostId) {
-      const supabase = getSupabaseServerClient();
+    let supabaseClient = requestedPostId ? getSupabaseServerClient() : null;
+    let hydratedPostRecord:
+      | (PriorityContext['post'] & {
+          project_id?: string | null;
+          duplicate_of?: string | null;
+        })
+      | null = null;
 
-      if (!supabase) {
+    if (requestedPostId) {
+      if (!supabaseClient) {
         return NextResponse.json(
           { error: 'Database connection not available' },
           { status: 500 }
         );
       }
 
-      const { data: postRecord, error: postError } = await supabase
+      const { data, error } = await supabaseClient
         .from('posts')
-        .select('id, project_id, title, description, category, created_at, vote_count, comment_count, must_have_votes, important_votes, nice_to_have_votes, total_priority_score')
+        .select(
+          'id, project_id, duplicate_of, title, description, category, created_at, vote_count, comment_count, must_have_votes, important_votes, nice_to_have_votes, total_priority_score'
+        )
         .eq('id', requestedPostId)
         .single();
 
-      if (postError || !postRecord) {
+      if (error || !data) {
         return NextResponse.json(
           { error: 'Post not found' },
           { status: 404 }
+        );
+      }
+
+      if (data.duplicate_of) {
+        return NextResponse.json(
+          { error: 'This post has been merged into another post. AI analysis is disabled.' },
+          { status: 403 }
+        );
+      }
+
+      hydratedPostRecord = data;
+      resolvedProjectId = resolvedProjectId || data.project_id || resolvedProjectId;
+    }
+
+    if (needsHydration && requestedPostId) {
+      const supabase = supabaseClient;
+      const postRecord = hydratedPostRecord;
+
+      if (!supabase || !postRecord) {
+        return NextResponse.json(
+          { error: 'Database connection not available' },
+          { status: 500 }
         );
       }
 

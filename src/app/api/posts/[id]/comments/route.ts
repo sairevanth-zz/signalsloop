@@ -69,9 +69,16 @@ export async function POST(
       .eq('id', id)
       .single();
 
-    if (postError) {
+    if (postError || !post) {
       console.error('Error fetching post:', postError);
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+
+    if (post.duplicate_of) {
+      return NextResponse.json(
+        { error: 'This post has been merged into another post. Comments are disabled.' },
+        { status: 403 }
+      );
     }
 
     // Insert comment or reply

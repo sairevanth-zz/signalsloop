@@ -106,6 +106,23 @@ export async function POST(
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
     }
 
+    const { data: postRecord, error: postError } = await supabase
+      .from('posts')
+      .select('id, title, project_id, duplicate_of')
+      .eq('id', postId)
+      .single();
+
+    if (postError || !postRecord) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+
+    if (postRecord.duplicate_of) {
+      return NextResponse.json(
+        { error: 'This post has been merged into another post. Voting is disabled.' },
+        { status: 403 }
+      );
+    }
+
     // Check if user has already voted (using IP + anonymous ID for better tracking)
     const { data: existingVote, error: voteError } = await supabase
       .from('votes')
@@ -205,33 +222,26 @@ export async function POST(
 
     const safeTotalVotes = totalVotes ?? 0;
 
-    // Get post details for webhooks
-    const { data: post } = await supabase
-      .from('posts')
-      .select('id, title, project_id')
-      .eq('id', postId)
-      .single();
-
     // Trigger webhooks for vote.created event
-    if (post) {
+    if (postRecord) {
       const webhookPayload = {
         vote: {
           post_id: postId,
-        priority: normalizedPriority,
-        vote_count: safeTotalVotes,
-        created_at: new Date().toISOString(),
-      },
-      post: {
-        id: post.id,
-        title: post.title,
-      },
+          priority: normalizedPriority,
+          vote_count: safeTotalVotes,
+          created_at: new Date().toISOString(),
+        },
+        post: {
+          id: postRecord.id,
+          title: postRecord.title,
+        },
         project: {
-          id: post.project_id,
+          id: postRecord.project_id,
         },
       };
 
       try {
-        await triggerWebhooks(post.project_id, 'vote.created', webhookPayload);
+        await triggerWebhooks(postRecord.project_id, 'vote.created', webhookPayload);
         console.log(`✅ Webhooks triggered for vote.created on post: ${postId}`);
       } catch (webhookError) {
         // Don't fail the request if webhooks fail
@@ -239,7 +249,7 @@ export async function POST(
       }
 
       triggerSlackNotification(
-        post.project_id,
+        postRecord.project_id,
         'vote.created',
         webhookPayload
       ).catch((slackError) => {
@@ -247,7 +257,7 @@ export async function POST(
       });
 
       triggerDiscordNotification(
-        post.project_id,
+        postRecord.project_id,
         'vote.created',
         webhookPayload
       ).catch((discordError) => {
@@ -288,6 +298,23 @@ export async function DELETE(
 
     if (!postId) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
+    }
+
+    const { data: postRecord, error: postError } = await supabase
+      .from('posts')
+      .select('id, duplicate_of')
+      .eq('id', postId)
+      .single();
+
+    if (postError || !postRecord) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+
+    if (postRecord.duplicate_of) {
+      return NextResponse.json(
+        { error: 'This post has been merged into another post. Voting is disabled.' },
+        { status: 403 }
+      );
     }
 
     // Delete the vote (check both IP and anonymous ID)
