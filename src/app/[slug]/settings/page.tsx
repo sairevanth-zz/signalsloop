@@ -54,6 +54,7 @@ export default function SettingsPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [supabase, setSupabase] = useState<any>(null);
   const [authUser, setAuthUser] = useState<User | null | undefined>(undefined);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   
   const params = useParams();
   const router = useRouter();
@@ -77,9 +78,11 @@ export default function SettingsPage() {
       if (error) {
         console.error('Error getting session:', error);
         setAuthUser(null);
+        setAccessToken(null);
         return;
       }
       setAuthUser(data.session?.user ?? null);
+      setAccessToken(data.session?.access_token ?? null);
     });
 
     const {
@@ -87,6 +90,7 @@ export default function SettingsPage() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
       setAuthUser(session?.user ?? null);
+      setAccessToken(session?.access_token ?? null);
     });
 
     return () => {
@@ -112,6 +116,7 @@ export default function SettingsPage() {
         }
         if (data?.session?.user) {
           setAuthUser(data.session.user);
+          setAccessToken(data.session.access_token ?? null);
         }
       } catch (refreshError) {
         if (!cancelled) {
@@ -160,6 +165,7 @@ export default function SettingsPage() {
           }
           if (data.session?.user) {
             setAuthUser(data.session.user);
+            setAccessToken(data.session.access_token ?? null);
           }
         })
         .catch((error) => {
@@ -567,7 +573,7 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="notifications" className="mt-6">
-            <NotificationRecipientsManager projectId={project.id} />
+            <NotificationRecipientsManager projectId={project.id} accessToken={accessToken} />
           </TabsContent>
 
           <TabsContent value="webhooks" className="mt-6">

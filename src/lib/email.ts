@@ -2076,12 +2076,6 @@ export async function sendWeeklyDigestEmail(
     return { success: false, reason: 'opted_out' };
   }
 
-  const withinLimit = await checkRateLimit(toEmail, 10);
-  if (!withinLimit) {
-    console.log(`Weekly digest rate limit exceeded for ${toEmail}`);
-    return { success: false, reason: 'rate_limit' };
-  }
-
   const timeframeStartDate = new Date(timeframeStart);
   const timeframeEndDate = new Date(timeframeEnd);
 
@@ -2313,8 +2307,6 @@ export async function sendWeeklyDigestEmail(
         projectIds: activeProjects.map((project) => project.projectId),
       },
     });
-
-    await incrementEmailCount(toEmail);
 
     return { success: true, data };
   } catch (error) {

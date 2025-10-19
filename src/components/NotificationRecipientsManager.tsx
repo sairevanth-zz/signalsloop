@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { getSupabaseClient } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -11,6 +10,7 @@ import { Loader2, Plus, Trash2 } from 'lucide-react';
 
 interface NotificationRecipientsManagerProps {
   projectId: string;
+  accessToken: string | null;
 }
 
 interface RecipientRecord {
@@ -37,51 +37,23 @@ const defaultFormState: FormState = {
   receiveTeamAlerts: true,
 };
 
-export function NotificationRecipientsManager({ projectId }: NotificationRecipientsManagerProps) {
+export function NotificationRecipientsManager({
+  projectId,
+  accessToken,
+}: NotificationRecipientsManagerProps) {
   const [recipients, setRecipients] = useState<RecipientRecord[]>([]);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<FormState>(defaultFormState);
   const [saving, setSaving] = useState(false);
-  const [supabase, setSupabase] = useState<ReturnType<typeof getSupabaseClient> | null>(null);
-  const [authToken, setAuthToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const client = getSupabaseClient();
-    if (client) {
-      setSupabase(client);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!supabase) return;
-
-    let cancelled = false;
-
-    const loadSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (cancelled) return;
-      if (error) {
-        console.error('Failed to get Supabase session for notifications:', error);
-        toast.error('You must be signed in to manage notification recipients.');
-        return;
-      }
-      setAuthToken(data.session?.access_token ?? null);
-    };
-
-    loadSession();
-    return () => {
-      cancelled = true;
-    };
-  }, [supabase]);
 
   const authHeaders = useMemo(() => {
-    if (!authToken) return undefined;
+    if (!accessToken) return undefined;
     return {
-      Authorization: `Bearer ${authToken}`,
+      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     };
-  }, [authToken]);
+  }, [accessToken]);
 
   const loadRecipients = async () => {
     if (!authHeaders) return;
@@ -118,10 +90,20 @@ export function NotificationRecipientsManager({ projectId }: NotificationRecipie
   };
 
   useEffect(() => {
+    if (!accessToken) {
+      setInitialLoadComplete(true);
+      setLoading(false);
+      return;
+    }
+
+    setInitialLoadComplete((prev) => (prev ? false : prev));
+  }, [accessToken]);
+
+  useEffect(() => {
     if (!authHeaders || initialLoadComplete) return;
     loadRecipients();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authHeaders]);
+  }, [authHeaders, initialLoadComplete]);
 
   const handleFormChange = (field: keyof FormState, value: string | boolean) => {
     setForm((prev) => ({
@@ -339,9 +321,8 @@ export function NotificationRecipientsManager({ projectId }: NotificationRecipie
         </form>
 
         {!isReady ? (
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Waiting for authentication…
+          <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+            Sign in to manage notification recipients for this project.
           </div>
         ) : loading ? (
           <div className="flex items-center gap-2 text-sm text-slate-500">
