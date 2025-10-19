@@ -12,7 +12,6 @@ import GlobalBanner from '@/components/GlobalBanner';
 import { CategoryBadge } from '@/components/CategoryBadge';
 import BoardShare from '@/components/BoardShare';
 import FeedbackExport from '@/components/FeedbackExport';
-import { AIDuplicateDetection } from '@/components/AIDuplicateDetection';
 import { AIPriorityScoring } from '@/components/AIPriorityScoring';
 import { DebugAIFeatures } from '@/components/DebugAIFeatures';
 import {

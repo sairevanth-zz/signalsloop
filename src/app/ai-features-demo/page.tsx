@@ -121,7 +121,7 @@ export default function AIFeaturesDemo() {
               <AIDuplicateDetection
                 postId={demoPost.id}
                 projectId={demoPost.projectId}
-                userPlan="pro"
+                userPlan={{ plan: 'pro', features: [] }}
                 onShowNotification={handleNotification}
               />
             ) : (

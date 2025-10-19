@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { detectDuplicates, detectDuplicateClusters } from '@/lib/enhanced-duplicate-detection';
 import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
 import { checkDemoRateLimit, incrementDemoUsage, getClientIP, getTimeUntilReset } from '@/lib/demo-rate-limit';
@@ -145,6 +146,329 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Failed to detect duplicates',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PUT /api/ai/duplicate-detection
+ * Update similarity status or merge duplicate posts
+ */
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const {
+      action,
+      status,
+      sourcePostId,
+      targetPostId,
+      similarityScore,
+      similarityReason,
+      similarityId
+    } = body;
+
+    const requestedAction = (action || status || '').toString().toLowerCase();
+
+    if (!requestedAction) {
+      return NextResponse.json(
+        { error: 'Action or status is required' },
+        { status: 400 }
+      );
+    }
+
+    const authHeader =
+      request.headers.get('authorization') ||
+      request.headers.get('Authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const accessToken = authHeader.slice('Bearer '.length).trim();
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error('[DUPLICATE DETECTION] Missing Supabase environment variables');
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
+    const {
+      data: userData,
+      error: authError
+    } = await supabase.auth.getUser(accessToken);
+
+    if (authError || !userData?.user) {
+      console.error('[DUPLICATE DETECTION] Auth error:', authError);
+      return NextResponse.json(
+        { error: 'Authentication failed' },
+        { status: 401 }
+      );
+    }
+
+    const userId = userData.user.id;
+
+    if (!sourcePostId || !targetPostId) {
+      return NextResponse.json(
+        { error: 'sourcePostId and targetPostId are required' },
+        { status: 400 }
+      );
+    }
+
+    const postIds = [sourcePostId, targetPostId];
+
+    const { data: postsData, error: postsError } = await supabase
+      .from('posts')
+      .select('id, project_id, duplicate_of')
+      .in('id', postIds);
+
+    if (postsError) {
+      console.error('[DUPLICATE DETECTION] Posts fetch error:', postsError);
+      return NextResponse.json(
+        { error: 'Failed to load posts' },
+        { status: 500 }
+      );
+    }
+
+    if (!postsData || postsData.length === 0) {
+      return NextResponse.json(
+        { error: 'Associated posts not found' },
+        { status: 404 }
+      );
+    }
+
+    const projectIds = Array.from(
+      new Set(
+        postsData
+          .map((post) => post.project_id)
+          .filter((projectId): projectId is string => Boolean(projectId))
+      )
+    );
+
+    if (projectIds.length === 0) {
+      return NextResponse.json(
+        { error: 'Unable to determine project ownership' },
+        { status: 400 }
+      );
+    }
+
+    const { data: projectsData, error: projectsError } = await supabase
+      .from('projects')
+      .select('id, owner_id')
+      .in('id', projectIds);
+
+    if (projectsError) {
+      console.error('[DUPLICATE DETECTION] Projects fetch error:', projectsError);
+      return NextResponse.json(
+        { error: 'Failed to verify ownership' },
+        { status: 500 }
+      );
+    }
+
+    const unauthorizedProject = (projectsData || []).find(
+      (project) => project.owner_id !== userId
+    );
+
+    if (unauthorizedProject) {
+      return NextResponse.json(
+        { error: 'You do not have permission to update these posts' },
+        { status: 403 }
+      );
+    }
+
+    const sourcePost = postsData.find((post) => post.id === sourcePostId);
+    const targetPost = postsData.find((post) => post.id === targetPostId);
+
+    if (!sourcePost || !targetPost) {
+      return NextResponse.json(
+        { error: 'Source or target post not found' },
+        { status: 404 }
+      );
+    }
+
+    if (sourcePost.project_id !== targetPost.project_id) {
+      return NextResponse.json(
+        { error: 'Posts must belong to the same project to update similarities' },
+        { status: 400 }
+      );
+    }
+
+    let similarityRecord:
+      | { id: string; post_id: string; similar_post_id: string | null; status: string }
+      | null = null;
+
+    if (similarityId) {
+      const { data, error } = await supabase
+        .from('post_similarities')
+        .select('id, post_id, similar_post_id, status')
+        .eq('id', similarityId)
+        .limit(1);
+
+      if (error) {
+        console.error('[DUPLICATE DETECTION] Similarity lookup error:', error);
+      } else if (data && data.length > 0) {
+        similarityRecord = data[0];
+      }
+    }
+
+    if (!similarityRecord) {
+      const { data, error } = await supabase
+        .from('post_similarities')
+        .select('id, post_id, similar_post_id, status')
+        .eq('post_id', sourcePostId)
+        .eq('similar_post_id', targetPostId)
+        .limit(1);
+
+      if (error) {
+        console.error('[DUPLICATE DETECTION] Forward similarity lookup error:', error);
+      } else if (data && data.length > 0) {
+        similarityRecord = data[0];
+      }
+    }
+
+    if (!similarityRecord) {
+      const { data, error } = await supabase
+        .from('post_similarities')
+        .select('id, post_id, similar_post_id, status')
+        .eq('post_id', targetPostId)
+        .eq('similar_post_id', sourcePostId)
+        .limit(1);
+
+      if (error) {
+        console.error('[DUPLICATE DETECTION] Reverse similarity lookup error:', error);
+      } else if (data && data.length > 0) {
+        similarityRecord = data[0];
+      }
+    }
+
+    const normalizedScore =
+      typeof similarityScore === 'number'
+        ? Math.min(Math.max(similarityScore > 1 ? similarityScore / 100 : similarityScore, 0), 1)
+        : null;
+
+    const similarityPayload = {
+      post_id: sourcePostId,
+      similar_post_id: targetPostId,
+      similarity_score: normalizedScore ?? 0,
+      similarity_reason: similarityReason || 'Manually reviewed by project owner'
+    };
+
+    // Handle merge operation
+    if (requestedAction === 'merge' || requestedAction === 'merged') {
+      const { error: duplicateUpdateError } = await supabase
+        .from('posts')
+        .update({ duplicate_of: targetPostId })
+        .eq('id', sourcePostId);
+
+      if (duplicateUpdateError) {
+        console.error('[DUPLICATE DETECTION] Duplicate flag update error:', duplicateUpdateError);
+        return NextResponse.json(
+          { error: 'Failed to mark post as duplicate' },
+          { status: 500 }
+        );
+      }
+
+      if (similarityRecord) {
+        const { error: similarityUpdateError } = await supabase
+          .from('post_similarities')
+          .update({ status: 'merged' })
+          .eq('id', similarityRecord.id);
+
+        if (similarityUpdateError) {
+          console.error('[DUPLICATE DETECTION] Similarity merge update error:', similarityUpdateError);
+          return NextResponse.json(
+            { error: 'Duplicate merged but similarity status update failed' },
+            { status: 500 }
+          );
+        }
+      } else {
+        const { error: insertError } = await supabase
+          .from('post_similarities')
+          .insert({
+            ...similarityPayload,
+            status: 'merged'
+          });
+
+        if (insertError) {
+          console.error('[DUPLICATE DETECTION] Similarity merge insert error:', insertError);
+          return NextResponse.json(
+            { error: 'Duplicate merged but similarity record creation failed' },
+            { status: 500 }
+          );
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        action: 'merged',
+        message: 'Post merged successfully'
+      });
+    }
+
+    if (!['confirmed', 'dismissed'].includes(requestedAction)) {
+      return NextResponse.json(
+        { error: 'Unsupported action' },
+        { status: 400 }
+      );
+    }
+
+    if (similarityRecord) {
+      const { error: similarityStatusError } = await supabase
+        .from('post_similarities')
+        .update({ status: requestedAction })
+        .eq('id', similarityRecord.id);
+
+      if (similarityStatusError) {
+        console.error('[DUPLICATE DETECTION] Similarity status update error:', similarityStatusError);
+        return NextResponse.json(
+          { error: 'Failed to update similarity status' },
+          { status: 500 }
+        );
+      }
+    } else {
+      const { error: insertStatusError } = await supabase
+        .from('post_similarities')
+        .insert({
+          ...similarityPayload,
+          status: requestedAction
+        });
+
+      if (insertStatusError) {
+        console.error('[DUPLICATE DETECTION] Similarity status insert error:', insertStatusError);
+        return NextResponse.json(
+          { error: 'Failed to save similarity status' },
+          { status: 500 }
+        );
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      action: requestedAction,
+      message: `Similarity ${requestedAction}`
+    });
+  } catch (error) {
+    console.error('[DUPLICATE DETECTION] PUT handler error:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to update duplicate status',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

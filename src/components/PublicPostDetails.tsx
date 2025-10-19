@@ -30,6 +30,7 @@ import MentionTextarea from './MentionTextarea';
 import AIPostIntelligence from './AIPostIntelligence';
 import AIAutoResponse from './AIAutoResponse';
 import VoteOnBehalfModal from './VoteOnBehalfModal';
+import { AIDuplicateDetection } from '@/components/AIDuplicateDetection';
 import { useAuth } from '@/hooks/useAuth';
 import { useAIUsage } from '@/hooks/useAIUsage';
 import { getSupabaseClient } from '@/lib/supabase-client';
@@ -85,9 +86,7 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
     });
     setVoteCount((prev) => (prev === next.totalVotes ? prev : next.totalVotes));
   }, []);
-  const [checkingDuplicates, setCheckingDuplicates] = useState(false);
   const [analyzingPriority, setAnalyzingPriority] = useState(false);
-  const [duplicateResults, setDuplicateResults] = useState<any>(null);
   const [priorityResults, setPriorityResults] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [loadingComments, setLoadingComments] = useState(true);
@@ -101,18 +100,10 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   const [ownerCheckLoading, setOwnerCheckLoading] = useState(true);
 
   const {
-    usageInfo: duplicateUsage,
-    refreshUsage: refreshDuplicateUsage,
-    setUsageInfo: setDuplicateUsageInfo
-  } = useAIUsage(project.id, 'duplicate_detection');
-
-  const {
     usageInfo: priorityUsage,
     refreshUsage: refreshPriorityUsage,
     setUsageInfo: setPriorityUsageInfo
   } = useAIUsage(project.id, 'priority_scoring');
-
-  const duplicateLimitReached = Boolean(duplicateUsage && !duplicateUsage.isPro && duplicateUsage.remaining <= 0);
   const priorityLimitReached = Boolean(priorityUsage && !priorityUsage.isPro && priorityUsage.remaining <= 0);
   const createdDate = new Date(post.created_at);
   const formattedDate = createdDate.toLocaleDateString('en-US', {
@@ -194,66 +185,6 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
   useEffect(() => {
     loadComments();
   }, [post.id]);
-
-  const handleCheckDuplicates = async () => {
-    setCheckingDuplicates(true);
-    setDuplicateResults(null);
-    try {
-      const usage = await refreshDuplicateUsage({ silent: true });
-      if (usage && !usage.allowed) {
-        toast.error('Free tier limit reached. Upgrade to Pro for unlimited duplicate detection!');
-        return;
-      }
-
-      // Fetch all posts in the project to check for duplicates
-      const supabase = (await import('@/lib/supabase-client')).getSupabaseClient();
-      const { data: allPosts } = await supabase
-        .from('posts')
-        .select('id, title, description')
-        .eq('project_id', project.id)
-        .neq('id', post.id)
-        .limit(100);
-
-      const response = await fetch('/api/ai/duplicate-detection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: 'single',
-          newPost: {
-            id: post.id,
-            title: post.title,
-            description: post.description || ''
-          },
-          existingPosts: (allPosts || []).map(p => ({
-            id: p.id,
-            title: p.title,
-            description: p.description || ''
-          })),
-          projectId: project.id
-        })
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setDuplicateResults(data);
-        await refreshDuplicateUsage({ silent: true });
-      } else {
-        if (response.status === 429) {
-          setDuplicateUsageInfo({ ...data, allowed: false });
-          toast.error(
-            data.message || 'You have reached the monthly limit for duplicate detection.'
-          );
-          return;
-        }
-        toast.error(data.message || data.error || 'Failed to check duplicates');
-      }
-    } catch (error) {
-      console.error('Duplicate check error:', error);
-      toast.error('Failed to check duplicates');
-    } finally {
-      setCheckingDuplicates(false);
-    }
-  };
 
   const handleAnalyzePriority = async () => {
     setAnalyzingPriority(true);
@@ -739,57 +670,18 @@ export default function PublicPostDetails({ project, post, relatedPosts }: Publi
             {/* AI Features Section - Owner/Admin Only */}
             {isOwner && user && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {/* AI Duplicate Detection */}
-              <Card className="border-orange-200 bg-orange-50">
-              <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                      ⚠
-                    </div>
-                    <h3 className="font-semibold text-gray-900">AI Duplicate Detection</h3>
-                  </div>
-                  <Button 
-                    variant="default" 
-                    className="w-full bg-gray-900 hover:bg-gray-800 text-white"
-                    onClick={handleCheckDuplicates}
-                    disabled={checkingDuplicates || duplicateLimitReached}
-                  >
-                    {duplicateLimitReached ? 'Limit Reached' : checkingDuplicates ? 'Checking...' : 'Check for Duplicates'}
-                  </Button>
-                  {duplicateUsage && !duplicateUsage.isPro && (
-                    <p className="mt-2 text-xs text-orange-700 text-center">
-                      Used {Math.max(duplicateUsage.limit - duplicateUsage.remaining, 0)}/{duplicateUsage.limit} • {duplicateUsage.remaining} left this month
-                    </p>
-                  )}
-                  {duplicateLimitReached && (
-                    <p className="text-xs text-red-600 text-center mt-1">
-                      Upgrade to Pro for unlimited duplicate detection.
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-600 mt-3 text-center">
-                    AI will analyze this post against all other posts in your project
-                  </p>
-                  
-                  {duplicateResults && (
-                    <div className="mt-4 p-3 bg-white rounded-lg border">
-                      {duplicateResults.duplicates && duplicateResults.duplicates.length > 0 ? (
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 mb-2">
-                            Found {duplicateResults.duplicates.length} similar post(s)
-                          </p>
-                          {duplicateResults.duplicates.map((dup: any) => (
-                            <div key={dup.id} className="text-xs text-gray-600 mb-1">
-                              • {dup.title} ({dup.similarity}% similar)
-                      </div>
-                    ))}
-                  </div>
-                      ) : (
-                        <p className="text-sm text-green-600">✓ No duplicates found</p>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <div className="h-full">
+                <AIDuplicateDetection
+                  postId={post.id}
+                  projectId={project.id}
+                  userPlan={{ plan: project.plan === 'pro' ? 'pro' : 'free', features: [] }}
+                  onShowNotification={(message, type) => {
+                    if (type === 'success') toast.success(message);
+                    else if (type === 'error') toast.error(message);
+                    else toast(message);
+                  }}
+                />
+              </div>
 
               {/* AI Priority Scoring */}
               <Card className="border-blue-200 bg-blue-50">
