@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,11 +18,188 @@ import {
   Zap,
   Bell,
   Globe,
-  Shield
+  Shield,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import GlobalBanner from '@/components/GlobalBanner';
 
+interface HelpSection {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  iconColor: string;
+  items: {
+    question: string;
+    answer: string;
+  }[];
+}
+
 export default function SupportPage() {
+  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
+  const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
+  const toggleItem = (itemId: string) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [itemId]: !prev[itemId]
+    }));
+  };
+
+  const helpSections: HelpSection[] = [
+    {
+      id: 'getting-started',
+      title: 'Getting Started',
+      icon: <HelpCircle className="w-5 h-5" />,
+      iconColor: 'text-blue-600',
+      items: [
+        {
+          question: 'Creating your first feedback board',
+          answer: 'Sign up and click "Create Project" from the dashboard. Give your board a name and unique slug (URL). Your board is instantly live and ready to collect feedback.'
+        },
+        {
+          question: 'Embedding the feedback widget',
+          answer: 'Go to Settings → Widget tab, copy the provided JavaScript snippet, and paste it before the closing </body> tag on your website. The widget will appear automatically.'
+        },
+        {
+          question: 'Setting up AI categorization',
+          answer: 'Enable AI categorization in your board Settings under the General tab. The AI will automatically categorize incoming feedback into relevant categories like Feature Request, Bug Report, Improvement, etc.'
+        }
+      ]
+    },
+    {
+      id: 'board-features',
+      title: 'Board Features',
+      icon: <Layout className="w-5 h-5" />,
+      iconColor: 'text-purple-600',
+      items: [
+        {
+          question: 'Customizing your board appearance',
+          answer: 'In Settings → General, customize your board name, description, colors, and logo. Changes are reflected immediately on your public board.'
+        },
+        {
+          question: 'Managing feedback posts',
+          answer: 'View all feedback in your board dashboard. You can edit, delete, merge similar posts, change categories, and update status (Planned, In Progress, Completed).'
+        },
+        {
+          question: 'Voting system',
+          answer: 'Users can upvote feedback posts they agree with. Posts are sorted by votes by default, helping you prioritize the most requested features.'
+        },
+        {
+          question: 'Private boards',
+          answer: 'Pro plan users can make boards private with password protection or restrict access to specific email domains.'
+        }
+      ]
+    },
+    {
+      id: 'integrations',
+      title: 'Integrations & Notifications',
+      icon: <Zap className="w-5 h-5" />,
+      iconColor: 'text-green-600',
+      items: [
+        {
+          question: 'Email notifications',
+          answer: 'Configure email recipients in Settings → Notifications. Get notified when new feedback is submitted, when posts receive votes, or when comments are added.'
+        },
+        {
+          question: 'Slack integration',
+          answer: 'Connect your Slack workspace in Settings → Integrations. Choose which channel receives feedback notifications and customize the notification format.'
+        },
+        {
+          question: 'Discord integration',
+          answer: 'Link your Discord server in Settings → Integrations. Select a channel and get real-time feedback updates with rich embeds.'
+        },
+        {
+          question: 'Webhooks',
+          answer: 'Set up webhooks in Settings → Integrations to send feedback data to any external service. Receive JSON payloads for new posts, votes, comments, and status changes.'
+        }
+      ]
+    },
+    {
+      id: 'advanced-features',
+      title: 'Advanced Features',
+      icon: <SettingsIcon className="w-5 h-5" />,
+      iconColor: 'text-orange-600',
+      items: [
+        {
+          question: 'API access',
+          answer: 'Generate API keys in Settings → API Keys. Use our REST API to programmatically create, read, update, and delete feedback posts. View API documentation for endpoints and examples.'
+        },
+        {
+          question: 'Custom domains (Pro)',
+          answer: 'Add your custom domain in Settings → Custom Domain. Configure DNS records as shown, and your feedback board will be accessible at your own domain (e.g., feedback.yoursite.com).'
+        },
+        {
+          question: 'CSV import/export',
+          answer: 'Import existing feedback from CSV files in Settings → Import. Export all your feedback data to CSV from Settings → Export for backup or migration.'
+        },
+        {
+          question: 'Changelog & Roadmap',
+          answer: 'Create public changelogs to announce new features and updates. Build a roadmap to show users what's coming next. Both are accessible from your board navigation.'
+        },
+        {
+          question: 'AI Insights (Pro)',
+          answer: 'Access AI-powered analytics in your board dashboard. Get sentiment analysis, trending topics, and smart insights from your feedback data.'
+        }
+      ]
+    },
+    {
+      id: 'account-billing',
+      title: 'Account & Billing',
+      icon: <CreditCard className="w-5 h-5" />,
+      iconColor: 'text-indigo-600',
+      items: [
+        {
+          question: 'Upgrading to Pro plan',
+          answer: 'Click "Upgrade to Pro" from your dashboard or board settings. Pro includes unlimited boards, AI insights, custom domains, priority support, and advanced features. Billed monthly or annually (save 20%).'
+        },
+        {
+          question: 'Managing your subscription',
+          answer: 'Access your subscription in Settings → Billing. View your current plan, payment method, billing history, and upcoming invoice. Update payment details anytime.'
+        },
+        {
+          question: 'Canceling or changing plans',
+          answer: 'Cancel your subscription anytime from Settings → Billing. You'll retain Pro features until the end of your billing period. Downgrade to Free plan or reactivate anytime without losing data.'
+        },
+        {
+          question: 'Free plan limits',
+          answer: 'Free plan includes 1 board, up to 100 feedback posts, basic email notifications, and standard support. Upgrade to Pro for unlimited boards and posts.'
+        }
+      ]
+    },
+    {
+      id: 'troubleshooting',
+      title: 'Troubleshooting',
+      icon: <Shield className="w-5 h-5" />,
+      iconColor: 'text-red-600',
+      items: [
+        {
+          question: 'Widget not showing on website',
+          answer: 'Verify the widget script is placed before </body>. Check browser console for errors. Ensure there are no ad blockers interfering. Try clearing cache and hard refresh (Ctrl+Shift+R).'
+        },
+        {
+          question: 'Not receiving email notifications',
+          answer: 'Check spam/junk folder. Verify notification recipients are configured in Settings → Notifications. Ensure notification types are enabled. Contact support if emails still don\'t arrive.'
+        },
+        {
+          question: 'Custom domain not working',
+          answer: 'DNS changes can take up to 48 hours to propagate. Verify CNAME record points to signalsloop.com. Check domain status in Settings → Custom Domain. Contact support if issues persist after 48 hours.'
+        },
+        {
+          question: 'API authentication errors',
+          answer: 'Ensure you\'re including the API key in the Authorization header as "Bearer YOUR_API_KEY". Verify the API key is active in Settings → API Keys. Check API documentation for correct endpoint format.'
+        }
+      ]
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Global Banner */}
@@ -121,162 +298,60 @@ export default function SupportPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-8">
-              {/* Getting Started */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <HelpCircle className="w-5 h-5 text-blue-600" />
-                  <h4 className="font-semibold text-gray-900 text-lg">Getting Started</h4>
-                </div>
-                <div className="space-y-3 ml-7">
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Creating your first feedback board</p>
-                    <p className="text-gray-600">Sign up and click "Create Project" from the dashboard. Give your board a name and unique slug (URL). Your board is instantly live and ready to collect feedback.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Embedding the feedback widget</p>
-                    <p className="text-gray-600">Go to Settings → Widget tab, copy the provided JavaScript snippet, and paste it before the closing &lt;/body&gt; tag on your website. The widget will appear automatically.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Setting up AI categorization</p>
-                    <p className="text-gray-600">Enable AI categorization in your board Settings under the General tab. The AI will automatically categorize incoming feedback into relevant categories like Feature Request, Bug Report, Improvement, etc.</p>
-                  </div>
-                </div>
-              </div>
+            <div className="space-y-4">
+              {helpSections.map((section) => (
+                <div key={section.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                  {/* Section Header - Clickable */}
+                  <button
+                    onClick={() => toggleSection(section.id)}
+                    className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={section.iconColor}>
+                        {section.icon}
+                      </div>
+                      <h4 className="font-semibold text-gray-900 text-lg text-left">{section.title}</h4>
+                    </div>
+                    {expandedSections[section.id] ? (
+                      <ChevronDown className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <ChevronRight className="w-5 h-5 text-gray-600" />
+                    )}
+                  </button>
 
-              {/* Board Features */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Layout className="w-5 h-5 text-purple-600" />
-                  <h4 className="font-semibold text-gray-900 text-lg">Board Features</h4>
-                </div>
-                <div className="space-y-3 ml-7">
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Customizing your board appearance</p>
-                    <p className="text-gray-600">In Settings → General, customize your board name, description, colors, and logo. Changes are reflected immediately on your public board.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Managing feedback posts</p>
-                    <p className="text-gray-600">View all feedback in your board dashboard. You can edit, delete, merge similar posts, change categories, and update status (Planned, In Progress, Completed).</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Voting system</p>
-                    <p className="text-gray-600">Users can upvote feedback posts they agree with. Posts are sorted by votes by default, helping you prioritize the most requested features.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Private boards</p>
-                    <p className="text-gray-600">Pro plan users can make boards private with password protection or restrict access to specific email domains.</p>
-                  </div>
-                </div>
-              </div>
+                  {/* Section Content - Expandable */}
+                  {expandedSections[section.id] && (
+                    <div className="p-4 space-y-2 bg-white">
+                      {section.items.map((item, index) => {
+                        const itemId = `${section.id}-${index}`;
+                        return (
+                          <div key={itemId} className="border-b border-gray-100 last:border-b-0 pb-2 last:pb-0">
+                            {/* Question - Clickable */}
+                            <button
+                              onClick={() => toggleItem(itemId)}
+                              className="w-full flex items-center justify-between py-2 text-left hover:bg-gray-50 px-2 rounded transition-colors"
+                            >
+                              <p className="font-medium text-gray-900 text-sm">{item.question}</p>
+                              {expandedItems[itemId] ? (
+                                <ChevronDown className="w-4 h-4 text-gray-600 flex-shrink-0 ml-2" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4 text-gray-600 flex-shrink-0 ml-2" />
+                              )}
+                            </button>
 
-              {/* Integrations */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Zap className="w-5 h-5 text-green-600" />
-                  <h4 className="font-semibold text-gray-900 text-lg">Integrations & Notifications</h4>
+                            {/* Answer - Expandable */}
+                            {expandedItems[itemId] && (
+                              <div className="pl-2 pr-2 pb-2 pt-1">
+                                <p className="text-gray-600 text-sm">{item.answer}</p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-3 ml-7">
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Email notifications</p>
-                    <p className="text-gray-600">Configure email recipients in Settings → Notifications. Get notified when new feedback is submitted, when posts receive votes, or when comments are added.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Slack integration</p>
-                    <p className="text-gray-600">Connect your Slack workspace in Settings → Integrations. Choose which channel receives feedback notifications and customize the notification format.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Discord integration</p>
-                    <p className="text-gray-600">Link your Discord server in Settings → Integrations. Select a channel and get real-time feedback updates with rich embeds.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Webhooks</p>
-                    <p className="text-gray-600">Set up webhooks in Settings → Integrations to send feedback data to any external service. Receive JSON payloads for new posts, votes, comments, and status changes.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Advanced Features */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <SettingsIcon className="w-5 h-5 text-orange-600" />
-                  <h4 className="font-semibold text-gray-900 text-lg">Advanced Features</h4>
-                </div>
-                <div className="space-y-3 ml-7">
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">API access</p>
-                    <p className="text-gray-600">Generate API keys in Settings → API Keys. Use our REST API to programmatically create, read, update, and delete feedback posts. View API documentation for endpoints and examples.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Custom domains (Pro)</p>
-                    <p className="text-gray-600">Add your custom domain in Settings → Custom Domain. Configure DNS records as shown, and your feedback board will be accessible at your own domain (e.g., feedback.yoursite.com).</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">CSV import/export</p>
-                    <p className="text-gray-600">Import existing feedback from CSV files in Settings → Import. Export all your feedback data to CSV from Settings → Export for backup or migration.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Changelog & Roadmap</p>
-                    <p className="text-gray-600">Create public changelogs to announce new features and updates. Build a roadmap to show users what's coming next. Both are accessible from your board navigation.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">AI Insights (Pro)</p>
-                    <p className="text-gray-600">Access AI-powered analytics in your board dashboard. Get sentiment analysis, trending topics, and smart insights from your feedback data.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Account & Billing */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <CreditCard className="w-5 h-5 text-indigo-600" />
-                  <h4 className="font-semibold text-gray-900 text-lg">Account & Billing</h4>
-                </div>
-                <div className="space-y-3 ml-7">
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Upgrading to Pro plan</p>
-                    <p className="text-gray-600">Click "Upgrade to Pro" from your dashboard or board settings. Pro includes unlimited boards, AI insights, custom domains, priority support, and advanced features. Billed monthly or annually (save 20%).</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Managing your subscription</p>
-                    <p className="text-gray-600">Access your subscription in Settings → Billing. View your current plan, payment method, billing history, and upcoming invoice. Update payment details anytime.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Canceling or changing plans</p>
-                    <p className="text-gray-600">Cancel your subscription anytime from Settings → Billing. You'll retain Pro features until the end of your billing period. Downgrade to Free plan or reactivate anytime without losing data.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Free plan limits</p>
-                    <p className="text-gray-600">Free plan includes 1 board, up to 100 feedback posts, basic email notifications, and standard support. Upgrade to Pro for unlimited boards and posts.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Troubleshooting */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Shield className="w-5 h-5 text-red-600" />
-                  <h4 className="font-semibold text-gray-900 text-lg">Troubleshooting</h4>
-                </div>
-                <div className="space-y-3 ml-7">
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Widget not showing on website</p>
-                    <p className="text-gray-600">Verify the widget script is placed before &lt;/body&gt;. Check browser console for errors. Ensure there are no ad blockers interfering. Try clearing cache and hard refresh (Ctrl+Shift+R).</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Not receiving email notifications</p>
-                    <p className="text-gray-600">Check spam/junk folder. Verify notification recipients are configured in Settings → Notifications. Ensure notification types are enabled. Contact support if emails still don't arrive.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Custom domain not working</p>
-                    <p className="text-gray-600">DNS changes can take up to 48 hours to propagate. Verify CNAME record points to signalsloop.com. Check domain status in Settings → Custom Domain. Contact support if issues persist after 48 hours.</p>
-                  </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 mb-1">API authentication errors</p>
-                    <p className="text-gray-600">Ensure you're including the API key in the Authorization header as "Bearer YOUR_API_KEY". Verify the API key is active in Settings → API Keys. Check API documentation for correct endpoint format.</p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
 
             {/* Still Need Help */}
