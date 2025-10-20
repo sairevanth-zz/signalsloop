@@ -142,7 +142,7 @@ export default function SupportPage() {
         },
         {
           question: 'Changelog & Roadmap',
-          answer: 'Create public changelogs to announce new features and updates. Build a roadmap to show users what's coming next. Both are accessible from your board navigation.'
+          answer: 'Create public changelogs to announce new features and updates. Build a roadmap to show users what\'s coming next. Both are accessible from your board navigation.'
         },
         {
           question: 'AI Insights (Pro)',
@@ -166,7 +166,7 @@ export default function SupportPage() {
         },
         {
           question: 'Canceling or changing plans',
-          answer: 'Cancel your subscription anytime from Settings → Billing. You'll retain Pro features until the end of your billing period. Downgrade to Free plan or reactivate anytime without losing data.'
+          answer: 'Cancel your subscription anytime from Settings → Billing. You\'ll retain Pro features until the end of your billing period. Downgrade to Free plan or reactivate anytime without losing data.'
         },
         {
           question: 'Free plan limits',
@@ -219,7 +219,7 @@ export default function SupportPage() {
                 </h1>
               </div>
               <p className="text-gray-600 text-lg animate-fade-in-delay max-w-2xl mx-auto">
-                Get help with SignalsLoop. We're here to assist you with any questions or issues you may have.
+                Get help with SignalsLoop. We&apos;re here to assist you with any questions or issues you may have.
               </p>
             </div>
           </div>
@@ -235,7 +235,7 @@ export default function SupportPage() {
               </div>
               <CardTitle className="text-xl font-semibold">Email Support</CardTitle>
               <CardDescription>
-                Send us an email and we'll get back to you within 24 hours
+                Send us an email and we&apos;ll get back to you within 24 hours
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
@@ -360,7 +360,7 @@ export default function SupportPage() {
                 <Mail className="w-8 h-8 text-blue-600 mx-auto mb-3" />
                 <h5 className="font-semibold text-gray-900 mb-2">Still need help?</h5>
                 <p className="text-sm text-gray-600 mb-4">
-                  Can't find what you're looking for? We're here to help!
+                  Can&apos;t find what you&apos;re looking for? We&apos;re here to help!
                 </p>
                 <Button
                   asChild
