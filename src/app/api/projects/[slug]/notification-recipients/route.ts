@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -10,24 +8,28 @@ export async function OPTIONS() {
   return NextResponse.json({ success: true });
 }
 
-async function authenticate(_request: NextRequest, projectSlug: string) {
-  const userClient = createRouteHandlerClient({ cookies });
-  const serviceClient = getSupabaseServiceRoleClient();
-
-  if (!serviceClient) {
+async function authenticate(request: NextRequest, projectSlug: string) {
+  const supabase = getSupabaseServiceRoleClient();
+  if (!supabase) {
     throw new Error('Service role client unavailable');
   }
 
-  const {
-    data: { user },
-    error: userError,
-  } = await userClient.auth.getUser();
-
-  if (userError || !user) {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return { status: 401 as const, error: 'Unauthorized' };
   }
 
-  const { data: project, error: projectError } = await serviceClient
+  const token = authHeader.replace('Bearer ', '');
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser(token);
+
+  if (authError || !user) {
+    return { status: 401 as const, error: 'Unauthorized' };
+  }
+
+  const { data: project, error: projectError } = await supabase
     .from('projects')
     .select('id, owner_id')
     .eq('slug', projectSlug)
@@ -41,7 +43,7 @@ async function authenticate(_request: NextRequest, projectSlug: string) {
     return { status: 403 as const, error: 'Forbidden' };
   }
 
-  return { supabase: serviceClient, userId: user.id, projectId: project.id };
+  return { supabase, userId: user.id, projectId: project.id };
 }
 
 export async function GET(
@@ -50,8 +52,7 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const projectSlug = slug;
-    const auth = await authenticate(request, projectSlug);
+    const auth = await authenticate(request, slug);
     if ('status' in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -82,8 +83,7 @@ export async function POST(
 ) {
   try {
     const { slug } = await params;
-    const projectSlug = slug;
-    const auth = await authenticate(request, projectSlug);
+    const auth = await authenticate(request, slug);
     if ('status' in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -137,8 +137,7 @@ export async function PUT(
 ) {
   try {
     const { slug } = await params;
-    const projectSlug = slug;
-    const auth = await authenticate(request, projectSlug);
+    const auth = await authenticate(request, slug);
     if ('status' in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -201,8 +200,7 @@ export async function DELETE(
 ) {
   try {
     const { slug } = await params;
-    const projectSlug = slug;
-    const auth = await authenticate(request, projectSlug);
+    const auth = await authenticate(request, slug);
     if ('status' in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }

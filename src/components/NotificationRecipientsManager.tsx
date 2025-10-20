@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface NotificationRecipientsManagerProps {
   projectSlug: string;
@@ -57,19 +58,67 @@ export function NotificationRecipientsManager({
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormState>(defaultFormState);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
+
+  useEffect(() => {
+    const client = getSupabaseClient();
+    if (!client) {
+      setSessionLoading(false);
+      setAuthError('Authentication unavailable. Please refresh and sign in again.');
+      return;
+    }
+
+    let mounted = true;
+
+    client.auth.getSession().then(({ data, error }) => {
+      if (!mounted) return;
+      if (error) {
+        console.error('Failed to get session for notification recipients:', error);
+        setAuthError('Unable to load your session. Please sign in again.');
+        setSessionLoading(false);
+        return;
+      }
+
+      const token = data.session?.access_token ?? null;
+      setAccessToken(token);
+      setAuthError(token ? null : 'You must be signed in to manage notification recipients.');
+      setSessionLoading(false);
+    });
+
+    const { data: subscription } = client.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      const token = session?.access_token ?? null;
+      setAccessToken(token);
+      setAuthError(token ? null : 'You must be signed in to manage notification recipients.');
+    });
+
+    return () => {
+      mounted = false;
+      subscription.subscription.unsubscribe();
+    };
+  }, []);
 
   const sessionState = useMemo<'unknown' | 'unauthenticated' | 'authenticated'>(() => {
-    if (currentUserId === undefined) return 'unknown';
-    if (currentUserId === null) return 'unauthenticated';
+    if (sessionLoading) return 'unknown';
+    if (!accessToken || currentUserId === null) return 'unauthenticated';
     return 'authenticated';
-  }, [currentUserId]);
+  }, [sessionLoading, accessToken, currentUserId]);
 
   const loadRecipients = useCallback(async () => {
+    if (!accessToken) {
+      setAuthError('You must be signed in to manage notification recipients.');
+      setRecipients([]);
+      setInitialLoadComplete(true);
+      return;
+    }
+
     setLoading(true);
     setAuthError(null);
     try {
       const response = await fetch(`/api/projects/${projectSlug}/notification-recipients`, {
         cache: 'no-store',
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
 
       if (response.status === 401) {
@@ -98,7 +147,7 @@ export function NotificationRecipientsManager({
       setInitialLoadComplete(true);
       setLoading(false);
     }
-  }, [projectSlug]);
+  }, [projectSlug, accessToken]);
 
   useEffect(() => {
     if (sessionState !== 'authenticated') {
@@ -141,7 +190,10 @@ export function NotificationRecipientsManager({
     try {
       const response = await fetch(`/api/projects/${projectSlug}/notification-recipients`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({
           email: form.email.trim(),
           name: form.name.trim(),
@@ -184,7 +236,10 @@ export function NotificationRecipientsManager({
     try {
       const response = await fetch(`/api/projects/${projectSlug}/notification-recipients`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({ id, ...updates }),
       });
 
@@ -218,7 +273,10 @@ export function NotificationRecipientsManager({
     try {
       const response = await fetch(`/api/projects/${projectSlug}/notification-recipients`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({ id }),
       });
 
