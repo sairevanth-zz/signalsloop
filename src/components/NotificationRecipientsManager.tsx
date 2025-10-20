@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -10,6 +10,7 @@ import { Loader2, Plus, Trash2 } from 'lucide-react';
 
 interface NotificationRecipientsManagerProps {
   projectSlug: string;
+  currentUserId: string | null | undefined;
 }
 
 interface RecipientRecord {
@@ -36,7 +37,20 @@ const defaultFormState: FormState = {
   receiveTeamAlerts: true,
 };
 
-export function NotificationRecipientsManager({ projectSlug }: NotificationRecipientsManagerProps) {
+const mapRecipient = (recipient: Record<string, unknown>): RecipientRecord => ({
+  id: String(recipient.id),
+  email: String(recipient.email).toLowerCase(),
+  name: recipient.name ? String(recipient.name) : null,
+  receiveWeeklyDigest: Boolean(recipient.receive_weekly_digest),
+  receiveTeamAlerts: Boolean(recipient.receive_team_alerts ?? true),
+  createdAt: String(recipient.created_at ?? ''),
+  updatedAt: String(recipient.updated_at ?? ''),
+});
+
+export function NotificationRecipientsManager({
+  projectSlug,
+  currentUserId,
+}: NotificationRecipientsManagerProps) {
   const [recipients, setRecipients] = useState<RecipientRecord[]>([]);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -44,15 +58,11 @@ export function NotificationRecipientsManager({ projectSlug }: NotificationRecip
   const [form, setForm] = useState<FormState>(defaultFormState);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const mapRecipient = (recipient: Record<string, unknown>): RecipientRecord => ({
-    id: String(recipient.id),
-    email: String(recipient.email).toLowerCase(),
-    name: recipient.name ? String(recipient.name) : null,
-    receiveWeeklyDigest: Boolean(recipient.receive_weekly_digest),
-    receiveTeamAlerts: Boolean(recipient.receive_team_alerts ?? true),
-    createdAt: String(recipient.created_at ?? ''),
-    updatedAt: String(recipient.updated_at ?? ''),
-  });
+  const sessionState = useMemo<'unknown' | 'unauthenticated' | 'authenticated'>(() => {
+    if (currentUserId === undefined) return 'unknown';
+    if (currentUserId === null) return 'unauthenticated';
+    return 'authenticated';
+  }, [currentUserId]);
 
   const loadRecipients = useCallback(async () => {
     setLoading(true);
@@ -91,9 +101,21 @@ export function NotificationRecipientsManager({ projectSlug }: NotificationRecip
   }, [projectSlug]);
 
   useEffect(() => {
+    if (sessionState !== 'authenticated') {
+      setRecipients([]);
+      setInitialLoadComplete(true);
+      return;
+    }
+
     setInitialLoadComplete(false);
     loadRecipients();
-  }, [loadRecipients]);
+  }, [sessionState, loadRecipients]);
+
+  useEffect(() => {
+    if (sessionState === 'authenticated') {
+      loadRecipients();
+    }
+  }, [projectSlug, sessionState, loadRecipients]);
 
   const handleFormChange = (field: keyof FormState, value: string | boolean) => {
     setForm((prev) => ({
@@ -105,8 +127,8 @@ export function NotificationRecipientsManager({ projectSlug }: NotificationRecip
   const handleAddRecipient = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (authError) {
-      toast.error(authError);
+    if (sessionState !== 'authenticated') {
+      toast.error(authError || 'You must be signed in to add a recipient.');
       return;
     }
 
@@ -152,12 +174,10 @@ export function NotificationRecipientsManager({ projectSlug }: NotificationRecip
 
   const updateRecipient = async (
     id: string,
-    updates: Partial<Pick<FormState, 'name' | 'receiveTeamAlerts' | 'receiveWeeklyDigest'>> & {
-      email?: string;
-    }
+    updates: Partial<Pick<FormState, 'name' | 'receiveTeamAlerts' | 'receiveWeeklyDigest'>>
   ) => {
-    if (authError) {
-      toast.error(authError);
+    if (sessionState !== 'authenticated') {
+      toast.error(authError || 'You must be signed in to update recipients.');
       return;
     }
 
@@ -165,10 +185,7 @@ export function NotificationRecipientsManager({ projectSlug }: NotificationRecip
       const response = await fetch(`/api/projects/${projectSlug}/notification-recipients`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          ...updates,
-        }),
+        body: JSON.stringify({ id, ...updates }),
       });
 
       if (!response.ok) {
@@ -189,8 +206,8 @@ export function NotificationRecipientsManager({ projectSlug }: NotificationRecip
   };
 
   const handleDeleteRecipient = async (id: string) => {
-    if (authError) {
-      toast.error(authError);
+    if (sessionState !== 'authenticated') {
+      toast.error(authError || 'You must be signed in to delete recipients.');
       return;
     }
 
@@ -218,8 +235,9 @@ export function NotificationRecipientsManager({ projectSlug }: NotificationRecip
     }
   };
 
-  const isReady = authError === null;
-  const showEmptyState = initialLoadComplete && recipients.length === 0 && authError === null;
+  const isAuthenticated = sessionState === 'authenticated';
+  const sessionKnown = sessionState !== 'unknown';
+  const showEmptyState = isAuthenticated && initialLoadComplete && recipients.length === 0;
 
   return (
     <Card className="border border-slate-200">
@@ -245,7 +263,7 @@ export function NotificationRecipientsManager({ projectSlug }: NotificationRecip
                 placeholder="team@company.com"
                 value={form.email}
                 onChange={(event) => handleFormChange('email', event.target.value)}
-                disabled={!isReady || saving}
+                disabled={!isAuthenticated || saving}
               />
             </div>
             <div className="space-y-2">
@@ -257,7 +275,7 @@ export function NotificationRecipientsManager({ projectSlug }: NotificationRecip
                 placeholder="Product Team"
                 value={form.name}
                 onChange={(event) => handleFormChange('name', event.target.value)}
-                disabled={!isReady || saving}
+                disabled={!isAuthenticated || saving}
               />
             </div>
           </div>
@@ -266,7 +284,7 @@ export function NotificationRecipientsManager({ projectSlug }: NotificationRecip
               <Switch
                 checked={form.receiveTeamAlerts}
                 onCheckedChange={(checked) => handleFormChange('receiveTeamAlerts', checked)}
-                disabled={!isReady || saving}
+                disabled={!isAuthenticated || saving}
               />
               Team alerts for new submissions
             </label>
@@ -274,13 +292,13 @@ export function NotificationRecipientsManager({ projectSlug }: NotificationRecip
               <Switch
                 checked={form.receiveWeeklyDigest}
                 onCheckedChange={(checked) => handleFormChange('receiveWeeklyDigest', checked)}
-                disabled={!isReady || saving}
+                disabled={!isAuthenticated || saving}
               />
               Weekly digest summary
             </label>
             <Button
               type="submit"
-              disabled={!isReady || saving}
+              disabled={!isAuthenticated || saving}
               className="ml-auto inline-flex items-center gap-2"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
@@ -289,9 +307,14 @@ export function NotificationRecipientsManager({ projectSlug }: NotificationRecip
           </div>
         </form>
 
-        {!isReady ? (
+        {!sessionKnown ? (
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Checking authentication…
+          </div>
+        ) : authError ? (
           <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
-            {authError || 'Sign in to manage notification recipients for this project.'}
+            {authError}
           </div>
         ) : loading ? (
           <div className="flex items-center gap-2 text-sm text-slate-500">

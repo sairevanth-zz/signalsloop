@@ -567,7 +567,10 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="notifications" className="mt-6">
-            <NotificationRecipientsManager projectSlug={project.slug} />
+            <NotificationRecipientsManager
+              projectSlug={project.slug}
+              currentUserId={authUser?.id}
+            />
           </TabsContent>
 
           <TabsContent value="webhooks" className="mt-6">
