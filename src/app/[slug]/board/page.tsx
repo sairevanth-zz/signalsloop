@@ -32,7 +32,9 @@ import {
   X,
   FileText,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Wand2,
+  Loader2
 } from 'lucide-react';
 import {
   Select,
@@ -127,6 +129,7 @@ export default function BoardPage() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [isProjectOwner, setIsProjectOwner] = useState(false);
   const [showFeedbackOnBehalfModal, setShowFeedbackOnBehalfModal] = useState(false);
+  const [autoCategorizing, setAutoCategorizing] = useState(false);
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -232,6 +235,61 @@ export default function BoardPage() {
       toast.error('Failed to delete post');
     }
   };
+
+  const handleAutoCategorize = useCallback(async () => {
+    if (!supabase) {
+      toast.error('Database connection not available. Please refresh the page.');
+      return;
+    }
+
+    try {
+      setAutoCategorizing(true);
+
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session?.access_token) {
+        toast.error('Please sign in to use AI auto-categorization.');
+        return;
+      }
+
+      const response = await fetch(`/api/projects/${params?.slug}/auto-categorize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+        body: JSON.stringify({ confidenceThreshold: 0.6 }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to auto-categorize feedback');
+      }
+
+      const { updatedCount = 0, processedCount = 0, errors = [], remaining = 0 } = payload;
+
+      if (processedCount === 0) {
+        toast.info('Nothing to categorize—everything already looks good!');
+      } else {
+        const details = remaining > 0
+          ? `AI categorized ${updatedCount} posts (more remain, run again if needed).`
+          : `AI categorized ${updatedCount} of ${processedCount} posts.`;
+        toast.success(details);
+        if (errors.length > 0) {
+          console.error('Auto-categorize errors:', errors);
+          toast.warning(`${errors.length} post(s) could not be categorized. Check the console for details.`);
+        }
+      }
+
+      // Refresh posts to reflect new categories
+      await loadProjectAndPosts();
+    } catch (error) {
+      console.error('Auto-categorize error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to auto-categorize posts');
+    } finally {
+      setAutoCategorizing(false);
+    }
+  }, [supabase, params?.slug, loadProjectAndPosts]);
 
   const loadUserPlan = useCallback(async () => {
     if (!supabase || !user) return;
@@ -610,6 +668,24 @@ export default function BoardPage() {
                 >
                   <Sparkles className="w-4 h-4" />
                   <span className="hidden md:inline">AI Insights</span>
+                </Button>
+              )}
+
+              {/* Smart Categorize - Project owners only */}
+              {isProjectOwner && (
+                <Button
+                  onClick={handleAutoCategorize}
+                  variant="outline"
+                  disabled={autoCategorizing}
+                  className="bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 active:scale-95 transition-transform min-touch-target tap-highlight-transparent whitespace-nowrap px-3 sm:px-4"
+                >
+                  {autoCategorizing ? (
+                    <Loader2 className="w-4 h-4 mr-1 sm:mr-2 animate-spin" />
+                  ) : (
+                    <Wand2 className="w-4 h-4 mr-1 sm:mr-2" />
+                  )}
+                  <span className="text-sm font-semibold hidden lg:inline">Smart Categorize All</span>
+                  <span className="text-sm font-semibold lg:hidden">Smart Categorize</span>
                 </Button>
               )}
               
