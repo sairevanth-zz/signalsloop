@@ -127,6 +127,7 @@ export function NotificationRecipientsManager({
     setSaving(true);
     try {
       const response = await fetch(`/api/projects/${projectId}/notification-recipients`, {
+      const response = await fetch(`/api/projects/${projectId}/notification-recipients`, {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify({
