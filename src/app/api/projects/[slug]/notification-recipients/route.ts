@@ -10,9 +10,8 @@ export async function OPTIONS() {
   return NextResponse.json({ success: true });
 }
 
-async function authenticate(request: NextRequest, projectSlug: string) {
-  const cookieStore = cookies();
-  const userClient = createRouteHandlerClient({ cookies: () => cookieStore });
+async function authenticate(_request: NextRequest, projectSlug: string) {
+  const userClient = createRouteHandlerClient({ cookies });
   const serviceClient = getSupabaseServiceRoleClient();
 
   if (!serviceClient) {
