@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -9,8 +9,7 @@ import { toast } from 'sonner';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 
 interface NotificationRecipientsManagerProps {
-  projectId: string;
-  accessToken: string | null;
+  projectSlug: string;
 }
 
 interface RecipientRecord {
@@ -37,32 +36,43 @@ const defaultFormState: FormState = {
   receiveTeamAlerts: true,
 };
 
-export function NotificationRecipientsManager({
-  projectId,
-  accessToken,
-}: NotificationRecipientsManagerProps) {
+export function NotificationRecipientsManager({ projectSlug }: NotificationRecipientsManagerProps) {
   const [recipients, setRecipients] = useState<RecipientRecord[]>([]);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState<FormState>(defaultFormState);
   const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<FormState>(defaultFormState);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  const authHeaders = useMemo(() => {
-    if (!accessToken) return undefined;
-    return {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    };
-  }, [accessToken]);
+  const mapRecipient = (recipient: Record<string, unknown>): RecipientRecord => ({
+    id: String(recipient.id),
+    email: String(recipient.email).toLowerCase(),
+    name: recipient.name ? String(recipient.name) : null,
+    receiveWeeklyDigest: Boolean(recipient.receive_weekly_digest),
+    receiveTeamAlerts: Boolean(recipient.receive_team_alerts ?? true),
+    createdAt: String(recipient.created_at ?? ''),
+    updatedAt: String(recipient.updated_at ?? ''),
+  });
 
-  const loadRecipients = async () => {
-    if (!authHeaders) return;
+  const loadRecipients = useCallback(async () => {
     setLoading(true);
+    setAuthError(null);
     try {
-      const response = await fetch(`/api/projects/${projectId}/notification-recipients`, {
-        method: 'GET',
-        headers: authHeaders,
+      const response = await fetch(`/api/projects/${projectSlug}/notification-recipients`, {
+        cache: 'no-store',
       });
+
+      if (response.status === 401) {
+        setAuthError('You must be signed in to manage notification recipients.');
+        setRecipients([]);
+        return;
+      }
+
+      if (response.status === 403) {
+        setAuthError('Only the project owner can edit notification recipients.');
+        setRecipients([]);
+        return;
+      }
 
       if (!response.ok) {
         const error = await response.json().catch(() => null);
@@ -70,16 +80,7 @@ export function NotificationRecipientsManager({
       }
 
       const data = (await response.json()) as { recipients: Array<Record<string, unknown>> };
-      const normalized = (data.recipients || []).map((recipient) => ({
-        id: String(recipient.id),
-        email: String(recipient.email).toLowerCase(),
-        name: recipient.name ? String(recipient.name) : null,
-        receiveWeeklyDigest: Boolean(recipient.receive_weekly_digest),
-        receiveTeamAlerts: Boolean(recipient.receive_team_alerts ?? true),
-        createdAt: String(recipient.created_at ?? ''),
-        updatedAt: String(recipient.updated_at ?? ''),
-      }));
-      setRecipients(normalized);
+      setRecipients((data.recipients || []).map(mapRecipient).sort((a, b) => a.email.localeCompare(b.email)));
     } catch (error) {
       console.error('Failed to load notification recipients:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to load recipients');
@@ -87,23 +88,12 @@ export function NotificationRecipientsManager({
       setInitialLoadComplete(true);
       setLoading(false);
     }
-  };
+  }, [projectSlug]);
 
   useEffect(() => {
-    if (!accessToken) {
-      setInitialLoadComplete(true);
-      setLoading(false);
-      return;
-    }
-
-    setInitialLoadComplete((prev) => (prev ? false : prev));
-  }, [accessToken]);
-
-  useEffect(() => {
-    if (!authHeaders || initialLoadComplete) return;
+    setInitialLoadComplete(false);
     loadRecipients();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authHeaders, initialLoadComplete]);
+  }, [loadRecipients]);
 
   const handleFormChange = (field: keyof FormState, value: string | boolean) => {
     setForm((prev) => ({
@@ -114,8 +104,9 @@ export function NotificationRecipientsManager({
 
   const handleAddRecipient = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!authHeaders) {
-      toast.error('You must be signed in to add a recipient.');
+
+    if (authError) {
+      toast.error(authError);
       return;
     }
 
@@ -126,9 +117,9 @@ export function NotificationRecipientsManager({
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/projects/${projectId}/notification-recipients`, {
+      const response = await fetch(`/api/projects/${projectSlug}/notification-recipients`, {
         method: 'POST',
-        headers: authHeaders,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: form.email.trim(),
           name: form.name.trim(),
@@ -143,18 +134,9 @@ export function NotificationRecipientsManager({
       }
 
       const data = await response.json();
-      const recipient = data.recipient as Record<string, unknown>;
       setRecipients((prev) => {
-        const updated = prev.filter((item) => item.email !== String(recipient.email).toLowerCase());
-        updated.push({
-          id: String(recipient.id),
-          email: String(recipient.email).toLowerCase(),
-          name: recipient.name ? String(recipient.name) : null,
-          receiveWeeklyDigest: Boolean(recipient.receive_weekly_digest),
-          receiveTeamAlerts: Boolean(recipient.receive_team_alerts ?? true),
-          createdAt: String(recipient.created_at ?? ''),
-          updatedAt: String(recipient.updated_at ?? ''),
-        });
+        const updated = prev.filter((item) => item.email !== String(data.recipient.email).toLowerCase());
+        updated.push(mapRecipient(data.recipient));
         return updated.sort((a, b) => a.email.localeCompare(b.email));
       });
 
@@ -174,15 +156,15 @@ export function NotificationRecipientsManager({
       email?: string;
     }
   ) => {
-    if (!authHeaders) {
-      toast.error('You must be signed in to update recipients.');
+    if (authError) {
+      toast.error(authError);
       return;
     }
 
     try {
-      const response = await fetch(`/api/projects/${projectId}/notification-recipients`, {
+      const response = await fetch(`/api/projects/${projectSlug}/notification-recipients`, {
         method: 'PUT',
-        headers: authHeaders,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id,
           ...updates,
@@ -195,22 +177,9 @@ export function NotificationRecipientsManager({
       }
 
       const data = await response.json();
-      const recipient = data.recipient as Record<string, unknown>;
       setRecipients((prev) =>
         prev
-          .map((item) =>
-            item.id === id
-              ? {
-                  id: String(recipient.id),
-                  email: String(recipient.email).toLowerCase(),
-                  name: recipient.name ? String(recipient.name) : null,
-                  receiveWeeklyDigest: Boolean(recipient.receive_weekly_digest),
-                  receiveTeamAlerts: Boolean(recipient.receive_team_alerts ?? true),
-                  createdAt: String(recipient.created_at ?? ''),
-                  updatedAt: String(recipient.updated_at ?? ''),
-                }
-              : item
-          )
+          .map((item) => (item.id === id ? mapRecipient(data.recipient) : item))
           .sort((a, b) => a.email.localeCompare(b.email))
       );
     } catch (error) {
@@ -220,8 +189,8 @@ export function NotificationRecipientsManager({
   };
 
   const handleDeleteRecipient = async (id: string) => {
-    if (!authHeaders) {
-      toast.error('You must be signed in to delete recipients.');
+    if (authError) {
+      toast.error(authError);
       return;
     }
 
@@ -230,9 +199,9 @@ export function NotificationRecipientsManager({
     }
 
     try {
-      const response = await fetch(`/api/projects/${projectId}/notification-recipients`, {
+      const response = await fetch(`/api/projects/${projectSlug}/notification-recipients`, {
         method: 'DELETE',
-        headers: authHeaders,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       });
 
@@ -249,8 +218,8 @@ export function NotificationRecipientsManager({
     }
   };
 
-  const isReady = Boolean(authHeaders);
-  const showEmptyState = initialLoadComplete && recipients.length === 0;
+  const isReady = authError === null;
+  const showEmptyState = initialLoadComplete && recipients.length === 0 && authError === null;
 
   return (
     <Card className="border border-slate-200">
@@ -322,7 +291,7 @@ export function NotificationRecipientsManager({
 
         {!isReady ? (
           <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
-            Sign in to manage notification recipients for this project.
+            {authError || 'Sign in to manage notification recipients for this project.'}
           </div>
         ) : loading ? (
           <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -347,49 +316,46 @@ export function NotificationRecipientsManager({
                 </tr>
               </thead>
               <tbody>
-                {recipients
-                  .slice()
-                  .sort((a, b) => a.email.localeCompare(b.email))
-                  .map((recipient) => (
-                    <tr key={recipient.id} className="border-b border-slate-100">
-                      <td className="px-3 py-3 font-medium text-slate-800">{recipient.email}</td>
-                      <td className="px-3 py-3 text-slate-600">
-                        <Input
-                          value={recipient.name ?? ''}
-                          placeholder="Add a label"
-                          onChange={(event) =>
-                            updateRecipient(recipient.id, { name: event.target.value })
-                          }
-                        />
-                      </td>
-                      <td className="px-3 py-3 text-center">
-                        <Switch
-                          checked={recipient.receiveTeamAlerts}
-                          onCheckedChange={(checked) =>
-                            updateRecipient(recipient.id, { receiveTeamAlerts: checked })
-                          }
-                        />
-                      </td>
-                      <td className="px-3 py-3 text-center">
-                        <Switch
-                          checked={recipient.receiveWeeklyDigest}
-                          onCheckedChange={(checked) =>
-                            updateRecipient(recipient.id, { receiveWeeklyDigest: checked })
-                          }
-                        />
-                      </td>
-                      <td className="px-3 py-3 text-right">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteRecipient(recipient.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-slate-500" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                {recipients.map((recipient) => (
+                  <tr key={recipient.id} className="border-b border-slate-100">
+                    <td className="px-3 py-3 font-medium text-slate-800">{recipient.email}</td>
+                    <td className="px-3 py-3 text-slate-600">
+                      <Input
+                        value={recipient.name ?? ''}
+                        placeholder="Add a label"
+                        onChange={(event) =>
+                          updateRecipient(recipient.id, { name: event.target.value })
+                        }
+                      />
+                    </td>
+                    <td className="px-3 py-3 text-center">
+                      <Switch
+                        checked={recipient.receiveTeamAlerts}
+                        onCheckedChange={(checked) =>
+                          updateRecipient(recipient.id, { receiveTeamAlerts: checked })
+                        }
+                      />
+                    </td>
+                    <td className="px-3 py-3 text-center">
+                      <Switch
+                        checked={recipient.receiveWeeklyDigest}
+                        onCheckedChange={(checked) =>
+                          updateRecipient(recipient.id, { receiveWeeklyDigest: checked })
+                        }
+                      />
+                    </td>
+                    <td className="px-3 py-3 text-right">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteRecipient(recipient.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-slate-500" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

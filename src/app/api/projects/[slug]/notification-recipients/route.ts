@@ -1,70 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-function decodeUserIdFromToken(token: string): string | null {
-  try {
-    const parts = token.split('.');
-    if (parts.length < 2) return null;
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, '=');
-    const json = Buffer.from(padded, 'base64').toString('utf8');
-    const payload = JSON.parse(json) as { sub?: unknown };
-    return typeof payload.sub === 'string' ? payload.sub : null;
-  } catch (error) {
-    console.error('Failed to decode JWT for notification recipients:', error);
-    return null;
-  }
+export async function OPTIONS() {
+  return NextResponse.json({ success: true });
 }
 
-async function authenticate(request: NextRequest, projectId: string) {
-  const supabase = getSupabaseServiceRoleClient();
-  if (!supabase) {
+async function authenticate(request: NextRequest, projectSlug: string) {
+  const cookieStore = cookies();
+  const userClient = createRouteHandlerClient({ cookies: () => cookieStore });
+  const serviceClient = getSupabaseServiceRoleClient();
+
+  if (!serviceClient) {
     throw new Error('Service role client unavailable');
   }
 
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader) {
+  const {
+    data: { user },
+    error: userError,
+  } = await userClient.auth.getUser();
+
+  if (userError || !user) {
     return { status: 401 as const, error: 'Unauthorized' };
   }
 
-  const token = authHeader.replace('Bearer ', '');
-  const userId = decodeUserIdFromToken(token);
-  if (!userId) {
-    return { status: 401 as const, error: 'Unauthorized' };
-  }
-
-  const { data: project, error: projectError } = await supabase
+  const { data: project, error: projectError } = await serviceClient
     .from('projects')
-    .select('owner_id')
-    .eq('id', projectId)
+    .select('id, owner_id')
+    .eq('slug', projectSlug)
     .single();
 
   if (projectError || !project) {
     return { status: 404 as const, error: 'Project not found' };
   }
 
-  if (project.owner_id !== userId) {
+  if (project.owner_id !== user.id) {
     return { status: 403 as const, error: 'Forbidden' };
   }
 
-  return { supabase, userId };
+  return { supabase: serviceClient, userId: user.id, projectId: project.id };
 }
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { projectId } = await params;
-    const auth = await authenticate(request, projectId);
+    const { slug } = await params;
+    const projectSlug = slug;
+    const auth = await authenticate(request, projectSlug);
     if ('status' in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    const { supabase } = auth;
+    const { supabase, projectId } = auth;
 
     const { data: recipients, error } = await supabase
       .from('project_notification_recipients')
@@ -86,16 +79,17 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { projectId } = await params;
-    const auth = await authenticate(request, projectId);
+    const { slug } = await params;
+    const projectSlug = slug;
+    const auth = await authenticate(request, projectSlug);
     if ('status' in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    const { supabase, userId } = auth;
+    const { supabase, userId, projectId } = auth;
     const body = await request.json();
     const email: string | undefined = body?.email;
     if (!email || !email.trim()) {
@@ -140,16 +134,17 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { projectId } = await params;
-    const auth = await authenticate(request, projectId);
+    const { slug } = await params;
+    const projectSlug = slug;
+    const auth = await authenticate(request, projectSlug);
     if ('status' in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    const { supabase } = auth;
+    const { supabase, projectId } = auth;
     const body = await request.json();
     const recipientId: string | undefined = body?.id;
     if (!recipientId) {
@@ -203,16 +198,17 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { projectId } = await params;
-    const auth = await authenticate(request, projectId);
+    const { slug } = await params;
+    const projectSlug = slug;
+    const auth = await authenticate(request, projectSlug);
     if ('status' in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    const { supabase } = auth;
+    const { supabase, projectId } = auth;
     const body = await request.json();
     const recipientId: string | undefined = body?.id;
     if (!recipientId) {
