@@ -4,6 +4,21 @@ import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
+function decodeUserIdFromToken(token: string): string | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, '=');
+    const json = Buffer.from(padded, 'base64').toString('utf8');
+    const payload = JSON.parse(json) as { sub?: unknown };
+    return typeof payload.sub === 'string' ? payload.sub : null;
+  } catch (error) {
+    console.error('Failed to decode JWT for notification recipients:', error);
+    return null;
+  }
+}
+
 async function authenticate(request: NextRequest, projectId: string) {
   const supabase = getSupabaseServiceRoleClient();
   if (!supabase) {
@@ -16,12 +31,8 @@ async function authenticate(request: NextRequest, projectId: string) {
   }
 
   const token = authHeader.replace('Bearer ', '');
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser(token);
-
-  if (authError || !user) {
+  const userId = decodeUserIdFromToken(token);
+  if (!userId) {
     return { status: 401 as const, error: 'Unauthorized' };
   }
 
@@ -35,11 +46,11 @@ async function authenticate(request: NextRequest, projectId: string) {
     return { status: 404 as const, error: 'Project not found' };
   }
 
-  if (project.owner_id !== user.id) {
+  if (project.owner_id !== userId) {
     return { status: 403 as const, error: 'Forbidden' };
   }
 
-  return { supabase, user };
+  return { supabase, userId };
 }
 
 export async function GET(
@@ -84,7 +95,7 @@ export async function POST(
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    const { supabase, user } = auth;
+    const { supabase, userId } = auth;
     const body = await request.json();
     const email: string | undefined = body?.email;
     if (!email || !email.trim()) {
@@ -108,7 +119,7 @@ export async function POST(
           name,
           receive_weekly_digest: receiveWeeklyDigest,
           receive_team_alerts: receiveTeamAlerts,
-          created_by: user.id,
+          created_by: userId,
         },
         { onConflict: 'project_id,email', ignoreDuplicates: false }
       )
