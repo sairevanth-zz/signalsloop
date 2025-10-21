@@ -59,6 +59,13 @@ export const RATE_LIMITS = {
       minuteLimit: 10,
     },
   },
+  // Rate limits for unauthenticated public endpoints
+  public: {
+    feedback: {
+      hourlyLimit: 10,
+      minuteLimit: 3,
+    },
+  },
 };
 
 /**

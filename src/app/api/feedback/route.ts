@@ -6,6 +6,7 @@ import {
   sendPostConfirmationEmail,
   sendTeamFeedbackAlertEmail,
 } from '@/lib/email';
+import { checkRateLimit, getRateLimitHeaders, RATE_LIMITS } from '@/lib/rate-limit';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,6 +14,28 @@ const supabase = createClient(
 );
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting based on IP address
+  const forwarded = request.headers.get('x-forwarded-for');
+  const ip = forwarded ? forwarded.split(',')[0].trim() : request.ip || 'unknown';
+  const identifier = `feedback:${ip}`;
+
+  const rateLimitResult = checkRateLimit(identifier, RATE_LIMITS.public.feedback);
+
+  if (!rateLimitResult.success) {
+    const headers = getRateLimitHeaders(rateLimitResult);
+    return NextResponse.json(
+      {
+        error: 'Rate limit exceeded',
+        message: `Too many feedback submissions. Please try again in ${rateLimitResult.retryAfter} seconds.`,
+        limit: rateLimitResult.limit,
+        reset: rateLimitResult.reset,
+      },
+      {
+        status: 429,
+        headers,
+      }
+    );
+  }
   try {
     const body = await request.json();
     console.log('[FEEDBACK] Received submission:', body);
@@ -217,11 +240,19 @@ export async function POST(request: NextRequest) {
       console.warn('AI categorization error:', aiError);
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: 'Feedback submitted successfully',
       post_id: post.id
     });
+
+    // Add rate limit headers to response
+    const headers = getRateLimitHeaders(rateLimitResult);
+    Object.entries(headers).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Feedback submission error:', error);
