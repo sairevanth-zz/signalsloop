@@ -4,6 +4,10 @@ import { Metadata } from 'next';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import PublicChangelog from '@/components/PublicChangelog';
 
+// Enable dynamic params for this route
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
 interface ChangelogPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -53,6 +57,12 @@ export default async function ChangelogPage({ params }: ChangelogPageProps) {
   const { slug } = await params;
   const supabase = getSupabaseServiceRoleClient();
 
+  // Check if Supabase client was initialized
+  if (!supabase) {
+    console.error('Supabase client not initialized for changelog page');
+    notFound();
+  }
+
   try {
     // Get project details
     const { data: project, error: projectError } = await supabase
@@ -61,7 +71,12 @@ export default async function ChangelogPage({ params }: ChangelogPageProps) {
       .eq('slug', slug)
       .single();
 
+    if (projectError) {
+      console.error('Error fetching project:', projectError, 'for slug:', slug);
+    }
+
     if (projectError || !project) {
+      console.log('Project not found for slug:', slug);
       notFound();
     }
 
