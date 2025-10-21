@@ -43,6 +43,11 @@ export function middleware(request: NextRequest) {
       url.pathname = `/custom-domain-roadmap`;
       url.searchParams.set('domain', host);
       return NextResponse.rewrite(url);
+    } else if (pathname.startsWith('/changelog')) {
+      // For changelog path on custom domains
+      url.pathname = `/custom-domain-changelog`;
+      url.searchParams.set('domain', host);
+      return NextResponse.rewrite(url);
     } else if (pathname.startsWith('/post/')) {
       // For individual post paths on custom domains
       const id = pathname.split('/post/')[1];
