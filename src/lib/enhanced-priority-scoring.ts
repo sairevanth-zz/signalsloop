@@ -178,10 +178,15 @@ async function calculatePriorityScoreInternal(
   const mustHaveVotes = metrics.mustHaveVotes ?? 0;
   const importantVotes = metrics.importantVotes ?? 0;
   const niceToHaveVotes = metrics.niceToHaveVotes ?? 0;
-  const totalPriorityScore = metrics.priorityScore ?? (mustHaveVotes * 10 + importantVotes * 5 + niceToHaveVotes * 2);
   const weightedVoteSignal = metrics.voteCount + mustHaveVotes * 1.5 + importantVotes * 0.5;
   const mustHaveShare = metrics.voteCount > 0 ? Math.min(1, mustHaveVotes / metrics.voteCount) : 0;
   const importantShare = metrics.voteCount > 0 ? Math.min(1, importantVotes / metrics.voteCount) : 0;
+
+  const rawPrioritySignal = mustHaveVotes * 12 + importantVotes * 5 + niceToHaveVotes * 2;
+  const historicalPrioritySignal = typeof metrics.priorityScore === 'number'
+    ? Math.min(100, metrics.priorityScore > 10 ? metrics.priorityScore : metrics.priorityScore * 10)
+    : 0;
+  const combinedPrioritySignal = rawPrioritySignal + historicalPrioritySignal;
 
   const isBugReport = post.category === 'bug' ||
     BUG_PATTERNS.some(pattern => pattern.test(normalizedTitle)) ||
@@ -208,7 +213,7 @@ async function calculatePriorityScoreInternal(
     mustHaveVotes,
     importantVotes,
     niceToHaveVotes,
-    totalPriorityScore,
+    prioritySignal: combinedPrioritySignal,
     comments: metrics.commentCount,
     similarPosts: metrics.similarPostsCount,
     tier: user.tier
@@ -232,7 +237,7 @@ Scoring Guidelines:
 
 Signals Provided:
 - Votes: ${metrics.voteCount} (unique voters: ${metrics.uniqueVoters}, ${metrics.percentageOfActiveUsers.toFixed(1)}% of active base).
-- Priority Mix: ${mustHaveVotes} must-have, ${importantVotes} important, ${niceToHaveVotes} nice-to-have (weighted score ${Math.round(totalPriorityScore)}).
+- Priority Mix: ${mustHaveVotes} must-have, ${importantVotes} important, ${niceToHaveVotes} nice-to-have (priority signal ${Math.round(combinedPrioritySignal)}).
 - Comments: ${metrics.commentCount} (${metrics.commentCount > 5 ? 'high' : metrics.commentCount > 0 ? 'moderate' : 'none'} engagement).
 - Similar Requests: ${metrics.similarPostsCount} (${metrics.similarPostsCount > 3 ? 'trend' : 'isolated'}).
 - User Tier: ${user.tier} (Pro/Enterprise reports mean higher retention risk).
@@ -254,7 +259,7 @@ Title: "${post.title}"
 Description: "${post.description}"
 Category: ${post.category || 'uncategorized'}
 Priority Mix: Must Have ${mustHaveVotes}, Important ${importantVotes}, Nice to Have ${niceToHaveVotes}
-Priority Score: ${Math.round(totalPriorityScore)}
+Priority Signal: ${Math.round(combinedPrioritySignal)}
 
 User Context:
 - Tier: ${user.tier}
@@ -322,25 +327,42 @@ Provide JSON:
       }
     }
 
-    const priorityInfluence = Math.min(0.35, totalPriorityScore / 120);
     if (mustHaveVotes > 0) {
+      const intensity = Math.min(1, mustHaveShare);
+      const voteWeight = Math.min(3, mustHaveVotes);
       aiResponse.scores.userReach = Math.max(
         aiResponse.scores.userReach,
-        Math.min(9.5, 6 + mustHaveShare * 4 + mustHaveVotes)
+        Math.min(8.5, 5 + intensity * 3 + voteWeight * 0.6)
       );
       aiResponse.scores.userSatisfaction = Math.max(
         aiResponse.scores.userSatisfaction,
-        Math.min(9.5, 6.5 + mustHaveShare * 3)
+        Math.min(8.5, 5.5 + intensity * 2.5 + voteWeight * 0.3)
       );
       aiResponse.scores.revenueImpact = Math.max(
         aiResponse.scores.revenueImpact,
-        user.tier === 'enterprise' ? 8.5 : 7.5 + mustHaveShare * 2
+        Math.min(
+          8.8,
+          (user.tier === 'enterprise' ? 6.8 : user.tier === 'pro' ? 6.3 : 5.8) +
+            intensity * 2.2 +
+            voteWeight * 0.4
+        )
       );
     }
 
     if (importantVotes > 0 || niceToHaveVotes > 0) {
-      const steadyState = Math.min(8.5, 6 + importantShare * 2 + niceToHaveVotes * 0.2);
-      aiResponse.scores.userReach = Math.max(aiResponse.scores.userReach, steadyState);
+      const engagementLift = Math.min(
+        8.2,
+        4.5 + importantVotes * 0.6 + niceToHaveVotes * 0.25 + importantShare * 1.5
+      );
+      aiResponse.scores.userReach = Math.max(aiResponse.scores.userReach, engagementLift);
+      aiResponse.scores.userSatisfaction = Math.max(
+        aiResponse.scores.userSatisfaction,
+        Math.min(8.0, 4.8 + importantVotes * 0.5 + niceToHaveVotes * 0.2)
+      );
+    }
+
+    for (const key of Object.keys(aiResponse.scores) as Array<keyof PriorityScore['scores']>) {
+      aiResponse.scores[key] = Math.min(10, Math.max(0, aiResponse.scores[key]));
     }
 
     const strategy = businessContext?.companyStrategy || 'growth';
@@ -351,7 +373,8 @@ Provide JSON:
       weightedScore += score * weights[factor as keyof typeof weights];
     }
 
-    const tierMultiplier = user.tier === 'enterprise' ? 1.3 : user.tier === 'pro' ? 1.1 : 1.0;
+    const tierMultiplier = user.tier === 'enterprise' ? 1.15 : user.tier === 'pro' ? 1.08 : 1.0;
+    const priorityInfluence = Math.min(0.2, combinedPrioritySignal / 240);
     const priorityMultiplier = 1 + priorityInfluence;
     weightedScore = Math.min(10, weightedScore * tierMultiplier * priorityMultiplier);
 
