@@ -7,6 +7,7 @@ import PublicChangelog from '@/components/PublicChangelog';
 // Enable dynamic params for this route
 export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
+export const runtime = 'nodejs';
 
 interface ChangelogPageProps {
   params: Promise<{ slug: string }>;
