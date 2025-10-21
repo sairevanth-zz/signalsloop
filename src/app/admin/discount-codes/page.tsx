@@ -497,10 +497,19 @@ export default function AdminDiscountCodesPage() {
                     </Button>
                     <Button
                       size="sm"
-                      variant={discountCode.is_active ? 'destructive' : 'default'}
+                      variant={discountCode.is_active ? 'outline' : 'default'}
                       onClick={() => toggleCodeStatus(discountCode.id, discountCode.is_active)}
                     >
                       {discountCode.is_active ? 'Deactivate' : 'Activate'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => deleteCode(discountCode.id)}
+                      className="flex items-center gap-1"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      Delete
                     </Button>
                   </div>
                 </div>
