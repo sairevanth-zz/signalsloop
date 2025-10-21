@@ -92,10 +92,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: Users },
-    { name: 'Discount Codes', href: '/admin/discount-codes', icon: Percent },
-    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-    { name: 'SEO Tools', href: '/admin/seo', icon: Search },
-    { name: 'Content Tools', href: '/admin/content', icon: FileText },
     { name: 'Gift System', href: '/admin/gifts', icon: Gift },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];

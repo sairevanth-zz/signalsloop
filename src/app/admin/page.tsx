@@ -63,6 +63,8 @@ interface Stats {
     newUsers: number;
     newProjects: number;
     newPosts: number;
+    newUsersThisWeek: number;
+    newProUsersThisMonth: number;
   };
   postsByStatus: {
     open: number;
@@ -74,6 +76,11 @@ interface Stats {
   conversion: {
     proUserPercentage: number;
     proProjectPercentage: number;
+  };
+  revenue?: {
+    mrr: number;
+    totalRevenue: number;
+    avgRevenuePerUser: number;
   };
 }
 
@@ -294,61 +301,129 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Key Metrics */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.overview.totalUsers}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.overview.proUsers} Pro, {stats.overview.freeUsers} Free
-                </p>
-              </CardContent>
-            </Card>
+          <>
+            {/* Primary Metrics Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-blue-900">Total Users</CardTitle>
+                  <Users className="h-5 w-5 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-blue-900">{stats.overview.totalUsers}</div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge className="bg-green-600 text-white">{stats.overview.proUsers} Pro</Badge>
+                    <Badge variant="secondary">{stats.overview.freeUsers} Free</Badge>
+                  </div>
+                  <p className="text-xs text-blue-700 mt-2">
+                    +{stats.recentActivity.newUsersThisWeek || 0} this week
+                  </p>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.overview.totalProjects}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.overview.proProjects} Pro, {stats.overview.freeProjects} Free
-                </p>
-              </CardContent>
-            </Card>
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-purple-900">Projects</CardTitle>
+                  <BarChart3 className="h-5 w-5 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-purple-900">{stats.overview.totalProjects}</div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge className="bg-purple-600 text-white">{stats.overview.proProjects} Pro</Badge>
+                    <Badge variant="secondary">{stats.overview.freeProjects} Free</Badge>
+                  </div>
+                  <p className="text-xs text-purple-700 mt-2">
+                    {stats.overview.totalPosts} total posts
+                  </p>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.overview.totalPosts}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.recentActivity.newPosts} new this month
-                </p>
-              </CardContent>
-            </Card>
+              <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-green-900">Conversion Rate</CardTitle>
+                  <TrendingUp className="h-5 w-5 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-900">{stats.conversion.proUserPercentage}%</div>
+                  <p className="text-xs text-green-700 mt-2">
+                    Users with Pro subscriptions
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    +{stats.recentActivity.newProUsersThisMonth || 0} Pro this month
+                  </p>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-orange-900">
+                    {stats.revenue ? 'MRR' : 'Active Users'}
+                  </CardTitle>
+                  <Gift className="h-5 w-5 text-orange-600" />
+                </CardHeader>
+                <CardContent>
+                  {stats.revenue ? (
+                    <>
+                      <div className="text-3xl font-bold text-orange-900">
+                        ${stats.revenue.mrr.toFixed(0)}
+                      </div>
+                      <p className="text-xs text-orange-700 mt-2">
+                        Monthly Recurring Revenue
+                      </p>
+                      <p className="text-xs text-orange-600 mt-1">
+                        ${stats.revenue.avgRevenuePerUser.toFixed(2)} avg/user
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-3xl font-bold text-orange-900">{stats.overview.proUsers}</div>
+                      <p className="text-xs text-orange-700 mt-2">
+                        Paying customers
+                      </p>
+                      <p className="text-xs text-orange-600 mt-1">
+                        {stats.overview.proProjects} Pro projects
+                      </p>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Activity */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Recent Activity</CardTitle>
+                <CardDescription>Platform activity overview</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">{stats.conversion.proUserPercentage}%</div>
-                <p className="text-xs text-muted-foreground">
-                  Users with Pro subscriptions
-                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+                    <Users className="h-8 w-8 text-blue-600" />
+                    <div>
+                      <p className="text-2xl font-bold text-blue-900">{stats.recentActivity.newUsers}</p>
+                      <p className="text-sm text-blue-700">New Users</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg">
+                    <BarChart3 className="h-8 w-8 text-purple-600" />
+                    <div>
+                      <p className="text-2xl font-bold text-purple-900">{stats.recentActivity.newProjects}</p>
+                      <p className="text-sm text-purple-700">New Projects</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
+                    <FileText className="h-8 w-8 text-green-600" />
+                    <div>
+                      <p className="text-2xl font-bold text-green-900">{stats.recentActivity.newPosts}</p>
+                      <p className="text-sm text-green-700">New Posts</p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
-          </div>
+          </>
         )}
 
         {/* Users Table */}
