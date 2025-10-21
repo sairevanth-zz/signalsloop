@@ -1,7 +1,5 @@
-import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { getSupabaseServiceRoleClient, getSupabasePublicServerClient } from '@/lib/supabase-client';
 import PublicChangelogRelease from '@/components/PublicChangelogRelease';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -18,94 +16,62 @@ const getBaseUrl = () => {
   return 'http://localhost:3000';
 };
 
-async function fetchReleaseViaApi(projectId: string, releaseSlug: string) {
-  const response = await fetch(`${getBaseUrl()}/api/projects-by-id/${projectId}/changelog`, {
+async function fetchPublicRelease(slug: string, releaseSlug: string) {
+  const response = await fetch(`${getBaseUrl()}/api/public/changelog/${slug}/${releaseSlug}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     cache: 'no-store',
   });
 
-  if (!response.ok) {
-    console.error('Fallback release API fetch failed', await response.text());
+  if (response.status === 404) {
     return null;
   }
 
-  const releases = await response.json();
-  return releases.find((release: { slug: string; is_published?: boolean }) => 
-    release.slug === releaseSlug && release.is_published !== false
-  ) || null;
+  if (!response.ok) {
+    console.error('[ChangelogRelease] Failed to load release via public API', {
+      slug,
+      releaseSlug,
+      status: response.status,
+      body: await response.text(),
+    });
+    throw new Error('Failed to load release');
+  }
+
+  return response.json() as Promise<{
+    project: { id: string; name: string; slug: string };
+    release: Record<string, unknown>;
+  }>;
 }
 
 export async function generateMetadata({ params }: ReleasePageProps): Promise<Metadata> {
   const { slug, releaseSlug } = await params;
-  const supabase = getSupabaseServiceRoleClient() ?? getSupabasePublicServerClient();
-
   try {
-    const { data: project } = await supabase
-      .from('projects')
-      .select('id, name, slug')
-      .eq('slug', slug)
-      .single();
+    const data = await fetchPublicRelease(slug, releaseSlug);
 
-    if (!project) {
+    if (!data) {
       return {
         title: 'Release Not Found',
         description: 'The requested release could not be found.',
       };
     }
 
-    const { data: release } = await supabase
-      .from('changelog_releases')
-      .select('title, excerpt, published_at, release_type, version')
-      .eq('project_id', project.id)
-      .eq('slug', releaseSlug)
-      .eq('is_published', true)
-      .single();
-
-    if (!release) {
-      const fallbackRelease = await fetchReleaseViaApi(project.id, releaseSlug);
-      if (!fallbackRelease) {
-        return {
-          title: `${project.name} - Release Not Found`,
-          description: 'The requested release could not be found.',
-        };
-      }
-      const descriptionFallback = fallbackRelease.excerpt || `Check out the latest updates in ${fallbackRelease.title}`;
-      return {
-        title: `${fallbackRelease.title} - ${project.name}`,
-        description: descriptionFallback,
-        openGraph: {
-          title: `${fallbackRelease.title} - ${project.name}`,
-          description: descriptionFallback,
-          type: 'article',
-          publishedTime: fallbackRelease.published_at || undefined,
-          authors: [project.name],
-          tags: fallbackRelease.version ? [fallbackRelease.version] : undefined,
-        },
-        twitter: {
-          card: 'summary_large_image',
-          title: `${fallbackRelease.title} - ${project.name}`,
-          description: descriptionFallback,
-        },
-      };
-    }
-
+    const release = data.release as { title?: string; excerpt?: string; published_at?: string; version?: string };
     const description = release.excerpt || `Check out the latest updates in ${release.title}`;
 
     return {
-      title: `${release.title} - ${project.name}`,
+      title: `${release.title} - ${data.project.name}`,
       description,
       openGraph: {
-        title: `${release.title} - ${project.name}`,
+        title: `${release.title} - ${data.project.name}`,
         description,
         type: 'article',
         publishedTime: release.published_at || undefined,
-        authors: [project.name],
+        authors: [data.project.name],
         tags: release.version ? [release.version] : undefined,
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${release.title} - ${project.name}`,
+        title: `${release.title} - ${data.project.name}`,
         description,
       },
     };
@@ -120,73 +86,19 @@ export async function generateMetadata({ params }: ReleasePageProps): Promise<Me
 
 export default async function ReleasePage({ params }: ReleasePageProps) {
   const { slug, releaseSlug } = await params;
-  const supabase = getSupabaseServiceRoleClient() ?? getSupabasePublicServerClient();
-
   try {
-    const { data: project, error: projectError } = await supabase
-      .from('projects')
-      .select('id, name, slug')
-      .eq('slug', slug)
-      .single();
+    const data = await fetchPublicRelease(slug, releaseSlug);
 
-    if (projectError || !project) {
+    if (!data) {
       notFound();
     }
 
-    // Get release details with all related data
-    const { data: release, error: releaseError } = await supabase
-      .from('changelog_releases')
-      .select(`
-        *,
-        changelog_entries (
-          id,
-          title,
-          description,
-          entry_type,
-          priority,
-          icon,
-          color,
-          order_index
-        ),
-        changelog_media (
-          id,
-          file_url,
-          file_type,
-          alt_text,
-          caption,
-          display_order,
-          is_video,
-          video_thumbnail_url
-        ),
-        changelog_feedback_links (
-          post_id,
-          posts (
-            id,
-            title,
-            slug
-          )
-        )
-      `)
-      .eq('project_id', project.id)
-      .eq('slug', releaseSlug)
-      .eq('is_published', true)
-      .single();
-
-    let effectiveRelease = release;
-    if (releaseError || !release) {
-      console.error('Release query failed, attempting fallback', releaseError);
-      effectiveRelease = await fetchReleaseViaApi(project.id, releaseSlug);
-      if (!effectiveRelease) {
-        notFound();
-      }
-    }
-
     const normalizedRelease = {
-      ...effectiveRelease,
-      projects: project,
-      changelog_entries: effectiveRelease.changelog_entries ?? [],
-      changelog_media: effectiveRelease.changelog_media ?? [],
-      changelog_feedback_links: effectiveRelease.changelog_feedback_links ?? [],
+      ...data.release,
+      projects: data.project,
+      changelog_entries: (data.release as { changelog_entries?: unknown[] }).changelog_entries || [],
+      changelog_media: (data.release as { changelog_media?: unknown[] }).changelog_media || [],
+      changelog_feedback_links: (data.release as { changelog_feedback_links?: unknown[] }).changelog_feedback_links || [],
     };
 
     return (
@@ -203,20 +115,7 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
             </Link>
           </nav>
 
-          <Suspense fallback={
-            <div className="bg-white rounded-lg border border-gray-200 p-8 animate-pulse">
-              <div className="h-8 bg-gray-200 rounded mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-8"></div>
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-16 bg-gray-200 rounded"></div>
-                ))}
-              </div>
-            </div>
-          }>
-            <PublicChangelogRelease release={normalizedRelease} />
-          </Suspense>
+          <PublicChangelogRelease release={normalizedRelease} />
         </div>
       </div>
     );
