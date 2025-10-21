@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: ChangelogPageProps): Promise<
   try {
     const { data: project } = await supabase
       .from('projects')
-      .select('name, description')
+      .select('name')
       .eq('slug', slug)
       .single();
 
