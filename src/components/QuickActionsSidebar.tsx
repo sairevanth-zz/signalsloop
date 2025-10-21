@@ -227,22 +227,41 @@ export default function QuickActionsSidebar({
           <CardTitle className="text-sm font-medium text-gray-700">Help & Resources</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Button variant="ghost" size="sm" className="w-full justify-start">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => window.open('/support', '_blank')}
+          >
             <HelpCircle className="w-4 h-4 mr-2" />
             Help Center
           </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="w-full justify-start"
             onClick={() => setShowChangelog(true)}
           >
             <BookOpen className="w-4 h-4 mr-2" />
-            Changelog
+            Platform Changelog
           </Button>
-          <Button variant="ghost" size="sm" className="w-full justify-start">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => window.open('https://docs.signalsloop.com/api', '_blank')}
+          >
             <BarChart3 className="w-4 h-4 mr-2" />
             API Documentation
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => window.open('/app/billing', '_blank')}
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Account Settings
           </Button>
         </CardContent>
       </Card>
