@@ -1,10 +1,12 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient, getSupabasePublicServerClient } from '@/lib/supabase-client';
 import PublicChangelogRelease from '@/components/PublicChangelogRelease';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Tag } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+
+export const runtime = 'nodejs';
 
 interface ReleasePageProps {
   params: Promise<{ slug: string; releaseSlug: string }>;
@@ -12,30 +14,33 @@ interface ReleasePageProps {
 
 export async function generateMetadata({ params }: ReleasePageProps): Promise<Metadata> {
   const { slug, releaseSlug } = await params;
-  const supabase = getSupabaseServiceRoleClient();
-  
+  const supabase = getSupabaseServiceRoleClient() ?? getSupabasePublicServerClient();
+
   try {
+    const { data: project } = await supabase
+      .from('projects')
+      .select('id, name, slug')
+      .eq('slug', slug)
+      .single();
+
+    if (!project) {
+      return {
+        title: 'Release Not Found',
+        description: 'The requested release could not be found.',
+      };
+    }
+
     const { data: release } = await supabase
       .from('changelog_releases')
-      .select(`
-        title,
-        excerpt,
-        published_at,
-        release_type,
-        version,
-        projects!inner (
-          name,
-          slug
-        )
-      `)
-      .eq('projects.slug', slug)
+      .select('title, excerpt, published_at, release_type, version')
+      .eq('project_id', project.id)
       .eq('slug', releaseSlug)
       .eq('is_published', true)
       .single();
 
     if (!release) {
       return {
-        title: 'Release Not Found',
+        title: `${project.name} - Release Not Found`,
         description: 'The requested release could not be found.',
       };
     }
@@ -43,19 +48,19 @@ export async function generateMetadata({ params }: ReleasePageProps): Promise<Me
     const description = release.excerpt || `Check out the latest updates in ${release.title}`;
 
     return {
-      title: `${release.title} - ${release.projects.name}`,
+      title: `${release.title} - ${project.name}`,
       description,
       openGraph: {
-        title: `${release.title} - ${release.projects.name}`,
+        title: `${release.title} - ${project.name}`,
         description,
         type: 'article',
-        publishedTime: release.published_at,
-        authors: [release.projects.name],
+        publishedTime: release.published_at || undefined,
+        authors: [project.name],
         tags: release.version ? [release.version] : undefined,
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${release.title} - ${release.projects.name}`,
+        title: `${release.title} - ${project.name}`,
         description,
       },
     };
@@ -70,19 +75,24 @@ export async function generateMetadata({ params }: ReleasePageProps): Promise<Me
 
 export default async function ReleasePage({ params }: ReleasePageProps) {
   const { slug, releaseSlug } = await params;
-  const supabase = getSupabaseServiceRoleClient();
+  const supabase = getSupabaseServiceRoleClient() ?? getSupabasePublicServerClient();
 
   try {
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('id, name, slug')
+      .eq('slug', slug)
+      .single();
+
+    if (projectError || !project) {
+      notFound();
+    }
+
     // Get release details with all related data
     const { data: release, error: releaseError } = await supabase
       .from('changelog_releases')
       .select(`
         *,
-        projects!inner (
-          id,
-          name,
-          slug
-        ),
         changelog_entries (
           id,
           title,
@@ -112,7 +122,7 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
           )
         )
       `)
-      .eq('projects.slug', slug)
+      .eq('project_id', project.id)
       .eq('slug', releaseSlug)
       .eq('is_published', true)
       .single();
@@ -120,6 +130,14 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
     if (releaseError || !release) {
       notFound();
     }
+
+    const normalizedRelease = {
+      ...release,
+      projects: project,
+      changelog_entries: release.changelog_entries ?? [],
+      changelog_media: release.changelog_media ?? [],
+      changelog_feedback_links: release.changelog_feedback_links ?? [],
+    };
 
     return (
       <div className="min-h-screen bg-gray-50">
@@ -147,7 +165,7 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
               </div>
             </div>
           }>
-            <PublicChangelogRelease release={release} />
+            <PublicChangelogRelease release={normalizedRelease} />
           </Suspense>
         </div>
       </div>
