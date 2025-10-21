@@ -12,14 +12,34 @@ export async function GET(
   { params }: { params: Promise<{ slug: string; releaseSlug: string }> }
 ) {
   const { slug, releaseSlug } = await params;
-  const supabase = getSupabase();
+
+  // Try service role client first (bypasses RLS)
+  const serviceRoleClient = getSupabaseServiceRoleClient();
+  const publicClient = getSupabasePublicServerClient();
+  const supabase = serviceRoleClient || publicClient;
 
   if (!supabase) {
+    console.error('[API /api/public/changelog/[slug]/[releaseSlug]] No Supabase client available', {
+      hasServiceRole: !!serviceRoleClient,
+      hasPublic: !!publicClient,
+      envVars: {
+        hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasServiceRole: !!process.env.SUPABASE_SERVICE_ROLE,
+        hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      }
+    });
     return NextResponse.json(
       { error: 'Supabase client not configured' },
       { status: 500 }
     );
   }
+
+  console.log('[API /api/public/changelog/[slug]/[releaseSlug]] Using client:', {
+    isServiceRole: !!serviceRoleClient,
+    isPublic: !serviceRoleClient && !!publicClient,
+    slug,
+    releaseSlug
+  });
 
   const { data: project, error: projectError } = await supabase
     .from('projects')
