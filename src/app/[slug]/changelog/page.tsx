@@ -95,9 +95,9 @@ export default async function ChangelogPage({ params }: ChangelogPageProps) {
       .eq('is_published', true)
       .order('published_at', { ascending: false });
 
+    // Log error but don't fail - show empty changelog instead
     if (releasesError) {
       console.error('Error fetching releases:', releasesError);
-      notFound();
     }
 
     return (
