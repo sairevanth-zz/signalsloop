@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient, getSupabasePublicServerClient } from '@/lib/supabase-client';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 const getSupabase = () =>
   getSupabaseServiceRoleClient() ?? getSupabasePublicServerClient();
 
