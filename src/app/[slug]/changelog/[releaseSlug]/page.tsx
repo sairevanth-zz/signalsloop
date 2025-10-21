@@ -44,6 +44,23 @@ async function fetchPublicRelease(slug: string, releaseSlug: string) {
   }>;
 }
 
+async function fetchPublicChangelogList(slug: string) {
+  const response = await fetch(`${getBaseUrl()}/api/public/changelog/${slug}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.json() as Promise<{
+    project: { id: string; name: string; slug: string };
+    releases: Array<Record<string, unknown>>;
+  }>;
+}
+
 const getSupabase = () =>
   getSupabaseServiceRoleClient() ?? getSupabasePublicServerClient();
 
@@ -146,6 +163,35 @@ async function loadRelease(slug: string, releaseSlug: string) {
     }
   } catch (error) {
     console.error('[ChangelogRelease] Public API fetch failed', {
+      slug,
+      releaseSlug,
+      error,
+    });
+  }
+
+  try {
+    const listData = await fetchPublicChangelogList(slug);
+    if (listData) {
+      const match = listData.releases.find((release) => (release as { slug?: string }).slug === releaseSlug);
+      if (match) {
+        const release = match as {
+          changelog_entries?: unknown[];
+          changelog_media?: unknown[];
+          changelog_feedback_links?: unknown[];
+        };
+        return {
+          project: listData.project,
+          release: {
+            ...match,
+            changelog_entries: release.changelog_entries || [],
+            changelog_media: release.changelog_media || [],
+            changelog_feedback_links: release.changelog_feedback_links || [],
+          },
+        };
+      }
+    }
+  } catch (error) {
+    console.error('[ChangelogRelease] Public list fetch failed', {
       slug,
       releaseSlug,
       error,
