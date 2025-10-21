@@ -113,8 +113,7 @@ async function fetchReleaseViaSupabase(slug: string, releaseSlug: string) {
         post_id,
         posts (
           id,
-          title,
-          slug
+          title
         )
       )
     `)

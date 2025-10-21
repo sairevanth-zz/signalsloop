@@ -79,8 +79,7 @@ export async function GET(
         post_id,
         posts (
           id,
-          title,
-          slug
+          title
         )
       )
     `)
