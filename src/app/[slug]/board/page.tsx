@@ -236,61 +236,6 @@ export default function BoardPage() {
     }
   };
 
-  const handleAutoCategorize = useCallback(async () => {
-    if (!supabase) {
-      toast.error('Database connection not available. Please refresh the page.');
-      return;
-    }
-
-    try {
-      setAutoCategorizing(true);
-
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionData.session?.access_token) {
-        toast.error('Please sign in to use AI auto-categorization.');
-        return;
-      }
-
-      const response = await fetch(`/api/projects/${params?.slug}/auto-categorize`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionData.session.access_token}`,
-        },
-        body: JSON.stringify({ confidenceThreshold: 0.6 }),
-      });
-
-      const payload = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(payload?.error || 'Failed to auto-categorize feedback');
-      }
-
-      const { updatedCount = 0, processedCount = 0, errors = [], remaining = 0 } = payload;
-
-      if (processedCount === 0) {
-        toast.info('Nothing to categorize—everything already looks good!');
-      } else {
-        const details = remaining > 0
-          ? `AI categorized ${updatedCount} posts (more remain, run again if needed).`
-          : `AI categorized ${updatedCount} of ${processedCount} posts.`;
-        toast.success(details);
-        if (errors.length > 0) {
-          console.error('Auto-categorize errors:', errors);
-          toast.warning(`${errors.length} post(s) could not be categorized. Check the console for details.`);
-        }
-      }
-
-      // Refresh posts to reflect new categories
-      await loadProjectAndPosts();
-    } catch (error) {
-      console.error('Auto-categorize error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to auto-categorize posts');
-    } finally {
-      setAutoCategorizing(false);
-    }
-  }, [supabase, params?.slug, loadProjectAndPosts]);
-
   const loadUserPlan = useCallback(async () => {
     if (!supabase || !user) return;
     
@@ -463,6 +408,60 @@ export default function BoardPage() {
       setLoading(false);
     }
   }, [params?.slug, statusFilter, categoryFilter, sortBy, supabase, router, user]);
+
+  const handleAutoCategorize = useCallback(async () => {
+    if (!supabase) {
+      toast.error('Database connection not available. Please refresh the page.');
+      return;
+    }
+
+    try {
+      setAutoCategorizing(true);
+
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session?.access_token) {
+        toast.error('Please sign in to use AI auto-categorization.');
+        return;
+      }
+
+      const response = await fetch(`/api/projects/${params?.slug}/auto-categorize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+        body: JSON.stringify({ confidenceThreshold: 0.6 }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to auto-categorize feedback');
+      }
+
+      const { updatedCount = 0, processedCount = 0, errors = [], remaining = 0 } = payload;
+
+      if (processedCount === 0) {
+        toast.info('Nothing to categorize—everything already looks good!');
+      } else {
+        const details = remaining > 0
+          ? `AI categorized ${updatedCount} posts (more remain, run again if needed).`
+          : `AI categorized ${updatedCount} of ${processedCount} posts.`;
+        toast.success(details);
+        if (errors.length > 0) {
+          console.error('Auto-categorize errors:', errors);
+          toast.warning(`${errors.length} post(s) could not be categorized. Check the console for details.`);
+        }
+      }
+
+      await loadProjectAndPosts();
+    } catch (error) {
+      console.error('Auto-categorize error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to auto-categorize posts');
+    } finally {
+      setAutoCategorizing(false);
+    }
+  }, [supabase, params?.slug, loadProjectAndPosts]);
 
   // Load project and posts
   useEffect(() => {
