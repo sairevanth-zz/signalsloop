@@ -5,19 +5,16 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { 
   Calendar, 
-  Tag, 
   ArrowRight, 
   Sparkles, 
   Wrench, 
   Bug, 
   Shield,
   Zap,
-  Filter,
   Search
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Release {
@@ -30,6 +27,8 @@ interface Release {
   version?: string;
   tags?: string[];
   is_featured: boolean;
+  is_published?: boolean;
+  order_index?: number | null;
   changelog_entries: ChangelogEntry[];
   changelog_media: ChangelogMedia[];
 }
@@ -93,7 +92,9 @@ export default function PublicChangelog({ project, releases }: PublicChangelogPr
   const [filterType, setFilterType] = useState<string>('all');
   const [filterReleaseType, setFilterReleaseType] = useState<string>('all');
 
-  const filteredReleases = releases.filter(release => {
+  const publishedReleases = releases.filter((release) => release.is_published !== false);
+
+  const filteredReleases = publishedReleases.filter(release => {
     const matchesSearch = searchTerm === '' || 
       release.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       release.excerpt?.toLowerCase().includes(searchTerm.toLowerCase()) ||

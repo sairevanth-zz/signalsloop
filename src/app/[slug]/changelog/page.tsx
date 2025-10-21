@@ -116,6 +116,12 @@ export default async function ChangelogPage({ params }: ChangelogPageProps) {
       console.error('Error fetching releases:', releasesError);
     }
 
+    const normalizedReleases = (releases || []).map((release) => ({
+      ...release,
+      changelog_entries: release.changelog_entries || [],
+      changelog_media: release.changelog_media || [],
+    }));
+
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 py-8">
@@ -141,7 +147,7 @@ export default async function ChangelogPage({ params }: ChangelogPageProps) {
           }>
             <PublicChangelog 
               project={project} 
-              releases={releases || []} 
+              releases={normalizedReleases} 
             />
           </Suspense>
         </div>
