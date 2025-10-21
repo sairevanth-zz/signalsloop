@@ -369,12 +369,12 @@ export default function SettingsPage() {
                 Manage settings for <span className="font-semibold">{project.name}</span>
               </p>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => router.push('/app')}
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/${projectSlug}/board`)}
               className="flex items-center gap-2"
             >
-              Back to Dashboard
+              Back to Board
             </Button>
           </div>
         </div>
