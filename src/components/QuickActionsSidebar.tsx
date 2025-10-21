@@ -91,21 +91,33 @@ const notifications = [
 
 const changelogItems = [
   {
-    version: 'v2.1.0',
-    date: '2024-01-15',
+    version: 'v2.3.0',
+    date: '2025-01-15',
     features: [
-      'Enhanced AI categorization accuracy',
-      'New widget analytics dashboard',
-      'Improved mobile responsiveness'
+      'Added AI-powered priority scoring for feedback',
+      'Improved board actions with unified dropdown menu',
+      'Enhanced auto-categorization accuracy',
+      'New board settings navigation'
     ]
   },
   {
-    version: 'v2.0.5',
-    date: '2024-01-10',
+    version: 'v2.2.0',
+    date: '2025-01-10',
     features: [
-      'Bug fixes in voting system',
-      'Performance improvements',
-      'Updated UI components'
+      'Custom Domains support for Pro users',
+      'Slack and Discord integration improvements',
+      'CSV import/export functionality',
+      'Webhook support for real-time notifications'
+    ]
+  },
+  {
+    version: 'v2.1.0',
+    date: '2025-01-05',
+    features: [
+      'Enhanced AI categorization accuracy',
+      'New widget analytics dashboard',
+      'Improved mobile responsiveness',
+      'Updated notification system'
     ]
   }
 ];
@@ -249,7 +261,7 @@ export default function QuickActionsSidebar({
             variant="ghost"
             size="sm"
             className="w-full justify-start"
-            onClick={() => window.open('https://docs.signalsloop.com/api', '_blank')}
+            onClick={() => window.open('/docs/api', '_blank')}
           >
             <BarChart3 className="w-4 h-4 mr-2" />
             API Documentation
@@ -294,22 +306,26 @@ export default function QuickActionsSidebar({
 
       {/* Changelog Dialog */}
       <Dialog open={showChangelog} onOpenChange={setShowChangelog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>SignalsLoop Changelog</DialogTitle>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              SignalsLoop Platform Changelog
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-6 mt-4">
+          <div className="space-y-6 mt-4 pr-2">
             {changelogItems.map((item) => (
               <div key={item.version} className="border-b border-gray-200 pb-4 last:border-b-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="secondary">{item.version}</Badge>
-                  <span className="text-sm text-gray-500">{item.date}</span>
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge variant="secondary" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                    {item.version}
+                  </Badge>
+                  <span className="text-sm text-gray-500 font-medium">{item.date}</span>
                 </div>
-                <ul className="space-y-1">
+                <ul className="space-y-2">
                   {item.features.map((feature, index) => (
                     <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
-                      <span className="text-green-500 mt-1">•</span>
-                      {feature}
+                      <Sparkles className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
