@@ -68,7 +68,7 @@ export default async function ChangelogPage({ params }: ChangelogPageProps) {
     // Get project details
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .select('id, name, description, slug')
+      .select('id, name, slug')
       .eq('slug', slug)
       .single();
 
