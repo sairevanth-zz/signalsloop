@@ -70,7 +70,21 @@ export async function GET(
     .single();
 
   if (releaseError || !release) {
-    return NextResponse.json({ error: 'Release not found' }, { status: 404 });
+    console.error('[API /api/public/changelog/[slug]/[releaseSlug]] Release not found', {
+      slug,
+      releaseSlug,
+      projectId: project.id,
+      error: releaseError?.message || releaseError,
+    });
+    return NextResponse.json({
+      error: 'Release not found',
+      details: {
+        slug,
+        releaseSlug,
+        projectId: project.id,
+        errorMessage: releaseError?.message
+      }
+    }, { status: 404 });
   }
 
   return NextResponse.json({

@@ -6,6 +6,8 @@ import { ArrowLeft } from 'lucide-react';
 import { getSupabaseServiceRoleClient, getSupabasePublicServerClient } from '@/lib/supabase-client';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
 
 interface ReleasePageProps {
   params: Promise<{ slug: string; releaseSlug: string }>;
