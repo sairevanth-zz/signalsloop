@@ -12,6 +12,30 @@ interface ReleasePageProps {
   params: Promise<{ slug: string; releaseSlug: string }>;
 }
 
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return 'http://localhost:3000';
+};
+
+async function fetchReleaseViaApi(projectId: string, releaseSlug: string) {
+  const response = await fetch(`${getBaseUrl()}/api/projects-by-id/${projectId}/changelog`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    console.error('Fallback release API fetch failed', await response.text());
+    return null;
+  }
+
+  const releases = await response.json();
+  return releases.find((release: { slug: string; is_published?: boolean }) => 
+    release.slug === releaseSlug && release.is_published !== false
+  ) || null;
+}
+
 export async function generateMetadata({ params }: ReleasePageProps): Promise<Metadata> {
   const { slug, releaseSlug } = await params;
   const supabase = getSupabaseServiceRoleClient() ?? getSupabasePublicServerClient();
@@ -39,9 +63,30 @@ export async function generateMetadata({ params }: ReleasePageProps): Promise<Me
       .single();
 
     if (!release) {
+      const fallbackRelease = await fetchReleaseViaApi(project.id, releaseSlug);
+      if (!fallbackRelease) {
+        return {
+          title: `${project.name} - Release Not Found`,
+          description: 'The requested release could not be found.',
+        };
+      }
+      const descriptionFallback = fallbackRelease.excerpt || `Check out the latest updates in ${fallbackRelease.title}`;
       return {
-        title: `${project.name} - Release Not Found`,
-        description: 'The requested release could not be found.',
+        title: `${fallbackRelease.title} - ${project.name}`,
+        description: descriptionFallback,
+        openGraph: {
+          title: `${fallbackRelease.title} - ${project.name}`,
+          description: descriptionFallback,
+          type: 'article',
+          publishedTime: fallbackRelease.published_at || undefined,
+          authors: [project.name],
+          tags: fallbackRelease.version ? [fallbackRelease.version] : undefined,
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: `${fallbackRelease.title} - ${project.name}`,
+          description: descriptionFallback,
+        },
       };
     }
 
@@ -127,16 +172,21 @@ export default async function ReleasePage({ params }: ReleasePageProps) {
       .eq('is_published', true)
       .single();
 
+    let effectiveRelease = release;
     if (releaseError || !release) {
-      notFound();
+      console.error('Release query failed, attempting fallback', releaseError);
+      effectiveRelease = await fetchReleaseViaApi(project.id, releaseSlug);
+      if (!effectiveRelease) {
+        notFound();
+      }
     }
 
     const normalizedRelease = {
-      ...release,
+      ...effectiveRelease,
       projects: project,
-      changelog_entries: release.changelog_entries ?? [],
-      changelog_media: release.changelog_media ?? [],
-      changelog_feedback_links: release.changelog_feedback_links ?? [],
+      changelog_entries: effectiveRelease.changelog_entries ?? [],
+      changelog_media: effectiveRelease.changelog_media ?? [],
+      changelog_feedback_links: effectiveRelease.changelog_feedback_links ?? [],
     };
 
     return (

@@ -13,6 +13,27 @@ interface ChangelogPageProps {
   params: Promise<{ slug: string }>;
 }
 
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return 'http://localhost:3000';
+};
+
+async function fetchReleasesViaApi(projectId: string) {
+  const response = await fetch(`${getBaseUrl()}/api/projects-by-id/${projectId}/changelog`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    console.error('Fallback release fetch failed', await response.text());
+    return [];
+  }
+
+  return response.json();
+}
+
 export async function generateMetadata({ params }: ChangelogPageProps): Promise<Metadata> {
   const { slug } = await params;
   const supabase = getSupabaseServiceRoleClient() ?? getSupabasePublicServerClient();
@@ -111,12 +132,13 @@ export default async function ChangelogPage({ params }: ChangelogPageProps) {
       .eq('is_published', true)
       .order('published_at', { ascending: false });
 
-    // Log error but don't fail - show empty changelog instead
-    if (releasesError) {
-      console.error('Error fetching releases:', releasesError);
+    let effectiveReleases = releases || [];
+    if (releasesError || !releases) {
+      console.error('Error fetching releases via Supabase, using fallback:', releasesError);
+      effectiveReleases = await fetchReleasesViaApi(project.id);
     }
 
-    const normalizedReleases = (releases || []).map((release) => ({
+    const normalizedReleases = (effectiveReleases || []).map((release) => ({
       ...release,
       changelog_entries: release.changelog_entries || [],
       changelog_media: release.changelog_media || [],
