@@ -162,6 +162,7 @@ export default function BoardPage() {
   const [showFeedbackOnBehalfModal, setShowFeedbackOnBehalfModal] = useState(false);
   const [autoCategorizing, setAutoCategorizing] = useState(false);
   const [autoPrioritizing, setAutoPrioritizing] = useState(false);
+  const [expandedPriorityCards, setExpandedPriorityCards] = useState<Record<string, boolean>>({});
   const exportTriggerRef = useRef<(() => void) | null>(null);
 
   // Initialize filters from URL parameters
@@ -293,6 +294,13 @@ export default function BoardPage() {
     } else {
       toast.error('Export is currently unavailable. Please try again.');
     }
+  }, []);
+
+  const togglePriorityDetails = useCallback((postId: string) => {
+    setExpandedPriorityCards((prev) => ({
+      ...prev,
+      [postId]: !prev[postId],
+    }));
   }, []);
 
   const loadProjectAndPosts = useCallback(async () => {
@@ -1023,6 +1031,12 @@ export default function BoardPage() {
               const priorityIndexDisplay = typeof post.total_priority_score === 'number'
                 ? post.total_priority_score
                 : null;
+              const hasAISuggestion = Boolean(post.ai_analyzed_at);
+              const isPriorityExpanded = expandedPriorityCards[post.id] ?? false;
+              const summaryMessage = priorityLevelLabel
+                ? `Suggested: ${priorityLevelLabel}`
+                : 'AI-generated planning guidance';
+              const summaryScoreDisplay = hasAISuggestion && priorityScoreDisplay ? `${priorityScoreDisplay}/10` : null;
 
               return (
               <Card 
@@ -1110,36 +1124,79 @@ export default function BoardPage() {
                         </div>
                       )}
 
-                      {priorityLevelLabel && (
-                        <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
-                          <div className="flex items-center justify-between gap-3">
+                      {hasAISuggestion && (
+                        <div className="mb-3">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              togglePriorityDetails(post.id);
+                            }}
+                            className="flex w-full items-center gap-3 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2 text-left transition hover:border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                          >
                             <Badge
                               variant="outline"
-                              className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide ${priorityBadgeClass}`}
+                              className="border-blue-200 bg-white/70 text-[10px] font-semibold uppercase tracking-wide text-blue-700"
                             >
-                              <Target className="h-3 w-3" />
-                              {priorityLevelLabel}
+                              AI Suggestion
                             </Badge>
-                            {priorityScoreDisplay && (
-                              <span className="text-xs font-semibold text-gray-700">
-                                {priorityScoreDisplay}
-                                <span className="ml-1 text-[11px] font-normal text-gray-500">/10</span>
+                            <span className="text-xs sm:text-sm text-gray-700">
+                              {summaryMessage} <span className="font-medium text-gray-800">(guidance)</span>
+                            </span>
+                            {summaryScoreDisplay && (
+                              <span className="ml-auto text-xs font-semibold text-gray-700">
+                                {summaryScoreDisplay}
                               </span>
                             )}
-                          </div>
-                          {priorityReasonDescription && (
-                            <p className="mt-2 text-xs text-gray-600 line-clamp-3">
-                              {priorityReasonDescription}
-                            </p>
-                          )}
-                          {(priorityIndexDisplay || priorityAnalyzedOn) && (
-                            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
-                              {priorityIndexDisplay !== null && (
-                                <span className="font-medium">Priority index {priorityIndexDisplay}</span>
+                            <ChevronDown
+                              className={`h-4 w-4 text-gray-500 transition-transform ${isPriorityExpanded ? 'rotate-180' : ''}`}
+                            />
+                          </button>
+
+                          {isPriorityExpanded && (
+                            <div className="mt-2 rounded-lg border border-blue-200 bg-white p-3 text-xs text-gray-600 shadow-sm">
+                              <div className="flex items-center justify-between gap-3">
+                                <Badge
+                                  variant="outline"
+                                  className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide ${priorityBadgeClass || 'bg-gray-100 text-gray-700 border-gray-200'}`}
+                                >
+                                  <Target className="h-3 w-3" />
+                                  {priorityLevelLabel || 'AI Planning Guidance'}
+                                </Badge>
+                                {priorityScoreDisplay && (
+                                  <span className="text-xs font-semibold text-gray-700">
+                                    {priorityScoreDisplay}
+                                    <span className="ml-1 text-[11px] font-normal text-gray-500">/10</span>
+                                  </span>
+                                )}
+                              </div>
+
+                              {priorityLevelLabel && (
+                                <p className="mt-2 text-xs text-gray-600">
+                                  Suggested scheduling: <span className="font-semibold text-gray-800">{priorityLevelLabel}</span>. Treat this as AI guidance and confirm with your roadmap before committing.
+                                </p>
                               )}
-                              {priorityAnalyzedOn && (
-                                <span>Updated {priorityAnalyzedOn}</span>
+
+                              {priorityReasonDescription && (
+                                <p className="mt-2 text-xs text-gray-700">
+                                  {priorityReasonDescription}
+                                </p>
                               )}
+
+                              {(priorityIndexDisplay !== null || priorityAnalyzedOn) && (
+                                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
+                                  {priorityIndexDisplay !== null && (
+                                    <span>Priority index {priorityIndexDisplay}</span>
+                                  )}
+                                  {priorityAnalyzedOn && (
+                                    <span>Updated {priorityAnalyzedOn}</span>
+                                  )}
+                                </div>
+                              )}
+
+                              <p className="mt-3 text-[11px] text-gray-500">
+                                This recommendation was generated by AI to spark planning discussions. Final prioritization decisions remain with your team.
+                              </p>
                             </div>
                           )}
                         </div>
