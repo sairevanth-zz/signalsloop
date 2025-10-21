@@ -583,18 +583,6 @@ export default function BoardPage() {
     loadUserPlan();
   }, [loadUserPlan]);
 
-  // Debug logging for Submit on Behalf button visibility
-  useEffect(() => {
-    console.log('🔍 Submit on Behalf Button Debug:', {
-      user: user ? 'Logged in' : 'Not logged in',
-      userId: user?.id,
-      project: project ? 'Loaded' : 'Not loaded',
-      projectOwnerId: project?.owner_id,
-      isProjectOwner,
-      shouldShowButton: isProjectOwner && !!project,
-    });
-  }, [user, project, isProjectOwner]);
-
   // Filter posts by search term
   const filteredPosts = posts.filter(post =>
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -670,20 +658,152 @@ export default function BoardPage() {
             </div>
             
             <div className="flex flex-wrap gap-2">
-              {/* Share Button */}
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 min-touch-target tap-highlight-transparent"
-                onClick={() => {
-                  console.log('Share button clicked directly!');
-                  setShowShareModal(true);
-                }}
-              >
-                <Share2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Share</span>
-              </Button>
-              
-              {/* Portal Modal - Render outside DOM tree */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-1 min-touch-target tap-highlight-transparent"
+                  >
+                    <span className="text-sm font-semibold">
+                      {isProjectOwner ? 'Admin Actions' : 'Board Actions'}
+                    </span>
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72">
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setShowShareModal(true);
+                    }}
+                    className="flex items-start gap-3 py-3"
+                  >
+                    <Share2 className="h-4 w-4 text-green-600" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900">Share board</span>
+                      <span className="text-xs text-gray-500">
+                        Get a link to invite contributors
+                      </span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setShowPostForm(true);
+                    }}
+                    className="flex items-start gap-3 py-3"
+                  >
+                    <Plus className="h-4 w-4 text-blue-600" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900">Submit feedback</span>
+                      <span className="text-xs text-gray-500">
+                        Share a new idea or report an issue
+                      </span>
+                    </div>
+                  </DropdownMenuItem>
+                  {user && posts.length > 0 && (
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        setShowAIInsights(true);
+                      }}
+                      className="flex items-start gap-3 py-3"
+                    >
+                      <Sparkles className="h-4 w-4 text-purple-600" />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900">AI insights</span>
+                        <span className="text-xs text-gray-500">
+                          Explore AI analysis across your board
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  )}
+                  {isProjectOwner && <DropdownMenuSeparator />}
+                  {isProjectOwner && project && (
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        setShowFeedbackOnBehalfModal(true);
+                      }}
+                      className="flex items-start gap-3 py-3"
+                    >
+                      <FileText className="h-4 w-4 text-green-700" />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900">Submit on behalf</span>
+                        <span className="text-xs text-gray-500">
+                          Record feedback you&apos;ve collected elsewhere
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  )}
+                  {isProjectOwner && (
+                    <DropdownMenuItem
+                      disabled={autoPrioritizing}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        if (!autoPrioritizing) {
+                          handleAutoPrioritize();
+                        }
+                      }}
+                      className="flex items-start gap-3 py-3"
+                    >
+                      {autoPrioritizing ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                      ) : (
+                        <Target className="h-4 w-4 text-blue-600" />
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900">Auto-prioritize</span>
+                        <span className="text-xs text-gray-500">
+                          Generate AI priority scores for the newest posts
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  )}
+                  {isProjectOwner && (
+                    <DropdownMenuItem
+                      disabled={autoCategorizing}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        if (!autoCategorizing) {
+                          handleAutoCategorize();
+                        }
+                      }}
+                      className="flex items-start gap-3 py-3"
+                    >
+                      {autoCategorizing ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                      ) : (
+                        <Wand2 className="h-4 w-4 text-indigo-600" />
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900">Smart Categorize</span>
+                        <span className="text-xs text-gray-500">
+                          Let AI organize feedback by category
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  )}
+                  {isProjectOwner && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onSelect={(event) => {
+                          event.preventDefault();
+                          handleAdminExport();
+                        }}
+                        className="flex items-start gap-3 py-3"
+                      >
+                        <Download className="h-4 w-4 text-blue-600" />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">Export data</span>
+                          <span className="text-xs text-gray-500">
+                            Download feedback to Excel or CSV
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Share modal portal */}
               {showShareModal && typeof window !== 'undefined' && (
                 <div 
                   style={{
@@ -741,83 +861,6 @@ export default function BoardPage() {
                 </div>
               )}
               
-              {/* Admin Actions */}
-              {isProjectOwner && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-1 min-touch-target tap-highlight-transparent"
-                    >
-                      <span className="text-sm font-semibold">Admin Actions</span>
-                      <ChevronDown className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-72">
-                    <DropdownMenuItem
-                      disabled={autoPrioritizing}
-                      onSelect={(event) => {
-                        event.preventDefault();
-                        if (!autoPrioritizing) {
-                          handleAutoPrioritize();
-                        }
-                      }}
-                      className="flex items-start gap-3 py-3"
-                    >
-                      {autoPrioritizing ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                      ) : (
-                        <Target className="h-4 w-4 text-blue-600" />
-                      )}
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900">Auto-prioritize</span>
-                        <span className="text-xs text-gray-500">
-                          Generate AI priority scores for the newest posts
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      disabled={autoCategorizing}
-                      onSelect={(event) => {
-                        event.preventDefault();
-                        if (!autoCategorizing) {
-                          handleAutoCategorize();
-                        }
-                      }}
-                      className="flex items-start gap-3 py-3"
-                    >
-                      {autoCategorizing ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
-                      ) : (
-                        <Wand2 className="h-4 w-4 text-indigo-600" />
-                      )}
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900">Smart Categorize</span>
-                        <span className="text-xs text-gray-500">
-                          Let AI organize feedback by category
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onSelect={(event) => {
-                        event.preventDefault();
-                        handleAdminExport();
-                      }}
-                      className="flex items-start gap-3 py-3"
-                    >
-                      <Download className="h-4 w-4 text-blue-600" />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900">Export data</span>
-                        <span className="text-xs text-gray-500">
-                          Download feedback to Excel or CSV
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-
               {/* Feedback export modal trigger (hidden for admins) */}
               <FeedbackExport
                 projectSlug={params?.slug as string}
@@ -844,39 +887,6 @@ export default function BoardPage() {
                 </Link>
               )}
               
-              {/* AI Insights - Desktop only */}
-              {user && posts.length > 0 && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowAIInsights(true)}
-                  className="hidden sm:flex items-center gap-1 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 min-touch-target"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span className="hidden md:inline">AI Insights</span>
-                </Button>
-              )}
-
-              {/* Submit Feedback on Behalf Button - For project owners only */}
-              {isProjectOwner && project && (
-                <Button
-                  onClick={() => setShowFeedbackOnBehalfModal(true)}
-                  variant="outline"
-                  className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 active:scale-95 transition-transform min-touch-target tap-highlight-transparent whitespace-nowrap px-3 sm:px-4"
-                >
-                  <FileText className="w-4 h-4 mr-1 sm:mr-2" />
-                  <span className="text-sm font-semibold hidden lg:inline">Submit on Behalf</span>
-                  <span className="text-sm font-semibold lg:hidden">On Behalf</span>
-                </Button>
-              )}
-
-              {/* Submit Feedback Button - Primary CTA */}
-              <Button
-                onClick={() => setShowPostForm(true)}
-                className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform min-touch-target tap-highlight-transparent whitespace-nowrap px-3 sm:px-4"
-              >
-                <Plus className="w-4 h-4 mr-1 sm:mr-2" />
-                <span className="text-sm font-semibold">Submit Feedback</span>
-              </Button>
             </div>
           </div>
         </div>
