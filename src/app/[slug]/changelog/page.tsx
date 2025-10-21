@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient, getSupabasePublicServerClient } from '@/lib/supabase-client';
 import PublicChangelog from '@/components/PublicChangelog';
 
 // Enable dynamic params for this route
@@ -14,7 +14,7 @@ interface ChangelogPageProps {
 
 export async function generateMetadata({ params }: ChangelogPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = getSupabaseServiceRoleClient();
+  const supabase = getSupabaseServiceRoleClient() ?? getSupabasePublicServerClient();
   
   try {
     const { data: project } = await supabase
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: ChangelogPageProps): Promise<
 
 export default async function ChangelogPage({ params }: ChangelogPageProps) {
   const { slug } = await params;
-  const supabase = getSupabaseServiceRoleClient();
+  const supabase = getSupabaseServiceRoleClient() ?? getSupabasePublicServerClient();
 
   // Check if Supabase client was initialized
   if (!supabase) {

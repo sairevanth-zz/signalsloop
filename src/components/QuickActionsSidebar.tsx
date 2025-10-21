@@ -306,7 +306,7 @@ export default function QuickActionsSidebar({
 
       {/* Changelog Dialog */}
       <Dialog open={showChangelog} onOpenChange={setShowChangelog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto top-1/2 -translate-y-1/2">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               SignalsLoop Platform Changelog
