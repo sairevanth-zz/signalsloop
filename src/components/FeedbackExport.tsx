@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 interface FeedbackExportProps {
   projectSlug: string;
   projectName: string;
+  hideTriggerButton?: boolean;
+  registerTrigger?: (trigger: (() => void) | null) => void;
 }
 
 interface ExportFilters {
@@ -16,7 +18,12 @@ interface ExportFilters {
   dateTo: string;
 }
 
-export default function FeedbackExport({ projectSlug, projectName }: FeedbackExportProps) {
+export default function FeedbackExport({
+  projectSlug,
+  projectName,
+  hideTriggerButton = false,
+  registerTrigger,
+}: FeedbackExportProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState<'excel' | 'csv'>('excel');
   const [isExporting, setIsExporting] = useState(false);
@@ -43,6 +50,14 @@ export default function FeedbackExport({ projectSlug, projectName }: FeedbackExp
     { value: 'feature', label: 'Feature Request' },
     { value: 'improvement', label: 'Improvement' }
   ];
+
+  // Provide external trigger to open modal
+  useEffect(() => {
+    if (!registerTrigger) return;
+    const handler = () => setIsOpen(true);
+    registerTrigger(handler);
+    return () => registerTrigger(null);
+  }, [registerTrigger]);
 
   // Fetch post count when modal opens
   useEffect(() => {
@@ -148,17 +163,19 @@ export default function FeedbackExport({ projectSlug, projectName }: FeedbackExp
 
   return (
     <>
-      <Button 
-        variant="outline" 
-        className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-        onClick={() => {
-          console.log('Export button clicked directly!');
-          setIsOpen(true);
-        }}
-      >
-        <Download className="w-4 h-4" />
-        Export Data
-      </Button>
+      {!hideTriggerButton && (
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+          onClick={() => {
+            console.log('Export button clicked directly!');
+            setIsOpen(true);
+          }}
+        >
+          <Download className="w-4 h-4" />
+          Export Data
+        </Button>
+      )}
 
       {/* Custom Export Modal - Same approach as Share modal */}
       {isOpen && typeof window !== 'undefined' && (

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { getSupabaseClient } from '@/lib/supabase-client';
@@ -29,12 +29,15 @@ import {
   TrendingUp,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   X,
   FileText,
   Trash2,
   AlertTriangle,
   Wand2,
-  Loader2
+  Loader2,
+  Target,
+  Download,
 } from 'lucide-react';
 import {
   Select,
@@ -52,6 +55,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import PostSubmissionForm from '@/components/PostSubmissionForm';
 import VoteButton from '@/components/VoteButton';
@@ -75,6 +85,10 @@ interface Post {
   duplicate_of?: string | null;
   mergedDuplicates?: Array<{ id: string; title: string }>;
   mergedDuplicateCount?: number;
+  priority_score?: number;
+  priority_reason?: string | null;
+  ai_analyzed_at?: string | null;
+  total_priority_score?: number;
 }
 
 interface Project {
@@ -100,6 +114,23 @@ const categoryConfig = {
   'Performance': { icon: '🚀', color: 'bg-green-100 text-green-800 border-green-200' },
   'Documentation': { icon: '📚', color: 'bg-orange-100 text-orange-800 border-orange-200' },
   'Other': { icon: '📝', color: 'bg-gray-100 text-gray-800 border-gray-200' }
+};
+
+const PRIORITY_LEVEL_STYLES: Record<string, string> = {
+  Immediate: 'bg-red-100 text-red-800 border-red-200',
+  'Current Quarter': 'bg-orange-100 text-orange-800 border-orange-200',
+  'Next Quarter': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  Backlog: 'bg-blue-100 text-blue-800 border-blue-200',
+  Low: 'bg-gray-100 text-gray-700 border-gray-200',
+};
+
+const getPriorityLevelLabel = (score?: number | null): string | null => {
+  if (typeof score !== 'number') return null;
+  if (score >= 8.5) return 'Immediate';
+  if (score >= 7) return 'Current Quarter';
+  if (score >= 5) return 'Next Quarter';
+  if (score >= 3) return 'Backlog';
+  return 'Low';
 };
 
 export default function BoardPage() {
@@ -130,6 +161,8 @@ export default function BoardPage() {
   const [isProjectOwner, setIsProjectOwner] = useState(false);
   const [showFeedbackOnBehalfModal, setShowFeedbackOnBehalfModal] = useState(false);
   const [autoCategorizing, setAutoCategorizing] = useState(false);
+  const [autoPrioritizing, setAutoPrioritizing] = useState(false);
+  const exportTriggerRef = useRef<(() => void) | null>(null);
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -254,6 +287,14 @@ export default function BoardPage() {
     }
   }, [supabase, user]);
 
+  const handleAdminExport = useCallback(() => {
+    if (exportTriggerRef.current) {
+      exportTriggerRef.current();
+    } else {
+      toast.error('Export is currently unavailable. Please try again.');
+    }
+  }, []);
+
   const loadProjectAndPosts = useCallback(async () => {
     if (!supabase) {
       setError('Database connection not available. Please refresh the page.');
@@ -377,7 +418,11 @@ export default function BoardPage() {
         ai_reasoning: post.ai_reasoning as string,
         duplicate_of: post.duplicate_of as string | null,
         mergedDuplicates: duplicatesByTarget[post.id as string] || [],
-        mergedDuplicateCount: (duplicatesByTarget[post.id as string] || []).length
+        mergedDuplicateCount: (duplicatesByTarget[post.id as string] || []).length,
+        priority_score: typeof post.priority_score === 'number' ? Number(post.priority_score) : undefined,
+        priority_reason: (post.priority_reason as string) || null,
+        ai_analyzed_at: (post.ai_analyzed_at as string) || null,
+        total_priority_score: typeof post.total_priority_score === 'number' ? Number(post.total_priority_score) : undefined,
       })) || [];
 
       setPosts(processedPosts);
@@ -408,6 +453,10 @@ export default function BoardPage() {
       setLoading(false);
     }
   }, [params?.slug, statusFilter, categoryFilter, sortBy, supabase, router, user]);
+
+  const registerExportTrigger = useCallback((handler: (() => void) | null) => {
+    exportTriggerRef.current = handler;
+  }, []);
 
   const handleAutoCategorize = useCallback(async () => {
     if (!supabase) {
@@ -460,6 +509,67 @@ export default function BoardPage() {
       toast.error(error instanceof Error ? error.message : 'Failed to auto-categorize posts');
     } finally {
       setAutoCategorizing(false);
+    }
+  }, [supabase, params?.slug, loadProjectAndPosts]);
+
+  const handleAutoPrioritize = useCallback(async () => {
+    if (!supabase) {
+      toast.error('Database connection not available. Please refresh the page.');
+      return;
+    }
+
+    try {
+      setAutoPrioritizing(true);
+
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session?.access_token) {
+        toast.error('Please sign in to use AI auto-prioritization.');
+        return;
+      }
+
+      const response = await fetch(`/api/projects/${params?.slug}/auto-prioritize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+        body: JSON.stringify({ limit: 40 }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to auto-prioritize feedback');
+      }
+
+      const {
+        updatedCount = 0,
+        processedCount = 0,
+        remaining = 0,
+        errors = [],
+      } = payload;
+
+      if (processedCount === 0) {
+        toast.info('No new posts needed prioritization.');
+      } else {
+        const summary = remaining > 0
+          ? `Prioritized ${updatedCount} posts (more remain, run again if needed).`
+          : `Prioritized ${updatedCount} of ${processedCount} posts.`;
+
+        toast.success(summary);
+
+        if (errors.length > 0) {
+          console.error('Auto-prioritize errors:', errors);
+          toast.warning(`${errors.length} post(s) could not be prioritized. Check the console for details.`);
+        }
+      }
+
+      await loadProjectAndPosts();
+    } catch (error) {
+      console.error('Auto-prioritize error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to auto-prioritize posts');
+    } finally {
+      setAutoPrioritizing(false);
     }
   }, [supabase, params?.slug, loadProjectAndPosts]);
 
@@ -631,13 +741,89 @@ export default function BoardPage() {
                 </div>
               )}
               
-              {/* Export Button */}
+              {/* Admin Actions */}
+              {isProjectOwner && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-1 min-touch-target tap-highlight-transparent"
+                    >
+                      <span className="text-sm font-semibold">Admin Actions</span>
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72">
+                    <DropdownMenuItem
+                      disabled={autoPrioritizing}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        if (!autoPrioritizing) {
+                          handleAutoPrioritize();
+                        }
+                      }}
+                      className="flex items-start gap-3 py-3"
+                    >
+                      {autoPrioritizing ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                      ) : (
+                        <Target className="h-4 w-4 text-blue-600" />
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900">Auto-prioritize</span>
+                        <span className="text-xs text-gray-500">
+                          Generate AI priority scores for the newest posts
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={autoCategorizing}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        if (!autoCategorizing) {
+                          handleAutoCategorize();
+                        }
+                      }}
+                      className="flex items-start gap-3 py-3"
+                    >
+                      {autoCategorizing ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                      ) : (
+                        <Wand2 className="h-4 w-4 text-indigo-600" />
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900">Smart Categorize</span>
+                        <span className="text-xs text-gray-500">
+                          Let AI organize feedback by category
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        handleAdminExport();
+                      }}
+                      className="flex items-start gap-3 py-3"
+                    >
+                      <Download className="h-4 w-4 text-blue-600" />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900">Export data</span>
+                        <span className="text-xs text-gray-500">
+                          Download feedback to Excel or CSV
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
+              {/* Feedback export modal trigger (hidden for admins) */}
               <FeedbackExport
                 projectSlug={params?.slug as string}
                 projectName={project?.name || ''}
-                totalPosts={posts.length}
-                totalComments={posts.reduce((sum, post) => sum + (post.comment_count || 0), 0)}
-                totalVotes={posts.reduce((sum, post) => sum + (post.vote_count || 0), 0)}
+                hideTriggerButton={isProjectOwner}
+                registerTrigger={registerExportTrigger}
               />
               
               {/* Roadmap Button - Visible on all devices */}
@@ -670,24 +856,6 @@ export default function BoardPage() {
                 </Button>
               )}
 
-              {/* Smart Categorize - Project owners only */}
-              {isProjectOwner && (
-                <Button
-                  onClick={handleAutoCategorize}
-                  variant="outline"
-                  disabled={autoCategorizing}
-                  className="bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 active:scale-95 transition-transform min-touch-target tap-highlight-transparent whitespace-nowrap px-3 sm:px-4"
-                >
-                  {autoCategorizing ? (
-                    <Loader2 className="w-4 h-4 mr-1 sm:mr-2 animate-spin" />
-                  ) : (
-                    <Wand2 className="w-4 h-4 mr-1 sm:mr-2" />
-                  )}
-                  <span className="text-sm font-semibold hidden lg:inline">Smart Categorize All</span>
-                  <span className="text-sm font-semibold lg:hidden">Smart Categorize</span>
-                </Button>
-              )}
-              
               {/* Submit Feedback on Behalf Button - For project owners only */}
               {isProjectOwner && project && (
                 <Button
@@ -824,7 +992,29 @@ export default function BoardPage() {
               </div>
             </div>
           ) : (
-            filteredPosts.map((post) => (
+            filteredPosts.map((post) => {
+              const priorityLevelLabel = getPriorityLevelLabel(post.priority_score);
+              const priorityBadgeClass = priorityLevelLabel
+                ? PRIORITY_LEVEL_STYLES[priorityLevelLabel] || PRIORITY_LEVEL_STYLES.Low
+                : '';
+              const priorityReasonDescription = post.priority_reason
+                ? post.priority_reason.replace(/^[^:]+:\s*/, '')
+                : null;
+              const priorityScoreDisplay = typeof post.priority_score === 'number'
+                ? post.priority_score.toFixed(1)
+                : null;
+              const priorityAnalyzedOn = post.ai_analyzed_at
+                ? new Date(post.ai_analyzed_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })
+                : null;
+              const priorityIndexDisplay = typeof post.total_priority_score === 'number'
+                ? post.total_priority_score
+                : null;
+
+              return (
               <Card 
                 key={post.id} 
                 className="hover:shadow-md transition-shadow cursor-pointer"
@@ -910,6 +1100,41 @@ export default function BoardPage() {
                         </div>
                       )}
 
+                      {priorityLevelLabel && (
+                        <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <Badge
+                              variant="outline"
+                              className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide ${priorityBadgeClass}`}
+                            >
+                              <Target className="h-3 w-3" />
+                              {priorityLevelLabel}
+                            </Badge>
+                            {priorityScoreDisplay && (
+                              <span className="text-xs font-semibold text-gray-700">
+                                {priorityScoreDisplay}
+                                <span className="ml-1 text-[11px] font-normal text-gray-500">/10</span>
+                              </span>
+                            )}
+                          </div>
+                          {priorityReasonDescription && (
+                            <p className="mt-2 text-xs text-gray-600 line-clamp-3">
+                              {priorityReasonDescription}
+                            </p>
+                          )}
+                          {(priorityIndexDisplay || priorityAnalyzedOn) && (
+                            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
+                              {priorityIndexDisplay !== null && (
+                                <span className="font-medium">Priority index {priorityIndexDisplay}</span>
+                              )}
+                              {priorityAnalyzedOn && (
+                                <span>Updated {priorityAnalyzedOn}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {post.description && (
                         <p className="text-gray-600 line-clamp-3 mb-3">
                           {post.description}
@@ -972,7 +1197,8 @@ export default function BoardPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))
+              );
+            })
           )}
         </div>
 
