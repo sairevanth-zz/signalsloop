@@ -212,9 +212,18 @@ export default function AdminDiscountCodesPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Discount Codes</h1>
         <p className="text-gray-600">
-          Create and manage discount codes for promotions and partnerships
+          Create and manage discount codes for Stripe checkout - supports email-specific codes and usage limits
         </p>
       </div>
+
+      {/* Info Alert */}
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Discount codes created here are synced with Stripe Checkout. You can create email-specific codes or public codes with usage limits.
+          Codes will be automatically validated during checkout.
+        </AlertDescription>
+      </Alert>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

@@ -537,7 +537,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Projects Table */}
+        {/* Projects Overview */}
         <Card>
           <CardHeader>
             <CardTitle>Projects Overview</CardTitle>
@@ -562,7 +562,6 @@ export default function AdminDashboard() {
                       <th className="text-left p-3">Plan</th>
                       <th className="text-left p-3">Posts</th>
                       <th className="text-left p-3">Created</th>
-                      <th className="text-left p-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -576,7 +575,7 @@ export default function AdminDashboard() {
                         </td>
                         <td className="p-3">{project.owner_email}</td>
                         <td className="p-3">
-                          <Badge 
+                          <Badge
                             variant={project.plan === 'pro' ? 'default' : 'secondary'}
                             className={project.plan === 'pro' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
                           >
@@ -600,41 +599,6 @@ export default function AdminDashboard() {
                           <div className="flex items-center gap-1 text-sm text-gray-600">
                             <Calendar className="w-3 h-3" />
                             {new Date(project.created_at).toLocaleDateString()}
-                          </div>
-                        </td>
-                        <td className="p-3">
-                          <div className="flex gap-2">
-                            {project.plan === 'free' ? (
-                              <Button
-                                size="sm"
-                                onClick={() => handleProjectAction(project.id, 'upgrade')}
-                                disabled={actionLoading === project.id}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                {actionLoading === project.id ? (
-                                  <RefreshCw className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  <>
-                                    <Crown className="w-3 h-3 mr-1" />
-                                    Upgrade to Pro
-                                  </>
-                                )}
-                              </Button>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleProjectAction(project.id, 'downgrade')}
-                                disabled={actionLoading === project.id}
-                                className="text-orange-600 border-orange-300 hover:bg-orange-50"
-                              >
-                                {actionLoading === project.id ? (
-                                  <RefreshCw className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  'Downgrade to Free'
-                                )}
-                              </Button>
-                            )}
                           </div>
                         </td>
                       </tr>
