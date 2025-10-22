@@ -40,9 +40,9 @@ export interface RateLimitResult {
 export const RATE_LIMITS = {
   free: {
     api: {
-      hourlyLimit: 1000,
-      minuteLimit: 50,
-      dailyLimit: 10000,
+      hourlyLimit: 5000,
+      minuteLimit: 200,
+      dailyLimit: 50000,
     },
     webhookManagement: {
       hourlyLimit: 100,
@@ -51,8 +51,8 @@ export const RATE_LIMITS = {
   },
   pro: {
     api: {
-      hourlyLimit: 10000,
-      minuteLimit: 200,
+      hourlyLimit: 20000,
+      minuteLimit: 500,
     },
     webhookManagement: {
       hourlyLimit: 100,

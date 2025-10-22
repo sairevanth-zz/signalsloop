@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { withRateLimit } from '@/middleware/rate-limit';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE!
-);
+import { getServiceRoleClient } from '@/lib/supabase-singleton';
+import { withCache } from '@/lib/cache';
+import { withTimeout } from '@/middleware/timeout';
 
 export async function GET(request: NextRequest) {
-  return withRateLimit(request, async () => getHandler(request), 'api');
+  return withRateLimit(request, async () => withTimeout(() => getHandler(request), 10000), 'api');
 }
 
 async function getHandler(request: NextRequest) {
   try {
+    const supabase = getServiceRoleClient();
     const { searchParams } = new URL(request.url);
     const projectSlug = searchParams.get('project_slug');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -24,14 +22,25 @@ async function getHandler(request: NextRequest) {
       return NextResponse.json({ error: 'Project slug is required' }, { status: 400 });
     }
 
-    // Find the project
-    const { data: project, error: projectError } = await supabase
-      .from('projects')
-      .select('id')
-      .eq('slug', projectSlug)
-      .single();
+    // Find the project with caching (5 min TTL)
+    const project = await withCache(
+      `project:${projectSlug}`,
+      async () => {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('id')
+          .eq('slug', projectSlug)
+          .single();
 
-    if (projectError || !project) {
+        if (error || !data) {
+          throw new Error('Project not found');
+        }
+        return data;
+      },
+      300
+    ).catch(() => null);
+
+    if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 

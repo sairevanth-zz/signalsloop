@@ -1,17 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { withRateLimit } from '@/middleware/rate-limit';
-
-// Initialize Supabase client with service role
-const getSupabaseClient = () => {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE) {
-    throw new Error('Missing Supabase configuration');
-  }
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE
-  );
-};
+import { getServiceRoleClient } from '@/lib/supabase-singleton';
+import { withTimeout } from '@/middleware/timeout';
 
 // API Key validation middleware
 async function validateApiKey(request: NextRequest) {
@@ -21,12 +11,12 @@ async function validateApiKey(request: NextRequest) {
   }
 
   const apiKey = authHeader.replace('Bearer ', '');
-  
+
   // Hash the API key for comparison
   const crypto = require('crypto');
   const hashedKey = crypto.createHash('sha256').update(apiKey).digest('hex');
-  
-  const supabase = getSupabaseClient();
+
+  const supabase = getServiceRoleClient();
   const { data: apiKeyData, error } = await supabase
     .from('api_keys')
     .select(`
@@ -45,7 +35,7 @@ async function validateApiKey(request: NextRequest) {
 
 // GET /api/v1/stats - Get project statistics
 export async function GET(request: NextRequest) {
-  return withRateLimit(request, async () => getHandler(request), 'api');
+  return withRateLimit(request, async () => withTimeout(() => getHandler(request), 15000), 'api');
 }
 
 async function getHandler(request: NextRequest) {
@@ -57,7 +47,7 @@ async function getHandler(request: NextRequest) {
     }
 
     const { project } = authResult;
-    const supabase = getSupabaseClient();
+    const supabase = getServiceRoleClient();
 
     // Get query parameters for date range
     const { searchParams } = new URL(request.url);
