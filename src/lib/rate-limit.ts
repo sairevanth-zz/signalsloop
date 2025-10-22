@@ -212,10 +212,19 @@ export async function getIdentifier(request: NextRequest): Promise<string> {
   return `ip:${ip}`;
 }
 
+// Cache for API key -> plan mappings (10 minute TTL)
+const apiKeyPlanCache = new Map<string, { plan: 'free' | 'pro'; expiresAt: number }>();
+
 /**
- * Get user plan from API key
+ * Get user plan from API key with caching
  */
 export async function getUserPlanFromApiKey(apiKey: string): Promise<'free' | 'pro'> {
+  // Check cache first
+  const cached = apiKeyPlanCache.get(apiKey);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.plan;
+  }
+
   // Import here to avoid circular dependency
   const crypto = await import('crypto');
   const { getSupabaseServiceRoleClient } = await import('./supabase-client');
@@ -230,15 +239,36 @@ export async function getUserPlanFromApiKey(apiKey: string): Promise<'free' | 'p
       .eq('key_hash', keyHash)
       .single();
 
-    if (apiKeyData?.projects?.plan === 'pro') {
-      return 'pro';
-    }
+    const plan = apiKeyData?.projects?.plan === 'pro' ? 'pro' : 'free';
+
+    // Cache for 10 minutes
+    apiKeyPlanCache.set(apiKey, {
+      plan,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    });
+
+    return plan;
   } catch (error) {
     console.error('Error fetching user plan:', error);
+    // Cache failure as free plan for 1 minute
+    apiKeyPlanCache.set(apiKey, {
+      plan: 'free',
+      expiresAt: Date.now() + 60 * 1000,
+    });
   }
 
   return 'free';
 }
+
+// Cleanup expired cache entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of apiKeyPlanCache.entries()) {
+    if (now > value.expiresAt) {
+      apiKeyPlanCache.delete(key);
+    }
+  }
+}, 5 * 60 * 1000);
 
 /**
  * Apply rate limiting to API request

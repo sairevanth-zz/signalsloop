@@ -3,9 +3,25 @@ import { withRateLimit } from '@/middleware/rate-limit';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import { withCache } from '@/lib/cache';
 import { withTimeout } from '@/middleware/timeout';
+import { withCircuitBreaker } from '@/lib/circuit-breaker';
+import { withSupabaseRetry } from '@/lib/retry';
 
 export async function GET(request: NextRequest) {
-  return withRateLimit(request, async () => withTimeout(() => getHandler(request), 10000), 'api');
+  return withRateLimit(
+    request,
+    async () => withTimeout(
+      () => withCircuitBreaker(
+        'posts-api',
+        () => getHandler(request),
+        () => NextResponse.json(
+          { error: 'Service temporarily unavailable', posts: [], total: 0 },
+          { status: 503 }
+        )
+      ),
+      30000
+    ),
+    'api'
+  );
 }
 
 async function getHandler(request: NextRequest) {
@@ -79,7 +95,8 @@ async function getHandler(request: NextRequest) {
     // Apply limit
     query = query.limit(Math.min(limit, 50)); // Max 50 posts
 
-    const { data: posts, error: postsError } = await query;
+    // Execute query with retry logic
+    const { data: posts, error: postsError } = await withSupabaseRetry(() => query);
 
     if (postsError) {
       console.error('Error fetching posts:', postsError);
@@ -96,12 +113,14 @@ async function getHandler(request: NextRequest) {
     let userVotes: any[] = [];
 
     if (postIds.length > 0) {
-      const { data: votes } = await supabase
-        .from('votes')
-        .select('post_id')
-        .in('post_id', postIds)
-        .eq('ip_address', clientIp);
-      
+      const { data: votes } = await withSupabaseRetry(() =>
+        supabase
+          .from('votes')
+          .select('post_id')
+          .in('post_id', postIds)
+          .eq('ip_address', clientIp)
+      );
+
       userVotes = votes || [];
     }
 

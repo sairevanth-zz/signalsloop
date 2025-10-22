@@ -15,7 +15,15 @@ export function getServiceRoleClient(): SupabaseClient {
         auth: {
           autoRefreshToken: false,
           persistSession: false,
-        }
+        },
+        db: {
+          schema: 'public',
+        },
+        global: {
+          headers: {
+            'x-connection-pool': 'true',
+          },
+        },
       }
     );
   }

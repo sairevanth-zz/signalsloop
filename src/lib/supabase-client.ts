@@ -40,40 +40,17 @@ export const getSupabaseClient = () => {
   return supabaseClient;
 };
 
-// Server-side Supabase client for API routes
+// Import singleton to ensure connection pooling
+import { getServiceRoleClient as getSingleton } from './supabase-singleton';
+
+// Server-side Supabase client for API routes - uses singleton
 export const getSupabaseServerClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE;
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    console.error('Missing server Supabase environment variables');
-    return null;
-  }
-
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  });
+  return getSingleton();
 };
 
-// Service role client for admin operations
+// Service role client for admin operations - uses singleton
 export const getSupabaseServiceRoleClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE;
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    console.error('Missing server Supabase environment variables');
-    return null;
-  }
-
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  });
+  return getSingleton();
 };
 
 export const getSupabasePublicServerClient = () => {
