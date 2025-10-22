@@ -14,8 +14,10 @@
     "review:prompt": "/Users/revanth/.local/bin/coderabbit review --prompt-only -c .coderabbit.yaml",
     "review:setup": "scripts/pre-commit-coderabbit.sh",
     "load-test:prod": "k6 run load-tests/prod-load-test.js",
+    "load-test:comprehensive": "k6 run load-tests/comprehensive-test.js",
     "load-test:stress": "k6 run load-tests/api-stress-test.js",
-    "load-test:local": "BASE_URL=http://localhost:3000 k6 run load-tests/prod-load-test.js"
+    "load-test:local": "BASE_URL=http://localhost:3000 k6 run load-tests/prod-load-test.js",
+    "load-test:local-comprehensive": "BASE_URL=http://localhost:3000 k6 run load-tests/comprehensive-test.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

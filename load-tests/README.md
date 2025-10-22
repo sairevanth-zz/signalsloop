@@ -1,6 +1,6 @@
 # Load Testing Scripts
 
-These scripts use k6 to load test the SignalsLoop application.
+These scripts use k6 to load test the SignalsLoop application comprehensively.
 
 ## Prerequisites
 
@@ -12,22 +12,27 @@ brew install k6
 ## Scripts
 
 ### 1. Production Load Test (`prod-load-test.js`)
-Realistic production load simulation with gradual ramp-up.
+Realistic production load simulation testing all major flows.
 
 **Run against production:**
 ```bash
+npm run load-test:prod
+# or
 k6 run load-tests/prod-load-test.js
 ```
 
 **Run against custom URL:**
 ```bash
-BASE_URL=https://your-domain.com k6 run load-tests/prod-load-test.js
+BASE_URL=https://your-domain.com npm run load-test:prod
 ```
 
-**Scenarios:**
-- 60% homepage visitors
-- 30% API consumers (posts endpoint)
-- 10% dashboard access attempts
+**Test Coverage:**
+- ✅ Homepage (30%)
+- ✅ Public project boards (20%)
+- ✅ API endpoints with various parameters (25%)
+- ✅ Auth flow (login/signup pages) (10%)
+- ✅ Dashboard access (10%)
+- ✅ Static pages (privacy, terms) (5%)
 
 **Load profile:**
 - Ramps from 0 → 50 concurrent users over 6 minutes
@@ -41,7 +46,35 @@ BASE_URL=https://your-domain.com k6 run load-tests/prod-load-test.js
 
 ---
 
-### 2. API Stress Test (`api-stress-test.js`)
+### 2. Comprehensive Test (`comprehensive-test.js`)
+Deep testing of all endpoints and user flows.
+
+**Run:**
+```bash
+npm run load-test:comprehensive
+# or
+k6 run load-tests/comprehensive-test.js
+```
+
+**Test Coverage:**
+- ✅ Homepage with content validation
+- ✅ Complete auth flow (login, signup, dashboard redirect)
+- ✅ All API routes (posts with sorting, filtering, categories)
+- ✅ Public pages (board, roadmap, changelog)
+- ✅ Static pages (privacy, terms)
+
+**Load profile:**
+- Ramps from 0 → 50 concurrent users over 4 minutes
+- Holds at 50 users for 2 minutes
+- Total duration: ~7 minutes
+
+**Thresholds:**
+- p95 response time < 2.5s
+- Error rate < 10%
+
+---
+
+### 3. API Stress Test (`api-stress-test.js`)
 Aggressive stress test focused on API endpoints.
 
 **Run:**
