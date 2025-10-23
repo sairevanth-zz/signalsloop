@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { secureAPI, validateAdminAuth } from '@/lib/api-security';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
@@ -6,16 +7,15 @@ export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 export const GET = secureAPI(
-  async () => {
+  async ({ query }) => {
     try {
     const supabase = getSupabaseServiceRoleClient();
-    
+
     if (!supabase) {
       return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const timeRange = searchParams.get('range') || '30'; // days
+    const timeRange = query?.range || '30'; // days
 
     const daysAgo = parseInt(timeRange);
     const startDate = new Date();
@@ -164,5 +164,8 @@ export const GET = secureAPI(
     enableRateLimit: true,
     requireAuth: true,
     authValidator: validateAdminAuth,
+    querySchema: z.object({
+      range: z.string().optional(),
+    }).optional(),
   }
 );
