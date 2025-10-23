@@ -27,6 +27,7 @@ export default function SecurityEventsPage() {
   const [events, setEvents] = React.useState<SecurityEvent[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = React.useState<any>(null);
   const [filter, setFilter] = React.useState<{
     severity?: string;
     type?: string;
@@ -46,6 +47,21 @@ export default function SecurityEventsPage() {
 
       if (!session) {
         setError('Please log in to view security events');
+        setLoading(false);
+        return;
+      }
+
+      // Debug: Check auth status
+      const debugResponse = await fetch('/api/admin/debug-auth', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+      const debugData = await debugResponse.json();
+      setDebugInfo(debugData);
+
+      if (!debugData.isAdmin) {
+        setError(`Not authorized as admin. Debug info: ${JSON.stringify(debugData, null, 2)}`);
         setLoading(false);
         return;
       }
@@ -104,9 +120,17 @@ export default function SecurityEventsPage() {
       <div className="min-h-screen bg-gray-50 p-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Security Events</h1>
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 mb-4">
             {error}
           </div>
+          {debugInfo && (
+            <div className="bg-white border rounded-lg p-4">
+              <h2 className="font-bold mb-2">Debug Information:</h2>
+              <pre className="text-xs overflow-x-auto bg-gray-50 p-4 rounded">
+                {JSON.stringify(debugInfo, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
       </div>
     );
