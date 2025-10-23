@@ -1,11 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { secureAPI, validateAdminAuth } from '@/lib/api-security';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-export async function GET(request: NextRequest) {
-  try {
+export const GET = secureAPI(
+  async () => {
+    try {
     const supabase = getSupabaseServiceRoleClient();
     
     if (!supabase) {
@@ -51,59 +53,17 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ users: usersWithStats });
-  } catch (error) {
-    console.error('Admin users API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    } catch (error) {
+      console.error('Admin API error:', error);
+      return NextResponse.json({
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      }, { status: 500 });
+    }
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
   }
-}
-
-export async function PATCH(request: NextRequest) {
-  try {
-    const { userId, action, plan } = await request.json();
-    
-    if (!userId || !action) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    const supabase = getSupabaseServiceRoleClient();
-
-    if (action === 'upgrade_to_pro') {
-      // Update all user's projects to pro
-      const { error: updateError } = await supabase
-        .from('projects')
-        .update({ plan: 'pro', updated_at: new Date().toISOString() })
-        .eq('owner_id', userId);
-
-      if (updateError) {
-        console.error('Error upgrading user projects:', updateError);
-        return NextResponse.json({ error: 'Failed to upgrade user' }, { status: 500 });
-      }
-
-      return NextResponse.json({ success: true, message: 'User upgraded to Pro successfully' });
-    }
-
-    if (action === 'downgrade_to_free') {
-      // Update all user's projects to free
-      const { error: updateError } = await supabase
-        .from('projects')
-        .update({ 
-          plan: 'free', 
-          subscription_status: 'canceled',
-          updated_at: new Date().toISOString() 
-        })
-        .eq('owner_id', userId);
-
-      if (updateError) {
-        console.error('Error downgrading user projects:', updateError);
-        return NextResponse.json({ error: 'Failed to downgrade user' }, { status: 500 });
-      }
-
-      return NextResponse.json({ success: true, message: 'User downgraded to Free successfully' });
-    }
-
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-  } catch (error) {
-    console.error('Admin user update error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+);

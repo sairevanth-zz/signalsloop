@@ -1,32 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { secureAPI, validateAdminAuth } from '@/lib/api-security';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
 export const runtime = 'nodejs';
 
-export async function DELETE(request: NextRequest) {
-  try {
+export const DELETE = secureAPI(
+  async ({ body, user }) => {
+    const { postId, projectId } = body!;
     const supabase = getSupabaseServiceRoleClient();
+
     if (!supabase) {
       return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
-    }
-
-    // Get the authenticated admin user
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user: admin }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { postId, projectId } = await request.json();
-
-    if (!postId || !projectId) {
-      return NextResponse.json({ error: 'Missing postId or projectId' }, { status: 400 });
     }
 
     // Verify admin owns this project
@@ -40,7 +25,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    if (project.owner_id !== admin.id) {
+    if (project.owner_id !== user!.id) {
       return NextResponse.json({ error: 'Not authorized for this project' }, { status: 403 });
     }
 
@@ -56,9 +41,14 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, message: 'Post deleted successfully' });
-
-  } catch (error) {
-    console.error('Delete post API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
+    bodySchema: z.object({
+      postId: z.string().uuid(),
+      projectId: z.string().uuid(),
+    }),
   }
-}
+);

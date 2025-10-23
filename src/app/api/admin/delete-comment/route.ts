@@ -1,32 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { secureAPI, validateAdminAuth } from '@/lib/api-security';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
 export const runtime = 'nodejs';
 
-export async function DELETE(request: NextRequest) {
-  try {
+export const DELETE = secureAPI(
+  async ({ body, user }) => {
+    const { commentId, projectId } = body!;
     const supabase = getSupabaseServiceRoleClient();
+
     if (!supabase) {
       return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
-    }
-
-    // Get the authenticated admin user
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user: admin }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { commentId, projectId } = await request.json();
-
-    if (!commentId || !projectId) {
-      return NextResponse.json({ error: 'Missing commentId or projectId' }, { status: 400 });
     }
 
     // Verify admin owns this project
@@ -40,7 +25,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    if (project.owner_id !== admin.id) {
+    if (project.owner_id !== user!.id) {
       return NextResponse.json({ error: 'Not authorized for this project' }, { status: 403 });
     }
 
@@ -63,7 +48,6 @@ export async function DELETE(request: NextRequest) {
 
     if (deleteRepliesError) {
       console.error('Error deleting replies:', deleteRepliesError);
-      // Continue anyway - we'll still try to delete the parent comment
     }
 
     // Then delete the parent comment
@@ -90,13 +74,17 @@ export async function DELETE(request: NextRequest) {
         .eq('id', comment.post_id);
     } catch (error) {
       console.error('Error updating comment count:', error);
-      // Don't fail the request if count update fails
     }
 
     return NextResponse.json({ success: true, message: 'Comment deleted successfully' });
-
-  } catch (error) {
-    console.error('Delete comment API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
+    bodySchema: z.object({
+      commentId: z.string().uuid(),
+      projectId: z.string().uuid(),
+    }),
   }
-}
+);

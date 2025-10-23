@@ -1,11 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { secureAPI, validateAdminAuth } from '@/lib/api-security';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-export async function GET(request: NextRequest) {
-  try {
+export const GET = secureAPI(
+  async () => {
+    try {
     const supabase = getSupabaseServiceRoleClient();
     
     if (!supabase) {
@@ -126,8 +128,17 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json({ stats });
-  } catch (error) {
-    console.error('Admin stats API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    } catch (error) {
+      console.error('Admin API error:', error);
+      return NextResponse.json({
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      }, { status: 500 });
+    }
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
   }
-}
+);

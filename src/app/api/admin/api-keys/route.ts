@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { secureAPI, validateAdminAuth } from '@/lib/api-security';
 import { createClient } from '@supabase/supabase-js';
 
-// Use service role to bypass RLS
 const getSupabaseAdmin = () => {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE) {
     throw new Error('Missing Supabase configuration');
@@ -18,18 +19,14 @@ const getSupabaseAdmin = () => {
   );
 };
 
-export async function POST(request: NextRequest) {
-  try {
-    const { projectId, name } = await request.json();
-
-    if (!projectId || !name) {
-      return NextResponse.json({ error: 'Missing projectId or name' }, { status: 400 });
-    }
+export const POST = secureAPI(
+  async ({ body }) => {
+    const { projectId, name } = body!;
 
     // Generate API key
     const apiKey = 'sk_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    // Encode for storage – other services expect base64 of the key
+    // Encode for storage
     const keyHash = Buffer.from(apiKey, 'utf8').toString('base64');
 
     const supabase = getSupabaseAdmin();
@@ -56,9 +53,14 @@ export async function POST(request: NextRequest) {
       apiKey: apiKey, // Return plaintext key ONCE
       data: data
     });
-
-  } catch (error) {
-    console.error('Server error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
+    bodySchema: z.object({
+      projectId: z.string().uuid(),
+      name: z.string().min(1).max(100),
+    }),
   }
-}
+);

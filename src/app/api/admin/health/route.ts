@@ -1,11 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { secureAPI, validateAdminAuth } from '@/lib/api-security';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-export async function GET(request: NextRequest) {
-  try {
+export const GET = secureAPI(
+  async () => {
+    try {
     const checks = {
       supabase_url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       supabase_anon_key: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -58,14 +60,17 @@ export async function GET(request: NextRequest) {
     }, {
       status: allHealthy ? 200 : 503
     });
-  } catch (error) {
-    console.error('Health check error:', error);
-    return NextResponse.json({
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, {
-      status: 500
-    });
+    } catch (error) {
+      console.error('Admin API error:', error);
+      return NextResponse.json({
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      }, { status: 500 });
+    }
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
   }
-}
-
+);
