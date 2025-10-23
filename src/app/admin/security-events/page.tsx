@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = getSupabaseClient();
 
 interface SecurityEvent {
   id: string;
@@ -106,154 +106,145 @@ export default function SecurityEventsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Security Events</h1>
-          <div className="text-center py-12">Loading...</div>
-        </div>
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading security events...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Security Events</h1>
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 mb-4">
-            {error}
-          </div>
-          {debugInfo && (
-            <div className="bg-white border rounded-lg p-4">
-              <h2 className="font-bold mb-2">Debug Information:</h2>
-              <pre className="text-xs overflow-x-auto bg-gray-50 p-4 rounded">
-                {JSON.stringify(debugInfo, null, 2)}
-              </pre>
-            </div>
-          )}
-        </div>
+      <div>
+        <Card className="p-6 bg-red-50 border-red-200 mb-4">
+          <div className="text-red-800">{error}</div>
+        </Card>
+        {debugInfo && (
+          <Card className="p-6">
+            <h2 className="font-bold mb-2">Debug Information:</h2>
+            <pre className="text-xs overflow-x-auto bg-gray-50 p-4 rounded">
+              {JSON.stringify(debugInfo, null, 2)}
+            </pre>
+          </Card>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Security Events</h1>
+    <div>
+      {/* Filters */}
+      <Card className="p-6 mb-6">
+        <div className="flex flex-wrap gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Severity</label>
+            <select
+              className="border rounded-md px-3 py-2 text-sm"
+              value={filter.severity || ''}
+              onChange={(e) => setFilter({ ...filter, severity: e.target.value || undefined })}
+            >
+              <option value="">All</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="flex gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Severity</label>
-              <select
-                className="border rounded px-3 py-2"
-                value={filter.severity || ''}
-                onChange={(e) => setFilter({ ...filter, severity: e.target.value || undefined })}
-              >
-                <option value="">All</option>
-                <option value="critical">Critical</option>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Type</label>
+            <select
+              className="border rounded-md px-3 py-2 text-sm"
+              value={filter.type || ''}
+              onChange={(e) => setFilter({ ...filter, type: e.target.value || undefined })}
+            >
+              <option value="">All</option>
+              <option value="rate_limit_exceeded">Rate Limit</option>
+              <option value="invalid_api_key">Invalid API Key</option>
+              <option value="csrf_validation_failed">CSRF Failed</option>
+              <option value="xss_attempt_blocked">XSS Attempt</option>
+              <option value="sql_injection_attempt">SQL Injection</option>
+              <option value="unauthorized_access">Unauthorized Access</option>
+              <option value="suspicious_request">Suspicious Request</option>
+              <option value="authentication_failed">Auth Failed</option>
+              <option value="validation_error">Validation Error</option>
+            </select>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Type</label>
-              <select
-                className="border rounded px-3 py-2"
-                value={filter.type || ''}
-                onChange={(e) => setFilter({ ...filter, type: e.target.value || undefined })}
-              >
-                <option value="">All</option>
-                <option value="rate_limit_exceeded">Rate Limit</option>
-                <option value="invalid_api_key">Invalid API Key</option>
-                <option value="csrf_validation_failed">CSRF Failed</option>
-                <option value="xss_attempt_blocked">XSS Attempt</option>
-                <option value="sql_injection_attempt">SQL Injection</option>
-                <option value="unauthorized_access">Unauthorized Access</option>
-                <option value="suspicious_request">Suspicious Request</option>
-                <option value="authentication_failed">Auth Failed</option>
-                <option value="validation_error">Validation Error</option>
-              </select>
-            </div>
-
-            <div className="flex items-end">
-              <button
-                onClick={() => setFilter({})}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded"
-              >
-                Clear Filters
-              </button>
-            </div>
+          <div className="flex items-end">
+            <Button
+              variant="outline"
+              onClick={() => setFilter({})}
+            >
+              Clear Filters
+            </Button>
           </div>
         </div>
+      </Card>
 
-        {/* Events List */}
-        <div className="space-y-4">
-          {events.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-              No security events found
-            </div>
-          ) : (
-            events.map((event) => (
-              <div key={event.id} className="bg-white rounded-lg shadow p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getSeverityColor(event.severity)}`}>
-                      {event.severity.toUpperCase()}
-                    </span>
-                    <span className="text-sm font-mono text-gray-600">{event.type}</span>
+      {/* Events List */}
+      <div className="space-y-4">
+        {events.length === 0 ? (
+          <Card className="p-8 text-center text-gray-500">
+            No security events found
+          </Card>
+        ) : (
+          events.map((event) => (
+            <Card key={event.id} className="p-6">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <Badge className={getSeverityColor(event.severity)}>
+                    {event.severity.toUpperCase()}
+                  </Badge>
+                  <span className="text-sm font-mono text-gray-600">{event.type}</span>
+                </div>
+                <span className="text-sm text-gray-500">
+                  {new Date(event.created_at).toLocaleString()}
+                </span>
+              </div>
+
+              <p className="text-gray-900 mb-3">{event.message}</p>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                {event.ip && (
+                  <div>
+                    <span className="text-gray-500">IP:</span>{' '}
+                    <span className="font-mono">{event.ip}</span>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    {new Date(event.created_at).toLocaleString()}
-                  </span>
-                </div>
-
-                <p className="text-gray-900 mb-2">{event.message}</p>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  {event.ip && (
-                    <div>
-                      <span className="text-gray-500">IP:</span>{' '}
-                      <span className="font-mono">{event.ip}</span>
-                    </div>
-                  )}
-                  {event.path && (
-                    <div>
-                      <span className="text-gray-500">Path:</span>{' '}
-                      <span className="font-mono">{event.path}</span>
-                    </div>
-                  )}
-                  {event.method && (
-                    <div>
-                      <span className="text-gray-500">Method:</span>{' '}
-                      <span className="font-mono">{event.method}</span>
-                    </div>
-                  )}
-                  {event.user_id && (
-                    <div>
-                      <span className="text-gray-500">User ID:</span>{' '}
-                      <span className="font-mono text-xs">{event.user_id.substring(0, 8)}...</span>
-                    </div>
-                  )}
-                </div>
-
-                {event.metadata && Object.keys(event.metadata).length > 0 && (
-                  <details className="mt-2">
-                    <summary className="text-sm text-gray-500 cursor-pointer hover:text-gray-700">
-                      View metadata
-                    </summary>
-                    <pre className="mt-2 p-2 bg-gray-50 rounded text-xs overflow-x-auto">
-                      {JSON.stringify(event.metadata, null, 2)}
-                    </pre>
-                  </details>
+                )}
+                {event.path && (
+                  <div>
+                    <span className="text-gray-500">Path:</span>{' '}
+                    <span className="font-mono text-xs">{event.path}</span>
+                  </div>
+                )}
+                {event.method && (
+                  <div>
+                    <span className="text-gray-500">Method:</span>{' '}
+                    <span className="font-mono">{event.method}</span>
+                  </div>
+                )}
+                {event.user_id && (
+                  <div>
+                    <span className="text-gray-500">User:</span>{' '}
+                    <span className="font-mono text-xs">{event.user_id.substring(0, 8)}...</span>
+                  </div>
                 )}
               </div>
-            ))
-          )}
-        </div>
+
+              {event.metadata && Object.keys(event.metadata).length > 0 && (
+                <details className="mt-3">
+                  <summary className="text-sm text-gray-500 cursor-pointer hover:text-gray-700">
+                    View metadata
+                  </summary>
+                  <pre className="mt-2 p-3 bg-gray-50 rounded text-xs overflow-x-auto">
+                    {JSON.stringify(event.metadata, null, 2)}
+                  </pre>
+                </details>
+              )}
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

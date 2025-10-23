@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
+import {
   LayoutDashboard,
   Users,
   Percent,
@@ -18,7 +18,8 @@ import {
   Menu,
   X,
   Shield,
-  AlertCircle
+  AlertCircle,
+  ShieldAlert
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
@@ -93,6 +94,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: Users },
     { name: 'Discount Codes', href: '/admin/discount-codes', icon: Percent },
+    { name: 'Security Events', href: '/admin/security-events', icon: ShieldAlert },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
