@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { secureAPI, validateAdminAuth } from '@/lib/api-security';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { createStripePromotionCode, updateStripePromotionCode, deleteStripePromotionCode } from '@/lib/stripe-discount-sync';
 
@@ -6,10 +8,10 @@ export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 // GET - Fetch all discount codes
-export async function GET(request: NextRequest) {
-  try {
+export const GET = secureAPI(
+  async () => {
     const supabase = getSupabaseServiceRoleClient();
-    
+
     if (!supabase) {
       return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
     }
@@ -25,22 +27,17 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ codes: codes || [] });
-  } catch (error) {
-    console.error('Admin discount codes API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
   }
-}
+);
 
 // POST - Create a new discount code
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = getSupabaseServiceRoleClient();
-    
-    if (!supabase) {
-      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
-    }
-
-    const body = await request.json();
+export const POST = secureAPI(
+  async ({ body }) => {
     const {
       code,
       description,
@@ -51,10 +48,12 @@ export async function POST(request: NextRequest) {
       usage_limit,
       valid_until,
       target_email
-    } = body;
+    } = body!;
 
-    if (!code || !discount_type || !discount_value) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const supabase = getSupabaseServiceRoleClient();
+
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
     }
 
     // Check if code already exists
@@ -78,9 +77,9 @@ export async function POST(request: NextRequest) {
       const stripeResult = await createStripePromotionCode({
         code: code.toUpperCase(),
         discountType: discount_type,
-        discountValue: parseFloat(discount_value),
-        maxRedemptions: usage_limit ? parseInt(usage_limit) : undefined,
-        expiresAt: valid_until || undefined,
+        discountValue: discount_value,
+        maxRedemptions: usage_limit,
+        expiresAt: valid_until,
         metadata: {
           source: 'signalsloop_admin',
           description: description || ''
@@ -90,7 +89,7 @@ export async function POST(request: NextRequest) {
       stripeCouponId = stripeResult.couponId;
       stripePromotionCodeId = stripeResult.promotionCodeId;
       syncedToStripe = true;
-      
+
       console.log('✅ Created Stripe promotion code:', stripeResult.code);
     } catch (stripeError) {
       console.error('⚠️ Failed to create Stripe promotion code (will create discount code anyway):', stripeError);
@@ -104,13 +103,13 @@ export async function POST(request: NextRequest) {
         code: code.toUpperCase(),
         description,
         discount_type,
-        discount_value: parseFloat(discount_value),
-        min_amount: min_amount ? parseFloat(min_amount) : 0,
-        max_discount: max_discount ? parseFloat(max_discount) : null,
-        usage_limit: usage_limit ? parseInt(usage_limit) : null,
+        discount_value,
+        min_amount: min_amount || 0,
+        max_discount,
+        usage_limit,
         valid_from: new Date().toISOString(),
-        valid_until: valid_until || null,
-        target_email: target_email || null,
+        valid_until,
+        target_email,
         is_active: true,
         usage_count: 0,
         stripe_coupon_id: stripeCouponId,
@@ -126,33 +125,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create discount code', details: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      code: newCode, 
-      message: syncedToStripe 
-        ? 'Discount code created and synced to Stripe successfully' 
+    return NextResponse.json({
+      code: newCode,
+      message: syncedToStripe
+        ? 'Discount code created and synced to Stripe successfully'
         : 'Discount code created (Stripe sync failed - check logs)',
       stripeSynced: syncedToStripe
     });
-  } catch (error) {
-    console.error('Admin create discount code error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
+    bodySchema: z.object({
+      code: z.string().min(1),
+      description: z.string().optional(),
+      discount_type: z.enum(['percentage', 'fixed']),
+      discount_value: z.number().positive(),
+      min_amount: z.number().optional(),
+      max_discount: z.number().optional(),
+      usage_limit: z.number().int().positive().optional(),
+      valid_until: z.string().optional(),
+      target_email: z.string().email().optional(),
+    }),
   }
-}
+);
 
 // PATCH - Update a discount code
-export async function PATCH(request: NextRequest) {
-  try {
+export const PATCH = secureAPI(
+  async ({ body }) => {
+    const { id, action, ...updates } = body!;
+
     const supabase = getSupabaseServiceRoleClient();
-    
+
     if (!supabase) {
       return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
-    }
-
-    const body = await request.json();
-    const { id, action, ...updates } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: 'Discount code ID required' }, { status: 400 });
     }
 
     if (action === 'toggle') {
@@ -205,26 +212,28 @@ export async function PATCH(request: NextRequest) {
     }
 
     return NextResponse.json({ message: 'Discount code updated successfully' });
-  } catch (error) {
-    console.error('Admin update discount code error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
+    bodySchema: z.object({
+      id: z.string().uuid(),
+      action: z.enum(['toggle']).optional(),
+      // Allow additional fields for updates
+    }).passthrough(),
   }
-}
+);
 
 // DELETE - Delete a discount code
-export async function DELETE(request: NextRequest) {
-  try {
+export const DELETE = secureAPI(
+  async ({ query }) => {
+    const { id } = query!;
+
     const supabase = getSupabaseServiceRoleClient();
-    
+
     if (!supabase) {
       return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-
-    if (!id) {
-      return NextResponse.json({ error: 'Discount code ID required' }, { status: 400 });
     }
 
     // Get the discount code to get Stripe IDs
@@ -256,9 +265,13 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json({ message: 'Discount code deleted successfully' });
-  } catch (error) {
-    console.error('Admin delete discount code error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
+    querySchema: z.object({
+      id: z.string().uuid(),
+    }),
   }
-}
-
+);

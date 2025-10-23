@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { secureAPI, validateAdminAuth } from '@/lib/api-security';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { sendGiftNotificationEmail } from '@/lib/email';
 
@@ -6,10 +8,10 @@ export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 // GET - Fetch all gift subscriptions
-export async function GET(request: NextRequest) {
-  try {
+export const GET = secureAPI(
+  async () => {
     const supabase = getSupabaseServiceRoleClient();
-    
+
     if (!supabase) {
       return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
     }
@@ -25,22 +27,17 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ gifts: gifts || [] });
-  } catch (error) {
-    console.error('Admin gifts API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
   }
-}
+);
 
 // POST - Create a new gift subscription
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = getSupabaseServiceRoleClient();
-    
-    if (!supabase) {
-      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
-    }
-
-    const body = await request.json();
+export const POST = secureAPI(
+  async ({ body }) => {
     const {
       recipient_email,
       recipient_name,
@@ -49,10 +46,12 @@ export async function POST(request: NextRequest) {
       gift_message,
       duration_months,
       expires_at
-    } = body;
+    } = body!;
 
-    if (!recipient_email || !duration_months) {
-      return NextResponse.json({ error: 'Recipient email and duration are required' }, { status: 400 });
+    const supabase = getSupabaseServiceRoleClient();
+
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
     }
 
     // Generate a unique redemption code
@@ -66,10 +65,10 @@ export async function POST(request: NextRequest) {
         gifter_email: sender_email?.toLowerCase() || 'admin@signalsloop.com',
         sender_name: sender_name || 'SignalsLoop Admin',
         gift_message,
-        duration_months: parseInt(duration_months),
+        duration_months,
         redemption_code,
         status: 'pending',
-        expires_at: expires_at || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days default
+        expires_at: expires_at || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
       })
       .select()
       .single();
@@ -86,38 +85,43 @@ export async function POST(request: NextRequest) {
         recipientName: recipient_name,
         senderName: sender_name || 'SignalsLoop Admin',
         giftMessage: gift_message,
-        durationMonths: parseInt(duration_months),
+        durationMonths: duration_months,
         redemptionCode: redemption_code,
         expiresAt: newGift.expires_at,
         giftId: newGift.id
       });
       console.log('✅ Gift notification email sent to:', recipient_email);
     } catch (emailError) {
-      // Don't fail the request if email fails
       console.error('⚠️ Failed to send gift email (gift still created):', emailError);
     }
 
     return NextResponse.json({ gift: newGift, message: 'Gift subscription created successfully' });
-  } catch (error) {
-    console.error('Admin create gift error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
+    bodySchema: z.object({
+      recipient_email: z.string().email(),
+      recipient_name: z.string().optional(),
+      sender_email: z.string().email().optional(),
+      sender_name: z.string().optional(),
+      gift_message: z.string().optional(),
+      duration_months: z.number().int().positive(),
+      expires_at: z.string().optional(),
+    }),
   }
-}
+);
 
 // PATCH - Update a gift subscription
-export async function PATCH(request: NextRequest) {
-  try {
+export const PATCH = secureAPI(
+  async ({ body }) => {
+    const { id, action, ...updates } = body!;
+
     const supabase = getSupabaseServiceRoleClient();
-    
+
     if (!supabase) {
       return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
-    }
-
-    const body = await request.json();
-    const { id, action, ...updates } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: 'Gift ID required' }, { status: 400 });
     }
 
     if (action === 'cancel') {
@@ -135,7 +139,6 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (action === 'resend') {
-      // In a real implementation, you'd send an email here
       return NextResponse.json({ message: 'Gift email resent successfully' });
     }
 
@@ -151,26 +154,27 @@ export async function PATCH(request: NextRequest) {
     }
 
     return NextResponse.json({ message: 'Gift updated successfully' });
-  } catch (error) {
-    console.error('Admin update gift error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
+    bodySchema: z.object({
+      id: z.string().uuid(),
+      action: z.enum(['cancel', 'resend']).optional(),
+    }).passthrough(),
   }
-}
+);
 
 // DELETE - Delete a gift subscription
-export async function DELETE(request: NextRequest) {
-  try {
+export const DELETE = secureAPI(
+  async ({ query }) => {
+    const { id } = query!;
+
     const supabase = getSupabaseServiceRoleClient();
-    
+
     if (!supabase) {
       return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-
-    if (!id) {
-      return NextResponse.json({ error: 'Gift ID required' }, { status: 400 });
     }
 
     const { error } = await supabase
@@ -184,9 +188,13 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json({ message: 'Gift deleted successfully' });
-  } catch (error) {
-    console.error('Admin delete gift error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  },
+  {
+    enableRateLimit: true,
+    requireAuth: true,
+    authValidator: validateAdminAuth,
+    querySchema: z.object({
+      id: z.string().uuid(),
+    }),
   }
-}
-
+);
