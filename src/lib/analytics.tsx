@@ -20,15 +20,30 @@ export const initializePostHog = () => {
 // Event tracking functions
 export const analytics = {
   // User lifecycle events
+  signupStarted: (properties?: Record<string, unknown>) => {
+    posthog.capture('signup_started', {
+      timestamp: new Date().toISOString(),
+      ...properties
+    });
+  },
+
+  signupCompleted: (properties?: Record<string, unknown>) => {
+    posthog.capture('signup_completed', {
+      timestamp: new Date().toISOString(),
+      ...properties
+    });
+  },
+
+  // Legacy alias for backward compatibility
   signup: (properties?: Record<string, unknown>) => {
-    posthog.capture('signup', {
+    posthog.capture('signup_completed', {
       timestamp: new Date().toISOString(),
       ...properties
     });
   },
 
   createProject: (projectId: string, properties?: Record<string, unknown>) => {
-    posthog.capture('create_project', {
+    posthog.capture('project_created', {
       project_id: projectId,
       timestamp: new Date().toISOString(),
       ...properties
@@ -45,8 +60,8 @@ export const analytics = {
     });
   },
 
-  submitPost: (postId: string, projectId: string, source: 'web' | 'widget', properties?: Record<string, unknown>) => {
-    posthog.capture('submit_post', {
+  feedbackSubmitted: (postId: string, projectId: string, source: 'web' | 'widget', properties?: Record<string, unknown>) => {
+    posthog.capture('feedback_submitted', {
       post_id: postId,
       project_id: projectId,
       source,
@@ -55,8 +70,29 @@ export const analytics = {
     });
   },
 
+  // Legacy alias
+  submitPost: (postId: string, projectId: string, source: 'web' | 'widget', properties?: Record<string, unknown>) => {
+    posthog.capture('feedback_submitted', {
+      post_id: postId,
+      project_id: projectId,
+      source,
+      timestamp: new Date().toISOString(),
+      ...properties
+    });
+  },
+
+  voteCast: (postId: string, projectId: string, properties?: Record<string, unknown>) => {
+    posthog.capture('vote_cast', {
+      post_id: postId,
+      project_id: projectId,
+      timestamp: new Date().toISOString(),
+      ...properties
+    });
+  },
+
+  // Legacy alias
   vote: (postId: string, projectId: string, properties?: Record<string, unknown>) => {
-    posthog.capture('vote', {
+    posthog.capture('vote_cast', {
       post_id: postId,
       project_id: projectId,
       timestamp: new Date().toISOString(),
@@ -104,6 +140,15 @@ export const analytics = {
   },
 
   // Widget events
+  widgetInstalled: (projectId: string, domain: string, properties?: Record<string, unknown>) => {
+    posthog.capture('widget_installed', {
+      project_id: projectId,
+      domain,
+      timestamp: new Date().toISOString(),
+      ...properties
+    });
+  },
+
   widgetOpen: (projectId: string, domain: string, properties?: Record<string, unknown>) => {
     posthog.capture('widget_open', {
       project_id: projectId,
@@ -124,8 +169,8 @@ export const analytics = {
   },
 
   // Business events
-  startCheckout: (projectId: string, plan: string, properties?: Record<string, unknown>) => {
-    posthog.capture('start_checkout', {
+  upgradeClicked: (projectId: string, plan: string, properties?: Record<string, unknown>) => {
+    posthog.capture('upgrade_clicked', {
       project_id: projectId,
       plan,
       timestamp: new Date().toISOString(),
@@ -133,8 +178,28 @@ export const analytics = {
     });
   },
 
+  startCheckout: (projectId: string, plan: string, properties?: Record<string, unknown>) => {
+    posthog.capture('upgrade_clicked', {
+      project_id: projectId,
+      plan,
+      timestamp: new Date().toISOString(),
+      ...properties
+    });
+  },
+
+  paymentCompleted: (projectId: string, plan: string, amount: number, properties?: Record<string, unknown>) => {
+    posthog.capture('payment_completed', {
+      project_id: projectId,
+      plan,
+      amount,
+      timestamp: new Date().toISOString(),
+      ...properties
+    });
+  },
+
+  // Legacy alias
   purchase: (projectId: string, plan: string, amount: number, properties?: Record<string, unknown>) => {
-    posthog.capture('purchase', {
+    posthog.capture('payment_completed', {
       project_id: projectId,
       plan,
       amount,

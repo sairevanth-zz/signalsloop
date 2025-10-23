@@ -76,6 +76,14 @@ export default function EnhancedDashboardPage() {
     if (user && supabase) {
       loadProjects();
       loadUserPlan();
+
+      // Identify user in analytics
+      import('@/lib/analytics').then(({ analytics }) => {
+        analytics.identify(user.id, {
+          email: user.email,
+          created_at: user.created_at || new Date().toISOString()
+        });
+      });
     }
   }, [user, supabase]);
 

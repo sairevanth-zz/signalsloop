@@ -262,6 +262,25 @@ export async function POST(request: NextRequest) {
 
             console.log(`Project ${projectId} upgraded to Pro via Stripe`);
 
+            // Track purchase in analytics
+            try {
+              const posthog = (await import('posthog-js')).default;
+              posthog.capture('purchase', {
+                project_id: projectId,
+                plan: 'pro',
+                amount: (session.amount_total || 0) / 100, // Convert cents to dollars
+                currency: session.currency,
+                stripe_session_id: session.id,
+                stripe_customer_id: session.customer,
+                subscription_id: session.subscription,
+                interval: session.metadata?.interval || 'unknown',
+                timestamp: new Date().toISOString()
+              });
+            } catch (analyticsError) {
+              console.error('Failed to track purchase in analytics:', analyticsError);
+              // Don't block webhook processing
+            }
+
             await maybeSendProWelcomeEmail(supabase, projectId);
           } else if (source === 'homepage') {
             // Homepage checkout - find or create user's primary project

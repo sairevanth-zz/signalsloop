@@ -251,6 +251,16 @@ function ProjectWizardContent() {
         console.log('API key created successfully');
       }
 
+      // Track project creation
+      const { analytics } = await import('@/lib/analytics');
+      analytics.createProject(project.id, {
+        project_name: project.name,
+        project_slug: project.slug,
+        board_name: projectData.boardName,
+        is_first_project: user ? true : false, // Could query if you want exact count
+        template: searchParams.get('template') || 'custom'
+      });
+
       // Success! Redirect to dashboard with cache-busting to show the new project
       console.log('Project created successfully, redirecting to dashboard...');
       router.push('/app?refresh=' + Date.now());

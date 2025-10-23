@@ -87,6 +87,21 @@ export default function Homepage() {
                 if (isNewUser) {
                   console.log('New user detected, sending welcome email and redirecting');
 
+                  // Track signup
+                  const { analytics } = await import('@/lib/analytics');
+                  analytics.signup({
+                    source: 'magic_link',
+                    email: sessionData.user.email,
+                    user_id: sessionData.user.id
+                  });
+
+                  // Identify user
+                  analytics.identify(sessionData.user.id, {
+                    email: sessionData.user.email,
+                    created_at: sessionData.user.created_at,
+                    signup_method: 'magic_link'
+                  });
+
                   // Send welcome email for new users
                   if (sessionData.user.email) {
                     try {
@@ -128,7 +143,15 @@ export default function Homepage() {
     }
   }, [router, user, loading]);
 
-  const handleProCheckout = () => {
+  const handleProCheckout = (source: string = 'homepage') => {
+    // Track CTA click
+    import('@/lib/analytics').then(({ analytics }) => {
+      analytics.page('cta_clicked', {
+        section: source,
+        cta_text: source === 'hero' ? 'Start Free' : 'Get Started',
+        destination: '/login'
+      });
+    });
     router.push('/login');
   };
 

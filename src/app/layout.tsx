@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
+import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -45,7 +46,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased touch-manipulation`}
       >
-        {children}
+        <PostHogProvider>
+          {children}
+        </PostHogProvider>
         <Script
           src="https://signalsloop.com/embed/sk_89efe32edf48184f641432ff26c6c5df.js"
           strategy="afterInteractive"

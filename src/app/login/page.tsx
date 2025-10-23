@@ -276,6 +276,15 @@ export default function LoginPage() {
     setIsLoading(true);
     setError('');
 
+    // Track signup started
+    import('@/lib/analytics').then(({ analytics }) => {
+      analytics.signupStarted({
+        method: 'magic_link',
+        email: email,
+        source: 'login_page'
+      });
+    });
+
     try {
       // Import Supabase dynamically only on client side
       const { createClient } = await import('@supabase/supabase-js');
