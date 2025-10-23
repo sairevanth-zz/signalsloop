@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { applySecurityHeaders } from '@/lib/security-headers';
 
 export function middleware(request: NextRequest) {
   const host = request.headers.get('host');
@@ -18,7 +19,8 @@ export function middleware(request: NextRequest) {
     host.includes('localhost') ||
     host.includes('127.0.0.1')
   ) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    return applySecurityHeaders(response);
   }
 
   // For custom domains, rewrite to the slug-based route
@@ -32,35 +34,41 @@ export function middleware(request: NextRequest) {
       // For the root path on custom domains, redirect to board
       url.pathname = `/custom-domain-board`;
       url.searchParams.set('domain', host);
-      return NextResponse.rewrite(url);
+      const response = NextResponse.rewrite(url);
+      return applySecurityHeaders(response);
     } else if (pathname.startsWith('/board')) {
       // For board path on custom domains
       url.pathname = `/custom-domain-board`;
       url.searchParams.set('domain', host);
-      return NextResponse.rewrite(url);
+      const response = NextResponse.rewrite(url);
+      return applySecurityHeaders(response);
     } else if (pathname.startsWith('/roadmap')) {
       // For roadmap path on custom domains
       url.pathname = `/custom-domain-roadmap`;
       url.searchParams.set('domain', host);
-      return NextResponse.rewrite(url);
+      const response = NextResponse.rewrite(url);
+      return applySecurityHeaders(response);
     } else if (pathname.startsWith('/changelog')) {
       // For changelog path on custom domains
       url.pathname = `/custom-domain-changelog`;
       url.searchParams.set('domain', host);
-      return NextResponse.rewrite(url);
+      const response = NextResponse.rewrite(url);
+      return applySecurityHeaders(response);
     } else if (pathname.startsWith('/post/')) {
       // For individual post paths on custom domains
       const id = pathname.split('/post/')[1];
       url.pathname = `/custom-domain-post`;
       url.searchParams.set('domain', host);
       url.searchParams.set('id', id);
-      return NextResponse.rewrite(url);
+      const response = NextResponse.rewrite(url);
+      return applySecurityHeaders(response);
     }
   } catch (error) {
     console.error('Middleware error:', error);
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  return applySecurityHeaders(response);
 }
 
 export const config = {
