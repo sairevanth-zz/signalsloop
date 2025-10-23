@@ -7,19 +7,19 @@ const errorRate = new Rate('errors');
 const scenarioCounts = new Counter('scenarios');
 
 // Load test configuration for production
+// Conservative settings to avoid overwhelming infrastructure
 export const options = {
   stages: [
-    { duration: '30s', target: 10 },   // Ramp up to 10 users
-    { duration: '1m', target: 25 },    // Ramp up to 25 users
-    { duration: '2m', target: 50 },    // Ramp up to 50 users
-    { duration: '2m', target: 50 },    // Stay at 50 users
-    { duration: '1m', target: 25 },    // Ramp down to 25 users
-    { duration: '30s', target: 0 },    // Ramp down to 0
+    { duration: '30s', target: 5 },    // Warm up slowly
+    { duration: '1m', target: 15 },    // Ramp up to 15 users
+    { duration: '2m', target: 30 },    // Ramp up to 30 users (conservative)
+    { duration: '2m', target: 30 },    // Maintain load
+    { duration: '30s', target: 0 },    // Ramp down
   ],
   thresholds: {
-    http_req_duration: ['p(95)<2000'], // 95% of requests should be below 2s
-    http_req_failed: ['rate<0.05'],    // Error rate should be below 5%
-    errors: ['rate<0.05'],             // Custom error rate should be below 5%
+    http_req_duration: ['p(95)<1000'], // 95% of requests should be below 1s
+    http_req_failed: ['rate<0.02'],    // Error rate should be below 2%
+    errors: ['rate<0.02'],             // Custom error rate should be below 2%
   },
 };
 

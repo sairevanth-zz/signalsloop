@@ -2,26 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/middleware/rate-limit';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import { withCache } from '@/lib/cache';
-import { withTimeout } from '@/middleware/timeout';
-import { withCircuitBreaker } from '@/lib/circuit-breaker';
 import { withSupabaseRetry } from '@/lib/retry';
 
+// Force Node.js runtime for better connection handling
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
 export async function GET(request: NextRequest) {
-  return withRateLimit(
-    request,
-    async () => withTimeout(
-      () => withCircuitBreaker(
-        'posts-api',
-        () => getHandler(request),
-        () => NextResponse.json(
-          { error: 'Service temporarily unavailable', posts: [], total: 0 },
-          { status: 503 }
-        )
-      ),
-      30000
-    ),
-    'api'
-  );
+  return withRateLimit(request, () => getHandler(request), 'api');
 }
 
 async function getHandler(request: NextRequest) {
@@ -38,15 +26,17 @@ async function getHandler(request: NextRequest) {
       return NextResponse.json({ error: 'Project slug is required' }, { status: 400 });
     }
 
-    // Find the project with caching (5 min TTL)
+    // Find the project with caching (5 min TTL) and graceful degradation
     const project = await withCache(
       `project:${projectSlug}`,
       async () => {
-        const { data, error } = await supabase
-          .from('projects')
-          .select('id')
-          .eq('slug', projectSlug)
-          .single();
+        const { data, error } = await withSupabaseRetry(() =>
+          supabase
+            .from('projects')
+            .select('id')
+            .eq('slug', projectSlug)
+            .single()
+        );
 
         if (error || !data) {
           throw new Error('Project not found');
@@ -54,7 +44,10 @@ async function getHandler(request: NextRequest) {
         return data;
       },
       300
-    ).catch(() => null);
+    ).catch((err) => {
+      console.error('Failed to fetch project:', err);
+      return null;
+    });
 
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });

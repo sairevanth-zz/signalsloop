@@ -8,6 +8,9 @@ export function getServiceRoleClient(): SupabaseClient {
       throw new Error('Missing Supabase configuration');
     }
 
+    // Supabase connection pooling configuration
+    // The JS client uses REST API (not direct Postgres), so pooling is managed by Supabase's backend
+    // Key: Keep singleton pattern to reuse HTTP connections
     serviceRoleClient = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.SUPABASE_SERVICE_ROLE,
@@ -18,11 +21,6 @@ export function getServiceRoleClient(): SupabaseClient {
         },
         db: {
           schema: 'public',
-        },
-        global: {
-          headers: {
-            'x-connection-pool': 'true',
-          },
         },
       }
     );
