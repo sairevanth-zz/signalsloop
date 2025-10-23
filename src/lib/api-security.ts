@@ -341,6 +341,53 @@ export async function validateAPIKey(request: NextRequest): Promise<{
 }
 
 /**
+ * Admin authentication validator (JWT-based)
+ */
+export async function validateAdminAuth(request: NextRequest): Promise<{
+  valid: boolean;
+  user?: any;
+  error?: string;
+}> {
+  const authHeader = request.headers.get('authorization');
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { valid: false, error: 'Missing or invalid Authorization header' };
+  }
+
+  const token = authHeader.replace('Bearer ', '');
+
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE!
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return { valid: false, error: 'Invalid authentication token' };
+    }
+
+    // Check if user is admin
+    const ADMIN_USER_IDS = process.env.ADMIN_USER_IDS?.split(',').map(id => id.trim()) || [];
+
+    if (!ADMIN_USER_IDS.includes(user.id)) {
+      return { valid: false, error: 'Admin access required' };
+    }
+
+    return {
+      valid: true,
+      user,
+    };
+  } catch (error) {
+    console.error('Admin auth validation error:', error);
+    return { valid: false, error: 'Authentication failed' };
+  }
+}
+
+/**
  * Example usage:
  *
  * export const POST = secureAPI<CreatePostBody, { id: string }>(

@@ -1,49 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { exportTables } from '@/lib/backup-utils';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { format } from 'date-fns';
-
-const ADMIN_USER_IDS = process.env.ADMIN_USER_IDS?.split(',').map(id => id.trim()) || [];
-
-async function isAdmin(userId: string): Promise<boolean> {
-  return ADMIN_USER_IDS.includes(userId);
-}
+import { secureAPI, validateAdminAuth } from '@/lib/api-security';
+import { exportTables } from '@/lib/backup-utils';
 
 /**
  * POST /api/admin/backups/export
  * Export specific tables as JSON
- *
- * Body: { tables: string[] }
  */
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE!
-    );
-
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user || !await isAdmin(user.id)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    // Get tables from request body
-    const body = await request.json();
-    const tables = body.tables || [];
-
-    if (!Array.isArray(tables) || tables.length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid request. Provide tables array.' },
-        { status: 400 }
-      );
-    }
+export const POST = secureAPI(
+  async ({ body }) => {
+    const { tables } = body!;
 
     // Export tables
     const exportBuffer = await exportTables(tables);
@@ -58,15 +25,14 @@ export async function POST(request: NextRequest) {
         'Content-Length': exportBuffer.length.toString(),
       },
     });
-
-  } catch (error) {
-    console.error('Error exporting tables:', error);
-    return NextResponse.json(
-      {
-        error: 'Export failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+  },
+  {
+    enableRateLimit: true,
+    rateLimitType: 'api',
+    requireAuth: true,
+    authValidator: validateAdminAuth,
+    bodySchema: z.object({
+      tables: z.array(z.string()).min(1),
+    }),
   }
-}
+);
