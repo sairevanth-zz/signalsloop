@@ -1,12 +1,32 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { applySecurityHeaders } from '@/lib/security-headers';
+import { applyRateLimit, getRateLimitHeaders } from '@/lib/rate-limit';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const host = request.headers.get('host');
   const pathname = request.nextUrl.pathname;
 
-  // Skip middleware for API routes, static files, and default domains
+  // Apply rate limiting to all API routes
+  if (pathname.startsWith('/api/')) {
+    const rateLimitResult = await applyRateLimit(request, 'api');
+
+    if (rateLimitResult && !rateLimitResult.success) {
+      const headers = getRateLimitHeaders(rateLimitResult);
+
+      const response = NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          message: `Too many requests. Please try again in ${rateLimitResult.retryAfter} seconds.`,
+        },
+        { status: 429, headers }
+      );
+
+      return applySecurityHeaders(response);
+    }
+  }
+
+  // Skip custom domain logic for static files and default domains
   if (
     pathname.startsWith('/api/') ||
     pathname.startsWith('/_next/') ||
