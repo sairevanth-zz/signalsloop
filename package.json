@@ -19,9 +19,12 @@
     "load-test:stress": "k6 run load-tests/api-stress-test.js",
     "load-test:local": "BASE_URL=http://localhost:3000 k6 run load-tests/prod-load-test.js",
     "load-test:local-comprehensive": "BASE_URL=http://localhost:3000 k6 run load-tests/comprehensive-test.js",
-    "load-test:local-baseline": "BASE_URL=http://localhost:3000 k6 run load-tests/baseline-test.js"
+    "load-test:local-baseline": "BASE_URL=http://localhost:3000 k6 run load-tests/baseline-test.js",
+    "backup": "tsx scripts/daily-backup.ts",
+    "backup:test": "tsx scripts/test-backup.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.914.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -38,6 +41,7 @@
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.4",
     "@types/qrcode": "^1.5.5",
+    "archiver": "^7.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cookie": "^1.0.2",
@@ -51,6 +55,7 @@
     "micro": "^10.0.1",
     "next": "15.5.3",
     "openai": "^5.20.3",
+    "pg-format": "^1.0.4",
     "posthog-js": "^1.266.0",
     "qrcode": "^1.5.4",
     "react": "19.1.0",

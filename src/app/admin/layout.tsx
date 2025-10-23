@@ -19,7 +19,8 @@ import {
   X,
   Shield,
   AlertCircle,
-  ShieldAlert
+  ShieldAlert,
+  Database
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
@@ -95,6 +96,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: Users },
     { name: 'Discount Codes', href: '/admin/discount-codes', icon: Percent },
     { name: 'Security Events', href: '/admin/security-events', icon: ShieldAlert },
+    { name: 'Backups', href: '/admin/backups', icon: Database },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
