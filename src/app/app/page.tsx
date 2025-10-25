@@ -49,6 +49,8 @@ interface Project {
   last_activity?: string;
   weekly_posts_trend?: number;
   widget_installed?: boolean;
+  is_owner?: boolean;
+  member_role?: 'owner' | 'admin' | 'member';
 }
 
 export default function EnhancedDashboardPage() {
@@ -99,7 +101,8 @@ export default function EnhancedDashboardPage() {
 
       setProjectsLoading(true);
     try {
-      const { data: projects, error: projectsError } = await supabase
+      // Get projects owned by the user
+      const { data: ownedProjects, error: ownedError } = await supabase
         .from('projects')
         .select(`
           id,
@@ -108,17 +111,68 @@ export default function EnhancedDashboardPage() {
           plan,
           created_at
         `)
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false });
+        .eq('owner_id', user.id);
 
-      if (projectsError) {
-        console.error('Error loading projects:', projectsError);
-        toast.error('Failed to load projects');
-        return;
+      if (ownedError) {
+        console.error('Error loading owned projects:', ownedError);
       }
+
+      // Get projects where user is a member
+      const { data: membershipData, error: membershipError } = await supabase
+        .from('members')
+        .select(`
+          role,
+          projects (
+            id,
+            name,
+            slug,
+            plan,
+            created_at
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (membershipError) {
+        console.error('Error loading member projects:', membershipError);
+      }
+
+      // Combine owned and member projects
+      const allProjects = [];
+
+      // Add owned projects
+      if (ownedProjects) {
+        ownedProjects.forEach(project => {
+          allProjects.push({
+            ...project,
+            is_owner: true,
+            member_role: 'owner' as const,
+          });
+        });
+      }
+
+      // Add member projects
+      if (membershipData) {
+        membershipData.forEach(membership => {
+          if (membership.projects) {
+            allProjects.push({
+              ...membership.projects,
+              is_owner: false,
+              member_role: membership.role as 'admin' | 'member',
+            });
+          }
+        });
+      }
+
+      // Sort by created_at descending
+      allProjects.sort((a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      const projects = allProjects;
 
       if (!projects || projects.length === 0) {
         setProjects([]);
+        setProjectsLoading(false);
         return;
       }
 

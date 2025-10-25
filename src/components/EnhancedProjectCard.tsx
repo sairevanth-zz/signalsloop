@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Eye, 
-  Share2, 
-  Map, 
-  Settings, 
+import {
+  Eye,
+  Share2,
+  Map,
+  Settings,
   Sparkles,
   Archive,
   Copy,
@@ -17,7 +17,10 @@ import {
   TrendingDown,
   Minus,
   CheckSquare,
-  Square
+  Square,
+  Crown,
+  Shield,
+  Users
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -39,6 +42,8 @@ interface Project {
   last_activity?: string;
   weekly_posts_trend?: number;
   widget_installed?: boolean;
+  is_owner?: boolean;
+  member_role?: 'owner' | 'admin' | 'member';
 }
 
 interface EnhancedProjectCardProps {
@@ -138,6 +143,23 @@ export default function EnhancedProjectCard({
               <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate">
                 {project.name}
               </h3>
+              {/* Role badge */}
+              {!project.is_owner && project.member_role && (
+                <Badge
+                  variant="outline"
+                  className={`ml-2 text-xs ${
+                    project.member_role === 'admin'
+                      ? 'border-blue-500 text-blue-700 bg-blue-50'
+                      : 'border-gray-400 text-gray-700 bg-gray-50'
+                  }`}
+                >
+                  {project.member_role === 'admin' ? (
+                    <><Shield className="w-3 h-3 mr-1 inline" />Admin</>
+                  ) : (
+                    <><Users className="w-3 h-3 mr-1 inline" />Member</>
+                  )}
+                </Badge>
+              )}
             </div>
             <p className="text-sm text-gray-600">
               Created {formatDate(project.created_at)}
