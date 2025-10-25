@@ -30,7 +30,8 @@ import {
   MessageSquare,
   Zap,
   Plug,
-  Mail
+  Mail,
+  Users
 } from 'lucide-react';
 import { NotificationRecipientsManager } from '@/components/NotificationRecipientsManager';
 import { TeammatesSettings } from '@/components/TeammatesSettings';
