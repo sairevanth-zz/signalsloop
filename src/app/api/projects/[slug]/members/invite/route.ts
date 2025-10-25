@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
-import { sendTeamInvitationEmail } from '@/lib/email';
+import { sendTeamInvitationEmail, sendTeamAddedEmail } from '@/lib/email';
 import crypto from 'crypto';
 
 export async function POST(
@@ -120,6 +120,22 @@ export async function POST(
           { error: 'Failed to add team member' },
           { status: 500 }
         );
+      }
+
+      // Send notification email to the added member
+      try {
+        const memberName = existingUser.user_metadata?.full_name || existingUser.email?.split('@')[0];
+        await sendTeamAddedEmail({
+          memberEmail: existingUser.email || '',
+          memberName: memberName,
+          inviterName: inviterName,
+          projectName: project.name,
+          projectSlug: project.slug,
+          role: role as 'admin' | 'member',
+        });
+      } catch (emailError) {
+        console.error('Error sending team added email:', emailError);
+        // Don't fail the request if email fails
       }
 
       return NextResponse.json({

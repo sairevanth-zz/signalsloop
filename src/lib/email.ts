@@ -2062,6 +2062,69 @@ export interface SendTeamInvitationEmailParams {
   expiresAt: Date;
 }
 
+export interface SendTeamAddedEmailParams {
+  memberEmail: string;
+  memberName?: string;
+  inviterName: string;
+  projectName: string;
+  projectSlug: string;
+  role: 'admin' | 'member';
+}
+
+export async function sendTeamAddedEmail(params: SendTeamAddedEmailParams) {
+  const {
+    memberEmail,
+    memberName,
+    inviterName,
+    projectName,
+    projectSlug,
+    role,
+  } = params;
+
+  const projectUrl = `${APP_URL}/${projectSlug}/board`;
+
+  const roleDescription = role === 'admin'
+    ? 'You have admin access to manage project settings, view analytics, and moderate content.'
+    : 'You can view project content and respond to feedback.';
+
+  const html = buildEmailHtml({
+    title: 'You\'ve been added to a team! 🎉',
+    greeting: `Hi${memberName ? ` ${memberName}` : ''},`,
+    paragraphs: [
+      `<strong>${inviterName}</strong> has added you to the <strong>${projectName}</strong> project on SignalsLoop.`,
+      roleDescription,
+      'You can start collaborating with your team right away.',
+    ],
+    ctaLabel: 'Go to Project',
+    ctaUrl: projectUrl,
+    outro: 'If you have any questions, feel free to reach out to your team.',
+  });
+
+  try {
+    await sendEmail({
+      to: memberEmail,
+      subject: `You've been added to ${projectName} on SignalsLoop`,
+      html,
+    });
+
+    await logEmail({
+      emailType: 'team_added',
+      toEmail: memberEmail,
+      subject: `You've been added to ${projectName} on SignalsLoop`,
+      projectSlug,
+      metadata: {
+        inviterName,
+        role,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to send team added email:', error);
+    throw error;
+  }
+}
+
 export async function sendTeamInvitationEmail(params: SendTeamInvitationEmailParams) {
   const {
     inviteeEmail,
