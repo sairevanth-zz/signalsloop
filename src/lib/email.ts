@@ -2052,6 +2052,73 @@ interface SendWeeklyDigestEmailParams {
   projects: WeeklyDigestProjectSection[];
 }
 
+export interface SendTeamInvitationEmailParams {
+  inviteeEmail: string;
+  inviterName: string;
+  projectName: string;
+  projectSlug: string;
+  role: 'admin' | 'member';
+  invitationToken: string;
+  expiresAt: Date;
+}
+
+export async function sendTeamInvitationEmail(params: SendTeamInvitationEmailParams) {
+  const {
+    inviteeEmail,
+    inviterName,
+    projectName,
+    projectSlug,
+    role,
+    invitationToken,
+    expiresAt,
+  } = params;
+
+  const invitationUrl = `${APP_URL}/accept-invitation?token=${invitationToken}`;
+  const expiresInDays = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+  const roleDescription = role === 'admin'
+    ? 'You\'ll have admin access to manage project settings, view analytics, and moderate content.'
+    : 'You\'ll be able to view project content and respond to feedback.';
+
+  const html = buildEmailHtml({
+    title: 'You\'ve been invited to join a team 🎉',
+    greeting: 'Hi there,',
+    paragraphs: [
+      `<strong>${inviterName}</strong> has invited you to join the <strong>${projectName}</strong> project on SignalsLoop.`,
+      roleDescription,
+      `This invitation will expire in ${expiresInDays} day${expiresInDays !== 1 ? 's' : ''}.`,
+    ],
+    ctaLabel: 'Accept Invitation',
+    ctaUrl: invitationUrl,
+    outro: 'If you don\'t have a SignalsLoop account yet, you\'ll be able to create one when you accept the invitation.',
+  });
+
+  try {
+    await sendEmail({
+      to: inviteeEmail,
+      subject: `You've been invited to join ${projectName} on SignalsLoop`,
+      html,
+    });
+
+    await logEmail({
+      emailType: 'team_invitation',
+      toEmail: inviteeEmail,
+      subject: `You've been invited to join ${projectName} on SignalsLoop`,
+      projectSlug,
+      metadata: {
+        inviterName,
+        role,
+        expiresAt: expiresAt.toISOString(),
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to send team invitation email:', error);
+    throw error;
+  }
+}
+
 export async function sendWeeklyDigestEmail(
   params: SendWeeklyDigestEmailParams
 ): Promise<{ success: boolean; reason?: string; data?: unknown }> {

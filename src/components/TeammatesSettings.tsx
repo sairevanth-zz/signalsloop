@@ -80,6 +80,14 @@ export function TeammatesSettings({
 
     setLoading(true);
     try {
+      // Get the current session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Not authenticated');
+        setLoading(false);
+        return;
+      }
+
       // Get members with user email from auth.users
       const { data: membersData, error } = await supabase
         .from('members')
@@ -107,6 +115,7 @@ export function TeammatesSettings({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({ userIds }),
         });
@@ -144,10 +153,19 @@ export function TeammatesSettings({
 
     setInviting(true);
     try {
+      // Get the current session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Not authenticated');
+        setInviting(false);
+        return;
+      }
+
       const response = await fetch(`/api/projects/${projectSlug}/members/invite`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           email: inviteEmail,
@@ -162,8 +180,14 @@ export function TeammatesSettings({
         return;
       }
 
-      toast.success('Team member invited successfully!');
-      onShowNotification?.('Team member invited successfully!', 'success');
+      if (data.type === 'direct') {
+        toast.success('Team member added successfully!');
+        onShowNotification?.('Team member added successfully!', 'success');
+      } else if (data.type === 'invitation') {
+        toast.success(`Invitation sent to ${inviteEmail}! They'll receive an email with instructions to join.`);
+        onShowNotification?.(`Invitation sent to ${inviteEmail}!`, 'success');
+      }
+
       setInviteEmail('');
       setInviteRole('member');
       loadMembers();
@@ -180,8 +204,19 @@ export function TeammatesSettings({
 
     setRemovingMemberId(member.id);
     try {
+      // Get the current session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Not authenticated');
+        setRemovingMemberId(null);
+        return;
+      }
+
       const response = await fetch(`/api/projects/${projectSlug}/members/${member.id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
       });
 
       if (!response.ok) {
@@ -317,7 +352,7 @@ export function TeammatesSettings({
           </Button>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-900">
             <AlertCircle className="w-4 h-4 inline mr-2" />
-            The user must already have a SignalsLoop account with this email address.
+            If the user has an account, they'll be added immediately. Otherwise, they'll receive an invitation email.
           </div>
         </CardContent>
       </Card>

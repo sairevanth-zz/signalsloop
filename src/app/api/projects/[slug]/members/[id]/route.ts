@@ -9,9 +9,19 @@ export async function DELETE(
     const supabase = getSupabaseServiceRoleClient();
     const { slug, id } = params;
 
-    // Get the current user from the session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    // Get the authenticated user from the Authorization header
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -33,7 +43,7 @@ export async function DELETE(
     }
 
     // Check if current user is the owner
-    if (project.owner_id !== session.user.id) {
+    if (project.owner_id !== user.id) {
       return NextResponse.json(
         { error: 'Only project owners can remove team members' },
         { status: 403 }

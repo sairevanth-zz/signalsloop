@@ -19,9 +19,19 @@ export async function POST(
       );
     }
 
-    // Get the current user from the session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    // Get the authenticated user from the Authorization header
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -47,10 +57,10 @@ export async function POST(
       .from('members')
       .select('id')
       .eq('project_id', project.id)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single();
 
-    const isOwner = project.owner_id === session.user.id;
+    const isOwner = project.owner_id === user.id;
 
     if (!isOwner && !membership) {
       return NextResponse.json(

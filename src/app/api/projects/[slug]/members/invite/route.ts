@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { sendTeamInvitationEmail } from '@/lib/email';
+import crypto from 'crypto';
 
 export async function POST(
   request: NextRequest,
@@ -27,19 +29,29 @@ export async function POST(
       );
     }
 
-    // Get the current user from the session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    // Get the authenticated user from the Authorization header
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // Get the project
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Get the project with name
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .select('id, owner_id')
+      .select('id, owner_id, name, slug')
       .eq('slug', slug)
       .single();
 
@@ -51,70 +63,139 @@ export async function POST(
     }
 
     // Check if current user is the owner
-    if (project.owner_id !== session.user.id) {
+    if (project.owner_id !== user.id) {
       return NextResponse.json(
         { error: 'Only project owners can invite team members' },
         { status: 403 }
       );
     }
 
-    // Find user by email in auth.users
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+    // Get inviter's name from auth metadata
+    const inviterName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'A team member';
 
-    if (authError) {
-      console.error('Error listing users:', authError);
+    // Find user by email in auth.users
+    const { data: authUsers, error: listUsersError } = await supabase.auth.admin.listUsers();
+
+    if (listUsersError) {
+      console.error('Error listing users:', listUsersError);
       return NextResponse.json(
-        { error: 'Failed to find user' },
+        { error: 'Failed to check user' },
         { status: 500 }
       );
     }
 
-    const invitedUser = authUsers.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    const existingUser = authUsers.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
 
-    if (!invitedUser) {
-      return NextResponse.json(
-        { error: 'User with this email does not exist. They must create an account first.' },
-        { status: 404 }
-      );
+    // If user exists, add them directly
+    if (existingUser) {
+      // Check if user is already a member
+      const { data: existingMember } = await supabase
+        .from('members')
+        .select('id')
+        .eq('project_id', project.id)
+        .eq('user_id', existingUser.id)
+        .single();
+
+      if (existingMember) {
+        return NextResponse.json(
+          { error: 'User is already a team member' },
+          { status: 400 }
+        );
+      }
+
+      // Add the member directly
+      const { data: newMember, error: memberError } = await supabase
+        .from('members')
+        .insert({
+          project_id: project.id,
+          user_id: existingUser.id,
+          role: role,
+        })
+        .select()
+        .single();
+
+      if (memberError) {
+        console.error('Error adding member:', memberError);
+        return NextResponse.json(
+          { error: 'Failed to add team member' },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        type: 'direct',
+        member: newMember,
+      });
     }
 
-    // Check if user is already a member
-    const { data: existingMember } = await supabase
-      .from('members')
-      .select('id')
+    // User doesn't exist, create invitation
+    // Check for existing pending invitation
+    const { data: existingInvitation } = await supabase
+      .from('team_invitations')
+      .select('id, status')
       .eq('project_id', project.id)
-      .eq('user_id', invitedUser.id)
+      .eq('email', email.toLowerCase())
+      .eq('status', 'pending')
       .single();
 
-    if (existingMember) {
+    if (existingInvitation) {
       return NextResponse.json(
-        { error: 'User is already a team member' },
+        { error: 'An invitation has already been sent to this email' },
         { status: 400 }
       );
     }
 
-    // Add the member
-    const { data: newMember, error: memberError } = await supabase
-      .from('members')
+    // Generate unique invitation token
+    const invitationToken = crypto.randomBytes(32).toString('hex');
+
+    // Set expiration (7 days from now)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    // Create invitation
+    const { data: invitation, error: invitationError } = await supabase
+      .from('team_invitations')
       .insert({
         project_id: project.id,
-        user_id: invitedUser.id,
+        email: email.toLowerCase(),
         role: role,
+        token: invitationToken,
+        invited_by: user.id,
+        expires_at: expiresAt.toISOString(),
+        status: 'pending',
       })
       .select()
       .single();
 
-    if (memberError) {
-      console.error('Error adding member:', memberError);
+    if (invitationError) {
+      console.error('Error creating invitation:', invitationError);
       return NextResponse.json(
-        { error: 'Failed to add team member' },
+        { error: 'Failed to create invitation' },
         { status: 500 }
       );
     }
 
+    // Send invitation email
+    try {
+      await sendTeamInvitationEmail({
+        inviteeEmail: email,
+        inviterName: inviterName,
+        projectName: project.name,
+        projectSlug: project.slug,
+        role: role as 'admin' | 'member',
+        invitationToken: invitationToken,
+        expiresAt: expiresAt,
+      });
+    } catch (emailError) {
+      console.error('Error sending invitation email:', emailError);
+      // Don't fail the request if email fails, invitation is still created
+    }
+
     return NextResponse.json({
       success: true,
-      member: newMember,
+      type: 'invitation',
+      invitation: invitation,
     });
   } catch (error) {
     console.error('Error inviting team member:', error);
