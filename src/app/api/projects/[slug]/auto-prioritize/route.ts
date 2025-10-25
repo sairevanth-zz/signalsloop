@@ -64,7 +64,22 @@ export async function POST(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    if (project.owner_id !== user.id) {
+    // Check if user is owner or admin member
+    const isOwner = project.owner_id === user.id;
+    let isAdmin = false;
+
+    if (!isOwner) {
+      const { data: memberData } = await supabase
+        .from('members')
+        .select('role')
+        .eq('project_id', project.id)
+        .eq('user_id', user.id)
+        .single();
+
+      isAdmin = memberData?.role === 'admin';
+    }
+
+    if (!isOwner && !isAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

@@ -14,7 +14,7 @@ export const DELETE = secureAPI(
       return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
     }
 
-    // Verify admin owns this project
+    // Verify admin owns this project or is an admin member
     const { data: project, error: projectError } = await supabase
       .from('projects')
       .select('owner_id')
@@ -25,7 +25,22 @@ export const DELETE = secureAPI(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    if (project.owner_id !== user!.id) {
+    // Check if user is owner or admin member
+    const isOwner = project.owner_id === user!.id;
+    let isAdmin = false;
+
+    if (!isOwner) {
+      const { data: memberData } = await supabase
+        .from('members')
+        .select('role')
+        .eq('project_id', projectId)
+        .eq('user_id', user!.id)
+        .single();
+
+      isAdmin = memberData?.role === 'admin';
+    }
+
+    if (!isOwner && !isAdmin) {
       return NextResponse.json({ error: 'Not authorized for this project' }, { status: 403 });
     }
 

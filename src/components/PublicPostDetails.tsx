@@ -151,23 +151,23 @@ export default function PublicPostDetails({
     setHasVoted(voted.includes(post.id));
   }, [post.id, project.id]);
 
-  // Check if current user is project owner using direct Supabase query
+  // Check if current user is project owner or admin member using direct Supabase query
   useEffect(() => {
     const checkOwner = async () => {
       try {
         setOwnerCheckLoading(true);
-        
+
         if (!user) {
           setIsOwner(false);
           setOwnerCheckLoading(false);
           return;
         }
 
-        // Query Supabase directly to check if user is owner
+        // Query Supabase directly to check if user is owner or admin
         const supabase = getSupabaseClient();
         const { data: projectData, error } = await supabase
           .from('projects')
-          .select('owner_id')
+          .select('id, owner_id')
           .eq('slug', project.slug)
           .single();
 
@@ -176,7 +176,21 @@ export default function PublicPostDetails({
           setIsOwner(false);
         } else {
           const isProjectOwner = projectData?.owner_id === user.id;
-          setIsOwner(isProjectOwner);
+
+          // If not owner, check if user is an admin member
+          if (!isProjectOwner && projectData) {
+            const { data: memberData } = await supabase
+              .from('members')
+              .select('role')
+              .eq('project_id', projectData.id)
+              .eq('user_id', user.id)
+              .single();
+
+            const isAdmin = memberData?.role === 'admin';
+            setIsOwner(isAdmin);
+          } else {
+            setIsOwner(isProjectOwner);
+          }
         }
       } catch (error) {
         console.error('Owner check error:', error);
