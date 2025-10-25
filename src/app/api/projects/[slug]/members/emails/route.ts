@@ -70,10 +70,10 @@ export async function POST(
     }
 
     // Fetch users from auth.users
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+    const { data: authUsers, error: listUsersError } = await supabase.auth.admin.listUsers();
 
-    if (authError) {
-      console.error('Error listing users:', authError);
+    if (listUsersError) {
+      console.error('Error listing users:', listUsersError);
       return NextResponse.json(
         { error: 'Failed to fetch user emails' },
         { status: 500 }
