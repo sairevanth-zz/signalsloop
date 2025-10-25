@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { secureAPI, validateAdminAuth } from '@/lib/api-security';
+import { secureAPI, validateAuth } from '@/lib/api-security';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
 export const runtime = 'nodejs';
@@ -96,7 +96,7 @@ export const DELETE = secureAPI(
   {
     enableRateLimit: true,
     requireAuth: true,
-    authValidator: validateAdminAuth,
+    authValidator: validateAuth,
     bodySchema: z.object({
       commentId: z.string().uuid(),
       projectId: z.string().uuid(),

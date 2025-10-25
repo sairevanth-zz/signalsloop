@@ -101,8 +101,20 @@ export async function GET(
 
       console.log('✅ User authenticated:', user.id);
 
-      // Check if user is the project owner
-      const isOwner = project.owner_id === user.id;
+      // Check if user is the project owner or admin member
+      let isOwner = project.owner_id === user.id;
+
+      // If not owner, check if user is an admin member
+      if (!isOwner) {
+        const { data: memberData } = await supabase
+          .from('members')
+          .select('role')
+          .eq('project_id', project.id)
+          .eq('user_id', user.id)
+          .single();
+
+        isOwner = memberData?.role === 'admin';
+      }
 
       console.log('🔍 Owner check result:', {
         projectId: project.id,
@@ -112,7 +124,7 @@ export async function GET(
         isOwner
       });
 
-      return NextResponse.json({ 
+      return NextResponse.json({
         isOwner,
         projectId: project.id,
         userId: user.id,

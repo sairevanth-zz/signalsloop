@@ -341,6 +341,46 @@ export async function validateAPIKey(request: NextRequest): Promise<{
 }
 
 /**
+ * Basic authentication validator (JWT-based) - checks if user is authenticated
+ */
+export async function validateAuth(request: NextRequest): Promise<{
+  valid: boolean;
+  user?: any;
+  error?: string;
+}> {
+  const authHeader = request.headers.get('authorization');
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { valid: false, error: 'Missing or invalid Authorization header' };
+  }
+
+  const token = authHeader.replace('Bearer ', '');
+
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE!
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return { valid: false, error: 'Invalid authentication token' };
+    }
+
+    return {
+      valid: true,
+      user,
+    };
+  } catch (error) {
+    console.error('Auth validation error:', error);
+    return { valid: false, error: 'Authentication failed' };
+  }
+}
+
+/**
  * Admin authentication validator (JWT-based)
  */
 export async function validateAdminAuth(request: NextRequest): Promise<{

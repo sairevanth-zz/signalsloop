@@ -197,12 +197,32 @@ export default function SettingsPage() {
         .from('projects')
         .select('*')
         .eq('slug', projectSlug)
-        .eq('owner_id', user.id)
         .single();
 
       if (projectError || !projectData) {
         console.error('Error loading project:', projectError);
         toast.error('Project not found');
+        router.push('/app');
+        return;
+      }
+
+      // Check if user is owner or admin member
+      const isOwner = projectData.owner_id === user.id;
+      let hasAccess = isOwner;
+
+      if (!isOwner) {
+        const { data: memberData } = await supabase
+          .from('members')
+          .select('role')
+          .eq('project_id', projectData.id)
+          .eq('user_id', user.id)
+          .single();
+
+        hasAccess = memberData?.role === 'admin';
+      }
+
+      if (!hasAccess) {
+        toast.error('You do not have permission to access settings');
         router.push('/app');
         return;
       }

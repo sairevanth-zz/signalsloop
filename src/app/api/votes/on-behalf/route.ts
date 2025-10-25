@@ -58,10 +58,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify admin owns this project
+    // Verify admin owns this project or is an admin member
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .select('owner_id, slug, name')
+      .select('owner_id, slug, name, id')
       .eq('id', projectId)
       .single();
 
@@ -69,7 +69,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    if (project.owner_id !== admin.id) {
+    // Check if user is owner or admin member
+    const isOwner = project.owner_id === admin.id;
+    let isAdminMember = false;
+
+    if (!isOwner) {
+      const { data: memberData } = await supabase
+        .from('members')
+        .select('role')
+        .eq('project_id', project.id)
+        .eq('user_id', admin.id)
+        .single();
+
+      isAdminMember = memberData?.role === 'admin';
+    }
+
+    if (!isOwner && !isAdminMember) {
       return NextResponse.json({ error: 'Not authorized for this project' }, { status: 403 });
     }
 
