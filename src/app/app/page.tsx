@@ -136,10 +136,11 @@ export default function EnhancedDashboardPage() {
         console.error('Error loading member projects:', membershipError);
       }
 
-      // Combine owned and member projects
+      // Combine owned and member projects (avoid duplicates)
       const allProjects = [];
+      const seenProjectIds = new Set<string>();
 
-      // Add owned projects
+      // Add owned projects first
       if (ownedProjects) {
         ownedProjects.forEach(project => {
           allProjects.push({
@@ -147,18 +148,20 @@ export default function EnhancedDashboardPage() {
             is_owner: true,
             member_role: 'owner' as const,
           });
+          seenProjectIds.add(project.id);
         });
       }
 
-      // Add member projects
+      // Add member projects (skip if already added as owner)
       if (membershipData) {
         membershipData.forEach(membership => {
-          if (membership.projects) {
+          if (membership.projects && !seenProjectIds.has(membership.projects.id)) {
             allProjects.push({
               ...membership.projects,
               is_owner: false,
               member_role: membership.role as 'admin' | 'member',
             });
+            seenProjectIds.add(membership.projects.id);
           }
         });
       }
