@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 export async function DELETE(request: Request) {
   try {
     const { boardId } = await request.json();
-    
+
     if (!boardId) {
       return NextResponse.json(
         { error: 'Board ID is required' },
@@ -17,6 +17,25 @@ export async function DELETE(request: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE!
     );
+
+    // Get the authenticated user
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
 
     console.log('🗑️ Deleting board and project with service role:', boardId);
 
@@ -37,6 +56,28 @@ export async function DELETE(request: Request) {
 
     const projectId = boardData.project_id;
     console.log('📍 Found project_id for board:', projectId);
+
+    // Get project and verify user is the OWNER (not just admin)
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('owner_id')
+      .eq('id', projectId)
+      .single();
+
+    if (projectError || !project) {
+      return NextResponse.json(
+        { error: 'Project not found' },
+        { status: 404 }
+      );
+    }
+
+    // Only project owner can delete the project
+    if (project.owner_id !== user.id) {
+      return NextResponse.json(
+        { error: 'Only project owners can delete projects' },
+        { status: 403 }
+      );
+    }
 
     // Delete the project (this will cascade delete the board, posts, comments, votes, members, api_keys)
     const { error } = await supabase
