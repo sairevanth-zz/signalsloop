@@ -33,6 +33,7 @@ import {
   Mail
 } from 'lucide-react';
 import { NotificationRecipientsManager } from '@/components/NotificationRecipientsManager';
+import { TeammatesSettings } from '@/components/TeammatesSettings';
 
 interface Project {
   id: string;
@@ -454,12 +455,19 @@ export default function SettingsPage() {
                   <Download className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Export</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="changelog" 
+                <TabsTrigger
+                  value="changelog"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent"
                 >
                   <FileText className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Changelog</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="teammates"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent"
+                >
+                  <Users className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Team</span>
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -703,7 +711,7 @@ export default function SettingsPage() {
                   </p>
                 </div>
               </div>
-              
+
             {project ? (
               <SimpleChangelogManager projectId={project.id} projectSlug={project.slug} />
             ) : (
@@ -716,6 +724,31 @@ export default function SettingsPage() {
                   </h3>
                   <p className="text-gray-600">
                     Loading changelog settings...
+                  </p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="teammates" className="mt-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              {project && authUser ? (
+                <TeammatesSettings
+                  projectId={project.id}
+                  projectSlug={project.slug}
+                  currentUserId={authUser.id}
+                  onShowNotification={handleShowNotification}
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Users className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Loading...
+                  </h3>
+                  <p className="text-gray-600">
+                    Loading team settings...
                   </p>
                 </div>
               )}
