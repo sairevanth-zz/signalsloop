@@ -159,11 +159,15 @@ export default function BoardPage() {
   const [priorityVoteCounts, setPriorityVoteCounts] = useState({ must_have: 0, important: 0, nice_to_have: 0 });
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [isProjectOwner, setIsProjectOwner] = useState(false);
+  const [memberRole, setMemberRole] = useState<'owner' | 'admin' | 'member' | null>(null);
   const [showFeedbackOnBehalfModal, setShowFeedbackOnBehalfModal] = useState(false);
   const [autoCategorizing, setAutoCategorizing] = useState(false);
   const [autoPrioritizing, setAutoPrioritizing] = useState(false);
   const [expandedPriorityCards, setExpandedPriorityCards] = useState<Record<string, boolean>>({});
   const exportTriggerRef = useRef<(() => void) | null>(null);
+
+  // Derived permission check: user is owner or admin
+  const isOwnerOrAdmin = isProjectOwner || memberRole === 'admin';
 
   // Initialize filters from URL parameters
   useEffect(() => {
@@ -331,8 +335,27 @@ export default function BoardPage() {
       // Check if current user is the project owner
       if (user && projectData.owner_id === user.id) {
         setIsProjectOwner(true);
+        setMemberRole('owner');
       } else {
         setIsProjectOwner(false);
+
+        // Check if user is an admin or member
+        if (user) {
+          const { data: memberData } = await supabase
+            .from('members')
+            .select('role')
+            .eq('project_id', projectData.id)
+            .eq('user_id', user.id)
+            .single();
+
+          if (memberData) {
+            setMemberRole(memberData.role);
+          } else {
+            setMemberRole(null);
+          }
+        } else {
+          setMemberRole(null);
+        }
       }
 
       // Get board for this project
@@ -673,7 +696,7 @@ export default function BoardPage() {
                     className="flex items-center gap-1 min-touch-target tap-highlight-transparent"
                   >
                     <span className="text-sm font-semibold">
-                      {isProjectOwner ? 'Admin Actions' : 'Board Actions'}
+                      {isOwnerOrAdmin ? 'Admin Actions' : 'Board Actions'}
                     </span>
                     <ChevronDown className="w-4 h-4" />
                   </Button>
@@ -723,8 +746,8 @@ export default function BoardPage() {
                       </div>
                     </DropdownMenuItem>
                   )}
-                  {isProjectOwner && <DropdownMenuSeparator />}
-                  {isProjectOwner && project && (
+                  {isOwnerOrAdmin && <DropdownMenuSeparator />}
+                  {isOwnerOrAdmin && project && (
                     <DropdownMenuItem
                       onSelect={() => {
                         setShowFeedbackOnBehalfModal(true);
@@ -740,7 +763,7 @@ export default function BoardPage() {
                       </div>
                     </DropdownMenuItem>
                   )}
-                  {isProjectOwner && (
+                  {isOwnerOrAdmin && (
                     <DropdownMenuItem
                       disabled={autoPrioritizing}
                       onSelect={(event) => {
@@ -764,7 +787,7 @@ export default function BoardPage() {
                       </div>
                     </DropdownMenuItem>
                   )}
-                  {isProjectOwner && (
+                  {isOwnerOrAdmin && (
                     <DropdownMenuItem
                       disabled={autoCategorizing}
                       onSelect={(event) => {
@@ -788,7 +811,7 @@ export default function BoardPage() {
                       </div>
                     </DropdownMenuItem>
                   )}
-                  {isProjectOwner && (
+                  {isOwnerOrAdmin && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -873,7 +896,7 @@ export default function BoardPage() {
               <FeedbackExport
                 projectSlug={params?.slug as string}
                 projectName={project?.name || ''}
-                hideTriggerButton={isProjectOwner}
+                hideTriggerButton={isOwnerOrAdmin}
                 registerTrigger={registerExportTrigger}
               />
               
@@ -1095,7 +1118,7 @@ export default function BoardPage() {
                               {post.mergedDuplicateCount} merged
                             </Badge>
                           )}
-                          {isProjectOwner && (
+                          {isOwnerOrAdmin && (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -1208,7 +1231,7 @@ export default function BoardPage() {
                         </p>
                       )}
 
-                      {isProjectOwner && post.mergedDuplicates && post.mergedDuplicates.length > 0 && (
+                      {isOwnerOrAdmin && post.mergedDuplicates && post.mergedDuplicates.length > 0 && (
                         <div className="mb-3 rounded border border-orange-200 bg-orange-50 p-3 text-xs text-orange-800">
                           <div className="flex items-center gap-1 font-semibold mb-2">
                             <AlertTriangle className="h-3 w-3" />
