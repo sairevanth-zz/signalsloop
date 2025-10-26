@@ -613,6 +613,139 @@ export default function Homepage() {
         </div>
       </section>
 
+      {/* Solo Founders & Indie Makers Section */}
+      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/20 to-purple-100/20"></div>
+        <div className="container mx-auto max-w-6xl relative z-10">
+          <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 border-blue-200 text-base px-5 py-2">
+              🚀 Built for Bootstrappers
+            </Badge>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+              Public feedback is your superpower.<br />
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">But legacy tools want $99-$300/month.</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              You're a <strong>solo founder</strong>, <strong>indie maker</strong>, or <strong>early-stage startup</strong>. Public feedback boards help you validate ideas and build what users actually want—but Canny, Aha, and ProductBoard price you out with enterprise fees.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-red-200">
+              <div className="text-4xl mb-3">💸</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Canny</h3>
+              <div className="text-2xl font-bold text-red-600 mb-2">$99/mo</div>
+              <p className="text-sm text-gray-600">Plus $400 setup fee. That's $1,588/year before you collect a single vote.</p>
+            </div>
+
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-red-200">
+              <div className="text-4xl mb-3">📊</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Aha!</h3>
+              <div className="text-2xl font-bold text-red-600 mb-2">$59-149/mo</div>
+              <p className="text-sm text-gray-600">Per user. Add your team? Now you're at $300+/month with limited AI.</p>
+            </div>
+
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-red-200">
+              <div className="text-4xl mb-3">🎯</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">ProductBoard</h3>
+              <div className="text-2xl font-bold text-red-600 mb-2">$20-60/user</div>
+              <p className="text-sm text-gray-600">Starts at $240/year for basic features. Enterprise pricing hidden.</p>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-8 md:p-12 shadow-xl border-2 border-green-200">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                SignalsLoop: Enterprise AI at Indie Prices
+              </h3>
+              <p className="text-lg text-gray-700 max-w-2xl mx-auto mb-6">
+                We believe every founder deserves powerful feedback tools. That's why SignalsLoop starts at <strong className="text-green-700">$0</strong> (forever free) and scales to just <strong className="text-green-700">$19/month</strong> for unlimited everything.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-white/70 rounded-xl p-6">
+                <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  What You Get (Free Forever)
+                </h4>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 mt-1">✓</span>
+                    <span><strong>Public feedback board</strong> - Collect unlimited ideas</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 mt-1">✓</span>
+                    <span><strong>5 AI features</strong> - 10 requests/day to test everything</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 mt-1">✓</span>
+                    <span><strong>Team collaboration</strong> - Invite teammates at no cost</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 mt-1">✓</span>
+                    <span><strong>Roadmap & changelog</strong> - Keep users informed</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border-2 border-blue-300">
+                <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-blue-600" />
+                  Upgrade to Pro ($19/mo)
+                </h4>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1">★</span>
+                    <span><strong>Unlimited AI</strong> - No daily limits, no per-request fees</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1">★</span>
+                    <span><strong>Private boards</strong> - Internal team discussions</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1">★</span>
+                    <span><strong>Custom domain</strong> - feedback.yourdomain.com</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1">★</span>
+                    <span><strong>Unlimited team</strong> - No per-user pricing ever</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="text-center mt-8">
+              <div className="inline-flex items-center gap-3 bg-white/80 rounded-full px-6 py-3 shadow-md">
+                <span className="text-2xl font-bold text-green-600">$19/mo</span>
+                <span className="text-gray-400">vs</span>
+                <span className="text-xl text-gray-500 line-through">$99-300/mo</span>
+                <Badge className="bg-green-600 text-white">Save 80-95%</Badge>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center mt-12">
+            <p className="text-gray-600 text-lg mb-6">
+              No setup fees. No contracts. No per-user charges. <strong>Just honest pricing for indie makers.</strong>
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/login">
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all">
+                  Start Free Forever
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/demo/board">
+                <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-gray-400 px-8 py-6 rounded-xl font-semibold">
+                  See Live Demo
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Emotional Story Arc - PM Pain Point */}
       <section className="py-20 md:py-24 px-4 bg-white">
         <div className="container mx-auto max-w-5xl">
@@ -1186,16 +1319,9 @@ export default function Homepage() {
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
             SignalsLoop's AI reads every piece of feedback
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             and automatically organizes it into actionable categories like Bug Reports, Feature Requests, UI Improvements, and more.
           </p>
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 max-w-2xl mx-auto border border-green-100/50">
-            <div className="text-7xl mb-6">🤖</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">AI-Powered Organization</h3>
-            <p className="text-gray-600 leading-relaxed">
-              No more manual sorting. Every piece of feedback is automatically categorized and ready for your team to act on.
-            </p>
-          </div>
         </div>
       </section>
 
