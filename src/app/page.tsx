@@ -626,30 +626,30 @@ export default function Homepage() {
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">But legacy tools want $99-$300/month.</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              You're a <strong>solo founder</strong>, <strong>indie maker</strong>, or <strong>early-stage startup</strong>. Public feedback boards help you validate ideas and build what users actually want—but Canny, Aha, and ProductBoard price you out with enterprise fees.
+              You're a <strong>solo founder</strong>, <strong>indie maker</strong>, or <strong>early-stage startup</strong>. Public feedback boards help you validate ideas and build what users actually want—but traditional feedback tools price you out with per-user fees and enterprise pricing.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-red-200">
               <div className="text-4xl mb-3">💸</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Canny</h3>
-              <div className="text-2xl font-bold text-red-600 mb-2">$99/mo</div>
-              <p className="text-sm text-gray-600">Plus $400 setup fee. That's $1,588/year before you collect a single vote.</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Legacy Tools</h3>
+              <div className="text-2xl font-bold text-red-600 mb-2">$79-299/mo</div>
+              <p className="text-sm text-gray-600">Entry-level plans from established platforms. Many require annual contracts and setup fees.</p>
             </div>
 
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-red-200">
               <div className="text-4xl mb-3">📊</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Aha!</h3>
-              <div className="text-2xl font-bold text-red-600 mb-2">$59-149/mo</div>
-              <p className="text-sm text-gray-600">Per user. Add your team? Now you're at $300+/month with limited AI.</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Per-User Pricing</h3>
+              <div className="text-2xl font-bold text-red-600 mb-2">$30-100/user</div>
+              <p className="text-sm text-gray-600">Most tools charge per user. A team of 5 can easily cost $500+/month.</p>
             </div>
 
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-red-200">
               <div className="text-4xl mb-3">🎯</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">ProductBoard</h3>
-              <div className="text-2xl font-bold text-red-600 mb-2">$20-60/user</div>
-              <p className="text-sm text-gray-600">Starts at $240/year for basic features. Enterprise pricing hidden.</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Limited AI</h3>
+              <div className="text-2xl font-bold text-red-600 mb-2">Extra $$</div>
+              <p className="text-sm text-gray-600">AI features often cost extra or require enterprise plans. Pay-per-request adds up fast.</p>
             </div>
           </div>
 
@@ -719,8 +719,8 @@ export default function Homepage() {
               <div className="inline-flex items-center gap-3 bg-white/80 rounded-full px-6 py-3 shadow-md">
                 <span className="text-2xl font-bold text-green-600">$19/mo</span>
                 <span className="text-gray-400">vs</span>
-                <span className="text-xl text-gray-500 line-through">$99-300/mo</span>
-                <Badge className="bg-green-600 text-white">Save 80-95%</Badge>
+                <span className="text-xl text-gray-500 line-through">$79-299/mo</span>
+                <Badge className="bg-green-600 text-white">Save up to 93%</Badge>
               </div>
             </div>
           </div>
