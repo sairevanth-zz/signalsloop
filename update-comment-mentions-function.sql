@@ -39,7 +39,7 @@ BEGIN
   SELECT
     ap.email,
     MAX(ap.name) as name,
-    SUM(ap.count) as participation_count
+    SUM(ap.count)::BIGINT as participation_count
   FROM all_participants ap
   WHERE ap.email IS NOT NULL
     AND (

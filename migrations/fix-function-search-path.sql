@@ -471,27 +471,58 @@ SET search_path = public, pg_temp;
 -- ============================================================
 
 -- 15. get_post_participants (if exists)
-CREATE OR REPLACE FUNCTION public.get_post_participants(p_post_id UUID)
+CREATE OR REPLACE FUNCTION public.get_post_participants(
+  p_post_id UUID,
+  p_search_term TEXT DEFAULT NULL
+)
 RETURNS TABLE (
-  user_id UUID,
-  email VARCHAR(255),
-  name VARCHAR(255)
+  email TEXT,
+  name TEXT,
+  participation_count BIGINT
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT DISTINCT
-    COALESCE(c.author_id, v.user_id) AS user_id,
-    COALESCE(c.author_email, u.email) AS email,
-    COALESCE(c.author_name, u.full_name) AS name
-  FROM posts p
-  LEFT JOIN comments c ON p.id = c.post_id
-  LEFT JOIN votes v ON p.id = v.post_id
-  LEFT JOIN users u ON COALESCE(c.author_id, v.user_id) = u.id
-  WHERE p.id = p_post_id
-  AND (c.author_id IS NOT NULL OR v.user_id IS NOT NULL);
+  WITH all_participants AS (
+    SELECT
+      p.author_email::TEXT AS email,
+      p.author_name::TEXT AS name,
+      1::BIGINT AS count
+    FROM public.posts p
+    WHERE p.id = p_post_id
+      AND p.author_email IS NOT NULL
+
+    UNION ALL
+
+    SELECT
+      c.author_email::TEXT AS email,
+      c.author_name::TEXT AS name,
+      COUNT(*)::BIGINT AS count
+    FROM public.comments c
+    WHERE c.post_id = p_post_id
+      AND c.author_email IS NOT NULL
+    GROUP BY c.author_email, c.author_name
+  )
+  SELECT
+    ap.email,
+    MAX(ap.name) AS name,
+    SUM(ap.count)::BIGINT AS participation_count
+  FROM all_participants ap
+  WHERE ap.email IS NOT NULL
+    AND (
+      p_search_term IS NULL
+      OR ap.email ILIKE '%' || p_search_term || '%'
+      OR ap.name ILIKE '%' || p_search_term || '%'
+    )
+  GROUP BY ap.email
+  ORDER BY participation_count DESC, name ASC
+  LIMIT 20;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = public, pg_temp;
+
+GRANT EXECUTE ON FUNCTION public.get_post_participants(UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_post_participants(UUID, TEXT) TO anon;
+GRANT EXECUTE ON FUNCTION public.get_post_participants(UUID, TEXT) TO service_role;
 
 -- ============================================================
 -- PHASE 7: Fix Security Event Functions
