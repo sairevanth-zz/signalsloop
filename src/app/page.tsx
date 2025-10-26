@@ -28,7 +28,11 @@ import {
   Share2,
   Upload,
   Download,
-  ExternalLink
+  ExternalLink,
+  Users,
+  Shield,
+  Mail,
+  UserPlus
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/useAuth';
@@ -917,6 +921,66 @@ export default function Homepage() {
         </div>
       </section>
 
+      {/* Team Collaboration Section */}
+      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/20 to-purple-100/20"></div>
+        <div className="container mx-auto relative z-10">
+          <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200">
+              👥 Team Collaboration
+            </Badge>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Work together, ship faster
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Invite your team, assign roles, and collaborate seamlessly. Team members inherit your project's features—no extra cost per user.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100/50">
+              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <UserPlus className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">Easy Team Invites</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Invite team members via email. Existing users are added instantly, new users receive invitation links.
+              </p>
+              <div className="mt-3 text-xs text-blue-600 font-medium">Direct Add • Email Invitations • Automatic Setup</div>
+            </div>
+
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-indigo-100/50">
+              <div className="mx-auto w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                <Shield className="w-8 h-8 text-indigo-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">Role-Based Permissions</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Owner, Admin, and Member roles. Admins can manage everything except deleting the project.
+              </p>
+              <div className="mt-3 text-xs text-indigo-600 font-medium">Owner Control • Admin Rights • Member Access</div>
+            </div>
+
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-purple-100/50">
+              <div className="mx-auto w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                <Users className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">No Per-User Pricing</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                All team members access your project's features at no extra cost. Scale your team without scaling your bill.
+              </p>
+              <div className="mt-3 text-xs text-purple-600 font-medium">Unlimited Team Size • Project-Based Billing • Fair Pricing</div>
+            </div>
+          </div>
+
+          <div className="text-center mt-12">
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 max-w-2xl mx-auto border border-blue-200">
+              <p className="text-gray-700 font-medium mb-2">👥 Team features included in all plans</p>
+              <p className="text-sm text-gray-600">Pro plans get admin roles, unlimited members, and advanced permissions</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* NEW SECTION: Urgency-Based Voting */}
       <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-orange-100/20 to-pink-100/20"></div>
@@ -1799,6 +1863,7 @@ export default function Homepage() {
                   {[
                     "1 feedback board",
                     "50 posts maximum",
+                    "Basic team collaboration",
                     "🤖 AI Auto-Categorization (10/day)",
                     "🎯 AI Priority Scoring (10/day)",
                     "🔍 AI Duplicate Detection (10/day)",
@@ -1865,6 +1930,9 @@ export default function Homepage() {
                     "Unlimited boards",
                     "Unlimited posts",
                     "Private boards",
+                    "👥 Team collaboration & roles",
+                    "🔐 Admin & member permissions",
+                    "📧 Team invitations & management",
                     "🤖 AI Smart Categorization (Unlimited)",
                     "🔍 AI Duplicate Detection (Unlimited)",
                     "🎯 AI Priority Scoring (Unlimited)",
