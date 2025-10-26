@@ -52,3 +52,4 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION public.get_post_participants(UUID, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_post_participants(UUID, TEXT) TO anon;
+GRANT EXECUTE ON FUNCTION public.get_post_participants(UUID, TEXT) TO service_role;

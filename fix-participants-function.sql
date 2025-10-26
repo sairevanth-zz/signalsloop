@@ -51,3 +51,4 @@ $$ LANGUAGE plpgsql;
 
 GRANT EXECUTE ON FUNCTION get_post_participants TO authenticated;
 GRANT EXECUTE ON FUNCTION get_post_participants TO anon;
+GRANT EXECUTE ON FUNCTION get_post_participants TO service_role;

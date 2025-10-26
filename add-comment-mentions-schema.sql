@@ -152,6 +152,7 @@ GRANT ALL ON comment_mentions TO authenticated;
 GRANT ALL ON comment_mentions TO anon;
 GRANT EXECUTE ON FUNCTION get_post_participants TO authenticated;
 GRANT EXECUTE ON FUNCTION get_post_participants TO anon;
+GRANT EXECUTE ON FUNCTION get_post_participants TO service_role;
 GRANT EXECUTE ON FUNCTION extract_mentions_from_text TO authenticated;
 GRANT EXECUTE ON FUNCTION extract_mentions_from_text TO anon;
 GRANT EXECUTE ON FUNCTION process_comment_mentions TO authenticated;
