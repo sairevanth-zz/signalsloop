@@ -314,12 +314,18 @@ export default function BoardSettings({
       console.log('🗑️ API Delete result:', result);
 
       if (!response.ok) {
+        // Handle specific error messages
+        if (response.status === 403 && result.error?.includes('Only project owners')) {
+          notify('Only project owners can delete projects', 'error');
+          setShowDeleteDialog(false);
+          return;
+        }
         throw new Error(result.error || 'Failed to delete board');
       }
 
       console.log('✅ Board deleted successfully');
       notify('Board deleted successfully', 'success');
-      
+
       // Close dialog and navigate to project dashboard (not board page since board is deleted)
       setShowDeleteDialog(false);
       router.push('/app');
@@ -686,9 +692,9 @@ export default function BoardSettings({
               
               {/* Custom Modal */}
               {showDeleteDialog && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowDeleteDialog(false)}></div>
-                  <div className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                  <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => setShowDeleteDialog(false)}></div>
+                  <div className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
                     <h2 className="text-lg font-semibold mb-4">Delete Project</h2>
                     <p className="text-gray-600 mb-4">
                       Are you sure you want to delete the entire project &quot;{project?.name}&quot;? This will permanently delete:
