@@ -76,6 +76,7 @@ export default function BoardSettings({
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState<Partial<BoardConfig>>({});
@@ -316,8 +317,9 @@ export default function BoardSettings({
       if (!response.ok) {
         // Handle specific error messages
         if (response.status === 403 && result.error?.includes('Only project owners')) {
+          // Show error in modal and toast
+          setDeleteError('Only project owners can delete projects');
           notify('Only project owners can delete projects', 'error');
-          setShowDeleteDialog(false);
           return;
         }
         throw new Error(result.error || 'Failed to delete board');
@@ -681,10 +683,13 @@ export default function BoardSettings({
                 
               </div>
               
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="border-red-300 text-red-700 hover:bg-red-50"
-                onClick={() => setShowDeleteDialog(true)}
+                onClick={() => {
+                  setDeleteError(null);
+                  setShowDeleteDialog(true);
+                }}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete Project
@@ -693,7 +698,10 @@ export default function BoardSettings({
               {/* Custom Modal */}
               {showDeleteDialog && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                  <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => setShowDeleteDialog(false)}></div>
+                  <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={() => {
+                    setShowDeleteDialog(false);
+                    setDeleteError(null);
+                  }}></div>
                   <div className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
                     <h2 className="text-lg font-semibold mb-4">Delete Project</h2>
                     <p className="text-gray-600 mb-4">
@@ -707,10 +715,20 @@ export default function BoardSettings({
                       <li>API keys and integrations</li>
                     </ul>
                     <p className="text-red-600 mb-6">This action cannot be undone.</p>
+
+                    {deleteError && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                        <p className="text-sm text-red-800">{deleteError}</p>
+                      </div>
+                    )}
+
                     <div className="flex gap-3 justify-end">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setShowDeleteDialog(false)}
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowDeleteDialog(false);
+                          setDeleteError(null);
+                        }}
                       >
                         Cancel
                       </Button>

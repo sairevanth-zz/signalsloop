@@ -42,10 +42,24 @@ export async function DELETE(
       );
     }
 
-    // Check if current user is the owner
-    if (project.owner_id !== user.id) {
+    // Check if current user is the owner or admin member
+    const isOwner = project.owner_id === user.id;
+    let isAdmin = false;
+
+    if (!isOwner) {
+      const { data: memberData } = await supabase
+        .from('members')
+        .select('role')
+        .eq('project_id', project.id)
+        .eq('user_id', user.id)
+        .single();
+
+      isAdmin = memberData?.role === 'admin';
+    }
+
+    if (!isOwner && !isAdmin) {
       return NextResponse.json(
-        { error: 'Only project owners can remove team members' },
+        { error: 'Only project owners and admins can remove team members' },
         { status: 403 }
       );
     }
