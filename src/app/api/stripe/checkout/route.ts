@@ -100,9 +100,7 @@ export async function POST(request: Request) {
             customer: context.profile!.stripe_customer_id!,
             customer_update: { address: 'auto' },
           }
-        : {
-            customer_creation: 'always',
-          }),
+        : {}),
       metadata: {
         account_user_id: context.userId,
         project_id: context.project?.id ?? '',
