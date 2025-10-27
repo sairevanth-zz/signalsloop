@@ -153,7 +153,6 @@ export default function AccountBillingPage() {
         <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-8 transform transition-all duration-300 hover:shadow-xl">
           <BillingDashboard 
             projectId={user.id} // Using user ID as account identifier
-            projectSlug="account" // Account-level billing
             stripeSettings={stripeSettings}
           />
         </div>
