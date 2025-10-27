@@ -80,6 +80,8 @@ export async function POST(request: Request) {
     const successPath = buildReturnPath(context.project?.slug);
     const origin = request.headers.get('origin') || request.url.replace(/\/api\/.*/, '');
 
+    const hasCustomer = Boolean(context.profile?.stripe_customer_id);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -93,10 +95,14 @@ export async function POST(request: Request) {
       allow_promotion_codes: true,
       tax_id_collection: { enabled: true },
       automatic_tax: { enabled: true },
-      customer_update: { address: 'auto' },
-      ...(context.profile?.stripe_customer_id
-        ? { customer: context.profile.stripe_customer_id }
-        : {}),
+      ...(hasCustomer
+        ? {
+            customer: context.profile!.stripe_customer_id!,
+            customer_update: { address: 'auto' },
+          }
+        : {
+            customer_creation: 'always',
+          }),
       metadata: {
         account_user_id: context.userId,
         project_id: context.project?.id ?? '',
