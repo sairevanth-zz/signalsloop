@@ -24,30 +24,19 @@ export default function BillingManagePage() {
         return;
       }
 
-      // Get user's primary project with Pro plan
-      const { data: project, error: projectError } = await supabase
-        .from('projects')
-        .select('stripe_customer_id, plan')
-        .eq('owner_id', user.id)
-        .eq('plan', 'pro')
-        .order('created_at', { ascending: true })
-        .limit(1)
+      const { data: profile } = await supabase
+        .from('account_billing_profiles')
+        .select('plan, stripe_customer_id')
+        .eq('user_id', user.id)
         .maybeSingle();
 
-      if (projectError) {
-        console.error('Error fetching project for billing portal:', projectError);
-        toast.error('Failed to load billing information');
-        router.push('/app/billing');
-        return;
-      }
-
-      if (!project) {
+      if (!profile || profile.plan !== 'pro') {
         toast.info('No active Pro subscription to manage.');
         router.push('/app/billing');
         return;
       }
 
-      if (!project.stripe_customer_id) {
+      if (!profile.stripe_customer_id) {
         toast.error('Unable to access billing portal. Please contact support.');
         router.push('/app/billing');
         return;
@@ -60,7 +49,8 @@ export default function BillingManagePage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          customerId: project.stripe_customer_id,
+          customerId: profile.stripe_customer_id,
+          accountId: user.id,
           returnUrl: `${window.location.origin}/app/billing`
         })
       });

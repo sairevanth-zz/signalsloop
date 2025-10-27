@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { resolveBillingContext } from '@/lib/billing';
 
 const getStripe = () => {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -12,16 +13,27 @@ const getStripe = () => {
 
 export async function POST(request: NextRequest) {
   try {
-    const { customerId, returnUrl } = await request.json();
+    const { customerId, returnUrl, accountId, projectId } = await request.json();
+    let resolvedCustomerId = customerId as string | null;
 
-    if (!customerId) {
-      return NextResponse.json({ error: 'Customer ID is required' }, { status: 400 });
+    if (!resolvedCustomerId && (accountId || projectId)) {
+      const context = await resolveBillingContext(accountId || projectId);
+      if (context?.profile?.stripe_customer_id) {
+        resolvedCustomerId = context.profile.stripe_customer_id;
+      }
+    }
+
+    if (!resolvedCustomerId) {
+      return NextResponse.json(
+        { error: 'Customer ID is required', details: 'No Stripe customer associated with this account.' },
+        { status: 400 }
+      );
     }
 
     // Create portal session
     const stripe = getStripe();
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: customerId,
+      customer: resolvedCustomerId,
       return_url: returnUrl || `${request.nextUrl.origin}/billing`,
     });
 

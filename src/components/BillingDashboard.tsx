@@ -66,6 +66,9 @@ export function BillingDashboard({
   projectSlug,
   stripeSettings 
 }: BillingDashboardProps) {
+  const monthlyPriceId = process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID;
+  const yearlyPriceId = process.env.NEXT_PUBLIC_STRIPE_YEARLY_PRICE_ID;
+  const returnPath = projectSlug ? `/${projectSlug}/billing` : '/app/billing';
   const [billingInfo, setBillingInfo] = useState<BillingInfo>({
     plan: 'free',
     stripe_customer_id: null,
@@ -407,16 +410,26 @@ export function BillingDashboard({
     setUpgrading(true);
     
     try {
-      // Use homepage checkout for upgrade
-      const response = await fetch('/api/stripe/homepage-checkout', {
+      const priceId =
+        selectedBillingCycle === 'yearly' ? yearlyPriceId : monthlyPriceId;
+
+      if (!priceId) {
+        throw new Error(
+          `Missing Stripe price ID for ${selectedBillingCycle} billing. Set NEXT_PUBLIC_STRIPE_${selectedBillingCycle === 'yearly' ? 'YEARLY' : 'MONTHLY'}_PRICE_ID.`
+        );
+      }
+
+      const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          billingType: selectedBillingCycle,
+          billingCycle: selectedBillingCycle,
+          priceId,
           projectId: projectId,
-          returnUrl: `${window.location.origin}/${projectSlug}/billing/success`
+          successUrl: `${window.location.origin}${returnPath}?success=true&session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}${returnPath}?cancelled=true`,
         })
       });
 
@@ -499,13 +512,21 @@ export function BillingDashboard({
     try {
       console.log('🚀 Creating yearly checkout session...');
       // Create yearly checkout session
-      const response = await fetch('/api/stripe/yearly-checkout', {
+      if (!yearlyPriceId) {
+        throw new Error('Missing Stripe yearly price ID. Set NEXT_PUBLIC_STRIPE_YEARLY_PRICE_ID.');
+      }
+
+      const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          projectId: projectId
+          billingCycle: 'yearly',
+          priceId: yearlyPriceId,
+          projectId: projectId,
+          successUrl: `${window.location.origin}${returnPath}?success=true&session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}${returnPath}?cancelled=true`,
         })
       });
 

@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { sendProWelcomeEmail, sendCancellationEmail } from '@/lib/email';
 import { ensureUserRecord } from '@/lib/users';
+import {
+  resolveBillingContext,
+  resolveBillingContextByCustomerId,
+  upsertAccountBillingProfile,
+  syncAccountProfileToProject,
+} from '@/lib/billing';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
 const getStripe = () => {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -14,13 +21,7 @@ const getStripe = () => {
 };
 
 const getSupabase = () => {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE) {
-    throw new Error('Supabase configuration is missing');
-  }
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE
-  );
+  return getSupabaseServiceRoleClient();
 };
 
 const getEndpointSecret = () => {
@@ -30,59 +31,33 @@ const getEndpointSecret = () => {
   return process.env.STRIPE_WEBHOOK_SECRET;
 };
 
-const maybeSendProWelcomeEmail = async (supabase: SupabaseClient, projectId: string) => {
-  const { data: project, error } = await supabase
-    .from('projects')
-    .select('id, name, owner_id, pro_welcome_email_sent_at')
-    .eq('id', projectId)
-    .maybeSingle();
-
-  if (error || !project) {
-    console.error('Unable to load project for Pro welcome email:', { projectId, error });
+const maybeSendProWelcomeEmail = async (
+  supabase: SupabaseClient,
+  context: { userId: string; project: { id: string; name: string | null; pro_welcome_email_sent_at: string | null } | null }
+) => {
+  if (!context.project) {
     return;
   }
+
+  const { project, userId } = context;
 
   if (project.pro_welcome_email_sent_at) {
-    console.log('Pro welcome email already sent for project:', projectId);
+    console.log('Pro welcome email already sent for project:', project.id);
     return;
   }
 
-  let owner = null;
-
-  const { data: ownerRecord, error: ownerError } = await supabase
-    .from('users')
-    .select('id, email, name')
-    .eq('id', project.owner_id)
-    .maybeSingle();
-
-  if (ownerError && ownerError.code !== 'PGRST116') {
-    console.error('Unable to load owner for Pro welcome email:', {
-      projectId,
-      ownerId: project.owner_id,
-      error: ownerError,
-    });
+  let owner;
+  try {
+    owner = await ensureUserRecord(supabase, userId);
+  } catch (ensureError) {
+    console.error('Failed to ensure project owner before Pro welcome email:', ensureError);
     return;
   }
 
-  owner = ownerRecord;
-
-  if (!owner?.email) {
-    try {
-      owner = await ensureUserRecord(supabase, project.owner_id);
-    } catch (ensureError) {
-      console.error('Failed to ensure project owner before Pro welcome email:', {
-        projectId,
-        ownerId: project.owner_id,
-        error: ensureError,
-      });
-      return;
-    }
-  }
-
-  if (!owner?.email) {
+  if (!owner.email) {
     console.error('Project owner missing email for Pro welcome email:', {
-      projectId,
-      ownerId: project.owner_id,
+      projectId: project.id,
+      ownerId: userId,
     });
     return;
   }
@@ -92,15 +67,15 @@ const maybeSendProWelcomeEmail = async (supabase: SupabaseClient, projectId: str
     await sendProWelcomeEmail({
       email: owner.email,
       name: owner.name,
-      projectName: project.name,
+      projectName: project.name ?? 'SignalsLoop workspace',
     });
 
     await supabase
       .from('projects')
       .update({ pro_welcome_email_sent_at: new Date().toISOString() })
-      .eq('id', projectId);
+      .eq('id', project.id);
 
-    console.log('[PRO WELCOME] ✅ Sent Pro welcome email for project:', projectId);
+    console.log('[PRO WELCOME] ✅ Sent Pro welcome email for project:', project.id);
   } catch (emailError) {
     console.error('[PRO WELCOME] ❌ Failed to send Pro welcome email:', emailError);
     console.error('[PRO WELCOME] Error details:', JSON.stringify(emailError, null, 2));
@@ -219,147 +194,117 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        
+
         if (session.mode === 'subscription') {
-          const projectId = session.metadata?.projectId;
-          const source = session.metadata?.source;
-          
-          if (projectId) {
-            // Project-specific checkout
-            const updateData = {
-              plan: 'pro',
-              stripe_customer_id: session.customer as string,
-              subscription_id: session.subscription as string,
-              subscription_status: 'active',
-            };
+          const metadata = session.metadata || {};
+          const customerId = session.customer as string | null;
+          const projectIdentifier =
+            metadata.project_id ||
+            metadata.projectId ||
+            (session.client_reference_id ?? undefined);
+          const accountIdentifier =
+            metadata.account_user_id ||
+            metadata.account_id ||
+            metadata.user_id;
 
-            // Update project to Pro plan
-            const { error } = await supabase
-              .from('projects')
-              .update(updateData)
-              .eq('id', projectId);
+          let context =
+            (projectIdentifier && (await resolveBillingContext(projectIdentifier, supabase))) ||
+            (accountIdentifier && (await resolveBillingContext(accountIdentifier, supabase))) ||
+            (customerId && (await resolveBillingContextByCustomerId(customerId, supabase))) ||
+            null;
 
-            if (error) {
-              console.error('Failed to upgrade project:', error);
-              throw error;
-            }
-
-            // Log the upgrade event
-            await supabase
-              .from('billing_events')
-              .insert({
-                project_id: projectId,
-                event_type: 'subscription_created',
-                stripe_session_id: session.id,
-                stripe_customer_id: session.customer as string,
-                amount: session.amount_total,
-                currency: session.currency,
-                metadata: {
-                  subscription_id: session.subscription,
-                  payment_status: session.payment_status,
-                },
-              });
-
-            console.log(`Project ${projectId} upgraded to Pro via Stripe`);
-
-            // Track purchase in analytics
+          if (!context && customerId) {
             try {
-              const posthog = (await import('posthog-js')).default;
-              posthog.capture('purchase', {
-                project_id: projectId,
-                plan: 'pro',
-                amount: (session.amount_total || 0) / 100, // Convert cents to dollars
-                currency: session.currency,
-                stripe_session_id: session.id,
-                stripe_customer_id: session.customer,
-                subscription_id: session.subscription,
-                interval: session.metadata?.interval || 'unknown',
-                timestamp: new Date().toISOString()
-              });
-            } catch (analyticsError) {
-              console.error('Failed to track purchase in analytics:', analyticsError);
-              // Don't block webhook processing
+              const customer = await stripe.customers.retrieve(customerId);
+              const customerEmail = (customer as Stripe.Customer).email;
+
+              if (customerEmail) {
+                const { data: userRecord } = await supabase
+                  .from('users')
+                  .select('id')
+                  .eq('email', customerEmail)
+                  .maybeSingle();
+
+                if (userRecord?.id) {
+                  context =
+                    (await resolveBillingContext(userRecord.id, supabase)) ??
+                    (await resolveBillingContextByCustomerId(customerId, supabase));
+                }
+              }
+            } catch (lookupError) {
+              console.error('Failed to lookup context by customer email:', lookupError);
             }
-
-            await maybeSendProWelcomeEmail(supabase, projectId);
-          } else if (source === 'homepage') {
-            // Homepage checkout - find or create user's primary project
-            const customerId = session.customer as string;
-            
-            // Get customer email from Stripe
-            const customer = await stripe.customers.retrieve(customerId);
-            const customerEmail = (customer as Stripe.Customer).email;
-            
-            if (!customerEmail) {
-              console.error('No email found for customer:', customerId);
-              break;
-            }
-            
-            // Find user by email
-            const { data: userData, error: userError } = await supabase
-              .from('users')
-              .select('id')
-              .eq('email', customerEmail)
-              .single();
-            
-            if (userError || !userData) {
-              console.error('User not found for email:', customerEmail);
-              break;
-            }
-            
-            // Find user's primary project
-            const { data: projectData, error: projectError } = await supabase
-              .from('projects')
-              .select('id, owner_id, name')
-              .eq('owner_id', userData.id)
-              .order('created_at', { ascending: true })
-              .limit(1)
-              .single();
-            
-            if (projectError || !projectData) {
-              console.error('No project found for user:', userData.id);
-              break;
-            }
-            
-            const updateData = {
-              plan: 'pro',
-              stripe_customer_id: session.customer as string,
-              subscription_id: session.subscription as string,
-              subscription_status: 'active',
-            };
-
-            // Update project to Pro plan
-            const { error: updateError } = await supabase
-              .from('projects')
-              .update(updateData)
-              .eq('id', projectData.id);
-
-            if (updateError) {
-              console.error('Failed to upgrade project:', updateError);
-              throw updateError;
-            }
-
-            await maybeSendProWelcomeEmail(supabase, projectData.id);
-
-            // Log the upgrade event
-            await supabase
-              .from('billing_events')
-              .insert({
-                project_id: projectData.id,
-                event_type: 'subscription_created',
-                stripe_session_id: session.id,
-                stripe_customer_id: session.customer as string,
-                amount: session.amount_total,
-                currency: session.currency,
-                metadata: {
-                  subscription_id: session.subscription,
-                  payment_status: session.payment_status,
-                  source: 'homepage',
-                },
-              });
-
-            console.log(`Project ${projectData.id} upgraded to Pro via homepage checkout`);
           }
+
+          if (!context || !customerId) {
+            console.error('Unable to resolve billing context for checkout completion', {
+              sessionId: session.id,
+              metadata,
+            });
+            break;
+          }
+
+          const billingCycle =
+            metadata.upgrade_type === 'yearly'
+              ? 'yearly'
+              : metadata.upgrade_type === 'monthly'
+              ? 'monthly'
+              : metadata.interval === 'yearly'
+              ? 'yearly'
+              : metadata.interval === 'monthly'
+              ? 'monthly'
+              : null;
+
+          const updatedProfile =
+            (await upsertAccountBillingProfile(
+              {
+                user_id: context.userId,
+                plan: 'pro',
+                stripe_customer_id: customerId,
+                subscription_id: session.subscription as string | null,
+                subscription_status:
+                  session.payment_status === 'paid' || session.payment_status === 'no_payment_required'
+                    ? 'active'
+                    : 'incomplete',
+                cancel_at_period_end: false,
+                billing_cycle: billingCycle,
+              },
+              supabase
+            )) ?? context.profile;
+
+          if (context.project && updatedProfile) {
+            await syncAccountProfileToProject(context.project.id, updatedProfile, supabase);
+          }
+
+          await supabase.from('billing_events').insert({
+            project_id: context.project?.id ?? null,
+            event_type: 'subscription_created',
+            stripe_session_id: session.id,
+            stripe_customer_id: customerId,
+            amount: session.amount_total,
+            currency: session.currency,
+            metadata: {
+              subscription_id: session.subscription,
+              payment_status: session.payment_status,
+              upgrade_type: metadata.upgrade_type ?? null,
+              account_user_id: context.userId,
+            },
+          });
+
+          await maybeSendProWelcomeEmail(supabase, {
+            userId: context.userId,
+            project: context.project
+              ? {
+                  id: context.project.id,
+                  name: context.project.name,
+                  pro_welcome_email_sent_at: context.project.pro_welcome_email_sent_at,
+                }
+              : null,
+          });
+
+          console.log(
+            `[Stripe] Subscription checkout completed for user ${context.userId}, customer ${customerId}`
+          );
         }
         break;
       }
@@ -367,35 +312,42 @@ export async function POST(request: NextRequest) {
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
 
-        const updateData: any = {
-          subscription_status: subscription.status,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          cancel_at_period_end: (subscription as any).cancel_at_period_end,
-        };
+        const customerId = subscription.customer as string;
+        const context = await resolveBillingContextByCustomerId(customerId, supabase);
 
-        // Only add current_period_end if it exists
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((subscription as any).current_period_end) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          updateData.current_period_end = new Date((subscription as any).current_period_end * 1000).toISOString();
+        if (!context) {
+          console.error('Unable to resolve billing context for subscription update', {
+            customerId,
+            subscriptionId: subscription.id,
+          });
+          break;
         }
 
+        const currentPeriodEnd = subscription.current_period_end
+          ? new Date(subscription.current_period_end * 1000).toISOString()
+          : null;
 
-        // Update subscription status in database
-        const { error } = await supabase
-          .from('projects')
-          .update(updateData)
-          .eq('stripe_customer_id', subscription.customer as string);
+        const updatedProfile =
+          (await upsertAccountBillingProfile(
+            {
+              user_id: context.userId,
+              plan: subscription.status === 'canceled' ? 'free' : 'pro',
+              stripe_customer_id: customerId,
+              subscription_id: subscription.id,
+              subscription_status: subscription.status,
+              current_period_end: currentPeriodEnd,
+              cancel_at_period_end: subscription.cancel_at_period_end ?? false,
+            },
+            supabase
+          )) ?? context.profile;
 
-        if (error) {
-          console.error('Failed to update subscription:', error);
-          throw error;
+        if (context.project && updatedProfile) {
+          await syncAccountProfileToProject(context.project.id, updatedProfile, supabase);
         }
 
         // Send cancellation email immediately when user cancels (sets cancel_at_period_end to true)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((subscription as any).cancel_at_period_end === true) {
-          await sendCancellationEmailsForCustomer(supabase, subscription.customer as string);
+        if (subscription.cancel_at_period_end === true) {
+          await sendCancellationEmailsForCustomer(supabase, customerId);
         }
 
         // Log the event
@@ -403,12 +355,12 @@ export async function POST(request: NextRequest) {
           .from('billing_events')
           .insert({
             event_type: 'subscription_updated',
-            stripe_customer_id: subscription.customer as string,
+            stripe_customer_id: customerId,
             metadata: {
               subscription_id: subscription.id,
               status: subscription.status,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              cancel_at_period_end: (subscription as any).cancel_at_period_end,
+              cancel_at_period_end: subscription.cancel_at_period_end ?? false,
+              account_user_id: context.userId,
             },
           });
         break;
@@ -416,36 +368,47 @@ export async function POST(request: NextRequest) {
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
-        
-        const updateData = {
-          plan: 'free',
-          subscription_status: 'canceled',
-          subscription_id: null,
-        };
 
-        // Downgrade project to free plan
-        const { error } = await supabase
-          .from('projects')
-          .update(updateData)
-          .eq('stripe_customer_id', subscription.customer as string);
+        const customerId = subscription.customer as string;
+        const context = await resolveBillingContextByCustomerId(customerId, supabase);
 
-        if (error) {
-          console.error('Failed to downgrade project:', error);
-          throw error;
+        if (!context) {
+          console.error('Unable to resolve billing context for subscription deletion', {
+            customerId,
+            subscriptionId: subscription.id,
+          });
+          break;
         }
 
-        await sendCancellationEmailsForCustomer(supabase, subscription.customer as string);
+        const updatedProfile =
+          (await upsertAccountBillingProfile(
+            {
+              user_id: context.userId,
+              plan: 'free',
+              stripe_customer_id: customerId,
+              subscription_id: null,
+              subscription_status: 'canceled',
+              cancel_at_period_end: false,
+            },
+            supabase
+          )) ?? context.profile;
+
+        if (context.project && updatedProfile) {
+          await syncAccountProfileToProject(context.project.id, updatedProfile, supabase);
+        }
+
+        await sendCancellationEmailsForCustomer(supabase, customerId);
 
         // Log the cancellation
         await supabase
           .from('billing_events')
           .insert({
             event_type: 'subscription_canceled',
-            stripe_customer_id: subscription.customer as string,
+            stripe_customer_id: customerId,
             metadata: {
               subscription_id: subscription.id,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              canceled_at: new Date((subscription as any).canceled_at! * 1000).toISOString(),
+              canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
+              account_user_id: context.userId,
             },
           });
         break;
@@ -454,12 +417,33 @@ export async function POST(request: NextRequest) {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
         
+        const customerId = invoice.customer as string;
+        const context = await resolveBillingContextByCustomerId(customerId, supabase);
+
+        if (context) {
+          const profile =
+            (await upsertAccountBillingProfile(
+              {
+                user_id: context.userId,
+                plan: 'pro',
+                stripe_customer_id: customerId,
+                subscription_id: (invoice.subscription as string) ?? context.profile?.subscription_id ?? null,
+                subscription_status: 'active',
+              },
+              supabase
+            )) ?? context.profile;
+
+          if (context.project && profile) {
+            await syncAccountProfileToProject(context.project.id, profile, supabase);
+          }
+        }
+
         // Log successful payment
         await supabase
           .from('billing_events')
           .insert({
             event_type: 'payment_succeeded',
-            stripe_customer_id: invoice.customer as string,
+            stripe_customer_id: customerId,
             amount: invoice.amount_paid,
             currency: invoice.currency,
             metadata: {
@@ -475,13 +459,33 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
+        const customerId = invoice.customer as string;
+        const context = await resolveBillingContextByCustomerId(customerId, supabase);
+
+        if (context) {
+          const profile =
+            (await upsertAccountBillingProfile(
+              {
+                user_id: context.userId,
+                plan: 'pro',
+                stripe_customer_id: customerId,
+                subscription_id: (invoice.subscription as string) ?? context.profile?.subscription_id ?? null,
+                subscription_status: 'past_due',
+              },
+              supabase
+            )) ?? context.profile;
+
+          if (context.project && profile) {
+            await syncAccountProfileToProject(context.project.id, profile, supabase);
+          }
+        }
         
         // Log failed payment
         await supabase
           .from('billing_events')
           .insert({
             event_type: 'payment_failed',
-            stripe_customer_id: invoice.customer as string,
+            stripe_customer_id: customerId,
             amount: invoice.amount_due,
             currency: invoice.currency,
             metadata: {
@@ -499,7 +503,7 @@ export async function POST(request: NextRequest) {
             subscription_status: 'past_due',
             payment_failed_at: new Date().toISOString(),
           })
-          .eq('stripe_customer_id', invoice.customer as string);
+          .eq('stripe_customer_id', customerId);
         break;
       }
 

@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { randomUUID } from 'crypto';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { upsertAccountBillingProfile, syncAccountProfileToProject } from '@/lib/billing';
 
 const getSupabase = () => {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE) {
-    throw new Error('Supabase configuration is missing');
-  }
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE
-  );
+  return getSupabaseServiceRoleClient();
 };
 
 export async function POST(request: NextRequest) {
@@ -109,6 +103,21 @@ export async function POST(request: NextRequest) {
     if (updateError) {
       console.error('Error starting trial:', updateError);
       return NextResponse.json({ error: 'Failed to start trial' }, { status: 500 });
+    }
+
+    const profile = await upsertAccountBillingProfile({
+      user_id: user.id,
+      plan: 'pro',
+      subscription_status: 'trialing',
+      is_trial: true,
+      trial_start_date: trialStartDate.toISOString(),
+      trial_end_date: trialEndDate.toISOString(),
+      trial_status: 'active',
+      stripe_customer_id: null,
+    });
+
+    if (profile) {
+      await syncAccountProfileToProject(project.id, profile, supabase);
     }
 
     // Log trial started event

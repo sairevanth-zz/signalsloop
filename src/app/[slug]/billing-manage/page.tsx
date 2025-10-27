@@ -28,29 +28,35 @@ export default function ProjectBillingManagePage() {
         return;
       }
 
-      // Get project by slug with Pro plan
-      const { data: project, error: projectError } = await supabase
-        .from('projects')
-        .select('stripe_customer_id, plan')
-        .eq('slug', projectSlug)
-        .eq('owner_id', user.id)
-        .eq('plan', 'pro')
-        .maybeSingle();
+      const [{ data: project }, { data: profile }] = await Promise.all([
+        supabase
+          .from('projects')
+          .select('id, slug, stripe_customer_id, plan')
+          .eq('slug', projectSlug)
+          .eq('owner_id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('account_billing_profiles')
+          .select('plan, stripe_customer_id')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+      ]);
 
-      if (projectError) {
-        console.error('Error fetching project for billing portal:', projectError);
-        toast.error('Failed to load billing information');
-        router.push(`/${projectSlug}/settings`);
+      if (!project) {
+        toast.error('Project not found.');
+        router.push('/app');
         return;
       }
 
-      if (!project) {
+      if (!profile || profile.plan !== 'pro') {
         toast.info('No active Pro subscription to manage.');
         router.push(`/${projectSlug}/settings`);
         return;
       }
 
-      if (!project.stripe_customer_id) {
+      const customerId = profile.stripe_customer_id ?? project.stripe_customer_id;
+
+      if (!customerId) {
         toast.error('Unable to access billing portal. Please contact support.');
         router.push(`/${projectSlug}/settings`);
         return;
@@ -63,7 +69,9 @@ export default function ProjectBillingManagePage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          customerId: project.stripe_customer_id,
+          customerId,
+          accountId: user.id,
+          projectId: project.id,
           returnUrl: `${window.location.origin}/${projectSlug}/settings`
         })
       });

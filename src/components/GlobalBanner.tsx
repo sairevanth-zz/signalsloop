@@ -31,7 +31,23 @@ export default function GlobalBanner({
 }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [billingInfo, setBillingInfo] = useState<any>(null);
+  const [billingInfo, setBillingInfo] = useState<{
+    plan: 'free' | 'pro';
+    subscription_status: string | null;
+    subscription_id?: string | null;
+    stripe_customer_id: string | null;
+    trial_start_date: string | null;
+    trial_end_date: string | null;
+    trial_status: string | null;
+    is_trial: boolean;
+    trial_cancelled_at: string | null;
+  } | null>(null);
+  const [primaryProject, setPrimaryProject] = useState<{
+    id: string;
+    slug: string | null;
+    plan: string;
+    stripe_customer_id: string | null;
+  } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -63,35 +79,50 @@ export default function GlobalBanner({
 
     try {
       const supabase = getSupabaseClient();
-      
-      // Get user's projects
-      const { data: projects, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('owner_id', user.id);
 
-      if (error) {
-        console.error('Error fetching projects:', error);
-        return;
-      }
+      const [{ data: accountProfile }, { data: projects }] = await Promise.all([
+        supabase
+          .from('account_billing_profiles')
+          .select(
+            'plan, subscription_status, stripe_customer_id, trial_start_date, trial_end_date, trial_status, is_trial, trial_cancelled_at, subscription_id'
+          )
+          .eq('user_id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('projects')
+          .select('id, slug, plan, stripe_customer_id, subscription_status, trial_start_date, trial_end_date, trial_status, is_trial, trial_cancelled_at, subscription_id')
+          .eq('owner_id', user.id),
+      ]);
 
-      if (projects && projects.length > 0) {
-        const project = projectSlug 
-          ? projects.find(p => p.slug === projectSlug) || projects[0]
-          : projects[0];
+      const selectedProject = projects?.length
+        ? projectSlug
+          ? projects.find((p) => p.slug === projectSlug) || projects[0]
+          : projects[0]
+        : null;
 
-        setBillingInfo({
-          plan: project.plan,
-          subscription_status: project.subscription_status,
-          subscription_id: project.subscription_id,
-          customer_id: project.customer_id,
-          trial_start_date: project.trial_start_date,
-          trial_end_date: project.trial_end_date,
-          trial_status: project.trial_status,
-          is_trial: project.is_trial,
-          trial_cancelled_at: project.trial_cancelled_at
+      if (selectedProject) {
+        setPrimaryProject({
+          id: selectedProject.id,
+          slug: selectedProject.slug,
+          plan: selectedProject.plan,
+          stripe_customer_id: selectedProject.stripe_customer_id,
         });
       }
+
+      const plan = (accountProfile?.plan as 'free' | 'pro') ?? (selectedProject?.plan === 'pro' ? 'pro' : 'free');
+      const stripeCustomerId = accountProfile?.stripe_customer_id ?? selectedProject?.stripe_customer_id ?? null;
+
+      setBillingInfo({
+        plan,
+        subscription_status: accountProfile?.subscription_status ?? selectedProject?.subscription_status ?? null,
+        subscription_id: accountProfile?.subscription_id ?? selectedProject?.subscription_id ?? null,
+        stripe_customer_id: stripeCustomerId,
+        trial_start_date: accountProfile?.trial_start_date ?? selectedProject?.trial_start_date ?? null,
+        trial_end_date: accountProfile?.trial_end_date ?? selectedProject?.trial_end_date ?? null,
+        trial_status: accountProfile?.trial_status ?? selectedProject?.trial_status ?? null,
+        is_trial: accountProfile?.is_trial ?? selectedProject?.is_trial ?? false,
+        trial_cancelled_at: accountProfile?.trial_cancelled_at ?? selectedProject?.trial_cancelled_at ?? null,
+      });
     } catch (error) {
       console.error('Error loading billing info:', error);
     }
@@ -105,38 +136,18 @@ export default function GlobalBanner({
 
   const handleManageBilling = async () => {
     try {
-      const supabase = getSupabaseClient();
-
-      // Get the project to find stripe_customer_id
-      const { data: projects, error: projectError } = await supabase
-        .from('projects')
-        .select('id, slug, stripe_customer_id, plan')
-        .eq('owner_id', user?.id);
-
-      if (projectError) {
-        console.error('Project query error:', projectError);
-        toast.error('Failed to load project information');
+      if (!billingInfo) {
+        toast.error('Billing information not available. Please refresh the page.');
         return;
       }
 
-      if (!projects || projects.length === 0) {
-        toast.error('No project found');
-        return;
-      }
-
-      const project = projectSlug
-        ? projects.find(p => p.slug === projectSlug) || projects[0]
-        : projects[0];
-
-      console.log('Selected project:', project);
-
-      if (project.plan !== 'pro') {
+      if (billingInfo.plan !== 'pro') {
         toast.info('You need to upgrade to Pro first to access billing management.');
         return;
       }
 
       // Handle subscriptions without Stripe customer ID (e.g., gifted)
-      if (!project.stripe_customer_id) {
+      if (!billingInfo.stripe_customer_id) {
         toast.info('Your Pro subscription is not managed through Stripe. Contact support for assistance.');
         return;
       }
@@ -148,8 +159,10 @@ export default function GlobalBanner({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          customerId: project.stripe_customer_id,
-          returnUrl: window.location.href
+          customerId: billingInfo.stripe_customer_id,
+          returnUrl: window.location.href,
+          accountId: user?.id ?? undefined,
+          projectId: primaryProject?.id ?? null,
         })
       });
 
@@ -166,42 +179,30 @@ export default function GlobalBanner({
   };
 
   const handleCancelTrial = async () => {
+    if (!user) return;
+
     try {
-      const supabase = getSupabaseClient();
-      
-      // Get the project
-      const { data: projects } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('owner_id', user?.id);
+      const response = await fetch('/api/trial/cancel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          accountId: user.id,
+          projectId: primaryProject?.id ?? null,
+        }),
+      });
 
-      if (projects && projects.length > 0) {
-        const project = projectSlug 
-          ? projects.find(p => p.slug === projectSlug) || projects[0]
-          : projects[0];
-
-        // Update project to cancel trial
-        const { error } = await supabase
-          .from('projects')
-          .update({
-            trial_status: 'cancelled',
-            trial_cancelled_at: new Date().toISOString(),
-            plan: 'free'
-          })
-          .eq('id', project.id);
-
-        if (error) {
-          console.error('Error cancelling trial:', error);
-          alert('Failed to cancel trial. Please try again.');
-        } else {
-          alert('Trial cancelled successfully. You have been switched to the Free plan.');
-          // Reload billing info
-          loadBillingInfo();
-        }
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to cancel trial');
       }
+
+      toast.success('Trial cancelled successfully. You have been switched to the Free plan.');
+      loadBillingInfo();
     } catch (error) {
       console.error('Error cancelling trial:', error);
-      alert('Failed to cancel trial. Please try again.');
+      toast.error('Failed to cancel trial. Please try again.');
     }
   };
 
