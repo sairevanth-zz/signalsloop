@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BillingDashboard } from '@/components/BillingDashboard';
 import GlobalBanner from '@/components/GlobalBanner';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { getSupabaseClient } from '@/lib/supabase-client';
 
@@ -21,10 +21,12 @@ interface StripeSettings {
 
 export default function AccountBillingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
   const [stripeSettings, setStripeSettings] = useState<StripeSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const finalizeRef = useRef(false);
 
   const loadUserAndSettings = useCallback(async () => {
     const supabase = getSupabaseClient();
@@ -38,7 +40,6 @@ export default function AccountBillingPage() {
       setLoading(true);
       setError(null);
 
-      // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
         throw new Error('User not authenticated');
@@ -46,11 +47,6 @@ export default function AccountBillingPage() {
 
       setUser(user);
 
-      // For account-level billing, we'll use a default project or the user's primary project
-      // For now, we'll create a mock project ID based on user ID
-      const accountProjectId = user.id; // Using user ID as account identifier
-
-      // Stripe settings - using default configuration since stripe_settings table doesn't exist
       if (process.env.NODE_ENV === 'development') {
         console.debug('stripe_settings table not found, using default configuration');
       }
@@ -69,6 +65,50 @@ export default function AccountBillingPage() {
   useEffect(() => {
     loadUserAndSettings();
   }, [loadUserAndSettings]);
+
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const sessionId = searchParams.get('session_id');
+
+    if (finalizeRef.current) return;
+    if (success === 'true' && sessionId) {
+      finalizeRef.current = true;
+
+      const finalize = async () => {
+        try {
+          const response = await fetch('/api/stripe/checkout/session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ sessionId }),
+          });
+
+          if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.error || 'Failed to finalize checkout');
+          }
+
+          toast.success('Subscription activated!');
+        } catch (checkoutError) {
+          console.error('Finalize checkout error:', checkoutError);
+          toast.error(
+            checkoutError instanceof Error
+              ? checkoutError.message
+              : 'Failed to finalize checkout session.'
+          );
+        } finally {
+          const params = new URLSearchParams(searchParams.toString());
+          params.delete('success');
+          params.delete('session_id');
+          const queryString = params.toString();
+          router.replace(`/app/billing${queryString ? `?${queryString}` : ''}`);
+        }
+      };
+
+      finalize();
+    }
+  }, [searchParams, router]);
 
   if (loading) {
     return (
