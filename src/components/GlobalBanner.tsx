@@ -78,51 +78,20 @@ export default function GlobalBanner({
     if (!user) return;
 
     try {
-      const supabase = getSupabaseClient();
+      const baseUrl = `/api/billing/account?accountId=${user.id}`;
+      const accountUrl = projectSlug ? `${baseUrl}&projectSlug=${projectSlug}` : baseUrl;
 
-      const [{ data: accountProfile }, { data: projects }] = await Promise.all([
-        supabase
-          .from('account_billing_profiles')
-          .select(
-            'plan, subscription_status, stripe_customer_id, trial_start_date, trial_end_date, trial_status, is_trial, trial_cancelled_at, subscription_id'
-          )
-          .eq('user_id', user.id)
-          .maybeSingle(),
-        supabase
-          .from('projects')
-          .select('id, slug, plan, stripe_customer_id, subscription_status, trial_start_date, trial_end_date, trial_status, is_trial, trial_cancelled_at, subscription_id')
-          .eq('owner_id', user.id),
-      ]);
-
-      const selectedProject = projects?.length
-        ? projectSlug
-          ? projects.find((p) => p.slug === projectSlug) || projects[0]
-          : projects[0]
-        : null;
-
-      if (selectedProject) {
-        setPrimaryProject({
-          id: selectedProject.id,
-          slug: selectedProject.slug,
-          plan: selectedProject.plan,
-          stripe_customer_id: selectedProject.stripe_customer_id,
-        });
+      const response = await fetch(accountUrl);
+      if (!response.ok) {
+        throw new Error('Failed to load billing info');
       }
 
-      const plan = (accountProfile?.plan as 'free' | 'pro') ?? (selectedProject?.plan === 'pro' ? 'pro' : 'free');
-      const stripeCustomerId = accountProfile?.stripe_customer_id ?? selectedProject?.stripe_customer_id ?? null;
+      const data = await response.json();
+      if (data.primaryProject) {
+        setPrimaryProject(data.primaryProject);
+      }
 
-      setBillingInfo({
-        plan,
-        subscription_status: accountProfile?.subscription_status ?? selectedProject?.subscription_status ?? null,
-        subscription_id: accountProfile?.subscription_id ?? selectedProject?.subscription_id ?? null,
-        stripe_customer_id: stripeCustomerId,
-        trial_start_date: accountProfile?.trial_start_date ?? selectedProject?.trial_start_date ?? null,
-        trial_end_date: accountProfile?.trial_end_date ?? selectedProject?.trial_end_date ?? null,
-        trial_status: accountProfile?.trial_status ?? selectedProject?.trial_status ?? null,
-        is_trial: accountProfile?.is_trial ?? selectedProject?.is_trial ?? false,
-        trial_cancelled_at: accountProfile?.trial_cancelled_at ?? selectedProject?.trial_cancelled_at ?? null,
-      });
+      setBillingInfo(data.billingInfo);
     } catch (error) {
       console.error('Error loading billing info:', error);
     }

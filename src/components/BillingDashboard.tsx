@@ -66,8 +66,6 @@ export function BillingDashboard({
   projectSlug,
   stripeSettings 
 }: BillingDashboardProps) {
-  const monthlyPriceId = process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID;
-  const yearlyPriceId = process.env.NEXT_PUBLIC_STRIPE_YEARLY_PRICE_ID;
   const returnPath = projectSlug ? `/${projectSlug}/billing` : '/app/billing';
   const [billingInfo, setBillingInfo] = useState<BillingInfo>({
     plan: 'free',
@@ -123,116 +121,14 @@ export function BillingDashboard({
         }
 
         // Get REAL user data from the users table
-        const { data: userData, error: userDataError } = await supabase
-          .from('users')
-          .select('plan')
-          .eq('id', user.id)
-          .single();
+      const response = await fetch(`/api/billing/account?accountId=${user.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to load account billing info');
+      }
 
-        if (userDataError) {
-          console.error('❌ Error getting user data:', userDataError);
-          throw new Error('Failed to load user data');
-        }
-
-        // Get the user's primary project to get subscription details
-        const { data: primaryProject, error: projectError } = await supabase
-          .from('projects')
-          .select('plan, subscription_status, current_period_end, cancel_at_period_end, stripe_customer_id, subscription_id, trial_start_date, trial_end_date, trial_status, is_trial, trial_cancelled_at')
-          .eq('owner_id', user.id)
-          .eq('plan', 'pro')
-          .order('created_at', { ascending: true })
-          .limit(1)
-          .maybeSingle();
-
-        if (projectError) {
-          console.error('❌ Error getting primary project:', projectError);
-          // Fallback to user data only
-          const accountBillingInfo = {
-            plan: userData.plan || 'free',
-            stripe_customer_id: null,
-            subscription_status: null,
-            current_period_end: null,
-            cancel_at_period_end: false,
-            // Trial fields
-            trial_start_date: null,
-            trial_end_date: null,
-            trial_status: 'none' as const,
-            is_trial: false,
-            trial_cancelled_at: null
-          };
-          console.log('✅ Account billing info set (fallback):', accountBillingInfo);
-          setBillingInfo(accountBillingInfo);
-          return;
-        }
-
-        if (!primaryProject) {
-          const accountBillingInfo = {
-            plan: userData.plan || 'free',
-            stripe_customer_id: null,
-            subscription_status: null,
-            current_period_end: null,
-            cancel_at_period_end: false,
-            // Trial fields
-            trial_start_date: null,
-            trial_end_date: null,
-            trial_status: 'none' as const,
-            is_trial: false,
-            trial_cancelled_at: null
-          };
-          console.log('✅ Account billing info set (no pro project):', accountBillingInfo);
-          setBillingInfo(accountBillingInfo);
-          return;
-        }
-
-        // Determine subscription type based on current_period_end
-        let subscriptionType: 'monthly' | 'yearly' | 'gifted' = 'monthly';
-        let isYearly = false;
-
-        if (primaryProject.current_period_end) {
-          const currentDate = new Date();
-          const periodEnd = new Date(primaryProject.current_period_end);
-          const daysDiff = Math.ceil((periodEnd.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
-          
-          console.log('📅 Subscription analysis:', {
-            currentDate: currentDate.toISOString(),
-            periodEnd: periodEnd.toISOString(),
-            daysDiff: daysDiff
-          });
-
-          if (daysDiff > 300) { // More than ~10 months = yearly
-            subscriptionType = 'yearly';
-            isYearly = true;
-          } else if (daysDiff > 25 && daysDiff < 35) { // ~30 days = monthly
-            subscriptionType = 'monthly';
-          } else if (!primaryProject.stripe_customer_id && !primaryProject.subscription_id) {
-            // No Stripe data but has subscription = gifted
-            subscriptionType = 'gifted';
-            isYearly = daysDiff > 300;
-          }
-        }
-
-        // Use REAL data from the database
-        const accountBillingInfo = {
-          plan: primaryProject.plan || userData.plan || 'free',
-          stripe_customer_id: primaryProject.stripe_customer_id,
-          subscription_status: primaryProject.subscription_status,
-          current_period_end: primaryProject.current_period_end,
-          cancel_at_period_end: primaryProject.cancel_at_period_end || false,
-          is_yearly: isYearly,
-          subscription_type: subscriptionType,
-          payment_method: null,
-          // Trial fields
-          trial_start_date: primaryProject.trial_start_date,
-          trial_end_date: primaryProject.trial_end_date,
-          trial_status: primaryProject.trial_status || 'none',
-          is_trial: primaryProject.is_trial || false,
-          trial_cancelled_at: primaryProject.trial_cancelled_at
-        };
-
-        console.log('✅ Account billing info set (REAL DATA):', accountBillingInfo);
-        console.log('📊 Subscription type detected:', subscriptionType, 'isYearly:', isYearly);
-        setBillingInfo(accountBillingInfo);
-        return;
+      const data = await response.json();
+      setBillingInfo(data.billingInfo);
+      return;
       }
 
       // Project-level billing (existing logic)
@@ -410,15 +306,6 @@ export function BillingDashboard({
     setUpgrading(true);
     
     try {
-      const priceId =
-        selectedBillingCycle === 'yearly' ? yearlyPriceId : monthlyPriceId;
-
-      if (!priceId) {
-        throw new Error(
-          `Missing Stripe price ID for ${selectedBillingCycle} billing. Set NEXT_PUBLIC_STRIPE_${selectedBillingCycle === 'yearly' ? 'YEARLY' : 'MONTHLY'}_PRICE_ID.`
-        );
-      }
-
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: {
@@ -426,7 +313,6 @@ export function BillingDashboard({
         },
         body: JSON.stringify({
           billingCycle: selectedBillingCycle,
-          priceId,
           projectId: projectId,
           successUrl: `${window.location.origin}${returnPath}?success=true&session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${window.location.origin}${returnPath}?cancelled=true`,
@@ -512,10 +398,6 @@ export function BillingDashboard({
     try {
       console.log('🚀 Creating yearly checkout session...');
       // Create yearly checkout session
-      if (!yearlyPriceId) {
-        throw new Error('Missing Stripe yearly price ID. Set NEXT_PUBLIC_STRIPE_YEARLY_PRICE_ID.');
-      }
-
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: {
@@ -523,7 +405,6 @@ export function BillingDashboard({
         },
         body: JSON.stringify({
           billingCycle: 'yearly',
-          priceId: yearlyPriceId,
           projectId: projectId,
           successUrl: `${window.location.origin}${returnPath}?success=true&session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${window.location.origin}${returnPath}?cancelled=true`,
