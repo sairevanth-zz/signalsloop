@@ -715,7 +715,24 @@ export default function DemoBoard() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-72">
                   <DropdownMenuItem
-                    onSelect={() => { toast.success('Demo: Auto-prioritize would analyze and score all posts'); }}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setShowNewPostForm((prev) => !prev);
+                    }}
+                    className="flex items-start gap-3 py-3"
+                  >
+                    <Sparkles className="h-4 w-4 text-purple-600" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900">Submit New Feedback</span>
+                      <span className="text-xs text-gray-500">Share a new idea or report an issue</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      toast.success('Demo: Auto-prioritize would analyze and score all posts');
+                    }}
                     className="flex items-start gap-3 py-3"
                   >
                     <Target className="h-4 w-4 text-blue-600" />
@@ -725,7 +742,10 @@ export default function DemoBoard() {
                     </div>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onSelect={() => { toast.success('Demo: Smart Categorize would organize feedback by category'); }}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      toast.success('Demo: Smart Categorize would organize feedback by category');
+                    }}
                     className="flex items-start gap-3 py-3"
                   >
                     <Wand2 className="h-4 w-4 text-indigo-600" />
@@ -738,24 +758,8 @@ export default function DemoBoard() {
               </DropdownMenu>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                <div className="flex items-center gap-2 text-gray-700">
-                  <Sparkles className="h-4 w-4 text-purple-600" />
-                  <span className="text-sm font-semibold uppercase tracking-wide text-purple-700">AI-powered submission</span>
-                  <span className="hidden md:inline text-sm text-gray-500">Every post flows through categorization, duplicate detection, and priority scoring.</span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowNewPostForm((prev) => !prev)}
-                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                >
-                  {showNewPostForm ? 'Hide form' : 'Open pro submission form'}
-                </Button>
-              </div>
-
-              {showNewPostForm && (
+            {showNewPostForm && (
+              <div className="space-y-4">
                 <DemoProFeedbackForm
                   onSubmit={(post) => {
                     setPosts(prev => [post, ...prev]);
@@ -765,8 +769,8 @@ export default function DemoBoard() {
                   checkLimit={checkLimit}
                   recordUsage={recordUsage}
                 />
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Posts List */}
             <div className="space-y-4">

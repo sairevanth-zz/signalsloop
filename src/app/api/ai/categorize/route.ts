@@ -77,12 +77,19 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const result = await categorizePost(title, description || '', {
+      const enhancedResult = await categorizePost(title, description || '', {
         userTier: userTier || 'free',
         voteCount: voteCount || 0,
       });
 
-      console.log('🤖 Categorization result:', result);
+      console.log('🤖 Categorization result:', enhancedResult);
+
+      // Transform to simple format for frontend
+      const result = {
+        category: enhancedResult.primaryCategory,
+        confidence: enhancedResult.confidence,
+        reasoning: enhancedResult.reasoning
+      };
 
       // Increment usage after successful categorization
       if (projectId) {
