@@ -18,7 +18,6 @@ import {
   Star,
   BarChart3,
   AlertCircle,
-  CheckCircle,
   ArrowRight
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -517,6 +516,85 @@ export function BillingDashboard({
     });
   };
 
+  const isProPlan = billingInfo.plan === 'pro';
+  const humanizeStatus = (value: string) =>
+    value
+      .split('_')
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(' ');
+
+  const statusRaw = billingInfo.subscription_status ?? (isProPlan ? (billingInfo.is_trial ? 'trialing' : 'active') : 'free');
+  const statusLabel = humanizeStatus(statusRaw);
+  const isCancelling = Boolean(billingInfo.cancel_at_period_end);
+
+  const statusBadgeClassName = isProPlan
+    ? isCancelling
+      ? 'border-amber-200 bg-amber-50 text-amber-700'
+      : statusRaw === 'active'
+        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+        : statusRaw === 'past_due'
+          ? 'border-orange-200 bg-orange-50 text-orange-700'
+          : statusRaw === 'incomplete'
+            ? 'border-blue-200 bg-blue-50 text-blue-700'
+            : 'border-slate-200 bg-slate-100 text-slate-700'
+    : 'border-slate-200 bg-slate-100 text-slate-700';
+
+  const statusSubtitle = (() => {
+    if (!isProPlan) {
+      return 'Upgrade to Pro to unlock advanced features and analytics.';
+    }
+    if (billingInfo.is_trial) {
+      if (billingInfo.trial_end_date) {
+        return `Trial ends ${formatDate(billingInfo.trial_end_date)}.`;
+      }
+      return 'Enjoy full Pro access during your free trial.';
+    }
+    if (isCancelling && billingInfo.current_period_end) {
+      return `Scheduled to cancel on ${formatDate(billingInfo.current_period_end)}.`;
+    }
+    if (statusRaw === 'past_due') {
+      return 'Payment past due — update your payment method to avoid interruption.';
+    }
+    if (statusRaw === 'incomplete') {
+      return 'Payment incomplete — finish checkout or update your payment method.';
+    }
+    if (statusRaw === 'canceled') {
+      return 'Subscription cancelled — you now have Free plan access.';
+    }
+    return 'Renews automatically each billing period.';
+  })();
+
+  const planSummaryLabel = (() => {
+    if (!isProPlan) return 'SignalsLoop Free';
+    if (billingInfo.is_trial) return 'Pro Trial';
+    if (billingInfo.subscription_type === 'gifted') return billingInfo.is_yearly ? 'Pro • Gifted Yearly' : 'Pro • Gifted';
+    if (billingInfo.subscription_type === 'yearly') return 'Pro • Yearly';
+    if (billingInfo.subscription_type === 'monthly') return 'Pro • Monthly';
+    return 'SignalsLoop Pro';
+  })();
+
+  const nextBillingDescription = (() => {
+    if (!isProPlan) {
+      return 'Upgrade to Pro to unlock billing and usage insights.';
+    }
+    if (billingInfo.subscription_type === 'gifted') {
+      if (billingInfo.current_period_end) {
+        return `Gift access ends ${formatDate(billingInfo.current_period_end)}.`;
+      }
+      return 'Gifted subscription is currently active.';
+    }
+    if (isCancelling) {
+      if (billingInfo.current_period_end) {
+        return `Access continues until ${formatDate(billingInfo.current_period_end)}.`;
+      }
+      return 'Subscription will cancel at the end of the current period.';
+    }
+    if (billingInfo.current_period_end) {
+      return `Renews on ${formatDate(billingInfo.current_period_end)}.`;
+    }
+    return 'Next billing date is not yet available.';
+  })();
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -554,6 +632,44 @@ export function BillingDashboard({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Plan</p>
+              <p className="mt-2 text-lg font-semibold text-foreground">{planSummaryLabel}</p>
+              {billingInfo.plan === 'free' ? (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Upgrade to Pro to unlock AI features, advanced analytics, and collaboration tools.
+                </p>
+              ) : null}
+              {billingInfo.is_trial && billingInfo.trial_end_date && (
+                <p className="mt-2 text-xs text-orange-600">
+                  Trial ends {formatDate(billingInfo.trial_end_date)}.
+                </p>
+              )}
+              {billingInfo.subscription_type === 'gifted' && billingInfo.current_period_end && (
+                <p className="mt-2 text-xs text-purple-600">
+                  Gift access ends {formatDate(billingInfo.current_period_end)}.
+                </p>
+              )}
+            </div>
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</p>
+              <Badge variant="outline" className={cn('mt-2 w-fit text-xs font-semibold', statusBadgeClassName)}>
+                {statusLabel}
+              </Badge>
+              {statusSubtitle && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {statusSubtitle}
+                </p>
+              )}
+            </div>
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Next billing</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {nextBillingDescription}
+              </p>
+            </div>
+          </div>
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-lg">
@@ -709,27 +825,6 @@ export function BillingDashboard({
               </div>
             )}
           </div>
-
-          {billingInfo.plan === 'pro' && billingInfo.current_period_end && (
-            <Alert>
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>
-                <strong>
-                  {billingInfo.subscription_type === 'gifted' ? 'Expires:' : 'Next billing date:'}
-                </strong> {formatDate(billingInfo.current_period_end)}
-                {billingInfo.subscription_type === 'gifted' && billingInfo.is_yearly && (
-                  <span className="text-purple-600 ml-2">
-                    (1-Year Gifted Subscription)
-                  </span>
-                )}
-                {billingInfo.cancel_at_period_end && (
-                  <span className="text-orange-600 ml-2">
-                    (Subscription will cancel at the end of this period)
-                  </span>
-                )}
-              </AlertDescription>
-            </Alert>
-          )}
 
           {billingInfo.payment_method && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
