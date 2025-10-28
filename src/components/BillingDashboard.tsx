@@ -12,8 +12,6 @@ import {
   Crown, 
   Check, 
   X,
-  Calendar,
-  Download,
   ExternalLink,
   Star,
   BarChart3,
@@ -524,7 +522,9 @@ export function BillingDashboard({
       .join(' ');
 
   const statusRaw = billingInfo.subscription_status ?? (isProPlan ? (billingInfo.is_trial ? 'trialing' : 'active') : 'free');
-  const statusLabel = humanizeStatus(statusRaw);
+  const statusLabel = billingInfo.cancel_at_period_end && isProPlan && statusRaw === 'active'
+    ? 'Canceling'
+    : humanizeStatus(statusRaw);
   const isCancelling = Boolean(billingInfo.cancel_at_period_end);
 
   const statusBadgeClassName = isProPlan
@@ -550,7 +550,7 @@ export function BillingDashboard({
       return 'Enjoy full Pro access during your free trial.';
     }
     if (isCancelling && billingInfo.current_period_end) {
-      return `Scheduled to cancel on ${formatDate(billingInfo.current_period_end)}.`;
+      return `Access continues until ${formatDate(billingInfo.current_period_end)}. You can resume the plan before that date.`;
     }
     if (statusRaw === 'past_due') {
       return 'Payment past due — update your payment method to avoid interruption.';
@@ -585,7 +585,7 @@ export function BillingDashboard({
     }
     if (isCancelling) {
       if (billingInfo.current_period_end) {
-        return `Access continues until ${formatDate(billingInfo.current_period_end)}.`;
+        return `Scheduled to cancel on ${formatDate(billingInfo.current_period_end)}.`;
       }
       return 'Subscription will cancel at the end of the current period.';
     }
@@ -982,78 +982,31 @@ export function BillingDashboard({
         </Card>
       </div>
 
-      {/* Billing History */}
-      {billingInfo.plan === 'pro' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Billing History
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {/* Sample billing history */}
-              <div className="flex items-center justify-between p-3 border rounded">
-                <div>
-                  <div className="font-medium">SignalsLoop Pro - Monthly</div>
-                  <div className="text-sm text-muted-foreground">
-                    December 15, 2024
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-medium">$19.00</div>
-                  <Button variant="ghost" size="sm">
-                    <Download className="h-3 w-3 mr-1" />
-                    PDF
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 border rounded">
-                <div>
-                  <div className="font-medium">SignalsLoop Pro - Monthly</div>
-                  <div className="text-sm text-muted-foreground">
-                    November 15, 2024
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-medium">$19.00</div>
-                  <Button variant="ghost" size="sm">
-                    <Download className="h-3 w-3 mr-1" />
-                    PDF
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-center mt-4">
-              <Button variant="outline" onClick={handleManageBilling}>
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View All Invoices
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Support */}
       <Card>
         <CardHeader>
           <CardTitle>Need Help?</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Have questions about billing or need to make changes to your account?
+            Need to change or review your billing details? The Stripe portal lets you update payment methods, cancel or resume subscriptions, and download invoices.
           </p>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handleManageBilling} size="sm">
               <ExternalLink className="h-4 w-4 mr-2" />
-              Contact Support
+              Open Billing Portal
             </Button>
-            <Button variant="outline" size="sm">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Billing FAQ
+            <Button asChild variant="outline" size="sm">
+              <a href="mailto:hello@signalsloop.com?subject=Billing%20support" rel="noreferrer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Contact Support
+              </a>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <a href="https://signalsloop.com/help/billing" target="_blank" rel="noreferrer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Billing FAQ
+              </a>
             </Button>
           </div>
         </CardContent>
