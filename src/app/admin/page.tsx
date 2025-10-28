@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,7 +85,7 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-  const { isAdmin, loading: authLoading, user } = useAdminAuth();
+  const { isAdmin, loading: authLoading, user, accessToken } = useAdminAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -99,22 +99,33 @@ export default function AdminDashboard() {
       window.location.href = '/login';
       return;
     }
-    
-    if (isAdmin) {
-      loadData();
-    }
   }, [isAdmin, authLoading]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    if (!accessToken) {
+      return;
+    }
     try {
       setLoading(true);
       console.log('Loading admin data...');
 
       // Load all data in parallel
       const [statsResponse, usersResponse, projectsResponse] = await Promise.all([
-        fetch('/api/admin/stats'),
-        fetch('/api/admin/users'),
-        fetch('/api/admin/projects')
+        fetch('/api/admin/stats', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }),
+        fetch('/api/admin/users', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }),
+        fetch('/api/admin/projects', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
       ]);
 
       // Parse all responses
@@ -156,15 +167,28 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (!authLoading && isAdmin && accessToken) {
+      loadData();
+    }
+  }, [authLoading, isAdmin, accessToken, loadData]);
 
   const handleUserAction = async (userId: string, userEmail: string, action: 'upgrade' | 'downgrade') => {
+    if (!accessToken) {
+      toast.error('Admin authorization missing. Please refresh.');
+      return;
+    }
     try {
       setActionLoading(userId);
       
       const response = await fetch('/api/admin/users', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({
           userId,
           action: action === 'upgrade' ? 'upgrade_to_pro' : 'downgrade_to_free'
@@ -187,12 +211,19 @@ export default function AdminDashboard() {
   };
 
   const handleProjectAction = async (projectId: string, action: 'upgrade' | 'downgrade') => {
+    if (!accessToken) {
+      toast.error('Admin authorization missing. Please refresh.');
+      return;
+    }
     try {
       setActionLoading(projectId);
       
       const response = await fetch('/api/admin/projects', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({
           projectId,
           action: 'update_plan',
