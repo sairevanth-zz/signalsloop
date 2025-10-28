@@ -29,9 +29,7 @@ const faqs = [
   {
     question: 'Need help with something else?',
     answer:
-      'Email us at hello@signalsloop.com and a member of the SignalsLoop team will assist you.
-      
-You can also explore the in-product Quick Actions or the support site for more tutorials.',
+      'Email us at hello@signalsloop.com and a member of the SignalsLoop team will assist you.\n\nYou can also explore the in-product Quick Actions or the support site for more tutorials.',
   },
 ];
 
