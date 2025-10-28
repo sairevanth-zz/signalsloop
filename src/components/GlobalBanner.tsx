@@ -104,47 +104,18 @@ export default function GlobalBanner({
   };
 
   const handleManageBilling = async () => {
-    try {
-      if (!billingInfo) {
-        toast.error('Billing information not available. Please refresh the page.');
-        return;
-      }
-
-      if (billingInfo.plan !== 'pro') {
-        toast.info('You need to upgrade to Pro first to access billing management.');
-        return;
-      }
-
-      // Handle subscriptions without Stripe customer ID (e.g., gifted)
-      if (!billingInfo.stripe_customer_id) {
-        toast.info('Your Pro subscription is not managed through Stripe. Contact support for assistance.');
-        return;
-      }
-
-      // Create Stripe Customer Portal session
-      const response = await fetch('/api/stripe/portal', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          customerId: billingInfo.stripe_customer_id,
-          returnUrl: window.location.href,
-          accountId: user?.id ?? undefined,
-          projectId: primaryProject?.id ?? null,
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create portal session');
-      }
-
-      const { url } = await response.json();
-      window.location.href = url;
-    } catch (error) {
-      console.error('Error opening billing portal:', error);
-      toast.error('Failed to open billing portal. Please try again.');
+    if (!billingInfo) {
+      toast.error('Billing information not available. Please refresh the page.');
+      return;
     }
+
+    if (billingInfo.plan !== 'pro') {
+      toast.info('You need to upgrade to Pro first to access billing management.');
+      return;
+    }
+
+    // Route to internal billing dashboard first; customers can access the Stripe portal from there.
+    router.push('/app/billing');
   };
 
   const handleCancelTrial = async () => {
