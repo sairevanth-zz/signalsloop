@@ -49,6 +49,8 @@ interface DemoPost {
   author: string;
   created_at: string;
   comments_count: number;
+  category?: string;
+  priority_score?: number;
 }
 
 interface DemoComment {
@@ -185,7 +187,16 @@ export default function DemoPostPage() {
           setPost(foundPost);
           setVoteCount(foundPost.vote_count);
           setUserVoted(foundPost.user_voted);
-          
+
+          // Set AI category from post data if available
+          if (foundPost.category) {
+            setAiCategory({
+              category: foundPost.category,
+              confidence: 0.85, // Default confidence for pre-categorized posts
+              reasoning: `The feedback requests a new feature that enhances usability for users who prefer a ${foundPost.category.toLowerCase()} setting.`
+            });
+          }
+
           // Fetch comments for this post (fallback to seeded demo data)
           try {
             const commentsResponse = await fetch(`/api/demo/posts/${postId}/comments`);

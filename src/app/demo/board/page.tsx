@@ -10,6 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   MessageSquare,
   Filter,
   Search,
@@ -39,7 +46,9 @@ import {
   Copy,
   Lightbulb,
   Bug,
-  Star
+  Star,
+  ChevronDown,
+  Wand2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import AIWritingAssistant from '@/components/AIWritingAssistant';
@@ -694,6 +703,33 @@ export default function DemoBoard() {
               <span>AI categorize ({featureUsage.categorize.used}/{featureUsage.categorize.limit})</span>
               <span>AI writing ({featureUsage.writingAssistant.used}/{featureUsage.writingAssistant.limit})</span>
               <span>Votes ({featureUsage.vote.used}/{featureUsage.vote.limit})</span>
+            </div>
+
+            <div className="flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-1">
+                    <span className="text-sm font-semibold">Admin Actions</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-72">
+                  <DropdownMenuItem onSelect={() => { toast.success('Demo: Auto-prioritize would analyze and score all posts'); }}>
+                    <Target className="h-4 w-4 text-blue-600" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900">Auto-prioritize</span>
+                      <span className="text-xs text-gray-500">Generate AI priority scores for the newest posts</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => { toast.success('Demo: Smart Categorize would organize feedback by category'); }}>
+                    <Wand2 className="h-4 w-4 text-indigo-600" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900">Smart Categorize</span>
+                      <span className="text-xs text-gray-500">Let AI organize feedback by category</span>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <div className="space-y-4">
