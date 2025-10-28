@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +48,7 @@ interface SubscriptionGift {
 }
 
 export default function AdminSubscriptionsPage() {
+  const { isAdmin, loading: authLoading, getAccessToken } = useAdminAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [gifts, setGifts] = useState<SubscriptionGift[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,13 +62,25 @@ export default function AdminSubscriptionsPage() {
   const [giftReason, setGiftReason] = useState('');
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (!authLoading && !isAdmin) {
+      window.location.href = '/login';
+    }
+  }, [authLoading, isAdmin]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    const token = await getAccessToken();
+    if (!token) {
+      toast.error('Admin authorization missing. Please refresh.');
+      setLoading(false);
+      return;
+    }
     try {
       // Load projects from admin API
-      const projectsResponse = await fetch('/api/admin/subscriptions');
+      const projectsResponse = await fetch('/api/admin/subscriptions', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (projectsResponse.ok) {
         const projectsData = await projectsResponse.json();
         setProjects(projectsData.projects || []);
@@ -77,7 +90,11 @@ export default function AdminSubscriptionsPage() {
       }
 
       // Load gifts from admin API
-      const giftsResponse = await fetch('/api/admin/gifts');
+      const giftsResponse = await fetch('/api/admin/gifts', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (giftsResponse.ok) {
         const giftsData = await giftsResponse.json();
         setGifts(giftsData.gifts || []);
@@ -91,9 +108,20 @@ export default function AdminSubscriptionsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getAccessToken]);
+
+  useEffect(() => {
+    if (!authLoading && isAdmin) {
+      loadData();
+    }
+  }, [authLoading, isAdmin, loadData]);
 
   const giftSubscription = async () => {
+    const token = await getAccessToken();
+    if (!token) {
+      toast.error('Admin authorization missing. Please refresh.');
+      return;
+    }
     if (!giftEmail || !giftDuration) {
       toast.error('Please enter email and duration');
       return;
@@ -105,6 +133,7 @@ export default function AdminSubscriptionsPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           recipient_email: giftEmail,

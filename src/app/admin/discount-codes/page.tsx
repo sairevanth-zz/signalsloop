@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +44,7 @@ interface DiscountCode {
 }
 
 export default function AdminDiscountCodesPage() {
+  const { isAdmin, loading: authLoading, getAccessToken } = useAdminAuth();
   const [codes, setCodes] = useState<DiscountCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -61,12 +62,24 @@ export default function AdminDiscountCodesPage() {
   const [targetEmail, setTargetEmail] = useState(''); // New field for email-specific codes
 
   useEffect(() => {
-    loadDiscountCodes();
-  }, []);
+    if (!authLoading && !isAdmin) {
+      window.location.href = '/login';
+    }
+  }, [authLoading, isAdmin]);
 
-  const loadDiscountCodes = async () => {
+  const loadDiscountCodes = useCallback(async () => {
+    const token = await getAccessToken();
+
+    if (!token) {
+      toast.error('Admin authorization missing. Please refresh.');
+      return;
+    }
     try {
-      const response = await fetch('/api/admin/discount-codes');
+      const response = await fetch('/api/admin/discount-codes', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch discount codes');
@@ -80,9 +93,20 @@ export default function AdminDiscountCodesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getAccessToken]);
+
+  useEffect(() => {
+    if (!authLoading && isAdmin) {
+      loadDiscountCodes();
+    }
+  }, [authLoading, isAdmin, loadDiscountCodes]);
 
   const createDiscountCode = async () => {
+    const token = await getAccessToken();
+    if (!token) {
+      toast.error('Admin authorization missing. Please refresh.');
+      return;
+    }
     if (!code || !discountValue) {
       toast.error('Please fill in required fields');
       return;
@@ -94,6 +118,7 @@ export default function AdminDiscountCodesPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           code: code.toUpperCase(),
@@ -139,11 +164,17 @@ export default function AdminDiscountCodesPage() {
   };
 
   const toggleCodeStatus = async (id: string, currentStatus: boolean) => {
+    const token = await getAccessToken();
+    if (!token) {
+      toast.error('Admin authorization missing. Please refresh.');
+      return;
+    }
     try {
       const response = await fetch('/api/admin/discount-codes', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           id,
@@ -164,6 +195,11 @@ export default function AdminDiscountCodesPage() {
   };
   
   const deleteCode = async (id: string) => {
+    const token = await getAccessToken();
+    if (!token) {
+      toast.error('Admin authorization missing. Please refresh.');
+      return;
+    }
     if (!confirm('Are you sure you want to delete this discount code?')) {
       return;
     }
@@ -171,6 +207,9 @@ export default function AdminDiscountCodesPage() {
     try {
       const response = await fetch(`/api/admin/discount-codes?id=${id}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {

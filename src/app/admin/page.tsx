@@ -85,7 +85,7 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-  const { isAdmin, loading: authLoading, user, accessToken } = useAdminAuth();
+  const { isAdmin, loading: authLoading, user, getAccessToken } = useAdminAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -101,8 +101,12 @@ export default function AdminDashboard() {
     }
   }, [isAdmin, authLoading]);
 
-  const loadData = useCallback(async (token: string) => {
+  const loadData = useCallback(async () => {
+    const token = await getAccessToken();
+
     if (!token) {
+      toast.error('Admin authorization missing. Please refresh.');
+      setLoading(false);
       return;
     }
     try {
@@ -167,16 +171,17 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getAccessToken]);
 
   useEffect(() => {
-    if (!authLoading && isAdmin && accessToken) {
-      loadData(accessToken);
+    if (!authLoading && isAdmin) {
+      loadData();
     }
-  }, [authLoading, isAdmin, accessToken, loadData]);
+  }, [authLoading, isAdmin, loadData]);
 
   const handleUserAction = async (userId: string, userEmail: string, action: 'upgrade' | 'downgrade') => {
-    if (!accessToken) {
+    const token = await getAccessToken();
+    if (!token) {
       toast.error('Admin authorization missing. Please refresh.');
       return;
     }
@@ -187,7 +192,7 @@ export default function AdminDashboard() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           userId,
@@ -201,7 +206,7 @@ export default function AdminDashboard() {
 
       const result = await response.json();
       toast.success(result.message);
-      loadData(accessToken); // Reload data
+      loadData(); // Reload data
     } catch (error) {
       console.error('Error updating user:', error);
       toast.error(`Failed to ${action} user`);
@@ -211,7 +216,8 @@ export default function AdminDashboard() {
   };
 
   const handleProjectAction = async (projectId: string, action: 'upgrade' | 'downgrade') => {
-    if (!accessToken) {
+    const token = await getAccessToken();
+    if (!token) {
       toast.error('Admin authorization missing. Please refresh.');
       return;
     }
@@ -222,7 +228,7 @@ export default function AdminDashboard() {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           projectId,
@@ -237,7 +243,7 @@ export default function AdminDashboard() {
 
       const result = await response.json();
       toast.success(result.message);
-      loadData(accessToken); // Reload data
+      loadData(); // Reload data
     } catch (error) {
       console.error('Error updating project:', error);
       toast.error(`Failed to ${action} project`);
@@ -295,8 +301,8 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
-              onClick={() => accessToken && loadData(accessToken)}
-              disabled={loading || !accessToken}
+              onClick={() => loadData()}
+              disabled={loading}
               className="flex items-center gap-2"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
