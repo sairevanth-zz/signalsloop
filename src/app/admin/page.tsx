@@ -101,8 +101,8 @@ export default function AdminDashboard() {
     }
   }, [isAdmin, authLoading]);
 
-  const loadData = useCallback(async () => {
-    if (!accessToken) {
+  const loadData = useCallback(async (token: string) => {
+    if (!token) {
       return;
     }
     try {
@@ -113,17 +113,17 @@ export default function AdminDashboard() {
       const [statsResponse, usersResponse, projectsResponse] = await Promise.all([
         fetch('/api/admin/stats', {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${token}`,
           },
         }),
         fetch('/api/admin/users', {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${token}`,
           },
         }),
         fetch('/api/admin/projects', {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${token}`,
           },
         })
       ]);
@@ -167,11 +167,11 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [accessToken]);
+  }, []);
 
   useEffect(() => {
     if (!authLoading && isAdmin && accessToken) {
-      loadData();
+      loadData(accessToken);
     }
   }, [authLoading, isAdmin, accessToken, loadData]);
 
@@ -201,7 +201,7 @@ export default function AdminDashboard() {
 
       const result = await response.json();
       toast.success(result.message);
-      loadData(); // Reload data
+      loadData(accessToken); // Reload data
     } catch (error) {
       console.error('Error updating user:', error);
       toast.error(`Failed to ${action} user`);
@@ -237,7 +237,7 @@ export default function AdminDashboard() {
 
       const result = await response.json();
       toast.success(result.message);
-      loadData(); // Reload data
+      loadData(accessToken); // Reload data
     } catch (error) {
       console.error('Error updating project:', error);
       toast.error(`Failed to ${action} project`);
@@ -295,8 +295,8 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
-              onClick={loadData}
-              disabled={loading}
+              onClick={() => accessToken && loadData(accessToken)}
+              disabled={loading || !accessToken}
               className="flex items-center gap-2"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
