@@ -134,11 +134,6 @@ export default function AITestPage() {
               <p className="text-gray-600 mt-1">
                 Test the AI-powered feedback categorization system
               </p>
-              <div className="mt-2">
-                <Badge className="bg-purple-100 text-purple-800 border-purple-200">
-                  Using: {currentModel}
-                </Badge>
-              </div>
             </div>
           </div>
         </div>

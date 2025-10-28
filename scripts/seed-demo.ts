@@ -52,33 +52,45 @@ const demoPosts = [
     description: 'Would love to have a dark mode option for better usability during nighttime coding sessions. This would be great for reducing eye strain.',
     status: 'planned',
     author_email: 'sarah@techstartup.com',
+    author_name: 'Sarah Chen',
+    category: 'Feature Request',
+    priority_score: 8.5,
     created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days ago
   },
   {
-    id: '00000000-0000-0000-0000-000000000002', 
+    id: '00000000-0000-0000-0000-000000000002',
     board_id: DEMO_BOARD_ID,
     title: 'API rate limiting issues',
     description: 'Experiencing occasional 429 errors when making rapid API calls. Could we increase the rate limits for paid plans?',
     status: 'in_progress',
     author_email: 'dev@acmecorp.com',
+    author_name: 'Alex Kumar',
+    category: 'Bug Report',
+    priority_score: 9.2,
     created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() // 5 days ago
   },
   {
     id: '00000000-0000-0000-0000-000000000003',
-    board_id: DEMO_BOARD_ID, 
+    board_id: DEMO_BOARD_ID,
     title: 'Slack integration for notifications',
     description: 'Integration with Slack to get notified when new feedback is submitted or status changes occur.',
     status: 'open',
     author_email: 'product@growthco.io',
+    author_name: 'Taylor Martinez',
+    category: 'Integration',
+    priority_score: 7.8,
     created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() // 4 days ago
   },
   {
     id: '00000000-0000-0000-0000-000000000004',
     board_id: DEMO_BOARD_ID,
-    title: 'Keyboard shortcuts for power users', 
+    title: 'Keyboard shortcuts for power users',
     description: 'Add keyboard shortcuts like "C" to create new post, "R" to refresh, etc. This would speed up the workflow significantly.',
     status: 'open',
     author_email: 'alex@productteam.co',
+    author_name: 'Jordan Lee',
+    category: 'UI/UX',
+    priority_score: 6.5,
     created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() // 3 days ago
   },
   {
@@ -87,7 +99,10 @@ const demoPosts = [
     title: 'Export feedback to CSV',
     description: 'Ability to export all feedback data to CSV format for analysis and reporting purposes.',
     status: 'done',
-    author_email: 'analytics@datadriven.com', 
+    author_email: 'analytics@datadriven.com',
+    author_name: 'Morgan Davis',
+    category: 'Feature Request',
+    priority_score: 7.2,
     created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() // 10 days ago
   },
   {
@@ -95,8 +110,11 @@ const demoPosts = [
     board_id: DEMO_BOARD_ID,
     title: 'Mobile app for iOS and Android',
     description: 'Native mobile apps would be amazing for on-the-go feedback management.',
-    status: 'declined', 
+    status: 'declined',
     author_email: 'mobile@appstudio.com',
+    author_name: 'Riley Thompson',
+    category: 'Feature Request',
+    priority_score: 5.5,
     created_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() // 12 days ago
   },
   {
@@ -106,6 +124,9 @@ const demoPosts = [
     description: 'More advanced search with filters by date, status, author, and tags. Current search is too basic.',
     status: 'in_progress',
     author_email: 'ux@designstudio.co',
+    author_name: 'Casey Wright',
+    category: 'Improvement',
+    priority_score: 8.0,
     created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
   },
   {
@@ -115,6 +136,9 @@ const demoPosts = [
     description: 'Weekly email digest with summary of new feedback, trending requests, and status updates.',
     status: 'planned',
     author_email: 'team@remoteco.work',
+    author_name: 'Sam Rivera',
+    category: 'Feature Request',
+    priority_score: 7.5,
     created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() // 1 day ago
   },
   {
@@ -124,6 +148,9 @@ const demoPosts = [
     description: 'Allow custom webhook URLs for integration with existing tools and workflows.',
     status: 'open',
     author_email: 'devops@automation.tech',
+    author_name: 'Jamie Park',
+    category: 'Integration',
+    priority_score: 8.3,
     created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() // 6 days ago
   },
   {
@@ -133,6 +160,9 @@ const demoPosts = [
     description: 'More customization options for the feedback widget - colors, position, text, and styling to match brand.',
     status: 'done',
     author_email: 'branding@styleco.design',
+    author_name: 'Avery Brooks',
+    category: 'Improvement',
+    priority_score: 6.8,
     created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() // 8 days ago
   }
 ];

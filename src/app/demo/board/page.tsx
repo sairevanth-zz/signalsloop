@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import AIWritingAssistant from '@/components/AIWritingAssistant';
+import { CategoryBadge } from '@/components/CategoryBadge';
 
 const BOARD_FEATURE_LIMITS = {
   submit: { limit: 5, label: 'feedback submissions' },
@@ -65,6 +66,8 @@ interface DemoPost {
   author: string;
   created_at: string;
   comments_count: number;
+  category?: string;
+  priority_score?: number;
 }
 
 interface DemoProFeedbackFormProps {
@@ -740,7 +743,7 @@ export default function DemoBoard() {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
                           <h3 className="text-lg font-semibold text-gray-900">{post.title}</h3>
                           <Badge className={getStatusColor(post.status)}>
                             <span className="flex items-center gap-1">
@@ -748,6 +751,20 @@ export default function DemoBoard() {
                               {post.status.replace('_', ' ')}
                             </span>
                           </Badge>
+                          {post.category && (
+                            <CategoryBadge
+                              category={post.category}
+                              aiCategorized={true}
+                              size="sm"
+                              showIcon={false}
+                            />
+                          )}
+                          {post.priority_score && (
+                            <Badge className="bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 border-purple-200 flex items-center gap-1">
+                              <Brain className="h-3 w-3" />
+                              {post.priority_score.toFixed(1)}/10
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-gray-600 mb-3">{post.description}</p>
                       </div>

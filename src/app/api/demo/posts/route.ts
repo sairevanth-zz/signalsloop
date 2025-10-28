@@ -20,6 +20,9 @@ export async function GET() {
         description,
         status,
         author_email,
+        author_name,
+        category,
+        priority_score,
         created_at
       `)
       .eq('board_id', '00000000-0000-0000-0000-000000000001')
@@ -53,9 +56,11 @@ export async function GET() {
           status: post.status,
           vote_count: votesData?.length || 0,
           user_voted: false, // Demo mode - no real voting
-          author: post.author_email?.split('@')[0] || 'Demo User',
+          author: (post as any).author_name || post.author_email?.split('@')[0] || 'Demo User',
           created_at: post.created_at,
-          comments_count: commentsData?.length || 0
+          comments_count: commentsData?.length || 0,
+          category: (post as any).category,
+          priority_score: (post as any).priority_score
         };
       })
     );
