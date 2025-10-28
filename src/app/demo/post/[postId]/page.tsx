@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import AIWritingAssistant from '@/components/AIWritingAssistant';
+import { CategoryBadge } from '@/components/CategoryBadge';
 
 const POST_FEATURE_LIMITS = {
   sentiment: { limit: 10, label: 'sentiment analyses' },
@@ -742,7 +743,11 @@ export default function DemoPostPage() {
                 {aiCategory ? (
                   <div className="rounded-lg border border-indigo-200 bg-white p-4 space-y-2">
                     <div className="flex items-center justify-between">
-                      <Badge className="bg-indigo-100 text-indigo-700">{aiCategory.category}</Badge>
+                      <CategoryBadge
+                        category={aiCategory.category}
+                        aiCategorized={true}
+                        size="md"
+                      />
                       <span className="text-sm text-indigo-700 font-medium">{(aiCategory.confidence * 100).toFixed(0)}% confidence</span>
                     </div>
                     {aiCategory.reasoning && (

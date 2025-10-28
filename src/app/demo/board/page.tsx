@@ -714,14 +714,20 @@ export default function DemoBoard() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-72">
-                  <DropdownMenuItem onSelect={() => { toast.success('Demo: Auto-prioritize would analyze and score all posts'); }}>
+                  <DropdownMenuItem
+                    onSelect={() => { toast.success('Demo: Auto-prioritize would analyze and score all posts'); }}
+                    className="flex items-start gap-3 py-3"
+                  >
                     <Target className="h-4 w-4 text-blue-600" />
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-gray-900">Auto-prioritize</span>
                       <span className="text-xs text-gray-500">Generate AI priority scores for the newest posts</span>
                     </div>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => { toast.success('Demo: Smart Categorize would organize feedback by category'); }}>
+                  <DropdownMenuItem
+                    onSelect={() => { toast.success('Demo: Smart Categorize would organize feedback by category'); }}
+                    className="flex items-start gap-3 py-3"
+                  >
                     <Wand2 className="h-4 w-4 text-indigo-600" />
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-gray-900">Smart Categorize</span>
