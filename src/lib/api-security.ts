@@ -410,10 +410,34 @@ export async function validateAdminAuth(request: NextRequest): Promise<{
       return { valid: false, error: 'Invalid authentication token' };
     }
 
-    // Check if user is admin
-    const ADMIN_USER_IDS = process.env.ADMIN_USER_IDS?.split(',').map(id => id.trim()) || [];
+    const adminUserIds = (process.env.ADMIN_USER_IDS || '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean);
 
-    if (!ADMIN_USER_IDS.includes(user.id)) {
+    const configuredAdminEmails = (
+      process.env.ADMIN_EMAILS ||
+      process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
+      ''
+    )
+      .split(',')
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean);
+
+    const fallbackAdminEmails = [
+      'sai.chandupatla@gmail.com',
+      'admin@signalsloop.com',
+    ];
+
+    const allowedEmails =
+      configuredAdminEmails.length > 0 ? configuredAdminEmails : fallbackAdminEmails;
+
+    const userEmail = (user.email || '').toLowerCase();
+    const matchesUserId =
+      adminUserIds.length > 0 && adminUserIds.includes(user.id);
+    const matchesEmail = allowedEmails.includes(userEmail);
+
+    if (!matchesUserId && !matchesEmail) {
       return { valid: false, error: 'Admin access required' };
     }
 
