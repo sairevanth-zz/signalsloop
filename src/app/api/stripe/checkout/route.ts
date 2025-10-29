@@ -46,6 +46,8 @@ export async function POST(request: Request) {
     const billingCycle: BillingCycle = body.billingCycle ?? 'monthly';
     const identifier = body.projectId || body.accountId;
 
+    console.log('🛒 Checkout request:', { billingCycle, identifier });
+
     if (!identifier) {
       return NextResponse.json(
         { error: 'Project or account identifier is required' },
@@ -55,11 +57,21 @@ export async function POST(request: Request) {
 
     const context = await resolveBillingContext(identifier);
     if (!context) {
+      console.error('❌ Could not resolve billing context for:', identifier);
       return NextResponse.json(
         { error: 'Unable to resolve billing context' },
         { status: 404 }
       );
     }
+
+    console.log('✅ Billing context resolved:', {
+      userId: context.userId,
+      hasProfile: !!context.profile,
+      hasProject: !!context.project,
+      customerId: context.profile?.stripe_customer_id,
+      subscriptionId: context.profile?.subscription_id,
+      currentPlan: context.profile?.plan
+    });
 
     const priceId = body.priceId ?? getDefaultPriceId(billingCycle);
     if (!priceId) {
@@ -81,8 +93,32 @@ export async function POST(request: Request) {
     const origin = request.headers.get('origin') || request.url.replace(/\/api\/.*/, '');
 
     const hasCustomer = Boolean(context.profile?.stripe_customer_id);
+    console.log('🔧 Creating checkout session:', { hasCustomer, priceId, billingCycle });
 
-    const session = await stripe.checkout.sessions.create({
+    // Check if customer already has an active subscription
+    if (hasCustomer && context.profile?.subscription_id) {
+      console.log('⚠️ Customer already has subscription:', context.profile.subscription_id);
+
+      // Check if the subscription exists in Stripe
+      try {
+        const existingSubscription = await stripe.subscriptions.retrieve(context.profile.subscription_id);
+
+        if (existingSubscription.status === 'active') {
+          console.error('❌ Customer already has active subscription, cannot create new checkout');
+          return NextResponse.json(
+            {
+              error: 'Already subscribed',
+              details: 'You already have an active subscription. Please manage your subscription through the billing portal instead.'
+            },
+            { status: 400 }
+          );
+        }
+      } catch (subError) {
+        console.log('⚠️ Subscription not found in Stripe, continuing with checkout');
+      }
+    }
+
+    const sessionConfig = {
       payment_method_types: ['card'],
       line_items: [
         {
@@ -90,15 +126,15 @@ export async function POST(request: Request) {
           quantity: 1,
         },
       ],
-      mode: 'subscription',
-      billing_address_collection: 'required',
+      mode: 'subscription' as const,
+      billing_address_collection: 'required' as const,
       allow_promotion_codes: true,
       tax_id_collection: { enabled: true },
       automatic_tax: { enabled: true },
       ...(hasCustomer
         ? {
             customer: context.profile!.stripe_customer_id!,
-            customer_update: { address: 'auto' },
+            customer_update: { address: 'auto' as const },
           }
         : {}),
       metadata: {
@@ -119,16 +155,29 @@ export async function POST(request: Request) {
       cancel_url:
         body.cancelUrl ||
         `${origin}${successPath}?cancelled=true`,
-    });
+    };
+
+    console.log('🚀 Creating Stripe checkout session...');
+    const session = await stripe.checkout.sessions.create(sessionConfig);
+    console.log('✅ Checkout session created:', session.id);
 
     return NextResponse.json({
       url: session.url,
       session_id: session.id,
     });
   } catch (error) {
-    console.error('Stripe checkout error:', error);
+    console.error('❌ Stripe checkout error:', error);
+
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorDetails = error instanceof Error ? error.stack : undefined;
+
+    console.error('Error details:', { message: errorMessage, stack: errorDetails });
+
     return NextResponse.json(
-      { error: 'Failed to create checkout session' },
+      {
+        error: 'Failed to create checkout session',
+        details: errorMessage
+      },
       { status: 500 }
     );
   }
