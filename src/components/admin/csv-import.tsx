@@ -10,9 +10,10 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface CSVImportProps {
-  projectId: string;
-  boardId: string;
-  onImportComplete: (results: ImportResults) => void;
+  projectId?: string;
+  boardId?: string;
+  projectSlug?: string;
+  onImportComplete?: (results: ImportResults) => void;
 }
 
 interface ImportResults {
@@ -206,7 +207,7 @@ const parseCSV = (text: string) => {
   return { headers, rows: dataRows };
 };
 
-export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportProps) {
+export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }: CSVImportProps) {
   const [step, setStep] = useState<'upload' | 'mapping' | 'preview' | 'importing' | 'complete'>('upload');
   const [csvData, setCSVData] = useState<CSVRow[]>([]);
   const [csvHeaders, setCSVHeaders] = useState<string[]>([]);
@@ -214,6 +215,7 @@ export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportPro
   const [importResults, setImportResults] = useState<ImportResults | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
+  const handleImportComplete = onImportComplete ?? (() => undefined);
 
   // File upload handling
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -317,6 +319,11 @@ export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportPro
 
   // Import execution
   const executeImport = async () => {
+    if (!boardId && !projectId && !projectSlug) {
+      alert('Missing project context. Please reload the page and try again.');
+      return;
+    }
+
     setIsImporting(true);
     setImportProgress(0);
     setStep('importing');
@@ -342,9 +349,20 @@ export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportPro
           try {
             // Build post data from mappings
             const postData: any = {
-              board_id: boardId,
               status: 'open'
             };
+
+            if (boardId) {
+              postData.board_id = boardId;
+            }
+
+            if (projectId) {
+              postData.project_id = projectId;
+            }
+
+            if (projectSlug) {
+              postData.project_slug = projectSlug;
+            }
 
             columnMappings.forEach(mapping => {
               if (mapping.dbField !== 'skip') {
@@ -431,7 +449,7 @@ export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportPro
 
       setImportResults(results);
       setStep('complete');
-      onImportComplete(results);
+      handleImportComplete(results);
 
     } catch (error) {
       console.error('Import failed:', error);
