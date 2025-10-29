@@ -33,22 +33,27 @@ export async function POST(request: NextRequest) {
       projectTrialStatus: context.project?.trial_status,
     });
 
-    const isTrialActive =
-      (context.profile?.is_trial ?? context.project?.is_trial ?? false) &&
-      (context.profile?.trial_status ?? context.project?.trial_status) === 'active';
+    // Check if user has an active trial
+    const isTrial = context.profile?.is_trial ?? context.project?.is_trial ?? false;
+    const trialStatus = context.profile?.trial_status ?? context.project?.trial_status ?? null;
 
-    console.log('✅ Is trial active?', isTrialActive);
+    // Allow cancellation if is_trial is true, regardless of trial_status
+    // This handles cases where trial_status might be null, 'none', or other values
+    const canCancelTrial = isTrial && trialStatus !== 'cancelled' && trialStatus !== 'expired' && trialStatus !== 'converted';
 
-    if (!isTrialActive) {
-      console.error('❌ Trial not active. Details:', {
-        is_trial: context.profile?.is_trial ?? context.project?.is_trial,
-        trial_status: context.profile?.trial_status ?? context.project?.trial_status,
+    console.log('✅ Can cancel trial?', { canCancelTrial, isTrial, trialStatus });
+
+    if (!canCancelTrial) {
+      console.error('❌ Cannot cancel trial. Details:', {
+        is_trial: isTrial,
+        trial_status: trialStatus,
+        reason: !isTrial ? 'Not in trial' : `Trial already ${trialStatus}`,
       });
       return NextResponse.json({
-        error: 'Project is not in trial period',
+        error: !isTrial ? 'Account is not in trial period' : `Trial is already ${trialStatus}`,
         details: {
-          is_trial: context.profile?.is_trial ?? context.project?.is_trial ?? false,
-          trial_status: context.profile?.trial_status ?? context.project?.trial_status ?? null,
+          is_trial: isTrial,
+          trial_status: trialStatus,
         }
       }, { status: 400 });
     }
