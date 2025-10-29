@@ -390,19 +390,42 @@ export function BillingDashboard({
     console.log('📅 Yearly upgrade clicked');
     console.log('📋 Billing info:', billingInfo);
 
-    // Only redirect to portal if subscription is truly active (not canceling)
-    if (billingInfo.subscription_status === 'active' && !billingInfo.cancel_at_period_end) {
-      console.log('ℹ️ User has active subscription, opening billing portal...');
-      toast.info('Opening billing portal where you can upgrade to yearly...');
-      await handleManageBilling();
-      return;
-    }
-
     setLoading(true);
 
     try {
+      // If user has an active subscription, update it to yearly
+      if (billingInfo.subscription_status === 'active' && !billingInfo.cancel_at_period_end) {
+        console.log('🔄 Updating existing subscription to yearly...');
+
+        const response = await fetch('/api/stripe/upgrade-to-yearly', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            projectId: projectId,
+          })
+        });
+
+        console.log('📡 Upgrade response status:', response.status);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.details || errorData.error || 'Failed to upgrade to yearly');
+        }
+
+        const result = await response.json();
+        console.log('✅ Successfully upgraded to yearly:', result);
+
+        toast.success('Successfully upgraded to yearly billing! 🎉');
+
+        // Reload billing info
+        await loadBillingInfo();
+        return;
+      }
+
+      // If no active subscription, create a new yearly checkout
       console.log('🚀 Creating yearly checkout session...');
-      // Create yearly checkout session
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: {
@@ -432,8 +455,8 @@ export function BillingDashboard({
         throw new Error('No yearly checkout URL received');
       }
     } catch (error) {
-      console.error('❌ Error creating yearly checkout:', error);
-      toast.error('Failed to start yearly upgrade: ' + (error as Error).message);
+      console.error('❌ Error upgrading to yearly:', error);
+      toast.error('Failed to upgrade to yearly: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
