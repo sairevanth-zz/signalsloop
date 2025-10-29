@@ -43,6 +43,45 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Can cancel trial?', { canCancelTrial, isTrial, trialStatus });
 
+    // If trial is already cancelled but cleanup wasn't completed, complete it now
+    if (isTrial && trialStatus === 'cancelled') {
+      console.log('⚠️ Trial already cancelled, completing cleanup...');
+
+      const nowIso = new Date().toISOString();
+      const nextProfile = await upsertAccountBillingProfile({
+        user_id: context.userId,
+        plan: 'free',
+        stripe_customer_id: context.profile?.stripe_customer_id ?? context.project?.stripe_customer_id ?? null,
+        subscription_id: null,
+        subscription_status: 'canceled',
+        current_period_end: null,
+        cancel_at_period_end: false,
+        billing_cycle: null,
+        trial_start_date: context.profile?.trial_start_date ?? context.project?.trial_start_date ?? null,
+        trial_end_date: context.profile?.trial_end_date ?? context.project?.trial_end_date ?? null,
+        trial_status: 'cancelled',
+        is_trial: false,
+        trial_cancelled_at: context.profile?.trial_cancelled_at ?? nowIso,
+      });
+
+      if (context.project && nextProfile) {
+        await syncAccountProfileToProject(context.project.id, {
+          ...nextProfile,
+          subscription_status: 'canceled',
+          subscription_id: null,
+          plan: 'free',
+          cancel_at_period_end: false,
+          trial_status: 'cancelled',
+          is_trial: false,
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Trial cleanup completed successfully'
+      });
+    }
+
     if (!canCancelTrial) {
       console.error('❌ Cannot cancel trial. Details:', {
         is_trial: isTrial,
