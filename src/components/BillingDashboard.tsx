@@ -85,9 +85,9 @@ export function BillingDashboard({
   const [upgrading, setUpgrading] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [supabase, setSupabase] = useState<any>(null);
-  const [selectedBillingCycle, setSelectedBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const [selectedBillingCycle, setSelectedBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const upgradeButtonLabel =
-    selectedBillingCycle === 'annual'
+    selectedBillingCycle === 'yearly'
       ? 'Upgrade to Yearly – $180/yr'
       : 'Upgrade to Monthly – $19/mo';
 
@@ -291,7 +291,7 @@ export function BillingDashboard({
 
   useEffect(() => {
     if (billingInfo.plan === 'pro' && billingInfo.is_yearly) {
-      setSelectedBillingCycle('annual');
+      setSelectedBillingCycle('yearly');
     } else {
       setSelectedBillingCycle('monthly');
     }
@@ -759,11 +759,11 @@ export function BillingDashboard({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSelectedBillingCycle('annual')}
+                    onClick={() => setSelectedBillingCycle('yearly')}
                     className={cn(
                       'flex-1 rounded-xl border border-transparent px-4 py-3 text-left transition-colors',
                       'flex flex-col gap-1 text-sm',
-                      selectedBillingCycle === 'annual'
+                      selectedBillingCycle === 'yearly'
                         ? 'border-border bg-background text-primary shadow-sm'
                         : 'text-muted-foreground hover:text-foreground'
                     )}

@@ -46,7 +46,16 @@ export async function POST(request: Request) {
     const billingCycle: BillingCycle = body.billingCycle ?? 'monthly';
     const identifier = body.projectId || body.accountId;
 
-    console.log('🛒 Checkout request:', { billingCycle, identifier });
+    console.log('🛒 Checkout request:', { billingCycle, identifier, rawBillingCycle: body.billingCycle });
+
+    // Validate billing cycle
+    if (body.billingCycle && body.billingCycle !== 'monthly' && body.billingCycle !== 'yearly') {
+      console.error('❌ Invalid billing cycle:', body.billingCycle);
+      return NextResponse.json(
+        { error: 'Invalid billing cycle', details: `Billing cycle must be 'monthly' or 'yearly', received: '${body.billingCycle}'` },
+        { status: 400 }
+      );
+    }
 
     if (!identifier) {
       return NextResponse.json(
