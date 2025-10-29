@@ -345,14 +345,14 @@ export function BillingDashboard({
 
     if (billingInfo.plan !== 'pro') {
       console.log('⚠️ User is not on Pro plan');
-      toast.info('You need to upgrade to Pro first to access billing management. Click "Upgrade Now" to get started!');
+      toast.info('You need to upgrade to Pro first to access billing management.');
       return;
     }
 
     // Handle subscriptions without Stripe customer ID (e.g., gifted)
-    if (!billingInfo.stripe_customer_id) {
-      console.log('ℹ️ Subscription not managed through Stripe');
-      toast.info('Your Pro subscription is not managed through Stripe. Contact support for assistance.');
+    if (!billingInfo.stripe_customer_id || billingInfo.subscription_type === 'gifted' || billingInfo.is_trial) {
+      console.log('ℹ️ Subscription not managed through Stripe (gifted or trial)');
+      toast.info('Your Pro access is ' + (billingInfo.is_trial ? 'a free trial' : 'a gifted subscription') + ' and is not managed through Stripe.');
       return;
     }
 
@@ -791,7 +791,7 @@ export function BillingDashboard({
                 </div>
                 <div className="flex gap-2">
                   {billingInfo.is_trial ? (
-                    <Button 
+                    <Button
                       onClick={handleCancelTrial}
                       disabled={loading}
                       variant="destructive"
@@ -799,10 +799,14 @@ export function BillingDashboard({
                     >
                       Cancel Trial
                     </Button>
+                  ) : billingInfo.subscription_type === 'gifted' ? (
+                    <div className="text-sm text-muted-foreground">
+                      🎁 Your Pro access is a gift! No payment required.
+                    </div>
                   ) : (
                     <>
-                      {!billingInfo.is_yearly && billingInfo.subscription_type !== 'gifted' && (
-                        <Button 
+                      {!billingInfo.is_yearly && (
+                        <Button
                           onClick={handleUpgradeToYearly}
                           disabled={loading}
                           size="sm"
@@ -811,7 +815,7 @@ export function BillingDashboard({
                           Upgrade to Yearly
                         </Button>
                       )}
-                      <Button 
+                      <Button
                         onClick={handleManageBilling}
                         disabled={loading}
                         variant="outline"
@@ -960,7 +964,7 @@ export function BillingDashboard({
             </ul>
 
             {billingInfo.plan === 'free' ? (
-              <Button 
+              <Button
                 onClick={handleUpgrade}
                 disabled={upgrading}
                 className="w-full mt-4"
@@ -968,11 +972,15 @@ export function BillingDashboard({
                 {upgrading ? 'Starting upgrade...' : upgradeButtonLabel}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
+            ) : billingInfo.subscription_type === 'gifted' || billingInfo.is_trial ? (
+              <div className="text-center text-sm text-muted-foreground mt-4">
+                {billingInfo.is_trial ? '🎉 Enjoying your free trial' : '🎁 Enjoying your gifted Pro access'}
+              </div>
             ) : (
-              <Button 
+              <Button
                 onClick={handleManageBilling}
                 disabled={loading}
-                variant="outline" 
+                variant="outline"
                 className="w-full mt-4"
               >
                 Manage Subscription
@@ -989,13 +997,17 @@ export function BillingDashboard({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Need to change or review your billing details? The Stripe portal lets you update payment methods, cancel or resume subscriptions, and download invoices.
+            {billingInfo.subscription_type === 'gifted' || billingInfo.is_trial
+              ? 'Have questions about your Pro access? Contact our support team for assistance.'
+              : 'Need to change or review your billing details? The Stripe portal lets you update payment methods, cancel or resume subscriptions, and download invoices.'}
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={handleManageBilling} size="sm">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Open Billing Portal
-            </Button>
+            {billingInfo.subscription_type !== 'gifted' && !billingInfo.is_trial && billingInfo.plan === 'pro' && (
+              <Button onClick={handleManageBilling} size="sm">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Open Billing Portal
+              </Button>
+            )}
             <Button asChild variant="outline" size="sm">
               <a href="mailto:hello@signalsloop.com?subject=Billing%20support" rel="noreferrer">
                 <ExternalLink className="h-4 w-4 mr-2" />
