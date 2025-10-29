@@ -486,7 +486,7 @@ export default function AdminDashboard() {
                       <th className="text-left p-3">Plan</th>
                       <th className="text-left p-3">Projects</th>
                       <th className="text-left p-3">Last Sign In</th>
-                      <th className="text-left p-3">Actions</th>
+                      <th className="text-left p-3">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -531,39 +531,16 @@ export default function AdminDashboard() {
                           </div>
                         </td>
                         <td className="p-3">
-                          <div className="flex gap-2">
-                            {user.has_pro_subscription ? (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleUserAction(user.id, user.email, 'downgrade')}
-                                disabled={actionLoading === user.id}
-                                className="text-orange-600 border-orange-300 hover:bg-orange-50"
-                              >
-                                {actionLoading === user.id ? (
-                                  <RefreshCw className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  'Downgrade to Free'
-                                )}
-                              </Button>
-                            ) : (
-                              <Button
-                                size="sm"
-                                onClick={() => handleUserAction(user.id, user.email, 'upgrade')}
-                                disabled={actionLoading === user.id}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                {actionLoading === user.id ? (
-                                  <RefreshCw className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  <>
-                                    <Crown className="w-3 h-3 mr-1" />
-                                    Upgrade to Pro
-                                  </>
-                                )}
-                              </Button>
-                            )}
-                          </div>
+                          {user.has_pro_subscription ? (
+                            <Badge className="bg-gradient-to-r from-purple-500 to-blue-500 text-white flex items-center gap-1 w-fit">
+                              <Crown className="w-3 h-3" />
+                              Pro Customer
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-gray-600">
+                              Free Plan
+                            </Badge>
+                          )}
                         </td>
                       </tr>
                     ))}

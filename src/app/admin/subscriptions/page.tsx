@@ -38,12 +38,16 @@ interface Project {
 
 interface SubscriptionGift {
   id: string;
-  project_slug: string;
-  project_name: string;
-  owner_email: string;
+  recipient_email: string;
+  recipient_name?: string;
+  gifter_email?: string;
+  sender_name?: string;
+  gift_message?: string;
   duration_months: number;
-  status: 'active' | 'expired';
-  gifted_at: string;
+  status: string;
+  redemption_code?: string;
+  redeemed_at?: string;
+  created_at: string;
   expires_at: string;
 }
 
@@ -362,8 +366,8 @@ export default function AdminSubscriptionsPage() {
                 <div key={gift.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold">{gift.owner_email}</h3>
-                      <Badge variant={gift.status === 'active' ? 'default' : 'secondary'}>
+                      <h3 className="font-semibold">{gift.recipient_email}</h3>
+                      <Badge variant={gift.status === 'redeemed' ? 'default' : gift.status === 'pending' ? 'secondary' : 'outline'}>
                         {gift.status}
                       </Badge>
                       <Badge variant="outline">
@@ -371,9 +375,12 @@ export default function AdminSubscriptionsPage() {
                       </Badge>
                     </div>
                     <div className="text-sm text-gray-600 space-y-1">
-                      <p><strong>Project:</strong> {gift.project_name} ({gift.project_slug})</p>
-                      <p><strong>Gifted:</strong> {new Date(gift.gifted_at).toLocaleDateString()}</p>
+                      <p><strong>Recipient:</strong> {gift.recipient_name || 'Not provided'}</p>
+                      <p><strong>Gifted By:</strong> {gift.sender_name || gift.gifter_email || 'Admin'}</p>
+                      <p><strong>Created:</strong> {new Date(gift.created_at).toLocaleDateString()}</p>
                       <p><strong>Expires:</strong> {new Date(gift.expires_at).toLocaleDateString()}</p>
+                      {gift.redemption_code && <p><strong>Code:</strong> {gift.redemption_code}</p>}
+                      {gift.redeemed_at && <p><strong>Redeemed:</strong> {new Date(gift.redeemed_at).toLocaleDateString()}</p>}
                     </div>
                   </div>
                 </div>
