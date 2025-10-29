@@ -216,6 +216,13 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const handleImportComplete = onImportComplete ?? (() => undefined);
+  const handleDashboardRedirect = useCallback(() => {
+    if (projectSlug) {
+      window.location.href = `/${projectSlug}/board`;
+      return;
+    }
+    window.location.href = '/app';
+  }, [projectSlug]);
 
   // File upload handling
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -767,8 +774,8 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
               <Button onClick={resetImport} variant="outline">
                 Import Another File
               </Button>
-              <Button onClick={() => window.location.href = '/app/admin'}>
-                Go to Admin Dashboard
+              <Button onClick={handleDashboardRedirect}>
+                Go to Dashboard
               </Button>
             </div>
           </div>

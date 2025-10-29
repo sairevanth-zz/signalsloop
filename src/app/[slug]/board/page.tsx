@@ -377,8 +377,8 @@ export default function BoardPage() {
         .from('posts')
         .select(`
           *,
-          vote_count:votes(count),
-          comment_count:comments(count)
+          vote_summary:votes(count),
+          comment_summary:comments(count)
         `)
         .eq('board_id', boardData.id)
         .is('duplicate_of', null); // Don't show duplicate posts
@@ -433,28 +433,62 @@ export default function BoardPage() {
       });
 
       // Process posts data
-      const processedPosts = postsData?.map((post: Record<string, unknown>) => ({
-        id: post.id as string,
-        title: post.title as string,
-        description: post.description as string,
-        author_email: post.author_email as string,
-        status: post.status as 'open' | 'planned' | 'in_progress' | 'done' | 'declined',
-        created_at: post.created_at as string,
-        vote_count: (post.vote_count as Array<{count: number}>)?.[0]?.count || 0,
-        comment_count: (post.comment_count as Array<{count: number}>)?.[0]?.count || 0,
-        user_voted: false, // TODO: Check if current user voted
-        category: post.category as string | null,
-        ai_categorized: post.ai_categorized as boolean,
-        ai_confidence: post.ai_confidence as number,
-        ai_reasoning: post.ai_reasoning as string,
-        duplicate_of: post.duplicate_of as string | null,
-        mergedDuplicates: duplicatesByTarget[post.id as string] || [],
-        mergedDuplicateCount: (duplicatesByTarget[post.id as string] || []).length,
-        priority_score: typeof post.priority_score === 'number' ? Number(post.priority_score) : undefined,
-        priority_reason: (post.priority_reason as string) || null,
-        ai_analyzed_at: (post.ai_analyzed_at as string) || null,
-        total_priority_score: typeof post.total_priority_score === 'number' ? Number(post.total_priority_score) : undefined,
-      })) || [];
+      const normalizeCount = (value: unknown): number => {
+        if (Array.isArray(value) && value.length > 0) {
+          const first = value[0] as { count?: unknown };
+          if (first && typeof first === 'object' && 'count' in first) {
+            return normalizeCount(first.count);
+          }
+          return normalizeCount(first);
+        }
+        if (value === null || value === undefined) {
+          return 0;
+        }
+        if (typeof value === 'number') {
+          return Number.isFinite(value) ? value : 0;
+        }
+        if (typeof value === 'string') {
+          const parsed = Number(value);
+          return Number.isFinite(parsed) ? parsed : 0;
+        }
+        if (typeof value === 'object' && 'count' in (value as Record<string, unknown>)) {
+          return normalizeCount((value as { count?: unknown }).count);
+        }
+        return 0;
+      };
+
+      const processedPosts = postsData?.map((post: Record<string, unknown>) => {
+        const aggregatedVotes = normalizeCount((post as Record<string, unknown>).vote_summary);
+        const storedVoteCount = normalizeCount(post.vote_count);
+        const finalVoteCount = aggregatedVotes > 0 ? aggregatedVotes : storedVoteCount;
+
+        const aggregatedComments = normalizeCount((post as Record<string, unknown>).comment_summary);
+        const storedCommentCount = normalizeCount(post.comment_count);
+        const finalCommentCount = aggregatedComments > 0 ? aggregatedComments : storedCommentCount;
+
+        return {
+          id: post.id as string,
+          title: post.title as string,
+          description: post.description as string,
+          author_email: post.author_email as string,
+          status: post.status as 'open' | 'planned' | 'in_progress' | 'done' | 'declined',
+          created_at: post.created_at as string,
+          vote_count: finalVoteCount,
+          comment_count: finalCommentCount,
+          user_voted: false, // TODO: Check if current user voted
+          category: post.category as string | null,
+          ai_categorized: post.ai_categorized as boolean,
+          ai_confidence: post.ai_confidence as number,
+          ai_reasoning: post.ai_reasoning as string,
+          duplicate_of: post.duplicate_of as string | null,
+          mergedDuplicates: duplicatesByTarget[post.id as string] || [],
+          mergedDuplicateCount: (duplicatesByTarget[post.id as string] || []).length,
+          priority_score: typeof post.priority_score === 'number' ? Number(post.priority_score) : undefined,
+          priority_reason: (post.priority_reason as string) || null,
+          ai_analyzed_at: (post.ai_analyzed_at as string) || null,
+          total_priority_score: typeof post.total_priority_score === 'number' ? Number(post.total_priority_score) : undefined,
+        };
+      }) || [];
 
       setPosts(processedPosts);
 

@@ -19,6 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       title,
       description,
       status = 'open',
+      votes,
       author_name,
       author_email,
       created_at
@@ -34,6 +35,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!validStatuses.includes(normalizedStatus)) {
       return res.status(400).json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
     }
+
+    const normalizedVotesRaw =
+      typeof votes === 'number'
+        ? votes
+        : typeof votes === 'string' && votes.trim() !== ''
+        ? Number.parseInt(votes, 10)
+        : 0;
+    const normalizedVotes = Number.isFinite(normalizedVotesRaw)
+      ? Math.max(0, Math.min(1000, Math.round(normalizedVotesRaw)))
+      : 0;
 
     let resolvedProjectId = typeof project_id === 'string' ? project_id.trim() : project_id ?? undefined;
     if (typeof resolvedProjectId === 'string' && resolvedProjectId.length === 0) {
@@ -120,7 +131,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       project_id: resolvedProjectId,
       title: normalizedTitle.substring(0, 200),
       description: normalizedDescription.substring(0, 2000),
-      status: normalizedStatus
+      status: normalizedStatus,
+      vote_count: normalizedVotes
     };
 
     if (author_name) {
