@@ -30,7 +30,7 @@ interface DiscountCode {
   id: string;
   code: string;
   description?: string;
-  discount_type: 'percentage' | 'fixed_amount';
+  discount_type: 'percentage' | 'fixed';
   discount_value: number;
   min_amount: number;
   max_discount?: number;
@@ -40,7 +40,7 @@ interface DiscountCode {
   valid_until?: string;
   is_active: boolean;
   created_at: string;
-  target_email?: string; // New field for email-specific codes
+  target_email?: string;
 }
 
 export default function AdminDiscountCodesPage() {
@@ -53,7 +53,7 @@ export default function AdminDiscountCodesPage() {
   // Form state
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
-  const [discountType, setDiscountType] = useState<'percentage' | 'fixed_amount'>('percentage');
+  const [discountType, setDiscountType] = useState<'percentage' | 'fixed'>('percentage');
   const [discountValue, setDiscountValue] = useState('');
   const [minAmount, setMinAmount] = useState('');
   const [maxDiscount, setMaxDiscount] = useState('');
@@ -122,15 +122,14 @@ export default function AdminDiscountCodesPage() {
         },
         body: JSON.stringify({
           code: code.toUpperCase(),
-          description: description || null,
+          description: description || undefined,
           discount_type: discountType,
-          discount_value: discountValue,
-          min_amount: minAmount || 0,
-          max_discount: maxDiscount || null,
-          usage_limit: usageLimit || null,
-          valid_until: validUntil || null,
-          target_email: targetEmail || null,
-          is_active: true
+          discount_value: parseFloat(discountValue),
+          min_amount: minAmount ? parseFloat(minAmount) : undefined,
+          max_discount: maxDiscount ? parseFloat(maxDiscount) : undefined,
+          usage_limit: usageLimit ? parseInt(usageLimit, 10) : undefined,
+          valid_until: validUntil || undefined,
+          target_email: targetEmail || undefined,
         }),
       });
 
@@ -365,13 +364,13 @@ export default function AdminDiscountCodesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="discount-type">Discount Type</Label>
-                    <Select value={discountType} onValueChange={(value: 'percentage' | 'fixed_amount') => setDiscountType(value)}>
+                    <Select value={discountType} onValueChange={(value: 'percentage' | 'fixed') => setDiscountType(value)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="percentage">Percentage</SelectItem>
-                        <SelectItem value="fixed_amount">Fixed Amount</SelectItem>
+                        <SelectItem value="fixed">Fixed Amount</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
