@@ -26,12 +26,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unable to resolve billing context' }, { status: 404 });
     }
 
+    console.log('🔍 Trial cancel context:', {
+      profileIsTrial: context.profile?.is_trial,
+      profileTrialStatus: context.profile?.trial_status,
+      projectIsTrial: context.project?.is_trial,
+      projectTrialStatus: context.project?.trial_status,
+    });
+
     const isTrialActive =
       (context.profile?.is_trial ?? context.project?.is_trial ?? false) &&
       (context.profile?.trial_status ?? context.project?.trial_status) === 'active';
 
+    console.log('✅ Is trial active?', isTrialActive);
+
     if (!isTrialActive) {
-      return NextResponse.json({ error: 'Project is not in trial period' }, { status: 400 });
+      console.error('❌ Trial not active. Details:', {
+        is_trial: context.profile?.is_trial ?? context.project?.is_trial,
+        trial_status: context.profile?.trial_status ?? context.project?.trial_status,
+      });
+      return NextResponse.json({
+        error: 'Project is not in trial period',
+        details: {
+          is_trial: context.profile?.is_trial ?? context.project?.is_trial ?? false,
+          trial_status: context.profile?.trial_status ?? context.project?.trial_status ?? null,
+        }
+      }, { status: 400 });
     }
 
     // Cancel the subscription in Stripe
