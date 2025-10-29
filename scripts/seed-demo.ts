@@ -65,7 +65,7 @@ const demoPosts = [
     status: 'in_progress',
     author_email: 'dev@acmecorp.com',
     author_name: 'Alex Kumar',
-    category: 'Bug Report',
+    category: 'Bug',
     priority_score: 9.2,
     created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() // 5 days ago
   },

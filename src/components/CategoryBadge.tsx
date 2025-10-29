@@ -2,14 +2,17 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Brain } from 'lucide-react';
 
-export type FeedbackCategory = 
-  | 'Bug' 
-  | 'Feature Request' 
-  | 'Improvement' 
-  | 'UI/UX' 
-  | 'Integration' 
-  | 'Performance' 
-  | 'Documentation' 
+export type FeedbackCategory =
+  | 'Bug'
+  | 'Bug Report'
+  | 'Feature Request'
+  | 'Improvement'
+  | 'Enhancement'
+  | 'UI/UX'
+  | 'Integration'
+  | 'Performance'
+  | 'Documentation'
+  | 'General Feedback'
   | 'Other';
 
 export interface CategoryBadgeProps {
@@ -36,6 +39,13 @@ const categoryConfig: Record<FeedbackCategory, {
     borderColor: 'border-red-200',
     textColor: 'text-red-800'
   },
+  'Bug Report': {
+    icon: '🐛',
+    color: 'bg-red-100 text-red-800 border-red-200',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200',
+    textColor: 'text-red-800'
+  },
   'Feature Request': {
     icon: '✨',
     color: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -44,6 +54,13 @@ const categoryConfig: Record<FeedbackCategory, {
     textColor: 'text-blue-800'
   },
   'Improvement': {
+    icon: '⚡',
+    color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    bgColor: 'bg-yellow-50',
+    borderColor: 'border-yellow-200',
+    textColor: 'text-yellow-800'
+  },
+  'Enhancement': {
     icon: '⚡',
     color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     bgColor: 'bg-yellow-50',
@@ -77,6 +94,13 @@ const categoryConfig: Record<FeedbackCategory, {
     bgColor: 'bg-orange-50',
     borderColor: 'border-orange-200',
     textColor: 'text-orange-800'
+  },
+  'General Feedback': {
+    icon: '💬',
+    color: 'bg-gray-100 text-gray-800 border-gray-200',
+    bgColor: 'bg-gray-50',
+    borderColor: 'border-gray-200',
+    textColor: 'text-gray-800'
   },
   'Other': {
     icon: '📝',
