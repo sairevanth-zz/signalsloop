@@ -73,7 +73,26 @@ export async function GET(request: NextRequest) {
       (accountProfile?.plan as 'free' | 'pro' | undefined) ??
       (selectedProject?.plan === 'pro' ? 'pro' : 'free');
 
-    const { subscriptionType, isYearly } = resolveSubscriptionType(selectedProject || accountProfile || {});
+    // Check for billing_cycle in database first, fallback to heuristic
+    const storedBillingCycle = accountProfile?.billing_cycle || null;
+    let subscriptionType: 'monthly' | 'yearly' | 'gifted';
+    let isYearly: boolean;
+
+    if (storedBillingCycle === 'yearly') {
+      subscriptionType = 'yearly';
+      isYearly = true;
+    } else if (storedBillingCycle === 'monthly') {
+      subscriptionType = 'monthly';
+      isYearly = false;
+    } else if (storedBillingCycle === 'gifted') {
+      subscriptionType = 'gifted';
+      isYearly = false;
+    } else {
+      // Fallback to heuristic if billing_cycle not set
+      const result = resolveSubscriptionType(selectedProject || accountProfile || {});
+      subscriptionType = result.subscriptionType;
+      isYearly = result.isYearly;
+    }
 
     const billingInfo = {
       plan,
