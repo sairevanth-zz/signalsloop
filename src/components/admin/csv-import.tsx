@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface CSVImportProps {
@@ -44,13 +43,168 @@ const DB_FIELDS = [
   { value: 'title', label: 'Title (Required)', required: true },
   { value: 'description', label: 'Description', required: false },
   { value: 'status', label: 'Status', required: false },
+  { value: 'author_name', label: 'Author Name', required: false },
   { value: 'author_email', label: 'Author Email', required: false },
   { value: 'votes', label: 'Vote Count', required: false },
   { value: 'created_at', label: 'Created Date', required: false },
   { value: 'skip', label: '-- Skip Column --', required: false }
-];
+] as const;
 
 const STATUS_OPTIONS = ['open', 'planned', 'in_progress', 'done', 'declined'];
+
+const normalizeHeader = (header: string) =>
+  header.trim().toLowerCase();
+
+const tokenizeHeader = (header: string) =>
+  normalizeHeader(header)
+    .split(/[^a-z0-9]+/g)
+    .filter(Boolean);
+
+const collapseHeader = (header: string) =>
+  normalizeHeader(header).replace(/[^a-z0-9]/g, '');
+
+const inferFieldForHeader = (header: string, usedFields: Set<string>) => {
+  const tokens = tokenizeHeader(header);
+  const collapsed = collapseHeader(header);
+  const hasToken = (token: string) => tokens.includes(token);
+
+  if (!usedFields.has('title') && (hasToken('title') || collapsed === 'posttitle' || collapsed === 'feedbacktitle' || collapsed === 'requesttitle')) {
+    usedFields.add('title');
+    return 'title';
+  }
+
+  if (!usedFields.has('description') && (hasToken('description') || hasToken('details') || hasToken('summary') || collapsed === 'feedback' || collapsed === 'requestdescription')) {
+    usedFields.add('description');
+    return 'description';
+  }
+
+  if (!usedFields.has('status') && (hasToken('status') || hasToken('state') || collapsed === 'workflowstatus')) {
+    usedFields.add('status');
+    return 'status';
+  }
+
+  if (!usedFields.has('votes') && (collapsed === 'votes' || collapsed === 'votecount' || hasToken('upvotes') || hasToken('score'))) {
+    usedFields.add('votes');
+    return 'votes';
+  }
+
+  if (
+    !usedFields.has('created_at') &&
+    (
+      collapsed === 'createdat' ||
+      collapsed === 'createddate' ||
+      collapsed === 'submissiondate' ||
+      collapsed === 'submitteddate' ||
+      collapsed === 'submittedon' ||
+      hasToken('date') && (hasToken('created') || hasToken('submitted') || hasToken('reported') || hasToken('captured')) ||
+      hasToken('timestamp')
+    )
+  ) {
+    usedFields.add('created_at');
+    return 'created_at';
+  }
+
+  if (
+    !usedFields.has('author_email') &&
+    (
+      collapsed === 'authoremail' ||
+      collapsed === 'submitteremail' ||
+      collapsed === 'requesteremail' ||
+      normalizeHeader(header) === 'email' ||
+      (hasToken('email') && (hasToken('author') || hasToken('submitter') || hasToken('requester') || hasToken('customer') || hasToken('user')))
+    )
+  ) {
+    usedFields.add('author_email');
+    return 'author_email';
+  }
+
+  if (
+    !usedFields.has('author_name') &&
+    (
+      normalizeHeader(header) === 'name' ||
+      collapsed === 'authorname' ||
+      collapsed === 'submittername' ||
+      collapsed === 'requestername' ||
+      (hasToken('name') && (hasToken('author') || hasToken('submitter') || hasToken('requester') || hasToken('customer') || hasToken('user') || hasToken('person')))
+    )
+  ) {
+    usedFields.add('author_name');
+    return 'author_name';
+  }
+
+  return 'skip';
+};
+
+const parseCSV = (text: string) => {
+  const rows: string[][] = [];
+  let currentValue = '';
+  let currentRow: string[] = [];
+  let inQuotes = false;
+
+  const pushValue = () => {
+    currentRow.push(currentValue);
+    currentValue = '';
+  };
+
+  const pushRow = () => {
+    // Avoid pushing completely empty rows
+    if (currentRow.some(cell => cell.trim() !== '')) {
+      rows.push(currentRow);
+    }
+    currentRow = [];
+  };
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentValue += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === ',' && !inQuotes) {
+      pushValue();
+      continue;
+    }
+
+    if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') {
+        i++;
+      }
+      pushValue();
+      pushRow();
+      continue;
+    }
+
+    currentValue += char;
+  }
+
+  if (currentValue !== '' || currentRow.length > 0) {
+    pushValue();
+    pushRow();
+  }
+
+  if (rows.length === 0) {
+    return { headers: [] as string[], rows: [] as CSVRow[] };
+  }
+
+  const headers = rows[0].map(cell => cell.trim().replace(/^\uFEFF/, ''));
+  const dataRows = rows.slice(1).map(row => {
+    const record: CSVRow = {};
+    headers.forEach((header, index) => {
+      record[header] = (row[index] || '').trim();
+    });
+    return record;
+  }).filter(row => Object.values(row).some(value => value));
+
+  return { headers, rows: dataRows };
+};
 
 export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportProps) {
   const [step, setStep] = useState<'upload' | 'mapping' | 'preview' | 'importing' | 'complete'>('upload');
@@ -67,27 +221,22 @@ export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportPro
     if (!file) return;
 
     const text = await file.text();
-    const lines = text.split('\n').filter(line => line.trim());
-    
-    if (lines.length < 2) {
+    const { headers, rows } = parseCSV(text);
+
+    if (headers.length === 0 || rows.length === 0) {
       alert('CSV must have at least a header row and one data row');
       return;
     }
 
-    // Parse CSV (simple parser - in production use a library like Papa Parse)
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-    const rows = lines.slice(1).map(line => {
-      const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-      const row: CSVRow = {};
-      headers.forEach((header, index) => {
-        row[header] = values[index] || '';
-      });
-      return row;
-    });
+    const usedFields = new Set<string>();
+    const inferredMappings = headers.map(header => ({
+      csvColumn: header,
+      dbField: inferFieldForHeader(header, usedFields)
+    }));
 
     setCSVHeaders(headers);
     setCSVData(rows);
-    setColumnMappings(headers.map(header => ({ csvColumn: header, dbField: 'skip' })));
+    setColumnMappings(inferredMappings);
     setStep('mapping');
   }, []);
 
@@ -131,6 +280,10 @@ export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportPro
       columnMappings.forEach(mapping => {
         if (mapping.dbField !== 'skip') {
           let value = row[mapping.csvColumn];
+
+          if (typeof value === 'string') {
+            value = value.trim();
+          }
           
           // Process specific fields
           if (mapping.dbField === 'status') {
@@ -141,6 +294,14 @@ export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportPro
           
           if (mapping.dbField === 'votes') {
             value = parseInt(String(value)) || 0;
+          }
+
+          if (mapping.dbField === 'author_email' && typeof value === 'string') {
+            value = value.toLowerCase();
+          }
+
+          if (mapping.dbField === 'author_name' && typeof value === 'string') {
+            value = value.replace(/\s+/g, ' ').trim();
           }
           
           processedRow[mapping.dbField] = value;
@@ -189,6 +350,10 @@ export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportPro
               if (mapping.dbField !== 'skip') {
                 let value = row[mapping.csvColumn];
                 
+                if (typeof value === 'string') {
+                  value = value.trim();
+                }
+
                 if (mapping.dbField === 'title' && !value?.trim()) {
                   throw new Error('Title is required');
                 }
@@ -201,6 +366,14 @@ export function CSVImport({ projectId, boardId, onImportComplete }: CSVImportPro
                 
                 if (mapping.dbField === 'votes') {
                   value = Math.min(Math.max(parseInt(String(value)) || 0, 0), 1000);
+                }
+
+                if (mapping.dbField === 'author_email' && typeof value === 'string') {
+                  value = value.toLowerCase();
+                }
+
+                if (mapping.dbField === 'author_name' && typeof value === 'string') {
+                  value = value.replace(/\s+/g, ' ').trim();
                 }
                 
                 postData[mapping.dbField] = value;

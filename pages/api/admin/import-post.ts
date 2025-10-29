@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
-import { createHash } from 'crypto';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,6 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       title,
       description,
       status = 'open',
+      author_name,
       author_email,
       created_at
     } = req.body;
@@ -44,11 +44,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       postData.description = description.substring(0, 2000); // Limit description
     }
 
+    if (author_name) {
+      const trimmedName = String(author_name).trim();
+      if (trimmedName) {
+        postData.author_name = trimmedName.substring(0, 120);
+      }
+    }
+
     if (author_email) {
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (emailRegex.test(author_email)) {
-        postData.author_email = author_email;
+        postData.author_email = String(author_email).trim().toLowerCase();
       }
     }
 
