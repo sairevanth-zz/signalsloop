@@ -140,7 +140,10 @@ export async function POST(request: Request) {
       ...(hasCustomer
         ? {
             customer: context.profile!.stripe_customer_id!,
-            customer_update: { address: 'auto' as const },
+            customer_update: {
+              address: 'auto' as const,
+              name: 'auto' as const,
+            },
           }
         : {}),
       metadata: {
