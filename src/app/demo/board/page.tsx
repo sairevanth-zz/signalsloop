@@ -50,7 +50,7 @@ import {
   ChevronDown,
   Wand2
 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast, Toaster } from 'sonner';
 import AIWritingAssistant from '@/components/AIWritingAssistant';
 import { CategoryBadge } from '@/components/CategoryBadge';
 
@@ -451,7 +451,7 @@ export default function DemoBoard() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('votes');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showNewPostForm, setShowNewPostForm] = useState(true);
+  const [showNewPostForm, setShowNewPostForm] = useState(false);
   const [showDemoLimitBanner, setShowDemoLimitBanner] = useState(true);
 
   const createInitialUsage = (): FeatureUsageMap => {
@@ -1528,6 +1528,7 @@ export default function DemoBoard() {
           </TabsContent>
         </Tabs>
       </div>
+      <Toaster position="top-center" expand={true} richColors />
     </div>
   );
 }
