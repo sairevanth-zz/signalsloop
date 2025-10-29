@@ -388,10 +388,18 @@ export function BillingDashboard({
 
   const handleUpgradeToYearly = async () => {
     console.log('📅 Yearly upgrade clicked');
-    console.log('📋 Project ID:', projectId);
-    
+    console.log('📋 Billing info:', billingInfo);
+
+    // If user has an active subscription, direct them to billing portal to change plan
+    if (billingInfo.subscription_status === 'active' || billingInfo.subscription_status === 'canceled') {
+      console.log('ℹ️ User has existing subscription, opening billing portal...');
+      toast.info('Opening billing portal where you can upgrade to yearly...');
+      await handleManageBilling();
+      return;
+    }
+
     setLoading(true);
-    
+
     try {
       console.log('🚀 Creating yearly checkout session...');
       // Create yearly checkout session
@@ -412,12 +420,12 @@ export function BillingDashboard({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create yearly checkout session');
+        throw new Error(errorData.details || errorData.error || 'Failed to create yearly checkout session');
       }
 
       const { url } = await response.json();
       console.log('✅ Yearly checkout URL received:', url);
-      
+
       if (url) {
         window.location.href = url;
       } else {
