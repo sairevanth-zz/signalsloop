@@ -103,7 +103,8 @@ export async function POST(request: Request) {
       try {
         const existingSubscription = await stripe.subscriptions.retrieve(context.profile.subscription_id);
 
-        if (existingSubscription.status === 'active') {
+        // Only block if subscription is active AND not set to cancel
+        if (existingSubscription.status === 'active' && !existingSubscription.cancel_at_period_end) {
           console.error('❌ Customer already has active subscription, cannot create new checkout');
           return NextResponse.json(
             {
@@ -112,6 +113,11 @@ export async function POST(request: Request) {
             },
             { status: 400 }
           );
+        }
+
+        // If subscription is canceling or already cancelled, allow new checkout
+        if (existingSubscription.cancel_at_period_end) {
+          console.log('✅ Existing subscription is set to cancel, allowing new checkout');
         }
       } catch (subError) {
         console.log('⚠️ Subscription not found in Stripe, continuing with checkout');

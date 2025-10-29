@@ -390,9 +390,9 @@ export function BillingDashboard({
     console.log('📅 Yearly upgrade clicked');
     console.log('📋 Billing info:', billingInfo);
 
-    // If user has an active subscription, direct them to billing portal to change plan
-    if (billingInfo.subscription_status === 'active' || billingInfo.subscription_status === 'canceled') {
-      console.log('ℹ️ User has existing subscription, opening billing portal...');
+    // Only redirect to portal if subscription is truly active (not canceling)
+    if (billingInfo.subscription_status === 'active' && !billingInfo.cancel_at_period_end) {
+      console.log('ℹ️ User has active subscription, opening billing portal...');
       toast.info('Opening billing portal where you can upgrade to yearly...');
       await handleManageBilling();
       return;
