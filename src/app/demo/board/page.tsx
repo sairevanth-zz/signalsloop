@@ -560,7 +560,7 @@ export default function DemoBoard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 overflow-x-hidden">
       {/* Demo Limit Banner */}
       {showDemoLimitBanner && (
         <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4">
@@ -612,39 +612,41 @@ export default function DemoBoard() {
       <div className="container mx-auto px-4 py-8">
         {/* Demo Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 lg:w-[900px] mx-auto gap-2">
-            <TabsTrigger value="feedback" className="flex items-center gap-2">
+          <div className="overflow-x-auto hide-scrollbar">
+            <TabsList className="inline-flex min-w-full w-max items-center gap-2 bg-transparent p-1">
+              <TabsTrigger value="feedback" className="flex items-center gap-2 flex-none px-3 py-2">
               <MessageSquare className="h-4 w-4" />
               <span className="hidden sm:inline">Feedback</span>
               <span className="sm:hidden">Feed</span>
             </TabsTrigger>
-            <TabsTrigger value="roadmap" className="flex items-center gap-2">
+            <TabsTrigger value="roadmap" className="flex items-center gap-2 flex-none px-3 py-2">
               <Map className="h-4 w-4" />
               <span className="hidden sm:inline">Roadmap</span>
               <span className="sm:hidden">Road</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <TabsTrigger value="analytics" className="flex items-center gap-2 flex-none px-3 py-2">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Analytics</span>
               <span className="sm:hidden">Stats</span>
             </TabsTrigger>
-            <TabsTrigger value="ai-features" className="flex items-center gap-2 bg-purple-50 data-[state=active]:bg-purple-100">
+            <TabsTrigger value="ai-features" className="flex items-center gap-2 flex-none px-3 py-2 bg-purple-50 data-[state=active]:bg-purple-100">
               <Bot className="h-4 w-4 text-purple-600" />
               <span className="hidden sm:inline text-purple-600">AI Features</span>
               <span className="sm:hidden text-purple-600">AI</span>
               <Badge variant="outline" className="ml-1 text-xs bg-purple-100 text-purple-700 border-purple-200">New</Badge>
             </TabsTrigger>
-            <TabsTrigger value="ai-test" className="flex items-center gap-2">
+            <TabsTrigger value="ai-test" className="flex items-center gap-2 flex-none px-3 py-2">
               <Sparkles className="h-4 w-4 text-blue-600" />
               <span className="hidden sm:inline text-blue-600">AI Test Lab</span>
               <span className="sm:hidden text-blue-600">Lab</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
+            <TabsTrigger value="settings" className="flex items-center gap-2 flex-none px-3 py-2">
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Settings</span>
               <span className="sm:hidden">Set</span>
             </TabsTrigger>
-          </TabsList>
+            </TabsList>
+          </div>
 
           {/* Feedback Tab */}
           <TabsContent value="feedback" className="space-y-6">

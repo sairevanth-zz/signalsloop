@@ -405,87 +405,87 @@ export default function SettingsPage() {
           {/* Mobile: Ultra-compact tabs */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg mb-6 overflow-hidden">
             <div className="overflow-x-auto hide-scrollbar">
-              <TabsList className="!flex h-auto flex-wrap items-stretch justify-start gap-1 bg-transparent p-1 w-full sm:h-10 sm:flex-nowrap">
+              <TabsList className="inline-flex min-w-full w-max items-center gap-1 bg-transparent p-1 sm:gap-0.5">
                 <TabsTrigger 
                   value="api-keys" 
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Key className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">API</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="board" 
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Settings className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Board</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="domain" 
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Domain</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="integrations"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Plug className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Integrations</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="votes"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <UserPlus className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Votes</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="feedback"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Feedback</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="notifications"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Mail className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Emails</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="webhooks"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Zap className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Webhooks</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="import" 
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Upload className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Import</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="export" 
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Download className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Export</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="changelog"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <FileText className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Changelog</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="teammates"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Users className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Team</span>

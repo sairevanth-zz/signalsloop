@@ -315,38 +315,40 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
     <div className="space-y-6">
 
       <Tabs defaultValue="keys" className="w-full">
-        <TabsList className="!flex h-auto w-full flex-wrap items-stretch gap-1 bg-transparent p-1 sm:h-10 sm:flex-nowrap sm:gap-2">
-          <TabsTrigger 
-            value="keys"
-            className="flex-1 basis-1/2 text-xs sm:text-sm sm:basis-auto sm:flex-none"
-          >
-            API Keys
-          </TabsTrigger>
-          <TabsTrigger 
-            value="preview"
-            className="flex-1 basis-1/2 text-xs sm:text-sm sm:basis-auto sm:flex-none"
-          >
-            Live Preview
-          </TabsTrigger>
-          <TabsTrigger 
-            value="install"
-            className="flex-1 basis-1/2 text-xs sm:text-sm sm:basis-auto sm:flex-none"
-          >
-            Installation
-          </TabsTrigger>
-          <TabsTrigger 
-            value="customize"
-            className="flex-1 basis-1/2 text-xs sm:text-sm sm:basis-auto sm:flex-none"
-          >
-            Customize
-          </TabsTrigger>
-          <TabsTrigger 
-            value="security"
-            className="flex-1 basis-1/2 text-xs sm:text-sm sm:basis-auto sm:flex-none"
-          >
-            Security
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto hide-scrollbar">
+          <TabsList className="inline-flex min-w-full w-max items-center gap-1 bg-transparent p-1 sm:gap-2">
+            <TabsTrigger 
+              value="keys"
+              className="flex-none px-3 py-2 text-xs sm:text-sm"
+            >
+              API Keys
+            </TabsTrigger>
+            <TabsTrigger 
+              value="preview"
+              className="flex-none px-3 py-2 text-xs sm:text-sm"
+            >
+              Live Preview
+            </TabsTrigger>
+            <TabsTrigger 
+              value="install"
+              className="flex-none px-3 py-2 text-xs sm:text-sm"
+            >
+              Installation
+            </TabsTrigger>
+            <TabsTrigger 
+              value="customize"
+              className="flex-none px-3 py-2 text-xs sm:text-sm"
+            >
+              Customize
+            </TabsTrigger>
+            <TabsTrigger 
+              value="security"
+              className="flex-none px-3 py-2 text-xs sm:text-sm"
+            >
+              Security
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="keys" className="space-y-4">
           {/* Create New API Key */}
