@@ -1094,6 +1094,7 @@ export default function BoardPage() {
                 ? `Suggested: ${priorityLevelLabel}`
                 : 'AI-generated planning guidance';
               const summaryScoreDisplay = hasAISuggestion && priorityScoreDisplay ? `${priorityScoreDisplay}/10` : null;
+              const hasMergedDuplicates = (post.mergedDuplicateCount ?? 0) > 0;
 
               return (
               <Card 
@@ -1144,7 +1145,7 @@ export default function BoardPage() {
                           >
                             {statusConfig[post.status].label}
                           </Badge>
-                          {post.mergedDuplicateCount && post.mergedDuplicateCount > 0 && (
+                          {hasMergedDuplicates && (
                             <Badge
                               variant="outline"
                               className="border-orange-300 bg-orange-50 text-orange-700"

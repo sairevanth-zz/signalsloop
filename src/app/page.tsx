@@ -282,7 +282,7 @@ export default function Homepage() {
           </p>
 
           <p className="text-base sm:text-lg text-gray-500 mb-4 max-w-3xl mx-auto px-4">
-            Powered by <strong className="text-gray-700">5 proprietary AI models</strong> for categorization, priority scoring, duplicate detection, smart replies, and intelligent writing assistance. From <strong className="text-gray-700">$19/month</strong>—a fraction of legacy tools at $99-$295/month.
+            Powered by <strong className="text-gray-700">5 proprietary AI models</strong> for categorization, priority scoring, duplicate detection, smart replies, and intelligent writing assistance. From <strong className="text-gray-700">$19/month</strong>—a fraction of legacy tools at ~$99-$295/month.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 text-sm text-gray-600 mb-10 px-4">
@@ -352,7 +352,7 @@ export default function Homepage() {
                   ))}
                 </div>
                 <p className="text-sm text-gray-700 leading-relaxed">
-                  "We switched from Canny ($99/mo) to SignalsLoop. <strong>Got better AI features for 1/5th the price.</strong> The priority scoring alone changed how we plan our roadmap."
+                  "We switched from Legacy Tool A (~$99/mo) to SignalsLoop. <strong>Got better AI features for 1/5th the price.</strong> The priority scoring alone changed how we plan our roadmap."
                 </p>
               </div>
             </div>
@@ -623,7 +623,7 @@ export default function Homepage() {
             </Badge>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Public feedback is your superpower.<br />
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">But legacy tools want $99-$300/month.</span>
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">But legacy tools want ~$99-$300/month.</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               You're a <strong>solo founder</strong>, <strong>indie maker</strong>, or <strong>early-stage startup</strong>. Public feedback boards help you validate ideas and build what users actually want—but traditional feedback tools price you out with per-user fees and enterprise pricing.
@@ -2094,60 +2094,61 @@ export default function Homepage() {
       <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4 bg-red-100 text-red-700 border-red-200 text-base px-4 py-2">
-              ⚡ Your Competitors Are Already Using AI. Are You?
+            <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200 text-base px-4 py-2">
+              🤖 Modern AI-Powered Feedback Management
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Stop Paying $3,000+/Year for <span className="line-through text-gray-400">Legacy Tools</span><br />
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Get State-of-the-Art AI for $19/Month</span>
+              Why Pay <span className="line-through text-gray-400">Thousands Per Year</span> for Legacy Tools?<br />
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Get Advanced AI Features for $19/Month</span>
             </h2>
             <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-              While Canny, ProductBoard, and Aha! charge $99-$295/month and <strong className="text-red-600">still don't have AI auto-categorization</strong>, you get <strong className="text-green-600">5 cutting-edge AI features</strong> at 80% less cost.
+              Most feedback tools charge <strong className="text-orange-600">$100-300/month (or per-user)</strong> with limited or no AI capabilities. We built SignalsLoop to deliver <strong className="text-blue-600">comprehensive AI automation</strong> at a fraction of the cost.
             </p>
-            <div className="mt-6 inline-flex items-center gap-2 bg-yellow-100 border-2 border-yellow-400 rounded-lg px-6 py-3">
-              <span className="text-2xl">⏰</span>
-              <p className="text-sm font-bold text-gray-900">Over 200 teams switched this month. Don't get left behind.</p>
+            <div className="mt-6 inline-flex items-center gap-2 bg-blue-100 border-2 border-blue-400 rounded-lg px-6 py-3">
+              <span className="text-2xl">🚀</span>
+              <p className="text-sm font-bold text-gray-900">Join hundreds of teams automating their feedback workflow with AI</p>
             </div>
           </div>
 
           {/* AI Features Callout Box */}
           <div className="mb-8 bg-gradient-to-r from-purple-100 to-blue-100 border-2 border-purple-300 rounded-xl p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">🤖 AI Features Comparison: The Game Has Changed</h3>
-            <div className="grid md:grid-cols-4 gap-4 text-center">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 text-center flex items-center justify-center gap-2">
+              <Bot className="w-5 h-5" />Why Teams Choose SignalsLoop
+            </h3>
+            <div className="grid md:grid-cols-3 gap-6 text-center">
               <div>
-                <div className="font-bold text-gray-400 mb-2">Canny</div>
-                <div className="text-3xl font-bold text-red-600">0</div>
-                <div className="text-xs text-gray-500">AI Features</div>
+                <div className="text-4xl mb-3">🤖</div>
+                <div className="font-bold text-gray-900 mb-2">5 AI Features</div>
+                <div className="text-xs text-gray-600">Auto-categorization, priority scoring, duplicate detection, smart replies, and writing assistant</div>
               </div>
               <div>
-                <div className="font-bold text-gray-400 mb-2">ProductBoard</div>
-                <div className="text-3xl font-bold text-yellow-600">~1</div>
-                <div className="text-xs text-gray-500">Basic AI only</div>
+                <div className="text-4xl mb-3">💰</div>
+                <div className="font-bold text-gray-900 mb-2">No Per-User Pricing</div>
+                <div className="text-xs text-gray-600">$19/month flat rate. No surprise bills as your team grows.</div>
               </div>
               <div>
-                <div className="font-bold text-gray-400 mb-2">Aha! Ideas</div>
-                <div className="text-3xl font-bold text-yellow-600">~1</div>
-                <div className="text-xs text-gray-500">Limited AI</div>
-              </div>
-              <div className="bg-gradient-to-br from-green-400 to-blue-500 rounded-lg p-4 -m-2">
-                <div className="font-bold text-white mb-2">SignalsLoop</div>
-                <div className="text-4xl font-bold text-white">5</div>
-                <div className="text-xs text-white font-bold">Full AI Suite ✨</div>
+                <div className="text-4xl mb-3">⚡</div>
+                <div className="font-bold text-gray-900 mb-2">Built for Speed</div>
+                <div className="text-xs text-gray-600">Simple, fast interface. Start collecting feedback in 5 minutes.</div>
               </div>
             </div>
-            <p className="text-center mt-4 text-sm text-gray-700">
-              <strong className="text-purple-700">SignalsLoop has more AI features than all competitors combined.</strong> And costs 80% less.
+            <p className="text-center mt-6 text-sm text-gray-700">
+              <strong className="text-purple-700">Comprehensive AI automation at 75-90% lower cost than traditional alternatives</strong>
             </p>
           </div>
 
+          <div className="text-xs text-gray-500 text-center mb-6 italic">
+            *Pricing and features based on publicly available information as of January 2025. Subject to change. Visit competitor websites for current details.
+          </div>
+
           <div className="grid md:grid-cols-4 gap-6">
-            {/* Canny */}
+            {/* Legacy Tool A */}
             <div className="bg-white rounded-xl p-5 shadow-md border border-gray-200 opacity-75">
               <div className="text-center mb-4">
-                <div className="text-xl font-bold text-gray-400 mb-2">Canny</div>
-                <div className="text-3xl font-bold text-red-600">$99</div>
+                <div className="text-xl font-bold text-gray-400 mb-2">Legacy Tool A</div>
+                <div className="text-3xl font-bold text-red-600">~$99</div>
                 <div className="text-xs text-gray-500">/month (Pro)</div>
-                <div className="mt-2 text-xs font-bold text-red-600">= $1,188/year</div>
+                <div className="mt-2 text-xs font-bold text-red-600">≈ $1,188/year</div>
               </div>
               <ul className="space-y-2 text-xs">
                 <li className="flex items-start gap-2">
@@ -2181,13 +2182,13 @@ export default function Homepage() {
               </ul>
             </div>
 
-            {/* ProductBoard */}
+            {/* Legacy Tool B */}
             <div className="bg-white rounded-xl p-5 shadow-md border border-gray-200 opacity-75">
               <div className="text-center mb-4">
-                <div className="text-xl font-bold text-gray-400 mb-2">ProductBoard</div>
-                <div className="text-3xl font-bold text-red-600">$59</div>
+                <div className="text-xl font-bold text-gray-400 mb-2">Legacy Tool B</div>
+                <div className="text-3xl font-bold text-red-600">~$59</div>
                 <div className="text-xs text-gray-500">/user/month</div>
-                <div className="mt-2 text-xs font-bold text-red-600">= $3,540/year (5 users)</div>
+                <div className="mt-2 text-xs font-bold text-red-600">≈ $3,540/year (5 users)</div>
               </div>
               <ul className="space-y-2 text-xs">
                 <li className="flex items-start gap-2">
@@ -2221,13 +2222,13 @@ export default function Homepage() {
               </ul>
             </div>
 
-            {/* Aha! Ideas */}
+            {/* Legacy Tool C */}
             <div className="bg-white rounded-xl p-5 shadow-md border border-gray-200 opacity-75">
               <div className="text-center mb-4">
-                <div className="text-xl font-bold text-gray-400 mb-2">Aha! Ideas</div>
-                <div className="text-3xl font-bold text-red-600">$59</div>
+                <div className="text-xl font-bold text-gray-400 mb-2">Legacy Tool C</div>
+                <div className="text-3xl font-bold text-red-600">~$59</div>
                 <div className="text-xs text-gray-500">/user/month</div>
-                <div className="mt-2 text-xs font-bold text-red-600">= $2,124/year (3 users)</div>
+                <div className="mt-2 text-xs font-bold text-red-600">≈ $2,124/year (3 users)</div>
               </div>
               <ul className="space-y-2 text-xs">
                 <li className="flex items-start gap-2">
@@ -2318,21 +2319,21 @@ export default function Homepage() {
 
             <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-6">
               <div className="bg-white rounded-xl p-6 shadow-md border-2 border-green-200">
-                <div className="text-sm font-bold text-gray-600 mb-2">vs Canny Pro</div>
+                <div className="text-sm font-bold text-gray-600 mb-2">vs Legacy Tool A Pro</div>
                 <div className="text-3xl md:text-4xl font-bold text-green-600 mb-2">$960</div>
-                <div className="text-xs text-gray-600">saved per year</div>
+                <div className="text-xs text-gray-600">potential savings/year*</div>
                 <div className="mt-3 pt-3 border-t border-gray-200">
                   <div className="text-xs text-gray-700">
-                    <strong>But Canny has ZERO AI features.</strong><br />
-                    You're paying $1,188/year for manual work.
+                    <strong>Many lack comprehensive AI.</strong><br />
+                    You're paying more for manual workflows.
                   </div>
                 </div>
               </div>
 
               <div className="bg-white rounded-xl p-6 shadow-md border-2 border-green-200">
-                <div className="text-sm font-bold text-gray-600 mb-2">vs ProductBoard (5 users)</div>
+                <div className="text-sm font-bold text-gray-600 mb-2">vs Legacy Tool B (5 users)</div>
                 <div className="text-3xl md:text-4xl font-bold text-green-600 mb-2">$3,312</div>
-                <div className="text-xs text-gray-600">saved per year</div>
+                <div className="text-xs text-gray-600">potential savings/year*</div>
                 <div className="mt-3 pt-3 border-t border-gray-200">
                   <div className="text-xs text-gray-700">
                     <strong>93% cheaper!</strong><br />
@@ -2342,9 +2343,9 @@ export default function Homepage() {
               </div>
 
               <div className="bg-white rounded-xl p-6 shadow-md border-2 border-green-200">
-                <div className="text-sm font-bold text-gray-600 mb-2">vs Aha! Ideas (3 users)</div>
+                <div className="text-sm font-bold text-gray-600 mb-2">vs Legacy Tool C (3 users)</div>
                 <div className="text-3xl md:text-4xl font-bold text-green-600 mb-2">$1,536</div>
-                <div className="text-xs text-gray-600">saved per year</div>
+                <div className="text-xs text-gray-600">potential savings/year*</div>
                 <div className="mt-3 pt-3 border-t border-gray-200">
                   <div className="text-xs text-gray-700">
                     <strong>89% cheaper!</strong><br />
@@ -2397,6 +2398,10 @@ export default function Homepage() {
                   </p>
                 </div>
               </div>
+            </div>
+
+            <div className="mt-6 text-center text-xs text-gray-500 italic max-w-3xl mx-auto">
+              *Comparisons based on publicly available pricing and feature information as of January 2025. Actual competitor pricing, features, and capabilities may vary and are subject to change. We recommend visiting competitor websites directly to verify current offerings. Savings calculations are estimates based on typical usage scenarios and may not reflect your specific needs.
             </div>
           </div>
         </div>
