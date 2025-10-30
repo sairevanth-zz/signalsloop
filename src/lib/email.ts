@@ -252,12 +252,7 @@ export async function sendGiftNotificationEmail({
     day: 'numeric'
   });
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: 'SignalsLoop <onboarding@resend.dev>',
-      to: [recipientEmail],
-      subject: `🎁 You've received a ${durationMonths}-month Pro subscription gift!`,
-      html: `
+  const html = `
         <!DOCTYPE html>
         <html>
           <head>
@@ -349,19 +344,13 @@ export async function sendGiftNotificationEmail({
             </table>
           </body>
         </html>
-      `,
-    });
+      `;
 
-    if (error) {
-      console.error('Error sending gift notification email:', error);
-      throw error;
-    }
-
-    return { success: true, data };
-  } catch (error) {
-    console.error('Failed to send gift notification email:', error);
-    throw error;
-  }
+  await sendEmail({
+    to: recipientEmail,
+    subject: `🎁 You've received a ${durationMonths}-month Pro subscription gift!`,
+    html,
+  });
 }
 
 export async function sendGiftClaimedEmail({
@@ -378,12 +367,7 @@ export async function sendGiftClaimedEmail({
     day: 'numeric'
   });
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: 'SignalsLoop <onboarding@resend.dev>',
-      to: [senderEmail],
-      subject: `🎉 Your gift has been claimed!`,
-      html: `
+  const html = `
         <!DOCTYPE html>
         <html>
           <head>
@@ -443,19 +427,13 @@ export async function sendGiftClaimedEmail({
             </table>
           </body>
         </html>
-      `,
-    });
+      `;
 
-    if (error) {
-      console.error('Error sending gift claimed email:', error);
-      throw error;
-    }
-
-    return { success: true, data };
-  } catch (error) {
-    console.error('Failed to send gift claimed email:', error);
-    throw error;
-  }
+  await sendEmail({
+    to: senderEmail,
+    subject: `🎉 Your gift has been claimed!`,
+    html,
+  });
 }
 
 // ==================== EMAIL NOTIFICATION SYSTEM ====================
