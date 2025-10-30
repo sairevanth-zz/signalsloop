@@ -416,9 +416,9 @@ export default function Homepage() {
                 
                 {/* Content Area */}
                 <div className="p-6 h-full">
-                  <div className="flex gap-6 h-full">
+                  <div className="flex flex-col lg:flex-row gap-6 h-full">
                     {/* Sidebar */}
-                    <div className="w-64 bg-gray-50 rounded-lg p-4 border border-gray-100">
+                    <div className="w-full lg:w-64 bg-gray-50 rounded-lg p-4 border border-gray-100">
                       <div className="space-y-3">
                         <div className="h-8 bg-blue-100 rounded-lg flex items-center px-3">
                           <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
@@ -434,7 +434,7 @@ export default function Homepage() {
                     {/* Main Content */}
                     <div className="flex-1">
                       {/* Header Stats - AI Features */}
-                      <div className="grid grid-cols-3 gap-4 mb-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                         <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
                           <div className="flex items-center justify-between">
                             <div>

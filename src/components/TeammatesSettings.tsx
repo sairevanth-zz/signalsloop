@@ -270,8 +270,8 @@ export function TeammatesSettings({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="w-full sm:w-auto">
           <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
             <Users className="w-6 h-6 text-blue-600" />
             Team Members
@@ -280,7 +280,7 @@ export function TeammatesSettings({
             Manage who has access to this project
           </p>
         </div>
-        <Badge variant="outline" className="text-sm">
+        <Badge variant="outline" className="text-sm self-start sm:self-auto">
           {members.length} {members.length === 1 ? 'member' : 'members'}
         </Badge>
       </div>
@@ -374,14 +374,14 @@ export function TeammatesSettings({
               {members.map((member) => (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
                 >
-                  <div className="flex items-center gap-3 flex-1">
+                  <div className="flex items-center gap-3 flex-1 min-w-0 w-full">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
                       {(member.user_email || 'U')[0].toUpperCase()}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
                         <p className="font-medium text-gray-900">
                           {member.user_email || 'Unknown User'}
                         </p>
@@ -391,12 +391,12 @@ export function TeammatesSettings({
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 break-words">
                         Added {new Date(member.created_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
                     <Badge
                       variant="outline"
                       className={`${getRoleBadgeColor(member.role)} border`}
