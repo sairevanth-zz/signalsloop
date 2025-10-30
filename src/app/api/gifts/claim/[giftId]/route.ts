@@ -5,6 +5,20 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+type GiftRecord = {
+  id: string;
+  project_id: string | null;
+  gifter_email: string;
+  recipient_email: string;
+  status: 'pending' | 'claimed' | 'expired' | 'cancelled';
+  gift_type: 'pro' | 'enterprise';
+  duration_months: number;
+  expires_at: string | null;
+  claimed_at: string | null;
+  recipient_id: string | null;
+  gift_message?: string | null;
+};
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { giftId: string } }
@@ -36,36 +50,96 @@ export async function POST(
 
     const userId = userData.user.id;
 
-    // Use a client scoped to the user session when calling the claim RPC
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    });
+    // Load gift record
+    const { data: gift, error: giftError } = await adminClient
+      .from('gift_subscriptions')
+      .select<GiftRecord>('id, project_id, status, gift_type, duration_months, expires_at, claimed_at, recipient_id')
+      .eq('id', params.giftId)
+      .maybeSingle();
 
-    // Claim the gift subscription using the database function
-    const { data, error } = await userClient.rpc('claim_gift_subscription', {
-      gift_id: params.giftId,
-    });
-
-    if (error) {
-      console.error('Error claiming gift:', error);
+    if (giftError) {
+      console.error('Failed to fetch gift prior to claim:', giftError);
       return NextResponse.json(
-        { error: error.message || 'Failed to claim gift subscription' },
+        { error: 'Failed to load gift details' },
         { status: 500 }
       );
     }
 
-    if (!data.success) {
+    if (!gift) {
       return NextResponse.json(
-        { error: data.error || 'Failed to claim gift subscription' },
+        { error: 'Gift not found' },
+        { status: 404 }
+      );
+    }
+
+    if (gift.status !== 'pending') {
+      return NextResponse.json(
+        { error: `Gift is already ${gift.status}` },
         { status: 400 }
       );
     }
 
-    const expiresAt = data.expires_at ?? null;
+    const now = new Date();
+    if (gift.expires_at && new Date(gift.expires_at) < now) {
+      return NextResponse.json(
+        { error: 'Gift has expired' },
+        { status: 400 }
+      );
+    }
+
+    const expiresAt = gift.expires_at ?? new Date(now.getTime() + gift.duration_months * 30 * 24 * 60 * 60 * 1000).toISOString();
+    const utcNowIso = now.toISOString();
+
+    let claimMessage = 'Gift claimed successfully';
+    let rpcSuccess = false;
+
+    if (gift.project_id) {
+      // Use a client scoped to the user session when calling the claim RPC so auth.uid() resolves
+      const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: `Bearer ${accessToken}` } },
+      });
+
+      const { data, error } = await userClient.rpc('claim_gift_subscription', {
+        gift_id: params.giftId,
+      });
+
+      if (error) {
+        console.error('Error claiming gift via RPC:', error);
+        return NextResponse.json(
+          { error: error.message || 'Failed to claim gift subscription' },
+          { status: 500 }
+        );
+      }
+
+      if (!data?.success) {
+        return NextResponse.json(
+          { error: data?.error || 'Failed to claim gift subscription' },
+          { status: 400 }
+        );
+      }
+
+      rpcSuccess = true;
+      claimMessage = data.message ?? claimMessage;
+    } else {
+      // Manual claim flow for gifts without a pre-associated project
+      const { error: updateGiftError } = await adminClient
+        .from('gift_subscriptions')
+        .update({
+          status: 'claimed',
+          claimed_at: utcNowIso,
+          recipient_id: userId,
+          updated_at: utcNowIso,
+        })
+        .eq('id', params.giftId);
+
+      if (updateGiftError) {
+        console.error('Failed to update gift during manual claim:', updateGiftError);
+        return NextResponse.json(
+          { error: 'Failed to record gift claim' },
+          { status: 500 }
+        );
+      }
+    }
 
     // Persist gifted status on the account profile so the dashboard reflects Pro access
     const { error: profileError } = await adminClient
@@ -78,8 +152,8 @@ export async function POST(
           subscription_status: 'active',
           current_period_end: expiresAt,
           subscription_id: `gift-${params.giftId}`,
-          stripe_customer_id: null,
-          updated_at: new Date().toISOString(),
+          stripe_customer_id: `gift-${userId}`,
+          updated_at: utcNowIso,
         },
         { onConflict: 'user_id' }
       );
@@ -88,7 +162,7 @@ export async function POST(
       console.error('Failed to upsert account billing profile for gift recipient:', profileError);
     }
 
-    // Ensure the gift record is linked to the recipient
+    // Ensure the gift record records the recipient
     const { error: recipientUpdateError } = await adminClient
       .from('gift_subscriptions')
       .update({ recipient_id: userId })
@@ -101,8 +175,9 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: data.message,
+      message: claimMessage,
       expires_at: expiresAt,
+      used_rpc: rpcSuccess,
     });
   } catch (error) {
     console.error('Unexpected error:', error);
