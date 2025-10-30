@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+const logPrefix = '[GiftClaimAPI]';
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -25,12 +27,17 @@ export async function POST(
 ) {
   try {
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    console.log(`${logPrefix} Request received`, {
+      giftId: params.giftId,
+      hasAuthHeader: !!request.headers.get('authorization'),
+    });
 
     // Get the current user from the request
     const authHeader = request.headers.get('authorization');
     const accessToken = authHeader?.replace('Bearer', '').trim();
 
     if (!accessToken) {
+      console.warn(`${logPrefix} Missing bearer token`);
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -41,7 +48,7 @@ export async function POST(
     const { data: userData, error: userError } = await adminClient.auth.getUser(accessToken);
 
     if (userError || !userData?.user) {
-      console.error('Failed to resolve user from access token:', userError);
+      console.error(`${logPrefix} Failed to resolve user from token`, userError);
       return NextResponse.json(
         { error: 'Invalid authentication token' },
         { status: 401 }
@@ -49,6 +56,7 @@ export async function POST(
     }
 
     const userId = userData.user.id;
+    console.log(`${logPrefix} Authenticated user`, { userId });
 
     // Load gift record
     const { data: gift, error: giftError } = await adminClient
@@ -58,7 +66,7 @@ export async function POST(
       .maybeSingle();
 
     if (giftError) {
-      console.error('Failed to fetch gift prior to claim:', giftError);
+      console.error(`${logPrefix} Failed to fetch gift`, giftError);
       return NextResponse.json(
         { error: 'Failed to load gift details' },
         { status: 500 }
@@ -66,13 +74,17 @@ export async function POST(
     }
 
     if (!gift) {
+      console.warn(`${logPrefix} Gift not found`, { giftId: params.giftId });
       return NextResponse.json(
         { error: 'Gift not found' },
         { status: 404 }
       );
     }
 
+    console.log(`${logPrefix} Loaded gift`, gift);
+
     if (gift.status !== 'pending') {
+      console.warn(`${logPrefix} Gift already handled`, { status: gift.status });
       return NextResponse.json(
         { error: `Gift is already ${gift.status}` },
         { status: 400 }
@@ -81,6 +93,7 @@ export async function POST(
 
     const now = new Date();
     if (gift.expires_at && new Date(gift.expires_at) < now) {
+      console.warn(`${logPrefix} Gift expired`, { expires_at: gift.expires_at });
       return NextResponse.json(
         { error: 'Gift has expired' },
         { status: 400 }
@@ -104,7 +117,7 @@ export async function POST(
       });
 
       if (error) {
-        console.error('Error claiming gift via RPC:', error);
+        console.error(`${logPrefix} RPC claim failed`, error);
         return NextResponse.json(
           { error: error.message || 'Failed to claim gift subscription' },
           { status: 500 }
@@ -112,6 +125,7 @@ export async function POST(
       }
 
       if (!data?.success) {
+        console.error(`${logPrefix} RPC claim returned failure`, data);
         return NextResponse.json(
           { error: data?.error || 'Failed to claim gift subscription' },
           { status: 400 }
@@ -122,6 +136,7 @@ export async function POST(
       claimMessage = data.message ?? claimMessage;
     } else {
       // Manual claim flow for gifts without a pre-associated project
+      console.log(`${logPrefix} Claiming gift without project; marking claimed manually`);
       const { error: updateGiftError } = await adminClient
         .from('gift_subscriptions')
         .update({
@@ -133,7 +148,7 @@ export async function POST(
         .eq('id', params.giftId);
 
       if (updateGiftError) {
-        console.error('Failed to update gift during manual claim:', updateGiftError);
+        console.error(`${logPrefix} Manual gift claim failed`, updateGiftError);
         return NextResponse.json(
           { error: 'Failed to record gift claim' },
           { status: 500 }
@@ -159,7 +174,27 @@ export async function POST(
       );
 
     if (profileError) {
-      console.error('Failed to upsert account billing profile for gift recipient:', profileError);
+      console.error(`${logPrefix} Billing profile upsert failed`, profileError);
+    } else {
+      console.log(`${logPrefix} Billing profile updated`, { userId, expiresAt });
+    }
+
+    if (gift.project_id) {
+      const { error: projectUpdateError } = await adminClient
+        .from('projects')
+        .update({
+          plan: 'pro',
+          subscription_status: 'active',
+          current_period_end: expiresAt,
+          updated_at: utcNowIso,
+        })
+        .eq('id', gift.project_id);
+
+      if (projectUpdateError) {
+        console.error(`${logPrefix} Project update failed`, projectUpdateError);
+      } else {
+        console.log(`${logPrefix} Project marked pro`, { projectId: gift.project_id });
+      }
     }
 
     // Ensure the gift record records the recipient
@@ -170,7 +205,9 @@ export async function POST(
       .is('recipient_id', null);
 
     if (recipientUpdateError) {
-      console.error('Failed to update gift recipient_id after claim:', recipientUpdateError);
+      console.error(`${logPrefix} Failed to set recipient_id`, recipientUpdateError);
+    } else {
+      console.log(`${logPrefix} Gift linked to recipient`, { giftId: params.giftId, userId });
     }
 
     return NextResponse.json({
@@ -180,7 +217,7 @@ export async function POST(
       used_rpc: rpcSuccess,
     });
   } catch (error) {
-    console.error('Unexpected error:', error);
+    console.error(`${logPrefix} Unexpected error`, error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
