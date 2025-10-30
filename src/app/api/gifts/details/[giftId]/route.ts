@@ -11,38 +11,48 @@ export async function GET(
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Get gift details with project name
+    // Get gift details
     const { data: gift, error } = await supabase
       .from('gift_subscriptions')
-      .select(`
-        *,
-        projects!inner(name)
-      `)
+      .select('*')
       .eq('id', params.giftId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching gift details:', error);
-      if (error.code === 'PGRST116') {
-        return NextResponse.json(
-          { error: 'Gift not found' },
-          { status: 404 }
-        );
-      }
       return NextResponse.json(
         { error: 'Failed to fetch gift details' },
         { status: 500 }
       );
     }
 
+    if (!gift) {
+      return NextResponse.json(
+        { error: 'Gift not found' },
+        { status: 404 }
+      );
+    }
+
+    let projectName: string | undefined;
+    if (gift.project_id) {
+      const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .select('name')
+        .eq('id', gift.project_id)
+        .maybeSingle();
+
+      if (projectError) {
+        console.error('Error fetching project for gift:', projectError);
+      } else {
+        projectName = project?.name ?? undefined;
+      }
+    }
+
     // Add project name to the gift object
     const giftWithProject = {
       ...gift,
-      project_name: gift.projects?.name,
+      project_name: projectName,
     };
-
-    // Remove the projects object from the response
-    delete giftWithProject.projects;
 
     return NextResponse.json({ gift: giftWithProject });
   } catch (error) {
