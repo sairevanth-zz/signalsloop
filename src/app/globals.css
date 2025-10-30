@@ -55,7 +55,7 @@
   }
   
   .animate-float {
-    animation: float 6s ease-in-out infinite;
+    animation: float 12s ease-in-out infinite;
   }
   
   .hover-lift {
@@ -73,15 +73,15 @@
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: gradient-shift 8s ease infinite;
+    animation: gradient-shift 16s ease infinite;
   }
   
   .animate-bounce-subtle {
-    animation: bounce-subtle 4s ease-in-out infinite;
+    animation: bounce-subtle 8s ease-in-out infinite;
   }
   
   .animate-float-delayed {
-    animation: float-delayed 6s ease-in-out infinite;
+    animation: float-delayed 12s ease-in-out infinite;
   }
 
   /* Line clamp utilities for text truncation */
@@ -615,7 +615,7 @@
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-3px);
+    transform: translateY(-1.5px);
   }
 }
 
@@ -624,7 +624,7 @@
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-8px);
+    transform: translateY(-4px);
   }
 }
 
@@ -642,7 +642,7 @@
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-5px);
   }
 }
 
