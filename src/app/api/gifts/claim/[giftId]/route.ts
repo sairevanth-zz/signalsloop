@@ -27,17 +27,41 @@ export async function POST(
 ) {
   try {
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Resolve tokens
+    const authHeader = request.headers.get('authorization');
+    let accessToken = authHeader?.replace('Bearer', '').trim();
+    let refreshToken = request.cookies.get('sb-refresh-token')?.value;
+    const cookieAccessToken = request.cookies.get('sb-access-token')?.value;
+
+    if (!accessToken && cookieAccessToken) {
+      console.log(`${logPrefix} Using sb-access-token cookie`);
+      accessToken = cookieAccessToken;
+    }
+
+    if (!accessToken && refreshToken) {
+      console.log(`${logPrefix} Attempting refresh session`);
+      const { data: refreshData, error: refreshError } = await adminClient.auth.refreshSession({
+        refresh_token: refreshToken,
+      });
+      if (refreshError) {
+        console.error(`${logPrefix} Refresh session failed`, refreshError);
+      } else if (refreshData?.session?.access_token) {
+        accessToken = refreshData.session.access_token;
+        refreshToken = refreshData.session.refresh_token ?? refreshToken;
+        console.log(`${logPrefix} Refresh session succeeded`);
+      }
+    }
+
     console.log(`${logPrefix} Request received`, {
       giftId: params.giftId,
-      hasAuthHeader: !!request.headers.get('authorization'),
+      hasAuthHeader: !!authHeader,
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
     });
 
-    // Get the current user from the request
-    const authHeader = request.headers.get('authorization');
-    const accessToken = authHeader?.replace('Bearer', '').trim();
-
     if (!accessToken) {
-      console.warn(`${logPrefix} Missing bearer token`);
+      console.warn(`${logPrefix} No access token available`);
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
