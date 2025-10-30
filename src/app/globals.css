@@ -55,7 +55,7 @@
   }
   
   .animate-float {
-    animation: float 3s ease-in-out infinite;
+    animation: float 6s ease-in-out infinite;
   }
   
   .hover-lift {
@@ -73,15 +73,15 @@
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: gradient-shift 3s ease infinite;
+    animation: gradient-shift 8s ease infinite;
   }
   
   .animate-bounce-subtle {
-    animation: bounce-subtle 2s ease-in-out infinite;
+    animation: bounce-subtle 4s ease-in-out infinite;
   }
   
   .animate-float-delayed {
-    animation: float-delayed 3s ease-in-out infinite;
+    animation: float-delayed 6s ease-in-out infinite;
   }
 
   /* Line clamp utilities for text truncation */
