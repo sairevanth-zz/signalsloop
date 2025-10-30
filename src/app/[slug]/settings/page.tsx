@@ -405,7 +405,7 @@ export default function SettingsPage() {
           {/* Mobile: Ultra-compact tabs */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg mb-6 overflow-hidden">
             <div className="overflow-x-auto hide-scrollbar">
-              <TabsList className="!flex flex-wrap justify-start gap-1 bg-transparent p-1 w-full sm:flex-nowrap">
+              <TabsList className="!flex h-auto flex-wrap items-stretch justify-start gap-1 bg-transparent p-1 w-full sm:h-10 sm:flex-nowrap">
                 <TabsTrigger 
                   value="api-keys" 
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-1 basis-1/2 sm:basis-auto sm:flex-none"

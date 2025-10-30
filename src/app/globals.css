@@ -2,6 +2,13 @@
 @import "tw-animate-css";
 
 /* Ensure custom animations are loaded */
+@layer base {
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+}
+
 @layer utilities {
   /* Cursor utilities for specific use cases */
   .cursor-auto { cursor: auto; }

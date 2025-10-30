@@ -315,7 +315,7 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
     <div className="space-y-6">
 
       <Tabs defaultValue="keys" className="w-full">
-        <TabsList className="!flex w-full flex-wrap gap-1 overflow-hidden bg-transparent p-1 sm:!grid sm:grid-cols-5 sm:gap-2 sm:overflow-visible">
+        <TabsList className="!flex h-auto w-full flex-wrap items-stretch gap-1 bg-transparent p-1 sm:h-10 sm:flex-nowrap sm:gap-2">
           <TabsTrigger 
             value="keys"
             className="flex-1 basis-1/2 text-xs sm:text-sm sm:basis-auto sm:flex-none"
