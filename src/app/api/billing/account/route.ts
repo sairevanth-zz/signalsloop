@@ -98,8 +98,7 @@ export async function GET(request: NextRequest) {
       subscriptionType === 'monthly' &&
       plan === 'pro' &&
       selectedProject &&
-      !selectedProject.stripe_customer_id &&
-      !selectedProject.subscription_id
+      (!selectedProject.stripe_customer_id || selectedProject.stripe_customer_id.startsWith('gift-'))
     ) {
       subscriptionType = 'gifted';
       isYearly = false;
