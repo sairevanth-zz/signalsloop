@@ -34,6 +34,19 @@ export async function POST(
     let refreshToken = request.cookies.get('sb-refresh-token')?.value;
     const cookieAccessToken = request.cookies.get('sb-access-token')?.value;
 
+    let bodyUserId: string | null = null;
+    let bodyEmail: string | null = null;
+
+    try {
+      const body = await request.json();
+      if (body && typeof body === 'object') {
+        bodyUserId = typeof body.userId === 'string' ? body.userId : null;
+        bodyEmail = typeof body.email === 'string' ? body.email : null;
+      }
+    } catch (jsonError) {
+      // ignore if no body
+    }
+
     if (!accessToken && cookieAccessToken) {
       console.log(`${logPrefix} Using sb-access-token cookie`);
       accessToken = cookieAccessToken;
@@ -58,29 +71,46 @@ export async function POST(
       hasAuthHeader: !!authHeader,
       hasAccessToken: !!accessToken,
       hasRefreshToken: !!refreshToken,
+      hasBodyUser: !!bodyUserId,
+      hasBodyEmail: !!bodyEmail,
     });
 
-    if (!accessToken) {
-      console.warn(`${logPrefix} No access token available`);
+    let userId: string | null = null;
+    let userEmail: string | null = null;
+
+    if (accessToken) {
+      const { data: userData, error: userError } = await adminClient.auth.getUser(accessToken);
+      if (!userError && userData?.user) {
+        userId = userData.user.id;
+        userEmail = userData.user.email ?? null;
+        console.log(`${logPrefix} Authenticated via token`, { userId, userEmail });
+      } else {
+        console.error(`${logPrefix} Failed token lookup`, userError);
+      }
+    }
+
+    if (!userId && bodyUserId) {
+      const { data, error } = await adminClient.auth.admin.getUserById(bodyUserId);
+      if (!error && data?.user) {
+        userId = data.user.id;
+        userEmail = data.user.email ?? userEmail;
+        console.log(`${logPrefix} Resolved user via body userId`, { userId, userEmail });
+      } else {
+        console.error(`${logPrefix} Failed lookup by body userId`, error);
+      }
+    }
+
+    if (!userEmail && bodyEmail) {
+      userEmail = bodyEmail;
+    }
+
+    if (!userId) {
+      console.warn(`${logPrefix} Unable to resolve user`);
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
-
-    // Verify the token to identify the user
-    const { data: userData, error: userError } = await adminClient.auth.getUser(accessToken);
-
-    if (userError || !userData?.user) {
-      console.error(`${logPrefix} Failed to resolve user from token`, userError);
-      return NextResponse.json(
-        { error: 'Invalid authentication token' },
-        { status: 401 }
-      );
-    }
-
-    const userId = userData.user.id;
-    console.log(`${logPrefix} Authenticated user`, { userId });
 
     // Load gift record
     const { data: gift, error: giftError } = await adminClient
@@ -106,6 +136,14 @@ export async function POST(
     }
 
     console.log(`${logPrefix} Loaded gift`, gift);
+
+    if (userEmail && gift.recipient_email && gift.recipient_email.toLowerCase() !== userEmail.toLowerCase()) {
+      console.warn(`${logPrefix} Gift recipient mismatch`, { giftRecipient: gift.recipient_email, userEmail });
+      return NextResponse.json(
+        { error: 'This gift is assigned to a different email address.' },
+        { status: 403 }
+      );
+    }
 
     if (gift.status !== 'pending') {
       console.warn(`${logPrefix} Gift already handled`, { status: gift.status });

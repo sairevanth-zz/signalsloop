@@ -84,20 +84,30 @@ export default function GiftClaimPage() {
         console.error('Failed to get Supabase session during gift claim:', sessionError);
       }
 
-      const accessToken = session?.access_token;
+      const accessToken = session?.access_token ?? null;
+      const user = session?.user ?? null;
 
-      if (!accessToken) {
+      if (!user) {
         toast.error('Please sign in to claim your gift');
         router.push('/login');
         return;
       }
 
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+
       const response = await fetch(`/api/gifts/claim/${giftId}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers,
+        body: JSON.stringify({
+          userId: user.id,
+          email: user.email,
+        }),
       });
 
       const data = await response.json();
