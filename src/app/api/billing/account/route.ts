@@ -69,9 +69,8 @@ export async function GET(request: NextRequest) {
         : projects[0]
       : null;
 
-    const plan =
-      (accountProfile?.plan as 'free' | 'pro' | undefined) ??
-      (selectedProject?.plan === 'pro' ? 'pro' : 'free');
+    const plan: 'free' | 'pro' =
+      accountProfile?.plan === 'pro' || selectedProject?.plan === 'pro' ? 'pro' : 'free';
 
     // Check for billing_cycle in database first, fallback to heuristic
     const storedBillingCycle = accountProfile?.billing_cycle || null;
@@ -92,6 +91,18 @@ export async function GET(request: NextRequest) {
       const result = resolveSubscriptionType(selectedProject || accountProfile || {});
       subscriptionType = result.subscriptionType;
       isYearly = result.isYearly;
+    }
+
+    // Ensure gifted subscriptions are recognized even if account profile hasn't been updated yet
+    if (
+      subscriptionType === 'monthly' &&
+      plan === 'pro' &&
+      selectedProject &&
+      !selectedProject.stripe_customer_id &&
+      !selectedProject.subscription_id
+    ) {
+      subscriptionType = 'gifted';
+      isYearly = false;
     }
 
     const billingInfo = {
@@ -130,4 +141,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to load account billing info' }, { status: 500 });
   }
 }
-
