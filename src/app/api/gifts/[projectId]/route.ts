@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendGiftNotificationEmail } from '@/lib/email';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE!;
@@ -42,7 +43,13 @@ export async function POST(
 ) {
   try {
     const body = await request.json();
-    const { recipient_email, duration_months, gift_message } = body;
+    const {
+      recipient_email,
+      duration_months,
+      gift_message,
+      recipient_name,
+      sender_name
+    } = body;
 
     if (!recipient_email || !duration_months) {
       return NextResponse.json(
@@ -78,15 +85,77 @@ export async function POST(
       );
     }
 
-    if (!data.success) {
+    if (!data?.success) {
       return NextResponse.json(
         { error: data.error || 'Failed to create gift subscription' },
         { status: 400 }
       );
     }
 
-    // TODO: Send email notification to recipient
-    // This would integrate with your email service (Resend, SendGrid, etc.)
+    if (sender_name || recipient_name) {
+      try {
+        const updatePayload: Record<string, unknown> = {};
+        if (sender_name) {
+          updatePayload.sender_name = sender_name;
+        }
+        if (recipient_name) {
+          updatePayload.recipient_name = recipient_name;
+        }
+        if (Object.keys(updatePayload).length > 0) {
+          await supabase
+            .from('gift_subscriptions')
+            .update(updatePayload)
+            .eq('id', data.gift_id);
+        }
+      } catch (updateErr) {
+        console.error('Failed to persist sender/recipient names on gift:', updateErr);
+      }
+    }
+
+    let redemptionCode: string | undefined;
+    let expiresAt: string | undefined = data.expires_at ?? undefined;
+    let resolvedRecipientName = recipient_name;
+    let resolvedSenderName = sender_name;
+    let resolvedGiftMessage = gift_message ?? undefined;
+
+    try {
+      const { data: giftRecord, error: fetchError } = await supabase
+        .from('gift_subscriptions')
+        .select('*')
+        .eq('id', data.gift_id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching gift for email notification:', fetchError);
+      } else if (giftRecord) {
+        redemptionCode = giftRecord.redemption_code ?? undefined;
+        expiresAt = giftRecord.expires_at ?? expiresAt;
+        resolvedRecipientName = giftRecord.recipient_name ?? resolvedRecipientName;
+        resolvedSenderName = giftRecord.sender_name ?? resolvedSenderName;
+        resolvedGiftMessage = giftRecord.gift_message ?? resolvedGiftMessage;
+      }
+    } catch (fetchErr) {
+      console.error('Unexpected error loading gift for email:', fetchErr);
+    }
+
+    try {
+      if (expiresAt) {
+        await sendGiftNotificationEmail({
+          recipientEmail: recipient_email,
+          recipientName: resolvedRecipientName ?? undefined,
+          senderName: resolvedSenderName ?? undefined,
+          giftMessage: resolvedGiftMessage,
+          durationMonths: duration_months,
+          redemptionCode,
+          expiresAt,
+          giftId: data.gift_id,
+        });
+      } else {
+        console.warn('Skipping gift notification email due to missing expiry date');
+      }
+    } catch (emailError) {
+      console.error('Failed to send gift notification email:', emailError);
+    }
 
     return NextResponse.json({
       success: true,

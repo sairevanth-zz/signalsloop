@@ -220,7 +220,7 @@ interface SendGiftNotificationParams {
   senderName?: string;
   giftMessage?: string;
   durationMonths: number;
-  redemptionCode: string;
+  redemptionCode?: string;
   expiresAt: string;
   giftId: string;
 }
@@ -296,14 +296,16 @@ export async function sendGiftNotificationEmail({
                           </div>
                         ` : ''}
                         
-                        <div style="margin: 30px 0; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; text-align: center;">
-                          <p style="margin: 0 0 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9); text-transform: uppercase; letter-spacing: 1px;">
-                            Your Redemption Code
-                          </p>
-                          <p style="margin: 0; font-size: 28px; font-weight: bold; color: #ffffff; letter-spacing: 2px; font-family: 'Courier New', monospace;">
-                            ${redemptionCode}
-                          </p>
-                        </div>
+                        ${redemptionCode ? `
+                          <div style="margin: 30px 0; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; text-align: center;">
+                            <p style="margin: 0 0 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9); text-transform: uppercase; letter-spacing: 1px;">
+                              Your Redemption Code
+                            </p>
+                            <p style="margin: 0; font-size: 28px; font-weight: bold; color: #ffffff; letter-spacing: 2px; font-family: 'Courier New', monospace;">
+                              ${redemptionCode}
+                            </p>
+                          </div>
+                        ` : ''}
                         
                         <div style="text-align: center; margin: 30px 0;">
                           <a href="${claimUrl}" style="display: inline-block; padding: 16px 40px; background-color: #667eea; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; transition: background-color 0.3s;">
