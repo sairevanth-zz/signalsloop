@@ -357,7 +357,7 @@
     background-size: 800px 800px, 600px 600px, 700px 700px, 500px 500px, 900px 900px, 400px 400px;
     background-position: 0% 0%, 100% 0%, 50% 50%, 0% 100%, 100% 100%, 0% 50%;
     background-attachment: fixed;
-    animation: iridescence 20s ease-in-out infinite;
+    animation: iridescence 60s ease-in-out infinite;
   }
   
   /* Cursor styles for interactive elements */
@@ -669,25 +669,17 @@
     background-position: 0% 0%, 100% 0%, 50% 50%, 0% 100%, 100% 100%, 0% 50%;
     filter: hue-rotate(0deg);
   }
-  16.66% {
-    background-position: 10% 10%, 90% 10%, 60% 60%, 10% 90%, 90% 90%, 10% 60%;
-    filter: hue-rotate(60deg);
-  }
-  33.33% {
-    background-position: 20% 20%, 80% 20%, 70% 70%, 20% 80%, 80% 80%, 20% 70%;
-    filter: hue-rotate(120deg);
+  25% {
+    background-position: 3% 4%, 97% 4%, 54% 54%, 4% 96%, 96% 96%, 4% 56%;
+    filter: hue-rotate(12deg);
   }
   50% {
-    background-position: 30% 30%, 70% 30%, 80% 80%, 30% 70%, 70% 70%, 30% 80%;
-    filter: hue-rotate(180deg);
+    background-position: 6% 8%, 94% 8%, 58% 58%, 8% 92%, 92% 92%, 8% 62%;
+    filter: hue-rotate(20deg);
   }
-  66.66% {
-    background-position: 20% 20%, 80% 20%, 70% 70%, 20% 80%, 80% 80%, 20% 70%;
-    filter: hue-rotate(240deg);
-  }
-  83.33% {
-    background-position: 10% 10%, 90% 10%, 60% 60%, 10% 90%, 90% 90%, 10% 60%;
-    filter: hue-rotate(300deg);
+  75% {
+    background-position: 3% 4%, 97% 4%, 54% 54%, 4% 96%, 96% 96%, 4% 56%;
+    filter: hue-rotate(12deg);
   }
 }
 /* Updated: Tue Sep 16 11:10:26 CDT 2025 */
