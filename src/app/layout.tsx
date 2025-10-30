@@ -45,7 +45,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased touch-manipulation`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased touch-manipulation overflow-x-hidden`}
       >
         <ThemeProvider>
           <PostHogProvider>

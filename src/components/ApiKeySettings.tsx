@@ -315,34 +315,34 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
     <div className="space-y-6">
 
       <Tabs defaultValue="keys" className="w-full">
-        <TabsList className="w-full flex-nowrap gap-1 overflow-x-auto hide-scrollbar sm:inline-grid sm:grid-cols-5 sm:gap-2 sm:overflow-visible">
+        <TabsList className="!flex w-full flex-wrap gap-1 overflow-hidden bg-transparent p-1 sm:!grid sm:grid-cols-5 sm:gap-2 sm:overflow-visible">
           <TabsTrigger 
             value="keys"
-            className="flex-1 min-w-[140px] text-xs sm:text-sm"
+            className="flex-1 basis-1/2 text-xs sm:text-sm sm:basis-auto sm:flex-none"
           >
             API Keys
           </TabsTrigger>
           <TabsTrigger 
             value="preview"
-            className="flex-1 min-w-[140px] text-xs sm:text-sm"
+            className="flex-1 basis-1/2 text-xs sm:text-sm sm:basis-auto sm:flex-none"
           >
             Live Preview
           </TabsTrigger>
           <TabsTrigger 
             value="install"
-            className="flex-1 min-w-[140px] text-xs sm:text-sm"
+            className="flex-1 basis-1/2 text-xs sm:text-sm sm:basis-auto sm:flex-none"
           >
             Installation
           </TabsTrigger>
           <TabsTrigger 
             value="customize"
-            className="flex-1 min-w-[140px] text-xs sm:text-sm"
+            className="flex-1 basis-1/2 text-xs sm:text-sm sm:basis-auto sm:flex-none"
           >
             Customize
           </TabsTrigger>
           <TabsTrigger 
             value="security"
-            className="flex-1 min-w-[140px] text-xs sm:text-sm"
+            className="flex-1 basis-1/2 text-xs sm:text-sm sm:basis-auto sm:flex-none"
           >
             Security
           </TabsTrigger>
