@@ -33,12 +33,69 @@ export const GET = secureAPI(
       return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
     }
 
+    const { data: billingProfiles, error: billingError } = await supabase
+      .from('account_billing_profiles')
+      .select('user_id, plan, billing_cycle, subscription_status, current_period_end');
+
+    if (billingError) {
+      console.error('Error fetching billing profiles:', billingError);
+      return NextResponse.json({ error: 'Failed to fetch billing profiles' }, { status: 500 });
+    }
+
+    const { data: claimedGifts, error: giftError } = await supabase
+      .from('gift_subscriptions')
+      .select('recipient_id, recipient_email, status, expires_at')
+      .eq('status', 'claimed');
+
+    if (giftError) {
+      console.error('Error fetching claimed gifts:', giftError);
+      return NextResponse.json({ error: 'Failed to fetch gift data' }, { status: 500 });
+    }
+
+    const billingProfileMap = new Map(
+      billingProfiles?.map((profile) => [profile.user_id, profile]) ?? []
+    );
+
+    const activeGiftMap = new Map<string, boolean>();
+    const nowIso = new Date().toISOString();
+
+    claimedGifts?.forEach((gift) => {
+      const isActive = !gift.expires_at || gift.expires_at >= nowIso;
+      if (!isActive) {
+        return;
+      }
+
+      if (gift.recipient_id) {
+        activeGiftMap.set(gift.recipient_id, true);
+      }
+
+      if (gift.recipient_email) {
+        activeGiftMap.set(gift.recipient_email.toLowerCase(), true);
+      }
+    });
+
     // Transform users data with project counts and plan info
     const usersWithStats = users.users.map(user => {
       const userProjects = projects.filter(p => p.owner_id === user.id);
       const proProjects = userProjects.filter(p => p.plan === 'pro').length;
       const freeProjects = userProjects.filter(p => p.plan === 'free').length;
-      
+      const billingProfile = billingProfileMap.get(user.id);
+      const normalizedEmail = user.email?.toLowerCase() ?? null;
+      const hasActiveGift =
+        activeGiftMap.get(user.id) ||
+        (normalizedEmail ? activeGiftMap.get(normalizedEmail) : false) ||
+        false;
+
+      let planStatus: 'free' | 'gifted' | 'paid' = 'free';
+
+      if (billingProfile?.plan === 'pro') {
+        planStatus = billingProfile.billing_cycle === 'gifted' ? 'gifted' : 'paid';
+      } else if (hasActiveGift) {
+        planStatus = 'gifted';
+      } else if (proProjects > 0) {
+        planStatus = 'paid';
+      }
+
       return {
         id: user.id,
         email: user.email,
@@ -48,7 +105,10 @@ export const GET = secureAPI(
         projects_count: userProjects.length,
         pro_projects: proProjects,
         free_projects: freeProjects,
-        has_pro_subscription: proProjects > 0
+        has_pro_subscription: planStatus !== 'free',
+        plan_status: planStatus,
+        billing_cycle: billingProfile?.billing_cycle ?? (planStatus === 'gifted' ? 'gifted' : null),
+        subscription_status: billingProfile?.subscription_status ?? null,
       };
     });
 

@@ -46,6 +46,9 @@ interface User {
   pro_projects: number;
   free_projects: number;
   has_pro_subscription: boolean;
+  plan_status: 'free' | 'gifted' | 'paid';
+  billing_cycle: 'monthly' | 'yearly' | 'gifted' | null;
+  subscription_status: string | null;
 }
 
 interface Stats {
@@ -501,9 +504,20 @@ export default function AdminDashboard() {
                         <td className="p-3">
                           <Badge 
                             variant={user.has_pro_subscription ? 'default' : 'secondary'}
-                            className={user.has_pro_subscription ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
+                            className={
+                              user.plan_status === 'gifted'
+                                ? 'bg-purple-100 text-purple-800'
+                                : user.has_pro_subscription
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }
                           >
-                            {user.has_pro_subscription ? (
+                            {user.plan_status === 'gifted' ? (
+                              <>
+                                <Gift className="w-3 h-3 mr-1" />
+                                Gifted Pro
+                              </>
+                            ) : user.has_pro_subscription ? (
                               <>
                                 <Crown className="w-3 h-3 mr-1" />
                                 Pro ({user.pro_projects} projects)
@@ -531,7 +545,12 @@ export default function AdminDashboard() {
                           </div>
                         </td>
                         <td className="p-3">
-                          {user.has_pro_subscription ? (
+                          {user.plan_status === 'gifted' ? (
+                            <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white flex items-center gap-1 w-fit">
+                              <Gift className="w-3 h-3" />
+                              Gifted Pro
+                            </Badge>
+                          ) : user.has_pro_subscription ? (
                             <Badge className="bg-gradient-to-r from-purple-500 to-blue-500 text-white flex items-center gap-1 w-fit">
                               <Crown className="w-3 h-3" />
                               Pro Customer
