@@ -172,6 +172,20 @@ export async function POST(
       );
     }
 
+    // Update all projects owned by the user to reflect Pro access
+    const { error: upgradeProjectsError } = await adminClient
+      .from('projects')
+      .update({
+        plan: 'pro',
+        subscription_status: 'active',
+        updated_at: utcNowIso,
+      })
+      .eq('owner_id', userId);
+
+    if (upgradeProjectsError) {
+      console.error(`${logPrefix} Failed to upgrade user projects to pro`, upgradeProjectsError);
+    }
+
     // Persist gifted status on the account profile so the dashboard reflects Pro access
     const { error: profileError } = await adminClient
       .from('account_billing_profiles')

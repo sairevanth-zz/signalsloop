@@ -63,6 +63,16 @@ export async function GET(request: NextRequest) {
       console.error('Failed to load projects for billing info:', projectError);
     }
 
+    const { data: userRecord, error: userError } = await supabase
+      .from('users')
+      .select('email, plan')
+      .eq('id', accountId)
+      .maybeSingle();
+
+    if (userError) {
+      console.error('Failed to load user record for billing info:', userError);
+    }
+
     const selectedProject = projects?.length
       ? projectSlug
         ? projects.find((p) => p.slug === projectSlug) || projects[0]
@@ -72,28 +82,47 @@ export async function GET(request: NextRequest) {
     const nowIso = new Date().toISOString();
 
     let plan: 'free' | 'pro' =
-      accountProfile?.plan === 'pro' || selectedProject?.plan === 'pro' ? 'pro' : 'free';
+      accountProfile?.plan === 'pro' || selectedProject?.plan === 'pro' || userRecord?.plan === 'pro'
+        ? 'pro'
+        : 'free';
+
+    const normalizedEmail = userRecord?.email?.toLowerCase() ?? null;
 
     // Check for active gifted subscription as an additional guard
     let activeGiftExpiresAt: string | null = null;
+    const giftFilters = [`recipient_id.eq.${accountId}`];
+    if (normalizedEmail) {
+      giftFilters.push(`recipient_email.eq.${normalizedEmail}`);
+    }
+
     const { data: claimedGifts, error: giftError } = await supabase
       .from('gift_subscriptions')
-      .select('expires_at, status')
-      .eq('recipient_id', accountId)
+      .select('expires_at, status, recipient_id, recipient_email')
+      .eq('status', 'claimed')
+      .or(giftFilters.join(','))
       .order('expires_at', { ascending: false })
-      .limit(1);
+      .limit(5);
 
     if (giftError) {
       console.error('Failed to load claimed gifts:', giftError);
     }
 
     if (claimedGifts && claimedGifts.length > 0) {
-      const gift = claimedGifts[0];
-      const stillValid =
-        gift.status === 'claimed' && (!gift.expires_at || gift.expires_at >= nowIso);
-      if (stillValid) {
-        plan = 'pro';
-        activeGiftExpiresAt = gift.expires_at ?? null;
+      for (const gift of claimedGifts) {
+        const stillValid = !gift.expires_at || gift.expires_at >= nowIso;
+        if (!stillValid) continue;
+
+        const matchesRecipientId = gift.recipient_id === accountId;
+        const matchesEmail =
+          normalizedEmail &&
+          gift.recipient_email &&
+          gift.recipient_email.toLowerCase() === normalizedEmail;
+
+        if (matchesRecipientId || matchesEmail) {
+          plan = 'pro';
+          activeGiftExpiresAt = gift.expires_at ?? activeGiftExpiresAt;
+          break;
+        }
       }
     }
 
@@ -134,9 +163,9 @@ export async function GET(request: NextRequest) {
       subscription_status: accountProfile?.subscription_status ?? selectedProject?.subscription_status ?? null,
       subscription_id: accountProfile?.subscription_id ?? selectedProject?.subscription_id ?? null,
       current_period_end:
+        activeGiftExpiresAt ??
         accountProfile?.current_period_end ??
         selectedProject?.current_period_end ??
-        activeGiftExpiresAt ??
         null,
       cancel_at_period_end:
         accountProfile?.cancel_at_period_end ?? selectedProject?.cancel_at_period_end ?? false,
