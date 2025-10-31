@@ -5,7 +5,6 @@ const logPrefix = '[GiftClaimAPI]';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 type GiftRecord = {
   id: string;
@@ -28,12 +27,6 @@ export async function POST(
   try {
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Resolve tokens
-    const authHeader = request.headers.get('authorization');
-    let accessToken = authHeader?.replace('Bearer', '').trim();
-    let refreshToken = request.cookies.get('sb-refresh-token')?.value;
-    const cookieAccessToken = request.cookies.get('sb-access-token')?.value;
-
     let bodyUserId: string | null = null;
     let bodyEmail: string | null = null;
 
@@ -47,65 +40,34 @@ export async function POST(
       // ignore if no body
     }
 
-    if (!accessToken && cookieAccessToken) {
-      console.log(`${logPrefix} Using sb-access-token cookie`);
-      accessToken = cookieAccessToken;
-    }
-
-    if (!accessToken && refreshToken) {
-      console.log(`${logPrefix} Attempting refresh session`);
-      const { data: refreshData, error: refreshError } = await adminClient.auth.refreshSession({
-        refresh_token: refreshToken,
-      });
-      if (refreshError) {
-        console.error(`${logPrefix} Refresh session failed`, refreshError);
-      } else if (refreshData?.session?.access_token) {
-        accessToken = refreshData.session.access_token;
-        refreshToken = refreshData.session.refresh_token ?? refreshToken;
-        console.log(`${logPrefix} Refresh session succeeded`);
-      }
-    }
-
     console.log(`${logPrefix} Request received`, {
       giftId: params.giftId,
-      hasAuthHeader: !!authHeader,
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
       hasBodyUser: !!bodyUserId,
       hasBodyEmail: !!bodyEmail,
     });
 
-    let userId: string | null = null;
-    let userEmail: string | null = null;
+    let userId: string | null = bodyUserId;
+    let userEmail: string | null = bodyEmail;
 
-    if (accessToken) {
-      const { data: userData, error: userError } = await adminClient.auth.getUser(accessToken);
-      if (!userError && userData?.user) {
-        userId = userData.user.id;
-        userEmail = userData.user.email ?? null;
-        console.log(`${logPrefix} Authenticated via token`, { userId, userEmail });
+    if (!userId) {
+      const { data, error } = await adminClient.auth.admin.listUsers({
+        page: 1,
+        perPage: 1,
+        email: bodyEmail,
+      });
+
+      if (!error && data?.users?.length) {
+        const user = data.users[0];
+        userId = user.id;
+        userEmail = user.email ?? userEmail;
+        console.log(`${logPrefix} Resolved user via admin lookup`, { userId, userEmail });
       } else {
-        console.error(`${logPrefix} Failed token lookup`, userError);
+        console.error(`${logPrefix} Failed admin lookup for email`, error);
       }
-    }
-
-    if (!userId && bodyUserId) {
-      const { data, error } = await adminClient.auth.admin.getUserById(bodyUserId);
-      if (!error && data?.user) {
-        userId = data.user.id;
-        userEmail = data.user.email ?? userEmail;
-        console.log(`${logPrefix} Resolved user via body userId`, { userId, userEmail });
-      } else {
-        console.error(`${logPrefix} Failed lookup by body userId`, error);
-      }
-    }
-
-    if (!userEmail && bodyEmail) {
-      userEmail = bodyEmail;
     }
 
     if (!userId) {
-      console.warn(`${logPrefix} Unable to resolve user`);
+      console.warn(`${logPrefix} Unable to resolve user for email`, { bodyEmail });
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -166,56 +128,46 @@ export async function POST(
     const utcNowIso = now.toISOString();
 
     let claimMessage = 'Gift claimed successfully';
-    let rpcSuccess = false;
 
+    // Update project if applicable
     if (gift.project_id) {
-      // Use a client scoped to the user session when calling the claim RPC so auth.uid() resolves
-      const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-        global: { headers: { Authorization: `Bearer ${accessToken}` } },
-      });
-
-      const { data, error } = await userClient.rpc('claim_gift_subscription', {
-        gift_id: params.giftId,
-      });
-
-      if (error) {
-        console.error(`${logPrefix} RPC claim failed`, error);
-        return NextResponse.json(
-          { error: error.message || 'Failed to claim gift subscription' },
-          { status: 500 }
-        );
-      }
-
-      if (!data?.success) {
-        console.error(`${logPrefix} RPC claim returned failure`, data);
-        return NextResponse.json(
-          { error: data?.error || 'Failed to claim gift subscription' },
-          { status: 400 }
-        );
-      }
-
-      rpcSuccess = true;
-      claimMessage = data.message ?? claimMessage;
-    } else {
-      // Manual claim flow for gifts without a pre-associated project
-      console.log(`${logPrefix} Claiming gift without project; marking claimed manually`);
-      const { error: updateGiftError } = await adminClient
-        .from('gift_subscriptions')
+      const { error: projectUpdateError } = await adminClient
+        .from('projects')
         .update({
-          status: 'claimed',
-          claimed_at: utcNowIso,
-          recipient_id: userId,
+          plan: 'pro',
+          subscription_status: 'active',
+          current_period_end: expiresAt,
           updated_at: utcNowIso,
         })
-        .eq('id', params.giftId);
+        .eq('id', gift.project_id);
 
-      if (updateGiftError) {
-        console.error(`${logPrefix} Manual gift claim failed`, updateGiftError);
+      if (projectUpdateError) {
+        console.error(`${logPrefix} Project update failed`, projectUpdateError);
         return NextResponse.json(
-          { error: 'Failed to record gift claim' },
+          { error: 'Failed to activate gifted project' },
           { status: 500 }
         );
       }
+
+      console.log(`${logPrefix} Project marked pro`, { projectId: gift.project_id });
+    }
+
+    const { error: updateGiftError } = await adminClient
+      .from('gift_subscriptions')
+      .update({
+        status: 'claimed',
+        claimed_at: utcNowIso,
+        recipient_id: userId,
+        updated_at: utcNowIso,
+      })
+      .eq('id', params.giftId);
+
+    if (updateGiftError) {
+      console.error(`${logPrefix} Failed to update gift record`, updateGiftError);
+      return NextResponse.json(
+        { error: 'Failed to record gift claim' },
+        { status: 500 }
+      );
     }
 
     // Persist gifted status on the account profile so the dashboard reflects Pro access
@@ -276,7 +228,6 @@ export async function POST(
       success: true,
       message: claimMessage,
       expires_at: expiresAt,
-      used_rpc: rpcSuccess,
     });
   } catch (error) {
     console.error(`${logPrefix} Unexpected error`, error);
