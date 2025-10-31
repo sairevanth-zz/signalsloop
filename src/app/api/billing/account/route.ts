@@ -69,8 +69,33 @@ export async function GET(request: NextRequest) {
         : projects[0]
       : null;
 
-    const plan: 'free' | 'pro' =
+    const nowIso = new Date().toISOString();
+
+    let plan: 'free' | 'pro' =
       accountProfile?.plan === 'pro' || selectedProject?.plan === 'pro' ? 'pro' : 'free';
+
+    // Check for active gifted subscription as an additional guard
+    let activeGiftExpiresAt: string | null = null;
+    const { data: claimedGifts, error: giftError } = await supabase
+      .from('gift_subscriptions')
+      .select('expires_at, status')
+      .eq('recipient_id', accountId)
+      .order('expires_at', { ascending: false })
+      .limit(1);
+
+    if (giftError) {
+      console.error('Failed to load claimed gifts:', giftError);
+    }
+
+    if (claimedGifts && claimedGifts.length > 0) {
+      const gift = claimedGifts[0];
+      const stillValid =
+        gift.status === 'claimed' && (!gift.expires_at || gift.expires_at >= nowIso);
+      if (stillValid) {
+        plan = 'pro';
+        activeGiftExpiresAt = gift.expires_at ?? null;
+      }
+    }
 
     // Check for billing_cycle in database first, fallback to heuristic
     const storedBillingCycle = accountProfile?.billing_cycle || null;
@@ -97,8 +122,7 @@ export async function GET(request: NextRequest) {
     if (
       subscriptionType === 'monthly' &&
       plan === 'pro' &&
-      selectedProject &&
-      (!selectedProject.stripe_customer_id || selectedProject.stripe_customer_id.startsWith('gift-'))
+      (activeGiftExpiresAt || (selectedProject && (!selectedProject.stripe_customer_id || selectedProject.stripe_customer_id.startsWith('gift-'))))
     ) {
       subscriptionType = 'gifted';
       isYearly = false;
@@ -109,7 +133,11 @@ export async function GET(request: NextRequest) {
       stripe_customer_id: accountProfile?.stripe_customer_id ?? selectedProject?.stripe_customer_id ?? null,
       subscription_status: accountProfile?.subscription_status ?? selectedProject?.subscription_status ?? null,
       subscription_id: accountProfile?.subscription_id ?? selectedProject?.subscription_id ?? null,
-      current_period_end: accountProfile?.current_period_end ?? selectedProject?.current_period_end ?? null,
+      current_period_end:
+        accountProfile?.current_period_end ??
+        selectedProject?.current_period_end ??
+        activeGiftExpiresAt ??
+        null,
       cancel_at_period_end:
         accountProfile?.cancel_at_period_end ?? selectedProject?.cancel_at_period_end ?? false,
       is_yearly: isYearly,
