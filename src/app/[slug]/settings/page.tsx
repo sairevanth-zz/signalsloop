@@ -227,7 +227,34 @@ export default function SettingsPage() {
         return;
       }
 
-      setProject(projectData);
+      let effectivePlan: 'free' | 'pro' = projectData.plan;
+
+      if (projectData.plan !== 'pro') {
+        try {
+          const billingResponse = await fetch(`/api/billing/account?accountId=${user.id}`, {
+            credentials: 'include',
+          });
+
+          if (billingResponse.ok) {
+            const billingPayload = await billingResponse.json();
+            const billingPlan = billingPayload?.billingInfo?.plan;
+            const subscriptionType = billingPayload?.billingInfo?.subscription_type;
+
+            if (billingPlan === 'pro' || subscriptionType === 'gifted') {
+              effectivePlan = 'pro';
+            }
+          } else {
+            console.warn('Billing lookup failed while reconciling plan state:', billingResponse.status);
+          }
+        } catch (planSyncError) {
+          console.error('Failed to reconcile project plan from billing info:', planSyncError);
+        }
+      }
+
+      setProject({
+        ...projectData,
+        plan: effectivePlan,
+      });
 
       // Load first API key for webhooks
       const { data: apiKeys } = await supabase
