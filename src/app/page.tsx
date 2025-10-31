@@ -626,11 +626,16 @@ export default function Homepage() {
           </div>
         </div>
         </div>
+        </div>
       </section>
 
       {/* Solo Founders & Indie Makers Section */}
-      <section className="py-20 md:py-24 px-4 bg-blue-50 relative overflow-hidden">
-        <div className="absolute inset-0 bg-blue-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
         <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200 text-base px-5 py-2">
@@ -762,7 +767,13 @@ export default function Homepage() {
       </section>
 
       {/* Emotional Story Arc - PM Pain Point */}
-      <section className="py-20 md:py-24 px-4 bg-white">
+      <section className="py-20 md:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
+        <div className="relative z-10">
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-red-100 text-red-700 border-red-200 text-base px-4 py-2">
@@ -868,11 +879,16 @@ export default function Homepage() {
             </div>
           </div>
         </div>
+        </div>
       </section>
 
       {/* Before/After Comparison Section */}
-      <section className="py-16 md:py-20 lg:py-24 px-4 bg-gray-50 relative">
-        <div className="absolute inset-0 bg-gray-100/20"></div>
+      <section className="py-16 md:py-20 lg:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -1001,8 +1017,12 @@ export default function Homepage() {
       </section>
 
       {/* AI Features Highlight Section */}
-      <section className="py-20 md:py-24 px-4 bg-purple-50 relative">
-        <div className="absolute inset-0 bg-purple-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-purple-100 text-purple-700 border-purple-200">
@@ -1070,8 +1090,12 @@ export default function Homepage() {
       </section>
 
       {/* Team Collaboration Section */}
-      <section className="py-20 md:py-24 px-4 bg-blue-50 relative">
-        <div className="absolute inset-0 bg-blue-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200">
@@ -1130,8 +1154,12 @@ export default function Homepage() {
       </section>
 
       {/* NEW SECTION: Urgency-Based Voting */}
-      <section className="py-20 md:py-24 px-4 bg-orange-50 relative">
-        <div className="absolute inset-0 bg-orange-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-orange-100 text-orange-700 border-orange-200">
@@ -1210,8 +1238,12 @@ export default function Homepage() {
       </section>
 
       {/* Results PMs Care About */}
-      <section className="py-20 md:py-24 px-4 bg-green-50 relative">
-        <div className="absolute inset-0 bg-green-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-green-100 text-green-700 border-green-200">
@@ -1297,8 +1329,12 @@ export default function Homepage() {
       </section>
 
       {/* Problem Section */}
-      <section className="py-20 md:py-24 px-4 bg-red-50 relative">
-        <div className="absolute inset-0 bg-red-100/10"></div>
+      <section className="py-20 md:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
         <div className="container mx-auto text-center relative z-10">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
             Your users have amazing ideas. But they're buried in:
@@ -1328,8 +1364,12 @@ export default function Homepage() {
       </section>
 
       {/* Solution Section */}
-      <section className="py-20 md:py-24 px-4 bg-green-50 relative">
-        <div className="absolute inset-0 bg-green-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
         <div className="container mx-auto text-center relative z-10">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
             SignalsLoop's AI reads every piece of feedback
@@ -1341,8 +1381,12 @@ export default function Homepage() {
       </section>
 
       {/* AI Categorization Showcase */}
-      <section className="py-16 md:py-20 lg:py-24 px-4 bg-indigo-50 relative">
-        <div className="absolute inset-0 bg-indigo-100/20"></div>
+      <section className="py-16 md:py-20 lg:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -1521,8 +1565,12 @@ export default function Homepage() {
       </section>
 
       {/* Team Collaboration Section */}
-      <section className="py-20 md:py-24 px-4 bg-teal-50 relative">
-        <div className="absolute inset-0 bg-teal-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-teal-100 text-teal-700 border-teal-200">
@@ -1597,8 +1645,12 @@ export default function Homepage() {
       </section>
 
       {/* Widget Demo Section */}
-      <section className="py-20 md:py-24 px-4 bg-blue-50 relative">
-        <div className="absolute inset-0 bg-blue-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -1762,8 +1814,12 @@ export default function Homepage() {
       </section>
 
       {/* NEW SECTION: Public Roadmap & Changelog */}
-      <section className="py-20 md:py-24 px-4 bg-indigo-50 relative">
-        <div className="absolute inset-0 bg-indigo-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-indigo-100 text-indigo-700 border-indigo-200 text-base px-4 py-2">
@@ -2106,8 +2162,13 @@ export default function Homepage() {
       </section>
 
       {/* Competitive Comparison */}
-      <section className="py-20 md:py-24 px-4 bg-gray-50">
-        <div className="container mx-auto max-w-6xl">
+      <section className="py-20 md:py-24 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
+        <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200 text-base px-4 py-2">
               🤖 Modern AI-Powered Feedback Management
@@ -2467,8 +2528,13 @@ export default function Homepage() {
       </section>
 
       {/* Credibility Section */}
-      <section className="py-16 md:py-20 px-4 bg-gray-50">
-        <div className="container mx-auto">
+      <section className="py-16 md:py-20 px-4 bg-slate-50 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`
+        }}></div>
+        <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Built with enterprise-grade security
