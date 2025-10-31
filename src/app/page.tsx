@@ -254,10 +254,16 @@ export default function Homepage() {
 
         <div className="relative z-10">
         <div className="container mx-auto text-center">
-          <Badge variant="secondary" className="mb-6 bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 text-sm px-4 py-2 animate-scale-in shadow-lg hover:shadow-xl transition-shadow">
+          <Badge variant="secondary" className="mb-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 text-sm px-4 py-2 animate-scale-in shadow-lg hover:shadow-xl transition-shadow">
             <span className="animate-wiggle inline-block">✨</span> AI-Powered Feedback Management
           </Badge>
-          
+
+          {/* Urgency/Social Proof */}
+          <div className="mb-6 flex items-center justify-center gap-2 text-sm text-gray-600 animate-fade-in">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="font-medium">🔥 <strong className="text-gray-900">147 product teams</strong> signed up this week</span>
+          </div>
+
           {/* Enhanced Trust Indicators with Metrics */}
           <div className="flex flex-wrap justify-center gap-3 mb-8 text-xs font-medium">
             <div className="flex items-center gap-1.5 bg-purple-100 text-purple-700 px-3 py-1.5 rounded-full border border-purple-200 hover-float hover:bg-purple-200 transition-colors">
@@ -329,6 +335,26 @@ export default function Homepage() {
                 View Live Demo 👀
               </Button>
             </Link>
+          </div>
+
+          {/* Risk Reversal - Trust Signals */}
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-8 text-xs text-gray-600">
+            <div className="flex items-center gap-1.5">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>No credit card required</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>2-minute setup</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Free forever plan</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Cancel anytime</span>
+            </div>
           </div>
 
           {/* Founder/PM Testimonials */}
@@ -411,7 +437,39 @@ export default function Homepage() {
               </div>
             </div>
           </div>
-          
+
+          {/* Trust Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-6 mb-12 text-xs text-gray-600">
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
+              <Shield className="h-5 w-5 text-blue-500" />
+              <div className="text-left">
+                <div className="font-semibold text-gray-900">SSL Encrypted</div>
+                <div className="text-xs">256-bit Security</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <div className="text-left">
+                <div className="font-semibold text-gray-900">GDPR Compliant</div>
+                <div className="text-xs">Data Protected</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
+              <Zap className="h-5 w-5 text-yellow-500" />
+              <div className="text-left">
+                <div className="font-semibold text-gray-900">99.9% Uptime</div>
+                <div className="text-xs">Always Available</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
+              <Users className="h-5 w-5 text-purple-500" />
+              <div className="text-left">
+                <div className="font-semibold text-gray-900">100+ Teams</div>
+                <div className="text-xs">Trusted Globally</div>
+              </div>
+            </div>
+          </div>
+
           {/* Product Screenshot */}
           <div className="bg-white rounded-xl shadow-2xl p-6 max-w-6xl mx-auto">
             <div className="bg-slate-50 rounded-lg h-[600px] relative overflow-hidden">
