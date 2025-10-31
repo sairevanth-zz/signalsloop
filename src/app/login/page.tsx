@@ -35,6 +35,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedInput, setFocusedInput] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
+  const [redirectTarget, setRedirectTarget] = useState('/app');
 
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -60,112 +61,119 @@ export default function LoginPage() {
   useEffect(() => {
     setIsClient(true);
 
-    if (typeof window !== 'undefined') {
-      const urlSearchParams = new URLSearchParams(window.location.search);
-      const nextParam = urlSearchParams.get('next');
-      const redirectTarget = nextParam && nextParam.startsWith('/') ? nextParam : '/app';
+    if (typeof window === 'undefined') {
+      return;
+    }
 
-      // Check for OAuth tokens in URL hash first (before checking auth state)
-      const hash = window.location.hash;
-      if (hash.includes('access_token=')) {
-        console.log('OAuth tokens detected in URL hash, processing...');
-        
-        // Show loading state immediately to prevent flash
-        setIsGoogleLoading(true);
-        setError('');
-        
-        // Extract tokens from hash
-        const urlParams = new URLSearchParams(hash.substring(1));
-        const accessToken = urlParams.get('access_token');
-        const refreshToken = urlParams.get('refresh_token');
-        
-        if (accessToken) {
-          console.log('Access token found, setting session and redirecting to /app');
-          
-          // Set the session in Supabase client (async function)
-          const setSession = async () => {
-            try {
-              const { createClient } = require('@supabase/supabase-js');
-              const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-              const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const nextParam = urlSearchParams.get('next');
+    const target = nextParam && nextParam.startsWith('/') ? nextParam : '/app';
 
-              if (supabaseUrl && supabaseKey) {
-                const supabase = createClient(supabaseUrl, supabaseKey);
+    if (target !== redirectTarget) {
+      setRedirectTarget(target);
+    }
 
-                // Set the session with the tokens
-                const { data, error } = await supabase.auth.setSession({
-                  access_token: accessToken,
-                  refresh_token: refreshToken || ''
+    // Check for OAuth tokens in URL hash first (before checking auth state)
+    const hash = window.location.hash;
+    if (hash.includes('access_token=')) {
+      console.log('OAuth tokens detected in URL hash, processing...');
+      
+      // Show loading state immediately to prevent flash
+      setIsGoogleLoading(true);
+      setError('');
+      
+      // Extract tokens from hash
+      const urlParams = new URLSearchParams(hash.substring(1));
+      const accessToken = urlParams.get('access_token');
+      const refreshToken = urlParams.get('refresh_token');
+      
+      if (accessToken) {
+        console.log('Access token found, setting session and redirecting to target');
+        
+        // Set the session in Supabase client (async function)
+        const setSession = async () => {
+          try {
+            const { createClient } = await import('@supabase/supabase-js');
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+            const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+            if (supabaseUrl && supabaseKey) {
+              const supabase = createClient(supabaseUrl, supabaseKey);
+
+              // Set the session with the tokens
+              const { data, error } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken || ''
+              });
+
+              if (error) {
+                console.error('Error setting session:', error);
+                setError('Authentication failed. Please try again.');
+                setIsGoogleLoading(false);
+                return;
+              } else {
+                console.log('Session set successfully:', data.user?.email);
+              }
+
+              // Check if this is a new user (created within last 5 minutes)
+              if (data.user) {
+                const userCreatedAt = new Date(data.user.created_at);
+                const timeSinceCreation = Date.now() - userCreatedAt.getTime();
+                const isNewUser = timeSinceCreation < 300000; // 5 minutes
+
+                console.log('User creation check:', {
+                  created_at: data.user.created_at,
+                  time_since_creation_ms: timeSinceCreation,
+                  is_new_user: isNewUser
                 });
 
-                if (error) {
-                  console.error('Error setting session:', error);
-                  setError('Authentication failed. Please try again.');
-                  setIsGoogleLoading(false);
-                  return;
-                } else {
-                  console.log('Session set successfully:', data.user?.email);
-                }
+                // Clean up the URL
+                window.history.replaceState({}, document.title, window.location.pathname);
 
-                // Check if this is a new user (created within last 5 minutes)
-                if (data.user) {
-                  const userCreatedAt = new Date(data.user.created_at);
-                  const timeSinceCreation = Date.now() - userCreatedAt.getTime();
-                  const isNewUser = timeSinceCreation < 300000; // 5 minutes
+                // Redirect to welcome page for new users, app for existing users
+                if (isNewUser) {
+                  console.log('New user detected, sending welcome email and redirecting to welcome page');
 
-                  console.log('User creation check:', {
-                    created_at: data.user.created_at,
-                    time_since_creation_ms: timeSinceCreation,
-                    is_new_user: isNewUser
-                  });
-
-                  // Clean up the URL
-                  window.history.replaceState({}, document.title, window.location.pathname);
-
-                  // Redirect to welcome page for new users, app for existing users
-                  if (isNewUser) {
-                    console.log('New user detected, sending welcome email and redirecting to welcome page');
-
-                    // Send welcome email for new users
-                    if (data.user.email) {
-                      try {
-                        const emailResponse = await fetch('/api/users/welcome', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ userId: data.user.id })
-                        });
-                        console.log('Welcome email API response:', emailResponse.status);
-                      } catch (emailError) {
-                        console.error('Failed to send welcome email:', emailError);
-                        // Don't block the flow if email fails
-                      }
+                  // Send welcome email for new users
+                  if (data.user.email) {
+                    try {
+                      const emailResponse = await fetch('/api/users/welcome', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: data.user.id })
+                      });
+                      console.log('Welcome email API response:', emailResponse.status);
+                    } catch (emailError) {
+                      console.error('Failed to send welcome email:', emailError);
+                      // Don't block the flow if email fails
                     }
-
-                    window.location.href = '/welcome';
-                    return;
                   }
+
+                  window.location.href = '/welcome';
+                  return;
                 }
               }
-            } catch (error) {
-              console.error('Error processing OAuth tokens:', error);
-              setError('Authentication failed. Please try again.');
-              setIsGoogleLoading(false);
-              return;
             }
+          } catch (error) {
+            console.error('Error processing OAuth tokens:', error);
+            setError('Authentication failed. Please try again.');
+            setIsGoogleLoading(false);
+            return;
+          }
 
-            // Clean up the URL and redirect to requested destination for existing users
-            window.history.replaceState({}, document.title, window.location.pathname);
-            window.location.href = redirectTarget;
-          };
-          
-          setSession();
-          return;
-        }
+          // Clean up the URL and redirect to requested destination for existing users
+          window.history.replaceState({}, document.title, window.location.pathname);
+          window.location.href = target;
+        };
+        
+        setSession();
+        return;
       }
-    
-      const errorParam = urlSearchParams.get('error');
-      const detailsParam = urlSearchParams.get('details');
-    
+    }
+  
+    const errorParam = urlSearchParams.get('error');
+    const detailsParam = urlSearchParams.get('details');
+  
     if (errorParam) {
       let errorMessage = 'Authentication failed. Please try again.';
       
@@ -216,9 +224,9 @@ export default function LoginPage() {
       }
 
       console.log('Existing user, redirecting to dashboard');
-      router.push(redirectTarget);
+      router.push(target);
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, redirectTarget]);
 
   const handleGoogleLogin = async () => {
     if (!isClient) return;
@@ -240,7 +248,8 @@ export default function LoginPage() {
       }
 
       const supabase = createClient(supabaseUrl, supabaseKey);
-      const redirectUrl = window.location.origin + '/auth/callback?next=/app';
+      const target = redirectTarget.startsWith('/') ? redirectTarget : '/app';
+      const redirectUrl = window.location.origin + '/auth/callback?next=' + encodeURIComponent(target);
 
       console.log('Starting Google OAuth with redirectTo:', redirectUrl);
       console.log('Supabase URL:', supabaseUrl);
@@ -301,7 +310,8 @@ export default function LoginPage() {
 
       const supabase = createClient(supabaseUrl, supabaseKey);
       // Use auth callback for magic links too, so new users see welcome page
-      const redirectUrl = window.location.origin + '/auth/callback?next=/app';
+      const target = redirectTarget.startsWith('/') ? redirectTarget : '/app';
+      const redirectUrl = window.location.origin + '/auth/callback?next=' + encodeURIComponent(target);
 
       const { error } = await supabase.auth.signInWithOtp({
         email,
