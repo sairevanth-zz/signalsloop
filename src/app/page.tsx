@@ -241,86 +241,92 @@ export default function Homepage() {
       <section className="py-16 md:py-24 lg:py-32 px-4 bg-slate-50 relative overflow-hidden">
         {/* Adventurous background pattern */}
         <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
-                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`,
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.18) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 60% 60%, rgba(34, 197, 94, 0.1) 0%, transparent 50%)`,
           backgroundSize: '100% 100%'
         }}></div>
-        {/* Subtle mesh pattern overlay */}
-        <div className="absolute inset-0 opacity-30" style={{
-          backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(59, 130, 246, 0.03) 2px, rgba(59, 130, 246, 0.03) 4px),
-                           repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(59, 130, 246, 0.03) 2px, rgba(59, 130, 246, 0.03) 4px)`,
-          backgroundSize: '100px 100px'
-        }}></div>
+        {/* Floating particles */}
+        <div className="absolute top-20 left-10 w-20 h-20 bg-blue-400/20 rounded-full blur-xl animate-float"></div>
+        <div className="absolute top-40 right-20 w-32 h-32 bg-purple-400/20 rounded-full blur-xl animate-float-delayed"></div>
+        <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-pink-400/20 rounded-full blur-xl animate-pulse-slow"></div>
+
         <div className="relative z-10">
         <div className="container mx-auto text-center">
-          <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200 text-sm">
-            ✨ AI-Powered Feedback Management
+          <Badge variant="secondary" className="mb-6 bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 text-sm px-4 py-2 animate-scale-in shadow-lg hover:shadow-xl transition-shadow">
+            <span className="animate-wiggle inline-block">✨</span> AI-Powered Feedback Management
           </Badge>
           
           {/* Enhanced Trust Indicators with Metrics */}
-          <div className="flex flex-wrap justify-center gap-4 mb-6 text-xs text-gray-500">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+          <div className="flex flex-wrap justify-center gap-3 mb-8 text-xs font-medium">
+            <div className="flex items-center gap-1.5 bg-purple-100 text-purple-700 px-3 py-1.5 rounded-full border border-purple-200 hover-float hover:bg-purple-200 transition-colors">
+              <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
               <span>5 AI Features</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+            <div className="flex items-center gap-1.5 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full border border-blue-200 hover-float hover:bg-blue-200 transition-colors">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
               <span>50,000+ Posts Processed</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+            <div className="flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1.5 rounded-full border border-green-200 hover-float hover:bg-green-200 transition-colors">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span>Slack & Discord Ready</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+            <div className="flex items-center gap-1.5 bg-orange-100 text-orange-700 px-3 py-1.5 rounded-full border border-orange-200 hover-float hover:bg-orange-200 transition-colors">
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
               <span>CSV Import/Export</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
+            <div className="flex items-center gap-1.5 bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-full border border-indigo-200 hover-float hover:bg-indigo-200 transition-colors">
+              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
               <span>API & Webhooks</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
+            <div className="flex items-center gap-1.5 bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full border border-pink-200 hover-float hover:bg-pink-200 transition-colors">
+              <div className="w-2 h-2 bg-pink-500 rounded-full animate-pulse"></div>
               <span>100+ Teams Using</span>
             </div>
           </div>
-          
+
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 md:mb-8 leading-tight tracking-tight animate-fade-in">
-            The AI Product Intelligence Platform<br className="hidden sm:block" />
-            <span className="text-blue-600">That Builds Your Roadmap for You.</span>
+            <span className="inline-block">The AI Product Intelligence Platform</span><br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-pulse-slow">That Builds Your Roadmap for You.</span>
           </h1>
 
           <p className="text-xl sm:text-2xl text-gray-600 mb-6 max-w-4xl mx-auto leading-relaxed px-4">
             Connect with thousands of customers through public boards. AI reads every conversation, identifies patterns, prioritizes opportunities, and generates a data-driven roadmap—automatically.
           </p>
 
-          <p className="text-base sm:text-lg text-gray-500 mb-4 max-w-3xl mx-auto px-4">
-            Powered by <strong className="text-gray-700">5 proprietary AI models</strong> for categorization, priority scoring, duplicate detection, smart replies, and intelligent writing assistance. From <strong className="text-gray-700">$19/month</strong>—a fraction of legacy tools at ~$99-$295/month.
+          <p className="text-base sm:text-lg text-gray-600 mb-6 max-w-3xl mx-auto px-4">
+            Powered by <strong className="text-purple-600">5 proprietary AI models</strong> for categorization, priority scoring, duplicate detection, smart replies, and intelligent writing assistance. From <strong className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent font-bold">$19/month</strong>—a fraction of legacy tools at ~$99-$295/month.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-3 text-sm text-gray-600 mb-10 px-4">
-            <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full font-medium border border-green-200">✨ Public Roadmap + Feedback Widget</span>
-            <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium border border-blue-200">🤖 5 AI Features Free</span>
-            <span className="bg-purple-50 text-purple-700 px-3 py-1 rounded-full font-medium border border-purple-200">⚡ 2-Min Setup</span>
+          <div className="flex flex-wrap justify-center gap-3 text-sm font-semibold mb-10 px-4">
+            <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all hover-float">
+              ✨ Public Roadmap + Feedback Widget
+            </span>
+            <span className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all hover-float">
+              🤖 5 AI Features Free
+            </span>
+            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all hover-float">
+              ⚡ 2-Min Setup
+            </span>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10 px-4">
             <Button
               onClick={handleProCheckout}
               size="lg"
-              className="text-base sm:text-lg px-10 sm:px-14 py-5 sm:py-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl hover:scale-105 transition-all duration-200 shadow-xl hover:shadow-2xl min-h-[60px] w-full sm:w-auto"
+              className="text-base sm:text-lg px-10 sm:px-14 py-5 sm:py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl hover:scale-105 transition-all duration-200 shadow-xl hover:shadow-2xl min-h-[60px] w-full sm:w-auto animate-glow"
             >
-              Get Started Free
+              Get Started Free 🚀
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Link href="/demo/board" className="w-full sm:w-auto">
               <Button
                 size="lg"
                 variant="outline"
-                className="text-base sm:text-lg px-10 sm:px-14 py-5 sm:py-6 rounded-xl border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 min-h-[60px] w-full font-semibold text-gray-700 shadow-sm hover:shadow-md"
+                className="text-base sm:text-lg px-10 sm:px-14 py-5 sm:py-6 rounded-xl border-2 border-purple-300 hover:border-purple-500 hover:bg-purple-50 transition-all duration-200 min-h-[60px] w-full font-semibold text-purple-700 shadow-md hover:shadow-lg hover:scale-105"
               >
-                View Live Demo
+                View Live Demo 👀
               </Button>
             </Link>
           </div>
@@ -329,44 +335,44 @@ export default function Homepage() {
           <div className="max-w-5xl mx-auto mb-8 px-4">
             <div className="grid md:grid-cols-2 gap-4">
               {/* Testimonial 1 - Indie Maker */}
-              <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100">
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-5 shadow-lg border-2 border-blue-200 hover:shadow-xl hover:scale-102 transition-all hover-float">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-md">
                     <span className="text-white text-lg font-bold">M</span>
                   </div>
                   <div>
                     <div className="font-bold text-gray-900">Marcus Chen</div>
-                    <div className="text-xs text-gray-500">Solo Founder @ TaskFlow</div>
+                    <div className="text-xs text-blue-600 font-medium">Solo Founder @ TaskFlow</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 mb-2">
                   {[1,2,3,4,5].map((star) => (
-                    <Star key={star} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                    <Star key={star} className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
                 <p className="text-sm text-gray-700 leading-relaxed">
-                  "As a solo founder, I was drowning in feedback from 500+ users. SignalsLoop's AI sorted everything overnight. <strong>I saved 12 hours/week</strong> and finally knew what to build next."
+                  "As a solo founder, I was drowning in feedback from 500+ users. SignalsLoop's AI sorted everything overnight. <strong className="text-blue-600">I saved 12 hours/week</strong> and finally knew what to build next."
                 </p>
               </div>
 
               {/* Testimonial 2 - Product Manager */}
-              <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 shadow-lg border-2 border-green-200 hover:shadow-xl hover:scale-102 transition-all hover-float">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
                     <span className="text-white text-lg font-bold">S</span>
                   </div>
                   <div>
                     <div className="font-bold text-gray-900">Sarah Martinez</div>
-                    <div className="text-xs text-gray-500">Head of Product @ GrowthLabs</div>
+                    <div className="text-xs text-green-600 font-medium">Head of Product @ GrowthLabs</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 mb-2">
                   {[1,2,3,4,5].map((star) => (
-                    <Star key={star} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                    <Star key={star} className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
                 <p className="text-sm text-gray-700 leading-relaxed">
-                  "We switched from Legacy Tool A (~$99/mo) to SignalsLoop. <strong>Got better AI features for 1/5th the price.</strong> The priority scoring alone changed how we plan our roadmap."
+                  "We switched from Legacy Tool A (~$99/mo) to SignalsLoop. <strong className="text-green-600">Got better AI features for 1/5th the price.</strong> The priority scoring alone changed how we plan our roadmap."
                 </p>
               </div>
             </div>
