@@ -254,80 +254,63 @@ export default function Homepage() {
 
         <div className="relative z-10">
         <div className="container mx-auto text-center">
-          {/* Attention-grabbing badge */}
+          {/* Clean single metric badge */}
           <div className="mb-8 flex items-center justify-center gap-2 text-sm animate-fade-in">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-5 py-2.5 rounded-full shadow-lg font-semibold">
-              <Sparkles className="h-4 w-4" />
-              <span>147 teams switched this week</span>
+            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-blue-100 shadow-sm">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-gray-700"><strong className="font-semibold text-gray-900">147 teams</strong> joined this week</span>
             </div>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-gray-900 mb-8 leading-[1.05] tracking-tight animate-fade-in max-w-6xl mx-auto px-4">
-            Why Pay <span className="relative inline-block">
-              <span className="text-red-600">$99-295/mo</span>
-              <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 10" xmlns="http://www.w3.org/2000/svg">
-                <line x1="0" y1="5" x2="200" y2="5" stroke="#dc2626" strokeWidth="3"/>
-              </svg>
-            </span><br />
-            When AI Does It<br />
-            For <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">$19?</span>
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-gray-900 mb-8 leading-[1.1] tracking-tight animate-fade-in max-w-6xl mx-auto px-4">
+            The AI That Builds<br />
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Your Roadmap</span><br />
+            For You
           </h1>
 
-          <p className="text-2xl sm:text-3xl text-gray-700 mb-8 max-w-4xl mx-auto leading-relaxed px-4 font-medium">
-            5 AI models auto-categorize, score priorities, detect duplicates, and write replies—while you sleep.
+          <p className="text-xl sm:text-2xl md:text-3xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed px-4 font-light">
+            AI reads every conversation, identifies patterns, prioritizes opportunities, and generates your roadmap—automatically.
           </p>
 
-          {/* Bold comparison */}
-          <div className="max-w-3xl mx-auto mb-12 px-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6">
-                <div className="text-red-600 font-bold text-sm mb-2">Legacy Tools</div>
-                <div className="text-4xl font-black text-red-600 mb-2">$99-295</div>
-                <div className="text-sm text-gray-600">per month</div>
-              </div>
-              <div className="bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-xl p-6 shadow-xl relative overflow-hidden">
-                <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full">SAVE 81%</div>
-                <div className="font-bold text-sm mb-2">SignalsLoop</div>
-                <div className="text-4xl font-black mb-2">$19</div>
-                <div className="text-sm text-white/90">per month</div>
-              </div>
+          <div className="flex items-center justify-center gap-6 mb-12 px-4 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-blue-600" />
+              <span><strong className="text-gray-900">5 AI models</strong></span>
+            </div>
+            <div className="h-4 w-px bg-gray-300"></div>
+            <div className="flex items-center gap-2">
+              <span><strong className="text-gray-900">From $19/mo</strong> vs $99-295</span>
+            </div>
+            <div className="h-4 w-px bg-gray-300"></div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-blue-600" />
+              <span><strong className="text-gray-900">2-min</strong> setup</span>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 px-4 max-w-2xl mx-auto">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6 px-4 max-w-2xl mx-auto">
             <Button
               onClick={handleProCheckout}
               size="lg"
-              className="text-lg px-14 py-7 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl hover:scale-105 transition-all duration-200 shadow-xl hover:shadow-2xl min-h-[64px] w-full sm:w-auto"
+              className="text-base sm:text-lg px-12 py-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl min-h-[56px] w-full sm:w-auto"
             >
-              Start Free — Save $960/Year
+              Start Free
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Link href="/demo/board" className="w-full sm:w-auto">
               <Button
                 size="lg"
                 variant="outline"
-                className="text-lg px-14 py-7 rounded-xl border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 min-h-[64px] w-full font-semibold"
+                className="text-base sm:text-lg px-12 py-6 rounded-xl border-2 hover:bg-gray-50 transition-all duration-200 min-h-[56px] w-full font-semibold"
               >
-                See It In Action
+                View Demo
               </Button>
             </Link>
           </div>
 
-          {/* Stronger trust signals */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-700 mb-16 px-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <span className="font-medium">No credit card</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <span className="font-medium">Free forever</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <span className="font-medium">2-min setup</span>
-            </div>
+          {/* Consolidated trust signals */}
+          <div className="text-sm text-gray-600 mb-16">
+            No credit card • Free forever plan • 100+ teams
           </div>
 
           {/* Clean, consolidated social proof */}
@@ -355,116 +338,62 @@ export default function Homepage() {
             </div>
           </div>
 
-          {/* Product Demo - AI in Action */}
+          {/* Product Screenshot - Modern */}
           <div className="max-w-6xl mx-auto px-4">
-            <div className="mb-6 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-                Watch AI Organize Your Feedback
-              </h2>
-              <p className="text-lg text-gray-600">
-                While legacy tools make you categorize manually, our AI does it instantly
-              </p>
-            </div>
-
-            <div className="screenshot-perspective screenshot-glow rounded-2xl overflow-hidden border-2 border-blue-200 bg-white relative">
-              {/* AI Badge Overlay */}
-              <div className="absolute top-6 right-6 z-20 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-pulse-slow">
-                <Bot className="h-4 w-4" />
-                <span className="font-semibold text-sm">AI Processing...</span>
-              </div>
-
-              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6 md:p-8">
-                <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
+            <div className="screenshot-perspective screenshot-glow rounded-2xl overflow-hidden border border-gray-200/50 bg-white">
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-8">
+                {/* Simple screenshot placeholder */}
+                <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
                   {/* Browser chrome */}
-                  <div className="bg-gray-800 px-4 py-3 flex items-center gap-2">
+                  <div className="bg-gray-100 px-4 py-3 flex items-center gap-2 border-b border-gray-200">
                     <div className="flex gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
                     </div>
-                    <div className="flex-1 bg-gray-700 rounded px-3 py-1.5 text-xs text-gray-300 ml-2">
-                      app.signalsloop.com/feedback
+                    <div className="flex-1 bg-white rounded px-3 py-1 text-xs text-gray-600 ml-2">
+                      app.signalsloop.com/dashboard
                     </div>
                   </div>
-
-                  {/* Dashboard with AI annotations */}
+                  {/* Dashboard content preview */}
                   <div className="bg-white p-6">
-                    {/* AI-powered feedback items */}
-                    <div className="space-y-4">
-                      {/* Item 1 - Feature Request */}
-                      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border-2 border-purple-200 relative">
-                        <div className="absolute -right-2 -top-2 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg">
-                          AI: Priority 9.2
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold">S</span>
                         </div>
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Lightbulb className="h-4 w-4 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge className="bg-purple-600 text-white text-xs">Feature Request</Badge>
-                              <span className="text-xs text-gray-500">Auto-categorized by AI</span>
-                            </div>
-                            <p className="text-sm font-medium text-gray-900 mb-1">
-                              "We need CSV export for all feedback data"
-                            </p>
-                            <div className="flex items-center gap-3 text-xs text-gray-600">
-                              <span>12 upvotes</span>
-                              <span>•</span>
-                              <span className="text-green-600 font-medium">✓ Similar to #127, #89</span>
-                            </div>
-                          </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">Feedback Dashboard</div>
+                          <div className="text-sm text-gray-500">127 posts this month</div>
                         </div>
                       </div>
-
-                      {/* Item 2 - Bug */}
-                      <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border-2 border-red-200 relative">
-                        <div className="absolute -right-2 -top-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg">
-                          AI: Priority 8.7
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Zap className="h-4 w-4 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge className="bg-red-600 text-white text-xs">Bug</Badge>
-                              <span className="text-xs text-gray-500">Auto-categorized by AI</span>
-                            </div>
-                            <p className="text-sm font-medium text-gray-900 mb-1">
-                              "Login broken on Safari mobile"
-                            </p>
-                            <div className="flex items-center gap-3 text-xs text-gray-600">
-                              <span>24 upvotes</span>
-                              <span>•</span>
-                              <span className="text-blue-600 font-medium">💡 AI suggested reply ready</span>
-                            </div>
-                          </div>
-                        </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      <div className="bg-purple-50 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-purple-600">127</div>
+                        <div className="text-sm text-purple-600">Auto-categorized</div>
                       </div>
-
-                      {/* Item 3 - Enhancement */}
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border-2 border-green-200 relative">
-                        <div className="absolute -right-2 -top-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg">
-                          AI: Priority 7.4
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <TrendingUp className="h-4 w-4 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge className="bg-green-600 text-white text-xs">Enhancement</Badge>
-                              <span className="text-xs text-gray-500">Auto-categorized by AI</span>
-                            </div>
-                            <p className="text-sm font-medium text-gray-900 mb-1">
-                              "Dark mode for the widget would be amazing"
-                            </p>
-                            <div className="flex items-center gap-3 text-xs text-gray-600">
-                              <span>8 upvotes</span>
-                            </div>
-                          </div>
-                        </div>
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-blue-600">8.5</div>
+                        <div className="text-sm text-blue-600">Avg Priority</div>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-4">
+                        <div className="text-2xl font-bold text-green-600">12</div>
+                        <div className="text-sm text-green-600">Duplicates</div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="h-3 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-2 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="h-3 bg-gray-200 rounded w-2/3 mb-2"></div>
+                        <div className="h-2 bg-gray-200 rounded w-1/3"></div>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="h-3 bg-gray-200 rounded w-4/5 mb-2"></div>
+                        <div className="h-2 bg-gray-200 rounded w-2/5"></div>
                       </div>
                     </div>
                   </div>
