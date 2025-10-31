@@ -67,14 +67,14 @@
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   }
   
-  .animate-gradient {
+  /* .animate-gradient {
     background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4, #10b981);
     background-size: 300% 300%;
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradient-shift 16s ease infinite;
-  }
+  } */
   
   .animate-bounce-subtle {
     animation: bounce-subtle 8s ease-in-out infinite;
@@ -347,17 +347,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image: 
-      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%),
-      radial-gradient(circle at 60% 60%, rgba(255, 219, 120, 0.3) 0%, transparent 50%),
-      radial-gradient(circle at 90% 90%, rgba(198, 119, 255, 0.3) 0%, transparent 50%),
-      radial-gradient(circle at 10% 10%, rgba(119, 255, 198, 0.3) 0%, transparent 50%);
-    background-size: 800px 800px, 600px 600px, 700px 700px, 500px 500px, 900px 900px, 400px 400px;
-    background-position: 0% 0%, 100% 0%, 50% 50%, 0% 100%, 100% 100%, 0% 50%;
-    background-attachment: fixed;
-    animation: iridescence 60s ease-in-out infinite;
   }
   
   /* Cursor styles for interactive elements */
@@ -490,7 +479,7 @@
 }
 
 @layer components {
-  .gradient-button {
+  /* .gradient-button {
     @apply relative appearance-none cursor-pointer transition-all duration-500 ease-out;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
@@ -502,8 +491,8 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(45deg, 
-      hsla(340, 75%, 60%, 0.2), 
+    background: linear-gradient(45deg,
+      hsla(340, 75%, 60%, 0.2),
       hsla(340, 75%, 40%, 0.75)
     );
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -523,8 +512,8 @@
   }
 
   .gradient-button-variant::before {
-    background: linear-gradient(45deg, 
-      hsla(320, 75%, 90%, 0.6), 
+    background: linear-gradient(45deg,
+      hsla(320, 75%, 90%, 0.6),
       hsla(320, 50%, 90%, 0.15)
     );
   }
@@ -533,7 +522,7 @@
     background: linear-gradient(135deg, #000020 0%, #f1ffa5 25%, #469396 75%, #1f3f6d 100%);
     box-shadow: 0 8px 25px rgba(241, 255, 165, 0.6);
     transform: translateY(-2px);
-  }
+  } */
 }
 
 /* Custom Animations for Enhanced UX */
@@ -652,7 +641,7 @@
   animation: shimmer 2s infinite;
 }
 
-@keyframes gradient-shift {
+/* @keyframes gradient-shift {
   0% {
     background-position: 0% 50%;
   }
@@ -662,9 +651,9 @@
   100% {
     background-position: 0% 50%;
   }
-}
+} */
 
-@keyframes iridescence {
+/* @keyframes iridescence {
   0%, 100% {
     background-position: 0% 0%, 100% 0%, 50% 50%, 0% 100%, 100% 100%, 0% 50%;
     filter: hue-rotate(0deg);
@@ -681,5 +670,5 @@
     background-position: 3% 4%, 97% 4%, 54% 54%, 4% 96%, 96% 96%, 4% 56%;
     filter: hue-rotate(12deg);
   }
-}
+} */
 /* Updated: Tue Sep 16 11:10:26 CDT 2025 */

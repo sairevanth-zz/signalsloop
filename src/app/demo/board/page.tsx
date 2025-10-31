@@ -251,7 +251,7 @@ function DemoProFeedbackForm({ onSubmit, usage, checkLimit, recordUsage }: DemoP
               Crafted for product teams—AI assists with writing, categorization, and prioritization instantly.
             </p>
           </div>
-          <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-sm">
+          <Badge className="bg-purple-600 text-white shadow-sm">
             Live AI Demo
           </Badge>
         </div>
@@ -402,7 +402,7 @@ function DemoProFeedbackForm({ onSubmit, usage, checkLimit, recordUsage }: DemoP
             <div className="flex gap-2">
               <Button
                 type="submit"
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                className="bg-purple-600 hover:bg-purple-700"
                 disabled={isSubmitting || usage.submit.used >= usage.submit.limit}
               >
                 {isSubmitting ? 'Submitting...' : `Submit Feedback (${usage.submit.used}/${usage.submit.limit})`}
@@ -560,10 +560,10 @@ export default function DemoBoard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
       {/* Demo Limit Banner */}
       {showDemoLimitBanner && (
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4">
+        <div className="bg-purple-600 text-white py-3 px-4">
           <div className="container mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Sparkles className="h-5 w-5 animate-pulse" />
@@ -584,7 +584,7 @@ export default function DemoBoard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-sm">S</span>
               </div>
               <div>
@@ -601,7 +601,7 @@ export default function DemoBoard() {
                 <Crown className="h-3 w-3 mr-1" />
                 Pro Demo
               </Badge>
-              <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              <Button asChild className="bg-blue-600 hover:bg-blue-700">
                 <Link href="/login">Get Started</Link>
               </Button>
             </div>
@@ -676,7 +676,7 @@ export default function DemoBoard() {
                         onClick={() => setStatusFilter(option.value)}
                         className={`flex items-center gap-2 ${
                           statusFilter === option.value 
-                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
+                            ? 'bg-blue-600 hover:bg-blue-700' 
                             : ''
                         }`}
                       >
@@ -778,7 +778,7 @@ export default function DemoBoard() {
             <div className="space-y-4">
               {loading ? (
                 <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-transparent bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-4"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
                   <p className="text-gray-600">Loading demo data...</p>
                 </div>
               ) : filteredPosts.length === 0 ? (
@@ -808,7 +808,7 @@ export default function DemoBoard() {
                             />
                           )}
                           {post.priority_score && (
-                            <Badge className="bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 border-purple-200 flex items-center gap-1">
+                            <Badge className="bg-purple-100 text-purple-800 border-purple-200 flex items-center gap-1">
                               <Brain className="h-3 w-3" />
                               {post.priority_score.toFixed(1)}/10
                             </Badge>
@@ -857,7 +857,7 @@ export default function DemoBoard() {
                           }}
                           className={`flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors ${
                             post.user_voted 
-                              ? 'text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
+                              ? 'text-white bg-blue-600 hover:bg-blue-700' 
                               : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
                           }`}
                           disabled={!post.user_voted && featureUsage.vote.used >= featureUsage.vote.limit}
@@ -1090,9 +1090,9 @@ export default function DemoBoard() {
 
           {/* AI Features Tab */}
           <TabsContent value="ai-features" className="space-y-6">
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border-2 border-purple-200 mb-6">
+            <div className="bg-purple-50 rounded-lg p-6 border-2 border-purple-200 mb-6">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Bot className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
@@ -1275,9 +1275,9 @@ export default function DemoBoard() {
 
           {/* AI Test Lab Tab */}
           <TabsContent value="ai-test" className="space-y-6">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border-2 border-blue-200">
+            <div className="bg-blue-50 rounded-lg p-6 border-2 border-blue-200">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Sparkles className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
@@ -1502,7 +1502,7 @@ export default function DemoBoard() {
                 </div>
               </div>
               <div className="text-center mt-6">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                <Button className="bg-blue-600 hover:bg-blue-700">
                   <Crown className="h-4 w-4 mr-2" />
                   Upgrade to Pro
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -1511,13 +1511,13 @@ export default function DemoBoard() {
             </div>
 
             {/* Interactive Roadmap CTA */}
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200 p-6 text-center">
+            <div className="bg-purple-50 rounded-lg border-2 border-purple-200 p-6 text-center">
               <Map className="h-12 w-12 text-purple-600 mx-auto mb-3" />
               <h3 className="text-lg font-semibold mb-2">Interactive Roadmap</h3>
               <p className="text-gray-600 mb-4">Explore our public roadmap with real-time updates, voting, AI analysis, and more.</p>
               <Button 
                 onClick={() => setActiveTab('roadmap')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="bg-blue-600 hover:bg-blue-700"
               >
                 <Eye className="h-4 w-4 mr-2" />
                 View Public Roadmap

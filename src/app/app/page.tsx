@@ -498,7 +498,7 @@ export default function EnhancedDashboardPage() {
 
   if (loading || projectsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 safe-top safe-bottom">
+      <div className="min-h-screen bg-slate-50 safe-top safe-bottom">
         <GlobalBanner />
         <header className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4">
@@ -539,7 +539,7 @@ export default function EnhancedDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 safe-top safe-bottom">
+    <div className="min-h-screen bg-slate-50 safe-top safe-bottom">
       <GlobalBanner />
 
       {/* Main Content */}
@@ -548,7 +548,7 @@ export default function EnhancedDashboardPage() {
         {projects.length === 0 ? (
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="max-w-xl w-full bg-white/80 backdrop-blur-sm border border-white/40 rounded-2xl shadow-lg p-8 sm:p-10 text-center space-y-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mx-auto flex items-center justify-center">
+              <div className="w-16 h-16 bg-blue-500 rounded-2xl mx-auto flex items-center justify-center">
                 <Sparkles className="w-8 h-8 text-white" />
               </div>
               <div className="space-y-2">
@@ -687,7 +687,7 @@ export default function EnhancedDashboardPage() {
               <Button
                 onClick={() => router.push('/app/create')}
                 size="lg"
-                className="rounded-full w-14 h-14 shadow-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 active:scale-90 transition-transform min-touch-target tap-highlight-transparent"
+                className="rounded-full w-14 h-14 shadow-xl bg-blue-600 hover:bg-blue-700 active:scale-90 transition-transform min-touch-target tap-highlight-transparent"
               >
                 <Plus className="h-6 w-6" />
               </Button>

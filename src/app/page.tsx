@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { GradientButton } from '@/components/ui/gradient-button';
+// import { GradientButton } from '@/components/ui/gradient-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -162,9 +162,9 @@ export default function Homepage() {
   // Show loading state while checking authentication
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-sm">S</span>
           </div>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -182,7 +182,7 @@ export default function Homepage() {
         <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center justify-between gap-2">
             <Link href="/" className="flex items-center space-x-2 min-touch-target tap-highlight-transparent">
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-bold text-sm md:text-base">S</span>
               </div>
               <span className="text-base md:text-xl font-bold text-gray-900 hidden xs:inline">SignalsLoop</span>
@@ -228,7 +228,7 @@ export default function Homepage() {
               </Link>
               <Button 
                 onClick={handleProCheckout}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl active:scale-95 transition-all duration-200 shadow-lg hover:shadow-xl px-3 sm:px-6 md:px-8 text-xs sm:text-sm md:text-base min-touch-target tap-highlight-transparent whitespace-nowrap"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl active:scale-95 transition-all duration-200 shadow-lg hover:shadow-xl px-3 sm:px-6 md:px-8 text-xs sm:text-sm md:text-base min-touch-target tap-highlight-transparent whitespace-nowrap"
               >
                 Start Free
               </Button>
@@ -274,7 +274,7 @@ export default function Homepage() {
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 md:mb-8 leading-tight tracking-tight animate-fade-in">
             The AI Product Intelligence Platform<br className="hidden sm:block" />
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent animate-gradient">That Builds Your Roadmap for You.</span>
+            <span className="text-blue-600">That Builds Your Roadmap for You.</span>
           </h1>
 
           <p className="text-xl sm:text-2xl text-gray-600 mb-6 max-w-4xl mx-auto leading-relaxed px-4">
@@ -295,7 +295,7 @@ export default function Homepage() {
             <Button
               onClick={handleProCheckout}
               size="lg"
-              className="text-base sm:text-lg px-10 sm:px-14 py-5 sm:py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl hover:scale-105 transition-all duration-200 shadow-xl hover:shadow-2xl min-h-[60px] w-full sm:w-auto"
+              className="text-base sm:text-lg px-10 sm:px-14 py-5 sm:py-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl hover:scale-105 transition-all duration-200 shadow-xl hover:shadow-2xl min-h-[60px] w-full sm:w-auto"
             >
               Get Started Free
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -317,7 +317,7 @@ export default function Homepage() {
               {/* Testimonial 1 - Indie Maker */}
               <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-lg font-bold">M</span>
                   </div>
                   <div>
@@ -338,7 +338,7 @@ export default function Homepage() {
               {/* Testimonial 2 - Product Manager */}
               <div className="bg-white rounded-xl p-5 shadow-md border border-gray-100">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-lg font-bold">S</span>
                   </div>
                   <div>
@@ -364,7 +364,7 @@ export default function Homepage() {
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-2">
                   {[1,2,3,4].map((i) => (
-                    <div key={i} className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full border-2 border-white flex items-center justify-center">
+                    <div key={i} className="w-9 h-9 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center">
                       <span className="text-white text-sm font-bold">{String.fromCharCode(64 + i)}</span>
                     </div>
                   ))}
@@ -394,11 +394,11 @@ export default function Homepage() {
           
           {/* Product Screenshot */}
           <div className="bg-white rounded-xl shadow-2xl p-6 max-w-6xl mx-auto">
-            <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg h-[600px] relative overflow-hidden">
+            <div className="bg-slate-50 rounded-lg h-[600px] relative overflow-hidden">
               {/* Mock Dashboard Interface */}
               <div className="absolute inset-4 bg-white rounded-lg shadow-lg border border-gray-100">
                 {/* Header */}
-                <div className="h-14 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-lg flex items-center justify-between px-6">
+                <div className="h-14 bg-blue-600 rounded-t-lg flex items-center justify-between px-6">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
                       <span className="text-blue-600 font-bold text-lg">S</span>
@@ -614,16 +614,16 @@ export default function Homepage() {
       </section>
 
       {/* Solo Founders & Indie Makers Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/20 to-purple-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-blue-50 relative overflow-hidden">
+        <div className="absolute inset-0 bg-blue-100/20"></div>
         <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 border-blue-200 text-base px-5 py-2">
+            <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200 text-base px-5 py-2">
               🚀 Built for Bootstrappers
             </Badge>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Public feedback is your superpower.<br />
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">But legacy tools want ~$99-$300/month.</span>
+              <span className="bg-blue-600 bg-clip-text text-transparent">But legacy tools want ~$99-$300/month.</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               You're a <strong>solo founder</strong>, <strong>indie maker</strong>, or <strong>early-stage startup</strong>. Public feedback boards help you validate ideas and build what users actually want—but traditional feedback tools price you out with per-user fees and enterprise pricing.
@@ -653,7 +653,7 @@ export default function Homepage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-8 md:p-12 shadow-xl border-2 border-green-200">
+          <div className="bg-green-50 rounded-2xl p-8 md:p-12 shadow-xl border-2 border-green-200">
             <div className="text-center mb-8">
               <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
                 SignalsLoop: Enterprise AI at Indie Prices
@@ -689,7 +689,7 @@ export default function Homepage() {
                 </ul>
               </div>
 
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border-2 border-blue-300">
+              <div className="bg-blue-50 rounded-xl p-6 border-2 border-blue-300">
                 <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-blue-600" />
                   Upgrade to Pro ($19/mo)
@@ -731,7 +731,7 @@ export default function Homepage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/login">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all">
                   Start Free Forever
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -763,7 +763,7 @@ export default function Homepage() {
 
           <div className="grid md:grid-cols-2 gap-6 mb-12">
             {/* Pain Point 1 */}
-            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-6 border-l-4 border-red-500 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-red-50 rounded-xl p-6 border-l-4 border-red-500 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-start gap-3">
                 <div className="text-2xl">📧</div>
                 <div>
@@ -776,7 +776,7 @@ export default function Homepage() {
             </div>
 
             {/* Pain Point 2 */}
-            <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 border-l-4 border-orange-500 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-orange-50 rounded-xl p-6 border-l-4 border-orange-500 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-start gap-3">
                 <div className="text-2xl">⏰</div>
                 <div>
@@ -789,7 +789,7 @@ export default function Homepage() {
             </div>
 
             {/* Pain Point 3 */}
-            <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-6 border-l-4 border-yellow-500 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-yellow-50 rounded-xl p-6 border-l-4 border-yellow-500 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-start gap-3">
                 <div className="text-2xl">🔍</div>
                 <div>
@@ -802,7 +802,7 @@ export default function Homepage() {
             </div>
 
             {/* Pain Point 4 */}
-            <div className="bg-gradient-to-br from-amber-50 to-red-50 rounded-xl p-6 border-l-4 border-red-500 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-amber-50 rounded-xl p-6 border-l-4 border-red-500 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-start gap-3">
                 <div className="text-2xl">😤</div>
                 <div>
@@ -816,7 +816,7 @@ export default function Homepage() {
           </div>
 
           {/* The Kicker */}
-          <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-8 text-white text-center mb-8">
+          <div className="bg-gray-900 rounded-2xl p-8 text-white text-center mb-8">
             <p className="text-xl md:text-2xl font-bold mb-3">
               Friday arrives. You're exhausted. The roadmap? A guess.
             </p>
@@ -827,7 +827,7 @@ export default function Homepage() {
 
           {/* Solution Transition */}
           <div className="text-center">
-            <div className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl px-8 md:px-12 py-8 shadow-2xl">
+            <div className="inline-block bg-blue-600 text-white rounded-2xl px-8 md:px-12 py-8 shadow-2xl">
               <h3 className="text-2xl md:text-3xl font-bold mb-4">What If AI Did All of This For You?</h3>
               <p className="text-lg md:text-xl opacity-95 mb-6 max-w-2xl">
                 SignalsLoop reads every piece of feedback, categorizes it, finds duplicates, scores priorities, and builds your roadmap—<strong>in seconds, not weeks</strong>.
@@ -856,8 +856,8 @@ export default function Homepage() {
       </section>
 
       {/* Before/After Comparison Section */}
-      <section className="py-16 md:py-20 lg:py-24 px-4 bg-gradient-to-br from-gray-50 to-blue-50 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-100/20 to-blue-100/20"></div>
+      <section className="py-16 md:py-20 lg:py-24 px-4 bg-gray-50 relative">
+        <div className="absolute inset-0 bg-gray-100/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -986,8 +986,8 @@ export default function Homepage() {
       </section>
 
       {/* AI Features Highlight Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-100/20 to-blue-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-purple-50 relative">
+        <div className="absolute inset-0 bg-purple-100/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-purple-100 text-purple-700 border-purple-200">
@@ -1037,7 +1037,7 @@ export default function Homepage() {
               <div className="mt-3 text-xs text-indigo-600 font-medium">Title Enhancement • Description Help • Clear Communication</div>
             </div>
 
-            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-pink-100/50 bg-gradient-to-br from-pink-50 to-purple-50">
+            <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-pink-100/50 bg-pink-50">
               <div className="text-5xl mb-4">⚡</div>
               <h3 className="text-lg font-bold text-gray-900 mb-3">AI Cache Manager</h3>
               <p className="text-sm text-gray-600 leading-relaxed">Smart caching reduces API costs by 80%. Lightning-fast responses without sacrificing accuracy.</p>
@@ -1055,8 +1055,8 @@ export default function Homepage() {
       </section>
 
       {/* Team Collaboration Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/20 to-purple-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-blue-50 relative">
+        <div className="absolute inset-0 bg-blue-100/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200">
@@ -1115,8 +1115,8 @@ export default function Homepage() {
       </section>
 
       {/* NEW SECTION: Urgency-Based Voting */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-100/20 to-pink-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-orange-50 relative">
+        <div className="absolute inset-0 bg-orange-100/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-orange-100 text-orange-700 border-orange-200">
@@ -1195,8 +1195,8 @@ export default function Homepage() {
       </section>
 
       {/* Results PMs Care About */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-100/20 to-teal-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-green-50 relative">
+        <div className="absolute inset-0 bg-green-100/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-green-100 text-green-700 border-green-200">
@@ -1273,7 +1273,7 @@ export default function Homepage() {
               <p className="text-gray-700 text-lg mb-3">
                 <strong>The common thread?</strong> Every PM said the same thing:
               </p>
-              <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-teal-600">
+              <p className="text-2xl font-bold text-green-600">
                 "I finally feel in control of our product direction."
               </p>
             </div>
@@ -1282,8 +1282,8 @@ export default function Homepage() {
       </section>
 
       {/* Problem Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-red-100/10 to-orange-100/10"></div>
+      <section className="py-20 md:py-24 px-4 bg-red-50 relative">
+        <div className="absolute inset-0 bg-red-100/10"></div>
         <div className="container mx-auto text-center relative z-10">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
             Your users have amazing ideas. But they're buried in:
@@ -1313,8 +1313,8 @@ export default function Homepage() {
       </section>
 
       {/* Solution Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-100/20 to-emerald-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-green-50 relative">
+        <div className="absolute inset-0 bg-green-100/20"></div>
         <div className="container mx-auto text-center relative z-10">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
             SignalsLoop's AI reads every piece of feedback
@@ -1326,8 +1326,8 @@ export default function Homepage() {
       </section>
 
       {/* AI Categorization Showcase */}
-      <section className="py-16 md:py-20 lg:py-24 px-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-100/20 to-purple-100/20"></div>
+      <section className="py-16 md:py-20 lg:py-24 px-4 bg-indigo-50 relative">
+        <div className="absolute inset-0 bg-indigo-100/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -1431,8 +1431,8 @@ export default function Homepage() {
       </section>
 
       {/* Developer & Integration Hub Section */}
-      <section id="features" className="py-20 md:py-24 px-4 bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-100/20 to-zinc-100/20"></div>
+      <section id="features" className="py-20 md:py-24 px-4 bg-slate-50 relative">
+        <div className="absolute inset-0 bg-slate-100/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-slate-100 text-slate-700 border-slate-200">
@@ -1506,8 +1506,8 @@ export default function Homepage() {
       </section>
 
       {/* Team Collaboration Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-teal-50 via-cyan-50 to-sky-50 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-teal-100/20 to-sky-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-teal-50 relative">
+        <div className="absolute inset-0 bg-teal-100/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-teal-100 text-teal-700 border-teal-200">
@@ -1582,8 +1582,8 @@ export default function Homepage() {
       </section>
 
       {/* Widget Demo Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/20 to-purple-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-blue-50 relative">
+        <div className="absolute inset-0 bg-blue-100/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -1747,8 +1747,8 @@ export default function Homepage() {
       </section>
 
       {/* NEW SECTION: Public Roadmap & Changelog */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-indigo-50 via-blue-50 to-cyan-50 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-100/20 to-cyan-100/20"></div>
+      <section className="py-20 md:py-24 px-4 bg-indigo-50 relative">
+        <div className="absolute inset-0 bg-indigo-100/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-indigo-100 text-indigo-700 border-indigo-200 text-base px-4 py-2">
@@ -1851,7 +1851,7 @@ export default function Homepage() {
                 </div>
 
                 {/* Sample Changelog Entry */}
-                <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-4 mb-4 border border-purple-200">
+                <div className="bg-purple-50 rounded-lg p-4 mb-4 border border-purple-200">
                   <div className="flex items-center gap-2 mb-2">
                     <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
                       <Sparkles className="h-3 w-3 mr-1" />
@@ -1894,7 +1894,7 @@ export default function Homepage() {
           </div>
 
           <div className="text-center mt-10">
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-6 max-w-3xl mx-auto mb-6">
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 max-w-3xl mx-auto mb-6">
               <p className="text-base font-bold text-gray-900 mb-2">
                 💬 This Is How You Talk to Thousands of Users at Scale
               </p>
@@ -1903,7 +1903,7 @@ export default function Homepage() {
               </p>
             </div>
             <Link href="/demo/board">
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-6">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-6">
                 <ExternalLink className="h-5 w-5 mr-2" />
                 See Live Public Board & Roadmap
               </Button>
@@ -1976,7 +1976,7 @@ export default function Homepage() {
                 <CardDescription className="text-gray-600">Experience AI-powered feedback management risk-free</CardDescription>
               </CardHeader>
               <CardContent className="px-6 pb-6">
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 mb-4 border-2 border-green-300">
+                <div className="bg-green-50 rounded-lg p-4 mb-4 border-2 border-green-300">
                   <p className="text-sm font-bold text-green-700 text-center">🤖 Try All 5 AI Features FREE</p>
                   <p className="text-xs text-green-600 text-center mt-1">10 AI requests/day • Test drive before upgrading</p>
                   <div className="mt-2 pt-2 border-t border-green-200">
@@ -2007,7 +2007,7 @@ export default function Homepage() {
                 </ul>
                 <div className="mt-8">
                   <Link href="/login" className="block">
-                    <Button className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                       🚀 Start Free • Try AI Now
                     </Button>
                   </Link>
@@ -2078,12 +2078,12 @@ export default function Homepage() {
                     </li>
                   ))}
                 </ul>
-                <GradientButton 
-                  className="w-full mt-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl py-4"
+                <Button
+                  className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl py-4"
                   onClick={handleProCheckout}
                 >
                   🚀 Start Free - Upgrade Anytime
-                </GradientButton>
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -2091,7 +2091,7 @@ export default function Homepage() {
       </section>
 
       {/* Competitive Comparison */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-br from-gray-50 to-blue-50">
+      <section className="py-20 md:py-24 px-4 bg-gray-50">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200 text-base px-4 py-2">
@@ -2099,7 +2099,7 @@ export default function Homepage() {
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Why Pay <span className="line-through text-gray-400">Thousands Per Year</span> for Legacy Tools?<br />
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Get Advanced AI Features for $19/Month</span>
+              <span className="bg-blue-600 bg-clip-text text-transparent">Get Advanced AI Features for $19/Month</span>
             </h2>
             <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
               Most feedback tools charge <strong className="text-orange-600">$100-300/month (or per-user)</strong> with limited or no AI capabilities. We built SignalsLoop to deliver <strong className="text-blue-600">comprehensive AI automation</strong> at a fraction of the cost.
@@ -2111,7 +2111,7 @@ export default function Homepage() {
           </div>
 
           {/* AI Features Callout Box */}
-          <div className="mb-8 bg-gradient-to-r from-purple-100 to-blue-100 border-2 border-purple-300 rounded-xl p-6">
+          <div className="mb-8 bg-purple-100 border-2 border-purple-300 rounded-xl p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-4 text-center flex items-center justify-center gap-2">
               <Bot className="w-5 h-5" />Why Teams Choose SignalsLoop
             </h3>
@@ -2263,8 +2263,8 @@ export default function Homepage() {
             </div>
 
             {/* SignalsLoop */}
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-5 shadow-xl border-4 border-green-400 relative transform scale-105">
-              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-600 to-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold animate-pulse">
+            <div className="bg-blue-50 rounded-xl p-5 shadow-xl border-4 border-green-400 relative transform scale-105">
+              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-1 rounded-full text-xs font-bold animate-pulse">
                 🚀 AI-Powered Winner
               </Badge>
               <div className="text-center mb-4 mt-2">
@@ -2307,7 +2307,7 @@ export default function Homepage() {
           </div>
 
           {/* Dramatic Savings Section with FOMO */}
-          <div className="mt-10 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-8 shadow-xl border-2 border-green-300">
+          <div className="mt-10 bg-green-50 rounded-xl p-8 shadow-xl border-2 border-green-300">
             <div className="text-center mb-6">
               <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                 💰 Your Team Could Save Thousands This Year
@@ -2356,7 +2356,7 @@ export default function Homepage() {
             </div>
 
             {/* The Kicker - What You Get */}
-            <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl p-6">
+            <div className="bg-purple-600 text-white rounded-xl p-6">
               <div className="text-center">
                 <h4 className="text-xl font-bold mb-3">🎯 Here's What Makes This a No-Brainer:</h4>
                 <div className="grid md:grid-cols-2 gap-4 text-left max-w-3xl mx-auto">
@@ -2408,7 +2408,7 @@ export default function Homepage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24 lg:py-32 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <section className="py-16 md:py-24 lg:py-32 px-4 bg-blue-600 text-white">
         <div className="container mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             Ready to effortlessly organize feedback with AI?
@@ -2452,7 +2452,7 @@ export default function Homepage() {
       </section>
 
       {/* Credibility Section */}
-      <section className="py-16 md:py-20 px-4 bg-gradient-to-br from-gray-50 to-blue-50">
+      <section className="py-16 md:py-20 px-4 bg-gray-50">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -2519,7 +2519,7 @@ export default function Homepage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-sm">S</span>
                 </div>
                 <span className="text-xl font-bold">SignalsLoop</span>

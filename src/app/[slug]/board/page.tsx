@@ -713,7 +713,7 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 safe-top safe-bottom">
+    <div className="min-h-screen bg-slate-50 safe-top safe-bottom">
       <GlobalBanner 
         showBackButton={true} 
         backLabel="Back to Dashboard" 
@@ -1417,7 +1417,7 @@ export default function BoardPage() {
                 
                 {!sidebarCollapsed && (
                   <div className="space-y-4">
-                    <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+                    <Card className="bg-purple-50 border-purple-200">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -1448,7 +1448,7 @@ export default function BoardPage() {
                     </CardContent>
                   </Card>
                   
-                  <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                  <Card className="bg-blue-50 border-blue-200">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">

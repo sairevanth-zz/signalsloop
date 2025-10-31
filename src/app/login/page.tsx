@@ -337,7 +337,7 @@ export default function LoginPage() {
     return (
       <div className="min-h-screen w-screen bg-black relative overflow-hidden flex items-center justify-center">
         {/* Background gradient effect */}
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-500/40 via-purple-700/50 to-black" />
+        <div className="absolute inset-0 bg-purple-500/40" />
         
         {/* Loading card */}
         <div className="relative bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/[0.05] shadow-2xl">

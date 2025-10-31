@@ -45,7 +45,7 @@ export default function FeaturesPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
+      <section className="py-16 px-4 bg-blue-50 dark:bg-blue-950">
         <div className="container mx-auto text-center max-w-4xl">
           <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900 dark:text-blue-300">
             <Bot className="w-3 h-3 inline mr-1" />Powered by AI
@@ -72,8 +72,8 @@ export default function FeaturesPage() {
       </section>
 
       {/* AI Features Highlight Section */}
-      <section className="py-20 md:py-32 px-4 bg-gradient-to-br from-purple-50 via-blue-50 to-blue-50 dark:from-purple-950 dark:via-blue-950 dark:to-blue-950 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-100/20 to-blue-100/20 dark:from-purple-900/20 dark:to-blue-900/20"></div>
+      <section className="py-20 md:py-32 px-4 bg-purple-50 dark:bg-purple-950 relative">
+        <div className="absolute inset-0 bg-purple-100/20 dark:bg-purple-900/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900 dark:text-purple-300">
@@ -90,7 +90,7 @@ export default function FeaturesPage() {
           {/* Bento Grid Layout */}
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4 max-w-6xl mx-auto">
             {/* Large Feature - Auto-Categorization (spans 2 columns, 2 rows) */}
-            <div className="md:col-span-3 md:row-span-2 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-purple-200/50 dark:border-purple-700/50">
+            <div className="md:col-span-3 md:row-span-2 bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-purple-200/50 dark:border-purple-700/50">
               <div className="mb-6">
                 <Bot className="w-16 h-16 text-purple-600" />
               </div>
@@ -106,7 +106,7 @@ export default function FeaturesPage() {
             </div>
 
             {/* Priority Scoring (spans 2 columns, 1 row) */}
-            <div className="md:col-span-3 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-orange-200/50 dark:border-orange-700/50">
+            <div className="md:col-span-3 bg-orange-50 dark:bg-orange-900/20 rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-orange-200/50 dark:border-orange-700/50">
               <div className="flex items-start gap-4">
                 <Target className="w-12 h-12 text-orange-600 flex-shrink-0" />
                 <div>
@@ -119,7 +119,7 @@ export default function FeaturesPage() {
             </div>
 
             {/* Duplicate Detection (spans 2 columns, 1 row) */}
-            <div className="md:col-span-3 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-blue-200/50 dark:border-blue-700/50">
+            <div className="md:col-span-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-blue-200/50 dark:border-blue-700/50">
               <div className="flex items-start gap-4">
                 <Search className="w-12 h-12 text-blue-600 flex-shrink-0" />
                 <div>
@@ -132,7 +132,7 @@ export default function FeaturesPage() {
             </div>
 
             {/* Smart Replies (spans 2 columns, 1 row) */}
-            <div className="md:col-span-2 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-blue-200/50 dark:border-blue-700/50">
+            <div className="md:col-span-2 bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-blue-200/50 dark:border-blue-700/50">
               <Lightbulb className="w-10 h-10 text-blue-600 mb-3" />
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">AI Smart Replies</h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -141,7 +141,7 @@ export default function FeaturesPage() {
             </div>
 
             {/* Writing Assistant (spans 2 columns, 1 row) */}
-            <div className="md:col-span-2 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-blue-200/50 dark:border-blue-700/50">
+            <div className="md:col-span-2 bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-blue-200/50 dark:border-blue-700/50">
               <Zap className="w-10 h-10 text-blue-600 mb-3" />
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">AI Writing Assistant</h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -150,7 +150,7 @@ export default function FeaturesPage() {
             </div>
 
             {/* AI Insights (spans 2 columns, 1 row) */}
-            <div className="md:col-span-2 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-purple-200/50 dark:border-purple-700/50">
+            <div className="md:col-span-2 bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-purple-200/50 dark:border-purple-700/50">
               <BarChart3 className="w-10 h-10 text-purple-600 mb-3" />
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">AI Insights Panel</h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -169,8 +169,8 @@ export default function FeaturesPage() {
       </section>
 
       {/* Team Collaboration Section */}
-      <section className="py-20 md:py-32 px-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950 dark:via-indigo-950 dark:to-purple-950 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/20 to-purple-100/20 dark:from-blue-900/20 dark:to-purple-900/20"></div>
+      <section className="py-20 md:py-32 px-4 bg-blue-50 dark:bg-blue-950 relative">
+        <div className="absolute inset-0 bg-blue-100/20 dark:bg-blue-900/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900 dark:text-blue-300">
@@ -229,8 +229,8 @@ export default function FeaturesPage() {
       </section>
 
       {/* Urgency-Based Voting */}
-      <section className="py-20 md:py-32 px-4 bg-gradient-to-br from-orange-50 via-orange-50 to-purple-50 dark:from-orange-950 dark:via-orange-950 dark:to-purple-950 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-100/20 to-purple-100/20 dark:from-orange-900/20 dark:to-purple-900/20"></div>
+      <section className="py-20 md:py-32 px-4 bg-orange-50 dark:bg-orange-950 relative">
+        <div className="absolute inset-0 bg-orange-100/20 dark:bg-orange-900/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900 dark:text-orange-300">
@@ -309,8 +309,8 @@ export default function FeaturesPage() {
       </section>
 
       {/* Results PMs Care About */}
-      <section className="py-20 md:py-32 px-4 bg-gradient-to-br from-blue-50 via-blue-50 to-blue-50 dark:from-blue-950 dark:via-blue-950 dark:to-blue-950 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/20 to-blue-100/20 dark:from-blue-900/20 dark:to-blue-900/20"></div>
+      <section className="py-20 md:py-32 px-4 bg-blue-50 dark:bg-blue-950 relative">
+        <div className="absolute inset-0 bg-blue-100/20 dark:bg-blue-900/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900 dark:text-blue-300">
@@ -385,7 +385,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+      <section className="py-20 px-4 bg-blue-600 text-white">
         <div className="container mx-auto text-center max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
             Ready to transform how you manage feedback?
@@ -414,7 +414,7 @@ export default function FeaturesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-sm">S</span>
                 </div>
                 <span className="text-xl font-bold">SignalsLoop</span>

@@ -322,7 +322,7 @@ function ProjectWizardContent() {
   const canProceedFromStep2 = validateSlug(projectData.slug);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
@@ -337,7 +337,7 @@ function ProjectWizardContent() {
             </Button>
             
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-sm">S</span>
               </div>
               <span className="text-xl font-bold text-gray-900">SignalsLoop</span>
@@ -532,7 +532,7 @@ function ProjectWizardContent() {
                     (currentStep === 1 && !canProceedFromStep1) ||
                     (currentStep === 2 && !canProceedFromStep2)
                   }
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
                   Next Step
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -541,7 +541,7 @@ function ProjectWizardContent() {
                 <Button
                   onClick={createProject}
                   disabled={isLoading}
-                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                  className="bg-green-600 hover:bg-green-700"
                 >
                   {isLoading ? (
                     <>

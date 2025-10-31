@@ -115,7 +115,7 @@ export default function PricingPage() {
                 <CardDescription className="text-gray-600 dark:text-gray-400">Experience AI-powered feedback management risk-free</CardDescription>
               </CardHeader>
               <CardContent className="px-6 pb-6">
-                <div className="bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-lg p-4 mb-4 border-2 border-blue-300 dark:border-blue-700">
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-4 border-2 border-blue-300 dark:border-blue-700">
                   <p className="text-sm font-bold text-blue-700 dark:text-blue-400 text-center flex items-center justify-center gap-1"><Bot className="w-4 h-4" />Try All 5 AI Features FREE</p>
                   <p className="text-xs text-blue-600 dark:text-blue-400 text-center mt-1">10 AI requests/day • Test drive before upgrading</p>
                   <div className="mt-2 pt-2 border-t border-blue-200 dark:border-blue-800">
@@ -146,7 +146,7 @@ export default function PricingPage() {
                 </ul>
                 <div className="mt-8">
                   <Link href="/login" className="block">
-                    <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                       🚀 Start Free • Try AI Now
                     </Button>
                   </Link>
@@ -236,7 +236,7 @@ export default function PricingPage() {
 
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
               {/* Table Header */}
-              <div className="grid grid-cols-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-gray-200 dark:border-gray-700">
+              <div className="grid grid-cols-3 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
                 <div className="p-4 font-bold text-gray-900 dark:text-white">Feature</div>
                 <div className="p-4 text-center font-bold text-gray-900 dark:text-white border-l border-gray-200 dark:border-gray-700">Free</div>
                 <div className="p-4 text-center font-bold text-gray-900 dark:text-white border-l border-gray-200 dark:border-gray-700">Pro</div>
@@ -314,7 +314,7 @@ export default function PricingPage() {
       </section>
 
       {/* Competitive Comparison */}
-      <section className="py-20 md:py-32 px-4 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950">
+      <section className="py-20 md:py-32 px-4 bg-gray-50 dark:bg-gray-900">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4 bg-orange-100 text-orange-700 border-orange-200 text-base px-4 py-2 dark:bg-orange-900 dark:text-orange-300">
@@ -322,7 +322,7 @@ export default function PricingPage() {
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Why Pay <span className="line-through text-gray-400">Thousands Per Year</span> for Legacy Tools?<br />
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Get Advanced AI Features for $19/Month</span>
+              <span className="text-blue-600">Get Advanced AI Features for $19/Month</span>
             </h2>
             <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
               Most feedback tools charge <strong className="text-orange-600">$100-300/month (or per-user)</strong> with limited or no AI capabilities. We built SignalsLoop to deliver <strong className="text-blue-600">comprehensive AI automation</strong> at a fraction of the cost.
@@ -334,7 +334,7 @@ export default function PricingPage() {
           </div>
 
           {/* AI Features Callout Box */}
-          <div className="mb-8 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/20 dark:to-blue-900/20 border-2 border-purple-300 dark:border-purple-700 rounded-xl p-6">
+          <div className="mb-8 bg-purple-100 dark:bg-purple-900/20 border-2 border-purple-300 dark:border-purple-700 rounded-xl p-6">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center flex items-center justify-center gap-2"><Bot className="w-5 h-5" />Why Teams Choose SignalsLoop</h3>
             <div className="grid md:grid-cols-3 gap-6 text-center">
               <div>
@@ -448,8 +448,8 @@ export default function PricingPage() {
             </div>
 
             {/* SignalsLoop */}
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-5 shadow-xl border-4 border-blue-400 dark:border-blue-600 relative transform scale-105">
-              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-600 to-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold animate-pulse">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5 shadow-xl border-4 border-blue-400 dark:border-blue-600 relative transform scale-105">
+              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold animate-pulse">
                 🚀 AI-Powered Winner
               </Badge>
               <div className="text-center mb-4 mt-2">
@@ -492,7 +492,7 @@ export default function PricingPage() {
           </div>
 
           {/* Dramatic Savings Section with FOMO */}
-          <div className="mt-10 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-xl p-8 shadow-xl border-2 border-blue-300 dark:border-blue-700">
+          <div className="mt-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-8 shadow-xl border-2 border-blue-300 dark:border-blue-700">
             <div className="text-center mb-6">
               <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 💰 Your Team Could Save Thousands This Year
@@ -541,7 +541,7 @@ export default function PricingPage() {
             </div>
 
             {/* The Kicker - What You Get */}
-            <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl p-6">
+            <div className="bg-purple-600 text-white rounded-xl p-6">
               <div className="text-center">
                 <h4 className="text-xl font-bold mb-3 flex items-center justify-center gap-2"><Target className="w-5 h-5" />Here's What Makes This a No-Brainer:</h4>
                 <div className="grid md:grid-cols-2 gap-4 text-left max-w-3xl mx-auto">
@@ -593,7 +593,7 @@ export default function PricingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+      <section className="py-20 px-4 bg-blue-600 text-white">
         <div className="container mx-auto text-center max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
             Ready to transform how you manage feedback?
@@ -634,7 +634,7 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-sm">S</span>
                 </div>
                 <span className="text-xl font-bold">SignalsLoop</span>
