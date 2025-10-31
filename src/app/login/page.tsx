@@ -60,8 +60,12 @@ export default function LoginPage() {
   useEffect(() => {
     setIsClient(true);
 
-    // Check for OAuth tokens in URL hash first (before checking auth state)
     if (typeof window !== 'undefined') {
+      const urlSearchParams = new URLSearchParams(window.location.search);
+      const nextParam = urlSearchParams.get('next');
+      const redirectTarget = nextParam && nextParam.startsWith('/') ? nextParam : '/app';
+
+      // Check for OAuth tokens in URL hash first (before checking auth state)
       const hash = window.location.hash;
       if (hash.includes('access_token=')) {
         console.log('OAuth tokens detected in URL hash, processing...');
@@ -149,20 +153,18 @@ export default function LoginPage() {
               return;
             }
 
-            // Clean up the URL and redirect to app for existing users
+            // Clean up the URL and redirect to requested destination for existing users
             window.history.replaceState({}, document.title, window.location.pathname);
-            window.location.href = '/app';
+            window.location.href = redirectTarget;
           };
           
           setSession();
           return;
         }
       }
-    }
     
-    const urlParams = new URLSearchParams(window.location.search);
-    const errorParam = urlParams.get('error');
-    const detailsParam = urlParams.get('details');
+      const errorParam = urlSearchParams.get('error');
+      const detailsParam = urlSearchParams.get('details');
     
     if (errorParam) {
       let errorMessage = 'Authentication failed. Please try again.';
@@ -214,7 +216,7 @@ export default function LoginPage() {
       }
 
       console.log('Existing user, redirecting to dashboard');
-      router.push('/app');
+      router.push(redirectTarget);
     }
   }, [user, loading, router]);
 
