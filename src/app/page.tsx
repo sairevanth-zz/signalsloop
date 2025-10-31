@@ -238,7 +238,13 @@ export default function Homepage() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-16 md:py-24 lg:py-32 px-4">
+      <section className="py-16 md:py-24 lg:py-32 px-4 bg-slate-50 relative overflow-hidden">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-40" style={{
+          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+                           radial-gradient(circle at 75% 75%, rgba(147, 197, 253, 0.05) 0%, transparent 50%)`
+        }}></div>
+        <div className="relative z-10">
         <div className="container mx-auto text-center">
           <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-700 border-blue-200 text-sm">
             ✨ AI-Powered Feedback Management
@@ -610,6 +616,7 @@ export default function Homepage() {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </section>
 
