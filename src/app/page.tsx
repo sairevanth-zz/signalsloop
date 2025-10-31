@@ -239,10 +239,18 @@ export default function Homepage() {
 
       {/* Hero Section */}
       <section className="py-16 md:py-24 lg:py-32 px-4 bg-slate-50 relative overflow-hidden">
-        {/* Subtle background pattern */}
-        <div className="absolute inset-0 opacity-40" style={{
-          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-                           radial-gradient(circle at 75% 75%, rgba(147, 197, 253, 0.05) 0%, transparent 50%)`
+        {/* Adventurous background pattern */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 80%, rgba(96, 165, 250, 0.1) 0%, transparent 50%)`,
+          backgroundSize: '100% 100%'
+        }}></div>
+        {/* Subtle mesh pattern overlay */}
+        <div className="absolute inset-0 opacity-30" style={{
+          backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(59, 130, 246, 0.03) 2px, rgba(59, 130, 246, 0.03) 4px),
+                           repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(59, 130, 246, 0.03) 2px, rgba(59, 130, 246, 0.03) 4px)`,
+          backgroundSize: '100px 100px'
         }}></div>
         <div className="relative z-10">
         <div className="container mx-auto text-center">
