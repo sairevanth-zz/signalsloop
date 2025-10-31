@@ -364,7 +364,7 @@ export default function LoginPage() {
       )}
       
       {/* Background gradient effect */}
-      <div className="absolute inset-0 bg-gradient-to-b from-purple-500/40 via-purple-700/50 to-black" />
+      <div className="absolute inset-0 bg-purple-500/40" />
       
       {/* Subtle noise texture overlay */}
       <div className="absolute inset-0 opacity-[0.03] mix-blend-soft-light" 
@@ -450,15 +450,15 @@ export default function LoginPage() {
                   transition={{ type: "spring", duration: 0.8 }}
                   className="mx-auto w-10 h-10 rounded-full border border-white/10 flex items-center justify-center relative overflow-hidden"
                 >
-                  <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/70">S</span>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50" />
+                  <span className="text-lg font-bold text-white">S</span>
+                  <div className="absolute inset-0 bg-white/10 opacity-50" />
                 </motion.div>
 
                 <motion.h1
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80"
+                  className="text-xl font-bold text-white"
                 >
                   Welcome Back
                 </motion.h1>

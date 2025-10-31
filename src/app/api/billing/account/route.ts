@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
 const resolveSubscriptionType = (project: {
@@ -27,6 +28,217 @@ const resolveSubscriptionType = (project: {
   return { subscriptionType: 'monthly', isYearly: false };
 };
 
+type GiftRow = {
+  id: string;
+  project_id: string | null;
+  gift_type: string | null;
+  duration_months: number | null;
+  status: 'pending' | 'claimed' | 'expired' | 'cancelled';
+  expires_at: string | null;
+  claimed_at: string | null;
+  recipient_id: string | null;
+  recipient_email: string | null;
+};
+
+type ProjectRow = {
+  id: string;
+  slug: string | null;
+  plan: 'free' | 'pro' | null;
+  stripe_customer_id: string | null;
+  subscription_status: string | null;
+  subscription_id: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean | null;
+  trial_start_date: string | null;
+  trial_end_date: string | null;
+  trial_status: string | null;
+  is_trial: boolean | null;
+  trial_cancelled_at: string | null;
+};
+
+async function promoteAccountForGift({
+  supabase,
+  accountId,
+  userEmail,
+  expiresAt,
+  giftId,
+}: {
+  supabase: SupabaseClient;
+  accountId: string;
+  userEmail: string | null;
+  expiresAt: string;
+  giftId: string;
+}) {
+  const utcNowIso = new Date().toISOString();
+  const subscriptionId = `gift-${giftId}`;
+  const stripeCustomerId = `gift-${accountId}`;
+
+  const { error: profileError } = await supabase
+    .from('account_billing_profiles')
+    .upsert(
+      {
+        user_id: accountId,
+        plan: 'pro',
+        billing_cycle: 'gifted',
+        subscription_status: 'active',
+        current_period_end: expiresAt,
+        subscription_id: subscriptionId,
+        stripe_customer_id: stripeCustomerId,
+        cancel_at_period_end: false,
+        updated_at: utcNowIso,
+      },
+      { onConflict: 'user_id' }
+    );
+
+  if (profileError) {
+    console.error('Failed to upsert gifted billing profile during sync:', profileError);
+  }
+
+  const { error: userUpdateError } = await supabase
+    .from('users')
+    .upsert(
+      {
+        id: accountId,
+        email: userEmail ?? undefined,
+        plan: 'pro',
+        updated_at: utcNowIso,
+      },
+      { onConflict: 'id' }
+    );
+
+  if (userUpdateError) {
+    console.error('Failed to persist pro plan on users table during gift sync:', userUpdateError);
+  }
+
+  const { error: projectsUpdateError } = await supabase
+    .from('projects')
+    .update({
+      plan: 'pro',
+      subscription_status: 'active',
+      current_period_end: expiresAt,
+      updated_at: utcNowIso,
+    })
+    .eq('owner_id', accountId);
+
+  if (projectsUpdateError) {
+    console.error('Failed to mark projects as pro during gift sync:', projectsUpdateError);
+  }
+}
+
+async function autoClaimGiftForAccount({
+  supabase,
+  accountId,
+  userEmail,
+  normalizedEmail,
+  projects,
+}: {
+  supabase: SupabaseClient;
+  accountId: string;
+  userEmail: string | null;
+  normalizedEmail: string | null;
+  projects: ProjectRow[];
+}) {
+  const giftFilters = [`recipient_id.eq.${accountId}`];
+  if (normalizedEmail) {
+    giftFilters.push(`recipient_email.eq.${normalizedEmail}`);
+  }
+
+  const { data: pendingGifts, error: pendingError } = await supabase
+    .from('gift_subscriptions')
+    .select<GiftRow>('id, project_id, gift_type, duration_months, status, expires_at, claimed_at, recipient_id, recipient_email')
+    .eq('status', 'pending')
+    .or(giftFilters.join(','))
+    .order('expires_at', { ascending: false })
+    .limit(5);
+
+  if (pendingError) {
+    console.error('Failed to load pending gifts for auto-claim:', pendingError);
+    return null;
+  }
+
+  if (!pendingGifts || pendingGifts.length === 0) {
+    return null;
+  }
+
+  const now = new Date();
+  const utcNowIso = now.toISOString();
+
+  for (const gift of pendingGifts) {
+    const matchesRecipientId = gift.recipient_id === accountId;
+    const matchesEmail =
+      normalizedEmail && gift.recipient_email && gift.recipient_email.toLowerCase() === normalizedEmail;
+
+    if (!matchesRecipientId && !matchesEmail) {
+      continue;
+    }
+
+    if (gift.expires_at && new Date(gift.expires_at) < now) {
+      await supabase
+        .from('gift_subscriptions')
+        .update({ status: 'expired', updated_at: utcNowIso })
+        .eq('id', gift.id);
+      continue;
+    }
+
+    const durationMonths = gift.duration_months && gift.duration_months > 0 ? gift.duration_months : 1;
+    const computedExpiry =
+      gift.expires_at ??
+      new Date(now.getTime() + durationMonths * 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: updatedGift, error: updateError } = await supabase
+      .from('gift_subscriptions')
+      .update({
+        status: 'claimed',
+        claimed_at: utcNowIso,
+        recipient_id: accountId,
+        expires_at: computedExpiry,
+        updated_at: utcNowIso,
+      })
+      .eq('id', gift.id)
+      .select<GiftRow>('id, project_id, gift_type, duration_months, status, expires_at, claimed_at, recipient_id, recipient_email')
+      .maybeSingle();
+
+    if (updateError) {
+      console.error('Failed to auto-claim pending gift:', updateError);
+      continue;
+    }
+
+    await supabase
+      .from('gift_subscriptions')
+      .update({ recipient_id: accountId })
+      .eq('id', gift.id)
+      .is('recipient_id', null);
+
+    await promoteAccountForGift({
+      supabase,
+      accountId,
+      userEmail,
+      expiresAt: computedExpiry,
+      giftId: gift.id,
+    });
+
+    const updatedProjects = projects.map((project) => ({
+      ...project,
+      plan: 'pro',
+      subscription_status: 'active',
+      current_period_end: computedExpiry,
+    }));
+
+    return {
+      gift: {
+        ...(updatedGift ?? gift),
+        status: 'claimed',
+        recipient_id: accountId,
+        expires_at: computedExpiry,
+      },
+      expiresAt: computedExpiry,
+      projects: updatedProjects,
+    };
+  }
+
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const accountId = request.nextUrl.searchParams.get('accountId');
@@ -51,7 +263,7 @@ export async function GET(request: NextRequest) {
       console.error('Failed to load account billing profile:', profileError);
     }
 
-    const { data: projects, error: projectError } = await supabase
+    const { data: projectRows, error: projectError } = await supabase
       .from('projects')
       .select(
         'id, slug, plan, stripe_customer_id, subscription_status, subscription_id, current_period_end, cancel_at_period_end, trial_start_date, trial_end_date, trial_status, is_trial, trial_cancelled_at'
@@ -63,6 +275,8 @@ export async function GET(request: NextRequest) {
       console.error('Failed to load projects for billing info:', projectError);
     }
 
+    let projects: ProjectRow[] = projectRows ?? [];
+
     const { data: userRecord, error: userError } = await supabase
       .from('users')
       .select('email, plan')
@@ -73,7 +287,10 @@ export async function GET(request: NextRequest) {
       console.error('Failed to load user record for billing info:', userError);
     }
 
-    const selectedProject = projects?.length
+    const userEmail = userRecord?.email ?? null;
+    const normalizedEmail = userEmail?.toLowerCase() ?? null;
+
+    let selectedProject: ProjectRow | null = projects.length
       ? projectSlug
         ? projects.find((p) => p.slug === projectSlug) || projects[0]
         : projects[0]
@@ -86,8 +303,6 @@ export async function GET(request: NextRequest) {
         ? 'pro'
         : 'free';
 
-    const normalizedEmail = userRecord?.email?.toLowerCase() ?? null;
-
     // Check for active gifted subscription as an additional guard
     let activeGiftExpiresAt: string | null = null;
     const giftFilters = [`recipient_id.eq.${accountId}`];
@@ -95,9 +310,9 @@ export async function GET(request: NextRequest) {
       giftFilters.push(`recipient_email.eq.${normalizedEmail}`);
     }
 
-    const { data: claimedGifts, error: giftError } = await supabase
+    const { data: claimedGiftRows, error: giftError } = await supabase
       .from('gift_subscriptions')
-      .select('expires_at, status, recipient_id, recipient_email')
+      .select<GiftRow>('id, project_id, gift_type, duration_months, expires_at, status, claimed_at, recipient_id, recipient_email')
       .eq('status', 'claimed')
       .or(giftFilters.join(','))
       .order('expires_at', { ascending: false })
@@ -105,6 +320,30 @@ export async function GET(request: NextRequest) {
 
     if (giftError) {
       console.error('Failed to load claimed gifts:', giftError);
+    }
+
+    let claimedGifts: GiftRow[] = claimedGiftRows ?? [];
+
+    if (!claimedGifts.length) {
+      const autoClaimResult = await autoClaimGiftForAccount({
+        supabase,
+        accountId,
+        userEmail,
+        normalizedEmail,
+        projects,
+      });
+
+      if (autoClaimResult) {
+        claimedGifts = [autoClaimResult.gift];
+        activeGiftExpiresAt = autoClaimResult.expiresAt;
+        plan = 'pro';
+        projects = autoClaimResult.projects;
+        selectedProject = projects.length
+          ? projectSlug
+            ? projects.find((p) => p.slug === projectSlug) || projects[0]
+            : projects[0]
+          : null;
+      }
     }
 
     if (claimedGifts && claimedGifts.length > 0) {
