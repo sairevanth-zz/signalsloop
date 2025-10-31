@@ -175,10 +175,12 @@ export default function Homepage() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
-      
+    <div className="homepage-dark relative min-h-screen overflow-x-hidden">
+      <div className="homepage-dark__glow homepage-dark__glow--top" />
+      <div className="homepage-dark__glow homepage-dark__glow--secondary" />
+      <div className="relative z-10">
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 safe-top">
+      <header className="border-b border-white/10 bg-slate-900/70 backdrop-blur-xl sticky top-0 z-50 safe-top">
         <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center justify-between gap-2">
             <Link href="/" className="flex items-center space-x-2 min-touch-target tap-highlight-transparent">
@@ -2697,6 +2699,7 @@ export default function Homepage() {
           </div>
         </div>
       </footer>
+      </div>
     </div>
   );
 }
