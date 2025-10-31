@@ -144,6 +144,8 @@ function ProjectWizardContent() {
       const { data: { user } } = await supabase.auth.getUser();
       console.log('User session:', user ? 'logged in' : 'anonymous');
 
+      let userPlan: 'free' | 'pro' = 'free';
+
       // Check board limits for authenticated users
       if (user) {
         const [{ data: userData, error: userError }, { data: profileData, error: profileError }] = await Promise.all([
@@ -167,7 +169,7 @@ function ProjectWizardContent() {
           console.log('Account billing profile query error:', profileError);
         }
 
-        const userPlan = profileData?.plan || userData?.plan || 'free';
+        userPlan = (profileData?.plan || userData?.plan || 'free') === 'pro' ? 'pro' : 'free';
 
         if (!userData) {
           const { error: insertError } = await supabase
@@ -182,7 +184,7 @@ function ProjectWizardContent() {
           if (insertError) {
             console.log('Could not create user record (this is OK):', insertError);
           }
-        }
+          }
 
         if (userPlan === 'free') {
           const { data: existingProjects, error: countError } = await supabase
@@ -205,13 +207,17 @@ function ProjectWizardContent() {
       }
 
       // Create project
-      const projectDataToInsert = {
+      const projectDataToInsert: Record<string, unknown> = {
         name: projectData.name,
         slug: projectData.slug,
         owner_id: user?.id || null // Allow null for anonymous users
       };
+
+      if (user) {
+        projectDataToInsert.plan = userPlan;
+      }
       console.log('Creating project:', projectDataToInsert);
-      
+
       const { data: project, error: projectError } = await supabase
         .from('projects')
         .insert(projectDataToInsert)
