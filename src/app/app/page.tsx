@@ -241,32 +241,38 @@ export default function EnhancedDashboardPage() {
         .eq('id', user.id)
         .maybeSingle();
 
+      const { data: accountProfile, error: profileError } = await supabase
+        .from('account_billing_profiles')
+        .select('plan')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
       if (error) {
         console.log('User plan query error (this is OK, defaulting to free):', error);
-        setUserPlan('free');
-        return;
       }
 
-      // If user doesn't exist in users table, create them
+      if (profileError) {
+        console.log('Account billing profile query error:', profileError);
+      }
+
+      // Ensure we have a users row so other legacy checks continue to work
       if (!userData) {
-        console.log('User not found in users table, creating record...');
         const { error: insertError } = await supabase
           .from('users')
           .insert({
             id: user.id,
             email: user.email,
-            plan: 'free',
-            created_at: new Date().toISOString()
+            plan: accountProfile?.plan || 'free',
+            created_at: new Date().toISOString(),
           });
 
         if (insertError) {
           console.log('Could not create user record (this is OK):', insertError);
         }
-        setUserPlan('free');
-        return;
       }
 
-      setUserPlan(userData?.plan || 'free');
+      const resolvedPlan = accountProfile?.plan || userData?.plan || 'free';
+      setUserPlan(resolvedPlan);
     } catch (error) {
       console.log('Error loading user plan (defaulting to free):', error);
       setUserPlan('free');

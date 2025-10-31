@@ -74,6 +74,8 @@ export async function POST(
       );
     }
 
+    console.log(`${logPrefix} Target user resolved`, { userId, userEmail });
+
     // Load gift record
     const { data: gift, error: giftError } = await adminClient
       .from('gift_subscriptions')
@@ -191,6 +193,22 @@ export async function POST(
       console.error(`${logPrefix} Billing profile upsert failed`, profileError);
     } else {
       console.log(`${logPrefix} Billing profile updated`, { userId, expiresAt });
+    }
+
+    const { error: userPlanError } = await adminClient
+      .from('users')
+      .upsert(
+        {
+          id: userId,
+          email: userEmail,
+          plan: 'pro',
+          updated_at: utcNowIso,
+        },
+        { onConflict: 'id' }
+      );
+
+    if (userPlanError) {
+      console.error(`${logPrefix} Failed to upsert users.plan`, userPlanError);
     }
 
     if (gift.project_id) {

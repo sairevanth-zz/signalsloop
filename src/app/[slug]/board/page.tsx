@@ -276,17 +276,46 @@ export default function BoardPage() {
 
   const loadUserPlan = useCallback(async () => {
     if (!supabase || !user) return;
-    
+
     try {
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('plan')
-        .eq('id', user.id)
-        .single();
-      
-      if (!error && userData) {
-        setUserPlan(userData.plan || 'free');
+      const [{ data: userData, error: userError }, { data: profileData, error: profileError }] = await Promise.all([
+        supabase
+          .from('users')
+          .select('plan')
+          .eq('id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('account_billing_profiles')
+          .select('plan')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+      ]);
+
+      if (userError) {
+        console.log('User plan query error (defaulting to account profile):', userError);
       }
+
+      if (profileError) {
+        console.log('Account billing profile query error:', profileError);
+      }
+
+      if (!userData) {
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            plan: profileData?.plan || 'free',
+            created_at: new Date().toISOString(),
+          });
+
+        if (insertError) {
+          console.log('Could not create user record (this is OK):', insertError);
+        }
+      }
+
+      const resolvedPlan = profileData?.plan || userData?.plan || 'free';
+      setUserPlan(resolvedPlan);
     } catch (error) {
       console.error('Error loading user plan:', error);
     }

@@ -146,27 +146,54 @@ function ProjectWizardContent() {
 
       // Check board limits for authenticated users
       if (user) {
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('plan')
-          .eq('id', user.id)
-          .single();
+        const [{ data: userData, error: userError }, { data: profileData, error: profileError }] = await Promise.all([
+          supabase
+            .from('users')
+            .select('plan')
+            .eq('id', user.id)
+            .maybeSingle(),
+          supabase
+            .from('account_billing_profiles')
+            .select('plan')
+            .eq('user_id', user.id)
+            .maybeSingle(),
+        ]);
 
-        if (!userError && userData) {
-          const userPlan = userData.plan || 'free';
-          
-          // Check existing project count for free users
-          if (userPlan === 'free') {
-            const { data: existingProjects, error: countError } = await supabase
-              .from('projects')
-              .select('id', { count: 'exact' })
-              .eq('owner_id', user.id);
+        if (userError) {
+          console.log('User plan query error:', userError);
+        }
 
-            if (!countError && existingProjects && existingProjects.length >= 1) {
-              setError('Free accounts are limited to 1 project. Upgrade to Pro to create unlimited projects.');
-              setIsLoading(false);
-              return;
-            }
+        if (profileError) {
+          console.log('Account billing profile query error:', profileError);
+        }
+
+        const userPlan = profileData?.plan || userData?.plan || 'free';
+
+        if (!userData) {
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: user.id,
+              email: user.email,
+              plan: userPlan,
+              created_at: new Date().toISOString(),
+            });
+
+          if (insertError) {
+            console.log('Could not create user record (this is OK):', insertError);
+          }
+        }
+
+        if (userPlan === 'free') {
+          const { data: existingProjects, error: countError } = await supabase
+            .from('projects')
+            .select('id', { count: 'exact' })
+            .eq('owner_id', user.id);
+
+          if (!countError && existingProjects && existingProjects.length >= 1) {
+            setError('Free accounts are limited to 1 project. Upgrade to Pro to create unlimited projects.');
+            setIsLoading(false);
+            return;
           }
         }
       }
