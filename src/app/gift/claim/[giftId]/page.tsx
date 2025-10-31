@@ -89,7 +89,8 @@ export default function GiftClaimPage() {
 
       if (!user) {
         toast.error('Please sign in to claim your gift');
-        router.push('/login');
+        router.push(`/login?next=${encodeURIComponent(`/gift/claim/${giftId}`)}`);
+        setClaiming(false);
         return;
       }
 
