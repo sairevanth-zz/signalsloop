@@ -273,6 +273,17 @@ export default function EnhancedDashboardPage() {
 
       const resolvedPlan = accountProfile?.plan || userData?.plan || 'free';
       setUserPlan(resolvedPlan);
+
+      if (resolvedPlan === 'pro' && userData?.plan !== 'pro') {
+        const { error: updateUserPlanError } = await supabase
+          .from('users')
+          .update({ plan: 'pro', updated_at: new Date().toISOString() })
+          .eq('id', user.id);
+
+        if (updateUserPlanError) {
+          console.log('Failed to update users.plan to pro:', updateUserPlanError);
+        }
+      }
     } catch (error) {
       console.log('Error loading user plan (defaulting to free):', error);
       setUserPlan('free');
