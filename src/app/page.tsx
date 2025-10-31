@@ -626,7 +626,6 @@ export default function Homepage() {
           </div>
         </div>
         </div>
-        </div>
       </section>
 
       {/* Solo Founders & Indie Makers Section */}
