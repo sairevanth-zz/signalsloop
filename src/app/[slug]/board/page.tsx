@@ -97,6 +97,14 @@ interface Project {
   slug: string;
 }
 
+interface Board {
+  id: string;
+  name: string;
+  description?: string;
+  welcome_message?: string;
+  custom_css?: string;
+}
+
 const statusConfig = {
   open: { label: 'Open', color: 'bg-blue-100 text-blue-800 border-blue-200' },
   planned: { label: 'Planned', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
@@ -141,6 +149,7 @@ export default function BoardPage() {
   const supabase = getSupabaseClient();
   
   const [project, setProject] = useState<Project | null>(null);
+  const [board, setBoard] = useState<Board | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -401,7 +410,7 @@ export default function BoardPage() {
       // Get board for this project
       const { data: boardData, error: boardError } = await supabase
         .from('boards')
-        .select('id')
+        .select('id, name, description, welcome_message, custom_css')
         .eq('project_id', projectData.id)
         .single();
 
@@ -411,6 +420,13 @@ export default function BoardPage() {
       }
 
       setBoardId(boardData.id);
+      setBoard({
+        id: boardData.id,
+        name: boardData.name || 'Feedback Board',
+        description: boardData.description || undefined,
+        welcome_message: boardData.welcome_message || undefined,
+        custom_css: boardData.custom_css || undefined
+      });
 
       // Build query for posts
       let postsQuery = supabase
@@ -714,9 +730,13 @@ export default function BoardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 safe-top safe-bottom">
-      <GlobalBanner 
-        showBackButton={true} 
-        backLabel="Back to Dashboard" 
+      {/* Custom CSS */}
+      {board?.custom_css && (
+        <style dangerouslySetInnerHTML={{ __html: board.custom_css }} />
+      )}
+      <GlobalBanner
+        showBackButton={true}
+        backLabel="Back to Dashboard"
       />
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <div className="flex gap-4 lg:gap-8">
@@ -739,7 +759,7 @@ export default function BoardPage() {
                 <span className="hidden sm:inline">Dashboard</span>
               </Link>
               <span className="flex-shrink-0">→</span>
-              <span className="truncate max-w-[100px] sm:max-w-none">{project?.name}</span>
+              <span className="truncate max-w-[100px] sm:max-w-none">{board?.name || project?.name}</span>
               <span className="hidden sm:inline flex-shrink-0">→</span>
               <span className="hidden sm:inline whitespace-nowrap">Feedback Board</span>
             </div>
@@ -755,10 +775,10 @@ export default function BoardPage() {
           <div className="flex flex-col gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {project?.name} Feedback
+                {board?.name || project?.name}
               </h1>
               <p className="text-sm sm:text-base text-gray-600 mt-1">
-                Share your ideas and help us build better features
+                {board?.description || 'Share your ideas and help us build better features'}
               </p>
             </div>
             
@@ -995,6 +1015,15 @@ export default function BoardPage() {
             </div>
           </div>
         </div>
+
+        {/* Welcome Message */}
+        {board?.welcome_message && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 sm:mb-6">
+            <p className="text-sm sm:text-base text-blue-900 whitespace-pre-wrap">
+              {board.welcome_message}
+            </p>
+          </div>
+        )}
 
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 mb-4 sm:mb-6">
