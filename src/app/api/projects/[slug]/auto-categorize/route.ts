@@ -3,10 +3,10 @@ import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { categorizeFeedback } from '@/lib/ai-categorization';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60;
+export const maxDuration = 300; // 5 minutes for Pro plan
 
 const DEFAULT_CONFIDENCE_THRESHOLD = 0.6;
-const DEFAULT_BATCH_LIMIT = 40;
+const DEFAULT_BATCH_LIMIT = 10; // Reduced to prevent timeouts - process 10 posts at a time
 
 export async function OPTIONS() {
   return NextResponse.json({ success: true });
