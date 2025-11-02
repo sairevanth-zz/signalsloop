@@ -93,12 +93,19 @@ export async function POST(
 
     const thresholdString = confidenceThreshold.toFixed(3);
 
+    // Fetch posts that need categorization:
+    // - No category (null or empty string)
+    // - Category is "Other"
+    // - Low AI confidence
+    // - Never AI categorized
     const filterConditions = [
       'category.eq.Other',
       'category.is.null',
+      'category.eq.',  // Empty string
       `ai_confidence.lt.${thresholdString}`,
       'ai_confidence.is.null',
       'ai_categorized.eq.false',
+      'ai_categorized.is.null',
     ].join(',');
 
     const { data: posts, error: postsError } = await supabase
@@ -154,13 +161,20 @@ export async function POST(
       }
     }
 
-    // Calculate remaining posts that still need work
-    const { count: remainingCount } = await supabase
+    // Calculate remaining posts that still need work (excluding what we just processed)
+    const processedIds = posts.map(p => p.id);
+    let remainingQuery = supabase
       .from('posts')
       .select('id', { count: 'exact', head: true })
       .eq('board_id', board.id)
       .is('duplicate_of', null)
       .or(filterConditions);
+
+    if (processedIds.length > 0) {
+      remainingQuery = remainingQuery.not('id', 'in', `(${processedIds.join(',')})`);
+    }
+
+    const { count: remainingCount } = await remainingQuery;
 
     return NextResponse.json({
       processedCount: posts.length,
