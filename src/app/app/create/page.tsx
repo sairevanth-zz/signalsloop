@@ -148,30 +148,37 @@ function ProjectWizardContent() {
 
       // Check board limits for authenticated users
       if (user) {
-        const [{ data: userData, error: userError }, { data: profileData, error: profileError }] = await Promise.all([
-          supabase
+        // Fetch user plan from the billing API to avoid RLS issues
+        const billingResponse = await fetch(`/api/billing/account?accountId=${user.id}`, {
+          credentials: 'include',
+        });
+
+        if (billingResponse.ok) {
+          const billingData = await billingResponse.json();
+          userPlan = billingData?.billingInfo?.plan === 'pro' ? 'pro' : 'free';
+        } else {
+          // Fallback to users table
+          const { data: userData, error: userError } = await supabase
             .from('users')
             .select('plan')
             .eq('id', user.id)
-            .maybeSingle(),
-          supabase
-            .from('account_billing_profiles')
-            .select('plan')
-            .eq('user_id', user.id)
-            .maybeSingle(),
-        ]);
+            .maybeSingle();
 
-        if (userError) {
-          console.log('User plan query error:', userError);
+          if (userError) {
+            console.log('User plan query error:', userError);
+          }
+
+          userPlan = (userData?.plan || 'free') === 'pro' ? 'pro' : 'free';
         }
 
-        if (profileError) {
-          console.log('Account billing profile query error:', profileError);
-        }
+        // Ensure user record exists in users table
+        const { data: existingUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
 
-        userPlan = (profileData?.plan || userData?.plan || 'free') === 'pro' ? 'pro' : 'free';
-
-        if (!userData) {
+        if (!existingUser) {
           const { error: insertError } = await supabase
             .from('users')
             .insert({
@@ -184,7 +191,7 @@ function ProjectWizardContent() {
           if (insertError) {
             console.log('Could not create user record (this is OK):', insertError);
           }
-          }
+        }
 
         if (userPlan === 'free') {
           const { data: existingProjects, error: countError } = await supabase
