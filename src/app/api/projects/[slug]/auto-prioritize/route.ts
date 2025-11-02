@@ -98,15 +98,33 @@ export async function POST(
     const batchLimit = typeof body?.limit === 'number'
       ? Math.max(1, Math.min(body.limit, 100))
       : DEFAULT_BATCH_LIMIT;
+    const forceReanalyze = body?.forceReanalyze === true;
 
-    const { data: posts, error: postsError } = await supabase
+    // Filter to only process posts that need prioritization:
+    // - Never AI analyzed (ai_analyzed_at IS NULL)
+    // - No priority score
+    // - Or force reanalyze all posts
+    const filterConditions = [
+      'ai_analyzed_at.is.null',
+      'priority_score.is.null',
+      'priority_reason.is.null',
+    ].join(',');
+
+    let query = supabase
       .from('posts')
       .select(
-        'id, title, description, category, created_at, updated_at, vote_count, comment_count, must_have_votes, important_votes, nice_to_have_votes, total_priority_score, priority_score, priority_reason'
+        'id, title, description, category, created_at, updated_at, vote_count, comment_count, must_have_votes, important_votes, nice_to_have_votes, total_priority_score, priority_score, priority_reason, ai_analyzed_at'
       )
       .eq('board_id', board.id)
-      .is('duplicate_of', null)
-      .order('updated_at', { ascending: false })
+      .is('duplicate_of', null);
+
+    // Only apply filter if not forcing reanalysis
+    if (!forceReanalyze) {
+      query = query.or(filterConditions);
+    }
+
+    const { data: posts, error: postsError } = await query
+      .order('created_at', { ascending: true }) // Process oldest unprioritized posts first
       .limit(batchLimit);
 
     if (postsError) {
@@ -222,17 +240,30 @@ export async function POST(
       }
     }
 
-    const { count: totalPosts } = await supabase
+    // Calculate remaining posts that still need prioritization (excluding what we just processed)
+    const processedIds = posts.map(p => p.id);
+    let remainingQuery = supabase
       .from('posts')
       .select('id', { count: 'exact', head: true })
       .eq('board_id', board.id)
       .is('duplicate_of', null);
 
+    // Only apply filter if not forcing reanalysis
+    if (!forceReanalyze) {
+      remainingQuery = remainingQuery.or(filterConditions);
+    }
+
+    if (processedIds.length > 0) {
+      remainingQuery = remainingQuery.not('id', 'in', `(${processedIds.join(',')})`);
+    }
+
+    const { count: remainingCount } = await remainingQuery;
+
     return NextResponse.json({
       processedCount: posts.length,
       updatedCount,
       skippedCount: posts.length - updatedCount,
-      remaining: Math.max((totalPosts || 0) - posts.length, 0),
+      remaining: remainingCount || 0,
       errors,
     });
   } catch (error) {

@@ -654,7 +654,7 @@ export default function BoardPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${sessionData.session.access_token}`,
         },
-        body: JSON.stringify({ limit: 40 }),
+        body: JSON.stringify({ limit: 10 }), // Process 10 at a time to avoid timeout
       });
 
       const payload = await response.json().catch(() => ({}));
@@ -671,11 +671,11 @@ export default function BoardPage() {
       } = payload;
 
       if (processedCount === 0) {
-        toast.info('No new posts needed prioritization.');
+        toast.info('All posts already prioritized!');
       } else {
         const summary = remaining > 0
-          ? `Prioritized ${updatedCount} posts (more remain, run again if needed).`
-          : `Prioritized ${updatedCount} of ${processedCount} posts.`;
+          ? `AI prioritized ${updatedCount} posts. ${remaining} more to go - click again to continue.`
+          : `AI prioritized ${updatedCount} posts. All done!`;
 
         toast.success(summary);
 
