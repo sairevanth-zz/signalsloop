@@ -83,6 +83,17 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // Get board for this project (posts belong to boards, not projects)
+    const { data: board, error: boardError } = await supabase
+      .from('boards')
+      .select('id')
+      .eq('project_id', project.id)
+      .single();
+
+    if (boardError || !board) {
+      return NextResponse.json({ error: 'Board not found' }, { status: 404 });
+    }
+
     const body = await request.json().catch(() => ({}));
     const batchLimit = typeof body?.limit === 'number'
       ? Math.max(1, Math.min(body.limit, 100))
@@ -93,7 +104,7 @@ export async function POST(
       .select(
         'id, title, description, category, created_at, updated_at, vote_count, comment_count, must_have_votes, important_votes, nice_to_have_votes, total_priority_score, priority_score, priority_reason'
       )
-      .eq('project_id', project.id)
+      .eq('board_id', board.id)
       .is('duplicate_of', null)
       .order('updated_at', { ascending: false })
       .limit(batchLimit);
@@ -214,7 +225,7 @@ export async function POST(
     const { count: totalPosts } = await supabase
       .from('posts')
       .select('id', { count: 'exact', head: true })
-      .eq('project_id', project.id)
+      .eq('board_id', board.id)
       .is('duplicate_of', null);
 
     return NextResponse.json({
