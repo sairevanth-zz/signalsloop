@@ -38,6 +38,7 @@ import {
   Loader2,
   Target,
   Download,
+  GitMerge,
 } from 'lucide-react';
 import {
   Select,
@@ -172,6 +173,7 @@ export default function BoardPage() {
   const [showFeedbackOnBehalfModal, setShowFeedbackOnBehalfModal] = useState(false);
   const [autoCategorizing, setAutoCategorizing] = useState(false);
   const [autoPrioritizing, setAutoPrioritizing] = useState(false);
+  const [findingDuplicates, setFindingDuplicates] = useState(false);
   const [expandedPriorityCards, setExpandedPriorityCards] = useState<Record<string, boolean>>({});
   const exportTriggerRef = useRef<(() => void) | null>(null);
 
@@ -694,6 +696,66 @@ export default function BoardPage() {
     }
   }, [supabase, params?.slug, loadProjectAndPosts]);
 
+  const handleFindDuplicates = useCallback(async () => {
+    if (!supabase) {
+      toast.error('Database connection not available. Please refresh the page.');
+      return;
+    }
+
+    try {
+      setFindingDuplicates(true);
+
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session?.access_token) {
+        toast.error('Please sign in to use AI duplicate detection.');
+        return;
+      }
+
+      const response = await fetch(`/api/projects/${params?.slug}/find-duplicates`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+        body: JSON.stringify({ limit: 50, threshold: 0.75 }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to find duplicates');
+      }
+
+      const {
+        processedCount = 0,
+        clustersFound = 0,
+        duplicatesMarked = 0,
+        errors = [],
+      } = payload;
+
+      if (clustersFound === 0) {
+        toast.info('No duplicates found. All feedback appears unique!');
+      } else {
+        toast.success(
+          `Found ${clustersFound} duplicate group(s) and merged ${duplicatesMarked} posts. Refresh to see changes.`
+        );
+
+        if (errors.length > 0) {
+          console.error('Duplicate detection errors:', errors);
+          toast.warning(`${errors.length} post(s) could not be merged. Check the console for details.`);
+        }
+      }
+
+      // Reload posts to show changes
+      await loadProjectAndPosts();
+    } catch (error) {
+      console.error('Find duplicates error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to find duplicates');
+    } finally {
+      setFindingDuplicates(false);
+    }
+  }, [supabase, params?.slug, loadProjectAndPosts]);
+
   // Load project and posts
   useEffect(() => {
     loadProjectAndPosts();
@@ -901,6 +963,30 @@ export default function BoardPage() {
                         <span className="text-sm font-medium text-gray-900">Smart Categorize</span>
                         <span className="text-xs text-gray-500">
                           Let AI organize feedback by category
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  )}
+                  {isOwnerOrAdmin && (
+                    <DropdownMenuItem
+                      disabled={findingDuplicates}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        if (!findingDuplicates) {
+                          handleFindDuplicates();
+                        }
+                      }}
+                      className="flex items-start gap-3 py-3"
+                    >
+                      {findingDuplicates ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-orange-600" />
+                      ) : (
+                        <GitMerge className="h-4 w-4 text-orange-600" />
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900">Find Duplicates</span>
+                        <span className="text-xs text-gray-500">
+                          AI scans for duplicate feedback and merges them
                         </span>
                       </div>
                     </DropdownMenuItem>
