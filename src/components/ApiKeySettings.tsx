@@ -801,13 +801,19 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <Button variant="outline">
-                        <Play className="h-4 w-4 mr-2" />
-                        Watch Video Tutorial
-                      </Button>
-                      <Button variant="outline">
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        Full Documentation
+                      <Button
+                        variant="outline"
+                        asChild
+                      >
+                        <a
+                          href="https://docs.signalsloop.com/api"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center"
+                        >
+                          <BookOpen className="h-4 w-4 mr-2" />
+                          Full Documentation
+                        </a>
                       </Button>
                     </div>
                   </div>
