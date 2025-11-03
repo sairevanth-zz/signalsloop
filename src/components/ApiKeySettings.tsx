@@ -806,7 +806,7 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                         asChild
                       >
                         <a
-                          href="https://docs.signalsloop.com/api"
+                          href="https://signalsloop.com/docs/api"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center"
