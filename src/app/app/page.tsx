@@ -424,9 +424,22 @@ export default function EnhancedDashboardPage() {
 
       const analytics = {
         totalProjects: projects.length,
-        totalPosts: projects.reduce((sum, p) => sum + (p.posts_count || 0), 0),
-        totalVotes: projects.reduce((sum, p) => sum + (p.votes_count || 0), 0),
-        activeWidgets: projects.filter(p => p.plan === 'pro').length,
+        totalPosts: (await supabase
+          .from('posts')
+          .select('id', { head: true, count: 'exact' })
+          .in('project_id', projectIds)
+        ).count || 0,
+        totalVotes: (await supabase
+          .from('votes')
+          .select('id', { head: true, count: 'exact' })
+          .in('project_id', projectIds)
+        ).count || 0,
+        activeWidgets: (await supabase
+          .from('widget_deployments')
+          .select('id', { head: true, count: 'exact' })
+          .in('project_id', projectIds)
+          .eq('status', 'active')
+        ).count || 0,
         weeklyGrowth,
         topPosts,
         recentActivity
