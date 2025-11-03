@@ -269,6 +269,151 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
       }
     }
 
+    const duplicateSuggestionMap = new Map<string, {
+      recordId: string;
+      targetPostId: string;
+      targetTitle: string;
+      targetDescription?: string | null;
+      similarityScore?: number | null;
+      similarityReason?: string | null;
+      status: 'detected' | 'confirmed' | 'dismissed' | 'merged';
+      createdAt?: string | null;
+      updatedAt?: string | null;
+    }>();
+
+    type ForwardSimilarityRow = {
+      id: string;
+      similarity_score?: number | null;
+      similarity_reason?: string | null;
+      status?: string | null;
+      created_at?: string | null;
+      updated_at?: string | null;
+      similar_post?: {
+        id: string;
+        title?: string | null;
+        description?: string | null;
+        status?: string | null;
+      } | null;
+    };
+
+    type ReverseSimilarityRow = {
+      id: string;
+      similarity_score?: number | null;
+      similarity_reason?: string | null;
+      status?: string | null;
+      created_at?: string | null;
+      updated_at?: string | null;
+      source_post?: {
+        id: string;
+        title?: string | null;
+        description?: string | null;
+        status?: string | null;
+      } | null;
+    };
+
+    const { data: forwardSimilarities, error: forwardError } = await supabase
+      .from('post_similarities')
+      .select(`
+        id,
+        similarity_score,
+        similarity_reason,
+        status,
+        created_at,
+        updated_at,
+        similar_post:similar_post_id (
+          id,
+          title,
+          description,
+          status
+        )
+      `)
+      .eq('post_id', post.id);
+
+    if (forwardError) {
+      console.error('Forward similarities fetch error', forwardError, 'post', post.id);
+    } else {
+      const forwardRows = (forwardSimilarities ?? []) as ForwardSimilarityRow[];
+      forwardRows.forEach((row) => {
+        const target = row.similar_post;
+        if (!target || !target.id) return;
+        const rawStatus = typeof row.status === 'string' ? row.status.toLowerCase() : 'detected';
+        const normalizedStatus: 'detected' | 'confirmed' | 'dismissed' | 'merged' =
+          rawStatus === 'confirmed' || rawStatus === 'dismissed' || rawStatus === 'merged'
+            ? rawStatus
+            : 'detected';
+        duplicateSuggestionMap.set(row.id, {
+          recordId: row.id as string,
+          targetPostId: target.id as string,
+          targetTitle: (target.title as string) || 'Untitled post',
+          targetDescription: target.description as string | null,
+          similarityScore: typeof row.similarity_score === 'number' ? Number(row.similarity_score) : null,
+          similarityReason: row.similarity_reason as string | null,
+          status: normalizedStatus,
+          createdAt: row.created_at as string | null,
+          updatedAt: row.updated_at as string | null,
+        });
+      });
+    }
+
+    const { data: reverseSimilarities, error: reverseError } = await supabase
+      .from('post_similarities')
+      .select(`
+        id,
+        similarity_score,
+        similarity_reason,
+        status,
+        created_at,
+        updated_at,
+        source_post:post_id (
+          id,
+          title,
+          description,
+          status
+        )
+      `)
+      .eq('similar_post_id', post.id);
+
+    if (reverseError) {
+      console.error('Reverse similarities fetch error', reverseError, 'post', post.id);
+    } else {
+      const reverseRows = (reverseSimilarities ?? []) as ReverseSimilarityRow[];
+      reverseRows.forEach((row) => {
+        const target = row.source_post;
+        if (!target || !target.id) return;
+        const rawStatus = typeof row.status === 'string' ? row.status.toLowerCase() : 'detected';
+        const normalizedStatus: 'detected' | 'confirmed' | 'dismissed' | 'merged' =
+          rawStatus === 'confirmed' || rawStatus === 'dismissed' || rawStatus === 'merged'
+            ? rawStatus
+            : 'detected';
+        duplicateSuggestionMap.set(row.id, {
+          recordId: row.id as string,
+          targetPostId: target.id as string,
+          targetTitle: (target.title as string) || 'Untitled post',
+          targetDescription: target.description as string | null,
+          similarityScore: typeof row.similarity_score === 'number' ? Number(row.similarity_score) : null,
+          similarityReason: row.similarity_reason as string | null,
+          status: normalizedStatus,
+          createdAt: row.created_at as string | null,
+          updatedAt: row.updated_at as string | null,
+        });
+      });
+    }
+
+    const duplicateSuggestions = Array.from(duplicateSuggestionMap.values()).sort((a, b) => {
+      const scoreA = typeof a.similarityScore === 'number' ? a.similarityScore : 0;
+      const scoreB = typeof b.similarityScore === 'number' ? b.similarityScore : 0;
+      return scoreB - scoreA;
+    });
+
+    const duplicateAnalyzedAt = duplicateSuggestions.reduce<string | null>((latest, entry) => {
+      const candidate = entry.updatedAt || entry.createdAt || null;
+      if (!candidate) return latest;
+      if (!latest || new Date(candidate).getTime() > new Date(latest).getTime()) {
+        return candidate;
+      }
+      return latest;
+    }, null);
+
     return (
       <PublicPostDetails 
         project={project}
@@ -276,6 +421,8 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
         relatedPosts={enrichedRelated}
         mergedDuplicates={mergedDuplicates || []}
         canonicalPost={canonicalPost}
+        duplicateSuggestions={duplicateSuggestions}
+        duplicateAnalyzedAt={duplicateAnalyzedAt}
       />
     );
   } catch (error) {

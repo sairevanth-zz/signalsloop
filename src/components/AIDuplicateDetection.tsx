@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,32 +36,112 @@ interface DuplicatePost {
   duplicateType?: string;
   mergeRecommendation?: string;
   similarityRecordId?: string;
-  createdAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  status: 'detected' | 'confirmed' | 'dismissed' | 'merged';
 }
 
 interface AIDuplicateDetectionProps {
   postId: string;
   projectId: string;
   userPlan: { plan: 'free' | 'pro'; features?: string[] };
+  initialDuplicates?: DuplicatePost[];
+  initialAnalyzedAt?: string | null;
   onShowNotification?: (message: string, type: 'success' | 'error') => void;
 }
+
+const DUPLICATE_STATUS_LABEL: Record<DuplicatePost['status'], string> = {
+  detected: 'Needs Review',
+  confirmed: 'Confirmed',
+  dismissed: 'Dismissed',
+  merged: 'Merged',
+};
+
+const DUPLICATE_STATUS_BADGE: Record<DuplicatePost['status'], string> = {
+  detected: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  confirmed: 'bg-green-100 text-green-800 border-green-200',
+  dismissed: 'bg-gray-100 text-gray-600 border-gray-200',
+  merged: 'bg-purple-100 text-purple-800 border-purple-200',
+};
+
+type DuplicateApiResponse = {
+  post?: {
+    id: string;
+    title: string;
+    description?: string;
+  };
+  analysis?: {
+    similarityScore?: number;
+    explanation?: string;
+    reason?: string;
+    duplicateType?: string;
+    mergeRecommendation?: string;
+  };
+  similarityScore?: number;
+  similarity?: number;
+  reason?: string;
+  similarityId?: string;
+};
+
+type SavedSimilarityResponse = {
+  id?: string;
+  post_id?: string;
+  similar_post_id?: string;
+  similarity_score?: number;
+  similarity_reason?: string | null;
+  status?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+const formatTimestamp = (timestamp: string) =>
+  new Date(timestamp).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 
 export function AIDuplicateDetection({ 
   postId, 
   projectId, 
   userPlan, 
+  initialDuplicates = [],
+  initialAnalyzedAt = null,
   onShowNotification 
 }: AIDuplicateDetectionProps) {
-  const [duplicates, setDuplicates] = useState<DuplicatePost[]>([]);
+  const [duplicates, setDuplicates] = useState<DuplicatePost[]>(initialDuplicates);
   const [isLoading, setIsLoading] = useState(false);
-  const [isAnalyzed, setIsAnalyzed] = useState(false);
+  const [isAnalyzed, setIsAnalyzed] = useState(initialDuplicates.length > 0);
   const [pendingAction, setPendingAction] = useState<{ id: string; action: 'confirmed' | 'dismissed' | 'merged' } | null>(null);
   const [mergeCandidate, setMergeCandidate] = useState<DuplicatePost | null>(null);
   const [lastMergeTarget, setLastMergeTarget] = useState<DuplicatePost | null>(null);
+  const [lastAnalyzedAt, setLastAnalyzedAt] = useState<string | null>(initialAnalyzedAt);
   const featurePlan = {
     plan: userPlan.plan,
     features: userPlan.features ?? []
   };
+
+  useEffect(() => {
+    setDuplicates(initialDuplicates);
+    setIsAnalyzed(initialDuplicates.length > 0);
+    if (initialDuplicates.length === 0 && !initialAnalyzedAt) {
+      setLastAnalyzedAt(null);
+      return;
+    }
+
+    const derivedTimestamp = initialAnalyzedAt ?? initialDuplicates.reduce<string | null>((latest, entry) => {
+      const candidate = entry.updatedAt || entry.createdAt || null;
+      if (!candidate) return latest;
+      if (!latest || new Date(candidate).getTime() > new Date(latest).getTime()) {
+        return candidate;
+      }
+      return latest;
+    }, null);
+
+    setLastAnalyzedAt(derivedTimestamp);
+  }, [postId, initialDuplicates, initialAnalyzedAt]);
 
   const detectDuplicates = async () => {
     setIsLoading(true);
@@ -133,19 +213,68 @@ export function AIDuplicateDetection({
         throw new Error(data.error || data.message || 'Failed to detect duplicates');
       }
 
-      // Map duplicates to the expected format
-      const mappedDuplicates = (data.duplicates || []).map((dup: any) => {
-        const postData = dup.post || dup;
+      const savedSimilarities = Array.isArray(data.savedSimilarities)
+        ? (data.savedSimilarities as SavedSimilarityResponse[])
+        : [];
+      const savedMap = new Map<string, {
+        id?: string;
+        status: DuplicatePost['status'];
+        similarityScore?: number;
+        similarityReason?: string | null;
+        createdAt?: string | null;
+        updatedAt?: string | null;
+      }>();
+
+      savedSimilarities.forEach((record) => {
+        const sourceId = typeof record.post_id === 'string' ? record.post_id : null;
+        const targetId = typeof record.similar_post_id === 'string' ? record.similar_post_id : null;
+        if (!sourceId || !targetId) return;
+
+        const otherPostId = sourceId === postId ? targetId : targetId === postId ? sourceId : null;
+        if (!otherPostId) return;
+
+        const normalizedScore = typeof record.similarity_score === 'number'
+          ? Math.min(Math.max(record.similarity_score > 1 ? record.similarity_score / 100 : record.similarity_score, 0), 1)
+          : undefined;
+
+        savedMap.set(otherPostId, {
+          id: typeof record.id === 'string' ? record.id : undefined,
+          status:
+            record.status === 'confirmed' ||
+            record.status === 'dismissed' ||
+            record.status === 'merged'
+              ? record.status
+              : 'detected',
+          similarityScore: normalizedScore,
+          similarityReason: record.similarity_reason ?? null,
+          createdAt: record.created_at ?? null,
+          updatedAt: record.updated_at ?? null,
+        });
+      });
+
+      const nowIso = new Date().toISOString();
+      const previousDuplicates = duplicates;
+
+      const duplicatesData = Array.isArray(data.duplicates)
+        ? (data.duplicates as DuplicateApiResponse[])
+        : [];
+
+      const mappedDuplicates = duplicatesData.map((dup) => {
+        const postData = dup.post;
+        if (!postData || !postData.id) {
+          return null;
+        }
         const analysis = dup.analysis || {};
-        const rawScore =
-          typeof analysis.similarityScore === 'number'
-            ? analysis.similarityScore
-            : typeof dup.similarityScore === 'number'
-              ? dup.similarityScore
-              : typeof dup.similarity === 'number'
-                ? dup.similarity / 100
-                : 0;
-        const similarityScore = Math.min(Math.max(rawScore || 0, 0), 1);
+        const similarityScore = Math.min(Math.max(analysis.similarityScore ?? 0, 0), 1);
+
+        const persisted = savedMap.get(postData.id);
+        const status = persisted?.status ?? 'detected';
+        const similarityRecordId = persisted?.id || dup.similarityId || analysis.similarityId || undefined;
+        const reason =
+          analysis.explanation ||
+          dup.reason ||
+          persisted?.similarityReason ||
+          'Flagged as similar by AI';
 
         return {
           id: postData.id,
@@ -154,26 +283,58 @@ export function AIDuplicateDetection({
           description: postData.description || '',
           similarityPercent: Math.round(similarityScore * 100),
           similarityScore,
-          reason:
-            analysis.explanation ||
-            analysis.reason ||
-            dup.reason ||
-            'Flagged as similar by AI',
+          reason,
           duplicateType: analysis.duplicateType,
           mergeRecommendation: analysis.mergeRecommendation,
-          similarityRecordId: dup.similarityId || analysis.similarityId || undefined,
-          createdAt: new Date().toISOString()
+          similarityRecordId,
+          createdAt: persisted?.createdAt || nowIso,
+          updatedAt: persisted?.updatedAt || nowIso,
+          status,
         } as DuplicatePost;
       });
 
-      setDuplicates(mappedDuplicates);
+      const baseDuplicates = mappedDuplicates.filter((dup): dup is DuplicatePost => Boolean(dup));
+
+      const mappedIds = new Set(baseDuplicates.map((dup) => dup.postId));
+
+      const persistedButMissing = previousDuplicates.filter((dup) => !mappedIds.has(dup.postId));
+
+      persistedButMissing.forEach((dup) => {
+        const persisted = savedMap.get(dup.postId);
+        const normalizedScore = persisted?.similarityScore ?? dup.similarityScore ?? 0;
+        baseDuplicates.push({
+          ...dup,
+          similarityScore: normalizedScore,
+          similarityPercent: Math.round((normalizedScore || 0) * 100),
+          similarityRecordId: persisted?.id || dup.similarityRecordId,
+          status: persisted?.status ?? dup.status,
+          reason: persisted?.similarityReason || dup.reason,
+          updatedAt: persisted?.updatedAt || dup.updatedAt || nowIso,
+          createdAt: persisted?.createdAt || dup.createdAt || nowIso,
+        });
+      });
+
+      const orderedDuplicates = baseDuplicates.sort((a, b) => (b.similarityScore ?? 0) - (a.similarityScore ?? 0));
+
+      setDuplicates(orderedDuplicates);
       setLastMergeTarget(null);
       setIsAnalyzed(true);
 
-      if (mappedDuplicates.length === 0) {
+      const latestTimestamp = data.metadata?.timestamp || orderedDuplicates.reduce<string | null>((latest, entry) => {
+        const candidate = entry.updatedAt || entry.createdAt || null;
+        if (!candidate) return latest;
+        if (!latest || new Date(candidate).getTime() > new Date(latest).getTime()) {
+          return candidate;
+        }
+        return latest;
+      }, null) || nowIso;
+
+      setLastAnalyzedAt(latestTimestamp);
+
+      if (orderedDuplicates.length === 0) {
         onShowNotification?.('No duplicates found', 'success');
       } else {
-        onShowNotification?.(`Found ${mappedDuplicates.length} potential duplicates`, 'success');
+        onShowNotification?.(`Found ${orderedDuplicates.length} potential duplicates`, 'success');
       }
     } catch (error) {
       console.error('Error detecting duplicates:', error);
@@ -222,13 +383,24 @@ export function AIDuplicateDetection({
         throw new Error(data.error || data.message || 'Failed to update duplicate status');
       }
 
-      // Remove from local state
-      setDuplicates(prev => prev.filter(d => d.id !== duplicate.id));
+      const updatedStatus: DuplicatePost['status'] = action === 'merged' ? 'merged' : action;
+      const updatedAtIso = new Date().toISOString();
+
+      setDuplicates((prev) =>
+        prev.map((entry) =>
+          entry.postId === duplicate.postId
+            ? {
+                ...entry,
+                status: updatedStatus,
+                updatedAt: updatedAtIso,
+              }
+            : entry
+        )
+      );
 
       if (action === 'merged') {
-        setLastMergeTarget(duplicate);
-        setDuplicates([]);
-        setIsAnalyzed(false);
+        const mergedTarget = { ...duplicate, status: 'merged', updatedAt: updatedAtIso };
+        setLastMergeTarget(mergedTarget);
         onShowNotification?.(`Merged into "${duplicate.title}"`, 'success');
       } else if (action === 'confirmed') {
         setLastMergeTarget(null);
@@ -237,6 +409,8 @@ export function AIDuplicateDetection({
         setLastMergeTarget(null);
         onShowNotification?.(`Dismissed "${duplicate.title}"`, 'success');
       }
+
+      setLastAnalyzedAt(updatedAtIso);
     } catch (error) {
       console.error('Error updating duplicate status:', error);
       onShowNotification?.('Failed to update duplicate status', 'error');
@@ -301,9 +475,19 @@ export function AIDuplicateDetection({
               <p className="text-sm text-gray-500 mt-2">
                 AI will analyze this post against all other posts in your project
               </p>
+              {lastAnalyzedAt && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Last analyzed {formatTimestamp(lastAnalyzedAt)}
+                </p>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
+              {lastAnalyzedAt && (
+                <p className="text-xs text-gray-500">
+                  Last analyzed {formatTimestamp(lastAnalyzedAt)}
+                </p>
+              )}
               {duplicates.length === 0 ? (
                 <Alert>
                   <CheckCircle className="h-4 w-4" />
@@ -327,6 +511,9 @@ export function AIDuplicateDetection({
                       const isConfirming = isCurrentPending && pendingAction?.action === 'confirmed';
                       const isDismissing = isCurrentPending && pendingAction?.action === 'dismissed';
                       const disableOtherActions = Boolean(pendingAction) && !isCurrentPending;
+                      const statusBadgeClass = DUPLICATE_STATUS_BADGE[duplicate.status];
+                      const statusLabel = DUPLICATE_STATUS_LABEL[duplicate.status];
+                      const isActionable = duplicate.status === 'detected';
 
                       return (
                         <Card key={duplicate.id} className="border-l-4 border-l-orange-400">
@@ -357,65 +544,87 @@ export function AIDuplicateDetection({
                                 </div>
                               )}
                             </div>
-                            <Badge className={getSimilarityColor(duplicate.similarityPercent)}>
-                              {duplicate.similarityPercent}% similar
-                            </Badge>
+                            <div className="flex flex-col items-end gap-2">
+                              <Badge className={statusBadgeClass}>
+                                {statusLabel}
+                              </Badge>
+                              <Badge className={getSimilarityColor(duplicate.similarityPercent)}>
+                                {duplicate.similarityPercent}% similar
+                              </Badge>
+                            </div>
                           </div>
+                          {duplicate.updatedAt && (
+                            <p className="text-[11px] text-gray-500 mb-3">
+                              Updated {formatTimestamp(duplicate.updatedAt)}
+                            </p>
+                          )}
                           
                           <div className="flex flex-wrap items-center gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => setMergeCandidate(duplicate)}
-                              disabled={disableOtherActions || isMerging}
-                            >
-                              {isMerging ? (
-                                <>
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                  Merging...
-                                </>
-                              ) : (
-                                <>
-                                  <GitMerge className="h-3 w-3 mr-1" />
-                                  Merge Posts
-                                </>
-                              )}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleDuplicateAction(duplicate, 'confirmed')}
-                              disabled={disableOtherActions || isConfirming}
-                            >
-                              {isConfirming ? (
-                                <>
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                  Saving...
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle className="h-3 w-3 mr-1" />
-                                  Confirm Duplicate
-                                </>
-                              )}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleDuplicateAction(duplicate, 'dismissed')}
-                              disabled={disableOtherActions || isDismissing}
-                            >
-                              {isDismissing ? (
-                                <>
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                  Dismissing...
-                                </>
-                              ) : (
-                                <>
-                                  <XCircle className="h-3 w-3 mr-1" />
-                                  Dismiss
-                                </>
-                              )}
-                            </Button>
+                            {isActionable ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => setMergeCandidate(duplicate)}
+                                  disabled={disableOtherActions || isMerging}
+                                >
+                                  {isMerging ? (
+                                    <>
+                                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                      Merging...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <GitMerge className="h-3 w-3 mr-1" />
+                                      Merge Posts
+                                    </>
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDuplicateAction(duplicate, 'confirmed')}
+                                  disabled={disableOtherActions || isConfirming}
+                                >
+                                  {isConfirming ? (
+                                    <>
+                                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                      Saving...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      Confirm Duplicate
+                                    </>
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDuplicateAction(duplicate, 'dismissed')}
+                                  disabled={disableOtherActions || isDismissing}
+                                >
+                                  {isDismissing ? (
+                                    <>
+                                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                      Dismissing...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <XCircle className="h-3 w-3 mr-1" />
+                                      Dismiss
+                                    </>
+                                  )}
+                                </Button>
+                              </>
+                            ) : (
+                              <p className="text-xs text-gray-500 mr-auto">
+                                {duplicate.status === 'confirmed'
+                                  ? 'Already confirmed as duplicate'
+                                  : duplicate.status === 'dismissed'
+                                    ? 'Dismissed from review'
+                                    : 'Already merged'}
+                              </p>
+                            )}
                             <Button
                               size="sm"
                               variant="ghost"
@@ -439,6 +648,8 @@ export function AIDuplicateDetection({
                   onClick={() => {
                     setIsAnalyzed(false);
                     setDuplicates([]);
+                    setLastAnalyzedAt(null);
+                    setLastMergeTarget(null);
                   }}
                   className="w-full"
                 >

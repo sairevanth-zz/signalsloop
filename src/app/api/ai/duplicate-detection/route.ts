@@ -7,6 +7,17 @@ import { checkDemoRateLimit, incrementDemoUsage, getClientIP, getTimeUntilReset 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
+type SavedSimilarityRecord = {
+  id: string;
+  post_id: string;
+  similar_post_id: string;
+  similarity_score: number;
+  similarity_reason: string | null;
+  status: string;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
 /**
  * POST /api/ai/duplicate-detection
  * Detect duplicate feedback posts using semantic analysis
@@ -61,6 +72,13 @@ export async function POST(request: NextRequest) {
         resetAt: demoCheck.resetAt
       };
     }
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE;
+    const supabaseService = supabaseUrl && serviceRoleKey
+      ? createClient(supabaseUrl, serviceRoleKey, {
+          auth: { autoRefreshToken: false, persistSession: false }
+        })
+      : null;
 
     if (mode === 'cluster') {
       // Cluster detection mode
@@ -113,35 +131,133 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (newPost?.id) {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE;
+      if (newPost?.id && supabaseService) {
+        const { data: postRecord, error: postError } = await supabaseService
+          .from('posts')
+          .select('id, duplicate_of')
+          .eq('id', newPost.id)
+          .maybeSingle();
 
-        if (supabaseUrl && serviceRoleKey) {
-          const supabase = createClient(supabaseUrl, serviceRoleKey, {
-            auth: { autoRefreshToken: false, persistSession: false }
-          });
-
-          const { data: postRecord, error: postError } = await supabase
-            .from('posts')
-            .select('id, duplicate_of')
-            .eq('id', newPost.id)
-            .maybeSingle();
-
-          if (postError) {
-            console.error('[DUPLICATE DETECTION] Failed to verify post duplicate status:', postError);
-          } else if (postRecord?.duplicate_of) {
-            return NextResponse.json(
-              {
-                error: 'This post has been merged into another post. Duplicate analysis is disabled.',
-              },
-              { status: 403 }
-            );
-          }
+        if (postError) {
+          console.error('[DUPLICATE DETECTION] Failed to verify post duplicate status:', postError);
+        } else if (postRecord?.duplicate_of) {
+          return NextResponse.json(
+            {
+              error: 'This post has been merged into another post. Duplicate analysis is disabled.',
+            },
+            { status: 403 }
+          );
         }
       }
 
       const duplicates = await detectDuplicates(newPost, existingPosts, options);
+      const savedSimilarities: SavedSimilarityRecord[] = [];
+
+      if (
+        projectId &&
+        supabaseService &&
+        newPost?.id &&
+        Array.isArray(duplicates) &&
+        duplicates.length > 0 &&
+        options?.persist !== false
+      ) {
+        for (const entry of duplicates) {
+          const targetPostId = entry?.post?.id;
+          if (!targetPostId || targetPostId === newPost.id) continue;
+
+          const normalizedScore = Math.min(
+            Math.max(entry.analysis?.similarityScore ?? 0, 0),
+            1
+          );
+          const similarityReason =
+            entry.analysis?.explanation ||
+            'Flagged as similar by AI';
+
+          const persistPayload = {
+            similarity_score: normalizedScore,
+            similarity_reason: similarityReason,
+            status: 'detected' as const,
+          };
+
+          let savedRow: SavedSimilarityRecord | null = null;
+
+          try {
+            const { data: existingForward, error: existingForwardError } = await supabaseService
+              .from('post_similarities')
+              .select('id, post_id, similar_post_id, similarity_score, similarity_reason, status, created_at, updated_at')
+              .eq('post_id', newPost.id)
+              .eq('similar_post_id', targetPostId)
+              .maybeSingle<SavedSimilarityRecord>();
+
+            if (existingForwardError) {
+              console.error('[DUPLICATE DETECTION] Similarity lookup error (forward):', existingForwardError);
+            }
+
+            if (existingForward) {
+              const { data: updated, error: updateError } = await supabaseService
+                .from('post_similarities')
+                .update(persistPayload)
+                .eq('id', existingForward.id)
+                .select('id, post_id, similar_post_id, similarity_score, similarity_reason, status, created_at, updated_at')
+                .single<SavedSimilarityRecord>();
+
+              if (updateError) {
+                console.error('[DUPLICATE DETECTION] Similarity update error (forward):', updateError);
+              } else if (updated) {
+                savedRow = updated;
+              }
+            } else {
+              const { data: existingReverse, error: existingReverseError } = await supabaseService
+                .from('post_similarities')
+                .select('id, post_id, similar_post_id, similarity_score, similarity_reason, status, created_at, updated_at')
+                .eq('post_id', targetPostId)
+                .eq('similar_post_id', newPost.id)
+                .maybeSingle<SavedSimilarityRecord>();
+
+              if (existingReverseError) {
+                console.error('[DUPLICATE DETECTION] Similarity lookup error (reverse):', existingReverseError);
+              }
+
+              if (existingReverse) {
+                const { data: updated, error: updateError } = await supabaseService
+                  .from('post_similarities')
+                  .update(persistPayload)
+                  .eq('id', existingReverse.id)
+                  .select('id, post_id, similar_post_id, similarity_score, similarity_reason, status, created_at, updated_at')
+                  .single<SavedSimilarityRecord>();
+
+                if (updateError) {
+                  console.error('[DUPLICATE DETECTION] Similarity update error (reverse):', updateError);
+                } else if (updated) {
+                  savedRow = updated;
+                }
+              } else {
+                const { data: inserted, error: insertError } = await supabaseService
+                  .from('post_similarities')
+                  .insert({
+                    post_id: newPost.id,
+                    similar_post_id: targetPostId,
+                    ...persistPayload,
+                  })
+                  .select('id, post_id, similar_post_id, similarity_score, similarity_reason, status, created_at, updated_at')
+                  .single<SavedSimilarityRecord>();
+
+                if (insertError) {
+                  console.error('[DUPLICATE DETECTION] Similarity insert error:', insertError);
+                } else if (inserted) {
+                  savedRow = inserted;
+                }
+              }
+            }
+          } catch (persistError) {
+            console.error('[DUPLICATE DETECTION] Similarity persistence error:', persistError);
+          }
+
+          if (savedRow) {
+            savedSimilarities.push(savedRow);
+          }
+        }
+      }
 
       if (projectId) {
         await incrementAIUsage(projectId, 'duplicate_detection');
@@ -156,15 +272,40 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      let duplicatesWithIds = duplicates;
+      if (savedSimilarities.length > 0 && newPost?.id) {
+        const idMap = new Map<string, string>();
+        savedSimilarities.forEach((record) => {
+          const forwardKey = `${record.post_id}|${record.similar_post_id}`;
+          const reverseKey = `${record.similar_post_id}|${record.post_id}`;
+          idMap.set(forwardKey, record.id);
+          idMap.set(reverseKey, record.id);
+        });
+
+        duplicatesWithIds = duplicates.map((dup) => {
+          const targetPostId = dup?.post?.id;
+          if (!targetPostId) return dup;
+          const matchId = idMap.get(`${newPost.id}|${targetPostId}`);
+          if (matchId) {
+            return {
+              ...dup,
+              similarityId: matchId,
+            };
+          }
+          return dup;
+        });
+      }
+
       return NextResponse.json({
         success: true,
         mode: 'single',
-        duplicates,
+        duplicates: duplicatesWithIds,
         metadata: {
           candidatesAnalyzed: existingPosts.length,
           duplicatesFound: duplicates.length,
           timestamp: new Date().toISOString()
         },
+        savedSimilarities: savedSimilarities.length > 0 ? savedSimilarities : undefined,
         usage: demoUsageInfo || undefined
       });
     }

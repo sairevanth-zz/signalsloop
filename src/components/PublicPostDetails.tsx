@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -92,6 +92,18 @@ interface PublicPostDetailsProps {
     ai_analyzed_at?: string | null;
     total_priority_score?: number | null;
   } | null;
+  duplicateSuggestions?: Array<{
+    recordId: string;
+    targetPostId: string;
+    targetTitle: string;
+    targetDescription?: string | null;
+    similarityScore?: number | null;
+    similarityReason?: string | null;
+    status: 'detected' | 'confirmed' | 'dismissed' | 'merged';
+    createdAt?: string | null;
+    updatedAt?: string | null;
+  }>;
+  duplicateAnalyzedAt?: string | null;
 }
 
 type PriorityLevelKey = 'immediate' | 'current-quarter' | 'next-quarter' | 'backlog' | 'declined' | 'low';
@@ -193,7 +205,9 @@ export default function PublicPostDetails({
   post,
   relatedPosts,
   mergedDuplicates = [],
-  canonicalPost = null
+  canonicalPost = null,
+  duplicateSuggestions = [],
+  duplicateAnalyzedAt = null
 }: PublicPostDetailsProps) {
   const { user, loading: authLoading } = useAuth();
   const [hasVoted, setHasVoted] = useState(false);
@@ -246,6 +260,41 @@ export default function PublicPostDetails({
   const mergedDuplicatePosts = mergedDuplicates || [];
   const isMergedDuplicate = Boolean(post.duplicate_of);
   const canonicalLink = canonicalPost ? `/${project.slug}/post/${canonicalPost.id}` : null;
+  const initialDuplicateEntries = useMemo(() => {
+    const mapped = (duplicateSuggestions || []).map((dup) => {
+      const rawScore = typeof dup.similarityScore === 'number' ? dup.similarityScore : null;
+      const normalizedScore = rawScore !== null ? Math.max(0, Math.min(rawScore > 1 ? rawScore / 100 : rawScore, 1)) : 0;
+      return {
+        id: dup.recordId || `${dup.targetPostId}-${dup.updatedAt || dup.createdAt || ''}`,
+        postId: dup.targetPostId,
+        title: dup.targetTitle || 'Untitled post',
+        description: dup.targetDescription || '',
+        similarityPercent: Math.round(normalizedScore * 100),
+        similarityScore: normalizedScore,
+        reason: dup.similarityReason || 'Flagged as similar by AI',
+        duplicateType: undefined,
+        mergeRecommendation: undefined,
+        similarityRecordId: dup.recordId,
+        createdAt: dup.createdAt || undefined,
+        updatedAt: dup.updatedAt || dup.createdAt || undefined,
+        status: dup.status,
+      };
+    });
+
+    return mapped.sort((a, b) => (b.similarityScore ?? 0) - (a.similarityScore ?? 0));
+  }, [duplicateSuggestions]);
+  const derivedDuplicateAnalyzedAt = useMemo(() => {
+    if (duplicateAnalyzedAt) return duplicateAnalyzedAt;
+    let latest: string | null = null;
+    for (const entry of initialDuplicateEntries) {
+      const candidate = entry.updatedAt || entry.createdAt;
+      if (!candidate) continue;
+      if (!latest || new Date(candidate).getTime() > new Date(latest).getTime()) {
+        latest = candidate;
+      }
+    }
+    return latest;
+  }, [duplicateAnalyzedAt, initialDuplicateEntries]);
 
   const updatePriorityDisplay = useCallback((
     scoreValue: number | null | undefined,
@@ -995,7 +1044,9 @@ export default function PublicPostDetails({
                   <AIDuplicateDetection
                     postId={post.id}
                     projectId={project.id}
-                    userPlan={{ plan: project.plan === 'pro' ? 'pro' : 'free', features: [] }}
+                    userPlan={{ plan: project.plan === 'enterprise' || project.plan === 'pro' ? 'pro' : 'free', features: [] }}
+                    initialDuplicates={initialDuplicateEntries}
+                    initialAnalyzedAt={derivedDuplicateAnalyzedAt}
                     onShowNotification={(message, type) => {
                       if (type === 'success') toast.success(message);
                       else if (type === 'error') toast.error(message);
