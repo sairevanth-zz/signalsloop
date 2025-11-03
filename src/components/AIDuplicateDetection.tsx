@@ -47,6 +47,7 @@ interface AIDuplicateDetectionProps {
   userPlan: { plan: 'free' | 'pro'; features?: string[] };
   initialDuplicates?: DuplicatePost[];
   initialAnalyzedAt?: string | null;
+  initialHydrated?: boolean;
   onShowNotification?: (message: string, type: 'success' | 'error') => void;
 }
 
@@ -109,11 +110,14 @@ export function AIDuplicateDetection({
   userPlan, 
   initialDuplicates = [],
   initialAnalyzedAt = null,
+  initialHydrated = false,
   onShowNotification 
 }: AIDuplicateDetectionProps) {
   const [duplicates, setDuplicates] = useState<DuplicatePost[]>(initialDuplicates);
   const [isLoading, setIsLoading] = useState(false);
-  const [isAnalyzed, setIsAnalyzed] = useState(initialDuplicates.length > 0 || Boolean(initialAnalyzedAt));
+  const [isAnalyzed, setIsAnalyzed] = useState(
+    initialHydrated || initialDuplicates.length > 0 || Boolean(initialAnalyzedAt)
+  );
   const [pendingAction, setPendingAction] = useState<{ id: string; action: 'confirmed' | 'dismissed' | 'merged' } | null>(null);
   const [mergeCandidate, setMergeCandidate] = useState<DuplicatePost | null>(null);
   const [lastMergeTarget, setLastMergeTarget] = useState<DuplicatePost | null>(null);
@@ -125,7 +129,9 @@ export function AIDuplicateDetection({
 
   useEffect(() => {
     setDuplicates(initialDuplicates);
-    setIsAnalyzed(initialDuplicates.length > 0 || Boolean(initialAnalyzedAt));
+    setIsAnalyzed(
+      initialHydrated || initialDuplicates.length > 0 || Boolean(initialAnalyzedAt)
+    );
     if (initialDuplicates.length === 0 && !initialAnalyzedAt) {
       setLastAnalyzedAt(null);
       return;
@@ -141,7 +147,7 @@ export function AIDuplicateDetection({
     }, null);
 
     setLastAnalyzedAt(derivedTimestamp);
-  }, [postId, initialDuplicates, initialAnalyzedAt]);
+  }, [postId, initialDuplicates, initialAnalyzedAt, initialHydrated]);
 
   const detectDuplicates = async () => {
     setIsLoading(true);
@@ -439,30 +445,33 @@ export function AIDuplicateDetection({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {lastMergeTarget && (
-            <Alert className="mb-4 border border-orange-200 bg-orange-50 text-orange-900">
-              <GitMerge className="h-4 w-4 text-orange-600" />
-              <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-sm">
-                  Merged into <span className="font-semibold">{lastMergeTarget.title}</span>. Manage feedback on the canonical post.
-                </span>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => window.open(`/post/${lastMergeTarget.postId}`, '_blank')}
-                >
-                  View Post
-                </Button>
-              </AlertDescription>
-            </Alert>
-          )}
-          {!isAnalyzed ? (
-            <div className="text-center py-4">
-              <Button 
-                onClick={detectDuplicates}
-                disabled={isLoading}
-                className="w-full"
+        {lastMergeTarget && (
+          <Alert className="mb-4 border border-orange-200 bg-orange-50 text-orange-900">
+            <GitMerge className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-sm">
+                Merged into <span className="font-semibold">{lastMergeTarget.title}</span>. Manage feedback on the canonical post.
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.open(`/post/${lastMergeTarget.postId}`, '_blank')}
               >
+                View Post
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+        {!isAnalyzed ? (
+          <div className="text-center py-4">
+            <Badge className="mb-3 bg-gray-100 text-gray-600 border-gray-200 uppercase tracking-wide text-[10px]">
+              Not analyzed yet
+            </Badge>
+            <Button 
+              onClick={detectDuplicates}
+              disabled={isLoading}
+              className="w-full"
+            >
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -472,14 +481,17 @@ export function AIDuplicateDetection({
                   'Check for Duplicates'
                 )}
               </Button>
-              <p className="text-sm text-gray-500 mt-2">
-                AI will analyze this post against all other posts in your project
+            <p className="text-sm text-gray-500 mt-2">
+              AI will analyze this post against all other posts in your project
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              Run at least once to capture a baseline from the board.
+            </p>
+            {lastAnalyzedAt && (
+              <p className="text-xs text-gray-500 mt-1">
+                Last analyzed {formatTimestamp(lastAnalyzedAt)}
               </p>
-              {lastAnalyzedAt && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Last analyzed {formatTimestamp(lastAnalyzedAt)}
-                </p>
-              )}
+            )}
             </div>
           ) : (
             <div className="space-y-4">
