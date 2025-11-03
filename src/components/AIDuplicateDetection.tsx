@@ -179,14 +179,19 @@ export function AIDuplicateDetection({
       // Fetch all other posts in the project
       const { data: boardData } = await supabase
         .from('posts')
-        .select('id, title, description, board_id')
+        .select('id, title, description, category, created_at, vote_count, duplicate_of, project_id')
+        .eq('project_id', projectId)
+        .is('duplicate_of', null)
         .neq('id', postId)
-        .limit(100);
+        .limit(200);
 
-      const existingPosts = (boardData || []).map(p => ({
+      const existingPosts = (boardData || []).map((p) => ({
         id: p.id,
-        title: p.title,
-        description: p.description || ''
+        title: (p.title as string) || '',
+        description: (p.description as string) || '',
+        category: (p.category as string | null) || undefined,
+        createdAt: p.created_at,
+        voteCount: typeof p.vote_count === 'number' ? p.vote_count : 0,
       }));
 
       const response = await fetch('/api/ai/duplicate-detection', {

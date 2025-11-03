@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { detectDuplicates, detectDuplicateClusters } from '@/lib/enhanced-duplicate-detection';
+import { detectDuplicates, detectDuplicateClusters, type DuplicateCandidate } from '@/lib/enhanced-duplicate-detection';
 import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
 import { checkDemoRateLimit, incrementDemoUsage, getClientIP, getTimeUntilReset } from '@/lib/demo-rate-limit';
 
@@ -150,7 +150,65 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const duplicates = await detectDuplicates(newPost, existingPosts, options);
+      type CandidateInput = {
+        id?: string;
+        title?: string | null;
+        description?: string | null;
+        category?: string | null;
+        voteCount?: number | null;
+        vote_count?: number | null;
+        createdAt?: string | Date | null;
+        created_at?: string | Date | null;
+      };
+
+      const normalizeCandidate = (candidate: CandidateInput): DuplicateCandidate => ({
+        id: candidate?.id ?? 'unknown',
+        title: (candidate?.title as string) || '',
+        description: (candidate?.description as string) || '',
+        category: (candidate?.category as string | null) || undefined,
+        voteCount: typeof candidate?.voteCount === 'number' ? candidate.voteCount : 0,
+        createdAt: candidate?.createdAt
+          ? new Date(candidate.createdAt)
+          : candidate?.created_at
+            ? new Date(candidate.created_at)
+            : new Date(),
+      });
+
+      let candidatePosts: DuplicateCandidate[] = Array.isArray(existingPosts)
+        ? existingPosts.map((candidate: CandidateInput) => normalizeCandidate(candidate))
+        : [];
+
+      if (projectId && supabaseService) {
+        const { data: projectPosts, error: projectPostsError } = await supabaseService
+          .from('posts')
+          .select('id, title, description, category, created_at, vote_count, duplicate_of, project_id')
+          .eq('project_id', projectId)
+          .neq('id', newPost?.id || '')
+          .limit(typeof options.maxResults === 'number' ? options.maxResults : 200);
+
+        if (projectPostsError) {
+          console.error('[DUPLICATE DETECTION] Failed to load project posts:', projectPostsError);
+        } else if (projectPosts) {
+          candidatePosts = projectPosts
+            .filter((post) => !post.duplicate_of)
+            .map((post) => normalizeCandidate({
+              id: post.id,
+              title: post.title,
+              description: post.description,
+              category: post.category,
+              voteCount: (post as { vote_count?: number }).vote_count,
+              created_at: post.created_at,
+            }));
+        }
+      }
+
+      const normalizedNewPost: DuplicateCandidate = normalizeCandidate({
+        ...newPost,
+        createdAt: newPost?.createdAt || newPost?.created_at,
+        voteCount: newPost?.voteCount ?? newPost?.vote_count,
+      });
+
+      const duplicates = await detectDuplicates(normalizedNewPost, candidatePosts, options);
       const savedSimilarities: SavedSimilarityRecord[] = [];
 
       if (
