@@ -64,6 +64,10 @@ interface Post {
   status: string;
   project_id: string;
   duplicate_of?: string | null;
+  priority_score?: number | null;
+  priority_reason?: string | null;
+  ai_analyzed_at?: string | null;
+  total_priority_score?: number | null;
 }
 
 interface PublicPostDetailsProps {
@@ -85,6 +89,96 @@ interface PublicPostDetailsProps {
     created_at: string;
   } | null;
 }
+
+type PriorityLevelKey = 'immediate' | 'current-quarter' | 'next-quarter' | 'backlog' | 'declined' | 'low';
+
+interface PriorityResult {
+  score10: number;
+  score100: number;
+  levelLabel: string;
+  levelKey: PriorityLevelKey;
+  reasoning?: string;
+  analyzedAt?: string | null;
+}
+
+const PRIORITY_LEVEL_LABELS: Record<PriorityLevelKey, string> = {
+  immediate: 'Immediate',
+  'current-quarter': 'Current Quarter',
+  'next-quarter': 'Next Quarter',
+  backlog: 'Backlog',
+  declined: 'Declined',
+  low: 'Low',
+};
+
+const normalizePriorityLevelKey = (value?: string | null): PriorityLevelKey | null => {
+  if (!value) return null;
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  if (normalized in PRIORITY_LEVEL_LABELS) {
+    return normalized as PriorityLevelKey;
+  }
+  return null;
+};
+
+const deriveLevelKeyFromScore = (score: number): PriorityLevelKey => {
+  if (score >= 8.5) return 'immediate';
+  if (score >= 7) return 'current-quarter';
+  if (score >= 5) return 'next-quarter';
+  if (score >= 3) return 'backlog';
+  return 'low';
+};
+
+const normalizePriorityScore = (value?: number | null): number | null => {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return null;
+  }
+
+  let normalized = value;
+  if (Math.abs(normalized) > 10) {
+    normalized = normalized / (Math.abs(normalized) > 100 ? 100 : 10);
+  }
+
+  const clamped = Math.max(0, Math.min(10, normalized));
+  return Number(clamped.toFixed(1));
+};
+
+const extractPriorityReasonDetails = (reason?: string | null) => {
+  if (!reason) {
+    return { levelKey: null as PriorityLevelKey | null, details: null as string | null };
+  }
+
+  const [rawPrefix, ...rest] = reason.split(':');
+  const levelKey = normalizePriorityLevelKey(rawPrefix);
+  const details = rest.join(':').trim() || null;
+  return { levelKey, details };
+};
+
+const buildPriorityResult = (
+  scoreInput: number | null | undefined,
+  options: { levelKey?: string | null; reasoning?: string | null; analyzedAt?: string | null } = {}
+): PriorityResult | null => {
+  const normalizedScore = normalizePriorityScore(scoreInput ?? null);
+  if (normalizedScore === null) {
+    return null;
+  }
+
+  const normalizedLevelKey: PriorityLevelKey =
+    normalizePriorityLevelKey(options.levelKey) ?? deriveLevelKeyFromScore(normalizedScore);
+
+  const reasoning = options.reasoning?.trim() ? options.reasoning.trim() : undefined;
+
+  return {
+    score10: normalizedScore,
+    score100: Math.round(normalizedScore * 10),
+    levelLabel: PRIORITY_LEVEL_LABELS[normalizedLevelKey],
+    levelKey: normalizedLevelKey,
+    reasoning,
+    analyzedAt: options.analyzedAt ?? null,
+  };
+};
 
 export default function PublicPostDetails({
   project,
@@ -110,7 +204,7 @@ export default function PublicPostDetails({
     setVoteCount((prev) => (prev === next.totalVotes ? prev : next.totalVotes));
   }, []);
   const [analyzingPriority, setAnalyzingPriority] = useState(false);
-  const [priorityResults, setPriorityResults] = useState<any>(null);
+  const [priorityResults, setPriorityResults] = useState<PriorityResult | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [loadingComments, setLoadingComments] = useState(true);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -144,6 +238,30 @@ export default function PublicPostDetails({
   const mergedDuplicatePosts = mergedDuplicates || [];
   const isMergedDuplicate = Boolean(post.duplicate_of);
   const canonicalLink = canonicalPost ? `/${project.slug}/post/${canonicalPost.id}` : null;
+
+  const updatePriorityDisplay = useCallback((
+    scoreValue: number | null | undefined,
+    options: { levelKey?: string | null; reasoning?: string | null; analyzedAt?: string | null } = {}
+  ) => {
+    const result = buildPriorityResult(scoreValue, options);
+    setPriorityResults(result);
+  }, []);
+
+  useEffect(() => {
+    const { levelKey, details } = extractPriorityReasonDetails(post.priority_reason);
+    const scoreCandidate = post.priority_score ?? post.total_priority_score ?? null;
+    updatePriorityDisplay(scoreCandidate, {
+      levelKey,
+      reasoning: details ?? undefined,
+      analyzedAt: post.ai_analyzed_at ?? null,
+    });
+  }, [
+    post.priority_score,
+    post.total_priority_score,
+    post.priority_reason,
+    post.ai_analyzed_at,
+    updatePriorityDisplay,
+  ]);
 
   // Load voted status from localStorage
   useEffect(() => {
@@ -233,7 +351,6 @@ export default function PublicPostDetails({
     }
 
     setAnalyzingPriority(true);
-    setPriorityResults(null);
     try {
       const usage = await refreshPriorityUsage({ silent: true });
       if (usage && !usage.allowed) {
@@ -258,15 +375,7 @@ export default function PublicPostDetails({
       });
 
       const data = await response.json();
-      if (response.ok) {
-        const score = data.score;
-        setPriorityResults({
-          score: Math.round(score.weightedScore * 10),
-          level: score.priorityLevel,
-          reasoning: score.businessJustification
-        });
-        await refreshPriorityUsage({ silent: true });
-      } else {
+      if (!response.ok) {
         if (response.status === 429) {
           setPriorityUsageInfo({ ...data, allowed: false });
           toast.error(
@@ -275,7 +384,70 @@ export default function PublicPostDetails({
           return;
         }
         toast.error(data.message || data.error || 'Failed to analyze priority');
+        return;
       }
+
+      const score = data.score;
+      const normalizedScore = normalizePriorityScore(score?.weightedScore ?? null);
+
+      if (normalizedScore === null) {
+        toast.error('Priority analysis did not return a valid score.');
+        return;
+      }
+
+      const reasonPrefix = (score?.priorityLevel || 'low').toString().toUpperCase();
+      const businessJustification = score?.businessJustification || 'No AI justification provided yet.';
+      const reasonToPersist = `${reasonPrefix}: ${businessJustification}`;
+      const analyzedAt = new Date().toISOString();
+      let saveSucceeded = false;
+      let persistedRow: {
+        priority_score?: number | null;
+        priority_reason?: string | null;
+        ai_analyzed_at?: string | null;
+        total_priority_score?: number | null;
+      } | null = null;
+
+      try {
+        const supabase = getSupabaseClient();
+        const { data: updatedRow, error: updateError } = await supabase
+          .from('posts')
+          .update({
+            priority_score: normalizedScore,
+            priority_reason: reasonToPersist,
+            ai_analyzed_at: analyzedAt,
+            total_priority_score: Math.round(normalizedScore * 10),
+          })
+          .eq('id', post.id)
+          .select('priority_score, priority_reason, ai_analyzed_at, total_priority_score')
+          .single();
+
+        if (updateError) {
+          console.error('Priority score save error:', updateError);
+        } else {
+          saveSucceeded = true;
+          persistedRow = updatedRow;
+        }
+      } catch (updateError) {
+        console.error('Priority score save error:', updateError);
+      }
+
+      const { levelKey: persistedLevelKey, details: persistedReason } = extractPriorityReasonDetails(
+        persistedRow?.priority_reason ?? reasonToPersist
+      );
+
+      updatePriorityDisplay(persistedRow?.priority_score ?? normalizedScore, {
+        levelKey: persistedLevelKey ?? score?.priorityLevel ?? null,
+        reasoning: persistedReason ?? businessJustification,
+        analyzedAt: persistedRow?.ai_analyzed_at ?? analyzedAt,
+      });
+
+      if (saveSucceeded) {
+        toast.success('AI priority score synced to the board.');
+      } else {
+        toast.info('Priority calculated, but saving to the board failed. Please try again shortly.');
+      }
+
+      await refreshPriorityUsage({ silent: true });
     } catch (error) {
       console.error('Priority analysis error:', error);
       toast.error('Failed to analyze priority');
@@ -867,15 +1039,25 @@ export default function PublicPostDetails({
                   {priorityResults && (
                     <div className="mt-4 p-3 bg-white rounded-lg border">
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-gray-900 mb-1">
-                          {priorityResults.score}/100
+                        <p className="text-2xl font-bold text-gray-900">
+                          {priorityResults.score10.toFixed(1)}/10
                         </p>
-                        <p className="text-sm font-medium text-gray-700 mb-2">
-                          {priorityResults.level}
+                        <p className="text-xs text-gray-500">
+                          ≈ {priorityResults.score100}/100
                         </p>
-                        <p className="text-xs text-gray-600">
-                          {priorityResults.reasoning}
+                        <p className="text-sm font-medium text-gray-700 mt-2">
+                          {priorityResults.levelLabel}
                         </p>
+                        {priorityResults.reasoning && (
+                          <p className="text-xs text-gray-600 mt-1">
+                            {priorityResults.reasoning}
+                          </p>
+                        )}
+                        {priorityResults.analyzedAt && (
+                          <p className="text-[11px] text-gray-500 mt-2">
+                            Updated {formatDate(priorityResults.analyzedAt)}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
