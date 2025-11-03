@@ -31,6 +31,7 @@ import {
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import html2canvas from 'html2canvas';
+import { cn } from '@/lib/utils';
 
 interface ApiKey {
   id: string;
@@ -53,6 +54,18 @@ interface WidgetSettings {
   autoOpenRules?: string[];
   customCSS?: string;
 }
+
+const SECURITY_EVENT_TITLES: Record<string, string> = {
+  invalid_api_key: 'Invalid API key blocked',
+  rate_limit_exceeded: 'Rate limit exceeded',
+  unauthorized_access: 'Unauthorized access blocked',
+  suspicious_request: 'Suspicious request detected',
+  sql_injection_attempt: 'SQL injection attempt blocked',
+  xss_attempt_blocked: 'XSS attempt blocked',
+  csrf_validation_failed: 'CSRF validation failed',
+  authentication_failed: 'Authentication failure detected',
+  malicious_file_upload: 'Malicious file upload blocked',
+};
 
 
 interface ApiKeySettingsProps {
@@ -86,9 +99,24 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
     usageLimit: null as number | null,
     suspiciousActivityDetection: true
   });
+  const [securityAlerts, setSecurityAlerts] = useState<Array<{
+    id: string;
+    title: string;
+    description: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    detectedAt: string;
+    type: string;
+  }>>([]);
+  const [recentSecurityActivity, setRecentSecurityActivity] = useState<Array<{
+    id: string;
+    action: string;
+    timestamp: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+  }>>([]);
+  const [securityLoading, setSecurityLoading] = useState(false);
   
 
-  const loadApiKeys = useCallback(async () => {
+const loadApiKeys = useCallback(async () => {
     if (!supabase) {
       toast.error('Database connection not available. Please refresh the page.');
       return;
@@ -111,7 +139,50 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
     } finally {
       setLoading(false);
     }
-  }, [supabase, projectId]);
+}, [supabase, projectId]);
+
+const loadSecurityInsights = useCallback(async () => {
+  if (!supabase) return;
+  setSecurityLoading(true);
+  try {
+    const { data, error } = await supabase
+      .from('security_events')
+      .select('id, type, severity, message, created_at')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
+      .limit(25);
+
+    if (error) throw error;
+
+    const events = data || [];
+
+    const alerts = events
+      .filter((event) => event.severity === 'high' || event.severity === 'critical')
+      .map((event) => ({
+        id: event.id,
+        type: event.type,
+        severity: (event.severity || 'medium') as 'low' | 'medium' | 'high' | 'critical',
+        title: SECURITY_EVENT_TITLES[event.type as keyof typeof SECURITY_EVENT_TITLES] || event.message || 'Security alert',
+        description: event.message || 'Security event detected',
+        detectedAt: event.created_at,
+      }));
+
+    const recentActivity = events.slice(0, 5).map((event) => ({
+      id: event.id,
+      action: SECURITY_EVENT_TITLES[event.type as keyof typeof SECURITY_EVENT_TITLES] || event.message || event.type,
+      timestamp: event.created_at,
+      severity: (event.severity || 'medium') as 'low' | 'medium' | 'high' | 'critical',
+    }));
+
+    setSecurityAlerts(alerts);
+    setRecentSecurityActivity(recentActivity);
+  } catch (error) {
+    console.error('Failed to load security events:', error);
+    toast.error('Failed to load security activity');
+  } finally {
+    setSecurityLoading(false);
+  }
+}, [supabase, projectId]);
 
 
   // Initialize Supabase client safely
@@ -125,8 +196,9 @@ export function ApiKeySettings({ projectId, projectSlug, userPlan = 'free', onSh
   useEffect(() => {
     if (supabase) {
       loadApiKeys();
+      loadSecurityInsights();
     }
-  }, [projectId, supabase, loadApiKeys]);
+  }, [projectId, supabase, loadApiKeys, loadSecurityInsights]);
 
 
   const generateApiKey = async () => {
@@ -1094,7 +1166,11 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                       Security Alerts
                     </h4>
                     <div className="space-y-2">
-                      {securityAlerts.length === 0 ? (
+                      {securityLoading ? (
+                        <div className="p-3 bg-muted/40 border border-muted rounded-lg">
+                          <p className="text-sm text-muted-foreground">Loading security alerts...</p>
+                        </div>
+                      ) : securityAlerts.length === 0 ? (
                         <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -1149,7 +1225,11 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                   <div>
                     <h4 className="font-medium mb-3">Recent Activity</h4>
                     <div className="space-y-2 text-sm">
-                      {recentSecurityActivity.length === 0 ? (
+                      {securityLoading ? (
+                        <div className="p-3 bg-muted/40 rounded">
+                          <span className="text-muted-foreground text-sm">Loading recent activity...</span>
+                        </div>
+                      ) : recentSecurityActivity.length === 0 ? (
                         <div className="p-3 bg-muted/40 rounded">
                           <span className="text-muted-foreground text-sm">No recent security changes</span>
                         </div>
