@@ -23,6 +23,14 @@ function deriveStrategyFromPlan(plan?: string | null): 'growth' | 'retention' | 
   return 'growth';
 }
 
+const derivePriorityLabel = (score: number): string => {
+  if (score >= 8.5) return 'Immediate';
+  if (score >= 7) return 'Current Quarter';
+  if (score >= 5) return 'Next Quarter';
+  if (score >= 3) return 'Backlog';
+  return 'Low';
+};
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -174,6 +182,35 @@ export async function POST(
       commentStats.set(postId, (commentStats.get(postId) || 0) + 1);
     });
 
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const [
+      { count: recentVotesRaw, error: recentVotesError },
+      { count: totalProjectVotesRaw, error: totalVotesError }
+    ] = await Promise.all([
+      supabase
+        .from('votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', project.id)
+        .gte('created_at', thirtyDaysAgo.toISOString()),
+      supabase
+        .from('votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', project.id)
+    ]);
+
+    if (recentVotesError) {
+      console.error('Failed to fetch recent votes for auto-prioritize:', recentVotesError);
+    }
+
+    if (totalVotesError) {
+      console.error('Failed to fetch total votes for auto-prioritize:', totalVotesError);
+    }
+
+    const recentVotesCount = recentVotesRaw ?? 0;
+    const totalProjectVotesCount = totalProjectVotesRaw ?? 0;
+
     const tier = mapPlanToTier(project.plan);
     const strategy = deriveStrategyFromPlan(project.plan);
 
@@ -184,6 +221,40 @@ export async function POST(
       try {
         const voteInfo = voteStats.get(post.id) || { total: 0, uniqueEmails: new Set<string>(), mustHave: 0, important: 0, niceToHave: 0 };
         const commentCount = commentStats.get(post.id) || Number(post.comment_count) || 0;
+        const uniqueVoterCount = voteInfo.uniqueEmails.size;
+
+        const derivedActivePercentage = totalProjectVotesCount > 0
+          ? Math.min(100, Math.round((uniqueVoterCount / Math.max(recentVotesCount || 1, 1)) * 100))
+          : 0;
+
+        let similarPostsCount = 0;
+        try {
+          const { data: similarPosts, error: similarPostsError } = await supabase
+            .from('posts')
+            .select('id, title, description')
+            .eq('project_id', project.id)
+            .neq('id', post.id)
+            .limit(50);
+
+          if (similarPostsError) {
+            console.error('Failed to fetch similar posts for auto-prioritize:', similarPostsError);
+          } else if (similarPosts) {
+            const keywords = `${post.title || ''} ${post.description || ''}`
+              .toLowerCase()
+              .split(/[^a-z0-9]+/)
+              .filter(word => word.length > 3)
+              .slice(0, 8);
+
+            if (keywords.length) {
+              similarPostsCount = similarPosts.filter((entry) => {
+                const text = `${entry.title} ${entry.description || ''}`.toLowerCase();
+                return keywords.some(keyword => text.includes(keyword));
+              }).length;
+            }
+          }
+        } catch (similarError) {
+          console.error('Failed to calculate similar posts during auto-prioritize:', similarError);
+        }
 
         const score = await calculatePriorityScore({
           post: {
@@ -196,25 +267,28 @@ export async function POST(
           metrics: {
             voteCount: typeof post.vote_count === 'number' ? post.vote_count : voteInfo.total,
             commentCount,
-            uniqueVoters: voteInfo.uniqueEmails.size,
-            percentageOfActiveUsers: Math.min(100, voteInfo.uniqueEmails.size * 5),
-            similarPostsCount: 0,
+            uniqueVoters: uniqueVoterCount,
+            percentageOfActiveUsers: derivedActivePercentage,
+            similarPostsCount,
             mustHaveVotes: post.must_have_votes ?? voteInfo.mustHave,
             importantVotes: post.important_votes ?? voteInfo.important,
             niceToHaveVotes: post.nice_to_have_votes ?? voteInfo.niceToHave,
-            priorityScore: typeof post.priority_score === 'number' ? Number(post.priority_score) : undefined,
+            priorityScore: typeof post.total_priority_score === 'number'
+              ? Number(post.total_priority_score)
+              : (typeof post.priority_score === 'number' ? Number(post.priority_score) : undefined),
           },
           user: {
             tier,
             isChampion: voteInfo.mustHave >= 3,
           },
           businessContext: {
-            currentQuarter: `Q${Math.ceil((new Date().getMonth() + 1) / 3)}`,
+            currentQuarter: `Q${Math.ceil((new Date().getMonth() + 1) / 3)} ${new Date().getFullYear()}`,
             companyStrategy: strategy,
           },
         });
 
-        const priorityReason = `${score.priorityLevel.toUpperCase()}: ${score.businessJustification}`;
+        const derivedLabel = derivePriorityLabel(score.weightedScore);
+        const priorityReason = `${derivedLabel.toUpperCase()}: ${score.businessJustification}`;
 
         const { error: updateError } = await supabase
           .from('posts')
