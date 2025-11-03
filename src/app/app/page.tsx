@@ -422,24 +422,27 @@ export default function EnhancedDashboardPage() {
         ? Math.round(((currentWeekCount - previousWeekCount) / previousWeekCount) * 100)
         : currentWeekCount > 0 ? 100 : 0;
 
+      const { count: totalPosts } = await supabase
+        .from('posts')
+        .select('id', { head: true, count: 'exact' })
+        .in('project_id', projectIds);
+
+      const { count: totalVotes } = await supabase
+        .from('votes')
+        .select('id', { head: true, count: 'exact' })
+        .in('project_id', projectIds);
+
+      const { count: activeWidgetCount } = await supabase
+        .from('api_keys')
+        .select('id', { head: true, count: 'exact' })
+        .in('project_id', projectIds)
+        .eq('is_active', true);
+
       const analytics = {
         totalProjects: projects.length,
-        totalPosts: (await supabase
-          .from('posts')
-          .select('id', { head: true, count: 'exact' })
-          .in('project_id', projectIds)
-        ).count || 0,
-        totalVotes: (await supabase
-          .from('votes')
-          .select('id', { head: true, count: 'exact' })
-          .in('project_id', projectIds)
-        ).count || 0,
-        activeWidgets: (await supabase
-          .from('widget_deployments')
-          .select('id', { head: true, count: 'exact' })
-          .in('project_id', projectIds)
-          .eq('status', 'active')
-        ).count || 0,
+        totalPosts: totalPosts || 0,
+        totalVotes: totalVotes || 0,
+        activeWidgets: activeWidgetCount || 0,
         weeklyGrowth,
         topPosts,
         recentActivity
