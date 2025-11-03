@@ -164,6 +164,7 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
       important_votes: post.important_votes ?? priorityCounts.important,
       nice_to_have_votes: post.nice_to_have_votes ?? priorityCounts.niceToHave,
       total_priority_score: post.total_priority_score ?? fallbackPriorityScore,
+      ai_duplicate_checked_at: post.ai_duplicate_checked_at ?? null,
     };
 
     // Get related posts
@@ -228,6 +229,7 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
             important_votes: rp.important_votes ?? stats?.important ?? 0,
             nice_to_have_votes: rp.nice_to_have_votes ?? stats?.niceToHave ?? 0,
             total_priority_score: rp.total_priority_score ?? fallbackScore,
+            ai_duplicate_checked_at: (rp as any).ai_duplicate_checked_at ?? null,
           };
         });
       }
@@ -247,18 +249,19 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
       id: string;
       title: string;
       status: string;
-      vote_count: number | null;
-      created_at: string;
-      priority_score?: number | null;
-      priority_reason?: string | null;
-      ai_analyzed_at?: string | null;
-      total_priority_score?: number | null;
-    } | null = null;
+    vote_count: number | null;
+    created_at: string;
+    priority_score?: number | null;
+    priority_reason?: string | null;
+    ai_analyzed_at?: string | null;
+    total_priority_score?: number | null;
+    ai_duplicate_checked_at?: string | null;
+  } | null = null;
 
     if (post.duplicate_of) {
       const { data: canonicalData, error: canonicalError } = await supabase
         .from('posts')
-        .select('id, title, status, vote_count, created_at, priority_score, priority_reason, ai_analyzed_at, total_priority_score')
+        .select('id, title, status, vote_count, created_at, priority_score, priority_reason, ai_analyzed_at, total_priority_score, ai_duplicate_checked_at')
         .eq('id', post.duplicate_of)
         .single();
 

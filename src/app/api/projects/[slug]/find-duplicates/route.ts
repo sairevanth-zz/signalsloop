@@ -129,6 +129,7 @@ export async function POST(
     // Mark duplicates in database
     let duplicatesMarked = 0;
     const errors: Array<{ id: string; message: string }> = [];
+    const processedIds = new Set<string>(posts.map((post) => String(post.id)));
 
     for (const cluster of clusters) {
       if (cluster.duplicates.length === 0) continue;
@@ -136,6 +137,7 @@ export async function POST(
       // The cluster already has primaryPost (oldest) identified
       const primaryPost = cluster.primaryPost;
       const duplicatePosts = cluster.duplicates.map(d => d.post);
+      processedIds.add(primaryPost.id);
 
       // Mark duplicates
       for (const duplicate of duplicatePosts) {
@@ -153,6 +155,7 @@ export async function POST(
           }
 
           duplicatesMarked += 1;
+          processedIds.add(duplicate.id);
         } catch (error) {
           console.error('Failed to mark duplicate', duplicate.id, error);
           errors.push({
@@ -160,6 +163,18 @@ export async function POST(
             message: error instanceof Error ? error.message : 'Unknown error',
           });
         }
+      }
+    }
+
+    if (processedIds.size > 0) {
+      const nowIso = new Date().toISOString();
+      const { error: timestampError } = await supabase
+        .from('posts')
+        .update({ ai_duplicate_checked_at: nowIso })
+        .in('id', Array.from(processedIds));
+
+      if (timestampError) {
+        console.error('Failed to update duplicate check timestamps:', timestampError);
       }
     }
 

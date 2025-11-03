@@ -153,7 +153,8 @@ ALTER TABLE public.posts
   ADD COLUMN IF NOT EXISTS must_have_votes INTEGER DEFAULT 0,
   ADD COLUMN IF NOT EXISTS important_votes INTEGER DEFAULT 0,
   ADD COLUMN IF NOT EXISTS nice_to_have_votes INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS total_priority_score INTEGER DEFAULT 0;
+  ADD COLUMN IF NOT EXISTS total_priority_score INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS ai_duplicate_checked_at TIMESTAMP WITH TIME ZONE;
 
 CREATE INDEX IF NOT EXISTS idx_posts_must_have_votes ON public.posts(must_have_votes);
 CREATE INDEX IF NOT EXISTS idx_posts_important_votes ON public.posts(important_votes);

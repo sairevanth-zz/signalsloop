@@ -272,6 +272,17 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      if (supabaseService && newPost?.id) {
+        try {
+          await supabaseService
+            .from('posts')
+            .update({ ai_duplicate_checked_at: new Date().toISOString() })
+            .eq('id', newPost.id);
+        } catch (timestampError) {
+          console.error('[DUPLICATE DETECTION] Failed to update duplicate timestamp:', timestampError);
+        }
+      }
+
       let duplicatesWithIds = duplicates;
       if (savedSimilarities.length > 0 && newPost?.id) {
         const idMap = new Map<string, string>();

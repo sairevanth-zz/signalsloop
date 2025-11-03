@@ -5,6 +5,7 @@
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS priority_score DECIMAL(3,1) DEFAULT 0.0;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS priority_reason TEXT;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS ai_analyzed_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS ai_duplicate_checked_at TIMESTAMP WITH TIME ZONE;
 
 -- 2. Create post_similarities table for duplicate detection
 CREATE TABLE IF NOT EXISTS post_similarities (

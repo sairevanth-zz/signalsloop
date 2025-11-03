@@ -68,6 +68,7 @@ interface Post {
   priority_reason?: string | null;
   ai_analyzed_at?: string | null;
   total_priority_score?: number | null;
+  ai_duplicate_checked_at?: string | null;
 }
 
 interface PublicPostDetailsProps {
@@ -314,8 +315,9 @@ export default function PublicPostDetails({
         latest = candidate;
       }
     }
-    return latest;
-  }, [duplicateAnalyzedAt, initialDuplicateEntries]);
+    if (latest) return latest;
+    return post.ai_duplicate_checked_at ?? null;
+  }, [duplicateAnalyzedAt, initialDuplicateEntries, post.ai_duplicate_checked_at]);
 
   const updatePriorityDisplay = useCallback((
     scoreValue: number | null | undefined,
@@ -325,6 +327,10 @@ export default function PublicPostDetails({
     setPriorityResults(result);
     return Boolean(result);
   }, []);
+  const duplicateAnalyzedTimestamp = derivedDuplicateAnalyzedAt ?? post.ai_duplicate_checked_at ?? null;
+  const hasPreloadedDuplicateInsights = initialDuplicateEntries.length > 0
+    || mergedDuplicatePosts.length > 0
+    || Boolean(duplicateAnalyzedTimestamp);
 
   useEffect(() => {
     const { levelKey, details } = extractPriorityReasonDetails(post.priority_reason);
@@ -1067,7 +1073,8 @@ export default function PublicPostDetails({
                     projectId={project.id}
                     userPlan={{ plan: project.plan === 'enterprise' || project.plan === 'pro' ? 'pro' : 'free', features: [] }}
                     initialDuplicates={initialDuplicateEntries}
-                    initialAnalyzedAt={derivedDuplicateAnalyzedAt}
+                    initialAnalyzedAt={duplicateAnalyzedTimestamp}
+                    initialHydrated={hasPreloadedDuplicateInsights}
                     onShowNotification={(message, type) => {
                       if (type === 'success') toast.success(message);
                       else if (type === 'error') toast.error(message);
