@@ -281,8 +281,29 @@ export default function PublicPostDetails({
       };
     });
 
+    const existingTargetIds = new Set(mapped.map((entry) => entry.postId));
+
+    mergedDuplicatePosts.forEach((dup) => {
+      if (!dup?.id || existingTargetIds.has(dup.id)) return;
+      mapped.push({
+        id: `merged-${dup.id}`,
+        postId: dup.id,
+        title: dup.title,
+        description: 'Already merged into this request on your board.',
+        similarityPercent: 100,
+        similarityScore: 1,
+        reason: 'Merged duplicate on your board. Manage votes on this canonical request.',
+        duplicateType: 'exact',
+        mergeRecommendation: 'merge',
+        similarityRecordId: undefined,
+        createdAt: dup.created_at,
+        updatedAt: dup.created_at,
+        status: 'merged',
+      });
+    });
+
     return mapped.sort((a, b) => (b.similarityScore ?? 0) - (a.similarityScore ?? 0));
-  }, [duplicateSuggestions]);
+  }, [duplicateSuggestions, mergedDuplicatePosts]);
   const derivedDuplicateAnalyzedAt = useMemo(() => {
     if (duplicateAnalyzedAt) return duplicateAnalyzedAt;
     let latest: string | null = null;

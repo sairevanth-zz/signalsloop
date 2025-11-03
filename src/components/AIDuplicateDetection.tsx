@@ -113,7 +113,7 @@ export function AIDuplicateDetection({
 }: AIDuplicateDetectionProps) {
   const [duplicates, setDuplicates] = useState<DuplicatePost[]>(initialDuplicates);
   const [isLoading, setIsLoading] = useState(false);
-  const [isAnalyzed, setIsAnalyzed] = useState(initialDuplicates.length > 0);
+  const [isAnalyzed, setIsAnalyzed] = useState(initialDuplicates.length > 0 || Boolean(initialAnalyzedAt));
   const [pendingAction, setPendingAction] = useState<{ id: string; action: 'confirmed' | 'dismissed' | 'merged' } | null>(null);
   const [mergeCandidate, setMergeCandidate] = useState<DuplicatePost | null>(null);
   const [lastMergeTarget, setLastMergeTarget] = useState<DuplicatePost | null>(null);
@@ -125,7 +125,7 @@ export function AIDuplicateDetection({
 
   useEffect(() => {
     setDuplicates(initialDuplicates);
-    setIsAnalyzed(initialDuplicates.length > 0);
+    setIsAnalyzed(initialDuplicates.length > 0 || Boolean(initialAnalyzedAt));
     if (initialDuplicates.length === 0 && !initialAnalyzedAt) {
       setLastAnalyzedAt(null);
       return;
