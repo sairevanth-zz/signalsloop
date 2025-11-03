@@ -29,6 +29,7 @@ import {
   Upload
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatDistanceToNow } from 'date-fns';
 import html2canvas from 'html2canvas';
 
 interface ApiKey {
@@ -1093,47 +1094,78 @@ add_action('wp_enqueue_scripts', 'add_signalsloop_widget');`;
                       Security Alerts
                     </h4>
                     <div className="space-y-2">
-                      <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span className="text-sm font-medium text-green-800 dark:text-green-200">
-                            All systems secure
-                          </span>
+                      {securityAlerts.length === 0 ? (
+                        <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                              All systems secure
+                            </span>
+                          </div>
+                          <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                            No suspicious activity detected
+                          </p>
                         </div>
-                        <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                          No suspicious activity detected
-                        </p>
-                      </div>
-                      
-                      <div className="p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                          <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                            High usage detected
-                          </span>
-                        </div>
-                        <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
-                          95% of monthly limit reached
-                        </p>
-                      </div>
+                      ) : (
+                        securityAlerts.map(alert => (
+                          <div
+                            key={alert.id}
+                            className={cn(
+                              'p-3 border rounded-lg',
+                              alert.severity === 'critical'
+                                ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
+                                : alert.severity === 'warning'
+                                  ? 'bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800'
+                                  : 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800'
+                            )}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={cn(
+                                  'w-2 h-2 rounded-full',
+                                  alert.severity === 'critical'
+                                    ? 'bg-red-500'
+                                    : alert.severity === 'warning'
+                                      ? 'bg-yellow-500'
+                                      : 'bg-blue-500'
+                                )}
+                              ></div>
+                              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {alert.title}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {alert.description}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground mt-1">
+                              {formatDistanceToNow(new Date(alert.detectedAt), { addSuffix: true })}
+                            </p>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
 
                   <div>
                     <h4 className="font-medium mb-3">Recent Activity</h4>
                     <div className="space-y-2 text-sm">
-                      <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                        <span>API key rotated</span>
-                        <span className="text-muted-foreground">2 hours ago</span>
-                      </div>
-                      <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                        <span>New domain added</span>
-                        <span className="text-muted-foreground">1 day ago</span>
-                      </div>
-                      <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                        <span>Usage limit updated</span>
-                        <span className="text-muted-foreground">3 days ago</span>
-                      </div>
+                      {recentSecurityActivity.length === 0 ? (
+                        <div className="p-3 bg-muted/40 rounded">
+                          <span className="text-muted-foreground text-sm">No recent security changes</span>
+                        </div>
+                      ) : (
+                        recentSecurityActivity.map(activity => (
+                          <div
+                            key={activity.id}
+                            className="flex items-center justify-between p-2 bg-muted/50 rounded"
+                          >
+                            <span>{activity.action}</span>
+                            <span className="text-muted-foreground">
+                              {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                            </span>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
