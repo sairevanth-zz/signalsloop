@@ -291,167 +291,33 @@ export default function EnhancedDashboardPage() {
   };
 
   const loadAnalytics = async () => {
-    if (!user || !supabase || projects.length === 0) return;
-    
+    if (!user || !supabase) return;
+
     setAnalyticsLoading(true);
     try {
-      // Get user's project IDs
-      const projectIds = projects.map(p => p.id);
-      
-      // If no projects, skip analytics
-      if (projectIds.length === 0) {
-        setAnalyticsLoading(false);
-        return;
-      }
-      
-      // Calculate date range for "this week"
-      const now = new Date();
-      const weekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
-      
-      // Get top posts from this week across all user's projects
-      const { data: topPostsData, error: topPostsError } = await supabase
-        .from('posts')
-        .select(`
-          id,
-          title,
-          vote_count,
-          created_at,
-          projects!inner(name, slug)
-        `)
-        .in('project_id', projectIds)
-        .gte('created_at', weekAgo.toISOString())
-        .order('vote_count', { ascending: false })
-        .limit(3);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
 
-      if (topPostsError) {
-        console.error('Error fetching top posts:', topPostsError);
+      if (!token) {
+        throw new Error('No active session');
       }
 
-      // Get recent activity (posts and votes) from the last 7 days
-      const { data: recentPosts, error: recentPostsError } = await supabase
-        .from('posts')
-        .select(`
-          id,
-          title,
-          created_at,
-          projects!inner(name, slug)
-        `)
-        .in('project_id', projectIds)
-        .gte('created_at', weekAgo.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(3);
-
-      if (recentPostsError) {
-        console.error('Error fetching recent posts:', recentPostsError);
-      }
-
-      // Skip votes query if no recent posts
-      let recentVotes = null;
-      if (recentPosts && recentPosts.length > 0) {
-        const { data: votesData, error: recentVotesError } = await supabase
-          .from('votes')
-          .select('id, created_at, post_id')
-          .in('post_id', recentPosts.map(p => p.id))
-          .gte('created_at', weekAgo.toISOString())
-          .order('created_at', { ascending: false })
-          .limit(3);
-
-        if (recentVotesError) {
-          console.error('Error fetching recent votes:', recentVotesError);
-        } else {
-          // Enrich votes with post data
-          recentVotes = votesData?.map(vote => {
-            const post = recentPosts.find(p => p.id === vote.post_id);
-            return {
-              ...vote,
-              posts: post ? { title: post.title, projects: post.projects } : null
-            };
-          }).filter(v => v.posts !== null);
-        }
-      }
-
-      // Process top posts
-      const topPosts = (topPostsData || []).map(post => ({
-        id: post.id,
-        title: post.title,
-        votes: post.vote_count || 0,
-        project: post.projects?.name || 'Unknown'
-      }));
-
-      // Process recent activity
-      const recentActivity = [];
-      
-      // Add recent posts
-      (recentPosts || []).forEach(post => {
-        recentActivity.push({
-          id: `post-${post.id}`,
-          type: 'post' as const,
-          message: `New feedback submitted: "${post.title}"`,
-          timestamp: post.created_at,
-          project: post.projects?.name || 'Unknown'
-        });
+      const response = await fetch('/api/app/dashboard/analytics', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        cache: 'no-store',
       });
 
-      // Add recent votes
-      (recentVotes || []).forEach(vote => {
-        recentActivity.push({
-          id: `vote-${vote.id}`,
-          type: 'vote' as const,
-          message: `User voted on "${vote.posts?.title || 'Unknown'}"`,
-          timestamp: vote.created_at,
-          project: vote.posts?.projects?.name || 'Unknown'
-        });
-      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Analytics request failed: ${response.status} ${errorText}`);
+      }
 
-      // Sort recent activity by timestamp and limit to 3
-      recentActivity.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      recentActivity.splice(3);
-
-      // Calculate weekly growth (simplified - compare current week vs previous week)
-      const previousWeek = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000));
-      const { data: previousWeekPosts } = await supabase
-        .from('posts')
-        .select('id')
-        .in('project_id', projectIds)
-        .gte('created_at', previousWeek.toISOString())
-        .lt('created_at', weekAgo.toISOString());
-
-      const currentWeekCount = recentPosts?.length || 0;
-      const previousWeekCount = previousWeekPosts?.length || 0;
-      const weeklyGrowth = previousWeekCount > 0 
-        ? Math.round(((currentWeekCount - previousWeekCount) / previousWeekCount) * 100)
-        : currentWeekCount > 0 ? 100 : 0;
-
-      const { count: totalPosts } = await supabase
-        .from('posts')
-        .select('id', { head: true, count: 'exact' })
-        .in('project_id', projectIds);
-
-      const { count: totalVotes } = await supabase
-        .from('votes')
-        .select('id', { head: true, count: 'exact' })
-        .in('project_id', projectIds);
-
-      const { count: activeWidgetCount } = await supabase
-        .from('api_keys')
-        .select('id', { head: true, count: 'exact' })
-        .in('project_id', projectIds)
-        .eq('is_active', true);
-
-      const analytics = {
-        totalProjects: projects.length,
-        totalPosts: totalPosts || 0,
-        totalVotes: totalVotes || 0,
-        activeWidgets: activeWidgetCount || 0,
-        weeklyGrowth,
-        topPosts,
-        recentActivity
-      };
-
-      setAnalytics(analytics);
+      const result = await response.json();
+      setAnalytics(result.analytics);
     } catch (error) {
       console.error('Error loading analytics:', error);
-      // Set empty analytics to prevent dashboard from crashing
       setAnalytics({
         totalProjects: projects.length,
         totalPosts: 0,
