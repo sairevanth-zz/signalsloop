@@ -249,12 +249,16 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
       status: string;
       vote_count: number | null;
       created_at: string;
+      priority_score?: number | null;
+      priority_reason?: string | null;
+      ai_analyzed_at?: string | null;
+      total_priority_score?: number | null;
     } | null = null;
 
     if (post.duplicate_of) {
       const { data: canonicalData, error: canonicalError } = await supabase
         .from('posts')
-        .select('id, title, status, vote_count, created_at')
+        .select('id, title, status, vote_count, created_at, priority_score, priority_reason, ai_analyzed_at, total_priority_score')
         .eq('id', post.duplicate_of)
         .single();
 

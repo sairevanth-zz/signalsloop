@@ -87,6 +87,10 @@ interface PublicPostDetailsProps {
     status: string;
     vote_count: number | null;
     created_at: string;
+    priority_score?: number | null;
+    priority_reason?: string | null;
+    ai_analyzed_at?: string | null;
+    total_priority_score?: number | null;
   } | null;
 }
 
@@ -165,8 +169,12 @@ const buildPriorityResult = (
     return null;
   }
 
+  const derivedLevelKey = deriveLevelKeyFromScore(normalizedScore);
+  const providedLevelKey = normalizePriorityLevelKey(options.levelKey);
   const normalizedLevelKey: PriorityLevelKey =
-    normalizePriorityLevelKey(options.levelKey) ?? deriveLevelKeyFromScore(normalizedScore);
+    providedLevelKey && providedLevelKey === derivedLevelKey
+      ? providedLevelKey
+      : derivedLevelKey;
 
   const reasoning = options.reasoning?.trim() ? options.reasoning.trim() : undefined;
 
@@ -242,24 +250,46 @@ export default function PublicPostDetails({
   const updatePriorityDisplay = useCallback((
     scoreValue: number | null | undefined,
     options: { levelKey?: string | null; reasoning?: string | null; analyzedAt?: string | null } = {}
-  ) => {
+  ): boolean => {
     const result = buildPriorityResult(scoreValue, options);
     setPriorityResults(result);
+    return Boolean(result);
   }, []);
 
   useEffect(() => {
     const { levelKey, details } = extractPriorityReasonDetails(post.priority_reason);
-    const scoreCandidate = post.priority_score ?? post.total_priority_score ?? null;
-    updatePriorityDisplay(scoreCandidate, {
+    const scoreCandidate =
+      (typeof post.priority_score === 'number' ? post.priority_score : null) ??
+      (typeof post.total_priority_score === 'number' ? post.total_priority_score : null);
+
+    const primaryApplied = updatePriorityDisplay(scoreCandidate, {
       levelKey,
       reasoning: details ?? undefined,
       analyzedAt: post.ai_analyzed_at ?? null,
     });
+
+    if (!primaryApplied && isMergedDuplicate && canonicalPost) {
+      const { levelKey: canonicalLevel, details: canonicalDetails } = extractPriorityReasonDetails(
+        canonicalPost.priority_reason ?? null
+      );
+
+      const canonicalScore =
+        (typeof canonicalPost.priority_score === 'number' ? canonicalPost.priority_score : null) ??
+        (typeof canonicalPost.total_priority_score === 'number' ? canonicalPost.total_priority_score : null);
+
+      updatePriorityDisplay(canonicalScore, {
+        levelKey: canonicalLevel,
+        reasoning: canonicalDetails ?? undefined,
+        analyzedAt: canonicalPost.ai_analyzed_at ?? null,
+      });
+    }
   }, [
     post.priority_score,
     post.total_priority_score,
     post.priority_reason,
     post.ai_analyzed_at,
+    isMergedDuplicate,
+    canonicalPost,
     updatePriorityDisplay,
   ]);
 
@@ -395,9 +425,10 @@ export default function PublicPostDetails({
         return;
       }
 
-      const reasonPrefix = (score?.priorityLevel || 'low').toString().toUpperCase();
+      const derivedLevelKey = deriveLevelKeyFromScore(normalizedScore);
+      const derivedLabel = PRIORITY_LEVEL_LABELS[derivedLevelKey];
       const businessJustification = score?.businessJustification || 'No AI justification provided yet.';
-      const reasonToPersist = `${reasonPrefix}: ${businessJustification}`;
+      const reasonToPersist = `${derivedLabel.toUpperCase()}: ${businessJustification}`;
       const analyzedAt = new Date().toISOString();
       let saveSucceeded = false;
       let persistedRow: {
@@ -436,7 +467,7 @@ export default function PublicPostDetails({
       );
 
       updatePriorityDisplay(persistedRow?.priority_score ?? normalizedScore, {
-        levelKey: persistedLevelKey ?? score?.priorityLevel ?? null,
+        levelKey: persistedLevelKey ?? derivedLevelKey,
         reasoning: persistedReason ?? businessJustification,
         analyzedAt: persistedRow?.ai_analyzed_at ?? analyzedAt,
       });
