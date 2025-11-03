@@ -90,7 +90,7 @@ export async function POST(
     // Fetch posts for duplicate detection (non-duplicates only)
     const { data: posts, error: postsError } = await supabase
       .from('posts')
-      .select('id, title, description, category, created_at')
+      .select('id, title, description, category, created_at, vote_count')
       .eq('board_id', board.id)
       .is('duplicate_of', null)
       .order('created_at', { ascending: false })
@@ -116,13 +116,14 @@ export async function POST(
       title: (post.title as string) || '',
       description: (post.description as string) || '',
       category: (post.category as string | null) || undefined,
+      voteCount: (post.vote_count as number) || 0,
       createdAt: post.created_at ? new Date(post.created_at as string) : new Date(),
     }));
 
     // Detect duplicate clusters
     const clusters = await detectDuplicateClusters(candidates, {
-      threshold,
-      maxResults: 100,
+      clusterThreshold: threshold,
+      minClusterSize: 2,
     });
 
     // Mark duplicates in database
@@ -130,15 +131,11 @@ export async function POST(
     const errors: Array<{ id: string; message: string }> = [];
 
     for (const cluster of clusters) {
-      if (cluster.posts.length < 2) continue;
+      if (cluster.duplicates.length === 0) continue;
 
-      // Sort posts by creation date (oldest first = primary)
-      const sortedPosts = [...cluster.posts].sort(
-        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
-
-      const primaryPost = sortedPosts[0];
-      const duplicatePosts = sortedPosts.slice(1);
+      // The cluster already has primaryPost (oldest) identified
+      const primaryPost = cluster.primaryPost;
+      const duplicatePosts = cluster.duplicates.map(d => d.post);
 
       // Mark duplicates
       for (const duplicate of duplicatePosts) {
