@@ -188,18 +188,18 @@ export default function Homepage() {
               <span className="text-base md:text-xl font-bold text-gray-900 hidden xs:inline">SignalsLoop</span>
             </Link>
             
-            <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm">
-              <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors min-touch-target">
+            <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm text-gray-600">
+              <Link href="#features" className="hover:text-gray-900 transition-colors min-touch-target">
                 Features
               </Link>
-              <Link href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors min-touch-target">
+              <Link href="#pricing" className="hover:text-gray-900 transition-colors min-touch-target">
                 Pricing
               </Link>
-              <Link href="/demo/board" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors flex items-center gap-1 min-touch-target">
+              <Link href="/demo/board" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors flex items-center gap-1 min-touch-target whitespace-nowrap">
                 🎯 Demo
               </Link>
               <span className="hidden xl:inline-block h-5 w-px bg-gray-200"></span>
-              <div className="flex items-center gap-4 text-xs text-gray-500">
+              <div className="flex items-center gap-6 text-sm whitespace-nowrap">
                 <div className="flex items-center gap-1">
                   <span className="text-green-500">🔒</span>
                   <span>SSL Encrypted</span>
