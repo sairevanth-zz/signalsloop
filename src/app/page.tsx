@@ -188,7 +188,7 @@ export default function Homepage() {
               <span className="text-base md:text-xl font-bold text-gray-900 hidden xs:inline">SignalsLoop</span>
             </Link>
             
-            <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
+            <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm">
               <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors min-touch-target">
                 Features
               </Link>
@@ -198,9 +198,8 @@ export default function Homepage() {
               <Link href="/demo/board" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors flex items-center gap-1 min-touch-target">
                 🎯 Demo
               </Link>
-              
-              {/* Subtle Header Trust Signals */}
-              <div className="hidden xl:flex items-center space-x-4 text-xs text-gray-500">
+              <span className="hidden xl:inline-block h-5 w-px bg-gray-200"></span>
+              <div className="flex items-center gap-4 text-xs text-gray-500">
                 <div className="flex items-center gap-1">
                   <span className="text-green-500">🔒</span>
                   <span>SSL Encrypted</span>
@@ -272,7 +271,7 @@ export default function Homepage() {
             </div>
             <div className="flex items-center gap-1.5 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full border border-blue-200 hover-float hover:bg-blue-200 transition-colors">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              <span>50,000+ Posts Processed</span>
+              <span>Auto-Prioritized Backlog</span>
             </div>
             <div className="flex items-center gap-1.5 bg-green-100 text-green-700 px-3 py-1.5 rounded-full border border-green-200 hover-float hover:bg-green-200 transition-colors">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -425,8 +424,8 @@ export default function Homepage() {
               </div>
               <div className="h-10 w-px bg-gray-200"></div>
               <div className="text-left">
-                <div className="text-sm font-bold text-gray-900">50,000+ Posts</div>
-                <div className="text-xs text-gray-500">AI-Organized</div>
+                <div className="text-sm font-bold text-gray-900">AI Priorities</div>
+                <div className="text-xs text-gray-500">Refreshed daily</div>
               </div>
               <div className="h-10 w-px bg-gray-200"></div>
               <div className="flex items-center gap-1">
