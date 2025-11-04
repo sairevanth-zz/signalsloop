@@ -1005,59 +1005,70 @@ export default function DemoBoard() {
                       </div>
 
                       <div className="relative flex flex-col items-end" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            if (post.user_voted) {
+                        {post.user_voted ? (
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
                               handleRemoveVote(post.id);
-                              return;
-                            }
-                            if (!checkLimit('vote')) {
-                              setActiveVotePostId(null);
-                              return;
-                            }
-                            setActiveVotePostId(prev => prev === post.id ? null : post.id);
-                          }}
-                          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-all ${
-                            post.user_voted
-                              ? 'text-white bg-blue-600 hover:bg-blue-700'
-                              : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
-                          }`}
-                        >
-                          <svg className="w-4 h-4 mb-1" fill={post.user_voted ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
-                          </svg>
-                          <span className="font-semibold text-sm">{post.vote_count}</span>
-                          <span className={`text-[11px] flex items-center gap-1 ${post.user_voted ? 'text-white/90' : 'text-gray-400'}`}>
-                            {post.user_voted && post.user_priority
-                              ? (
-                                <>
-                                  {votePriorityDisplay[post.user_priority].emoji}
-                                  {votePriorityDisplay[post.user_priority].label}
-                                </>
-                              )
-                              : 'Vote'}
-                          </span>
-                        </button>
-
-                        {!post.user_voted && activeVotePostId === post.id && (
-                          <div className="absolute right-0 mt-2 w-60 rounded-lg border border-gray-200 bg-white shadow-lg z-20">
-                            <div className="px-3 py-2 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
-                              How urgent is this?
-                            </div>
-                            <div className="divide-y divide-gray-100">
-                              {votePriorityOptions.map(option => (
-                                <button
+                            }}
+                            className="flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-all text-white bg-blue-600 hover:bg-blue-700"
+                            type="button"
+                          >
+                            <svg className="w-4 h-4 mb-1" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                            </svg>
+                            <span className="font-semibold text-sm">{post.vote_count}</span>
+                            {post.user_priority && (
+                              <span className="text-[11px] flex items-center gap-1 text-white/90">
+                                {votePriorityDisplay[post.user_priority].emoji}
+                                {votePriorityDisplay[post.user_priority].label}
+                              </span>
+                            )}
+                          </button>
+                        ) : (
+                          <DropdownMenu
+                            open={activeVotePostId === post.id}
+                            onOpenChange={(open) => {
+                              if (!open) {
+                                setActiveVotePostId((prev) => (prev === post.id ? null : prev));
+                                return;
+                              }
+                              if (!checkLimit('vote')) {
+                                setActiveVotePostId(null);
+                                return;
+                              }
+                              setActiveVotePostId(post.id);
+                            }}
+                          >
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                onClick={(event) => event.stopPropagation()}
+                                className="flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-all text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                                type="button"
+                              >
+                                <svg className="w-4 h-4 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                                </svg>
+                                <span className="font-semibold text-sm">{post.vote_count}</span>
+                                <span className="text-[11px] text-gray-400">Vote</span>
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" side="top" className="w-64 rounded-lg border border-gray-200">
+                              <div className="px-3 py-2 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                How urgent is this?
+                              </div>
+                              {votePriorityOptions.map((option) => (
+                                <DropdownMenuItem
                                   key={option.value}
-                                  onClick={(event) => {
-                                    event.stopPropagation();
+                                  onSelect={(event) => {
+                                    event.preventDefault();
                                     handleVoteSelection(post.id, option.value);
                                   }}
-                                  className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-blue-50"
+                                  className="flex items-start gap-2 py-2 px-3 text-sm"
                                 >
                                   <span className="text-lg leading-none">{option.emoji}</span>
                                   <div className="flex-1">
-                                    <div className="text-sm font-semibold text-gray-900">{option.label}</div>
+                                    <div className="font-semibold text-gray-900">{option.label}</div>
                                     <div className="text-xs text-gray-500">{option.description}</div>
                                   </div>
                                   <span className="text-xs text-gray-400">
@@ -1067,10 +1078,10 @@ export default function DemoBoard() {
                                       ? post.important_votes ?? 0
                                       : post.nice_to_have_votes ?? 0}
                                   </span>
-                                </button>
+                                </DropdownMenuItem>
                               ))}
-                            </div>
-                          </div>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
 
                         <PriorityMixCompact
