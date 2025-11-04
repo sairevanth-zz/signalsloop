@@ -23,7 +23,10 @@ export async function GET() {
         author_name,
         category,
         priority_score,
-        created_at
+        created_at,
+        must_have_votes,
+        important_votes,
+        nice_to_have_votes
       `)
       .eq('board_id', '00000000-0000-0000-0000-000000000001')
       .order('created_at', { ascending: false });
@@ -39,28 +42,31 @@ export async function GET() {
     // Fetch vote counts and comments for each post
     const postsWithDetails = await Promise.all(
       (postsData || []).map(async (post) => {
-        const { data: votesData } = await supabase
-          .from('votes')
-          .select('id')
-          .eq('post_id', post.id);
-
         const { data: commentsData } = await supabase
           .from('comments')
           .select('id')
           .eq('post_id', post.id);
+
+        const mustHaveVotes = (post as any).must_have_votes ?? 0;
+        const importantVotes = (post as any).important_votes ?? 0;
+        const niceToHaveVotes = (post as any).nice_to_have_votes ?? 0;
+        const totalVotes = mustHaveVotes + importantVotes + niceToHaveVotes;
 
         return {
           id: post.id,
           title: post.title,
           description: post.description,
           status: post.status,
-          vote_count: votesData?.length || 0,
+          vote_count: totalVotes,
           user_voted: false, // Demo mode - no real voting
           author: (post as any).author_name || post.author_email?.split('@')[0] || 'Demo User',
           created_at: post.created_at,
           comments_count: commentsData?.length || 0,
           category: (post as any).category,
-          priority_score: (post as any).priority_score
+          priority_score: (post as any).priority_score,
+          must_have_votes: mustHaveVotes,
+          important_votes: importantVotes,
+          nice_to_have_votes: niceToHaveVotes
         };
       })
     );

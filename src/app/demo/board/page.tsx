@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +30,7 @@ import {
   BarChart3,
   Settings,
   Share2,
+  ThumbsUp,
   Sparkles,
   Target,
   TrendingUp,
@@ -52,6 +53,7 @@ import {
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import AIWritingAssistant from '@/components/AIWritingAssistant';
+import { PriorityMixCompact } from '@/components/PriorityMix';
 import { CategoryBadge } from '@/components/CategoryBadge';
 
 const BOARD_FEATURE_LIMITS = {
@@ -65,6 +67,8 @@ type BoardFeatureKey = keyof typeof BOARD_FEATURE_LIMITS;
 
 type FeatureUsageMap = Record<BoardFeatureKey, { used: number; limit: number }>;
 
+type VotePriority = 'must_have' | 'important' | 'nice_to_have';
+
 interface DemoPost {
   id: string;
   title: string;
@@ -72,11 +76,15 @@ interface DemoPost {
   status: 'open' | 'planned' | 'in_progress' | 'done';
   vote_count: number;
   user_voted: boolean;
+  user_priority?: VotePriority | null;
   author: string;
   created_at: string;
   comments_count: number;
   category?: string;
   priority_score?: number;
+  must_have_votes?: number;
+  important_votes?: number;
+  nice_to_have_votes?: number;
 }
 
 interface DemoProFeedbackFormProps {
@@ -97,6 +105,51 @@ const demoPriorities = [
   { value: 'low', label: 'Nice to have', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
   { value: 'medium', label: 'Important', color: 'text-amber-600 bg-amber-50 border-amber-200' },
   { value: 'high', label: 'Critical', color: 'text-rose-600 bg-rose-50 border-rose-200' }
+];
+
+const votePriorityOptions: Array<{ value: VotePriority; label: string; emoji: string; description: string }> = [
+  { value: 'must_have', label: 'Must Have', emoji: '🔴', description: 'Critical for success or customers' },
+  { value: 'important', label: 'Important', emoji: '🟡', description: 'High impact for product or team' },
+  { value: 'nice_to_have', label: 'Nice to Have', emoji: '🟢', description: 'Quality of life or delight' }
+];
+
+const votePriorityLabels: Record<VotePriority, string> = {
+  must_have: 'Must Have',
+  important: 'Important',
+  nice_to_have: 'Nice to Have'
+};
+
+const votePriorityDisplay: Record<VotePriority, { label: string; emoji: string }> = {
+  must_have: { label: 'Must Have', emoji: '🔴' },
+  important: { label: 'Important', emoji: '🟡' },
+  nice_to_have: { label: 'Nice to Have', emoji: '🟢' }
+};
+
+const roadmapColumnConfig = [
+  {
+    key: 'planned' as const,
+    title: 'Planned',
+    description: 'Next up on the build list',
+    icon: Target,
+    badgeClass: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    cardClass: 'bg-yellow-50 border-yellow-200'
+  },
+  {
+    key: 'in_progress' as const,
+    title: 'In Progress',
+    description: 'Currently being shipped',
+    icon: Zap,
+    badgeClass: 'bg-orange-100 text-orange-700 border-orange-200',
+    cardClass: 'bg-orange-50 border-orange-200'
+  },
+  {
+    key: 'done' as const,
+    title: 'Done',
+    description: 'Recently delivered wins',
+    icon: CheckCircle,
+    badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    cardClass: 'bg-emerald-50 border-emerald-200'
+  }
 ];
 
 function DemoProFeedbackForm({ onSubmit, usage, checkLimit, recordUsage }: DemoProFeedbackFormProps) {
@@ -208,11 +261,15 @@ function DemoProFeedbackForm({ onSubmit, usage, checkLimit, recordUsage }: DemoP
         title: formData.title.trim(),
         description: formData.description.trim(),
         status: 'open',
-        vote_count: 42,
-        user_voted: true,
+        vote_count: 0,
+        user_voted: false,
+        user_priority: null,
         author: formData.name.trim() || 'Demo User',
         created_at: now.toISOString(),
-        comments_count: 0
+        comments_count: 0,
+        must_have_votes: 0,
+        important_votes: 0,
+        nice_to_have_votes: 0
       };
 
       onSubmit(newPost);
@@ -453,6 +510,7 @@ export default function DemoBoard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewPostForm, setShowNewPostForm] = useState(false);
   const [showDemoLimitBanner, setShowDemoLimitBanner] = useState(true);
+  const [activeVotePostId, setActiveVotePostId] = useState<string | null>(null);
 
   const createInitialUsage = (): FeatureUsageMap => {
     const entries = Object.entries(BOARD_FEATURE_LIMITS).map(([feature, config]) => [feature, { used: 0, limit: config.limit }]);
@@ -492,7 +550,14 @@ export default function DemoBoard() {
         }
         
         const data = await response.json();
-        setPosts(data.posts || []);
+        const mappedPosts = (data.posts || []).map((post: any) => ({
+          ...post,
+          user_priority: null,
+          must_have_votes: post.must_have_votes ?? 0,
+          important_votes: post.important_votes ?? 0,
+          nice_to_have_votes: post.nice_to_have_votes ?? 0
+        }));
+        setPosts(mappedPosts);
       } catch (error) {
         console.error('Error loading demo data:', error);
       } finally {
@@ -501,6 +566,12 @@ export default function DemoBoard() {
     };
 
     loadDemoData();
+  }, []);
+
+  useEffect(() => {
+    const handleOutsideClick = () => setActiveVotePostId(null);
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
   }, []);
 
   const statusOptions = [
@@ -532,8 +603,10 @@ export default function DemoBoard() {
   const filteredPosts = posts
     .filter(post => {
       const matchesStatus = statusFilter === 'all' || post.status === statusFilter;
-      const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           post.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const title = (post.title || '').toLowerCase();
+      const description = (post.description || '').toLowerCase();
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = title.includes(query) || description.includes(query);
       return matchesStatus && matchesSearch;
     })
     .sort((a, b) => {
@@ -558,6 +631,109 @@ export default function DemoBoard() {
       year: 'numeric'
     });
   };
+
+  const handleVoteSelection = (postId: string, priority: VotePriority) => {
+    let wasVoted = false;
+    let previousPriority: VotePriority | null = null;
+
+    setPosts(prev =>
+      prev.map(post => {
+        if (post.id !== postId) {
+          return post;
+        }
+
+        wasVoted = post.user_voted;
+        previousPriority = post.user_priority ?? null;
+
+        let must = post.must_have_votes ?? 0;
+        let important = post.important_votes ?? 0;
+        let nice = post.nice_to_have_votes ?? 0;
+
+        if (wasVoted && previousPriority) {
+          if (previousPriority === 'must_have') must = Math.max(0, must - 1);
+          if (previousPriority === 'important') important = Math.max(0, important - 1);
+          if (previousPriority === 'nice_to_have') nice = Math.max(0, nice - 1);
+        }
+
+        if (!wasVoted || previousPriority !== priority) {
+          if (priority === 'must_have') must += 1;
+          if (priority === 'important') important += 1;
+          if (priority === 'nice_to_have') nice += 1;
+        } else if (wasVoted && previousPriority === priority) {
+          // Selecting the same priority keeps counts unchanged
+        }
+
+        const nextVoteCount = post.vote_count + (wasVoted ? 0 : 1);
+
+        return {
+          ...post,
+          vote_count: nextVoteCount,
+          user_voted: true,
+          user_priority: priority,
+          must_have_votes: must,
+          important_votes: important,
+          nice_to_have_votes: nice
+        };
+      })
+    );
+
+    if (!wasVoted) {
+      recordUsage('vote');
+      toast.success(`Vote recorded as ${votePriorityLabels[priority]}`);
+    } else if (previousPriority !== priority) {
+      toast.success(`Priority updated to ${votePriorityLabels[priority]}`);
+    } else {
+      toast.success(`Vote confirmed as ${votePriorityLabels[priority]}`);
+    }
+
+    setActiveVotePostId(null);
+  };
+
+  const handleRemoveVote = (postId: string) => {
+    let hadVote = false;
+    let removedPriority: VotePriority | null = null;
+
+    setPosts(prev =>
+      prev.map(post => {
+        if (post.id !== postId) {
+          return post;
+        }
+
+        hadVote = post.user_voted;
+        removedPriority = post.user_priority ?? null;
+
+        let must = post.must_have_votes ?? 0;
+        let important = post.important_votes ?? 0;
+        let nice = post.nice_to_have_votes ?? 0;
+
+        if (removedPriority === 'must_have') must = Math.max(0, must - 1);
+        if (removedPriority === 'important') important = Math.max(0, important - 1);
+        if (removedPriority === 'nice_to_have') nice = Math.max(0, nice - 1);
+
+        return {
+          ...post,
+          vote_count: Math.max(0, post.vote_count - (hadVote ? 1 : 0)),
+          user_voted: false,
+          user_priority: null,
+          must_have_votes: must,
+          important_votes: important,
+          nice_to_have_votes: nice
+        };
+      })
+    );
+
+    setActiveVotePostId(null);
+
+    if (hadVote) {
+      toast.success('Vote removed');
+    }
+  };
+
+  const roadmapGroups = useMemo(() => ({
+    planned: posts.filter(post => post.status === 'planned'),
+    in_progress: posts.filter(post => post.status === 'in_progress'),
+    done: posts.filter(post => post.status === 'done')
+  }), [posts]);
 
   return (
     <div className="min-h-screen bg-slate-50 overflow-x-hidden">
@@ -814,7 +990,7 @@ export default function DemoBoard() {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-gray-600 mb-3">{post.description}</p>
+                        <p className="text-gray-600 mb-3">{post.description || 'No description yet.'}</p>
                       </div>
                     </div>
 
@@ -834,44 +1010,82 @@ export default function DemoBoard() {
                         </div>
                       </div>
 
-                      <div onClick={(e) => e.stopPropagation()}>
+                      <div className="relative flex flex-col items-end" onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() => {
-                            const alreadyVoted = post.user_voted;
-                            if (!alreadyVoted && !checkLimit('vote')) {
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            if (post.user_voted) {
+                              handleRemoveVote(post.id);
                               return;
                             }
-                            setPosts(prev => prev.map(p =>
-                              p.id === post.id
-                                ? { 
-                                    ...p, 
-                                    vote_count: p.user_voted ? p.vote_count - 1 : p.vote_count + 1,
-                                    user_voted: !p.user_voted
-                                  }
-                                : p
-                            ));
-                            if (!alreadyVoted) {
-                              recordUsage('vote');
+                            if (!checkLimit('vote')) {
+                              setActiveVotePostId(null);
+                              return;
                             }
-                            toast.success(alreadyVoted ? 'Vote removed' : 'Vote added');
+                            setActiveVotePostId(prev => prev === post.id ? null : post.id);
                           }}
-                          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors ${
-                            post.user_voted 
-                              ? 'text-white bg-blue-600 hover:bg-blue-700' 
-                              : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
+                          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-all ${
+                            post.user_voted
+                              ? 'text-white bg-blue-600 hover:bg-blue-700'
+                              : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
                           }`}
-                          disabled={!post.user_voted && featureUsage.vote.used >= featureUsage.vote.limit}
                         >
                           <svg className="w-4 h-4 mb-1" fill={post.user_voted ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
                           </svg>
-                          <span className="font-medium text-sm">{post.vote_count}</span>
-                          {post.user_voted && (
-                            <div className="text-xs text-white mt-1 flex items-center gap-1">
-                              <span>Voted</span>
-                            </div>
-                          )}
+                          <span className="font-semibold text-sm">{post.vote_count}</span>
+                          <span className={`text-[11px] flex items-center gap-1 ${post.user_voted ? 'text-white/90' : 'text-gray-400'}`}>
+                            {post.user_voted && post.user_priority
+                              ? (
+                                <>
+                                  {votePriorityDisplay[post.user_priority].emoji}
+                                  {votePriorityDisplay[post.user_priority].label}
+                                </>
+                              )
+                              : 'Vote'}
+                          </span>
                         </button>
+
+                        {!post.user_voted && activeVotePostId === post.id && (
+                          <div className="absolute right-0 mt-2 w-60 rounded-lg border border-gray-200 bg-white shadow-lg z-20">
+                            <div className="px-3 py-2 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                              How urgent is this?
+                            </div>
+                            <div className="divide-y divide-gray-100">
+                              {votePriorityOptions.map(option => (
+                                <button
+                                  key={option.value}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleVoteSelection(post.id, option.value);
+                                  }}
+                                  className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-blue-50"
+                                >
+                                  <span className="text-lg leading-none">{option.emoji}</span>
+                                  <div className="flex-1">
+                                    <div className="text-sm font-semibold text-gray-900">{option.label}</div>
+                                    <div className="text-xs text-gray-500">{option.description}</div>
+                                  </div>
+                                  <span className="text-xs text-gray-400">
+                                    {option.value === 'must_have'
+                                      ? post.must_have_votes ?? 0
+                                      : option.value === 'important'
+                                      ? post.important_votes ?? 0
+                                      : post.nice_to_have_votes ?? 0}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <PriorityMixCompact
+                          mustHave={post.must_have_votes ?? 0}
+                          important={post.important_votes ?? 0}
+                          niceToHave={post.nice_to_have_votes ?? 0}
+                          className="mt-2 text-[11px] text-gray-500"
+                          align="end"
+                        />
                       </div>
                     </div>
                   </CardContent>
@@ -884,93 +1098,85 @@ export default function DemoBoard() {
 
           {/* Roadmap Tab */}
           <TabsContent value="roadmap" className="space-y-6">
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Planned */}
-              <Card className="bg-white/80 backdrop-blur-sm border border-gray-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Target className="h-5 w-5 text-yellow-600" />
-                    Planned
-                    <Badge variant="outline" className="ml-auto">12</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="font-medium text-sm">Dark Mode Support</h4>
-                    <p className="text-xs text-gray-600 mt-1">Allow users to switch between light and dark themes</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <Badge variant="outline" className="text-xs">Feature</Badge>
-                      <span className="text-xs text-gray-500">Q2 2024</span>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="font-medium text-sm">Mobile App</h4>
-                    <p className="text-xs text-gray-600 mt-1">Native iOS and Android applications</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <Badge variant="outline" className="text-xs">Feature</Badge>
-                      <span className="text-xs text-gray-500">Q3 2024</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* In Progress */}
-              <Card className="bg-white/80 backdrop-blur-sm border border-gray-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Zap className="h-5 w-5 text-orange-600" />
-                    In Progress
-                    <Badge variant="outline" className="ml-auto">8</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                    <h4 className="font-medium text-sm">Advanced Analytics</h4>
-                    <p className="text-xs text-gray-600 mt-1">Detailed insights and reporting dashboard</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <Badge variant="outline" className="text-xs">Analytics</Badge>
-                      <span className="text-xs text-gray-500">75%</span>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                    <h4 className="font-medium text-sm">API v2</h4>
-                    <p className="text-xs text-gray-600 mt-1">Enhanced API with better performance</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <Badge variant="outline" className="text-xs">Infrastructure</Badge>
-                      <span className="text-xs text-gray-500">60%</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Done */}
-              <Card className="bg-white/80 backdrop-blur-sm border border-gray-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    Done
-                    <Badge variant="outline" className="ml-auto">24</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <h4 className="font-medium text-sm">Widget Integration</h4>
-                    <p className="text-xs text-gray-600 mt-1">Embeddable feedback widget for websites</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <Badge variant="outline" className="text-xs">Feature</Badge>
-                      <span className="text-xs text-gray-500">✓ Done</span>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <h4 className="font-medium text-sm">Email Notifications</h4>
-                    <p className="text-xs text-gray-600 mt-1">Automated email updates for feedback</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <Badge variant="outline" className="text-xs">Integration</Badge>
-                      <span className="text-xs text-gray-500">✓ Done</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="grid gap-6 md:grid-cols-3">
+              {roadmapColumnConfig.map((column) => {
+                const Icon = column.icon;
+                const items = roadmapGroups[column.key] || [];
+                return (
+                  <Card key={column.key} className="bg-white/80 backdrop-blur-sm border border-gray-200">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-start gap-3 text-lg">
+                        <span className={`flex h-10 w-10 items-center justify-center rounded-full ${column.badgeClass}`}>
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span>{column.title}</span>
+                            <Badge variant="outline" className="ml-auto">
+                              {items.length}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">{column.description}</p>
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {items.length === 0 ? (
+                        <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-500">
+                          No items here yet. Move feedback into <span className="font-medium lowercase">{column.title}</span> to preview the roadmap.
+                        </div>
+                      ) : (
+                        items.map((item) => (
+                          <div
+                            key={item.id}
+                            className={`rounded-lg border ${column.cardClass} p-3`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <h4 className="text-sm font-semibold text-gray-900">{item.title}</h4>
+                                <p className="mt-1 text-xs text-gray-600 line-clamp-2">
+                                  {item.description || 'No description provided yet.'}
+                                </p>
+                              </div>
+                              <Badge variant="outline" className="text-[11px]">
+                                {formatDate(item.created_at)}
+                              </Badge>
+                            </div>
+                            <div className="mt-3 flex items-center justify-between text-xs text-gray-600">
+                              <div className="flex items-center gap-2">
+                                {item.category ? (
+                                  <Badge variant="outline" className="text-[11px]">
+                                    {item.category}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-gray-500">Feedback</span>
+                                )}
+                                <span className="flex items-center gap-1">
+                                  <MessageSquare className="h-3.5 w-3.5" />
+                                  {item.comments_count ?? 0}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="flex items-center gap-1">
+                                  <ThumbsUp className="h-3.5 w-3.5" />
+                                  {item.vote_count}
+                                </span>
+                                <PriorityMixCompact
+                                  mustHave={item.must_have_votes ?? 0}
+                                  important={item.important_votes ?? 0}
+                                  niceToHave={item.nice_to_have_votes ?? 0}
+                                  className="text-[10px]"
+                                  align="end"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
           </TabsContent>
