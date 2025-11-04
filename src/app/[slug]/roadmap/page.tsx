@@ -96,11 +96,23 @@ export default async function PublicRoadmapPage({ params }: PublicRoadmapPagePro
       notFound();
     }
 
+    // Get board for this project
+    const { data: board, error: boardError } = await supabase
+      .from('boards')
+      .select('id')
+      .eq('project_id', project.id)
+      .single();
+
+    if (boardError || !board) {
+      notFound();
+    }
+
     // Get posts organized by status for roadmap (only existing columns)
     const { data: posts, error: postsError } = await supabase
       .from('posts')
       .select('id, title, status, created_at, author_email, author_name, category, ai_categorized')
-      .eq('project_id', project.id)
+      .eq('board_id', board.id)
+      .is('duplicate_of', null)
       .in('status', ['open', 'in_progress', 'planned', 'done'])
       .order('created_at', { ascending: false });
 
