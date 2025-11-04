@@ -32,7 +32,7 @@ import {
   ChevronDown,
   X,
   FileText,
-  Trash2,
+  Trash,
   AlertTriangle,
   Wand2,
   Loader2,
@@ -1320,7 +1320,7 @@ export default function BoardPage() {
                               title="Delete post"
                               aria-label="Delete post"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash className="w-4 h-4" />
                             </Button>
                           )}
                         </div>

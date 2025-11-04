@@ -21,7 +21,7 @@ import {
   Facebook,
   Link as LinkIcon,
   UserPlus,
-  Trash2,
+  Trash,
   AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -1218,7 +1218,7 @@ export default function PublicPostDetails({
                                   title="Delete comment"
                                   aria-label="Delete comment"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash className="w-4 h-4" />
                                 </Button>
                               )}
                             </div>
@@ -1322,7 +1322,7 @@ export default function PublicPostDetails({
                                             title="Delete reply"
                                             aria-label="Delete reply"
                                           >
-                                            <Trash2 className="w-4 h-4" />
+                                            <Trash className="w-4 h-4" />
                                           </Button>
                                         )}
                                       </div>
