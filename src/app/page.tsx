@@ -188,7 +188,7 @@ export default function Homepage() {
               <span className="text-base md:text-xl font-bold text-gray-900 hidden xs:inline">SignalsLoop</span>
             </Link>
             
-            <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm text-gray-600">
+            <nav className="hidden lg:flex items-center gap-6 xl:gap-7 text-sm text-gray-600 whitespace-nowrap">
               <Link href="#features" className="hover:text-gray-900 transition-colors min-touch-target">
                 Features
               </Link>
@@ -198,17 +198,15 @@ export default function Homepage() {
               <Link href="/demo/board" className="text-purple-600 hover:text-purple-700 font-semibold transition-colors flex items-center gap-1 min-touch-target whitespace-nowrap">
                 🎯 Demo
               </Link>
-              <span className="hidden xl:inline-block h-5 w-px bg-gray-200"></span>
-              <div className="flex items-center gap-6 text-sm whitespace-nowrap">
-                <div className="flex items-center gap-1">
-                  <span className="text-green-500">🔒</span>
-                  <span>SSL Encrypted</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-blue-500">⚡</span>
-                  <span>5 AI Features</span>
-                </div>
-              </div>
+              <span className="hidden xl:inline-block h-4 w-px bg-gray-200"></span>
+              <span className="flex items-center gap-1 text-gray-500">
+                <span className="text-green-500">🔒</span>
+                <span>SSL Encrypted</span>
+              </span>
+              <span className="flex items-center gap-1 text-gray-500">
+                <span className="text-blue-500">⚡</span>
+                <span>5 AI Features</span>
+              </span>
             </nav>
             
             <div className="flex items-center gap-2">
