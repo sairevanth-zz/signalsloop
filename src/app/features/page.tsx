@@ -332,7 +332,7 @@ export default function FeaturesPage() {
                 <div>
                   <h3 className="font-bold text-gray-900 dark:text-white mb-2 text-xl">"I walked into the exec meeting with data, not opinions"</h3>
                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
-                    Instead of guessing, Sarah showed her CEO the top 5 features based on urgency votes and AI priority scores. The roadmap was approved in 10 minutes.
+                    Instead of guessing, Srini showed their CEO the top 5 features based on urgency votes and AI priority scores. The roadmap was approved in 10 minutes.
                   </p>
                   <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">Result: Roadmap confidence • Exec trust • Less pushback</div>
                 </div>
@@ -346,7 +346,7 @@ export default function FeaturesPage() {
                 <div>
                   <h3 className="font-bold text-gray-900 dark:text-white mb-2 text-xl">"I got 15 hours back every week"</h3>
                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
-                    Marcus used to spend Monday-Wednesday just reading and tagging feedback. Now AI does it overnight. He spends Mondays planning sprints instead.
+                    Vipin used to spend Monday-Wednesday just reading and tagging feedback. Now AI does it overnight. He spends Mondays planning sprints instead.
                   </p>
                   <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">Result: 60 hours/month saved • More time building • Less burnout</div>
                 </div>

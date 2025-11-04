@@ -261,7 +261,7 @@ export default function Homepage() {
           {/* Urgency/Social Proof */}
           <div className="mb-6 flex items-center justify-center gap-2 text-sm text-gray-600 animate-fade-in">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="font-medium">🔥 <strong className="text-gray-900">147 product teams</strong> signed up this week</span>
+            <span className="font-medium">🔥 <strong className="text-gray-900">Early access spots</strong> open this week</span>
           </div>
 
           {/* Enhanced Trust Indicators with Metrics */}
@@ -288,7 +288,7 @@ export default function Homepage() {
             </div>
             <div className="flex items-center gap-1.5 bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full border border-pink-200 hover-float hover:bg-pink-200 transition-colors">
               <div className="w-2 h-2 bg-pink-500 rounded-full animate-pulse"></div>
-              <span>100+ Teams Using</span>
+              <span>Customer-Led Insights</span>
             </div>
           </div>
 
@@ -364,11 +364,11 @@ export default function Homepage() {
               <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-5 shadow-lg border-2 border-blue-200 hover:shadow-xl hover:scale-102 transition-all hover-float">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-md">
-                    <span className="text-white text-lg font-bold">M</span>
+                    <span className="text-white text-lg font-bold">V</span>
                   </div>
                   <div>
-                    <div className="font-bold text-gray-900">Marcus Chen</div>
-                    <div className="text-xs text-blue-600 font-medium">Solo Founder @ TaskFlow</div>
+                    <div className="font-bold text-gray-900">Vipin</div>
+                    <div className="text-xs text-blue-600 font-medium">Solo Founder @ Apex Cloud Hub</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 mb-2">
@@ -388,8 +388,8 @@ export default function Homepage() {
                     <span className="text-white text-lg font-bold">S</span>
                   </div>
                   <div>
-                    <div className="font-bold text-gray-900">Sarah Martinez</div>
-                    <div className="text-xs text-green-600 font-medium">Head of Product @ GrowthLabs</div>
+                    <div className="font-bold text-gray-900">Srini</div>
+                    <div className="text-xs text-green-600 font-medium">Head of Product @ Sanjeevani</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 mb-2">
@@ -419,8 +419,8 @@ export default function Homepage() {
                   </div>
                 </div>
                 <div className="text-left">
-                  <div className="text-sm font-bold text-gray-900">100+ Teams</div>
-                  <div className="text-xs text-gray-500">Using SignalsLoop</div>
+                  <div className="text-sm font-bold text-gray-900">Product Teams</div>
+                  <div className="text-xs text-gray-500">Building with SignalsLoop</div>
                 </div>
               </div>
               <div className="h-10 w-px bg-gray-200"></div>
@@ -464,8 +464,8 @@ export default function Homepage() {
             <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
               <Users className="h-5 w-5 text-purple-500" />
               <div className="text-left">
-                <div className="font-semibold text-gray-900">100+ Teams</div>
-                <div className="text-xs">Trusted Globally</div>
+                <div className="font-semibold text-gray-900">Customer-Driven Teams</div>
+                <div className="text-xs">Guiding the roadmap</div>
               </div>
             </div>
           </div>
@@ -574,7 +574,7 @@ export default function Homepage() {
                               </div>
                               <div className="text-xs text-gray-600 mb-2">Users want the ability to switch between light and dark themes for better accessibility...</div>
                               <div className="flex items-center gap-4 text-xs text-gray-500">
-                                <span>👤 Sarah M.</span>
+                                <span>👤 Srini</span>
                                 <span>🕒 2 hours ago</span>
                                 <span>💬 5 comments</span>
                                 <span className="text-purple-600 font-medium">🤖 AI: 8.5 score</span>
@@ -897,7 +897,7 @@ export default function Homepage() {
                 <div>
                   <h3 className="font-bold text-gray-900 mb-2">Users Feel Ignored</h3>
                   <p className="text-sm text-gray-700 leading-relaxed">
-                    Sarah submitted feedback 2 months ago. Never got a reply. Didn't know you were building it. She switched to your competitor last week.
+                    Srini submitted feedback 2 months ago. Never got a reply. Didn't know you were building it. They switched to your competitor last week.
                   </p>
                 </div>
               </div>
@@ -1328,7 +1328,7 @@ export default function Homepage() {
                 <div>
                   <h3 className="font-bold text-gray-900 mb-2 text-xl">"I walked into the exec meeting with data, not opinions"</h3>
                   <p className="text-gray-700 leading-relaxed mb-3">
-                    Instead of guessing, Sarah showed her CEO the top 5 features based on urgency votes and AI priority scores. The roadmap was approved in 10 minutes.
+                    Instead of guessing, Srini showed their CEO the top 5 features based on urgency votes and AI priority scores. The roadmap was approved in 10 minutes.
                   </p>
                   <div className="text-sm text-green-600 font-medium">Result: Roadmap confidence • Exec trust • Less pushback</div>
                 </div>
@@ -1342,7 +1342,7 @@ export default function Homepage() {
                 <div>
                   <h3 className="font-bold text-gray-900 mb-2 text-xl">"I got 15 hours back every week"</h3>
                   <p className="text-gray-700 leading-relaxed mb-3">
-                    Marcus used to spend Monday-Wednesday just reading and tagging feedback. Now AI does it overnight. He spends Mondays planning sprints instead.
+                    Vipin used to spend Monday-Wednesday just reading and tagging feedback. Now AI does it overnight. He spends Mondays planning sprints instead.
                   </p>
                   <div className="text-sm text-blue-600 font-medium">Result: 60 hours/month saved • More time building • Less burnout</div>
                 </div>
@@ -1472,7 +1472,7 @@ export default function Homepage() {
                   </div>
                   <div className="bg-gray-100 rounded-lg p-3 text-left">
                     <div className="text-xs text-gray-600 mb-1">"The login button doesn't work on mobile"</div>
-                    <div className="text-xs text-gray-500">Submitted by Sarah M.</div>
+                    <div className="text-xs text-gray-500">Submitted by Srini</div>
                   </div>
                 </div>
                 
@@ -1791,7 +1791,7 @@ export default function Homepage() {
                     <div className="p-4 md:p-6">
                       {/* Welcome Section */}
                       <div className="mb-4 md:mb-6">
-                        <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Welcome back, Sarah!</h2>
+                        <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Welcome back, Srini!</h2>
                         <p className="text-sm md:text-base text-gray-600">Here's what's happening with your app today.</p>
                       </div>
                       
