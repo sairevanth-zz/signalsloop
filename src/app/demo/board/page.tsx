@@ -568,12 +568,6 @@ export default function DemoBoard() {
     loadDemoData();
   }, []);
 
-  useEffect(() => {
-    const handleOutsideClick = () => setActiveVotePostId(null);
-    document.addEventListener('click', handleOutsideClick);
-    return () => document.removeEventListener('click', handleOutsideClick);
-  }, []);
-
   const statusOptions = [
     { value: 'all', label: 'All Status', icon: Filter },
     { value: 'open', label: 'Open', icon: AlertCircle },
