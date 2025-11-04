@@ -53,8 +53,8 @@ export interface DuplicateCluster {
 const THRESHOLDS = {
   exact: 0.95,      // Nearly identical
   semantic: 0.85,   // Same issue, different wording
-  partial: 0.65,    // Partially overlapping (lowered from 0.75)
-  related: 0.55,    // Related but distinct
+  partial: 0.70,    // Partially overlapping (balanced threshold)
+  related: 0.60,    // Related but distinct
 };
 
 /**
@@ -293,12 +293,16 @@ export async function detectDuplicateClusters(
       if (processedPosts.has(otherPost.id)) continue;
       if (!otherPost.embedding || otherPost.embedding.length === 0) continue;
 
-      // Check for exact title match first (case-insensitive)
-      const exactTitleMatch = post.title.trim().toLowerCase() === otherPost.title.trim().toLowerCase();
+      // Check if title is specific enough for exact matching (not generic)
+      const isGenericTitle = post.title.split(/\s+/).length <= 3 || post.title.length < 20;
+
+      // Only auto-match exact titles if they're specific enough
+      const exactTitleMatch = !isGenericTitle &&
+        post.title.trim().toLowerCase() === otherPost.title.trim().toLowerCase();
 
       const similarity = cosineSimilarity(post.embedding, otherPost.embedding);
 
-      // Consider it a duplicate if exact title match OR similarity exceeds threshold
+      // Consider it a duplicate if exact title match (for specific titles) OR similarity exceeds threshold
       if (exactTitleMatch || similarity >= clusterThreshold) {
         // Perform AI analysis only for similar posts
         const analysis = await analyzeSemanticDuplicates(

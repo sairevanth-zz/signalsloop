@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes for Pro plan
 
 const DEFAULT_BATCH_LIMIT = 50;
-const DEFAULT_SIMILARITY_THRESHOLD = 0.65; // 65% similarity - lowered to catch more related issues
+const DEFAULT_SIMILARITY_THRESHOLD = 0.70; // 70% similarity - balanced to avoid false positives
 
 export async function OPTIONS() {
   return NextResponse.json({ success: true });
