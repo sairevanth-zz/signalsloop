@@ -32,7 +32,7 @@ import {
   ChevronDown,
   X,
   FileText,
-  Trash,
+  Trash2,
   AlertTriangle,
   Wand2,
   Loader2,
@@ -1316,11 +1316,11 @@ export default function BoardPage() {
                                 e.stopPropagation();
                                 handleDeletePost(post.id);
                               }}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto cursor-pointer"
                               title="Delete post"
                               aria-label="Delete post"
                             >
-                              <Trash className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           )}
                         </div>
