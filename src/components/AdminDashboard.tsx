@@ -546,6 +546,19 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
     }
 
     try {
+      // First, unmerge any duplicates that reference this post
+      const { error: unmergeError } = await supabase
+        .from('posts')
+        .update({ duplicate_of: null })
+        .eq('duplicate_of', postId);
+
+      if (unmergeError) {
+        console.error('Error unmerging duplicates:', unmergeError);
+        onShowNotification?.('Error unmerging duplicate posts', 'error');
+        return;
+      }
+
+      // Now delete the post
       const { error } = await supabase
         .from('posts')
         .delete()
@@ -560,7 +573,7 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
       // Update local state
       setPosts(prev => prev.filter(post => post.id !== postId));
       setSelectedPosts(prev => prev.filter(id => id !== postId));
-      
+
       onShowNotification?.('Post deleted successfully', 'success');
 
     } catch (error) {
