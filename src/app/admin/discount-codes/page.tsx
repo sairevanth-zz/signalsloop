@@ -59,7 +59,9 @@ export default function AdminDiscountCodesPage() {
   const [maxDiscount, setMaxDiscount] = useState('');
   const [usageLimit, setUsageLimit] = useState('');
   const [validUntil, setValidUntil] = useState('');
-  const [targetEmail, setTargetEmail] = useState(''); // New field for email-specific codes
+  const [targetEmail, setTargetEmail] = useState('');
+  const [duration, setDuration] = useState<'once' | 'repeating' | 'forever'>('once');
+  const [durationInMonths, setDurationInMonths] = useState('');
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -130,6 +132,8 @@ export default function AdminDiscountCodesPage() {
           usage_limit: usageLimit ? parseInt(usageLimit, 10) : undefined,
           valid_until: validUntil || undefined,
           target_email: targetEmail || undefined,
+          duration: duration,
+          duration_in_months: durationInMonths ? parseInt(durationInMonths, 10) : undefined,
         }),
       });
 
@@ -149,6 +153,8 @@ export default function AdminDiscountCodesPage() {
       setUsageLimit('');
       setValidUntil('');
       setTargetEmail('');
+      setDuration('once');
+      setDurationInMonths('');
       setShowCreateForm(false);
       
       // Reload codes
@@ -374,7 +380,7 @@ export default function AdminDiscountCodesPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="discount-value">Discount Value *</Label>
                     <Input
@@ -385,7 +391,7 @@ export default function AdminDiscountCodesPage() {
                       onChange={(e) => setDiscountValue(e.target.value)}
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="min-amount">Minimum Amount</Label>
                     <Input
@@ -396,6 +402,41 @@ export default function AdminDiscountCodesPage() {
                       onChange={(e) => setMinAmount(e.target.value)}
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="duration">Duration</Label>
+                    <Select value={duration} onValueChange={(value: 'once' | 'repeating' | 'forever') => setDuration(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="once">Once (one-time discount)</SelectItem>
+                        <SelectItem value="repeating">Repeating (multiple months)</SelectItem>
+                        <SelectItem value="forever">Forever</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-gray-500 mt-1">
+                      How long the discount applies to recurring subscriptions
+                    </p>
+                  </div>
+
+                  {duration === 'repeating' && (
+                    <div>
+                      <Label htmlFor="duration-months">Duration (Months)</Label>
+                      <Input
+                        id="duration-months"
+                        type="number"
+                        placeholder="3"
+                        value={durationInMonths}
+                        onChange={(e) => setDurationInMonths(e.target.value)}
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        e.g., 3 for "3 months free"
+                      </p>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

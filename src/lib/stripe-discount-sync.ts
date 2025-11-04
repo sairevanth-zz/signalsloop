@@ -10,6 +10,8 @@ interface CreateStripePromotionCodeParams {
   discountValue: number;
   maxRedemptions?: number;
   expiresAt?: string;
+  duration?: 'once' | 'repeating' | 'forever';
+  durationInMonths?: number;
   metadata?: Record<string, string>;
 }
 
@@ -19,17 +21,25 @@ export async function createStripePromotionCode({
   discountValue,
   maxRedemptions,
   expiresAt,
+  duration = 'once',
+  durationInMonths,
   metadata = {}
 }: CreateStripePromotionCodeParams) {
   try {
     // First, create a coupon
     const couponParams: Stripe.CouponCreateParams = {
       name: code,
+      duration: duration,
       metadata: {
         ...metadata,
         source: 'signalsloop_admin'
       }
     };
+
+    // Set duration in months if repeating
+    if (duration === 'repeating' && durationInMonths) {
+      couponParams.duration_in_months = durationInMonths;
+    }
 
     if (discountType === 'percentage') {
       couponParams.percent_off = discountValue;

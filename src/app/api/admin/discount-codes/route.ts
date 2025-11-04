@@ -47,7 +47,9 @@ export const POST = secureAPI(
       max_discount,
       usage_limit,
       valid_until,
-      target_email
+      target_email,
+      duration,
+      duration_in_months
     } = body!;
 
     const supabase = getSupabaseServiceRoleClient();
@@ -80,6 +82,8 @@ export const POST = secureAPI(
         discountValue: discount_value,
         maxRedemptions: usage_limit,
         expiresAt: valid_until,
+        duration: duration || 'once',
+        durationInMonths: duration_in_months,
         metadata: {
           source: 'signalsloop_admin',
           description: description || ''
@@ -110,6 +114,8 @@ export const POST = secureAPI(
         valid_from: new Date().toISOString(),
         valid_until,
         target_email,
+        duration: duration || 'once',
+        duration_in_months,
         is_active: true,
         usage_count: 0,
         stripe_coupon_id: stripeCouponId,
@@ -147,6 +153,8 @@ export const POST = secureAPI(
       usage_limit: z.number().int().positive().optional(),
       valid_until: z.string().optional(),
       target_email: z.string().email().optional(),
+      duration: z.enum(['once', 'repeating', 'forever']).optional(),
+      duration_in_months: z.number().int().positive().optional(),
     }),
   }
 );
