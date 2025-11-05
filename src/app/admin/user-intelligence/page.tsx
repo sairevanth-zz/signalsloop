@@ -32,7 +32,7 @@ interface UserIntelligence {
   id: string;
   user_id: string;
   email: string;
-  name: string | null;
+  full_name: string | null;
   company_name: string | null;
   company_domain: string | null;
   company_size: string | null;
@@ -53,7 +53,7 @@ interface UserIntelligence {
   enriched_at: string | null;
   users?: {
     email: string;
-    name: string | null;
+    full_name: string | null;
     plan: string | null;
     created_at: string;
   };
@@ -185,7 +185,7 @@ export default function AdminUserIntelligencePage() {
 
     const rows = filteredIntelligence.map(u => [
       u.email,
-      u.name || '',
+      u.full_name || '',
       u.company_name || '',
       u.role || '',
       u.seniority_level || '',
@@ -218,7 +218,7 @@ export default function AdminUserIntelligencePage() {
     const search = searchTerm.toLowerCase();
     return (
       u.email.toLowerCase().includes(search) ||
-      u.name?.toLowerCase().includes(search) ||
+      u.full_name?.toLowerCase().includes(search) ||
       u.company_name?.toLowerCase().includes(search) ||
       u.role?.toLowerCase().includes(search)
     );
@@ -383,7 +383,7 @@ export default function AdminUserIntelligencePage() {
                       >
                         <td className="px-4 py-4">
                           <div className="flex flex-col">
-                            <span className="font-medium text-gray-900">{user.name || 'Unknown'}</span>
+                            <span className="font-medium text-gray-900">{user.full_name || 'Unknown'}</span>
                             <span className="text-sm text-gray-500">{user.email}</span>
                           </div>
                         </td>

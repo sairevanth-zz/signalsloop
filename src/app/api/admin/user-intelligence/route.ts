@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       .from('user_intelligence')
       .select(`
         *,
-        users!inner(email, plan, created_at)
+        users!inner(email, full_name, plan, created_at)
       `, { count: 'exact' })
       .order(sortField, { ascending: sortOrder === 'asc' })
       .range(offset, offset + limit - 1);
