@@ -34,6 +34,7 @@ psql "YOUR_SUPABASE_CONNECTION_STRING" < user-intelligence-schema.sql
 OPENAI_API_KEY=sk-...
 SERPER_API_KEY=...
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+DAILY_DIGEST_EMAIL=your@email.com  # For daily email digest
 
 # Optional
 GITHUB_TOKEN=ghp_...
@@ -64,6 +65,13 @@ Check your Slack channel for the notification!
 - Synthesizes everything with AI
 - Stores in `user_intelligence` table
 - Sends rich Slack notification
+
+✅ Daily at 9:00 AM UTC:
+- Email digest with 24hr stats
+- Plan breakdown (free/pro/gift)
+- Top companies that signed up
+- Notable signups (high confidence, interesting roles)
+- Direct link to admin dashboard
 
 ## View Enriched Data
 

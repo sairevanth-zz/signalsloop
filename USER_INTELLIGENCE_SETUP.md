@@ -66,6 +66,9 @@ HUNTER_API_KEY=...  # Get from https://hunter.io
 # Required - Slack webhook for notifications
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
 
+# Required - Daily digest email
+DAILY_DIGEST_EMAIL=your@email.com  # Email to receive daily user intelligence digest
+
 # Already configured
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
@@ -192,7 +195,9 @@ SELECT
 FROM user_intelligence;
 ```
 
-## Slack Notifications
+## Notifications
+
+### Real-Time Slack Notifications
 
 When a user signs up, you'll receive a Slack notification with:
 
@@ -203,6 +208,38 @@ When a user signs up, you'll receive a Slack notification with:
 - Bio and location
 - Confidence score (🟢 high, 🟡 medium, 🔴 low)
 - Data sources used
+
+### Daily Email Digest
+
+Every day at 9:00 AM UTC, you'll receive an email digest with:
+
+**Summary Statistics:**
+- Total new signups in last 24 hours
+- Enrichment success rate
+- Average confidence score
+
+**Plan Breakdown:**
+- Number of free signups
+- Number of pro signups (monthly/annual)
+- Number of gift subscriptions
+- Number of discount code signups
+
+**Top Companies:**
+- Up to 5 companies with most signups
+- Number of signups per company
+
+**Notable Signups:**
+- High-confidence enrichments (>70%)
+- Pro plan signups
+- Users from interesting companies
+- Users with complete profiles (company + role)
+
+**Direct Link:**
+- One-click access to full admin dashboard
+
+The email is beautifully formatted with color-coded confidence scores and plan emojis. If there are no signups in 24 hours, you'll still receive a brief summary email.
+
+**Customize the schedule:** Edit `vercel.json` to change when the digest is sent (currently daily at 9 AM UTC)
 
 ## Cost Estimate
 
