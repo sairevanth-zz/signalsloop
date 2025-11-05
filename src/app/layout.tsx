@@ -45,20 +45,11 @@ export const metadata: Metadata = {
     title: "AI Feedback Management - Auto-Categorize & Prioritize | SignalsLoop",
     description: "AI-powered feedback management for product teams. Auto-categorize, detect duplicates, score priorities. From $19/mo vs $99-299/mo competitors.",
     siteName: "SignalsLoop",
-    images: [
-      {
-        url: "https://signalsloop.com/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "SignalsLoop - AI Feedback Management Platform",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "AI Feedback Management - Auto-Categorize & Prioritize | SignalsLoop",
     description: "AI-powered feedback management for product teams. From $19/mo vs $99-299/mo competitors.",
-    images: ["https://signalsloop.com/og-image.png"],
     creator: "@signalsloop",
   },
   robots: {
