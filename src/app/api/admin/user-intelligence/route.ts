@@ -29,13 +29,10 @@ export async function GET(request: NextRequest) {
     const sortField = searchParams.get('sort') || 'created_at';
     const sortOrder = (searchParams.get('order') || 'desc') as 'asc' | 'desc';
 
-    // Fetch user intelligence with user data
+    // Fetch user intelligence data
     const { data: intelligence, error: intelligenceError, count } = await supabase
       .from('user_intelligence')
-      .select(`
-        *,
-        users!inner(email, full_name, plan, created_at)
-      `, { count: 'exact' })
+      .select('*', { count: 'exact' })
       .order(sortField, { ascending: sortOrder === 'asc' })
       .range(offset, offset + limit - 1);
 
