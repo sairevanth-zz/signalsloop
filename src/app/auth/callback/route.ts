@@ -85,6 +85,32 @@ export async function GET(request: NextRequest) {
               } else {
                 console.log('[WELCOME EMAIL] Welcome email already sent at:', userRecord.welcome_email_sent_at);
               }
+
+              // Trigger user enrichment for new users (run in background)
+              const userCreatedAt = new Date(data.user.created_at);
+              const timeSinceCreation = Date.now() - userCreatedAt.getTime();
+              const isNewUser = timeSinceCreation < 300000; // Within last 5 minutes
+
+              if (isNewUser) {
+                console.log('[ENRICHMENT] Triggering enrichment for new user:', data.user.id);
+                try {
+                  // Call enrichment API asynchronously (fire and forget)
+                  fetch(`${origin}/api/users/enrich`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      userId: data.user.id,
+                      runAsync: true
+                    })
+                  }).catch(enrichError => {
+                    console.error('[ENRICHMENT] Failed to trigger enrichment:', enrichError);
+                  });
+                  console.log('[ENRICHMENT] Enrichment request initiated');
+                } catch (enrichError) {
+                  console.error('[ENRICHMENT] Error triggering enrichment:', enrichError);
+                  // Don't block signup flow on enrichment errors
+                }
+              }
             } catch (recordError) {
               console.error('[WELCOME EMAIL] Failed to ensure user record before welcome email:', recordError);
               console.error('[WELCOME EMAIL] Record error details:', JSON.stringify(recordError, null, 2));
