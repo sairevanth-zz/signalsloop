@@ -458,13 +458,28 @@ export default function Homepage() {
                 <div className="text-xs">Always Available</div>
               </div>
             </div>
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
-              <Users className="h-5 w-5 text-purple-500" />
-              <div className="text-left">
-                <div className="font-semibold text-gray-900">Customer-Driven Teams</div>
-                <div className="text-xs">Guiding the roadmap</div>
-              </div>
+          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
+            <Users className="h-5 w-5 text-purple-500" />
+            <div className="text-left">
+              <div className="font-semibold text-gray-900">Customer-Driven Teams</div>
+              <div className="text-xs">Guiding the roadmap</div>
             </div>
+          </div>
+        </div>
+
+          {/* Product Hunt Badge */}
+          <div className="flex justify-center mb-12">
+            <a
+              href="https://www.producthunt.com/products/signalsloop?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-signalsloop"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1034282&theme=light&t=1762334865008"
+                alt="SignalsLoop - AI feedback management that auto-prioritizes your roadmap | Product Hunt"
+                className="h-14 w-auto"
+              />
+            </a>
           </div>
 
           {/* Product Screenshot */}
