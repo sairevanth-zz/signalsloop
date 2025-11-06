@@ -112,23 +112,40 @@ export async function GET(request: NextRequest) {
                 }
 
                 console.log('[ENRICHMENT] Triggering enrichment for new user:', data.user.id);
-                try {
-                  // Call enrichment API asynchronously (fire and forget)
-                  fetch(`${origin}/api/users/enrich`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      userId: data.user.id,
-                      runAsync: true
-                    })
-                  }).catch(enrichError => {
-                    console.error('[ENRICHMENT] Failed to trigger enrichment:', enrichError);
+                console.log('[ENRICHMENT] User record data:', {
+                  userId: data.user.id,
+                  email: userRecord.email,
+                  name: userRecord.name,
+                  plan: userRecord.plan
+                });
+
+                // Call enrichment API asynchronously with proper error handling
+                fetch(`${origin}/api/users/enrich`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    userId: data.user.id,
+                    runAsync: true
+                  })
+                })
+                  .then(async (response) => {
+                    const responseText = await response.text();
+                    console.log('[ENRICHMENT] API Response Status:', response.status);
+                    console.log('[ENRICHMENT] API Response Body:', responseText);
+
+                    if (!response.ok) {
+                      console.error('[ENRICHMENT] API returned error:', response.status, responseText);
+                    } else {
+                      console.log('[ENRICHMENT] ✅ Enrichment request accepted');
+                    }
+                  })
+                  .catch(enrichError => {
+                    console.error('[ENRICHMENT] ❌ Failed to call enrichment API:', enrichError);
+                    console.error('[ENRICHMENT] Error details:', {
+                      message: enrichError.message,
+                      stack: enrichError.stack
+                    });
                   });
-                  console.log('[ENRICHMENT] Enrichment request initiated');
-                } catch (enrichError) {
-                  console.error('[ENRICHMENT] Error triggering enrichment:', enrichError);
-                  // Don't block signup flow on enrichment errors
-                }
               }
             } catch (recordError) {
               console.error('[WELCOME EMAIL] Failed to ensure user record before welcome email:', recordError);
