@@ -4,7 +4,7 @@ import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 /**
  * GET /api/admin/user-intelligence
  *
- * Fetch all user intelligence data (admin only)
+ * Fetch all users with their intelligence data (admin only)
  *
  * Query params:
  * - limit: number of records to return (default: 50)
@@ -29,24 +29,71 @@ export async function GET(request: NextRequest) {
     const sortField = searchParams.get('sort') || 'created_at';
     const sortOrder = (searchParams.get('order') || 'desc') as 'asc' | 'desc';
 
-    // Fetch user intelligence data
-    const { data: intelligence, error: intelligenceError, count } = await supabase
-      .from('user_intelligence')
-      .select('*', { count: 'exact' })
+    // Fetch all users
+    const { data: users, error: usersError, count: totalUsers } = await supabase
+      .from('users')
+      .select('id, email, full_name, plan, created_at', { count: 'exact' })
       .order(sortField, { ascending: sortOrder === 'asc' })
       .range(offset, offset + limit - 1);
 
-    if (intelligenceError) {
-      console.error('[Admin] Error fetching user intelligence:', intelligenceError);
+    if (usersError) {
+      console.error('[Admin] Error fetching users:', usersError);
       return NextResponse.json(
-        { error: 'Failed to fetch user intelligence' },
+        { error: 'Failed to fetch users' },
         { status: 500 }
       );
     }
 
+    // Fetch intelligence data for these users
+    const userIds = users?.map(u => u.id) || [];
+    let enrichmentMap = new Map<string, any>();
+
+    if (userIds.length > 0) {
+      const { data: intelligence, error: intelligenceError } = await supabase
+        .from('user_intelligence')
+        .select('*')
+        .in('user_id', userIds);
+
+      if (!intelligenceError && intelligence) {
+        enrichmentMap = new Map(intelligence.map(intel => [intel.user_id, intel]));
+      }
+    }
+
+    // Merge users with their intelligence data
+    const mergedData = (users || []).map(user => {
+      const intel = enrichmentMap.get(user.id);
+      return {
+        // User fields
+        user_id: user.id,
+        email: user.email,
+        name: user.full_name,
+        plan: user.plan,
+        created_at: user.created_at,
+
+        // Intelligence fields (null if not enriched)
+        company_name: intel?.company_name || null,
+        company_domain: intel?.company_domain || null,
+        company_size: intel?.company_size || null,
+        industry: intel?.industry || null,
+        role: intel?.role || null,
+        seniority_level: intel?.seniority_level || null,
+        linkedin_url: intel?.linkedin_url || null,
+        twitter_url: intel?.twitter_url || null,
+        github_url: intel?.github_url || null,
+        github_username: intel?.github_username || null,
+        bio: intel?.bio || null,
+        location: intel?.location || null,
+        website: intel?.website || null,
+        confidence_score: intel?.confidence_score || null,
+        data_sources: intel?.data_sources || [],
+        enriched_at: intel?.enriched_at || null,
+        has_enrichment: !!intel
+      };
+    });
+
     return NextResponse.json({
-      data: intelligence || [],
-      total: count || 0,
+      data: mergedData,
+      total: totalUsers || 0,
       limit,
       offset
     });

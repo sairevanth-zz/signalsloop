@@ -2444,6 +2444,16 @@ export async function sendDailyIntelligenceDigest(params: {
     enrichmentRate: number;
     avgConfidence: number;
   };
+  allSignups: Array<{
+    email: string;
+    name: string | null;
+    company: string | null;
+    role: string | null;
+    plan: string;
+    confidence: number;
+    hasEnrichment: boolean;
+    createdAt: string;
+  }>;
   notableSignups: Array<{
     email: string;
     name: string | null;
@@ -2455,7 +2465,7 @@ export async function sendDailyIntelligenceDigest(params: {
   timeframeStart: string;
   timeframeEnd: string;
 }): Promise<{ success: boolean; data?: unknown }> {
-  const { toEmail, stats, notableSignups, timeframeStart, timeframeEnd } = params;
+  const { toEmail, stats, allSignups, notableSignups, timeframeStart, timeframeEnd } = params;
 
   const startDate = new Date(timeframeStart);
   const endDate = new Date(timeframeEnd);
@@ -2580,16 +2590,74 @@ export async function sendDailyIntelligenceDigest(params: {
     }
 
     ${
+      allSignups.length > 0
+        ? `
+    <!-- All New Signups -->
+    <tr>
+      <td style="padding: 0 40px 30px;">
+        <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #111827;">👥 All New Signups</h3>
+        ${allSignups
+          .map(
+            (signup) => `
+        <div style="margin-bottom: 12px; padding: 14px; background-color: #f9fafb; border-radius: 8px; ${signup.hasEnrichment ? `border-left: 3px solid ${getConfidenceColor(signup.confidence)};` : 'border-left: 3px solid #d1d5db;'}">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
+            <div style="flex: 1;">
+              <div style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 2px;">
+                ${signup.name || 'Unknown'}
+              </div>
+              <div style="font-size: 12px; color: #6b7280;">
+                ${signup.email}
+              </div>
+            </div>
+            <div style="font-size: 18px; margin-left: 10px;">
+              ${getPlanEmoji(signup.plan)}
+            </div>
+          </div>
+          ${
+            signup.company || signup.role
+              ? `
+          <div style="margin-top: 6px; font-size: 12px; color: #374151;">
+            ${signup.company ? `<span style="margin-right: 10px;"><strong>Company:</strong> ${signup.company}</span>` : ''}
+            ${signup.role ? `<span><strong>Role:</strong> ${signup.role}</span>` : ''}
+          </div>
+          `
+              : ''
+          }
+          ${
+            signup.hasEnrichment
+              ? `<div style="margin-top: 6px; font-size: 11px;">
+            <span style="padding: 2px 6px; background-color: ${getConfidenceColor(signup.confidence)}; color: white; border-radius: 3px; font-weight: 500;">
+              ${Math.round(signup.confidence * 100)}% confidence
+            </span>
+          </div>`
+              : `<div style="margin-top: 6px; font-size: 11px; color: #9ca3af;">
+            <span style="padding: 2px 6px; background-color: #e5e7eb; color: #6b7280; border-radius: 3px;">
+              Enrichment pending
+            </span>
+          </div>`
+          }
+        </div>
+        `
+          )
+          .join('')}
+      </td>
+    </tr>
+    `
+        : ''
+    }
+
+    ${
       notableSignups.length > 0
         ? `
     <!-- Notable Signups -->
     <tr>
       <td style="padding: 0 40px 30px;">
-        <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #111827;">⭐ Notable Signups</h3>
+        <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #111827;">⭐ Notable Signups (Highlights)</h3>
+        <p style="margin: 0 0 12px; font-size: 13px; color: #6b7280;">High-value signups with strong enrichment data:</p>
         ${notableSignups
           .map(
             (signup) => `
-        <div style="margin-bottom: 16px; padding: 16px; background-color: #f9fafb; border-radius: 8px; border-left: 4px solid ${getConfidenceColor(signup.confidence)};">
+        <div style="margin-bottom: 16px; padding: 16px; background-color: #f0fdf4; border-radius: 8px; border-left: 4px solid ${getConfidenceColor(signup.confidence)};">
           <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
             <div>
               <div style="font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 2px;">

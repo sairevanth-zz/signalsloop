@@ -125,26 +125,36 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
+    // Create enrichment lookup map
+    const enrichmentMap = new Map(enrichmentData.map(intel => [intel.user_id, intel]));
+
+    // Merge all new users with their enrichment data (if available)
+    const allSignups = (newUsers || []).map(user => {
+      const intel = enrichmentMap.get(user.id);
+      return {
+        email: user.email,
+        name: user.name || intel?.name || null,
+        company: intel?.company_name || null,
+        role: intel?.role || null,
+        plan: user.plan || 'free',
+        confidence: intel?.confidence_score || 0,
+        hasEnrichment: !!intel,
+        createdAt: user.created_at
+      };
+    });
+
     // Get notable signups (high confidence, pro plans, or interesting companies)
-    const notableSignups = enrichmentData
-      .filter(intel => {
+    const notableSignups = allSignups
+      .filter(signup => {
         // Notable if: high confidence (>70%), or pro plan, or has company + role
         return (
-          intel.confidence_score > 0.7 ||
-          (intel.plan_type && intel.plan_type.includes('pro')) ||
-          (intel.company_name && intel.role)
+          signup.confidence > 0.7 ||
+          (signup.plan && signup.plan.includes('pro')) ||
+          (signup.company && signup.role)
         );
       })
-      .sort((a, b) => (b.confidence_score || 0) - (a.confidence_score || 0))
-      .slice(0, 10)
-      .map(intel => ({
-        email: intel.email,
-        name: intel.name,
-        company: intel.company_name,
-        role: intel.role,
-        plan: intel.plan_type || 'free',
-        confidence: intel.confidence_score || 0
-      }));
+      .sort((a, b) => b.confidence - a.confidence)
+      .slice(0, 10);
 
     // Send email
     const emailResult = await sendDailyIntelligenceDigest({
@@ -156,6 +166,7 @@ export async function GET(request: NextRequest) {
         enrichmentRate,
         avgConfidence
       },
+      allSignups,
       notableSignups,
       timeframeStart,
       timeframeEnd

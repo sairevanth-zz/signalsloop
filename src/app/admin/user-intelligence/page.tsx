@@ -29,10 +29,11 @@ import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface UserIntelligence {
-  id: string;
   user_id: string;
   email: string;
   name: string | null;
+  plan: string | null;
+  created_at: string;
   company_name: string | null;
   company_domain: string | null;
   company_size: string | null;
@@ -46,11 +47,10 @@ interface UserIntelligence {
   bio: string | null;
   location: string | null;
   website: string | null;
-  confidence_score: number;
+  confidence_score: number | null;
   data_sources: string[];
-  plan_type: string | null;
-  created_at: string;
   enriched_at: string | null;
+  has_enrichment: boolean;
 }
 
 export default function AdminUserIntelligencePage() {
@@ -99,11 +99,12 @@ export default function AdminUserIntelligencePage() {
 
         // Calculate stats
         const total = data.data.length;
+        const enriched = data.data.filter((u: UserIntelligence) => u.has_enrichment);
         const withCompany = data.data.filter((u: UserIntelligence) => u.company_name).length;
         const withGithub = data.data.filter((u: UserIntelligence) => u.github_url).length;
         const withLinkedin = data.data.filter((u: UserIntelligence) => u.linkedin_url).length;
-        const avgConfidence = total > 0
-          ? data.data.reduce((sum: number, u: UserIntelligence) => sum + (u.confidence_score || 0), 0) / total
+        const avgConfidence = enriched.length > 0
+          ? enriched.reduce((sum: number, u: UserIntelligence) => sum + (u.confidence_score || 0), 0) / enriched.length
           : 0;
 
         setStats({
@@ -139,7 +140,8 @@ export default function AdminUserIntelligencePage() {
     }
   };
 
-  const getConfidenceBadge = (score: number) => {
+  const getConfidenceBadge = (score: number | null) => {
+    if (score === null) return <Badge variant="outline" className="bg-gray-100">⏳ Pending</Badge>;
     if (score >= 0.8) return <Badge className="bg-green-500">🟢 {Math.round(score * 100)}%</Badge>;
     if (score >= 0.5) return <Badge className="bg-yellow-500">🟡 {Math.round(score * 100)}%</Badge>;
     return <Badge className="bg-red-500">🔴 {Math.round(score * 100)}%</Badge>;
@@ -185,8 +187,8 @@ export default function AdminUserIntelligencePage() {
       u.seniority_level || '',
       u.industry || '',
       u.location || '',
-      u.plan_type || '',
-      u.confidence_score,
+      u.plan || '',
+      u.confidence_score !== null ? u.confidence_score : 'Pending',
       u.linkedin_url || '',
       u.github_url || '',
       u.twitter_url || '',
@@ -316,16 +318,16 @@ export default function AdminUserIntelligencePage() {
       {/* Intelligence Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Enriched Users ({filteredIntelligence.length})</CardTitle>
+          <CardTitle>All Users ({filteredIntelligence.length})</CardTitle>
           <CardDescription>
-            Click on any row to view full details
+            Click on any row to view full details. Users with enrichment data are highlighted.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {filteredIntelligence.length === 0 ? (
             <div className="text-center py-12">
               <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <p className="text-gray-500">No enriched users found</p>
+              <p className="text-gray-500">No users found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -370,10 +372,10 @@ export default function AdminUserIntelligencePage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredIntelligence.map((user) => (
-                    <React.Fragment key={user.id}>
+                    <React.Fragment key={user.user_id}>
                       <tr
-                        className="hover:bg-gray-50 cursor-pointer"
-                        onClick={() => setExpandedRow(expandedRow === user.id ? null : user.id)}
+                        className={`hover:bg-gray-50 cursor-pointer ${!user.has_enrichment ? 'opacity-60' : ''}`}
+                        onClick={() => setExpandedRow(expandedRow === user.user_id ? null : user.user_id)}
                       >
                         <td className="px-4 py-4">
                           <div className="flex flex-col">
@@ -437,10 +439,10 @@ export default function AdminUserIntelligencePage() {
                           {getConfidenceBadge(user.confidence_score)}
                         </td>
                         <td className="px-4 py-4">
-                          {getPlanBadge(user.plan_type)}
+                          {getPlanBadge(user.plan)}
                         </td>
                       </tr>
-                      {expandedRow === user.id && (
+                      {expandedRow === user.user_id && (
                         <tr className="bg-gray-50">
                           <td colSpan={6} className="px-4 py-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
