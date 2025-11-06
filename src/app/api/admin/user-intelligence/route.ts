@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     // Fetch all users
     const { data: users, error: usersError, count: totalUsers } = await supabase
       .from('users')
-      .select('id, email, full_name, plan, created_at', { count: 'exact' })
+      .select('id, email, name, plan, created_at', { count: 'exact' })
       .order(sortField, { ascending: sortOrder === 'asc' })
       .range(offset, offset + limit - 1);
 
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
         // User fields
         user_id: user.id,
         email: user.email,
-        name: user.full_name,
+        name: user.name,
         plan: user.plan,
         created_at: user.created_at,
 
