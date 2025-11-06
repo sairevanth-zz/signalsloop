@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { sendFreeWelcomeEmail } from '@/lib/email';
 import { ensureUserRecord } from '@/lib/users';
+import { sendSignupNotification } from '@/lib/slack-notifications';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -92,6 +93,24 @@ export async function GET(request: NextRequest) {
               const isNewUser = timeSinceCreation < 300000; // Within last 5 minutes
 
               if (isNewUser) {
+                console.log('[SIGNUP] New user detected:', data.user.id);
+
+                // Send immediate Slack notification (before enrichment)
+                try {
+                  await sendSignupNotification({
+                    userId: data.user.id,
+                    email: userRecord.email || data.user.email || 'unknown',
+                    name: userRecord.name || data.user.user_metadata?.full_name || null,
+                    plan: userRecord.plan || 'free',
+                    enrichment: null, // Will be enriched later
+                    timestamp: new Date().toISOString()
+                  });
+                  console.log('[SLACK] Immediate signup notification sent');
+                } catch (slackError) {
+                  console.error('[SLACK] Failed to send immediate notification:', slackError);
+                  // Don't block signup flow on Slack errors
+                }
+
                 console.log('[ENRICHMENT] Triggering enrichment for new user:', data.user.id);
                 try {
                   // Call enrichment API asynchronously (fire and forget)

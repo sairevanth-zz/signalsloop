@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { enrichUser, type EnrichmentInput } from '@/lib/enrichment';
-import { sendSignupNotification } from '@/lib/slack-notifications';
 
 /**
  * POST /api/users/enrich
@@ -165,16 +164,8 @@ async function enrichUserAsync(
 
     console.log('[Enrich] Successfully stored enrichment data for user:', userId);
 
-    // Send Slack notification
-    await sendSignupNotification({
-      userId,
-      email,
-      name,
-      plan,
-      enrichment: enrichmentResult,
-      timestamp: new Date().toISOString()
-    });
-
+    // Note: Slack notification is sent immediately from auth callback
+    // to ensure we don't miss signups if enrichment fails
     console.log('[Enrich] Enrichment completed successfully for user:', userId);
   } catch (error) {
     console.error('[Enrich] Enrichment failed for user:', userId, error);
@@ -198,15 +189,8 @@ async function enrichUserAsync(
           onConflict: 'user_id'
         });
 
-      // Still send Slack notification with basic info
-      await sendSignupNotification({
-        userId,
-        email,
-        name,
-        plan,
-        enrichment: null,
-        timestamp: new Date().toISOString()
-      });
+      // Note: Slack notification already sent from auth callback
+      console.log('[Enrich] Error state stored, notification already sent from auth callback');
     } catch (fallbackError) {
       console.error('[Enrich] Failed to store error state:', fallbackError);
     }

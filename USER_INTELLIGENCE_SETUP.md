@@ -199,15 +199,14 @@ FROM user_intelligence;
 
 ### Real-Time Slack Notifications
 
-When a user signs up, you'll receive a Slack notification with:
+When a user signs up, you'll receive a Slack notification **immediately** with:
 
 - Email, name, and plan type
-- Company information (name, domain, industry, size)
-- Role and seniority level
-- Social profiles (LinkedIn, GitHub, Twitter)
-- Bio and location
-- Confidence score (🟢 high, 🟡 medium, 🔴 low)
-- Data sources used
+- Signup timestamp
+
+The notification is sent right after signup (before enrichment runs) to ensure you never miss a signup notification, even if enrichment fails or times out.
+
+Once enrichment data becomes available, you can view it in the admin dashboard at `/admin/user-intelligence`.
 
 ### Daily Email Digest
 
@@ -320,9 +319,29 @@ if (!personalDomains.includes(emailDomain)) {
 
 ### Slack notifications not sending
 
-1. Test webhook: `curl -X POST $SLACK_WEBHOOK_URL -d '{"text":"test"}'`
-2. Check webhook URL format
-3. Verify Slack app has permission to post to channel
+**Common cause**: Missing `SLACK_WEBHOOK_URL` environment variable
+
+1. Check if webhook URL is set:
+   ```bash
+   # Local development
+   grep SLACK_WEBHOOK_URL .env.local
+
+   # Production (Vercel)
+   vercel env ls | grep SLACK
+   ```
+
+2. Test webhook manually:
+   ```bash
+   curl -X POST $SLACK_WEBHOOK_URL \
+     -H "Content-Type: application/json" \
+     -d '{"text":"Test notification"}'
+   ```
+
+3. Check webhook URL format (should start with `https://hooks.slack.com/services/`)
+4. Verify Slack app has permission to post to channel
+5. Check logs for `[SLACK]` messages
+
+**Note**: As of the latest update, Slack notifications are sent **immediately** when a user signs up (from the auth callback), rather than waiting for enrichment to complete. This ensures you never miss a signup notification even if enrichment fails.
 
 ### API rate limits
 
