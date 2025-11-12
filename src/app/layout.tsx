@@ -70,6 +70,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const widgetScriptSrc =
+    process.env.NEXT_PUBLIC_WIDGET_SCRIPT ?? "https://signalsloop.com/embed/demo.js";
+
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -150,10 +153,7 @@ export default function RootLayout({
           </PostHogProvider>
         </ThemeProvider>
         <Toaster richColors position="top-right" />
-        <Script
-          src="https://signalsloop.com/embed/sk_89efe32edf48184f641432ff26c6c5df.js"
-          strategy="afterInteractive"
-        />
+        <Script src={widgetScriptSrc} strategy="afterInteractive" />
       </body>
     </html>
   );
