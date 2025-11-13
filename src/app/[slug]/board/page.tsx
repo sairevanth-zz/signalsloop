@@ -91,6 +91,12 @@ interface Post {
   priority_reason?: string | null;
   ai_analyzed_at?: string | null;
   total_priority_score?: number;
+  sentiment_analysis?: Array<{
+    sentiment_category: 'positive' | 'negative' | 'neutral' | 'mixed';
+    sentiment_score: number;
+    emotional_tone: string;
+    confidence_score: number;
+  }>;
 }
 
 interface Project {
@@ -437,13 +443,14 @@ export default function BoardPage() {
         custom_css: boardData.custom_css || undefined
       });
 
-      // Build query for posts
+      // Build query for posts with sentiment data
       let postsQuery = supabase
         .from('posts')
         .select(`
           *,
           vote_summary:votes(count),
-          comment_summary:comments(count)
+          comment_summary:comments(count),
+          sentiment_analysis(sentiment_category, sentiment_score, emotional_tone, confidence_score)
         `)
         .eq('board_id', boardData.id)
         .is('duplicate_of', null); // Don't show duplicate posts
@@ -552,6 +559,7 @@ export default function BoardPage() {
           priority_reason: (post.priority_reason as string) || null,
           ai_analyzed_at: (post.ai_analyzed_at as string) || null,
           total_priority_score: typeof post.total_priority_score === 'number' ? Number(post.total_priority_score) : undefined,
+          sentiment_analysis: post.sentiment_analysis as any,
         };
       }) || [];
 
@@ -861,11 +869,19 @@ export default function BoardPage() {
     loadUserPlan();
   }, [loadUserPlan]);
 
-  // Filter posts by search term
-  const filteredPosts = posts.filter(post =>
-    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter posts by search term and sentiment
+  const filteredPosts = posts.filter(post => {
+    // Search filter
+    const matchesSearch = !searchTerm ||
+      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Sentiment filter
+    const matchesSentiment = !sentimentFilter ||
+      (post as any).sentiment_analysis?.[0]?.sentiment_category === sentimentFilter;
+
+    return matchesSearch && matchesSentiment;
+  });
 
 
   if (loading) {
