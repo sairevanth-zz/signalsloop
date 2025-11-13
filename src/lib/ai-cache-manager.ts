@@ -105,6 +105,7 @@ export const cacheManager = {
   priorityScoring: new AIResponseCache(200, 900000),      // 15 min TTL
   writingAssistant: new AIResponseCache(100, 600000),     // 10 min TTL
   sentiment: new AIResponseCache(500, 3600000),           // 1 hour TTL
+  'theme-detection': new AIResponseCache(200, 7200000),   // 2 hour TTL
 };
 
 // Cache-aware wrapper for AI functions
