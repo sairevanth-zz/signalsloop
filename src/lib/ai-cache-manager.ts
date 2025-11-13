@@ -104,6 +104,7 @@ export const cacheManager = {
   duplicateDetection: new AIResponseCache(1000, 7200000), // 2 hour TTL
   priorityScoring: new AIResponseCache(200, 900000),      // 15 min TTL
   writingAssistant: new AIResponseCache(100, 600000),     // 10 min TTL
+  sentiment: new AIResponseCache(500, 3600000),           // 1 hour TTL
 };
 
 // Cache-aware wrapper for AI functions
