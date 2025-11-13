@@ -778,13 +778,40 @@ export default function BoardPage() {
         return;
       }
 
-      // Get post IDs to analyze (limit to recent posts without sentiment analysis)
-      const postsToAnalyze = posts.slice(0, 10).map(p => p.id);
+      // First, get posts that don't have sentiment analysis yet
+      const { data: postsWithoutSentiment, error: queryError } = await supabase
+        .from('posts')
+        .select('id')
+        .eq('project_id', project.id)
+        .is('duplicate_of', null)
+        .order('created_at', { ascending: false })
+        .limit(100); // Analyze up to 100 posts at a time
 
-      if (postsToAnalyze.length === 0) {
+      if (queryError) {
+        throw new Error('Failed to fetch posts');
+      }
+
+      if (!postsWithoutSentiment || postsWithoutSentiment.length === 0) {
         toast.info('No posts available to analyze.');
         return;
       }
+
+      // Check which posts already have sentiment analysis
+      const postIds = postsWithoutSentiment.map(p => p.id);
+      const { data: existingAnalysis } = await supabase
+        .from('sentiment_analysis')
+        .select('post_id')
+        .in('post_id', postIds);
+
+      const analyzedIds = new Set(existingAnalysis?.map(a => a.post_id) || []);
+      const postsToAnalyze = postIds.filter(id => !analyzedIds.has(id));
+
+      if (postsToAnalyze.length === 0) {
+        toast.success('All posts already have sentiment analysis!');
+        return;
+      }
+
+      toast.info(`Analyzing ${postsToAnalyze.length} post(s)...`);
 
       const response = await fetch('/api/analyze-sentiment', {
         method: 'POST',
@@ -822,7 +849,7 @@ export default function BoardPage() {
     } finally {
       setAnalyzingSentiment(false);
     }
-  }, [supabase, project, posts, loadProjectAndPosts]);
+  }, [supabase, project, loadProjectAndPosts]);
 
   // Load project and posts
   useEffect(() => {
