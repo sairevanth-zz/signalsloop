@@ -546,10 +546,6 @@ export default function BoardPage() {
             ? [sentimentArray]
             : undefined;
 
-        if (sentimentData && post.id) {
-          console.log(`[DEBUG] Post ${post.id} sentiment:`, sentimentData);
-        }
-
         return {
           id: post.id as string,
           title: post.title as string,
@@ -893,16 +889,11 @@ export default function BoardPage() {
     if (sentimentFilter) {
       const sentimentData = post.sentiment_analysis;
       if (Array.isArray(sentimentData) && sentimentData.length > 0) {
-        const category = sentimentData[0]?.sentiment_category;
-        matchesSentiment = category === sentimentFilter;
-        console.log(`[FILTER] Post ${post.id}: sentiment=${category}, filter=${sentimentFilter}, match=${matchesSentiment}`);
+        matchesSentiment = sentimentData[0]?.sentiment_category === sentimentFilter;
       } else if (sentimentData && !Array.isArray(sentimentData)) {
-        const category = (sentimentData as any).sentiment_category;
-        matchesSentiment = category === sentimentFilter;
-        console.log(`[FILTER] Post ${post.id}: sentiment=${category}, filter=${sentimentFilter}, match=${matchesSentiment}`);
+        matchesSentiment = (sentimentData as any).sentiment_category === sentimentFilter;
       } else {
         matchesSentiment = false; // No sentiment data
-        console.log(`[FILTER] Post ${post.id}: No sentiment data`);
       }
     }
 
