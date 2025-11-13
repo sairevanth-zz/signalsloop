@@ -538,6 +538,18 @@ export default function BoardPage() {
         const storedCommentCount = normalizeCount(post.comment_count);
         const finalCommentCount = aggregatedComments > 0 ? aggregatedComments : storedCommentCount;
 
+        // Handle sentiment data - Supabase returns it as an array even for 1-to-1 relationships
+        const sentimentArray = post.sentiment_analysis as any;
+        const sentimentData = Array.isArray(sentimentArray) && sentimentArray.length > 0
+          ? sentimentArray
+          : sentimentArray
+            ? [sentimentArray]
+            : undefined;
+
+        if (sentimentData && post.id) {
+          console.log(`[DEBUG] Post ${post.id} sentiment:`, sentimentData);
+        }
+
         return {
           id: post.id as string,
           title: post.title as string,
@@ -559,7 +571,7 @@ export default function BoardPage() {
           priority_reason: (post.priority_reason as string) || null,
           ai_analyzed_at: (post.ai_analyzed_at as string) || null,
           total_priority_score: typeof post.total_priority_score === 'number' ? Number(post.total_priority_score) : undefined,
-          sentiment_analysis: post.sentiment_analysis as any,
+          sentiment_analysis: sentimentData,
         };
       }) || [];
 
@@ -876,9 +888,23 @@ export default function BoardPage() {
       post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Sentiment filter
-    const matchesSentiment = !sentimentFilter ||
-      (post as any).sentiment_analysis?.[0]?.sentiment_category === sentimentFilter;
+    // Sentiment filter - handle both array and object formats
+    let matchesSentiment = true;
+    if (sentimentFilter) {
+      const sentimentData = post.sentiment_analysis;
+      if (Array.isArray(sentimentData) && sentimentData.length > 0) {
+        const category = sentimentData[0]?.sentiment_category;
+        matchesSentiment = category === sentimentFilter;
+        console.log(`[FILTER] Post ${post.id}: sentiment=${category}, filter=${sentimentFilter}, match=${matchesSentiment}`);
+      } else if (sentimentData && !Array.isArray(sentimentData)) {
+        const category = (sentimentData as any).sentiment_category;
+        matchesSentiment = category === sentimentFilter;
+        console.log(`[FILTER] Post ${post.id}: sentiment=${category}, filter=${sentimentFilter}, match=${matchesSentiment}`);
+      } else {
+        matchesSentiment = false; // No sentiment data
+        console.log(`[FILTER] Post ${post.id}: No sentiment data`);
+      }
+    }
 
     return matchesSearch && matchesSentiment;
   });
