@@ -68,6 +68,7 @@ import PostSubmissionForm from '@/components/PostSubmissionForm';
 import VoteButton from '@/components/VoteButton';
 import { AIInsightsSlideout } from '@/components/AIInsightsSlideout';
 import FeedbackOnBehalfModal from '@/components/FeedbackOnBehalfModal';
+import { SentimentWidget, SentimentTrendChart } from '@/components/sentiment';
 
 interface Post {
   id: string;
@@ -158,6 +159,7 @@ export default function BoardPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [sentimentFilter, setSentimentFilter] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('votes');
   const [showPostForm, setShowPostForm] = useState(false);
   const [showAIInsights, setShowAIInsights] = useState(false);
@@ -174,6 +176,7 @@ export default function BoardPage() {
   const [autoCategorizing, setAutoCategorizing] = useState(false);
   const [autoPrioritizing, setAutoPrioritizing] = useState(false);
   const [findingDuplicates, setFindingDuplicates] = useState(false);
+  const [analyzingSentiment, setAnalyzingSentiment] = useState(false);
   const [expandedPriorityCards, setExpandedPriorityCards] = useState<Record<string, boolean>>({});
   const exportTriggerRef = useRef<(() => void) | null>(null);
 
@@ -235,6 +238,10 @@ export default function BoardPage() {
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
     updateURL({ search: value });
+  };
+
+  const handleSentimentFilterChange = (category: string | null) => {
+    setSentimentFilter(category);
   };
 
   const handleSignOut = async () => {
@@ -756,6 +763,67 @@ export default function BoardPage() {
     }
   }, [supabase, params?.slug, loadProjectAndPosts]);
 
+  const handleAnalyzeSentiment = useCallback(async () => {
+    if (!supabase || !project) {
+      toast.error('Database connection not available. Please refresh the page.');
+      return;
+    }
+
+    try {
+      setAnalyzingSentiment(true);
+
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session?.access_token) {
+        toast.error('Please sign in to use AI sentiment analysis.');
+        return;
+      }
+
+      // Get post IDs to analyze (limit to recent posts without sentiment analysis)
+      const postsToAnalyze = posts.slice(0, 10).map(p => p.id);
+
+      if (postsToAnalyze.length === 0) {
+        toast.info('No posts available to analyze.');
+        return;
+      }
+
+      const response = await fetch('/api/analyze-sentiment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+        body: JSON.stringify({
+          postIds: postsToAnalyze,
+          projectId: project.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to analyze sentiment');
+      }
+
+      const { processed = 0, failed = 0 } = data;
+
+      if (processed > 0) {
+        toast.success(`AI analyzed sentiment for ${processed} post(s)!`);
+        if (failed > 0) {
+          toast.warning(`${failed} post(s) could not be analyzed.`);
+        }
+        // Reload to show updated sentiment data
+        await loadProjectAndPosts();
+      } else {
+        toast.info('No posts were analyzed.');
+      }
+    } catch (error) {
+      console.error('Sentiment analysis error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to analyze sentiment');
+    } finally {
+      setAnalyzingSentiment(false);
+    }
+  }, [supabase, project, posts, loadProjectAndPosts]);
+
   // Load project and posts
   useEffect(() => {
     loadProjectAndPosts();
@@ -992,6 +1060,30 @@ export default function BoardPage() {
                     </DropdownMenuItem>
                   )}
                   {isOwnerOrAdmin && (
+                    <DropdownMenuItem
+                      disabled={analyzingSentiment}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        if (!analyzingSentiment) {
+                          handleAnalyzeSentiment();
+                        }
+                      }}
+                      className="flex items-start gap-3 py-3"
+                    >
+                      {analyzingSentiment ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
+                      ) : (
+                        <Sparkles className="h-4 w-4 text-purple-600" />
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900">Analyze Sentiment</span>
+                        <span className="text-xs text-gray-500">
+                          AI analyzes emotional tone of recent feedback
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  )}
+                  {isOwnerOrAdmin && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -1197,6 +1289,47 @@ export default function BoardPage() {
           <DebugAIFeatures projectSlug={params?.slug as string} />
         )}
 
+        {/* Sentiment Analysis Dashboard - Only show for project owners/admins */}
+        {isOwnerOrAdmin && project && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              <h2 className="text-xl font-bold text-gray-900">Sentiment Analysis</h2>
+              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                AI-Powered
+              </Badge>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <SentimentWidget
+                projectId={project.id}
+                defaultTimeRange={30}
+                onFilterChange={handleSentimentFilterChange}
+              />
+              <SentimentTrendChart
+                projectId={project.id}
+                defaultTimeRange={30}
+              />
+            </div>
+            {sentimentFilter && (
+              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-purple-900">
+                    Filtering by sentiment: <strong className="capitalize">{sentimentFilter}</strong>
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSentimentFilterChange(null)}
+                  className="text-purple-700 hover:text-purple-900"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Clear Filter
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Posts List */}
         <div className="space-y-4">
