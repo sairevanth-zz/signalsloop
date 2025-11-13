@@ -7,6 +7,8 @@ import {
 import {
   mergeAndRankThemes,
   rankThemes,
+  createThemeClusters,
+  assignThemesToClusters,
 } from '@/lib/themes/clustering';
 import {
   FeedbackItem,
@@ -273,15 +275,62 @@ export async function POST(request: NextRequest) {
     // Fetch all themes to return
     const { data: allThemes, error: fetchError } = await supabase
       .from('themes')
-      .select('*')
+      .select(`
+        *,
+        theme_clusters(cluster_name)
+      `)
       .eq('project_id', projectId)
-      .order('frequency', { ascending: false });
+      .order('frequency', { ascending: false});
 
     if (fetchError) {
       console.error('[THEME DETECTION] Error fetching final themes:', fetchError);
     }
 
-    const rankedThemes = rankThemes(allThemes || []);
+    // Flatten cluster data
+    const themesWithClusters = (allThemes || []).map((theme: any) => ({
+      ...theme,
+      cluster_name: theme.theme_clusters?.cluster_name || null,
+      theme_clusters: undefined, // Remove the nested object
+    }));
+
+    const rankedThemes = rankThemes(themesWithClusters);
+
+    // Create theme clusters
+    if (rankedThemes.length > 0) {
+      console.log(`[THEME CLUSTERING] Creating clusters for ${rankedThemes.length} themes`);
+
+      const clusterDefinitions = createThemeClusters(rankedThemes, projectId);
+
+      if (clusterDefinitions.length > 0) {
+        // Insert or update clusters in database
+        const { data: insertedClusters, error: clusterError } = await supabase
+          .from('theme_clusters')
+          .upsert(clusterDefinitions, {
+            onConflict: 'project_id,cluster_name',
+            ignoreDuplicates: false,
+          })
+          .select();
+
+        if (clusterError) {
+          console.error('[THEME CLUSTERING] Error saving clusters:', clusterError);
+        } else if (insertedClusters) {
+          console.log(`[THEME CLUSTERING] Created ${insertedClusters.length} clusters`);
+
+          // Assign themes to clusters
+          const themeClusterMap = assignThemesToClusters(rankedThemes, insertedClusters);
+
+          // Update each theme with its cluster_id
+          for (const [themeId, clusterId] of themeClusterMap.entries()) {
+            await supabase
+              .from('themes')
+              .update({ cluster_id: clusterId })
+              .eq('id', themeId);
+          }
+
+          console.log(`[THEME CLUSTERING] Assigned ${themeClusterMap.size} themes to clusters`);
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,
