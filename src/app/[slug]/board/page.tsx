@@ -1015,20 +1015,17 @@ export default function BoardPage() {
                     </div>
                   </DropdownMenuItem>
                   {user && posts.length > 0 && (
-                    <DropdownMenuItem
-                      onSelect={() => {
-                        setShowAIInsights(true);
-                      }}
-                      className="flex items-start gap-3 py-3"
-                    >
-                      <Sparkles className="h-4 w-4 text-purple-600" />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900">AI insights</span>
-                        <span className="text-xs text-gray-500">
-                          Explore AI analysis across your board
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
+                    <Link href={`/${project?.slug}/ai-insights`}>
+                      <DropdownMenuItem className="flex items-start gap-3 py-3">
+                        <Sparkles className="h-4 w-4 text-purple-600" />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">AI Insights & Themes</span>
+                          <span className="text-xs text-gray-500">
+                            Discover themes, patterns, and sentiment
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    </Link>
                   )}
                   {isOwnerOrAdmin && <DropdownMenuSeparator />}
                   {isOwnerOrAdmin && project && (
