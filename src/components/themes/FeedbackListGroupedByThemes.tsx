@@ -23,6 +23,7 @@ export function FeedbackListGroupedByThemes({
   className = '',
 }: FeedbackListGroupedByThemesProps) {
   const [themeGroups, setThemeGroups] = useState<Map<string, FeedbackItem[]>>(new Map());
+  const [loadedThemes, setLoadedThemes] = useState<Theme[]>(themes || []);
   const [expandedThemes, setExpandedThemes] = useState<Set<string>>(
     initialExpanded ? new Set(themes?.map(t => t.id) || []) : new Set()
   );
@@ -50,6 +51,10 @@ export function FeedbackListGroupedByThemes({
       }
 
       console.log('[GROUPED FEEDBACK] Loading feedback for', themesToLoad.length, 'themes');
+
+      // Save loaded themes to state
+      setLoadedThemes(themesToLoad);
+
       const groupsMap = new Map<string, FeedbackItem[]>();
 
       // Load feedback for each theme
@@ -109,9 +114,11 @@ export function FeedbackListGroupedByThemes({
     );
   }
 
-  const themesWithFeedback = (themes || []).filter(theme =>
+  const themesWithFeedback = loadedThemes.filter(theme =>
     themeGroups.has(theme.id) && (themeGroups.get(theme.id)?.length || 0) > 0
   );
+
+  console.log('[GROUPED FEEDBACK] Rendering with', themesWithFeedback.length, 'themes with feedback');
 
   return (
     <div className={`space-y-4 ${className}`}>
