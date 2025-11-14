@@ -37,20 +37,15 @@ export function FeedbackListGroupedByThemes({
     setLoading(true);
     try {
       let themesToLoad = themes || [];
-      console.log('[GROUPED FEEDBACK] Initial themes:', themesToLoad.length);
 
       if (themesToLoad.length === 0) {
         // Load themes first
-        console.log('[GROUPED FEEDBACK] Loading themes from API...');
         const themesResponse = await fetch(`/api/detect-themes?projectId=${projectId}`);
         const themesData = await themesResponse.json();
-        console.log('[GROUPED FEEDBACK] Themes loaded:', themesData.themes?.length || 0);
         if (themesData.success) {
           themesToLoad = themesData.themes;
         }
       }
-
-      console.log('[GROUPED FEEDBACK] Loading feedback for', themesToLoad.length, 'themes');
 
       // Save loaded themes to state
       setLoadedThemes(themesToLoad);
@@ -60,16 +55,10 @@ export function FeedbackListGroupedByThemes({
       // Load feedback for each theme
       await Promise.all(
         themesToLoad.map(async (theme) => {
-          console.log('[GROUPED FEEDBACK] Fetching feedback for theme:', theme.theme_name);
           const response = await fetch(
             `/api/themes/${theme.id}?includeRelatedFeedback=true`
           );
           const data = await response.json();
-
-          console.log('[GROUPED FEEDBACK] Response for', theme.theme_name, ':', {
-            success: data.success,
-            feedbackCount: data.relatedFeedback?.length || 0,
-          });
 
           if (data.success && data.relatedFeedback) {
             groupsMap.set(theme.id, data.relatedFeedback);
@@ -77,7 +66,6 @@ export function FeedbackListGroupedByThemes({
         })
       );
 
-      console.log('[GROUPED FEEDBACK] Total groups with feedback:', groupsMap.size);
       setThemeGroups(groupsMap);
     } catch (error) {
       console.error('Error loading feedback by themes:', error);
@@ -117,8 +105,6 @@ export function FeedbackListGroupedByThemes({
   const themesWithFeedback = loadedThemes.filter(theme =>
     themeGroups.has(theme.id) && (themeGroups.get(theme.id)?.length || 0) > 0
   );
-
-  console.log('[GROUPED FEEDBACK] Rendering with', themesWithFeedback.length, 'themes with feedback');
 
   return (
     <div className={`space-y-4 ${className}`}>

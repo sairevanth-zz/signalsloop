@@ -139,25 +139,14 @@ export function ThemesOverview({
             Discover recurring themes and patterns in your feedback
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => analyzeThemes(false)}
-            disabled={analyzing}
-            variant="outline"
-            className="gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${analyzing ? 'animate-spin' : ''}`} />
-            {analyzing ? 'Analyzing...' : 'Re-analyze Themes'}
-          </Button>
-          <Button
-            onClick={() => analyzeThemes(true)}
-            disabled={analyzing}
-            className="gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${analyzing ? 'animate-spin' : ''}`} />
-            {analyzing ? 'Analyzing...' : 'Force Full Re-analysis'}
-          </Button>
-        </div>
+        <Button
+          onClick={() => analyzeThemes(false)}
+          disabled={analyzing}
+          className="gap-2"
+        >
+          <RefreshCw className={`w-4 h-4 ${analyzing ? 'animate-spin' : ''}`} />
+          {analyzing ? 'Analyzing...' : 'Re-analyze Themes'}
+        </Button>
       </div>
 
       {/* Stats Cards */}
