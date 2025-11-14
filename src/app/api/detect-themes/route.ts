@@ -393,10 +393,13 @@ export async function GET(request: NextRequest) {
       console.error('[THEME DETECTION] Error fetching stats:', statsError);
     }
 
-    // Get all themes
+    // Get all themes with cluster data
     const { data: themes, error: themesError } = await supabase
       .from('themes')
-      .select('*')
+      .select(`
+        *,
+        theme_clusters(cluster_name)
+      `)
       .eq('project_id', projectId)
       .order('frequency', { ascending: false });
 
@@ -407,9 +410,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Flatten cluster data
+    const themesWithClusters = (themes || []).map((theme: any) => ({
+      ...theme,
+      cluster_name: theme.theme_clusters?.cluster_name || null,
+      theme_clusters: undefined, // Remove the nested object
+    }));
+
     return NextResponse.json({
       success: true,
-      themes: themes || [],
+      themes: themesWithClusters,
       statistics: stats?.[0] || {
         total_themes: 0,
         emerging_themes: 0,
