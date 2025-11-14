@@ -18,7 +18,7 @@ const customJestConfig = {
     '!src/**/*.stories.{js,jsx,ts,tsx}',
     '!src/**/__tests__/**',
   ],
-  coverageThresholds: {
+  coverageThreshold: {
     global: {
       branches: 70,
       functions: 70,
@@ -41,6 +41,13 @@ const customJestConfig = {
   testMatch: [
     '**/__tests__/**/*.[jt]s?(x)',
     '**/?(*.)+(spec|test).[jt]s?(x)',
+    '!**/__tests__/mocks/**',
+    '!**/e2e/**',
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/__tests__/mocks/',
+    '/e2e/',
   ],
   moduleDirectories: ['node_modules', '<rootDir>/'],
   transformIgnorePatterns: [
