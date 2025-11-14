@@ -234,9 +234,21 @@ export async function POST(request: NextRequest) {
     }> = [];
 
     // Map detected themes to database themes
+    // Include ALL existing themes, not just newly inserted/updated ones
     const themeNameToId = new Map<string, string>();
+
+    // First add inserted and updated themes
     for (const theme of [...insertedThemes, ...updatedThemeRecords]) {
       themeNameToId.set(theme.theme_name.toLowerCase(), theme.id);
+    }
+
+    // Also add all existing themes to ensure mappings are created even if theme wasn't updated
+    if (existingThemes && existingThemes.length > 0) {
+      for (const theme of existingThemes) {
+        if (!themeNameToId.has(theme.theme_name.toLowerCase())) {
+          themeNameToId.set(theme.theme_name.toLowerCase(), theme.id);
+        }
+      }
     }
 
     for (const detected of detectedThemes) {
