@@ -5,83 +5,36 @@ This guide will walk you through getting API keys for all platforms that the AI 
 ## 🎯 Overview
 
 You'll need to obtain API keys for:
+- ✅ **Reddit** - FREE, no API key needed! (uses public JSON API)
 - ✅ **Hacker News** - FREE, no API key needed (uses Algolia)
-- 💰 **Reddit** - FREE (OAuth setup required)
 - 💰 **Twitter/X** - $100/month (Essential API tier)
-- 💰 **Product Hunt** - FREE (requires application approval)
+- 💰 **Product Hunt** - FREE (requires application approval, 1-3 days)
 - ⚠️ **G2** - No official API (web scraping, no key needed)
 
 **Total Monthly Cost**: ~$100/month (just Twitter)
+**Platforms with No Setup**: Reddit, Hacker News, G2 ✨
 
 ---
 
-## 1️⃣ Reddit API Setup (FREE)
+## 1️⃣ Reddit (FREE - No Setup Required!) ✨
 
-Reddit uses OAuth 2.0. You need to create a Reddit app and get a refresh token.
+**Great news!** Reddit doesn't require any API keys or authentication.
 
-### Step 1: Create a Reddit App
+The Hunter uses Reddit's **public JSON API** which is completely free and requires no setup:
+- Works for all public posts and comments
+- No rate limits for reasonable usage (~60 requests/minute)
+- No authentication needed
+- Instant - ready to use right now!
 
-1. Go to: https://www.reddit.com/prefs/apps
-2. Click **"create another app..."** at the bottom
-3. Fill in:
-   - **name**: `SignalsLoop Feedback Hunter`
-   - **App type**: Select **"script"**
-   - **description**: `Autonomous feedback discovery for SignalsLoop`
-   - **about url**: `https://signalsloop.com`
-   - **redirect uri**: `http://localhost:8080`
-4. Click **"create app"**
-5. **Save these values**:
-   - `client_id`: Under the app name (looks like: `a1b2c3d4e5f6g7`)
-   - `client_secret`: Next to "secret" (looks like: `A1B2C3D4E5F6G7H8I9J0K1L2M3`)
+### How It Works
 
-### Step 2: Get Refresh Token
+Reddit exposes all public data as JSON by simply adding `.json` to any URL:
+- Search: `https://www.reddit.com/search.json?q=your_query`
+- Subreddit: `https://www.reddit.com/r/subreddit/new.json`
 
-This requires running a one-time authorization flow:
+The Hunter automatically uses this API to monitor mentions of your product.
 
-```bash
-# Install snoowrap temporarily
-npm install snoowrap
-
-# Create a file: get-reddit-token.js
-```
-
-**get-reddit-token.js**:
-```javascript
-const snoowrap = require('snoowrap');
-
-// Replace with your values from Step 1
-const CLIENT_ID = 'your_client_id_here';
-const CLIENT_SECRET = 'your_client_secret_here';
-const USERNAME = 'your_reddit_username';
-const PASSWORD = 'your_reddit_password';
-
-snoowrap.fromApplicationOnlyAuth({
-  userAgent: 'SignalsLoop/1.0',
-  clientId: CLIENT_ID,
-  clientSecret: CLIENT_SECRET,
-  grantType: snoowrap.grantType.PASSWORD,
-  username: USERNAME,
-  password: PASSWORD
-}).then(reddit => {
-  console.log('✅ Successfully authenticated!');
-  console.log('\nAdd these to your .env file:');
-  console.log(`REDDIT_CLIENT_ID=${CLIENT_ID}`);
-  console.log(`REDDIT_CLIENT_SECRET=${CLIENT_SECRET}`);
-  console.log(`REDDIT_USERNAME=${USERNAME}`);
-  console.log(`REDDIT_PASSWORD=${PASSWORD}`);
-}).catch(err => {
-  console.error('❌ Error:', err.message);
-});
-```
-
-Run it:
-```bash
-node get-reddit-token.js
-```
-
-**Save the output values** - you'll add them to `.env` later.
-
-**Security Note**: Create a dedicated Reddit account for SignalsLoop (don't use your personal account).
+**Nothing to configure!** ✅
 
 ---
 
@@ -123,7 +76,7 @@ You'll need the **Bearer Token** for the Hunter.
 
 ---
 
-## 3️⃣ Product Hunt API Setup (FREE)
+## 2️⃣ Product Hunt API Setup (FREE)
 
 Product Hunt API is free but requires approval.
 
@@ -164,7 +117,7 @@ For server-side access, you'll create a developer token:
 
 ---
 
-## 4️⃣ Hacker News (FREE - No Setup Required!)
+## 3️⃣ Hacker News (FREE - No Setup Required!) ✨
 
 Hacker News uses the free Algolia API. No API key needed!
 
@@ -174,7 +127,7 @@ Nothing to configure ✅
 
 ---
 
-## 5️⃣ G2 Reviews (No Official API)
+## 4️⃣ G2 Reviews (No Official API)
 
 G2 doesn't have a public API. We use web scraping with Cheerio.
 
@@ -190,17 +143,11 @@ G2 doesn't have a public API. We use web scraping with Cheerio.
 
 ## 🔐 Adding Keys to Your Environment
 
-Once you have all the keys, add them to your `.env` file:
+Once you have the keys, add them to your `.env` file:
 
 ```bash
 # AI Feedback Hunter - Centralized API Keys
 # These are used server-side for all projects
-
-# Reddit (FREE)
-REDDIT_CLIENT_ID=your_reddit_client_id
-REDDIT_CLIENT_SECRET=your_reddit_client_secret
-REDDIT_USERNAME=your_reddit_bot_username
-REDDIT_PASSWORD=your_reddit_bot_password
 
 # Twitter/X (Essential tier - $100/month)
 TWITTER_BEARER_TOKEN=your_twitter_bearer_token
@@ -208,14 +155,16 @@ TWITTER_BEARER_TOKEN=your_twitter_bearer_token
 # Product Hunt (FREE - requires approval)
 PRODUCTHUNT_API_TOKEN=your_producthunt_token
 
-# Hacker News (FREE - no key needed)
-# Nothing to configure!
+# Cron Secret (for secure scheduled scans)
+CRON_SECRET=your_random_secret_here_min_32_chars
 
-# G2 (Web scraping - no official API)
-# Nothing to configure!
+# OpenAI (for classification - you should already have this)
+OPENAI_API_KEY=your_openai_api_key
 
-# OpenAI (for classification)
-OPENAI_API_KEY=your_openai_api_key  # You should already have this
+# ✨ NO KEYS NEEDED FOR:
+# Reddit (uses public JSON API)
+# Hacker News (uses public Algolia API)
+# G2 (web scraping)
 ```
 
 **Also add to `.env.local`** for local development.
@@ -244,11 +193,11 @@ For production (Vercel/etc), add these as **Environment Variables** in your host
 
 | Platform | Cost | Notes |
 |----------|------|-------|
-| **Reddit** | FREE | OAuth setup required |
+| **Reddit** | **FREE** | Public JSON API - no auth needed! ✨ |
 | **Twitter** | **$100/month** | Essential API tier |
-| **Product Hunt** | FREE | Approval required (1-3 days) |
-| **Hacker News** | FREE | No setup needed |
-| **G2** | FREE | Web scraping (fragile) |
+| **Product Hunt** | **FREE** | Approval required (1-3 days) |
+| **Hacker News** | **FREE** | Public Algolia API ✨ |
+| **G2** | **FREE** | Web scraping (fragile) |
 | **OpenAI** | ~$10-50/month | Classification costs |
 | **TOTAL** | **~$110-150/month** | Mainly Twitter |
 
@@ -284,11 +233,11 @@ The Hunter will use your centralized API keys automatically! 🎉
 
 ## 🆘 Troubleshooting
 
-### Reddit: "Invalid credentials"
-- Double-check client_id and client_secret
-- Make sure you're using "script" app type
-- Verify username/password are correct
-- Try creating a new Reddit app
+### Reddit: No results found
+- Reddit uses public JSON API - no authentication needed!
+- Check if your keywords are too specific
+- Try broader search terms
+- Reddit rate limits to ~60 requests/minute (handled automatically)
 
 ### Twitter: "Not authenticated"
 - Verify you're on Essential tier ($100/month paid)
@@ -322,10 +271,9 @@ The Hunter will use your centralized API keys automatically! 🎉
    - Check Twitter API usage dashboard
    - Watch for unusual spikes
 
-5. **Reddit bot account**
-   - Create a dedicated Reddit account
-   - Don't use your personal account
-   - Use a strong unique password
+5. **Generate strong CRON_SECRET**
+   - Use: `openssl rand -base64 32`
+   - This protects your cron endpoints from unauthorized access
 
 ---
 
