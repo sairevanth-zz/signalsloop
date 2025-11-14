@@ -72,9 +72,11 @@ export function EmergingThemesAlert({
   const handleInvestigate = (theme: EmergingTheme) => {
     if (onInvestigate) {
       onInvestigate(theme);
-    } else {
+    } else if (projectSlug) {
       // Default: navigate to theme details
       window.location.href = `/${projectSlug}/theme/${theme.id}`;
+    } else {
+      toast.error('Unable to navigate: project not found');
     }
   };
 
