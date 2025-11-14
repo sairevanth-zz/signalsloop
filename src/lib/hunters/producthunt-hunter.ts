@@ -51,18 +51,21 @@ export class ProductHuntHunter extends BaseHunter {
     integration: PlatformIntegration
   ): Promise<RawFeedback[]> {
     try {
-      // Validate configuration
-      if (!integration.config.producthunt_api_key) {
+      // Use centralized API credentials from environment variables
+      const apiToken = process.env.PRODUCTHUNT_API_TOKEN;
+
+      if (!apiToken) {
         throw new PlatformIntegrationError(
-          'Missing Product Hunt API key',
+          'Missing Product Hunt API token in environment variables. Please configure PRODUCTHUNT_API_TOKEN.',
           'producthunt',
           { integration_id: integration.id }
         );
       }
 
+      // Product slug is project-specific, comes from integration config
       if (!integration.config.producthunt_product_slug) {
         throw new PlatformIntegrationError(
-          'Missing Product Hunt product slug',
+          'Missing Product Hunt product slug in settings',
           'producthunt',
           { integration_id: integration.id }
         );
@@ -70,10 +73,10 @@ export class ProductHuntHunter extends BaseHunter {
 
       const results: RawFeedback[] = [];
 
-      // Fetch product and its comments
+      // Fetch product and its comments using centralized API token
       const post = await this.fetchProduct(
         integration.config.producthunt_product_slug,
-        integration.config.producthunt_api_key
+        apiToken
       );
 
       if (!post) {

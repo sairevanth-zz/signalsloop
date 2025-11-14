@@ -24,25 +24,27 @@ export class RedditHunter extends BaseHunter {
     integration: PlatformIntegration
   ): Promise<RawFeedback[]> {
     try {
-      // Validate configuration
-      if (
-        !integration.config.reddit_client_id ||
-        !integration.config.reddit_client_secret ||
-        !integration.config.reddit_refresh_token
-      ) {
+      // Use centralized API credentials from environment variables
+      const clientId = process.env.REDDIT_CLIENT_ID;
+      const clientSecret = process.env.REDDIT_CLIENT_SECRET;
+      const username = process.env.REDDIT_USERNAME;
+      const password = process.env.REDDIT_PASSWORD;
+
+      if (!clientId || !clientSecret || !username || !password) {
         throw new PlatformIntegrationError(
-          'Missing Reddit API credentials',
+          'Missing Reddit API credentials in environment variables. Please configure REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USERNAME, and REDDIT_PASSWORD.',
           'reddit',
           { integration_id: integration.id }
         );
       }
 
-      // Initialize Reddit API client
+      // Initialize Reddit API client with centralized credentials
       const reddit = new snoowrap({
         userAgent: 'SignalsLoop/1.0 (Feedback Hunter)',
-        clientId: integration.config.reddit_client_id,
-        clientSecret: integration.config.reddit_client_secret,
-        refreshToken: integration.config.reddit_refresh_token,
+        clientId,
+        clientSecret,
+        username,
+        password,
       });
 
       // Build search queries
