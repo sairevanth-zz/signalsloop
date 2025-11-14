@@ -129,6 +129,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[THEME DETECTION] Analyzing ${posts.length} feedback items...`);
+    console.log(`[THEME DETECTION] Post IDs:`, posts.map(p => p.id).slice(0, 5), '...');
 
     // Fetch sentiment data for posts
     const { data: sentimentData } = await supabase
@@ -155,7 +156,9 @@ export async function POST(request: NextRequest) {
     // Detect themes using AI
     const batchResults = await detectThemesBatch(feedbackItems);
 
+    console.log(`[THEME DETECTION] Batch results:`, batchResults.length, 'batches');
     if (batchResults.length === 0) {
+      console.warn('[THEME DETECTION] No batch results - returning early');
       return NextResponse.json({
         success: true,
         themes: existingThemes || [],
@@ -170,6 +173,7 @@ export async function POST(request: NextRequest) {
     const detectedThemes = mergeThemesAcrossBatches(batchResults);
 
     console.log(`[THEME DETECTION] Detected ${detectedThemes.length} unique themes`);
+    console.log(`[THEME DETECTION] Theme names:`, detectedThemes.map(t => t.theme_name));
 
     // Merge with existing themes
     const { newThemes, updatedThemes } = mergeAndRankThemes(
@@ -251,9 +255,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    console.log(`[THEME DETECTION] Creating mappings for ${detectedThemes.length} detected themes`);
+    console.log(`[THEME DETECTION] Theme name map has ${themeNameToId.size} entries`);
+
     for (const detected of detectedThemes) {
       const themeId = themeNameToId.get(detected.theme_name.toLowerCase());
-      if (!themeId) continue;
+      if (!themeId) {
+        console.warn(`[THEME DETECTION] No theme ID found for "${detected.theme_name}"`);
+        continue;
+      }
+
+      console.log(`[THEME DETECTION] Mapping theme "${detected.theme_name}" (${detected.item_indices.length} items)`);
 
       for (const itemIndex of detected.item_indices) {
         const feedbackId = feedbackItems[itemIndex]?.id;
@@ -266,6 +278,8 @@ export async function POST(request: NextRequest) {
         });
       }
     }
+
+    console.log(`[THEME DETECTION] Created ${feedbackThemeMappings.length} feedback-theme mappings`);
 
     // Insert feedback-theme mappings (upsert to handle duplicates)
     if (feedbackThemeMappings.length > 0) {
