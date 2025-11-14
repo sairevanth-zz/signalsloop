@@ -1,7 +1,7 @@
 /**
  * Reddit Hunter
- * Discovers feedback from Reddit using the public JSON API
- * No authentication required - uses Reddit's public JSON endpoints
+ * Discovers feedback from Reddit using RSS feeds (most reliable public API)
+ * No authentication required - uses Reddit's RSS feeds
  */
 
 import { BaseHunter } from './base-hunter';
@@ -13,45 +13,74 @@ import {
   PlatformIntegrationError,
 } from '@/types/hunter';
 
-interface RedditPost {
-  id: string;
+interface RedditRSSItem {
   title: string;
-  selftext: string;
+  link: string;
+  content: string;
   author: string;
-  created_utc: number;
-  permalink: string;
-  ups: number;
-  downs: number;
-  score: number;
-  num_comments: number;
-  subreddit: string;
-}
-
-interface RedditComment {
+  published: Date;
   id: string;
-  body: string;
-  author: string;
-  created_utc: number;
-  permalink: string;
-  ups: number;
-  score: number;
-}
-
-interface RedditApiResponse {
-  data: {
-    children: Array<{
-      data: RedditPost | RedditComment;
-    }>;
-  };
 }
 
 export class RedditHunter extends BaseHunter {
   platform: PlatformType = 'reddit';
-  private readonly REDDIT_SEARCH_URL = 'https://www.reddit.com/search.json';
-  private readonly REDDIT_SUBREDDIT_URL = 'https://www.reddit.com/r';
+  private readonly REDDIT_SEARCH_RSS = 'https://www.reddit.com/search.rss';
+  private readonly REDDIT_SUBREDDIT_RSS = 'https://www.reddit.com/r';
 
   /**
-   * Hunt for feedback on Reddit using public JSON API
+   * Parse Reddit RSS feed (XML) to extract items
+   */
+  private parseRSS(xml: string): RedditRSSItem[] {
+    const items: RedditRSSItem[] = [];
+
+    // Simple RSS parsing using regex (Reddit RSS is well-structured)
+    const entryRegex = /<entry>(.*?)<\/entry>/gs;
+    const entries = xml.match(entryRegex) || [];
+
+    for (const entry of entries) {
+      try {
+        const title = entry.match(/<title>(.*?)<\/title>/s)?.[1]?.trim() || '';
+        const link = entry.match(/<link href="(.*?)"/)?.[ 1] || '';
+        const contentMatch = entry.match(/<content type="html">(.*?)<\/content>/s);
+        const content = contentMatch?.[1] ? this.decodeHTML(contentMatch[1]) : '';
+        const author = entry.match(/<author><name>(.*?)<\/name><\/author>/)?.[1] || '';
+        const published = entry.match(/<published>(.*?)<\/published>/)?.[1] || '';
+        const id = entry.match(/<id>(.*?)<\/id>/)?.[1]?.split('/').pop() || '';
+
+        if (title && link && id) {
+          items.push({
+            title: this.decodeHTML(title),
+            link,
+            content,
+            author,
+            published: new Date(published),
+            id,
+          });
+        }
+      } catch (error) {
+        console.error('[Reddit RSS] Error parsing entry:', error);
+      }
+    }
+
+    return items;
+  }
+
+  /**
+   * Decode HTML entities in RSS content
+   */
+  private decodeHTML(html: string): string {
+    return html
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/<[^>]*>/g, '') // Strip HTML tags
+      .trim();
+  }
+
+  /**
+   * Hunt for feedback on Reddit using RSS feeds
    * No authentication required!
    */
   async hunt(
@@ -70,7 +99,7 @@ export class RedditHunter extends BaseHunter {
       const results: RawFeedback[] = [];
       const seenIds = new Set<string>();
 
-      // Search Reddit-wide for mentions using public JSON API
+      // Search Reddit-wide for mentions using RSS feeds
       for (const query of queries) {
         // Skip if excluded
         if (this.containsExcludedKeywords(query, config.excluded_keywords)) {
@@ -78,182 +107,125 @@ export class RedditHunter extends BaseHunter {
         }
 
         try {
-          // Search posts using Reddit's public JSON API
-          const searchUrl = `${this.REDDIT_SEARCH_URL}?q=${encodeURIComponent(query)}&t=day&sort=new&limit=100`;
+          // Search posts using Reddit's RSS feed (no auth required!)
+          const searchUrl = `${this.REDDIT_SEARCH_RSS}?q=${encodeURIComponent(query)}&sort=new&limit=100`;
 
           const response = await fetch(searchUrl, {
             headers: {
-              'User-Agent': 'SignalsLoop/1.0 (Feedback Hunter)',
+              'User-Agent': 'Mozilla/5.0 (compatible; SignalsLoop/1.0; +https://signalsloop.com)',
+              'Accept': 'application/rss+xml, application/xml, text/xml',
             },
           });
 
           if (!response.ok) {
-            console.error(`[Reddit] Search API returned ${response.status}`);
+            console.error(`[Reddit RSS] Search returned ${response.status} for query: ${query}`);
             continue;
           }
 
-          const data: RedditApiResponse = await response.json();
-          const posts = data.data.children.map(child => child.data) as RedditPost[];
+          const xml = await response.text();
+          const items = this.parseRSS(xml);
 
-          for (const post of posts) {
-            if (seenIds.has(post.id)) continue;
+          for (const item of items) {
+            if (seenIds.has(item.id)) continue;
 
             // Check if content is relevant
-            const content = `${post.title} ${post.selftext || ''}`;
-            if (this.containsExcludedKeywords(content, config.excluded_keywords)) {
+            const fullContent = `${item.title} ${item.content}`;
+            if (this.containsExcludedKeywords(fullContent, config.excluded_keywords)) {
               continue;
             }
 
-            seenIds.add(post.id);
+            // Filter to last 24 hours
+            const age = Date.now() - item.published.getTime();
+            if (age > 24 * 60 * 60 * 1000) continue;
+
+            seenIds.add(item.id);
 
             results.push({
-              content: this.sanitizeText(
-                `${post.title}\n\n${post.selftext || ''}`
-              ),
-              title: post.title,
+              content: this.sanitizeText(`${item.title}\n\n${item.content}`),
+              title: item.title,
               platform: 'reddit',
-              platform_id: post.id,
-              platform_url: `https://reddit.com${post.permalink}`,
-              author_username: post.author,
-              author_profile_url: `https://reddit.com/user/${post.author}`,
-              discovered_at: new Date(post.created_utc * 1000),
+              platform_id: item.id,
+              platform_url: item.link,
+              author_username: item.author || 'Unknown',
+              author_profile_url: item.author ? `https://reddit.com/user/${item.author}` : undefined,
+              discovered_at: item.published,
               engagement_metrics: {
-                upvotes: post.ups,
-                downvotes: post.downs || 0,
-                score: post.score,
-                comments: post.num_comments,
+                upvotes: 0, // RSS doesn't include vote counts
+                score: 0,
+                comments: 0,
               },
             });
           }
 
-          // Rate limit: 1 request per second (Reddit allows ~60/min)
-          await this.delay(1000);
+          // Rate limit: 2 seconds between requests (RSS is more lenient)
+          await this.delay(2000);
         } catch (error) {
-          console.error(`[Reddit] Error searching for "${query}":`, error);
+          console.error(`[Reddit RSS] Error searching for "${query}":`, error);
         }
       }
 
       // Search specific subreddits if configured
       if (integration.config.subreddits?.length) {
         for (const subreddit of integration.config.subreddits) {
-          for (const query of queries) {
-            try {
-              // Search within specific subreddit using public JSON API
-              const subredditSearchUrl = `${this.REDDIT_SUBREDDIT_URL}/${subreddit}/search.json?q=${encodeURIComponent(query)}&restrict_sr=on&t=day&sort=new&limit=50`;
-
-              const response = await fetch(subredditSearchUrl, {
-                headers: {
-                  'User-Agent': 'SignalsLoop/1.0 (Feedback Hunter)',
-                },
-              });
-
-              if (!response.ok) {
-                console.error(`[Reddit] r/${subreddit} search returned ${response.status}`);
-                continue;
-              }
-
-              const data: RedditApiResponse = await response.json();
-              const posts = data.data.children.map(child => child.data) as RedditPost[];
-
-              for (const post of posts) {
-                if (seenIds.has(post.id)) continue;
-
-                const content = `${post.title} ${post.selftext || ''}`;
-                if (this.containsExcludedKeywords(content, config.excluded_keywords)) {
-                  continue;
-                }
-
-                seenIds.add(post.id);
-
-                results.push({
-                  content: this.sanitizeText(
-                    `${post.title}\n\n${post.selftext || ''}`
-                  ),
-                  title: post.title,
-                  platform: 'reddit',
-                  platform_id: post.id,
-                  platform_url: `https://reddit.com${post.permalink}`,
-                  author_username: post.author,
-                  author_profile_url: `https://reddit.com/user/${post.author}`,
-                  discovered_at: new Date(post.created_utc * 1000),
-                  engagement_metrics: {
-                    upvotes: post.ups,
-                    downvotes: post.downs || 0,
-                    score: post.score,
-                    comments: post.num_comments,
-                  },
-                });
-              }
-
-              await this.delay(1000);
-            } catch (error) {
-              console.error(
-                `[Reddit] Error searching r/${subreddit} for "${query}":`,
-                error
-              );
-            }
-          }
-        }
-      }
-
-      // Fetch new posts from relevant subreddits to check for keyword mentions
-      if (integration.config.subreddits?.length) {
-        for (const subreddit of integration.config.subreddits) {
           try {
-            const newPostsUrl = `${this.REDDIT_SUBREDDIT_URL}/${subreddit}/new.json?limit=25`;
+            // Fetch new posts from subreddit using RSS (no auth required!)
+            const subredditRssUrl = `${this.REDDIT_SUBREDDIT_RSS}/${subreddit}/new/.rss?limit=50`;
 
-            const response = await fetch(newPostsUrl, {
+            const response = await fetch(subredditRssUrl, {
               headers: {
-                'User-Agent': 'SignalsLoop/1.0 (Feedback Hunter)',
+                'User-Agent': 'Mozilla/5.0 (compatible; SignalsLoop/1.0; +https://signalsloop.com)',
+                'Accept': 'application/rss+xml, application/xml, text/xml',
               },
             });
 
-            if (!response.ok) continue;
+            if (!response.ok) {
+              console.error(`[Reddit RSS] r/${subreddit} returned ${response.status}`);
+              continue;
+            }
 
-            const data: RedditApiResponse = await response.json();
-            const posts = data.data.children.map(child => child.data) as RedditPost[];
+            const xml = await response.text();
+            const items = this.parseRSS(xml);
 
-            for (const post of posts) {
-              // Check if post is from the last 24 hours
-              const postAge = Date.now() - post.created_utc * 1000;
-              if (postAge > 24 * 60 * 60 * 1000) continue;
+            for (const item of items) {
+              if (seenIds.has(item.id)) continue;
 
-              if (seenIds.has(post.id)) continue;
+              // Filter to last 24 hours
+              const age = Date.now() - item.published.getTime();
+              if (age > 24 * 60 * 60 * 1000) continue;
 
               // Check if post contains any of our keywords
-              const content = `${post.title} ${post.selftext || ''}`;
-              if (!this.extractKeywords(content, queries)) {
+              const fullContent = `${item.title} ${item.content}`;
+              if (!this.extractKeywords(fullContent, queries)) {
                 continue;
               }
 
-              if (this.containsExcludedKeywords(content, config.excluded_keywords)) {
+              if (this.containsExcludedKeywords(fullContent, config.excluded_keywords)) {
                 continue;
               }
 
-              seenIds.add(post.id);
+              seenIds.add(item.id);
 
               results.push({
-                content: this.sanitizeText(content),
-                title: post.title,
+                content: this.sanitizeText(`${item.title}\n\n${item.content}`),
+                title: item.title,
                 platform: 'reddit',
-                platform_id: post.id,
-                platform_url: `https://reddit.com${post.permalink}`,
-                author_username: post.author,
-                author_profile_url: `https://reddit.com/user/${post.author}`,
-                discovered_at: new Date(post.created_utc * 1000),
+                platform_id: item.id,
+                platform_url: item.link,
+                author_username: item.author || 'Unknown',
+                author_profile_url: item.author ? `https://reddit.com/user/${item.author}` : undefined,
+                discovered_at: item.published,
                 engagement_metrics: {
-                  upvotes: post.ups,
-                  downvotes: post.downs || 0,
-                  score: post.score,
-                  comments: post.num_comments,
+                  upvotes: 0,
+                  score: 0,
+                  comments: 0,
                 },
               });
             }
 
-            await this.delay(1000);
+            await this.delay(2000);
           } catch (error) {
             console.error(
-              `[Reddit] Error fetching new posts from r/${subreddit}:`,
+              `[Reddit RSS] Error fetching from r/${subreddit}:`,
               error
             );
           }

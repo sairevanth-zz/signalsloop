@@ -20,19 +20,22 @@ You'll need to obtain API keys for:
 
 **Great news!** Reddit doesn't require any API keys or authentication.
 
-The Hunter uses Reddit's **public JSON API** which is completely free and requires no setup:
+The Hunter uses Reddit's **RSS feeds** which are completely free and require no setup:
 - Works for all public posts and comments
-- No rate limits for reasonable usage (~60 requests/minute)
 - No authentication needed
+- Extremely reliable (RSS feeds never get blocked)
+- No rate limits for reasonable usage
 - Instant - ready to use right now!
 
 ### How It Works
 
-Reddit exposes all public data as JSON by simply adding `.json` to any URL:
-- Search: `https://www.reddit.com/search.json?q=your_query`
-- Subreddit: `https://www.reddit.com/r/subreddit/new.json`
+Reddit provides RSS/XML feeds for all public content:
+- Search: `https://www.reddit.com/search.rss?q=your_query`
+- Subreddit new: `https://www.reddit.com/r/subreddit/new/.rss`
 
-The Hunter automatically uses this API to monitor mentions of your product.
+The Hunter automatically uses these RSS feeds to monitor mentions of your product.
+These are more reliable than the JSON API as they don't require any authentication
+and are never blocked by Reddit.
 
 **Nothing to configure!** ✅
 
@@ -234,10 +237,12 @@ The Hunter will use your centralized API keys automatically! 🎉
 ## 🆘 Troubleshooting
 
 ### Reddit: No results found
-- Reddit uses public JSON API - no authentication needed!
+- Reddit uses RSS feeds - no authentication needed!
+- RSS feeds are extremely reliable and never blocked
 - Check if your keywords are too specific
 - Try broader search terms
-- Reddit rate limits to ~60 requests/minute (handled automatically)
+- RSS feeds may have slight delay (usually 1-2 minutes)
+- Make sure you're searching for public subreddits (private subs won't appear)
 
 ### Twitter: "Not authenticated"
 - Verify you're on Essential tier ($100/month paid)
