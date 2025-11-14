@@ -103,7 +103,7 @@ export default function AIInsightsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Emerging Themes Alert */}
         <div className="mb-8">
-          <EmergingThemesAlert projectId={project.id} />
+          <EmergingThemesAlert projectId={project.id} projectSlug={projectSlug} />
         </div>
 
         {/* Tabs */}
@@ -129,17 +129,17 @@ export default function AIInsightsPage() {
 
           {/* Themes Overview Tab */}
           <TabsContent value="themes" className="space-y-6">
-            <ThemesOverview projectId={project.id} />
+            <ThemesOverview projectId={project.id} projectSlug={projectSlug} />
           </TabsContent>
 
           {/* Theme Clusters Tab */}
           <TabsContent value="clusters" className="space-y-6">
-            <ThemeClusterView projectId={project.id} />
+            <ThemeClusterView projectId={project.id} projectSlug={projectSlug} />
           </TabsContent>
 
           {/* Grouped Feedback Tab */}
           <TabsContent value="feedback" className="space-y-6">
-            <FeedbackListGroupedByThemes projectId={project.id} />
+            <FeedbackListGroupedByThemes projectId={project.id} projectSlug={projectSlug} />
           </TabsContent>
 
           {/* Sentiment Analysis Tab */}

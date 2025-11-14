@@ -39,6 +39,7 @@ import { toast } from 'sonner';
 export function ThemeDetailPage({
   themeId,
   projectId,
+  projectSlug,
 }: ThemeDetailPageProps) {
   const [theme, setTheme] = useState<ThemeWithDetails | null>(null);
   const [relatedFeedback, setRelatedFeedback] = useState<FeedbackItem[]>([]);
@@ -335,7 +336,9 @@ export function ThemeDetailPage({
                   key={relatedTheme.id}
                   theme={relatedTheme}
                   onClick={(theme) => {
-                    window.location.href = `/themes/${theme.id}`;
+                    if (projectSlug) {
+                      window.location.href = `/${projectSlug}/theme/${theme.id}`;
+                    }
                   }}
                 />
               ))}

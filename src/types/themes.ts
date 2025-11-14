@@ -198,6 +198,7 @@ export interface ThemeCardProps {
  */
 export interface ThemesOverviewProps {
   projectId: string;
+  projectSlug: string;
   initialThemes?: Theme[];
   limit?: number;
   className?: string;
@@ -209,6 +210,7 @@ export interface ThemesOverviewProps {
 export interface ThemeDetailPageProps {
   themeId: string;
   projectId: string;
+  projectSlug?: string;
 }
 
 /**
@@ -226,6 +228,7 @@ export interface ThemeTrendChartProps {
  */
 export interface FeedbackListGroupedByThemesProps {
   projectId: string;
+  projectSlug: string;
   themes?: Theme[];
   initialExpanded?: boolean;
   className?: string;
@@ -236,6 +239,7 @@ export interface FeedbackListGroupedByThemesProps {
  */
 export interface EmergingThemesAlertProps {
   projectId: string;
+  projectSlug: string;
   onInvestigate?: (theme: EmergingTheme) => void;
   onDismiss?: (themeId: string) => void;
   className?: string;
@@ -246,6 +250,7 @@ export interface EmergingThemesAlertProps {
  */
 export interface ThemeClusterViewProps {
   projectId: string;
+  projectSlug: string;
   clusters?: ThemeCluster[];
   themes?: ThemeWithDetails[];
   className?: string;
