@@ -33,6 +33,7 @@ import { toast } from 'sonner';
  */
 export function ThemesOverview({
   projectId,
+  projectSlug,
   initialThemes = [],
   limit = 10,
   className = '',
@@ -293,7 +294,7 @@ export function ThemesOverview({
                 showTrend
                 onClick={(theme) => {
                   // Navigate to theme details page
-                  window.location.href = `/themes/${theme.id}`;
+                  window.location.href = `/${projectSlug}/theme/${theme.id}`;
                 }}
               />
             ))}

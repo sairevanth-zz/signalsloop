@@ -15,6 +15,7 @@ import { ChevronDown, ChevronUp, Layers } from 'lucide-react';
  */
 export function ThemeClusterView({
   projectId,
+  projectSlug,
   clusters,
   themes,
   className = '',
@@ -137,7 +138,7 @@ export function ThemeClusterView({
                     key={theme.id}
                     theme={theme}
                     onClick={(theme) => {
-                      window.location.href = `/themes/${theme.id}`;
+                      window.location.href = `/${projectSlug}/theme/${theme.id}`;
                     }}
                   />
                 ))}

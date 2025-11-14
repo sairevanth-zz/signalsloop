@@ -14,6 +14,7 @@ import { toast } from 'sonner';
  */
 export function EmergingThemesAlert({
   projectId,
+  projectSlug,
   onInvestigate,
   onDismiss,
   className = '',
@@ -73,7 +74,7 @@ export function EmergingThemesAlert({
       onInvestigate(theme);
     } else {
       // Default: navigate to theme details
-      window.location.href = `/themes/${theme.id}`;
+      window.location.href = `/${projectSlug}/theme/${theme.id}`;
     }
   };
 
