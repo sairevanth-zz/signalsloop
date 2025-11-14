@@ -66,12 +66,14 @@ export async function GET(
     // Fetch related feedback items
     let relatedFeedback: FeedbackItem[] | undefined;
     if (includeRelatedFeedback) {
+      console.log('[THEME DETAILS] Fetching related feedback for theme:', themeId);
+
       const { data: feedbackThemes, error: ftError } = await supabase
         .from('feedback_themes')
         .select(`
           feedback_id,
           confidence,
-          posts:feedback_id (
+          posts!inner (
             id,
             title,
             description,
@@ -82,6 +84,11 @@ export async function GET(
         .eq('theme_id', themeId)
         .order('confidence', { ascending: false })
         .limit(10);
+
+      console.log('[THEME DETAILS] Feedback themes query result:', {
+        count: feedbackThemes?.length || 0,
+        error: ftError,
+      });
 
       if (!ftError && feedbackThemes) {
         // Fetch sentiment for these posts
