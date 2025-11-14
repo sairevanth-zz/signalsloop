@@ -250,12 +250,12 @@ export default function EnhancedProjectCard({
               </Button>
             </Link>
 
-            <Link href={`/hunter?projectId=${project.id}`}>
+            <Link href={`/${project.slug}/hunter`}>
               <Button
                 variant="outline"
                 size="sm"
                 className="bg-gradient-to-r from-blue-500/10 to-purple-600/10 border-blue-200 hover:from-blue-500/20 hover:to-purple-600/20 transition-all duration-200 hover:scale-105"
-                title="AI Features"
+                title="AI Feedback Hunter"
               >
                 <Brain className="w-4 h-4 text-blue-600 transition-transform duration-200 group-hover:scale-110" />
               </Button>
