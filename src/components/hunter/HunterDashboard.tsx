@@ -9,8 +9,15 @@ import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { PlatformBadge } from './PlatformBadge';
 import { ClassificationBadge } from './ClassificationBadge';
+import { HunterSetup } from './HunterSetup';
 import {
   HunterDashboardStats,
   PlatformHealthStats,
@@ -30,6 +37,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
   const [actions, setActions] = useState<ActionRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showSetup, setShowSetup] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -126,7 +134,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
             />
             {refreshing ? 'Scanning...' : 'Scan Now'}
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setShowSetup(true)}>
             <Settings className="h-4 w-4 mr-2" />
             Settings
           </Button>
@@ -370,6 +378,22 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Setup Dialog */}
+      <Dialog open={showSetup} onOpenChange={setShowSetup}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Configure AI Feedback Hunter</DialogTitle>
+          </DialogHeader>
+          <HunterSetup
+            projectId={projectId}
+            onComplete={() => {
+              setShowSetup(false);
+              loadData(); // Reload data after setup
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
