@@ -5,7 +5,7 @@
 
 import { HunterSetup } from '@/components/hunter';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 
 export const metadata = {
   title: 'Setup AI Feedback Hunter | SignalsLoop',
@@ -17,7 +17,10 @@ export default async function HunterSetupPage({
 }: {
   searchParams: { projectId?: string };
 }) {
-  const supabase = await createClient();
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   // Check authentication
   const {

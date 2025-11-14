@@ -3,7 +3,7 @@
  * Connects Hunter feedback with Theme Detection feature
  */
 
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * Check if theme detection should be triggered
@@ -15,7 +15,10 @@ export async function checkThemeDetectionTrigger(
   pendingCount: number;
   threshold: number;
 }> {
-  const supabase = await createClient();
+  const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
   try {
     // Get hunter config
@@ -58,7 +61,10 @@ export async function checkThemeDetectionTrigger(
 export async function triggerThemeDetection(
   projectId: string
 ): Promise<{ success: boolean; themesDetected: number }> {
-  const supabase = await createClient();
+  const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
   try {
     // Get unanalyzed feedback
@@ -114,7 +120,10 @@ export async function getHunterThemes(projectId: string): Promise<{
     avgSentiment: number;
   }>;
 }> {
-  const supabase = await createClient();
+  const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
   try {
     // Get feedback with themes

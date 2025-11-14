@@ -15,7 +15,7 @@ import {
   HunterScanResult,
   HunterError,
 } from '@/types/hunter';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { cacheManager } from '@/lib/ai-cache-manager';
 
 /**
@@ -108,7 +108,10 @@ export abstract class BaseHunter {
     items: ClassifiedFeedback[],
     projectId: string
   ): Promise<{ stored: number; duplicates: number }> {
-    const supabase = await createClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     let stored = 0;
     let duplicates = 0;
 
@@ -234,7 +237,10 @@ export abstract class BaseHunter {
     projectId: string,
     scanType: 'scheduled' | 'manual' | 'test' = 'scheduled'
   ): Promise<void> {
-    const supabase = await createClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     await supabase.from('hunter_logs').insert({
       project_id: projectId,
@@ -350,7 +356,10 @@ ${input.engagementMetrics ? `\nEngagement: ${JSON.stringify(input.engagementMetr
    * Check if theme detection should be triggered
    */
   private async checkThemeDetectionTrigger(projectId: string): Promise<void> {
-    const supabase = await createClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // Get hunter config
     const { data: config } = await supabase

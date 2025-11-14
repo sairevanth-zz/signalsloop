@@ -3,7 +3,7 @@
  * Connects Hunter feedback with Sentiment Analysis feature
  */
 
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
@@ -16,7 +16,10 @@ const openai = new OpenAI({
 export async function analyzeSentimentForHunterFeedback(
   feedbackIds: string[]
 ): Promise<{ success: boolean; analyzed: number; failed: number }> {
-  const supabase = await createClient();
+  const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
   let analyzed = 0;
   let failed = 0;
 
@@ -119,7 +122,10 @@ export async function analyzeSentimentForHunterFeedback(
 export async function checkSentimentAlerts(
   projectId: string
 ): Promise<boolean> {
-  const supabase = await createClient();
+  const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
   try {
     // Get recent feedback (last 24 hours)
