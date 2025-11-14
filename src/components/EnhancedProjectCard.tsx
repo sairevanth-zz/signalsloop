@@ -20,7 +20,8 @@ import {
   Square,
   Crown,
   Shield,
-  Users
+  Users,
+  Brain
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -239,29 +240,40 @@ export default function EnhancedProjectCard({
         <div className="space-y-3">
           <div className="flex space-x-2">
             <Link href={`/${project.slug}/board`} className="flex-1">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="w-full bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
               >
                 <Eye className="w-4 h-4 mr-1 transition-transform duration-200 group-hover:scale-110" />
                 View Board
               </Button>
             </Link>
-            
+
+            <Link href={`/hunter?projectId=${project.id}`}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-gradient-to-r from-blue-500/10 to-purple-600/10 border-blue-200 hover:from-blue-500/20 hover:to-purple-600/20 transition-all duration-200 hover:scale-105"
+                title="AI Features"
+              >
+                <Brain className="w-4 h-4 text-blue-600 transition-transform duration-200 group-hover:scale-110" />
+              </Button>
+            </Link>
+
             <Link href={`/${project.slug}/roadmap`}>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
               >
                 <Map className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
               </Button>
             </Link>
-            
+
             <Link href={`/${project.slug}/settings`}>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
               >

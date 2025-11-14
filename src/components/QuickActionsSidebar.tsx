@@ -4,18 +4,20 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Plus, 
-  FileText, 
-  Zap, 
-  HelpCircle, 
-  Bell, 
+import {
+  Plus,
+  FileText,
+  Zap,
+  HelpCircle,
+  Bell,
   BookOpen,
   ExternalLink,
   Sparkles,
   Settings,
   Users,
-  BarChart3
+  BarChart3,
+  Brain,
+  Search
 } from 'lucide-react';
 import {
   Dialog,
@@ -229,6 +231,39 @@ export default function QuickActionsSidebar({
             onClick={() => setShowNotifications(true)}
           >
             View All Updates
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* AI Features */}
+      <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Brain className="w-4 h-4 text-blue-600" />
+            AI Features
+            <Badge variant="secondary" className="text-xs bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+              New
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start hover:bg-white/50"
+            onClick={() => window.location.href = '/ai-features'}
+          >
+            <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
+            All AI Features
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start hover:bg-white/50"
+            onClick={() => window.location.href = '/hunter'}
+          >
+            <Search className="w-4 h-4 mr-2 text-blue-600" />
+            AI Feedback Hunter
           </Button>
         </CardContent>
       </Card>
