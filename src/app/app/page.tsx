@@ -13,10 +13,10 @@ import EnhancedProjectCard from '@/components/EnhancedProjectCard';
 import DashboardAnalytics from '@/components/DashboardAnalytics';
 import QuickActionsSidebar from '@/components/QuickActionsSidebar';
 import DashboardSearchFilters from '@/components/DashboardSearchFilters';
-import { 
-  Plus, 
-  Settings, 
-  Eye, 
+import {
+  Plus,
+  Settings,
+  Eye,
   Users,
   MessageSquare,
   Copy,
@@ -26,7 +26,9 @@ import {
   BarChart3,
   Brain,
   Zap,
-  Sparkles
+  Sparkles,
+  Search,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -460,6 +462,51 @@ export default function EnhancedDashboardPage() {
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
             {/* Main Content */}
             <div className="flex-1 space-y-4 sm:space-y-6 min-w-0">
+              {/* AI Features Promo Banner - Visible on all screen sizes */}
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-4 sm:p-6 text-white shadow-lg">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Brain className="h-5 w-5" />
+                      <span className="text-xs font-semibold bg-white/20 px-2 py-1 rounded-full">NEW</span>
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-bold mb-1">AI Feedback Hunter</h3>
+                    <p className="text-sm sm:text-base text-blue-50 mb-3">
+                      Automatically discover customer feedback across Reddit, Twitter, Hacker News, G2, and Product Hunt
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        onClick={() => router.push('/hunter')}
+                        variant="secondary"
+                        size="sm"
+                        className="bg-white hover:bg-gray-100 text-blue-600"
+                      >
+                        <Search className="h-4 w-4 mr-2" />
+                        Launch Hunter
+                      </Button>
+                      <Button
+                        onClick={() => router.push('/ai-features')}
+                        variant="outline"
+                        size="sm"
+                        className="border-white/30 text-white hover:bg-white/10"
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        View All AI Features
+                      </Button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const banner = document.getElementById('ai-promo-banner');
+                      if (banner) banner.style.display = 'none';
+                    }}
+                    className="text-white/70 hover:text-white"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
               {/* Analytics Cards */}
               {analytics && (
                 <DashboardAnalytics 
