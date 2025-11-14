@@ -239,7 +239,7 @@ export interface FeedbackListGroupedByThemesProps {
  */
 export interface EmergingThemesAlertProps {
   projectId: string;
-  projectSlug: string;
+  projectSlug?: string;
   onInvestigate?: (theme: EmergingTheme) => void;
   onDismiss?: (themeId: string) => void;
   className?: string;
