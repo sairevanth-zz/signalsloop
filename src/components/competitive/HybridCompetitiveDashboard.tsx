@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Globe, Target, Info } from 'lucide-react';
@@ -32,6 +32,28 @@ export function HybridCompetitiveDashboard({
   const [activeTab, setActiveTab] = useState('internal');
   const [selectedExternalProduct, setSelectedExternalProduct] = useState<string | null>(null);
   const [externalProducts, setExternalProducts] = useState<any[]>([]);
+
+  // Load external products when switching to external tab
+  useEffect(() => {
+    if (activeTab === 'external') {
+      loadExternalProducts();
+    }
+  }, [activeTab, projectId]);
+
+  async function loadExternalProducts() {
+    try {
+      const res = await fetch(`/api/competitive/external/products?projectId=${projectId}`);
+      const result = await res.json();
+      if (result.success) {
+        setExternalProducts(result.products);
+        if (result.products.length > 0 && !selectedExternalProduct) {
+          setSelectedExternalProduct(result.products[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading external products:', error);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -155,19 +177,4 @@ export function HybridCompetitiveDashboard({
       </Tabs>
     </div>
   );
-
-  async function loadExternalProducts() {
-    try {
-      const res = await fetch(`/api/competitive/external/products?projectId=${projectId}`);
-      const result = await res.json();
-      if (result.success) {
-        setExternalProducts(result.products);
-        if (result.products.length > 0 && !selectedExternalProduct) {
-          setSelectedExternalProduct(result.products[0].id);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading external products:', error);
-    }
-  }
 }
