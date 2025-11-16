@@ -751,7 +751,7 @@ CREATE OR REPLACE VIEW feature_gaps_with_competitors AS
 SELECT
   fg.*,
   ARRAY_AGG(DISTINCT c.name) FILTER (WHERE c.id = ANY(fg.competitor_ids)) as competitor_names,
-  COUNT(DISTINCT unnest(fg.feedback_ids)) as actual_feedback_count
+  (SELECT COUNT(DISTINCT x) FROM unnest(fg.feedback_ids) AS x) as actual_feedback_count
 FROM feature_gaps fg
 LEFT JOIN competitors c ON c.id = ANY(fg.competitor_ids)
 WHERE fg.status != 'dismissed'
