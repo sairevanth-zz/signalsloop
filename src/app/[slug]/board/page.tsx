@@ -1027,6 +1027,19 @@ export default function BoardPage() {
                       </DropdownMenuItem>
                     </Link>
                   )}
+                  {user && (
+                    <Link href={`/${project?.slug}/competitive`}>
+                      <DropdownMenuItem className="flex items-start gap-3 py-3">
+                        <Target className="h-4 w-4 text-blue-600" />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">Competitive Intelligence</span>
+                          <span className="text-xs text-gray-500">
+                            Track competitors, feature gaps, and strategic insights
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    </Link>
+                  )}
                   {isOwnerOrAdmin && <DropdownMenuSeparator />}
                   {isOwnerOrAdmin && project && (
                     <DropdownMenuItem

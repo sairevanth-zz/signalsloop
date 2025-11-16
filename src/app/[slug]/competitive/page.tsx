@@ -89,22 +89,32 @@ export default function CompetitiveIntelligencePage() {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <Link href="/app" className="text-sm text-gray-600 hover:text-gray-900 mb-2 inline-flex items-center">
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Back to Dashboard
-            </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Competitive Intelligence</h1>
-            <p className="text-gray-600 mt-1">{projectName}</p>
-          </div>
-          <div className="flex gap-2">
-            <Link href={`/${params?.slug}/board`}>
-              <Button variant="outline">View Board</Button>
-            </Link>
-            <Link href={`/${params?.slug}/settings`}>
-              <Button variant="outline">Settings</Button>
-            </Link>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                <Link href="/app" className="hover:text-gray-900 inline-flex items-center">
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Dashboard
+                </Link>
+                <span>→</span>
+                <Link href={`/${params?.slug}/board`} className="hover:text-gray-900">
+                  {projectName}
+                </Link>
+                <span>→</span>
+                <span className="text-gray-900 font-medium">Competitive Intelligence</span>
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">Competitive Intelligence</h1>
+              <p className="text-gray-600 mt-1">Track competitors, identify feature gaps, and discover strategic opportunities</p>
+            </div>
+            <div className="flex gap-2">
+              <Link href={`/${params?.slug}/board`}>
+                <Button variant="outline">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Board
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
