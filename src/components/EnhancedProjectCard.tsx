@@ -20,7 +20,8 @@ import {
   Square,
   Crown,
   Shield,
-  Users
+  Users,
+  Target
 } from 'lucide-react';
 import {
   DropdownMenu,
