@@ -9,7 +9,7 @@ import { Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
-import { CompetitiveOverview } from '@/components/competitive';
+import { CompetitiveOverview, CompetitiveAdminPanel } from '@/components/competitive';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ export default function CompetitiveIntelligencePage() {
   const [projectName, setProjectName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     async function loadProject() {
@@ -118,6 +119,12 @@ export default function CompetitiveIntelligencePage() {
           </div>
         </div>
 
+        {/* Admin Panel - Manual Trigger Tools */}
+        <CompetitiveAdminPanel
+          projectId={projectId}
+          onDataExtracted={() => setRefreshKey(prev => prev + 1)}
+        />
+
         {/* Competitive Intelligence Overview */}
         <Suspense
           fallback={
@@ -127,6 +134,7 @@ export default function CompetitiveIntelligencePage() {
           }
         >
           <CompetitiveOverview
+            key={refreshKey}
             projectId={projectId}
             onCompetitorClick={(competitorId) => {
               console.log('Competitor clicked:', competitorId);

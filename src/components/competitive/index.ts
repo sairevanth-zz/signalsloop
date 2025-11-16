@@ -9,3 +9,4 @@ export { FeatureGapCard } from './FeatureGapCard';
 export { RecommendationCard } from './RecommendationCard';
 export { SentimentTrendChart } from './SentimentTrendChart';
 export { CompetitiveBadge } from './CompetitiveBadge';
+export { CompetitiveAdminPanel } from './CompetitiveAdminPanel';
