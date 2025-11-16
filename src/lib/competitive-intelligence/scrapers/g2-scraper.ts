@@ -3,7 +3,8 @@
  * Scrapes reviews from G2.com product pages
  */
 
-import puppeteer, { Browser, Page } from 'puppeteer';
+import puppeteer, { Browser, Page } from 'puppeteer-core';
+import { getBrowserConfig } from './browser-config';
 
 interface G2Review {
   external_review_id: string;
@@ -30,17 +31,9 @@ export async function scrapeG2Reviews(
   try {
     console.log(`[G2 Scraper] Starting scrape for ${productUrl}`);
 
-    // Launch browser in headless mode
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
-      ],
-    });
+    // Launch browser with configured executable path
+    const browserConfig = getBrowserConfig();
+    browser = await puppeteer.launch(browserConfig);
 
     const page = await browser.newPage();
 

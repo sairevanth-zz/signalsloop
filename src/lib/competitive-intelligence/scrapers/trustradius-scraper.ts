@@ -3,7 +3,8 @@
  * Scrapes reviews from TrustRadius product pages
  */
 
-import puppeteer, { Browser, Page } from 'puppeteer';
+import puppeteer, { Browser, Page } from 'puppeteer-core';
+import { getBrowserConfig } from './browser-config';
 
 interface TrustRadiusReview {
   external_review_id: string;
@@ -30,16 +31,8 @@ export async function scrapeTrustRadiusReviews(
   try {
     console.log(`[TrustRadius Scraper] Starting scrape for ${productUrl}`);
 
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
-      ],
-    });
+    const browserConfig = getBrowserConfig();
+    browser = await puppeteer.launch(browserConfig);
 
     const page = await browser.newPage();
 

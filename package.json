@@ -72,6 +72,7 @@
     "openai": "^5.20.3",
     "pg-format": "^1.0.4",
     "posthog-js": "^1.266.0",
+    "puppeteer-core": "^23.11.1",
     "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
