@@ -5,6 +5,9 @@
 
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
+import { scrapeG2Reviews } from './scrapers/g2-scraper';
+import { scrapeCapterraReviews } from './scrapers/capterra-scraper';
+import { scrapeTrustRadiusReviews } from './scrapers/trustradius-scraper';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -68,19 +71,50 @@ export async function scrapeCompetitorReviews(
       return { success: false, reviewsScraped: 0, error: `No ${platform} URL configured` };
     }
 
-    // IMPORTANT: In production, implement actual scraping logic here
-    // For now, we'll return a placeholder response
-    // Real implementation options:
-    // 1. Use official APIs if available
-    // 2. Use web scraping libraries (puppeteer, playwright)
-    // 3. Use third-party scraping services (ScraperAPI, Bright Data)
-
-    console.log(`[External Scraper] Would scrape ${limit} reviews from ${platform} for ${product.product_name}`);
+    // Scrape reviews using platform-specific scrapers
+    console.log(`[External Scraper] Scraping ${limit} reviews from ${platform} for ${product.product_name}`);
     console.log(`[External Scraper] URL: ${platformUrl}`);
 
-    // Placeholder: Return success but don't actually scrape yet
-    // In production, this would call the actual scraping function
-    const reviews = await mockScrapeReviews(platform, product.product_name, limit);
+    let reviews: ReviewData[] = [];
+
+    try {
+      switch (platform) {
+        case 'g2':
+          const g2Reviews = await scrapeG2Reviews(platformUrl, limit);
+          reviews = g2Reviews.map(r => ({ ...r, platform: 'g2' as const }));
+          break;
+
+        case 'capterra':
+          const capterraReviews = await scrapeCapterraReviews(platformUrl, limit);
+          reviews = capterraReviews.map(r => ({ ...r, platform: 'capterra' as const }));
+          break;
+
+        case 'trustradius':
+          const trustRadiusReviews = await scrapeTrustRadiusReviews(platformUrl, limit);
+          reviews = trustRadiusReviews.map(r => ({ ...r, platform: 'trustradius' as const }));
+          break;
+
+        default:
+          throw new Error(`Unsupported platform: ${platform}`);
+      }
+    } catch (scrapeError: any) {
+      console.error(`[External Scraper] Error scraping ${platform}:`, scrapeError);
+
+      // Update last sync error
+      await supabase
+        .from('competitor_products')
+        .update({
+          last_sync_error: scrapeError.message,
+          last_synced_at: new Date().toISOString(),
+        })
+        .eq('id', competitorProductId);
+
+      return {
+        success: false,
+        reviewsScraped: 0,
+        error: `Failed to scrape ${platform}: ${scrapeError.message}`,
+      };
+    }
 
     // Process and save each review
     let savedCount = 0;
@@ -346,20 +380,6 @@ function getPlatformUrl(product: any, platform: string): string | null {
     default:
       return null;
   }
-}
-
-/**
- * Mock scraping function - replace with actual scraping in production
- */
-async function mockScrapeReviews(
-  platform: 'g2' | 'capterra' | 'trustradius',
-  productName: string,
-  limit: number
-): Promise<ReviewData[]> {
-  // In production, this would actually scrape the platform
-  // For now, return empty array - you'll need to implement actual scraping
-  console.log(`[Mock Scraper] Would scrape ${limit} reviews for ${productName} from ${platform}`);
-  return [];
 }
 
 /**
