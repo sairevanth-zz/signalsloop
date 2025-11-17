@@ -242,11 +242,10 @@ WITH CHECK (
 CREATE OR REPLACE VIEW roadmap_suggestions_detailed AS
 SELECT
     rs.*,
-    t.name as theme_name,
-    t.mention_count,
+    t.theme_name,
+    t.frequency as mention_count,
     t.avg_sentiment,
-    t.first_detected_at as theme_first_detected,
-    t.estimated_effort,
+    t.first_seen as theme_first_detected,
     p.name as project_name,
     p.owner_id
 FROM roadmap_suggestions rs
