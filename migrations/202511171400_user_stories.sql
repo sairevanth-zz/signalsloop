@@ -663,11 +663,6 @@ SELECT
     FROM user_stories
     WHERE sprint_id = s.id AND sprint_status = 'done'
   ) as completed_story_count,
-  (
-    SELECT COALESCE(SUM(story_points), 0)
-    FROM user_stories
-    WHERE sprint_id = s.id AND sprint_status = 'done'
-  ) as completed_points,
   CASE
     WHEN s.capacity_points > 0
     THEN ROUND((s.current_points::DECIMAL / s.capacity_points) * 100, 2)
