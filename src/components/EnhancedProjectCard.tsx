@@ -21,7 +21,8 @@ import {
   Crown,
   Shield,
   Users,
-  Target
+  Target,
+  FileText
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -197,6 +198,12 @@ export default function EnhancedProjectCard({
                 <Link href={`/app/roadmap?projectId=${project.id}`}>
                   <Map className="mr-2 h-4 w-4" />
                   AI Roadmap
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/app/user-stories?projectId=${project.id}`}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  User Stories
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
