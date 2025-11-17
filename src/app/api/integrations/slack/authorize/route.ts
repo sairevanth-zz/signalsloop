@@ -1,92 +1,93 @@
+/**
+ * Slack OAuth Authorization Initiator (Enhanced)
+ *
+ * Creates a state token and redirects to Slack OAuth authorization page
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
+import { getAuthorizationUrl, generateStateToken } from '@/lib/slack/oauth';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 interface AuthorizeRequestBody {
-  projectId: string;
+  project_id?: string;
+  projectId?: string; // Support both formats
   redirectTo?: string;
+  redirect_to?: string; // Support both formats
+  state?: string;
 }
 
-function getSlackEnv() {
-  return {
-    clientId: process.env.SLACK_CLIENT_ID,
-    redirectUri: process.env.SLACK_REDIRECT_URI,
-  };
-}
-
+/**
+ * POST /api/integrations/slack/authorize
+ *
+ * Body: { project_id, redirect_to? }
+ * Returns: { auth_url }
+ */
 export async function POST(request: NextRequest) {
   try {
-    const { projectId, redirectTo }: AuthorizeRequestBody = await request.json();
+    const body: AuthorizeRequestBody = await request.json();
+    const projectId = body.project_id || body.projectId;
+    const redirectTo = body.redirect_to || body.redirectTo;
 
     if (!projectId) {
-      return NextResponse.json({ error: 'projectId is required' }, { status: 400 });
-    }
-
-    const { clientId, redirectUri } = getSlackEnv();
-    if (!clientId || !redirectUri) {
       return NextResponse.json(
-        { error: 'Slack environment variables are not configured' },
-        { status: 500 }
+        { error: 'project_id is required' },
+        { status: 400 }
       );
     }
 
-    const supabase = getSupabaseServiceRoleClient();
-    if (!supabase) {
-      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
-    }
+    const supabase = await createServerClient();
 
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
+    // Get authenticated user
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: authResult, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !authResult?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const user = authResult.user;
-
-    // Ensure the user owns the project
-    const { data: project, error: projectError } = await supabase
-      .from('projects')
-      .select('id, owner_id')
-      .eq('id', projectId)
+    // Verify user has access to project
+    const { data: projectMember } = await supabase
+      .from('project_members')
+      .select('role')
+      .eq('project_id', projectId)
+      .eq('user_id', user.id)
       .single();
 
-    if (projectError || !project) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    if (!projectMember) {
+      return NextResponse.json(
+        { error: 'Access denied to project' },
+        { status: 403 }
+      );
     }
 
-    if (project.owner_id !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    // Generate state token for CSRF protection
+    const stateToken = body.state || generateStateToken();
 
-    const state = crypto.randomUUID();
-
+    // Store state in database
     await supabase.from('slack_integration_states').insert({
-      state,
+      state: stateToken,
       project_id: projectId,
       user_id: user.id,
       redirect_to: redirectTo || null,
     });
 
-    const scopes = ['incoming-webhook', 'chat:write'];
-    const params = new URLSearchParams({
-      client_id: clientId,
-      scope: scopes.join(','),
-      redirect_uri: redirectUri,
-      state,
+    // Generate authorization URL with enhanced scopes
+    const authUrl = getAuthorizationUrl(stateToken, projectId);
+
+    // Support both response formats
+    return NextResponse.json({
+      auth_url: authUrl,
+      url: authUrl // For backward compatibility
     });
-
-    const authorizeUrl = `https://slack.com/oauth/v2/authorize?${params.toString()}`;
-
-    return NextResponse.json({ url: authorizeUrl });
   } catch (error) {
-    console.error('Slack authorize error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error initiating Slack OAuth:', error);
+    return NextResponse.json(
+      { error: 'Failed to initiate OAuth' },
+      { status: 500 }
+    );
   }
 }
