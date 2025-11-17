@@ -23,75 +23,7 @@ EXCEPTION
 END $$;
 
 -- ============================================================================
--- 2. Create sprints table (MUST BE BEFORE user_stories)
--- ============================================================================
-CREATE TABLE IF NOT EXISTS sprints (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-
-  -- Sprint identification
-  sprint_number INTEGER NOT NULL,
-  sprint_name TEXT NOT NULL,  -- e.g., "Sprint 24"
-  sprint_goal TEXT,  -- Overall sprint objective
-
-  -- Sprint timeline
-  start_date DATE NOT NULL,
-  end_date DATE NOT NULL,
-
-  -- Capacity planning
-  capacity_points INTEGER NOT NULL DEFAULT 0,  -- Team's velocity
-  current_points INTEGER DEFAULT 0,  -- Sum of story points in sprint
-  committed_points INTEGER DEFAULT 0,  -- Points when sprint started
-
-  -- Sprint status
-  status sprint_phase DEFAULT 'planning',
-
-  -- Team information
-  team_members JSONB DEFAULT '[]'::jsonb,  -- [{id, name, capacity}]
-
-  -- Sprint retrospective
-  completed_points INTEGER DEFAULT 0,
-  retrospective_notes TEXT,
-
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-
-  -- Ensure unique sprint numbers per project
-  UNIQUE(project_id, sprint_number)
-);
-
--- ============================================================================
--- 3. Create story_templates table
--- ============================================================================
-CREATE TABLE IF NOT EXISTS story_templates (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-
-  -- Template identification
-  template_name TEXT NOT NULL,
-  description TEXT,
-  category TEXT,  -- 'performance', 'feature', 'bug', 'infrastructure'
-
-  -- Template content
-  user_type_template TEXT,  -- "{{role}}" placeholder support
-  goal_template TEXT,
-  benefit_template TEXT,
-  acceptance_criteria_templates JSONB DEFAULT '[]'::jsonb,
-  default_labels TEXT[] DEFAULT ARRAY[]::TEXT[],
-  default_story_points INTEGER,
-
-  -- Usage tracking
-  usage_count INTEGER DEFAULT 0,
-  last_used_at TIMESTAMPTZ,
-
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-
-  UNIQUE(project_id, template_name)
-);
-
--- ============================================================================
--- 4. Create user_stories table (AFTER sprints)
+-- 2. Create user_stories table
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS user_stories (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -129,7 +61,7 @@ CREATE TABLE IF NOT EXISTS user_stories (
   export_timestamp TIMESTAMPTZ,
   jira_export_error TEXT,
 
-  -- Sprint planning (NOW VALID - sprints table exists)
+  -- Sprint planning
   sprint_id UUID REFERENCES sprints(id) ON DELETE SET NULL,
   sprint_status sprint_status DEFAULT 'backlog',
   assigned_to TEXT,
@@ -148,6 +80,74 @@ CREATE TABLE IF NOT EXISTS user_stories (
 
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- 3. Create sprints table
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS sprints (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+
+  -- Sprint identification
+  sprint_number INTEGER NOT NULL,
+  sprint_name TEXT NOT NULL,  -- e.g., "Sprint 24"
+  sprint_goal TEXT,  -- Overall sprint objective
+
+  -- Sprint timeline
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+
+  -- Capacity planning
+  capacity_points INTEGER NOT NULL DEFAULT 0,  -- Team's velocity
+  current_points INTEGER DEFAULT 0,  -- Sum of story points in sprint
+  committed_points INTEGER DEFAULT 0,  -- Points when sprint started
+
+  -- Sprint status
+  status sprint_phase DEFAULT 'planning',
+
+  -- Team information
+  team_members JSONB DEFAULT '[]'::jsonb,  -- [{id, name, capacity}]
+
+  -- Sprint retrospective
+  completed_points INTEGER DEFAULT 0,
+  retrospective_notes TEXT,
+
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- Ensure unique sprint numbers per project
+  UNIQUE(project_id, sprint_number)
+);
+
+-- ============================================================================
+-- 4. Create story_templates table
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS story_templates (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+
+  -- Template identification
+  template_name TEXT NOT NULL,
+  description TEXT,
+  category TEXT,  -- 'performance', 'feature', 'bug', 'infrastructure'
+
+  -- Template content
+  user_type_template TEXT,  -- "{{role}}" placeholder support
+  goal_template TEXT,
+  benefit_template TEXT,
+  acceptance_criteria_templates JSONB DEFAULT '[]'::jsonb,
+  default_labels TEXT[] DEFAULT ARRAY[]::TEXT[],
+  default_story_points INTEGER,
+
+  -- Usage tracking
+  usage_count INTEGER DEFAULT 0,
+  last_used_at TIMESTAMPTZ,
+
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+  UNIQUE(project_id, template_name)
 );
 
 -- ============================================================================
