@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     // Verify user owns the project
     const { data: project } = await supabase
       .from('projects')
-      .select('id, name, user_id')
+      .select('id, name, owner_id')
       .eq('id', projectId)
       .single();
 

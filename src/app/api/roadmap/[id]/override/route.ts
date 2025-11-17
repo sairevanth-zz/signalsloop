@@ -84,7 +84,7 @@ export async function PATCH(
       .select(`
         id,
         project_id,
-        projects!inner(user_id)
+        projects!inner(owner_id)
       `)
       .eq('id', suggestionId)
       .single();

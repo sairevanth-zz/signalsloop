@@ -161,7 +161,7 @@ ON roadmap_suggestions FOR SELECT
 USING (
     project_id IN (
         SELECT id FROM projects
-        WHERE user_id = auth.uid()
+        WHERE owner_id = auth.uid()
     )
 );
 
@@ -170,7 +170,7 @@ ON roadmap_suggestions FOR INSERT
 WITH CHECK (
     project_id IN (
         SELECT id FROM projects
-        WHERE user_id = auth.uid()
+        WHERE owner_id = auth.uid()
     )
 );
 
@@ -179,7 +179,7 @@ ON roadmap_suggestions FOR UPDATE
 USING (
     project_id IN (
         SELECT id FROM projects
-        WHERE user_id = auth.uid()
+        WHERE owner_id = auth.uid()
     )
 );
 
@@ -188,7 +188,7 @@ ON roadmap_suggestions FOR DELETE
 USING (
     project_id IN (
         SELECT id FROM projects
-        WHERE user_id = auth.uid()
+        WHERE owner_id = auth.uid()
     )
 );
 
@@ -203,7 +203,7 @@ WITH CHECK (
     user_id = auth.uid() AND
     project_id IN (
         SELECT id FROM projects
-        WHERE user_id = auth.uid()
+        WHERE owner_id = auth.uid()
     )
 );
 
@@ -221,7 +221,7 @@ ON roadmap_generation_logs FOR SELECT
 USING (
     project_id IN (
         SELECT id FROM projects
-        WHERE user_id = auth.uid()
+        WHERE owner_id = auth.uid()
     )
 );
 
@@ -230,7 +230,7 @@ ON roadmap_generation_logs FOR INSERT
 WITH CHECK (
     project_id IN (
         SELECT id FROM projects
-        WHERE user_id = auth.uid()
+        WHERE owner_id = auth.uid()
     )
 );
 
@@ -248,7 +248,7 @@ SELECT
     t.first_detected_at as theme_first_detected,
     t.estimated_effort,
     p.name as project_name,
-    p.user_id
+    p.owner_id
 FROM roadmap_suggestions rs
 JOIN themes t ON rs.theme_id = t.id
 JOIN projects p ON rs.project_id = p.id;
