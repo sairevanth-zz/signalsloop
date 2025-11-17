@@ -194,6 +194,12 @@ export default function EnhancedProjectCard({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
+                <Link href={`/app/roadmap?projectId=${project.id}`}>
+                  <Map className="mr-2 h-4 w-4" />
+                  AI Roadmap
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href={`/${project.slug}/settings`}>
                   <Settings className="mr-2 h-4 w-4" />
                   Settings

@@ -1040,6 +1040,19 @@ export default function BoardPage() {
                       </DropdownMenuItem>
                     </Link>
                   )}
+                  {user && (
+                    <Link href={`/app/roadmap?projectId=${project?.id}`}>
+                      <DropdownMenuItem className="flex items-start gap-3 py-3">
+                        <Map className="h-4 w-4 text-indigo-600" />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">AI Roadmap Suggestions</span>
+                          <span className="text-xs text-gray-500">
+                            AI-powered roadmap based on feedback themes
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    </Link>
+                  )}
                   {isOwnerOrAdmin && <DropdownMenuSeparator />}
                   {isOwnerOrAdmin && project && (
                     <DropdownMenuItem
