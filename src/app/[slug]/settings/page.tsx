@@ -15,6 +15,7 @@ import SimpleChangelogManager from '@/components/SimpleChangelogManager';
 import { WebhooksSettings } from '@/components/WebhooksSettings';
 import { SlackIntegrationSettings } from '@/components/SlackIntegrationSettings';
 import { DiscordIntegrationSettings } from '@/components/DiscordIntegrationSettings';
+import { JiraSettingsPanel } from '@/components/JiraSettingsPanel';
 import { toast } from 'sonner';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import BoardSettings from '@/components/BoardSettings';
@@ -560,6 +561,12 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="integrations" className="mt-6 space-y-6">
+            <JiraSettingsPanel
+              projectId={project.id}
+              onUpdate={() => {
+                toast.success('Jira integration updated');
+              }}
+            />
             <SlackIntegrationSettings
               projectId={project.id}
               projectSlug={project.slug}

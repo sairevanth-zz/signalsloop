@@ -7,7 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { CompactThemeCard } from './ThemeCard';
 import { ThemeClusterViewProps, ThemeWithDetails } from '@/types/themes';
 import { groupThemesByCluster } from '@/lib/themes/utils';
-import { ChevronDown, ChevronUp, Layers } from 'lucide-react';
+import { ChevronDown, ChevronUp, Layers, FileText } from 'lucide-react';
+import { BulkIssueCreator } from '@/components/BulkIssueCreator';
+import { useJiraConnection } from '@/hooks/useJira';
+import { toast } from 'sonner';
 
 /**
  * ThemeClusterView Component
@@ -23,6 +26,9 @@ export function ThemeClusterView({
   const [allThemes, setAllThemes] = useState<ThemeWithDetails[]>(themes || []);
   const [expandedClusters, setExpandedClusters] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(!themes);
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [selectedCluster, setSelectedCluster] = useState<{name: string, feedbackIds: string[]} | null>(null);
+  const { connection, isConnected } = useJiraConnection(projectId);
 
   useEffect(() => {
     if (!themes) {
@@ -54,6 +60,35 @@ export function ThemeClusterView({
       newExpanded.add(clusterName);
     }
     setExpandedClusters(newExpanded);
+  };
+
+  const handleCreateIssuesForCluster = async (clusterName: string, themeIds: string[]) => {
+    try {
+      // Fetch feedback for all themes in this cluster
+      const feedbackPromises = themeIds.map(async (themeId) => {
+        const response = await fetch(`/api/themes/${themeId}?includeRelatedFeedback=true`);
+        const data = await response.json();
+        return data.success ? (data.relatedFeedback || []) : [];
+      });
+
+      const feedbackArrays = await Promise.all(feedbackPromises);
+      const allFeedback = feedbackArrays.flat();
+      const uniqueFeedbackIds = [...new Set(allFeedback.map((f: any) => f.id))];
+
+      if (uniqueFeedbackIds.length === 0) {
+        toast.error('No feedback found for this cluster');
+        return;
+      }
+
+      setSelectedCluster({
+        name: clusterName,
+        feedbackIds: uniqueFeedbackIds
+      });
+      setBulkModalOpen(true);
+    } catch (error) {
+      console.error('Error fetching cluster feedback:', error);
+      toast.error('Failed to load feedback for cluster');
+    }
   };
 
   const groupedThemes = groupThemesByCluster(allThemes);
@@ -113,21 +148,40 @@ export function ThemeClusterView({
                   </div>
                 </div>
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="flex-shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleCluster(clusterName);
-                  }}
-                >
-                  {isExpanded ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
+                <div className="flex gap-2">
+                  {isConnected && connection && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCreateIssuesForCluster(
+                          clusterName,
+                          clusterThemes.map(t => t.id)
+                        );
+                      }}
+                    >
+                      <FileText className="w-4 h-4 mr-1" />
+                      Create Issues
+                    </Button>
                   )}
-                </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="flex-shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleCluster(clusterName);
+                    }}
+                  >
+                    {isExpanded ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
 
@@ -155,6 +209,25 @@ export function ThemeClusterView({
             <p className="text-gray-600">No theme clusters found</p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Bulk Issue Creator Modal */}
+      {isConnected && connection && selectedCluster && (
+        <BulkIssueCreator
+          feedbackIds={selectedCluster.feedbackIds}
+          connectionId={connection.id}
+          themeName={selectedCluster.name}
+          isOpen={bulkModalOpen}
+          onClose={() => {
+            setBulkModalOpen(false);
+            setSelectedCluster(null);
+          }}
+          onSuccess={(count) => {
+            toast.success(`Created ${count} Jira issues from cluster "${selectedCluster.name}"`);
+            setBulkModalOpen(false);
+            setSelectedCluster(null);
+          }}
+        />
       )}
     </div>
   );

@@ -32,6 +32,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { CreateIssueButton } from '@/components/CreateIssueButton';
 
 interface FeedbackFeedProps {
   projectId: string;
@@ -343,30 +344,43 @@ export function FeedbackFeed({
               )}
 
               {/* Footer */}
-              <div className="flex items-center gap-4 text-xs text-gray-500">
-                <div className="flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  {item.author_username || 'Anonymous'}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {formatDistanceToNow(new Date(item.discovered_at), { addSuffix: true })}
-                </div>
-                {item.sentiment_score !== null && (
+              <div className="flex items-center justify-between gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1">
-                    <TrendingUp className="h-3 w-3" />
-                    <span className={getSentimentColor(item.sentiment_score)}>
-                      {getSentimentLabel(item.sentiment_score)}
-                      {' '}
-                      ({item.sentiment_score.toFixed(2)})
-                    </span>
+                    <User className="h-3 w-3" />
+                    {item.author_username || 'Anonymous'}
                   </div>
-                )}
-                {item.engagement_score > 0 && (
-                  <div className="text-xs text-gray-500">
-                    {item.engagement_score} engagement
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {formatDistanceToNow(new Date(item.discovered_at), { addSuffix: true })}
                   </div>
-                )}
+                  {item.sentiment_score !== null && (
+                    <div className="flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3" />
+                      <span className={getSentimentColor(item.sentiment_score)}>
+                        {getSentimentLabel(item.sentiment_score)}
+                        {' '}
+                        ({item.sentiment_score.toFixed(2)})
+                      </span>
+                    </div>
+                  )}
+                  {item.engagement_score > 0 && (
+                    <div className="text-xs text-gray-500">
+                      {item.engagement_score} engagement
+                    </div>
+                  )}
+                </div>
+
+                {/* Jira Integration Button */}
+                <div onClick={(e) => e.stopPropagation()}>
+                  <CreateIssueButton
+                    feedbackId={item.id}
+                    feedbackContent={item.content}
+                    projectId={projectId}
+                    variant="outline"
+                    size="sm"
+                  />
+                </div>
               </div>
             </Card>
           ))

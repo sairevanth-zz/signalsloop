@@ -31,6 +31,8 @@ import {
   Flame,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { BulkIssueCreator } from '@/components/BulkIssueCreator';
+import { useJiraConnection } from '@/hooks/useJira';
 
 /**
  * ThemeDetailPage Component
@@ -46,6 +48,8 @@ export function ThemeDetailPage({
   const [relatedThemes, setRelatedThemes] = useState<Theme[]>([]);
   const [trend, setTrend] = useState<ThemeTrendPoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const { connection, isConnected } = useJiraConnection(projectId);
 
   useEffect(() => {
     loadThemeDetails();
@@ -167,14 +171,16 @@ export function ThemeDetailPage({
             <Download className="w-4 h-4" />
             Export
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => toast.info('Jira integration coming soon!')}
-            className="gap-2"
-          >
-            <FileText className="w-4 h-4" />
-            Create Issue
-          </Button>
+          {isConnected && connection && relatedFeedback.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => setBulkModalOpen(true)}
+              className="gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              Create Issues ({relatedFeedback.length})
+            </Button>
+          )}
         </div>
       </div>
 
@@ -352,6 +358,21 @@ export function ThemeDetailPage({
           </Card>
         </div>
       </div>
+
+      {/* Bulk Issue Creator Modal */}
+      {isConnected && connection && (
+        <BulkIssueCreator
+          feedbackIds={relatedFeedback.map(f => f.id)}
+          connectionId={connection.id}
+          themeName={theme?.theme_name}
+          isOpen={bulkModalOpen}
+          onClose={() => setBulkModalOpen(false)}
+          onSuccess={(count) => {
+            toast.success(`Created ${count} Jira issues from theme`);
+            setBulkModalOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
