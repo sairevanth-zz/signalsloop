@@ -233,6 +233,38 @@ export default function QuickActionsSidebar({
         </CardContent>
       </Card>
 
+      {/* AI Features */}
+      <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-purple-900 flex items-center gap-2">
+            <Sparkles className="w-4 h-4" />
+            AI Features
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <a href="/app/user-stories" className="block">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start hover:bg-purple-100"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              User Stories
+            </Button>
+          </a>
+          <a href="/app/roadmap" className="block">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start hover:bg-purple-100"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              AI Roadmap
+            </Button>
+          </a>
+        </CardContent>
+      </Card>
+
       {/* Help & Resources */}
       <Card className="bg-white/60 backdrop-blur-sm border-white/20">
         <CardHeader className="pb-3">

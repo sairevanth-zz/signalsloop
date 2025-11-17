@@ -17,18 +17,67 @@ import {
   Zap,
   ChevronDown,
   ChevronUp,
+  Edit,
+  Trash2,
 } from 'lucide-react';
 import { getPriorityColorScheme } from '@/types/user-stories';
+import { StoryEditor } from './StoryEditor';
 
 interface StoryCardProps {
   story: UserStoryWithDetails;
   showTheme?: boolean;
   onUpdate?: () => void;
+  onDelete?: () => void;
 }
 
-export function StoryCard({ story, showTheme = false, onUpdate }: StoryCardProps) {
+export function StoryCard({ story, showTheme = false, onUpdate, onDelete }: StoryCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const priorityColors = getPriorityColorScheme(story.priority_level);
+
+  async function handleSave(updatedStory: Partial<typeof story>) {
+    try {
+      const response = await fetch(
+        `/api/user-stories/${story.project_id}?story_id=${story.id}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedStory),
+        }
+      );
+
+      if (response.ok) {
+        setShowEditor(false);
+        if (onUpdate) onUpdate();
+      }
+    } catch (error) {
+      console.error('Error updating story:', error);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm('Are you sure you want to delete this story?')) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch(
+        `/api/user-stories/${story.project_id}?story_id=${story.id}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      if (response.ok) {
+        if (onDelete) onDelete();
+        if (onUpdate) onUpdate();
+      }
+    } catch (error) {
+      console.error('Error deleting story:', error);
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <div className={`bg-white border-l-4 ${priorityColors.border} rounded-lg shadow-sm`}>
@@ -212,7 +261,25 @@ export function StoryCard({ story, showTheme = false, onUpdate }: StoryCardProps
           )}
 
           {/* Actions */}
-          <div className="pt-3 border-t border-gray-200 flex gap-2">
+          <div className="pt-3 border-t border-gray-200 flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowEditor(true)}
+            >
+              <Edit className="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              Delete
+            </Button>
             {story.jira_issue_key ? (
               <Button
                 variant="outline"
@@ -230,6 +297,16 @@ export function StoryCard({ story, showTheme = false, onUpdate }: StoryCardProps
           </div>
         </div>
       )}
+
+      {/* Story Editor Modal */}
+      <StoryEditor
+        story={story}
+        projectId={story.project_id}
+        themeId={story.theme_id}
+        onSave={handleSave}
+        onCancel={() => setShowEditor(false)}
+        isOpen={showEditor}
+      />
     </div>
   );
 }
