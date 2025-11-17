@@ -650,7 +650,8 @@ LEFT JOIN sprints s ON us.sprint_id = s.id
 LEFT JOIN projects p ON us.project_id = p.id;
 
 -- View for sprint planning dashboard
-CREATE OR REPLACE VIEW sprint_planning_view AS
+DROP VIEW IF EXISTS sprint_planning_view CASCADE;
+CREATE VIEW sprint_planning_view AS
 SELECT
   s.*,
   (
