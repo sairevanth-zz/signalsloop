@@ -7,6 +7,8 @@ import { HunterDashboard } from '@/components/hunter';
 import { redirect } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'AI Feedback Hunter | SignalsLoop',
   description: 'Autonomous feedback discovery across multiple platforms',
