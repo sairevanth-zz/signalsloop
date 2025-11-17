@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: projectMember } = await supabase
-      .from('project_members')
+      .from('members')
       .select('role')
       .eq('project_id', connection.project_id)
       .eq('user_id', user.id)
