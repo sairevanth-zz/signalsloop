@@ -13,6 +13,7 @@ import FeedbackExport from '@/components/FeedbackExport';
 import { CSVImport } from '@/components/admin/csv-import';
 import SimpleChangelogManager from '@/components/SimpleChangelogManager';
 import { WebhooksSettings } from '@/components/WebhooksSettings';
+import { SlackSettings } from '@/components/slack/SlackSettings';
 import { SlackIntegrationSettings } from '@/components/SlackIntegrationSettings';
 import { DiscordIntegrationSettings } from '@/components/DiscordIntegrationSettings';
 import { JiraSettingsPanel } from '@/components/JiraSettingsPanel';
@@ -567,12 +568,10 @@ export default function SettingsPage() {
                 toast.success('Jira integration updated');
               }}
             />
-            <SlackIntegrationSettings
-              projectId={project.id}
-              projectSlug={project.slug}
-              userPlan={project.plan}
-              onShowNotification={handleShowNotification}
-            />
+            {/* Enhanced Slack Integration with OAuth 2.0 & Block Kit */}
+            <SlackSettings projectId={project.id} />
+
+            {/* Discord Integration */}
             <DiscordIntegrationSettings
               projectId={project.id}
               projectSlug={project.slug}
