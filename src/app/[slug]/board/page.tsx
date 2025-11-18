@@ -1053,6 +1053,19 @@ export default function BoardPage() {
                       </DropdownMenuItem>
                     </Link>
                   )}
+                  {user && (
+                    <Link href={`/app/user-stories?projectId=${project?.id}`}>
+                      <DropdownMenuItem className="flex items-start gap-3 py-3">
+                        <FileText className="h-4 w-4 text-blue-600" />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">User Stories</span>
+                          <span className="text-xs text-gray-500">
+                            AI-generated sprint-ready stories from themes
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    </Link>
+                  )}
                   {isOwnerOrAdmin && <DropdownMenuSeparator />}
                   {isOwnerOrAdmin && project && (
                     <DropdownMenuItem
@@ -1262,7 +1275,17 @@ export default function BoardPage() {
                   <span className="hidden md:inline">Roadmap</span>
                 </Button>
               </Link>
-              
+
+              {/* User Stories Button - Visible for logged-in users */}
+              {user && project && (
+                <Link href={`/app/user-stories?projectId=${project.id}`}>
+                  <Button variant="outline" className="flex items-center gap-1 min-touch-target tap-highlight-transparent bg-blue-50 hover:bg-blue-100 border-blue-200">
+                    <FileText className="w-4 h-4 text-blue-600" />
+                    <span className="hidden md:inline">User Stories</span>
+                  </Button>
+                </Link>
+              )}
+
               {/* Settings Button - Visible for logged-in users on all devices */}
               {user && (
                 <Link href={`/${params?.slug}/settings`}>
