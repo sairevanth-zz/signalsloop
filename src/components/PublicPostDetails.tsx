@@ -1214,10 +1214,11 @@ export default function PublicPostDetails({
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleDeleteComment(comment.id)}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto cursor-pointer"
                                   title="Delete comment"
+                                  aria-label="Delete comment"
                                 >
-                                  <Trash2 className="w-3 h-3" />
+                                  <Trash2 className="w-4 h-4" />
                                 </Button>
                               )}
                             </div>
@@ -1317,10 +1318,11 @@ export default function PublicPostDetails({
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => handleDeleteComment(reply.id)}
-                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto cursor-pointer"
                                             title="Delete reply"
+                                            aria-label="Delete reply"
                                           >
-                                            <Trash2 className="w-3 h-3" />
+                                            <Trash2 className="w-4 h-4" />
                                           </Button>
                                         )}
                                       </div>

@@ -44,6 +44,18 @@ export const DELETE = secureAPI(
       return NextResponse.json({ error: 'Not authorized for this project' }, { status: 403 });
     }
 
+    // Before deleting the post, unmerge any duplicates that reference this post
+    // Set duplicate_of to NULL for all posts that were merged into this one
+    const { error: unmergeError } = await supabase
+      .from('posts')
+      .update({ duplicate_of: null })
+      .eq('duplicate_of', postId);
+
+    if (unmergeError) {
+      console.error('Error unmerging duplicates:', unmergeError);
+      return NextResponse.json({ error: 'Failed to unmerge duplicate posts' }, { status: 500 });
+    }
+
     // Delete the post (this will cascade delete comments, votes, etc. if set up in DB)
     const { error: deleteError } = await supabase
       .from('posts')
