@@ -7,10 +7,6 @@
     {
       "path": "/api/cron/daily-intelligence-digest",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/calls-analyze",
-      "schedule": "0 3 * * *"
     }
   ],
   "functions": {
