@@ -23,7 +23,8 @@ import {
   Users,
   Target,
   FileText,
-  Brain
+  Brain,
+  Phone
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -206,6 +207,13 @@ export default function EnhancedProjectCard({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
+                <Link href={`/app/calls?projectId=${project.id}`}>
+                  <Phone className="mr-2 h-4 w-4" />
+                  Call Intelligence
+                  <Badge className="ml-auto text-xs bg-green-500 text-white">NEW</Badge>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href={`/${project.slug}/settings`}>
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
@@ -262,6 +270,17 @@ export default function EnhancedProjectCard({
               </Button>
             </Link>
 
+            <Link href={`/app/calls?projectId=${project.id}`}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="relative bg-gradient-to-r from-purple-50 to-blue-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-blue-100 transition-all duration-200 hover:scale-105"
+                title="Call Intelligence"
+              >
+                <Phone className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              </Button>
+            </Link>
             <Link href={`/${project.slug}/competitive`}>
               <Button
                 variant="outline"

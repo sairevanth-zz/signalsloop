@@ -17,7 +17,8 @@ import {
   Users,
   BarChart3,
   Brain,
-  Search
+  Search,
+  Phone
 } from 'lucide-react';
 import {
   Dialog,
@@ -67,31 +68,42 @@ const templates = [
 const notifications = [
   {
     id: '1',
-    type: 'update',
-    title: 'New AI Features Available',
-    message: 'Try our enhanced categorization and priority scoring',
-    timestamp: '2 hours ago',
+    type: 'feature',
+    title: '🎉 Call Intelligence Engine',
+    message: 'Turn customer calls into actionable insights with AI',
+    timestamp: 'Just now',
     unread: true
   },
   {
     id: '2',
+    type: 'update',
+    title: 'New AI Features Available',
+    message: 'Try our enhanced categorization and priority scoring',
+    timestamp: '2 hours ago',
+    unread: false
+  },
+  {
+    id: '3',
     type: 'tip',
     title: 'Pro Tip: Widget Analytics',
     message: 'Track widget performance with detailed analytics',
     timestamp: '1 day ago',
     unread: false
-  },
-  {
-    id: '3',
-    type: 'feature',
-    title: 'Custom Domains Now Available',
-    message: 'Use your own domain for feedback boards',
-    timestamp: '3 days ago',
-    unread: false
   }
 ];
 
 const changelogItems = [
+  {
+    version: 'v2.4.0',
+    date: '2025-01-19',
+    features: [
+      '🎉 NEW: Call Intelligence Engine - Analyze customer calls with AI',
+      'Extract feature requests, objections, and competitor insights from calls',
+      'Track expansion opportunities and churn risks by revenue',
+      'Generate 48-hour Call Audit reports with Slack integration',
+      'Auto-create posts and themes from call analysis'
+    ]
+  },
   {
     version: 'v2.3.0',
     date: '2025-01-15',
@@ -124,10 +136,10 @@ const changelogItems = [
   }
 ];
 
-export default function QuickActionsSidebar({ 
-  onCreateProject, 
-  onCreateFromTemplate, 
-  userPlan 
+export default function QuickActionsSidebar({
+  onCreateProject,
+  onCreateFromTemplate,
+  userPlan
 }: QuickActionsSidebarProps) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -150,14 +162,14 @@ export default function QuickActionsSidebar({
           <CardTitle className="text-sm font-medium text-gray-700">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button 
+          <Button
             onClick={onCreateProject}
             className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create New Project
           </Button>
-          
+
           <Dialog open={showTemplates} onOpenChange={setShowTemplates}>
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full">
@@ -208,11 +220,10 @@ export default function QuickActionsSidebar({
         </CardHeader>
         <CardContent className="space-y-3">
           {notifications.slice(0, 3).map((notification) => (
-            <div 
-              key={notification.id} 
-              className={`p-3 rounded-lg border transition-colors cursor-pointer hover:bg-gray-50 ${
-                notification.unread ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'
-              }`}
+            <div
+              key={notification.id}
+              className={`p-3 rounded-lg border transition-colors cursor-pointer hover:bg-gray-50 ${notification.unread ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'
+                }`}
             >
               <div className="flex items-start gap-2">
                 {getNotificationIcon(notification.type)}
@@ -224,9 +235,9 @@ export default function QuickActionsSidebar({
               </div>
             </div>
           ))}
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="w-full text-xs"
             onClick={() => setShowNotifications(true)}
           >
@@ -241,9 +252,25 @@ export default function QuickActionsSidebar({
           <CardTitle className="text-sm font-medium text-purple-900 flex items-center gap-2">
             <Sparkles className="w-4 h-4" />
             AI Features
+            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-300">
+              New
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
+          <a href="/app/calls" className="block">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start hover:bg-purple-100 bg-purple-50 border border-purple-200"
+            >
+              <Phone className="w-4 h-4 mr-2" />
+              Call Intelligence
+              <Badge variant="secondary" className="ml-auto text-xs bg-green-500 text-white">
+                NEW
+              </Badge>
+            </Button>
+          </a>
           <a href="/app/user-stories" className="block">
             <Button
               variant="ghost"
@@ -326,8 +353,8 @@ export default function QuickActionsSidebar({
               </p>
             </div>
             {userPlan === 'free' && (
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="outline"
                 onClick={() => window.open('/app/billing', '_blank')}
               >
