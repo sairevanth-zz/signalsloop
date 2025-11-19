@@ -19,6 +19,8 @@ const customJestConfig = {
   testMatch: [
     '**/__tests__/**/*.[jt]s?(x)',
     '**/?(*.)+(spec|test).[jt]s?(x)',
+    '!**/__tests__/mocks/**',
+    '!**/e2e/**',
   ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
@@ -35,11 +37,28 @@ const customJestConfig = {
       lines: 80,
       statements: 80,
     },
+    './src/lib/themes/**/*.{ts,tsx}': {
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85,
+    },
+    './src/lib/openai/themes.ts': {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
   },
   testTimeout: 10000,
-  testPathIgnorePatterns: ['/node_modules/', '/.next/'],
-  transformIgnorePatterns: [
+  testPathIgnorePatterns: [
     '/node_modules/',
+    '/.next/',
+    '/__tests__/mocks/',
+    '/e2e/',
+  ],
+  transformIgnorePatterns: [
+    'node_modules/(?!(openai)/)',
     '^.+\\.module\\.(css|sass|scss)$',
   ],
   moduleDirectories: ['node_modules', '<rootDir>/'],
