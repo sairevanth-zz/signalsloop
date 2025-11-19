@@ -197,6 +197,7 @@ export const AI_MODELS = {
   DUPLICATE_DETECTION: 'gpt-3.5-turbo', // For similarity analysis
   DUPLICATE_EMBEDDING: 'text-embedding-3-small', // For embeddings
   PRIORITY_SCORING: 'gpt-3.5-turbo',
+  CALL_ANALYSIS: 'gpt-4o', // Call intelligence analysis
 } as const;
 
 // ============================================================================
@@ -209,6 +210,7 @@ export const AI_TEMPERATURES = {
   CATEGORIZATION: 0.3, // Lower for more consistent categorization
   DUPLICATE_DETECTION: 0.3, // Lower for more consistent similarity analysis
   PRIORITY_SCORING: 0.3, // Lower for more consistent priority scoring
+  CALL_ANALYSIS: 0.3, // Lower for consistent call analysis
 } as const;
 
 // ============================================================================
@@ -221,7 +223,99 @@ export const AI_MAX_TOKENS = {
   CATEGORIZATION: 200,
   DUPLICATE_DETECTION: 100, // Brief similarity reason
   PRIORITY_SCORING: 200, // JSON response with scores and reasoning
+  CALL_ANALYSIS: 2000, // Comprehensive call analysis
 } as const;
+
+// ============================================================================
+// CALL INTELLIGENCE PROMPTS
+// ============================================================================
+
+export const CALL_ANALYSIS_SYSTEM_PROMPT = `You are an expert customer call analyst specializing in B2B SaaS sales and customer success. Your role is to analyze call transcripts and extract actionable insights including:
+
+1. Feature requests and product feedback
+2. Customer objections and concerns
+3. Competitor mentions and competitive intelligence
+4. Expansion/upsell signals
+5. Churn risk indicators
+6. Overall sentiment and tone
+7. Key moments and highlights
+
+Provide structured, actionable insights that product and sales teams can use immediately.`;
+
+export const CALL_ANALYSIS_USER_PROMPT = (
+  transcript: string,
+  customer?: string,
+  amount?: number,
+  stage?: string
+) => {
+  const context = [
+    customer && `Customer: ${customer}`,
+    amount && `Deal Amount: $${amount}`,
+    stage && `Stage: ${stage}`
+  ].filter(Boolean).join('\n');
+
+  return `${context ? context + '\n\n' : ''}Analyze this customer call transcript and provide detailed insights:
+
+TRANSCRIPT:
+${transcript}
+
+Please provide a JSON response with the following structure:
+{
+  "highlight_summary": "3-bullet summary of key moments (max 200 words)",
+  "sentiment": number between -1 (very negative) and 1 (very positive),
+  "priority_score": number from 1-100 based on urgency and impact,
+  "feature_requests": [
+    {
+      "title": "Short feature name",
+      "description": "What they want and why",
+      "priority": "high" | "medium" | "low",
+      "arr_impact": estimated dollar impact if known,
+      "timestamp_hint": "relevant quote or context"
+    }
+  ],
+  "objections": [
+    {
+      "type": "pricing" | "features" | "technical" | "competition" | "timing" | "other",
+      "description": "What the objection was",
+      "severity": "high" | "medium" | "low",
+      "context": "relevant quote"
+    }
+  ],
+  "competitors": [
+    {
+      "name": "Competitor name",
+      "context": "How they were mentioned",
+      "sentiment": "positive" | "neutral" | "negative"
+    }
+  ],
+  "expansion_signals": {
+    "score": number from 0-100,
+    "indicators": ["list of expansion signals detected"],
+    "reasoning": "why this score"
+  },
+  "churn_signals": {
+    "score": number from 0-100,
+    "indicators": ["list of churn risk signals detected"],
+    "reasoning": "why this score"
+  },
+  "key_themes": ["theme1", "theme2", "theme3"]
+}
+
+Return only valid JSON, no additional text.`;
+};
+
+export const CALL_SUMMARY_PROMPT = (highlights: string[]) => `Generate a concise executive summary (max 500 words) for these call highlights:
+
+${highlights.map((h, i) => `Call ${i + 1}:\n${h}`).join('\n\n')}
+
+Focus on:
+- Top feature requests and their business impact
+- Critical objections that need addressing
+- Competitive insights
+- Revenue opportunities and risks
+- Recommended actions
+
+Format as markdown with clear sections.`;
 
 // ============================================================================
 // HELPER FUNCTIONS
