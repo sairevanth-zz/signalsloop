@@ -4,18 +4,19 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Plus, 
-  FileText, 
-  Zap, 
-  HelpCircle, 
-  Bell, 
+import {
+  Plus,
+  FileText,
+  Zap,
+  HelpCircle,
+  Bell,
   BookOpen,
   ExternalLink,
   Sparkles,
   Settings,
   Users,
-  BarChart3
+  BarChart3,
+  Phone
 } from 'lucide-react';
 import {
   Dialog,
@@ -65,31 +66,42 @@ const templates = [
 const notifications = [
   {
     id: '1',
-    type: 'update',
-    title: 'New AI Features Available',
-    message: 'Try our enhanced categorization and priority scoring',
-    timestamp: '2 hours ago',
+    type: 'feature',
+    title: '🎉 Call Intelligence Engine',
+    message: 'Turn customer calls into actionable insights with AI',
+    timestamp: 'Just now',
     unread: true
   },
   {
     id: '2',
+    type: 'update',
+    title: 'New AI Features Available',
+    message: 'Try our enhanced categorization and priority scoring',
+    timestamp: '2 hours ago',
+    unread: false
+  },
+  {
+    id: '3',
     type: 'tip',
     title: 'Pro Tip: Widget Analytics',
     message: 'Track widget performance with detailed analytics',
     timestamp: '1 day ago',
     unread: false
-  },
-  {
-    id: '3',
-    type: 'feature',
-    title: 'Custom Domains Now Available',
-    message: 'Use your own domain for feedback boards',
-    timestamp: '3 days ago',
-    unread: false
   }
 ];
 
 const changelogItems = [
+  {
+    version: 'v2.4.0',
+    date: '2025-01-19',
+    features: [
+      '🎉 NEW: Call Intelligence Engine - Analyze customer calls with AI',
+      'Extract feature requests, objections, and competitor insights from calls',
+      'Track expansion opportunities and churn risks by revenue',
+      'Generate 48-hour Call Audit reports with Slack integration',
+      'Auto-create posts and themes from call analysis'
+    ]
+  },
   {
     version: 'v2.3.0',
     date: '2025-01-15',
@@ -239,9 +251,25 @@ export default function QuickActionsSidebar({
           <CardTitle className="text-sm font-medium text-purple-900 flex items-center gap-2">
             <Sparkles className="w-4 h-4" />
             AI Features
+            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-300">
+              New
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
+          <a href="/app/calls" className="block">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start hover:bg-purple-100 bg-purple-50 border border-purple-200"
+            >
+              <Phone className="w-4 h-4 mr-2" />
+              Call Intelligence
+              <Badge variant="secondary" className="ml-auto text-xs bg-green-500 text-white">
+                NEW
+              </Badge>
+            </Button>
+          </a>
           <a href="/app/user-stories" className="block">
             <Button
               variant="ghost"
