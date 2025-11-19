@@ -1,0 +1,11 @@
+name,amount,status,stage,competitor,competitor_product,notes,contact_name,contact_company,close_reason,closed_at
+Acme Corp Deal,50000,lost,negotiation,Salesforce,Sales Cloud,"Lost to pricing. Customer mentioned our pricing was 30% higher than Salesforce. Also cited better integrations with their existing stack.",John Smith,Acme Corp,Pricing too high,2025-11-15T10:00:00Z
+TechStart Enterprise,75000,won,closed,HubSpot,Sales Hub,"Won! Customer loved our AI features and real-time collaboration. Closed after successful POC.",Sarah Johnson,TechStart,Best product fit,2025-11-16T15:30:00Z
+Global Industries,120000,lost,proposal,Monday.com,Work OS,"Lost to feature gaps. They needed advanced workflow automation that we don't support yet. Also mentioned Monday's better mobile app.",Mike Davis,Global Industries,Missing features,2025-11-10T09:00:00Z
+InnovateCo,35000,won,closed,Notion,Notion,"Great fit! Small team loved our simplicity. Beat Notion on collaboration features.",Emily Chen,InnovateCo,Ease of use,2025-11-12T14:00:00Z
+MegaCorp Enterprise,200000,lost,negotiation,Salesforce,Sales Cloud,"Lost in final stages. Security requirements were too complex. Also timeline didn't match their fiscal year.",Robert Wilson,MegaCorp,Security concerns,2025-11-08T11:00:00Z
+StartupXYZ,25000,won,closed,,,"Quick win! No competitor. Found us through Product Hunt and loved the onboarding.",Lisa Anderson,StartupXYZ,No competition,2025-11-14T16:00:00Z
+BigRetail Inc,95000,lost,proposal,SAP,SAP CRM,"Lost to enterprise requirements. Needed on-premise deployment which we don't offer. SAP's enterprise focus won.",David Martinez,BigRetail Inc,Deployment model,2025-11-11T10:30:00Z
+CloudFirst,60000,open,qualification,Pipedrive,Pipedrive,"Currently evaluating. They like our AI but concerned about migration from Pipedrive.",Jennifer Taylor,CloudFirst,,
+FinTech Solutions,150000,open,proposal,Salesforce,Financial Services Cloud,"In final stages. Security team reviewing our SOC 2 compliance. Competing head-to-head with Salesforce.",Mark Thompson,FinTech Solutions,,
+HealthTech Pro,80000,won,closed,Zendesk,Support Suite,"Won on customer support features! They switched from Zendesk for our better automation.",Amanda White,HealthTech Pro,Better automation,2025-11-13T12:00:00Z

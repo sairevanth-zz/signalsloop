@@ -198,6 +198,7 @@ export const AI_MODELS = {
   DUPLICATE_EMBEDDING: 'text-embedding-3-small', // For embeddings
   PRIORITY_SCORING: 'gpt-3.5-turbo',
   CALL_ANALYSIS: 'gpt-4o', // Call intelligence analysis
+  DEAL_AUTOPSY: 'gpt-4o', // Win/loss deal analysis
 } as const;
 
 // ============================================================================
@@ -211,6 +212,7 @@ export const AI_TEMPERATURES = {
   DUPLICATE_DETECTION: 0.3, // Lower for more consistent similarity analysis
   PRIORITY_SCORING: 0.3, // Lower for more consistent priority scoring
   CALL_ANALYSIS: 0.3, // Lower for consistent call analysis
+  DEAL_AUTOPSY: 0.3, // Lower for consistent deal analysis
 } as const;
 
 // ============================================================================
@@ -224,6 +226,7 @@ export const AI_MAX_TOKENS = {
   DUPLICATE_DETECTION: 100, // Brief similarity reason
   PRIORITY_SCORING: 200, // JSON response with scores and reasoning
   CALL_ANALYSIS: 2000, // Comprehensive call analysis
+  DEAL_AUTOPSY: 2500, // Comprehensive deal autopsy with recommendations
 } as const;
 
 // ============================================================================
@@ -316,6 +319,82 @@ Focus on:
 - Recommended actions
 
 Format as markdown with clear sections.`;
+
+// ============================================================================
+// WIN/LOSS DEAL AUTOPSY PROMPTS
+// ============================================================================
+
+export const DEAL_AUTOPSY_SYSTEM_PROMPT = `You are an expert sales analyst specializing in win/loss analysis for B2B deals. Your role is to analyze closed deals and provide comprehensive post-mortem analysis including:
+
+1. Primary reasons for win or loss
+2. Customer objections and pain points
+3. Competitive intelligence and positioning
+4. Deal patterns and themes
+5. Actionable recommendations to improve win rates
+
+Provide structured, data-driven insights that sales and product teams can use to improve future deals.`;
+
+export const DEAL_AUTOPSY_USER_PROMPT = (deal: any) => {
+  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+  }).format(amount);
+
+  const daysDuration = deal.closed_at && deal.created_at
+    ? Math.round((new Date(deal.closed_at).getTime() - new Date(deal.created_at).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+
+  const context = [
+    `Deal Name: ${deal.name}`,
+    `Status: ${deal.status.toUpperCase()}`,
+    `Amount: ${formatCurrency(deal.amount)}`,
+    `Stage: ${deal.stage}`,
+    deal.competitor && `Competitor: ${deal.competitor}${deal.competitor_product ? ` (${deal.competitor_product})` : ''}`,
+    deal.contact_name && `Contact: ${deal.contact_name}`,
+    deal.contact_company && `Company: ${deal.contact_company}`,
+    daysDuration && `Sales Cycle: ${daysDuration} days`,
+    deal.close_reason && `Close Reason: ${deal.close_reason}`,
+  ].filter(Boolean).join('\n');
+
+  return `Analyze this ${deal.status} deal and provide a comprehensive autopsy:
+
+DEAL DETAILS:
+${context}
+
+${deal.notes ? `DEAL NOTES:
+${deal.notes}
+
+` : ''}Please provide a JSON response with the following structure:
+{
+  "summary": "Executive summary (3-5 sentences) explaining the outcome, key factors, and overall context of this deal",
+  "primary_reason": "pricing" | "features" | "competitor" | "timing" | "budget" | "fit" | "process" | "other",
+  "primary_reason_detail": "Specific explanation of the primary reason (1-2 sentences)",
+  "objections": [
+    {
+      "category": "pricing" | "features" | "technical" | "competition" | "timing" | "fit" | "process" | "other",
+      "description": "What the objection was",
+      "severity": "high" | "medium" | "low",
+      "frequency": number (how many times this came up, estimate 1-10)
+    }
+  ],
+  "competitor_signals": [
+    {
+      "competitor_name": "Name of competitor mentioned",
+      "mentioned_features": ["feature1", "feature2"],
+      "perceived_advantages": ["what they did better"],
+      "perceived_disadvantages": ["what they did worse"],
+      "sentiment": "positive" | "neutral" | "negative"
+    }
+  ],
+  "key_themes": ["theme1", "theme2", "theme3"] (main recurring topics),
+  "recommendations": "Markdown-formatted recommendations (3-5 bullet points) on how to prevent similar losses or replicate wins. Be specific and actionable.",
+  "action_items": ["Specific action 1", "Specific action 2", "Specific action 3"] (concrete next steps),
+  "confidence": number between 0 and 1 (how confident are you in this analysis given the available data)
+}
+
+Return only valid JSON, no additional text.`;
+};
 
 // ============================================================================
 // HELPER FUNCTIONS
