@@ -13,10 +13,10 @@ import EnhancedProjectCard from '@/components/EnhancedProjectCard';
 import DashboardAnalytics from '@/components/DashboardAnalytics';
 import QuickActionsSidebar from '@/components/QuickActionsSidebar';
 import DashboardSearchFilters from '@/components/DashboardSearchFilters';
-import { 
-  Plus, 
-  Settings, 
-  Eye, 
+import {
+  Plus,
+  Settings,
+  Eye,
   Users,
   MessageSquare,
   Copy,
@@ -26,7 +26,9 @@ import {
   BarChart3,
   Brain,
   Zap,
-  Sparkles
+  Sparkles,
+  Search,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';

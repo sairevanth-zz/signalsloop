@@ -4,18 +4,20 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Plus, 
-  FileText, 
-  Zap, 
-  HelpCircle, 
-  Bell, 
+import {
+  Plus,
+  FileText,
+  Zap,
+  HelpCircle,
+  Bell,
   BookOpen,
   ExternalLink,
   Sparkles,
   Settings,
   Users,
-  BarChart3
+  BarChart3,
+  Brain,
+  Search
 } from 'lucide-react';
 import {
   Dialog,

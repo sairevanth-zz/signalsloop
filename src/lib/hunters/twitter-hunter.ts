@@ -57,10 +57,12 @@ export class TwitterHunter extends BaseHunter {
     integration: PlatformIntegration
   ): Promise<RawFeedback[]> {
     try {
-      // Validate configuration
-      if (!integration.config.twitter_bearer_token) {
+      // Use centralized API credentials from environment variables
+      const bearerToken = process.env.TWITTER_BEARER_TOKEN;
+
+      if (!bearerToken) {
         throw new PlatformIntegrationError(
-          'Missing Twitter API bearer token',
+          'Missing Twitter API bearer token in environment variables. Please configure TWITTER_BEARER_TOKEN.',
           'twitter',
           { integration_id: integration.id }
         );
@@ -90,7 +92,7 @@ export class TwitterHunter extends BaseHunter {
         try {
           const tweets = await this.searchTweets(
             term,
-            integration.config.twitter_bearer_token,
+            bearerToken,
             config.excluded_keywords
           );
 
@@ -113,7 +115,7 @@ export class TwitterHunter extends BaseHunter {
         try {
           const tweets = await this.searchTweets(
             `from:${username}`,
-            integration.config.twitter_bearer_token,
+            bearerToken,
             config.excluded_keywords
           );
 

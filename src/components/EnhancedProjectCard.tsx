@@ -22,7 +22,8 @@ import {
   Shield,
   Users,
   Target,
-  FileText
+  FileText,
+  Brain
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -75,7 +76,7 @@ export default function EnhancedProjectCard({
     const date = new Date(dateString);
     const now = new Date();
     const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     if (diffInDays === 0) return 'Today';
     if (diffInDays === 1) return 'Yesterday';
     if (diffInDays < 7) return `${diffInDays} days ago`;
@@ -114,12 +115,11 @@ export default function EnhancedProjectCard({
   };
 
   return (
-    <div 
-      className={`bg-white/90 backdrop-blur-sm rounded-xl border transition-all duration-300 hover:scale-[1.02] group relative ${
-        isSelected 
-          ? 'border-blue-300 shadow-lg ring-2 ring-blue-100' 
-          : 'border-white/20 shadow-lg hover:shadow-xl'
-      }`}
+    <div
+      className={`bg-white/90 backdrop-blur-sm rounded-xl border transition-all duration-300 hover:scale-[1.02] group relative ${isSelected
+        ? 'border-blue-300 shadow-lg ring-2 ring-blue-100'
+        : 'border-white/20 shadow-lg hover:shadow-xl'
+        }`}
       style={{ animationDelay: `${index * 0.1}s` }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -149,11 +149,10 @@ export default function EnhancedProjectCard({
               {!project.is_owner && project.member_role && (
                 <Badge
                   variant="outline"
-                  className={`ml-2 text-xs ${
-                    project.member_role === 'admin'
-                      ? 'border-blue-500 text-blue-700 bg-blue-50'
-                      : 'border-gray-400 text-gray-700 bg-gray-50'
-                  }`}
+                  className={`ml-2 text-xs ${project.member_role === 'admin'
+                    ? 'border-blue-500 text-blue-700 bg-blue-50'
+                    : 'border-gray-400 text-gray-700 bg-gray-50'
+                    }`}
                 >
                   {project.member_role === 'admin' ? (
                     <><Shield className="w-3 h-3 mr-1 inline" />Admin</>
@@ -172,7 +171,7 @@ export default function EnhancedProjectCard({
               </p>
             )}
           </div>
-          
+
           {/* Quick actions dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -235,7 +234,7 @@ export default function EnhancedProjectCard({
               </div>
             )}
           </div>
-          
+
           <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
@@ -263,16 +262,6 @@ export default function EnhancedProjectCard({
               </Button>
             </Link>
 
-            <Link href={`/${project.slug}/roadmap`}>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
-              >
-                <Map className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
-              </Button>
-            </Link>
-
             <Link href={`/${project.slug}/competitive`}>
               <Button
                 variant="outline"
@@ -284,6 +273,26 @@ export default function EnhancedProjectCard({
               </Button>
             </Link>
 
+            <Link href={`/${project.slug}/hunter`}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-gradient-to-r from-blue-500/10 to-purple-600/10 border-blue-200 hover:from-blue-500/20 hover:to-purple-600/20 transition-all duration-200 hover:scale-105"
+                title="AI Feedback Hunter"
+              >
+                <Brain className="w-4 h-4 text-blue-600 transition-transform duration-200 group-hover:scale-110" />
+              </Button>
+            </Link>
+
+            <Link href={`/${project.slug}/roadmap`}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
+              >
+                <Map className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+              </Button>
+            </Link>
             <Link href={`/${project.slug}/settings`}>
               <Button
                 variant="outline"

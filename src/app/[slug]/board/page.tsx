@@ -39,6 +39,7 @@ import {
   Target,
   Download,
   GitMerge,
+  Brain,
 } from 'lucide-react';
 import {
   Select,
@@ -1048,6 +1049,24 @@ export default function BoardPage() {
                           <span className="text-sm font-medium text-gray-900">AI Roadmap Suggestions</span>
                           <span className="text-xs text-gray-500">
                             AI-powered roadmap based on feedback themes
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    </Link>
+                  )}
+                  {user && (
+                    <Link href={`/${project?.slug}/hunter`}>
+                      <DropdownMenuItem className="flex items-start gap-3 py-3">
+                        <Brain className="h-4 w-4 text-blue-600" />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">AI Feedback Hunter</span>
+                          <span className="text-xs text-gray-500">
+                            Auto-discover feedback across Reddit, Twitter, HN, G2
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    </Link>
+                  )}
                           </span>
                         </div>
                       </DropdownMenuItem>
