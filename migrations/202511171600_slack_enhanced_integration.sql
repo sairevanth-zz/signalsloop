@@ -199,7 +199,7 @@ CREATE POLICY "Users can view their own Slack connections"
   USING (
     user_id = auth.uid() OR
     project_id IN (
-      SELECT project_id FROM project_members
+      SELECT project_id FROM members
       WHERE user_id = auth.uid()
     )
   );
@@ -209,7 +209,7 @@ CREATE POLICY "Users can insert their own Slack connections"
   WITH CHECK (
     user_id = auth.uid() AND
     project_id IN (
-      SELECT project_id FROM project_members
+      SELECT project_id FROM members
       WHERE user_id = auth.uid()
     )
   );
@@ -219,7 +219,7 @@ CREATE POLICY "Users can update their own Slack connections"
   USING (
     user_id = auth.uid() OR
     project_id IN (
-      SELECT project_id FROM project_members
+      SELECT project_id FROM members
       WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
     )
   );
@@ -229,7 +229,7 @@ CREATE POLICY "Users can delete their own Slack connections"
   USING (
     user_id = auth.uid() OR
     project_id IN (
-      SELECT project_id FROM project_members
+      SELECT project_id FROM members
       WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
     )
   );
@@ -241,7 +241,7 @@ CREATE POLICY "Users can view channel mappings for their projects"
     slack_connection_id IN (
       SELECT id FROM slack_connections
       WHERE user_id = auth.uid() OR project_id IN (
-        SELECT project_id FROM project_members WHERE user_id = auth.uid()
+        SELECT project_id FROM members WHERE user_id = auth.uid()
       )
     )
   );
@@ -252,7 +252,7 @@ CREATE POLICY "Users can manage channel mappings for their projects"
     slack_connection_id IN (
       SELECT id FROM slack_connections
       WHERE project_id IN (
-        SELECT project_id FROM project_members
+        SELECT project_id FROM members
         WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
       )
     )
@@ -263,7 +263,7 @@ CREATE POLICY "Users can view alert rules for their projects"
   ON slack_alert_rules FOR SELECT
   USING (
     project_id IN (
-      SELECT project_id FROM project_members
+      SELECT project_id FROM members
       WHERE user_id = auth.uid()
     )
   );
@@ -272,7 +272,7 @@ CREATE POLICY "Users can manage alert rules for their projects"
   ON slack_alert_rules FOR ALL
   USING (
     project_id IN (
-      SELECT project_id FROM project_members
+      SELECT project_id FROM members
       WHERE user_id = auth.uid() AND role IN ('owner', 'admin')
     )
   );
@@ -284,7 +284,7 @@ CREATE POLICY "Users can view message logs for their projects"
     slack_connection_id IN (
       SELECT id FROM slack_connections
       WHERE project_id IN (
-        SELECT project_id FROM project_members WHERE user_id = auth.uid()
+        SELECT project_id FROM members WHERE user_id = auth.uid()
       )
     )
   );
@@ -296,7 +296,7 @@ CREATE POLICY "Users can view interaction logs for their projects"
     slack_connection_id IN (
       SELECT id FROM slack_connections
       WHERE project_id IN (
-        SELECT project_id FROM project_members WHERE user_id = auth.uid()
+        SELECT project_id FROM members WHERE user_id = auth.uid()
       )
     )
   );

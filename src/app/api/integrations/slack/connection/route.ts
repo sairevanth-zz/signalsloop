@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     // Verify user has access to project
     const { data: projectMember } = await supabase
-      .from('project_members')
+      .from('members')
       .select('role')
       .eq('project_id', projectId)
       .eq('user_id', user.id)
