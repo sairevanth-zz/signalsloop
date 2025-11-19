@@ -24,7 +24,8 @@ import {
   Target,
   FileText,
   Brain,
-  Phone
+  Phone,
+  Trophy
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -214,6 +215,13 @@ export default function EnhancedProjectCard({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
+                <Link href={`/${project.slug}/win-loss`}>
+                  <Trophy className="mr-2 h-4 w-4" />
+                  Win/Loss Decoder
+                  <Badge className="ml-auto text-xs bg-green-500 text-white">NEW</Badge>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href={`/${project.slug}/settings`}>
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
@@ -300,6 +308,18 @@ export default function EnhancedProjectCard({
                 title="AI Feedback Hunter"
               >
                 <Brain className="w-4 h-4 text-blue-600 transition-transform duration-200 group-hover:scale-110" />
+              </Button>
+            </Link>
+
+            <Link href={`/${project.slug}/win-loss`}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="relative bg-gradient-to-r from-amber-50 to-yellow-50 backdrop-blur-sm border-amber-200 hover:from-amber-100 hover:to-yellow-100 transition-all duration-200 hover:scale-105"
+                title="Win/Loss Decoder"
+              >
+                <Trophy className="w-4 h-4 text-amber-600 transition-transform duration-200 group-hover:scale-110" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               </Button>
             </Link>
 

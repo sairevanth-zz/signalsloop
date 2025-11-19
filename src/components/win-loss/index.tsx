@@ -1,10 +1,14 @@
 /**
- * Win/Loss Dashboard Component
- * Displays KPIs, charts, deals table, and autopsy details
+ * Win/Loss Dashboard Components
+ * Exports all Win/Loss related components
  */
 
-'use client';
+// Export enhanced dashboard as default
+export { EnhancedWinLossDashboard as WinLossDashboard } from './EnhancedWinLossDashboard';
+export { DealUploadDialog } from './DealUploadDialog';
+export { AutopsyDetailPanel } from './AutopsyDetailPanel';
 
+// Legacy simple dashboard (for backwards compatibility)
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,12 +16,12 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, TrendingUp, TrendingDown, DollarSign, Target, AlertTriangle, FileText, Download, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-interface WinLossDashboardProps {
+interface SimpleDashboardProps {
   projectId: string;
   projectSlug: string;
 }
 
-export function WinLossDashboard({ projectId, projectSlug }: WinLossDashboardProps) {
+export function SimpleDashboard({ projectId, projectSlug }: SimpleDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState<any>(null);
   const [deals, setDeals] = useState<any[]>([]);
