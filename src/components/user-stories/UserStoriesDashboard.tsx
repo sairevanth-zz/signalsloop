@@ -7,11 +7,13 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Zap, FileText, TrendingUp, AlertCircle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, Zap, FileText, TrendingUp, AlertCircle, ArrowRight, Lightbulb } from 'lucide-react';
 import { UserStory, UserStoryWithDetails } from '@/types/user-stories';
 import { Theme } from '@/types/themes';
 import { StoryCard } from './StoryCard';
 import { StoryGenerator } from './StoryGenerator';
+import Link from 'next/link';
 
 interface UserStoriesDashboardProps {
   projectId: string;
@@ -222,9 +224,41 @@ export function UserStoriesDashboard({ projectId }: UserStoriesDashboardProps) {
                 Generate from Theme
               </Button>
             ) : (
-              <p className="text-sm text-gray-500">
-                No themes available. Create themes from feedback first.
-              </p>
+              <div className="max-w-2xl mx-auto">
+                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <Lightbulb className="w-8 h-8 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 mb-2">How to Generate User Stories</h4>
+                        <p className="text-sm text-gray-700 mb-4">
+                          User stories are generated from feedback themes. Follow these steps:
+                        </p>
+                        <ol className="text-sm text-gray-700 space-y-2 mb-4">
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-blue-600">1.</span>
+                            <span>Collect feedback from your users (via widget or manual entry)</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-blue-600">2.</span>
+                            <span>Go to your board and use AI to categorize feedback into themes</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-blue-600">3.</span>
+                            <span>Return here to generate sprint-ready user stories from those themes</span>
+                          </li>
+                        </ol>
+                        <Button asChild className="w-full sm:w-auto">
+                          <Link href={`/app`}>
+                            <ArrowRight className="w-4 h-4 mr-2" />
+                            Go to Dashboard
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             )}
           </div>
         ) : (

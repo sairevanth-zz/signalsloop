@@ -156,7 +156,7 @@ export default function BoardPage() {
   const searchParams = useSearchParams();
   const { user, signOut } = useAuth();
   const supabase = getSupabaseClient();
-  
+
   const [project, setProject] = useState<Project | null>(null);
   const [board, setBoard] = useState<Board | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -208,7 +208,7 @@ export default function BoardPage() {
   // Update URL when filters change
   const updateURL = useCallback((updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     Object.entries(updates).forEach(([key, value]) => {
       if (value === 'all' || value === 'votes' || value === '') {
         params.delete(key);
@@ -582,7 +582,7 @@ export default function BoardPage() {
         .is('duplicate_of', null);
 
       const { data: allPostsData } = await allPostsQuery;
-      
+
       const counts: Record<string, number> = {};
       allPostsData?.forEach((post: Record<string, unknown>) => {
         const category = post.category as string;
@@ -590,7 +590,7 @@ export default function BoardPage() {
           counts[category] = (counts[category] || 0) + 1;
         }
       });
-      
+
       setCategoryCounts(counts);
 
     } catch (error) {
@@ -909,7 +909,7 @@ export default function BoardPage() {
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
             <div className="space-y-4">
-              {[1,2,3].map(i => (
+              {[1, 2, 3].map(i => (
                 <div key={i} className="h-32 bg-gray-200 rounded"></div>
               ))}
             </div>
@@ -933,939 +933,974 @@ export default function BoardPage() {
         <div className="flex gap-4 lg:gap-8">
           {/* Main Content */}
           <div className="flex-1 min-w-0">
-        {/* Error Display */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800">{error}</p>
-          </div>
-        )}
-
-        {/* Header */}
-        <div className="mb-8">
-          {/* Breadcrumb Navigation - Mobile Optimized */}
-          <div className="mb-4">
-            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-600 overflow-x-auto hide-scrollbar">
-              <Link href="/app" className="hover:text-gray-900 flex items-center gap-1 whitespace-nowrap">
-                <Home className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </Link>
-              <span className="flex-shrink-0">→</span>
-              <span className="truncate max-w-[100px] sm:max-w-none">{board?.name || project?.name}</span>
-              <span className="hidden sm:inline flex-shrink-0">→</span>
-              <span className="hidden sm:inline whitespace-nowrap">Feedback Board</span>
-            </div>
-            
-            {/* User Email - Mobile: Hidden, shown in GlobalBanner dropdown */}
-            {user && (
-              <div className="hidden sm:flex items-center gap-2 mt-2">
-                <span className="text-sm text-gray-600 truncate">{user.email}</span>
+            {/* Error Display */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-red-800">{error}</p>
               </div>
             )}
-          </div>
-          
-          <div className="flex flex-col gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {board?.name || project?.name}
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">
-                {board?.description || 'Share your ideas and help us build better features'}
-              </p>
-            </div>
-            
-            <div className="flex flex-wrap gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="flex items-center gap-1 min-touch-target tap-highlight-transparent"
-                  >
-                    <span className="text-sm font-semibold">
-                      {isOwnerOrAdmin ? 'Admin Actions' : 'Board Actions'}
-                    </span>
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-72">
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setShowShareModal(true);
-                    }}
-                    className="flex items-start gap-3 py-3"
-                  >
-                    <Share2 className="h-4 w-4 text-green-600" />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-900">Share board</span>
-                      <span className="text-xs text-gray-500">
-                        Get a link to invite contributors
-                      </span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setShowPostForm(true);
-                    }}
-                    className="flex items-start gap-3 py-3"
-                  >
-                    <Plus className="h-4 w-4 text-blue-600" />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-900">Submit feedback</span>
-                      <span className="text-xs text-gray-500">
-                        Share a new idea or report an issue
-                      </span>
-                    </div>
-                  </DropdownMenuItem>
-                  {user && posts.length > 0 && (
-                    <Link href={`/${project?.slug}/ai-insights`}>
-                      <DropdownMenuItem className="flex items-start gap-3 py-3">
-                        <Sparkles className="h-4 w-4 text-purple-600" />
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">AI Insights & Themes</span>
-                          <span className="text-xs text-gray-500">
-                            Discover themes, patterns, and sentiment
-                          </span>
-                        </div>
-                      </DropdownMenuItem>
-                    </Link>
-                  )}
-                  {user && (
-                    <Link href={`/${project?.slug}/competitive`}>
-                      <DropdownMenuItem className="flex items-start gap-3 py-3">
-                        <Target className="h-4 w-4 text-blue-600" />
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">Competitive Intelligence</span>
-                          <span className="text-xs text-gray-500">
-                            Track competitors, feature gaps, and strategic insights
-                          </span>
-                        </div>
-                      </DropdownMenuItem>
-                    </Link>
-                  )}
-                  {user && (
-                    <Link href={`/app/roadmap?projectId=${project?.id}`}>
-                      <DropdownMenuItem className="flex items-start gap-3 py-3">
-                        <Map className="h-4 w-4 text-indigo-600" />
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">AI Roadmap Suggestions</span>
-                          <span className="text-xs text-gray-500">
-                            AI-powered roadmap based on feedback themes
-                          </span>
-                        </div>
-                      </DropdownMenuItem>
-                    </Link>
-                  )}
-                  {user && (
-                    <Link href={`/${project?.slug}/hunter`}>
-                      <DropdownMenuItem className="flex items-start gap-3 py-3">
-                        <Brain className="h-4 w-4 text-blue-600" />
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">AI Feedback Hunter</span>
-                          <span className="text-xs text-gray-500">
-                            Auto-discover feedback across Reddit, Twitter, HN, G2
-                          </span>
-                        </div>
-                      </DropdownMenuItem>
-                    </Link>
-                  )}
-                          </span>
-                        </div>
-                      </DropdownMenuItem>
-                    </Link>
-                  )}
-                  {isOwnerOrAdmin && <DropdownMenuSeparator />}
-                  {isOwnerOrAdmin && project && (
-                    <DropdownMenuItem
-                      onSelect={() => {
-                        setShowFeedbackOnBehalfModal(true);
-                      }}
-                      className="flex items-start gap-3 py-3"
-                    >
-                      <FileText className="h-4 w-4 text-green-700" />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900">Submit on behalf</span>
-                        <span className="text-xs text-gray-500">
-                          Record feedback you&apos;ve collected elsewhere
+
+            {/* Header */}
+            <div className="mb-8">
+              {/* Breadcrumb Navigation - Mobile Optimized */}
+              <div className="mb-4">
+                <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-600 overflow-x-auto hide-scrollbar">
+                  <Link href="/app" className="hover:text-gray-900 flex items-center gap-1 whitespace-nowrap">
+                    <Home className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">Dashboard</span>
+                  </Link>
+                  <span className="flex-shrink-0">→</span>
+                  <span className="truncate max-w-[100px] sm:max-w-none">{board?.name || project?.name}</span>
+                  <span className="hidden sm:inline flex-shrink-0">→</span>
+                  <span className="hidden sm:inline whitespace-nowrap">Feedback Board</span>
+                </div>
+
+                {/* User Email - Mobile: Hidden, shown in GlobalBanner dropdown */}
+                {user && (
+                  <div className="hidden sm:flex items-center gap-2 mt-2">
+                    <span className="text-sm text-gray-600 truncate">{user.email}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    {board?.name || project?.name}
+                  </h1>
+                  <p className="text-sm sm:text-base text-gray-600 mt-1">
+                    {board?.description || 'Share your ideas and help us build better features'}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="flex items-center gap-1 min-touch-target tap-highlight-transparent"
+                      >
+                        <span className="text-sm font-semibold">
+                          {isOwnerOrAdmin ? 'Admin Actions' : 'Board Actions'}
                         </span>
-                      </div>
-                    </DropdownMenuItem>
-                  )}
-                  {isOwnerOrAdmin && (
-                    <DropdownMenuItem
-                      disabled={autoPrioritizing}
-                      onSelect={(event) => {
-                        event.preventDefault();
-                        if (!autoPrioritizing) {
-                          handleAutoPrioritize();
-                        }
-                      }}
-                      className="flex items-start gap-3 py-3"
-                    >
-                      {autoPrioritizing ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                      ) : (
-                        <Target className="h-4 w-4 text-blue-600" />
-                      )}
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900">Auto-prioritize</span>
-                        <span className="text-xs text-gray-500">
-                          Generate AI priority scores for the newest posts
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                  )}
-                  {isOwnerOrAdmin && (
-                    <DropdownMenuItem
-                      disabled={autoCategorizing}
-                      onSelect={(event) => {
-                        event.preventDefault();
-                        if (!autoCategorizing) {
-                          handleAutoCategorize();
-                        }
-                      }}
-                      className="flex items-start gap-3 py-3"
-                    >
-                      {autoCategorizing ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
-                      ) : (
-                        <Wand2 className="h-4 w-4 text-indigo-600" />
-                      )}
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900">Smart Categorize</span>
-                        <span className="text-xs text-gray-500">
-                          Let AI organize feedback by category
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                  )}
-                  {isOwnerOrAdmin && (
-                    <DropdownMenuItem
-                      disabled={findingDuplicates}
-                      onSelect={(event) => {
-                        event.preventDefault();
-                        if (!findingDuplicates) {
-                          handleFindDuplicates();
-                        }
-                      }}
-                      className="flex items-start gap-3 py-3"
-                    >
-                      {findingDuplicates ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-orange-600" />
-                      ) : (
-                        <GitMerge className="h-4 w-4 text-orange-600" />
-                      )}
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900">Find Duplicates</span>
-                        <span className="text-xs text-gray-500">
-                          AI scans for duplicate feedback and merges them
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                  )}
-                  {isOwnerOrAdmin && (
-                    <DropdownMenuItem
-                      disabled={analyzingSentiment}
-                      onSelect={(event) => {
-                        event.preventDefault();
-                        if (!analyzingSentiment) {
-                          handleAnalyzeSentiment();
-                        }
-                      }}
-                      className="flex items-start gap-3 py-3"
-                    >
-                      {analyzingSentiment ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
-                      ) : (
-                        <Sparkles className="h-4 w-4 text-purple-600" />
-                      )}
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900">Analyze Sentiment</span>
-                        <span className="text-xs text-gray-500">
-                          AI analyzes emotional tone of recent feedback
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                  )}
-                  {isOwnerOrAdmin && (
-                    <>
-                      <DropdownMenuSeparator />
+                        <ChevronDown className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-72">
                       <DropdownMenuItem
-                        onSelect={(event) => {
-                          event.preventDefault();
-                          handleAdminExport();
+                        onSelect={() => {
+                          setShowShareModal(true);
                         }}
                         className="flex items-start gap-3 py-3"
                       >
-                        <Download className="h-4 w-4 text-blue-600" />
+                        <Share2 className="h-4 w-4 text-green-600" />
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">Export data</span>
+                          <span className="text-sm font-medium text-gray-900">Share board</span>
                           <span className="text-xs text-gray-500">
-                            Download feedback to Excel or CSV
+                            Get a link to invite contributors
                           </span>
                         </div>
                       </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Share modal portal */}
-              {showShareModal && typeof window !== 'undefined' && (
-                <div 
-                  style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                    zIndex: 99999999,
-                    display: 'block',
-                    padding: '0',
-                    overflow: 'auto'
-                  }}
-                  onClick={(e) => {
-                    if (e.target === e.currentTarget) {
-                      setShowShareModal(false);
-                    }
-                  }}
-                >
-                  <div 
-                    style={{
-                      backgroundColor: 'white',
-                      borderRadius: '12px',
-                      boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
-                      maxWidth: '800px',
-                      width: '90%',
-                      maxHeight: '90vh',
-                      overflow: 'hidden',
-                      position: 'relative',
-                      margin: '50px auto'
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Share {project?.name} Board</h2>
-                      <button 
-                        onClick={() => setShowShareModal(false)}
-                        style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#6b7280' }}
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setShowPostForm(true);
+                        }}
+                        className="flex items-start gap-3 py-3"
                       >
-                        ×
-                      </button>
-                    </div>
-                    <div style={{ padding: '20px', maxHeight: 'calc(90vh - 80px)', overflowY: 'auto' }}>
-                      {project && (
-                        <BoardShare
-                          projectSlug={params?.slug as string}
-                          projectName={project.name}
-                          boardUrl={`${window.location.origin}/${params?.slug}/board`}
-                          isPublic={true}
-                        />
+                        <Plus className="h-4 w-4 text-blue-600" />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">Submit feedback</span>
+                          <span className="text-xs text-gray-500">
+                            Share a new idea or report an issue
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                      {user && posts.length > 0 && (
+                        <Link href={`/${project?.slug}/ai-insights`}>
+                          <DropdownMenuItem className="flex items-start gap-3 py-3">
+                            <Sparkles className="h-4 w-4 text-purple-600" />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">AI Insights & Themes</span>
+                              <span className="text-xs text-gray-500">
+                                Discover themes, patterns, and sentiment
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        </Link>
                       )}
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Feedback export modal trigger (hidden for admins) */}
-              <FeedbackExport
-                projectSlug={params?.slug as string}
-                projectName={project?.name || ''}
-                hideTriggerButton={isOwnerOrAdmin}
-                registerTrigger={registerExportTrigger}
-              />
-              
-              {/* Roadmap Button - Visible on all devices */}
-              <Link href={`/${params?.slug}/roadmap`}>
-                <Button variant="outline" className="flex items-center gap-1 min-touch-target tap-highlight-transparent">
-                  <Map className="w-4 h-4" />
-                  <span className="hidden md:inline">Roadmap</span>
-                </Button>
-              </Link>
-              
-              {/* Settings Button - Visible for logged-in users on all devices */}
-              {user && (
-                <Link href={`/${params?.slug}/settings`}>
-                  <Button variant="outline" className="flex items-center gap-1 min-touch-target tap-highlight-transparent">
-                    <Settings className="w-4 h-4" />
-                    <span className="hidden md:inline">Settings</span>
-                  </Button>
-                </Link>
-              )}
-              
-            </div>
-          </div>
-        </div>
+                      {user && (
+                        <Link href={`/${project?.slug}/competitive`}>
+                          <DropdownMenuItem className="flex items-start gap-3 py-3">
+                            <Target className="h-4 w-4 text-blue-600" />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">Competitive Intelligence</span>
+                              <span className="text-xs text-gray-500">
+                                Track competitors, feature gaps, and strategic insights
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        </Link>
+                      )}
+                      {user && (
+                        <Link href={`/app/roadmap?projectId=${project?.id}`}>
+                          <DropdownMenuItem className="flex items-start gap-3 py-3">
+                            <Map className="h-4 w-4 text-indigo-600" />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">AI Roadmap Suggestions</span>
+                              <span className="text-xs text-gray-500">
+                                AI-powered roadmap based on feedback themes
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        </Link>
+                      )}
+                      {user && (
+                        <Link href={`/${project?.slug}/hunter`}>
+                          <DropdownMenuItem className="flex items-start gap-3 py-3">
+                            <Brain className="h-4 w-4 text-blue-600" />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">AI Feedback Hunter</span>
+                              <span className="text-xs text-gray-500">
+                                Auto-discover feedback across Reddit, Twitter, HN, G2
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        </Link>
+                      )}
+                      {user && (
+                        <Link href={`/app/user-stories?projectId=${project?.id}`}>
+                          <DropdownMenuItem className="flex items-start gap-3 py-3">
+                            <FileText className="h-4 w-4 text-blue-600" />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">User Stories</span>
+                              <span className="text-xs text-gray-500">
+                                AI-generated sprint-ready stories from themes
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        </Link>
+                      )}
 
-        {/* Welcome Message */}
-        {board?.welcome_message && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 sm:mb-6">
-            <p className="text-sm sm:text-base text-blue-900 whitespace-pre-wrap">
-              {board.welcome_message}
-            </p>
-          </div>
-        )}
-
-        {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 mb-4 sm:mb-6">
-          {/* Mobile Filter Toggle */}
-          <div className="lg:hidden mb-3">
-            <Button
-              variant="outline"
-              onClick={() => setShowMobileFilters(!showMobileFilters)}
-              className="w-full justify-between min-touch-target"
-            >
-              <span>Filters & Search</span>
-              <ChevronRight className={`h-4 w-4 transition-transform ${showMobileFilters ? 'rotate-90' : ''}`} />
-            </Button>
-          </div>
-          
-          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 ${showMobileFilters ? 'block' : 'hidden lg:grid'}`}>
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-              <Input
-                placeholder="Search feedback..."
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="pl-10 min-touch-target text-base"
-                type="search"
-              />
-            </div>
-
-            {/* Category Filter */}
-            <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
-              <SelectTrigger className="min-touch-target">
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  <div className="flex items-center gap-2">
-                    <span>📋</span>
-                    <span>All Categories</span>
-                    <span className="text-gray-500 text-sm">({Object.values(categoryCounts).reduce((a, b) => a + b, 0)})</span>
-                  </div>
-                </SelectItem>
-                {Object.entries(categoryConfig).map(([category, config]) => (
-                  <SelectItem key={category} value={category}>
-                    <div className="flex items-center gap-2">
-                      <span>{config.icon}</span>
-                      <span>{category}</span>
-                      <span className="text-gray-500 text-sm">({categoryCounts[category] || 0})</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-              <SelectTrigger className="min-touch-target">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="planned">Planned</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="done">Done</SelectItem>
-                <SelectItem value="declined">Declined</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Sort */}
-            <Select value={sortBy} onValueChange={handleSortChange}>
-              <SelectTrigger className="min-touch-target">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="votes">Most Votes</SelectItem>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Debug AI Features - Only show when DEBUG_AI_FEATURES is enabled */}
-        {process.env.NEXT_PUBLIC_DEBUG_AI_FEATURES === 'true' && (
-          <DebugAIFeatures projectSlug={params?.slug as string} />
-        )}
-
-        {/* Sentiment Analysis Dashboard - Only show for project owners/admins */}
-        {isOwnerOrAdmin && project && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-purple-600" />
-              <h2 className="text-xl font-bold text-gray-900">Sentiment Analysis</h2>
-              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                AI-Powered
-              </Badge>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <SentimentWidget
-                projectId={project.id}
-                defaultTimeRange={30}
-                onFilterChange={handleSentimentFilterChange}
-              />
-              <SentimentTrendChart
-                projectId={project.id}
-                defaultTimeRange={30}
-              />
-            </div>
-            {sentimentFilter && (
-              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-purple-900">
-                    Filtering by sentiment: <strong className="capitalize">{sentimentFilter}</strong>
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSentimentFilterChange(null)}
-                  className="text-purple-700 hover:text-purple-900"
-                >
-                  <X className="w-4 h-4 mr-1" />
-                  Clear Filter
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Posts List */}
-        <div className="space-y-4">
-          {filteredPosts.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="max-w-md mx-auto">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No feedback yet
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Be the first to share your ideas and help shape the future of this product.
-                </p>
-                <Button 
-                  onClick={() => setShowPostForm(true)}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Submit First Feedback
-                </Button>
-              </div>
-            </div>
-          ) : (
-            filteredPosts.map((post) => {
-              const priorityLevelLabel = getPriorityLevelLabel(post.priority_score);
-              const priorityBadgeClass = priorityLevelLabel
-                ? PRIORITY_LEVEL_STYLES[priorityLevelLabel] || PRIORITY_LEVEL_STYLES.Low
-                : '';
-              const priorityReasonDescription = post.priority_reason
-                ? post.priority_reason.replace(/^[^:]+:\s*/, '')
-                : null;
-              const priorityScoreDisplay = typeof post.priority_score === 'number'
-                ? post.priority_score.toFixed(1)
-                : null;
-              const priorityAnalyzedOn = post.ai_analyzed_at
-                ? new Date(post.ai_analyzed_at).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })
-                : null;
-              const priorityIndexDisplay = typeof post.total_priority_score === 'number'
-                ? post.total_priority_score
-                : null;
-              const hasAISuggestion = Boolean(post.ai_analyzed_at);
-              const isPriorityExpanded = expandedPriorityCards[post.id] ?? false;
-              const summaryMessage = priorityLevelLabel
-                ? `Suggested: ${priorityLevelLabel}`
-                : 'AI-generated planning guidance';
-              const summaryScoreDisplay = hasAISuggestion && priorityScoreDisplay ? `${priorityScoreDisplay}/10` : null;
-              const hasMergedDuplicates = (post.mergedDuplicateCount ?? 0) > 0;
-
-              return (
-              <Card 
-                key={post.id} 
-                className="hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => router.push(`/${params?.slug}/post/${post.id}`)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    {/* Vote Button */}
-                    <div className="flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
-                      <VoteButton
-                        postId={post.id}
-                        initialVoteCount={post.vote_count}
-                        initialUserVoted={post.user_voted}
-                        onVoteChange={(newCount, userVoted) => {
-                          // Update the post in the local state
-                          setPosts(prev => prev.map(p => 
-                            p.id === post.id 
-                              ? { ...p, vote_count: newCount, user_voted: userVoted }
-                              : p
-                          ));
-                        }}
-                        onShowNotification={(message, type) => {
-                          if (type === 'success') {
-                            toast.success(message);
-                          } else if (type === 'error') {
-                            toast.error(message);
-                          } else {
-                            toast.info(message);
-                          }
-                        }}
-                        size="md"
-                        variant="default"
-                      />
-                    </div>
-
-                    {/* Post Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-                          {post.title}
-                        </h3>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <Badge
-                            variant="outline"
-                            className={statusConfig[post.status].color}
-                          >
-                            {statusConfig[post.status].label}
-                          </Badge>
-                          {hasMergedDuplicates && (
-                            <Badge
-                              variant="outline"
-                              className="border-orange-300 bg-orange-50 text-orange-700"
-                            >
-                              {post.mergedDuplicateCount} merged
-                            </Badge>
+                      {isOwnerOrAdmin && <DropdownMenuSeparator />}
+                      {isOwnerOrAdmin && project && (
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setShowFeedbackOnBehalfModal(true);
+                          }}
+                          className="flex items-start gap-3 py-3"
+                        >
+                          <FileText className="h-4 w-4 text-green-700" />
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-gray-900">Submit on behalf</span>
+                            <span className="text-xs text-gray-500">
+                              Record feedback you&apos;ve collected elsewhere
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                      )}
+                      {isOwnerOrAdmin && (
+                        <DropdownMenuItem
+                          disabled={autoPrioritizing}
+                          onSelect={(event) => {
+                            event.preventDefault();
+                            if (!autoPrioritizing) {
+                              handleAutoPrioritize();
+                            }
+                          }}
+                          className="flex items-start gap-3 py-3"
+                        >
+                          {autoPrioritizing ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                          ) : (
+                            <Target className="h-4 w-4 text-blue-600" />
                           )}
-                          {isOwnerOrAdmin && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeletePost(post.id);
-                              }}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
-                              title="Delete post"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-gray-900">Auto-prioritize</span>
+                            <span className="text-xs text-gray-500">
+                              Generate AI priority scores for the newest posts
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                      )}
+                      {isOwnerOrAdmin && (
+                        <DropdownMenuItem
+                          disabled={autoCategorizing}
+                          onSelect={(event) => {
+                            event.preventDefault();
+                            if (!autoCategorizing) {
+                              handleAutoCategorize();
+                            }
+                          }}
+                          className="flex items-start gap-3 py-3"
+                        >
+                          {autoCategorizing ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                          ) : (
+                            <Wand2 className="h-4 w-4 text-indigo-600" />
+                          )}
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-gray-900">Smart Categorize</span>
+                            <span className="text-xs text-gray-500">
+                              Let AI organize feedback by category
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                      )}
+                      {isOwnerOrAdmin && (
+                        <DropdownMenuItem
+                          disabled={findingDuplicates}
+                          onSelect={(event) => {
+                            event.preventDefault();
+                            if (!findingDuplicates) {
+                              handleFindDuplicates();
+                            }
+                          }}
+                          className="flex items-start gap-3 py-3"
+                        >
+                          {findingDuplicates ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-orange-600" />
+                          ) : (
+                            <GitMerge className="h-4 w-4 text-orange-600" />
+                          )}
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-gray-900">Find Duplicates</span>
+                            <span className="text-xs text-gray-500">
+                              AI scans for duplicate feedback and merges them
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                      )}
+                      {isOwnerOrAdmin && (
+                        <DropdownMenuItem
+                          disabled={analyzingSentiment}
+                          onSelect={(event) => {
+                            event.preventDefault();
+                            if (!analyzingSentiment) {
+                              handleAnalyzeSentiment();
+                            }
+                          }}
+                          className="flex items-start gap-3 py-3"
+                        >
+                          {analyzingSentiment ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
+                          ) : (
+                            <Sparkles className="h-4 w-4 text-purple-600" />
+                          )}
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-gray-900">Analyze Sentiment</span>
+                            <span className="text-xs text-gray-500">
+                              AI analyzes emotional tone of recent feedback
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                      )}
+                      {isOwnerOrAdmin && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onSelect={(event) => {
+                              event.preventDefault();
+                              handleAdminExport();
+                            }}
+                            className="flex items-start gap-3 py-3"
+                          >
+                            <Download className="h-4 w-4 text-blue-600" />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">Export data</span>
+                              <span className="text-xs text-gray-500">
+                                Download feedback to Excel or CSV
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Share modal portal */}
+                  {showShareModal && typeof window !== 'undefined' && (
+                    <div
+                      style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        zIndex: 99999999,
+                        display: 'block',
+                        padding: '0',
+                        overflow: 'auto'
+                      }}
+                      onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                          setShowShareModal(false);
+                        }
+                      }}
+                    >
+                      <div
+                        style={{
+                          backgroundColor: 'white',
+                          borderRadius: '12px',
+                          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
+                          maxWidth: '800px',
+                          width: '90%',
+                          maxHeight: '90vh',
+                          overflow: 'hidden',
+                          position: 'relative',
+                          margin: '50px auto'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Share {project?.name} Board</h2>
+                          <button
+                            onClick={() => setShowShareModal(false)}
+                            style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#6b7280' }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div style={{ padding: '20px', maxHeight: 'calc(90vh - 80px)', overflowY: 'auto' }}>
+                          {project && (
+                            <BoardShare
+                              projectSlug={params?.slug as string}
+                              projectName={project.name}
+                              boardUrl={`${window.location.origin}/${params?.slug}/board`}
+                              isPublic={true}
+                            />
                           )}
                         </div>
                       </div>
+                    </div>
+                  )}
 
-                      {/* AI Category Badge */}
-                      {post.category && (
-                        <div className="mb-2">
-                          <CategoryBadge 
-                            category={post.category} 
-                            aiCategorized={post.ai_categorized}
-                            confidence={post.ai_confidence}
-                            size="sm"
-                          />
+                  {/* Feedback export modal trigger (hidden for admins) */}
+                  <FeedbackExport
+                    projectSlug={params?.slug as string}
+                    projectName={project?.name || ''}
+                    hideTriggerButton={isOwnerOrAdmin}
+                    registerTrigger={registerExportTrigger}
+                  />
+
+                  {/* Roadmap Button - Visible on all devices */}
+                  <Link href={`/${params?.slug}/roadmap`}>
+                    <Button variant="outline" className="flex items-center gap-1 min-touch-target tap-highlight-transparent">
+                      <Map className="w-4 h-4" />
+                      <span className="hidden md:inline">Roadmap</span>
+                    </Button>
+                  </Link>
+
+                  {/* User Stories Button - Visible for logged-in users */}
+                  {user && project && (
+                    <Link href={`/app/user-stories?projectId=${project.id}`}>
+                      <Button variant="outline" className="flex items-center gap-1 min-touch-target tap-highlight-transparent bg-blue-50 hover:bg-blue-100 border-blue-200">
+                        <FileText className="w-4 h-4 text-blue-600" />
+                        <span className="hidden md:inline">User Stories</span>
+                      </Button>
+                    </Link>
+                  )}
+
+                  {/* Settings Button - Visible for logged-in users on all devices */}
+                  {user && (
+                    <Link href={`/${params?.slug}/settings`}>
+                      <Button variant="outline" className="flex items-center gap-1 min-touch-target tap-highlight-transparent">
+                        <Settings className="w-4 h-4" />
+                        <span className="hidden md:inline">Settings</span>
+                      </Button>
+                    </Link>
+                  )}
+
+                </div>
+              </div>
+            </div >
+
+            {/* Welcome Message */}
+            {
+              board?.welcome_message && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 sm:mb-6">
+                  <p className="text-sm sm:text-base text-blue-900 whitespace-pre-wrap">
+                    {board.welcome_message}
+                  </p>
+                </div>
+              )
+            }
+
+            {/* Filters and Search */}
+            <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 mb-4 sm:mb-6">
+              {/* Mobile Filter Toggle */}
+              <div className="lg:hidden mb-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowMobileFilters(!showMobileFilters)}
+                  className="w-full justify-between min-touch-target"
+                >
+                  <span>Filters & Search</span>
+                  <ChevronRight className={`h-4 w-4 transition-transform ${showMobileFilters ? 'rotate-90' : ''}`} />
+                </Button>
+              </div>
+
+              <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 ${showMobileFilters ? 'block' : 'hidden lg:grid'}`}>
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+                  <Input
+                    placeholder="Search feedback..."
+                    value={searchTerm}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    className="pl-10 min-touch-target text-base"
+                    type="search"
+                  />
+                </div>
+
+                {/* Category Filter */}
+                <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
+                  <SelectTrigger className="min-touch-target">
+                    <SelectValue placeholder="Filter by category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      <div className="flex items-center gap-2">
+                        <span>📋</span>
+                        <span>All Categories</span>
+                        <span className="text-gray-500 text-sm">({Object.values(categoryCounts).reduce((a, b) => a + b, 0)})</span>
+                      </div>
+                    </SelectItem>
+                    {Object.entries(categoryConfig).map(([category, config]) => (
+                      <SelectItem key={category} value={category}>
+                        <div className="flex items-center gap-2">
+                          <span>{config.icon}</span>
+                          <span>{category}</span>
+                          <span className="text-gray-500 text-sm">({categoryCounts[category] || 0})</span>
                         </div>
-                      )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-                      {hasAISuggestion && (
-                        <div className="mb-3">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              togglePriorityDetails(post.id);
-                            }}
-                            className="flex w-full items-center gap-3 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2 text-left transition hover:border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                          >
-                            <Badge
-                              variant="outline"
-                              className="border-blue-200 bg-white/70 text-[10px] font-semibold uppercase tracking-wide text-blue-700"
-                            >
-                              AI Suggestion
-                            </Badge>
-                            <span className="text-xs sm:text-sm text-gray-700">
-                              {summaryMessage} <span className="font-medium text-gray-800">(guidance)</span>
-                            </span>
-                            {summaryScoreDisplay && (
-                              <span className="ml-auto text-xs font-semibold text-gray-700">
-                                {summaryScoreDisplay}
-                              </span>
-                            )}
-                            <ChevronDown
-                              className={`h-4 w-4 text-gray-500 transition-transform ${isPriorityExpanded ? 'rotate-180' : ''}`}
+                {/* Status Filter */}
+                <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                  <SelectTrigger className="min-touch-target">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="open">Open</SelectItem>
+                    <SelectItem value="planned">Planned</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="done">Done</SelectItem>
+                    <SelectItem value="declined">Declined</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Sort */}
+                <Select value={sortBy} onValueChange={handleSortChange}>
+                  <SelectTrigger className="min-touch-target">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="votes">Most Votes</SelectItem>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="oldest">Oldest</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Debug AI Features - Only show when DEBUG_AI_FEATURES is enabled */}
+            {
+              process.env.NEXT_PUBLIC_DEBUG_AI_FEATURES === 'true' && (
+                <DebugAIFeatures projectSlug={params?.slug as string} />
+              )
+            }
+
+            {/* Sentiment Analysis Dashboard - Only show for project owners/admins */}
+            {
+              isOwnerOrAdmin && project && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="w-5 h-5 text-purple-600" />
+                    <h2 className="text-xl font-bold text-gray-900">Sentiment Analysis</h2>
+                    <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                      AI-Powered
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <SentimentWidget
+                      projectId={project.id}
+                      defaultTimeRange={30}
+                      onFilterChange={handleSentimentFilterChange}
+                    />
+                    <SentimentTrendChart
+                      projectId={project.id}
+                      defaultTimeRange={30}
+                    />
+                  </div>
+                  {sentimentFilter && (
+                    <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-purple-900">
+                          Filtering by sentiment: <strong className="capitalize">{sentimentFilter}</strong>
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSentimentFilterChange(null)}
+                        className="text-purple-700 hover:text-purple-900"
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Clear Filter
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
+            {/* Posts List */}
+            <div className="space-y-4">
+              {filteredPosts.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="max-w-md mx-auto">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <MessageSquare className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      No feedback yet
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Be the first to share your ideas and help shape the future of this product.
+                    </p>
+                    <Button
+                      onClick={() => setShowPostForm(true)}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Submit First Feedback
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                filteredPosts.map((post) => {
+                  const priorityLevelLabel = getPriorityLevelLabel(post.priority_score);
+                  const priorityBadgeClass = priorityLevelLabel
+                    ? PRIORITY_LEVEL_STYLES[priorityLevelLabel] || PRIORITY_LEVEL_STYLES.Low
+                    : '';
+                  const priorityReasonDescription = post.priority_reason
+                    ? post.priority_reason.replace(/^[^:]+:\s*/, '')
+                    : null;
+                  const priorityScoreDisplay = typeof post.priority_score === 'number'
+                    ? post.priority_score.toFixed(1)
+                    : null;
+                  const priorityAnalyzedOn = post.ai_analyzed_at
+                    ? new Date(post.ai_analyzed_at).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                    : null;
+                  const priorityIndexDisplay = typeof post.total_priority_score === 'number'
+                    ? post.total_priority_score
+                    : null;
+                  const hasAISuggestion = Boolean(post.ai_analyzed_at);
+                  const isPriorityExpanded = expandedPriorityCards[post.id] ?? false;
+                  const summaryMessage = priorityLevelLabel
+                    ? `Suggested: ${priorityLevelLabel}`
+                    : 'AI-generated planning guidance';
+                  const summaryScoreDisplay = hasAISuggestion && priorityScoreDisplay ? `${priorityScoreDisplay}/10` : null;
+                  const hasMergedDuplicates = (post.mergedDuplicateCount ?? 0) > 0;
+
+                  return (
+                    <Card
+                      key={post.id}
+                      className="hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => router.push(`/${params?.slug}/post/${post.id}`)}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          {/* Vote Button */}
+                          <div className="flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+                            <VoteButton
+                              postId={post.id}
+                              initialVoteCount={post.vote_count}
+                              initialUserVoted={post.user_voted}
+                              onVoteChange={(newCount, userVoted) => {
+                                // Update the post in the local state
+                                setPosts(prev => prev.map(p =>
+                                  p.id === post.id
+                                    ? { ...p, vote_count: newCount, user_voted: userVoted }
+                                    : p
+                                ));
+                              }}
+                              onShowNotification={(message, type) => {
+                                if (type === 'success') {
+                                  toast.success(message);
+                                } else if (type === 'error') {
+                                  toast.error(message);
+                                } else {
+                                  toast.info(message);
+                                }
+                              }}
+                              size="md"
+                              variant="default"
                             />
-                          </button>
+                          </div>
 
-                          {isPriorityExpanded && (
-                            <div className="mt-2 rounded-lg border border-blue-200 bg-white p-3 text-xs text-gray-600 shadow-sm">
-                              <div className="flex items-center justify-between gap-3">
+                          {/* Post Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-4 mb-2">
+                              <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+                                {post.title}
+                              </h3>
+                              <div className="flex items-center gap-2 flex-shrink-0">
                                 <Badge
                                   variant="outline"
-                                  className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide ${priorityBadgeClass || 'bg-gray-100 text-gray-700 border-gray-200'}`}
+                                  className={statusConfig[post.status].color}
                                 >
-                                  <Target className="h-3 w-3" />
-                                  {priorityLevelLabel || 'AI Planning Guidance'}
+                                  {statusConfig[post.status].label}
                                 </Badge>
-                                {priorityScoreDisplay && (
-                                  <span className="text-xs font-semibold text-gray-700">
-                                    {priorityScoreDisplay}
-                                    <span className="ml-1 text-[11px] font-normal text-gray-500">/10</span>
-                                  </span>
+                                {hasMergedDuplicates && (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-orange-300 bg-orange-50 text-orange-700"
+                                  >
+                                    {post.mergedDuplicateCount} merged
+                                  </Badge>
+                                )}
+                                {isOwnerOrAdmin && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeletePost(post.id);
+                                    }}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
+                                    title="Delete post"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
                                 )}
                               </div>
-
-                              {priorityLevelLabel && (
-                                <p className="mt-2 text-xs text-gray-600">
-                                  Suggested scheduling: <span className="font-semibold text-gray-800">{priorityLevelLabel}</span>. Treat this as AI guidance and confirm with your roadmap before committing.
-                                </p>
-                              )}
-
-                              {priorityReasonDescription && (
-                                <p className="mt-2 text-xs text-gray-700">
-                                  {priorityReasonDescription}
-                                </p>
-                              )}
-
-                              {(priorityIndexDisplay !== null || priorityAnalyzedOn) && (
-                                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
-                                  {priorityIndexDisplay !== null && (
-                                    <span>Priority index {priorityIndexDisplay}</span>
-                                  )}
-                                  {priorityAnalyzedOn && (
-                                    <span>Updated {priorityAnalyzedOn}</span>
-                                  )}
-                                </div>
-                              )}
-
-                              <p className="mt-3 text-[11px] text-gray-500">
-                                This recommendation was generated by AI to spark planning discussions. Final prioritization decisions remain with your team.
-                              </p>
                             </div>
-                          )}
-                        </div>
-                      )}
 
-                      {post.description && (
-                        <p className="text-gray-600 line-clamp-3 mb-3">
-                          {post.description}
-                        </p>
-                      )}
+                            {/* AI Category Badge */}
+                            {post.category && (
+                              <div className="mb-2">
+                                <CategoryBadge
+                                  category={post.category}
+                                  aiCategorized={post.ai_categorized}
+                                  confidence={post.ai_confidence}
+                                  size="sm"
+                                />
+                              </div>
+                            )}
 
-                      {isOwnerOrAdmin && post.mergedDuplicates && post.mergedDuplicates.length > 0 && (
-                        <div className="mb-3 rounded border border-orange-200 bg-orange-50 p-3 text-xs text-orange-800">
-                          <div className="flex items-center gap-1 font-semibold mb-2">
-                            <AlertTriangle className="h-3 w-3" />
-                            <span>Merged duplicates</span>
+                            {hasAISuggestion && (
+                              <div className="mb-3">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    togglePriorityDetails(post.id);
+                                  }}
+                                  className="flex w-full items-center gap-3 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2 text-left transition hover:border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                >
+                                  <Badge
+                                    variant="outline"
+                                    className="border-blue-200 bg-white/70 text-[10px] font-semibold uppercase tracking-wide text-blue-700"
+                                  >
+                                    AI Suggestion
+                                  </Badge>
+                                  <span className="text-xs sm:text-sm text-gray-700">
+                                    {summaryMessage} <span className="font-medium text-gray-800">(guidance)</span>
+                                  </span>
+                                  {summaryScoreDisplay && (
+                                    <span className="ml-auto text-xs font-semibold text-gray-700">
+                                      {summaryScoreDisplay}
+                                    </span>
+                                  )}
+                                  <ChevronDown
+                                    className={`h-4 w-4 text-gray-500 transition-transform ${isPriorityExpanded ? 'rotate-180' : ''}`}
+                                  />
+                                </button>
+
+                                {isPriorityExpanded && (
+                                  <div className="mt-2 rounded-lg border border-blue-200 bg-white p-3 text-xs text-gray-600 shadow-sm">
+                                    <div className="flex items-center justify-between gap-3">
+                                      <Badge
+                                        variant="outline"
+                                        className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide ${priorityBadgeClass || 'bg-gray-100 text-gray-700 border-gray-200'}`}
+                                      >
+                                        <Target className="h-3 w-3" />
+                                        {priorityLevelLabel || 'AI Planning Guidance'}
+                                      </Badge>
+                                      {priorityScoreDisplay && (
+                                        <span className="text-xs font-semibold text-gray-700">
+                                          {priorityScoreDisplay}
+                                          <span className="ml-1 text-[11px] font-normal text-gray-500">/10</span>
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {priorityLevelLabel && (
+                                      <p className="mt-2 text-xs text-gray-600">
+                                        Suggested scheduling: <span className="font-semibold text-gray-800">{priorityLevelLabel}</span>. Treat this as AI guidance and confirm with your roadmap before committing.
+                                      </p>
+                                    )}
+
+                                    {priorityReasonDescription && (
+                                      <p className="mt-2 text-xs text-gray-700">
+                                        {priorityReasonDescription}
+                                      </p>
+                                    )}
+
+                                    {(priorityIndexDisplay !== null || priorityAnalyzedOn) && (
+                                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500">
+                                        {priorityIndexDisplay !== null && (
+                                          <span>Priority index {priorityIndexDisplay}</span>
+                                        )}
+                                        {priorityAnalyzedOn && (
+                                          <span>Updated {priorityAnalyzedOn}</span>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    <p className="mt-3 text-[11px] text-gray-500">
+                                      This recommendation was generated by AI to spark planning discussions. Final prioritization decisions remain with your team.
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {post.description && (
+                              <p className="text-gray-600 line-clamp-3 mb-3">
+                                {post.description}
+                              </p>
+                            )}
+
+                            {isOwnerOrAdmin && post.mergedDuplicates && post.mergedDuplicates.length > 0 && (
+                              <div className="mb-3 rounded border border-orange-200 bg-orange-50 p-3 text-xs text-orange-800">
+                                <div className="flex items-center gap-1 font-semibold mb-2">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  <span>Merged duplicates</span>
+                                </div>
+                                <div className="space-y-1">
+                                  {post.mergedDuplicates.map((duplicate) => (
+                                    <button
+                                      key={duplicate.id}
+                                      type="button"
+                                      className="underline underline-offset-2 hover:text-orange-600"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        router.push(`/${project?.slug || params?.slug}/post/${duplicate.id}`);
+                                      }}
+                                    >
+                                      {duplicate.title}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-gray-500">
+                              <div className="flex items-center gap-1">
+                                <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                <span className="truncate max-w-[80px] sm:max-w-[120px]">
+                                  {post.author_email ?
+                                    post.author_email.split('@')[0] :
+                                    'Anonymous'
+                                  }
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1 whitespace-nowrap">
+                                <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                <span>
+                                  {new Date(post.created_at).toLocaleDateString('en-US', {
+                                    month: 'numeric',
+                                    day: 'numeric',
+                                    year: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1 whitespace-nowrap">
+                                <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                <span>{post.comment_count}</span>
+                                <span className="hidden sm:inline">comments</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="space-y-1">
-                            {post.mergedDuplicates.map((duplicate) => (
-                              <button
-                                key={duplicate.id}
-                                type="button"
-                                className="underline underline-offset-2 hover:text-orange-600"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  router.push(`/${project?.slug || params?.slug}/post/${duplicate.id}`);
-                                }}
-                              >
-                                {duplicate.title}
-                              </button>
-                            ))}
-                          </div>
                         </div>
-                      )}
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
 
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                          <span className="truncate max-w-[80px] sm:max-w-[120px]">
-                            {post.author_email ? 
-                              post.author_email.split('@')[0] : 
-                              'Anonymous'
-                            }
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-1 whitespace-nowrap">
-                          <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                          <span>
-                            {new Date(post.created_at).toLocaleDateString('en-US', { 
-                              month: 'numeric', 
-                              day: 'numeric',
-                              year: '2-digit'
-                            })}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-1 whitespace-nowrap">
-                          <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                          <span>{post.comment_count}</span>
-                          <span className="hidden sm:inline">comments</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              );
-            })
-          )}
-        </div>
-
-        {/* Show more button if needed */}
-        {filteredPosts.length > 0 && (
-          <div className="text-center mt-8">
-            <Button variant="outline">
-              Load More Feedback
-            </Button>
-          </div>
-        )}
-          </div>
-
-          {/* AI Insights Sidebar - Only show for Pro users */}
-          {user && userPlan === 'pro' && (
-            <div className={`hidden lg:block ${sidebarCollapsed ? 'w-12' : 'w-80'} flex-shrink-0 transition-all duration-300`}>
-              <div className="sticky top-8">
-                {/* Toggle Button */}
-                <div className="flex items-center justify-between mb-4">
-                  {!sidebarCollapsed && (
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-purple-600" />
-                      <h2 className="text-lg font-semibold text-gray-900">AI-Powered Insights</h2>
-                      <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                        Pro Feature
-                      </Badge>
-                    </div>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                    className="p-2 hover:bg-purple-50"
-                  >
-                    {sidebarCollapsed ? (
-                      <ChevronRight className="h-4 w-4 text-purple-600" />
-                    ) : (
-                      <ChevronLeft className="h-4 w-4 text-purple-600" />
-                    )}
+            {/* Show more button if needed */}
+            {
+              filteredPosts.length > 0 && (
+                <div className="text-center mt-8">
+                  <Button variant="outline">
+                    Load More Feedback
                   </Button>
                 </div>
-                
-                {/* Collapsed State - Show AI icon */}
-                {sidebarCollapsed && (
-                  <div className="flex flex-col items-center space-y-4">
-                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <Sparkles className="h-6 w-6 text-purple-600" />
+              )
+            }
+          </div >
+
+          {/* AI Insights Sidebar - Only show for Pro users */}
+          {
+            user && userPlan === 'pro' && (
+              <div className={`hidden lg:block ${sidebarCollapsed ? 'w-12' : 'w-80'} flex-shrink-0 transition-all duration-300`}>
+                <div className="sticky top-8">
+                  {/* Toggle Button */}
+                  <div className="flex items-center justify-between mb-4">
+                    {!sidebarCollapsed && (
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-purple-600" />
+                        <h2 className="text-lg font-semibold text-gray-900">AI-Powered Insights</h2>
+                        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                          Pro Feature
+                        </Badge>
+                      </div>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                      className="p-2 hover:bg-purple-50"
+                    >
+                      {sidebarCollapsed ? (
+                        <ChevronRight className="h-4 w-4 text-purple-600" />
+                      ) : (
+                        <ChevronLeft className="h-4 w-4 text-purple-600" />
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Collapsed State - Show AI icon */}
+                  {sidebarCollapsed && (
+                    <div className="flex flex-col items-center space-y-4">
+                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <Sparkles className="h-6 w-6 text-purple-600" />
+                      </div>
                     </div>
-                  </div>
-                )}
-                
-                {!sidebarCollapsed && (
-                  <div className="space-y-4">
-                    <Card className="bg-purple-50 border-purple-200">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                          <Sparkles className="h-5 w-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">AI Features</h3>
-                          <p className="text-sm text-gray-600">Available on individual posts</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                          <span>Duplicate Detection</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                          <span>Priority Scoring</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                          <span>Smart Categorization</span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-3">
-                        Click on any post to access AI-powered analysis and insights.
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-blue-50 border-blue-200">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <TrendingUp className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">Smart Analytics</h3>
-                          <p className="text-sm text-gray-600">AI-powered insights</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                          <span>Automatic categorization</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                          <span>Duplicate detection</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                          <span>Priority scoring</span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-3">
-                        AI automatically analyzes your feedback for better organization.
-                      </p>
-                    </CardContent>
-                  </Card>
-                  </div>
-                )}
+                  )}
+
+                  {!sidebarCollapsed && (
+                    <div className="space-y-4">
+                      <Card className="bg-purple-50 border-purple-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                              <Sparkles className="h-5 w-5 text-purple-600" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium text-gray-900">AI Features</h3>
+                              <p className="text-sm text-gray-600">Available on individual posts</p>
+                            </div>
+                          </div>
+                          <div className="space-y-2 text-sm text-gray-600">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                              <span>Duplicate Detection</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                              <span>Priority Scoring</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                              <span>Smart Categorization</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-3">
+                            Click on any post to access AI-powered analysis and insights.
+                          </p>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="bg-blue-50 border-blue-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <TrendingUp className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium text-gray-900">Smart Analytics</h3>
+                              <p className="text-sm text-gray-600">AI-powered insights</p>
+                            </div>
+                          </div>
+                          <div className="space-y-2 text-sm text-gray-600">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                              <span>Automatic categorization</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                              <span>Duplicate detection</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                              <span>Priority scoring</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-3">
+                            AI automatically analyzes your feedback for better organization.
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
+            )
+          }
+        </div >
+      </div >
 
       {/* Post Submission Modal */}
-      {showPostForm && project && (
-        <PostSubmissionForm
-          isOpen={showPostForm}
-          onClose={() => setShowPostForm(false)}
-          projectId={project.id}
-          boardId={boardId || ''}
-          onPostSubmitted={loadProjectAndPosts}
-        />
-      )}
+      {
+        showPostForm && project && (
+          <PostSubmissionForm
+            isOpen={showPostForm}
+            onClose={() => setShowPostForm(false)}
+            projectId={project.id}
+            boardId={boardId || ''}
+            onPostSubmitted={loadProjectAndPosts}
+          />
+        )
+      }
 
       {/* Feedback on Behalf Modal */}
-      {showFeedbackOnBehalfModal && project && (
-        <FeedbackOnBehalfModal
-          isOpen={showFeedbackOnBehalfModal}
-          onClose={() => setShowFeedbackOnBehalfModal(false)}
-          projectId={project.id}
-          projectSlug={project.slug}
-          onSuccess={loadProjectAndPosts}
-        />
-      )}
+      {
+        showFeedbackOnBehalfModal && project && (
+          <FeedbackOnBehalfModal
+            isOpen={showFeedbackOnBehalfModal}
+            onClose={() => setShowFeedbackOnBehalfModal(false)}
+            projectId={project.id}
+            projectSlug={project.slug}
+            onSuccess={loadProjectAndPosts}
+          />
+        )
+      }
 
       {/* AI Insights Slideout */}
-      {showAIInsights && (
-        <AIInsightsSlideout
-          projectSlug={params?.slug as string}
-          isOpen={showAIInsights}
-          onClose={() => setShowAIInsights(false)}
-        />
-      )}
-    </div>
+      {
+        showAIInsights && (
+          <AIInsightsSlideout
+            projectSlug={params?.slug as string}
+            isOpen={showAIInsights}
+            onClose={() => setShowAIInsights(false)}
+          />
+        )
+      }
+    </div >
   );
 }
