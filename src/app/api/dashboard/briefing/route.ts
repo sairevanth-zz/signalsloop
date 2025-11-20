@@ -164,11 +164,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Delete existing briefing for today
+    const today = new Date().toISOString().split('T')[0];
     await supabase
       .from('daily_briefings')
       .delete()
       .eq('project_id', projectId)
-      .gte('created_at', new Date().toISOString().split('T')[0]);
+      .eq('briefing_date', today);
 
     // Generate new briefing
     const briefing = await getTodayBriefing(projectId);

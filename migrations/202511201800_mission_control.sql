@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS daily_briefings (
   -- Briefing content (stored as JSONB for flexibility)
   content JSONB NOT NULL,
 
+  -- Date tracking (explicit column for unique constraint)
+  briefing_date DATE NOT NULL DEFAULT CURRENT_DATE,
+
   -- Metadata
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -21,11 +24,11 @@ CREATE TABLE IF NOT EXISTS daily_briefings (
 -- ============================================================================
 CREATE INDEX IF NOT EXISTS idx_daily_briefings_project_id ON daily_briefings(project_id);
 CREATE INDEX IF NOT EXISTS idx_daily_briefings_created_at ON daily_briefings(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_daily_briefings_date ON daily_briefings(briefing_date DESC);
 
--- Create unique index to ensure only one briefing per project per day
--- This uses a functional index which is supported in PostgreSQL
+-- Unique constraint: only one briefing per project per day
 CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_briefings_project_date_unique
-  ON daily_briefings(project_id, date(created_at));
+  ON daily_briefings(project_id, briefing_date);
 
 -- ============================================================================
 -- 3. Enable Row Level Security
@@ -101,7 +104,7 @@ BEGIN
     db.updated_at
   FROM daily_briefings db
   WHERE db.project_id = p_project_id
-    AND date(db.created_at) = CURRENT_DATE
+    AND db.briefing_date = CURRENT_DATE
   ORDER BY db.created_at DESC
   LIMIT 1;
 END;
@@ -204,5 +207,6 @@ GRANT EXECUTE ON FUNCTION get_dashboard_metrics(UUID) TO service_role;
 -- ============================================================================
 COMMENT ON TABLE daily_briefings IS 'AI-generated daily briefings for Mission Control dashboard';
 COMMENT ON COLUMN daily_briefings.content IS 'JSONB containing briefing_text, sentiment_score, sentiment_trend, critical_alerts, and recommended_actions';
+COMMENT ON COLUMN daily_briefings.briefing_date IS 'Date of the briefing (used for unique constraint - one briefing per project per day)';
 COMMENT ON FUNCTION get_today_briefing(UUID) IS 'Retrieves today''s briefing for a project (if it exists)';
 COMMENT ON FUNCTION get_dashboard_metrics(UUID) IS 'Aggregates dashboard metrics for sentiment, feedback velocity, roadmap, and competitors';

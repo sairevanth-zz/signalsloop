@@ -294,11 +294,13 @@ export async function getTodayBriefing(projectId: string): Promise<{
   const content = await generateDailyBriefing(projectId);
 
   // Save to database
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
   const { data: newBriefing, error } = await supabase
     .from('daily_briefings')
     .insert({
       project_id: projectId,
       content,
+      briefing_date: today,
     })
     .select()
     .single();
