@@ -1,0 +1,337 @@
+/**
+ * Mission Control AI Service
+ * Generates daily briefings and intelligence summaries for the dashboard
+ */
+
+import OpenAI from 'openai';
+import { getSupabaseServerClient } from '../supabase-client';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+export interface DailyBriefingContent {
+  sentiment_score: number;
+  sentiment_trend: 'up' | 'down' | 'stable';
+  critical_alerts: string[];
+  recommended_actions: {
+    label: string;
+    action: 'draft_spec' | 'view_competitor' | 'review_feedback' | 'update_roadmap';
+    priority: 'high' | 'medium' | 'low';
+    context?: string;
+  }[];
+  briefing_text: string;
+  opportunities: {
+    title: string;
+    votes: number;
+    impact: 'high' | 'medium' | 'low';
+  }[];
+  threats: {
+    title: string;
+    severity: 'high' | 'medium' | 'low';
+  }[];
+}
+
+export interface DashboardMetrics {
+  sentiment: {
+    current_nps: number;
+    total_feedback: number;
+    trend: 'up' | 'down';
+    change_percent: number;
+  };
+  feedback: {
+    issues_per_week: number;
+    total_this_week: number;
+    trend: 'up' | 'down';
+  };
+  roadmap: {
+    in_progress: number;
+    planned: number;
+    completed_this_week: number;
+  };
+  competitors: {
+    new_insights_count: number;
+    high_priority_count: number;
+  };
+}
+
+/**
+ * Aggregate data from the last 7 days for AI analysis
+ */
+async function aggregateProjectData(projectId: string): Promise<{
+  feedbackStats: any;
+  competitorStats: any;
+  roadmapStats: any;
+  recentFeedback: any[];
+  themes: any[];
+}> {
+  const supabase = getSupabaseServerClient();
+
+  if (!supabase) {
+    throw new Error('Database connection not available');
+  }
+
+  // Get dashboard metrics using the database function
+  const { data: metrics, error: metricsError } = await supabase
+    .rpc('get_dashboard_metrics', { p_project_id: projectId });
+
+  if (metricsError) {
+    console.error('Error fetching dashboard metrics:', metricsError);
+  }
+
+  // Fetch recent feedback (last 7 days)
+  const { data: recentFeedback, error: feedbackError } = await supabase
+    .from('posts')
+    .select('id, title, content, sentiment_score, vote_count, created_at, category')
+    .eq('project_id', projectId)
+    .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (feedbackError) {
+    console.error('Error fetching recent feedback:', feedbackError);
+  }
+
+  // Fetch top themes
+  const { data: themes, error: themesError } = await supabase
+    .from('themes')
+    .select('id, theme_name, frequency, avg_sentiment, trend')
+    .eq('project_id', projectId)
+    .order('frequency', { ascending: false })
+    .limit(5);
+
+  if (themesError) {
+    console.error('Error fetching themes:', themesError);
+  }
+
+  // Fetch competitive insights (if exists)
+  let competitorInsights: any[] = [];
+  try {
+    const { data: insights } = await supabase
+      .from('competitive_insights')
+      .select('*')
+      .eq('project_id', projectId)
+      .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    competitorInsights = insights || [];
+  } catch (e) {
+    // Table might not exist
+  }
+
+  return {
+    feedbackStats: metrics?.feedback || {},
+    competitorStats: { insights: competitorInsights, ...metrics?.competitors },
+    roadmapStats: metrics?.roadmap || {},
+    recentFeedback: recentFeedback || [],
+    themes: themes || [],
+  };
+}
+
+/**
+ * Generate a daily briefing using OpenAI GPT-4o
+ */
+export async function generateDailyBriefing(projectId: string): Promise<DailyBriefingContent> {
+  const supabase = getSupabaseServerClient();
+
+  if (!supabase) {
+    throw new Error('Database connection not available');
+  }
+
+  // Aggregate data
+  const data = await aggregateProjectData(projectId);
+
+  // Get project name for context
+  const { data: project } = await supabase
+    .from('projects')
+    .select('name')
+    .eq('id', projectId)
+    .single();
+
+  const projectName = project?.name || 'Your Product';
+
+  // Build context for AI
+  const context = {
+    projectName,
+    feedbackCount: data.recentFeedback.length,
+    themes: data.themes.map(t => ({
+      name: t.theme_name,
+      frequency: t.frequency,
+      sentiment: t.avg_sentiment,
+      trend: t.trend,
+    })),
+    topFeedback: data.recentFeedback.slice(0, 5).map(f => ({
+      title: f.title,
+      sentiment: f.sentiment_score,
+      votes: f.vote_count,
+    })),
+    roadmap: data.roadmapStats,
+    competitors: data.competitorStats,
+  };
+
+  // Call OpenAI API
+  const systemPrompt = `You are a Product Intelligence Agent for ${projectName}.
+Your role is to analyze product feedback, sentiment, roadmap status, and competitive intelligence to provide daily strategic briefings to product leaders.
+
+Format your response as valid JSON with this exact schema:
+{
+  "sentiment_score": <number 0-100>,
+  "sentiment_trend": "<up|down|stable>",
+  "critical_alerts": [<array of urgent issues>],
+  "recommended_actions": [
+    {
+      "label": "<action description>",
+      "action": "<draft_spec|view_competitor|review_feedback|update_roadmap>",
+      "priority": "<high|medium|low>",
+      "context": "<optional explanation>"
+    }
+  ],
+  "briefing_text": "<natural language executive summary in 2-3 sentences>",
+  "opportunities": [
+    {
+      "title": "<opportunity name>",
+      "votes": <vote count>,
+      "impact": "<high|medium|low>"
+    }
+  ],
+  "threats": [
+    {
+      "title": "<threat description>",
+      "severity": "<high|medium|low>"
+    }
+  ]
+}
+
+Focus on actionable insights. Be concise but insightful.`;
+
+  const userPrompt = `Analyze this product data and generate today's briefing:
+
+${JSON.stringify(context, null, 2)}
+
+Key focus areas:
+1. Identify critical sentiment shifts or patterns
+2. Highlight emerging themes that need attention
+3. Recommend specific actions based on the data
+4. Flag competitive threats or opportunities
+5. Provide roadmap health assessment`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.7,
+      max_tokens: 1500,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+
+    if (!content) {
+      throw new Error('No response from OpenAI');
+    }
+
+    const briefing: DailyBriefingContent = JSON.parse(content);
+
+    // Validate and ensure all required fields exist
+    const validated: DailyBriefingContent = {
+      sentiment_score: briefing.sentiment_score || 50,
+      sentiment_trend: briefing.sentiment_trend || 'stable',
+      critical_alerts: briefing.critical_alerts || [],
+      recommended_actions: briefing.recommended_actions || [],
+      briefing_text: briefing.briefing_text || 'No significant changes detected.',
+      opportunities: briefing.opportunities || [],
+      threats: briefing.threats || [],
+    };
+
+    return validated;
+  } catch (error) {
+    console.error('Error generating daily briefing:', error);
+
+    // Return fallback briefing
+    return {
+      sentiment_score: 50,
+      sentiment_trend: 'stable',
+      critical_alerts: ['Unable to generate briefing - AI service unavailable'],
+      recommended_actions: [],
+      briefing_text: 'Daily briefing is temporarily unavailable. Please check back later.',
+      opportunities: [],
+      threats: [],
+    };
+  }
+}
+
+/**
+ * Get or create today's briefing for a project
+ */
+export async function getTodayBriefing(projectId: string): Promise<{
+  id: string;
+  content: DailyBriefingContent;
+  created_at: string;
+}> {
+  const supabase = getSupabaseServerClient();
+
+  if (!supabase) {
+    throw new Error('Database connection not available');
+  }
+
+  // Check if today's briefing already exists
+  const { data: existing } = await supabase
+    .rpc('get_today_briefing', { p_project_id: projectId });
+
+  if (existing && existing.length > 0) {
+    return {
+      id: existing[0].id,
+      content: existing[0].content as DailyBriefingContent,
+      created_at: existing[0].created_at,
+    };
+  }
+
+  // Generate new briefing
+  const content = await generateDailyBriefing(projectId);
+
+  // Save to database
+  const { data: newBriefing, error } = await supabase
+    .from('daily_briefings')
+    .insert({
+      project_id: projectId,
+      content,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error saving briefing:', error);
+    throw new Error('Failed to save briefing');
+  }
+
+  return {
+    id: newBriefing.id,
+    content: newBriefing.content as DailyBriefingContent,
+    created_at: newBriefing.created_at,
+  };
+}
+
+/**
+ * Get dashboard metrics (separate from briefing for real-time data)
+ */
+export async function getDashboardMetrics(projectId: string): Promise<DashboardMetrics> {
+  const supabase = getSupabaseServerClient();
+
+  if (!supabase) {
+    throw new Error('Database connection not available');
+  }
+
+  const { data: metrics, error } = await supabase
+    .rpc('get_dashboard_metrics', { p_project_id: projectId });
+
+  if (error) {
+    console.error('Error fetching dashboard metrics:', error);
+    throw error;
+  }
+
+  return metrics as DashboardMetrics;
+}
