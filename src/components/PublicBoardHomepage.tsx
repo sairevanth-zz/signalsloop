@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { CategoryBadge } from '@/components/CategoryBadge';
-import { 
-  Search, 
-  Plus, 
-  MessageSquare, 
+import {
+  Search,
+  Plus,
+  MessageSquare,
   Calendar,
   User,
   LogIn,
@@ -21,7 +21,8 @@ import {
   ChevronUp,
   Heart,
   ExternalLink,
-  Filter
+  Filter,
+  Sparkles
 } from 'lucide-react';
 import {
   Select,
@@ -302,14 +303,25 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
                 <Map className="h-4 w-4 mr-2" />
                 Roadmap
               </Button>
-              
+
+              <Link href={`/${project.slug}/dashboard`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 hover:from-blue-100 hover:to-purple-100"
+                >
+                  <Sparkles className="h-4 w-4 mr-2 text-blue-600" />
+                  Mission Control
+                </Button>
+              </Link>
+
               <Link href={`/${project.slug}/settings`}>
                 <Button variant="ghost" size="sm">
                   <Settings className="h-4 w-4 mr-2" />
                   Admin
                 </Button>
               </Link>
-              
+
               <Link href="/login">
                 <Button variant="outline" size="sm">
                   <LogIn className="h-4 w-4 mr-2" />

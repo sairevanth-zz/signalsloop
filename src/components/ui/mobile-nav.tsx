@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Home, Settings, BarChart3, MessageSquare, Map, User, LogOut, Zap } from 'lucide-react';
+import { Menu, X, Home, Settings, BarChart3, MessageSquare, Map, User, LogOut, Zap, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './button';
 
@@ -36,7 +36,8 @@ export function MobileNav({ user, onSignOut, currentPath }: MobileNavProps) {
   const toggleMenu = () => setIsOpen(!isOpen);
 
   const navItems = [
-    { href: '/app', label: 'Dashboard', icon: Home },
+    { href: '/app', label: 'Projects', icon: Home },
+    { href: '#', label: 'Mission Control', icon: Sparkles, note: '(Select a project first)' },
     { href: '/app/admin', label: 'Moderate', icon: MessageSquare },
     { href: '/app/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/app/roadmap', label: 'Roadmap', icon: Map },

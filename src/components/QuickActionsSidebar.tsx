@@ -94,6 +94,17 @@ const notifications = [
 
 const changelogItems = [
   {
+    version: 'v2.5.0',
+    date: '2025-01-20',
+    features: [
+      '🚀 NEW: Mission Control Dashboard - AI-powered executive briefings',
+      'Daily intelligence summaries with GPT-4o analysis',
+      'Real-time sentiment tracking and feedback velocity metrics',
+      'Bento Grid layout with opportunities and threat monitoring',
+      'Actionable insights and recommended next steps'
+    ]
+  },
+  {
     version: 'v2.4.0',
     date: '2025-01-19',
     features: [
@@ -291,6 +302,18 @@ export default function QuickActionsSidebar({
               AI Roadmap
             </Button>
           </a>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start hover:bg-purple-100 text-purple-700 font-medium"
+            onClick={() => window.alert('Select a project first to view its Mission Control Dashboard')}
+          >
+            <Brain className="w-4 h-4 mr-2" />
+            Mission Control
+            <Badge variant="secondary" className="ml-auto text-xs bg-blue-100 text-blue-700">
+              Dashboard
+            </Badge>
+          </Button>
         </CardContent>
       </Card>
 

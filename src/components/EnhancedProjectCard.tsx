@@ -214,6 +214,14 @@ export default function EnhancedProjectCard({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
+                <Link href={`/${project.slug}/dashboard`}>
+                  <Brain className="mr-2 h-4 w-4" />
+                  Mission Control
+                  <Badge className="ml-auto text-xs bg-blue-500 text-white">NEW</Badge>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
                 <Link href={`/${project.slug}/settings`}>
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
@@ -267,6 +275,18 @@ export default function EnhancedProjectCard({
               >
                 <Eye className="w-4 h-4 mr-1 transition-transform duration-200 group-hover:scale-110" />
                 View Board
+              </Button>
+            </Link>
+
+            <Link href={`/${project.slug}/dashboard`}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="relative bg-gradient-to-r from-blue-50 to-purple-50 backdrop-blur-sm border-blue-200 hover:from-blue-100 hover:to-purple-100 transition-all duration-200 hover:scale-105"
+                title="Mission Control Dashboard"
+              >
+                <Sparkles className="w-4 h-4 text-blue-600 transition-transform duration-200 group-hover:scale-110" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
               </Button>
             </Link>
 
