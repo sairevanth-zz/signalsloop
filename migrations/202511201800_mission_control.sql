@@ -13,10 +13,7 @@ CREATE TABLE IF NOT EXISTS daily_briefings (
 
   -- Metadata
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-
-  -- Ensure only one briefing per project per day
-  CONSTRAINT daily_briefings_project_date_unique UNIQUE (project_id, date(created_at))
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================================================
@@ -24,7 +21,11 @@ CREATE TABLE IF NOT EXISTS daily_briefings (
 -- ============================================================================
 CREATE INDEX IF NOT EXISTS idx_daily_briefings_project_id ON daily_briefings(project_id);
 CREATE INDEX IF NOT EXISTS idx_daily_briefings_created_at ON daily_briefings(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_daily_briefings_project_date ON daily_briefings(project_id, date(created_at));
+
+-- Create unique index to ensure only one briefing per project per day
+-- This uses a functional index which is supported in PostgreSQL
+CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_briefings_project_date_unique
+  ON daily_briefings(project_id, date(created_at));
 
 -- ============================================================================
 -- 3. Enable Row Level Security
