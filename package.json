@@ -25,6 +25,7 @@
     "clear-seed-demo": "tsx scripts/clear-and-seed-demo.ts",
     "weekly-digest": "tsx scripts/send-weekly-digest.ts",
     "apply-jira-migration": "tsx scripts/apply-jira-migration.ts",
+    "embeddings": "tsx scripts/generate-embeddings.ts",
     "review": "/Users/revanth/.local/bin/coderabbit review --plain -c .coderabbit.yaml",
     "review:prompt": "/Users/revanth/.local/bin/coderabbit review --prompt-only -c .coderabbit.yaml",
     "review:setup": "scripts/pre-commit-coderabbit.sh",
