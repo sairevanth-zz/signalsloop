@@ -6,9 +6,12 @@
  */
 
 import React, { useEffect, useRef } from 'react';
+import { ArrowLeft, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 import { ConversationSidebar } from './ConversationSidebar';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
   useAskStore,
@@ -104,23 +107,35 @@ export function AskConversationView({
   return (
     <div className="flex h-screen bg-background">
       {/* Conversation Sidebar */}
-      <div className="w-64 flex-shrink-0">
+      <div className="w-64 flex-shrink-0 border-r">
         <ConversationSidebar projectId={projectId} />
       </div>
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        {currentConversation && (
-          <div className="border-b px-6 py-4 bg-background">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-lg font-semibold truncate">
-                {currentConversation.title || 'New conversation'}
-              </h1>
-              <p className="text-sm text-muted-foreground">{projectName}</p>
+        <div className="border-b bg-card">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-4">
+              <Link href="/app">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <ArrowLeft className="size-4" />
+                  Back to Projects
+                </Button>
+              </Link>
+              <div className="h-6 w-px bg-border" />
+              <div className="flex items-center gap-2">
+                <Sparkles className="size-5 text-primary" />
+                <h1 className="text-lg font-semibold truncate">
+                  {currentConversation?.title || 'New conversation'}
+                </h1>
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {projectName}
             </div>
           </div>
-        )}
+        </div>
 
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto">
