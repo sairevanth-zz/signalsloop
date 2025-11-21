@@ -19,13 +19,31 @@ export function useContextRetrieval() {
       setLoading(true);
       setError(null);
 
+      // Get auth headers
+      const { getSupabaseClient } = await import('@/lib/supabase-client');
+      const supabase = getSupabaseClient();
+
+      if (!supabase) {
+        throw new Error('Unable to connect to database');
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Please sign in to retrieve context');
+      }
+
       const params = new URLSearchParams({
         projectId,
         query,
         ...(limit && { limit: limit.toString() }),
       });
 
-      const response = await fetch(`/api/specs/context?${params}`);
+      const response = await fetch(`/api/specs/context?${params}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error('Failed to retrieve context');
