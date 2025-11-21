@@ -38,10 +38,44 @@ import { getStatusColorScheme, SPEC_STATUS_LABELS } from '@/types/specs';
 export default function SpecsPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, project } = useAuth();
+  const { user } = useAuth();
 
+  const [project, setProject] = useState<{ id: string; name: string; slug: string } | null>(null);
+  const [projectLoading, setProjectLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<SpecStatus | 'all'>('all');
+
+  // Load project data
+  React.useEffect(() => {
+    async function loadProject() {
+      if (!params.slug) return;
+
+      try {
+        const { getSupabaseClient } = await import('@/lib/supabase-client');
+        const supabase = getSupabaseClient();
+
+        const { data, error } = await supabase
+          .from('projects')
+          .select('id, name, slug')
+          .eq('slug', params.slug as string)
+          .single();
+
+        if (error) {
+          console.error('Error loading project:', error);
+          router.push('/app');
+          return;
+        }
+
+        setProject(data);
+      } catch (error) {
+        console.error('Error loading project:', error);
+      } finally {
+        setProjectLoading(false);
+      }
+    }
+
+    loadProject();
+  }, [params.slug, router]);
 
   const { specs, loading, error, refetch } = useSpecs(project?.id || '', {
     search,
@@ -81,10 +115,18 @@ export default function SpecsPage() {
     router.push(`/${params.slug}/specs/${spec.id}?action=export`);
   };
 
-  if (!project) {
+  if (projectLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <p>Loading project...</p>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Project not found</p>
       </div>
     );
   }
