@@ -49,8 +49,14 @@ export function AskModal({ projectId: providedProjectId }: AskModalProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [projectId, setProjectId] = useState<string | null>(providedProjectId || null);
   const [isLoadingProject, setIsLoadingProject] = useState(!providedProjectId);
+  const [isOnAskPage, setIsOnAskPage] = useState(false);
   const router = useRouter();
   const { startNewConversation, currentProjectId, setCurrentProjectId } = useAskStore();
+
+  // Check if we're on the Ask page
+  useEffect(() => {
+    setIsOnAskPage(window.location.pathname.startsWith('/dashboard/ask'));
+  }, []);
 
   // Fetch user's default project if not provided
   useEffect(() => {
@@ -147,6 +153,11 @@ export function AskModal({ projectId: providedProjectId }: AskModalProps) {
   const isMac =
     typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   const modifierKey = isMac ? '⌘' : 'Ctrl';
+
+  // Don't render floating button if we're already on the Ask page
+  if (isOnAskPage) {
+    return null;
+  }
 
   return (
     <>
