@@ -8,6 +8,8 @@ import { notFound, redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase-client';
 import { AskChatInterface } from '@/components/ask/AskChatInterface';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Ask SignalsLoop Anything',
   description: 'AI-powered chat interface for querying your product feedback and insights',

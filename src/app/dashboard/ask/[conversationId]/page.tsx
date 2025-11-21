@@ -8,6 +8,8 @@ import { notFound, redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase-client';
 import { AskConversationView } from '@/components/ask/AskConversationView';
 
+export const dynamic = 'force-dynamic';
+
 interface ConversationPageProps {
   params: Promise<{
     conversationId: string;

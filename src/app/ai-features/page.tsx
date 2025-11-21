@@ -20,6 +20,8 @@ import {
   Users,
 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'AI Features | SignalsLoop',
   description: 'Explore AI-powered feedback analysis features',
