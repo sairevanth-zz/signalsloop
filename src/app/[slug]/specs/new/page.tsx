@@ -33,14 +33,48 @@ export default function NewSpecPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, project } = useAuth();
+  const { user } = useAuth();
 
+  const [project, setProject] = useState<{ id: string; name: string; slug: string } | null>(null);
+  const [projectLoading, setProjectLoading] = useState(true);
   const [step, setStep] = useState<'input' | 'generating' | 'complete'>('input');
 
   // Input state
   const [idea, setIdea] = useState('');
   const [template, setTemplate] = useState<SpecTemplate>('standard');
   const [feedbackIds, setFeedbackIds] = useState<string[]>([]);
+
+  // Load project data
+  React.useEffect(() => {
+    async function loadProject() {
+      if (!params.slug) return;
+
+      try {
+        const { getSupabaseClient } = await import('@/lib/supabase-client');
+        const supabase = getSupabaseClient();
+
+        const { data, error } = await supabase
+          .from('projects')
+          .select('id, name, slug')
+          .eq('slug', params.slug as string)
+          .single();
+
+        if (error) {
+          console.error('Error loading project:', error);
+          router.push('/app');
+          return;
+        }
+
+        setProject(data);
+      } catch (error) {
+        console.error('Error loading project:', error);
+      } finally {
+        setProjectLoading(false);
+      }
+    }
+
+    loadProject();
+  }, [params.slug, router]);
 
   // Check if coming from feedback page
   React.useEffect(() => {
@@ -110,10 +144,18 @@ export default function NewSpecPage() {
     }
   }, [error]);
 
-  if (!project) {
+  if (projectLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <p>Loading project...</p>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Project not found</p>
       </div>
     );
   }

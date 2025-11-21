@@ -37,7 +37,10 @@ export default function SpecViewPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, project } = useAuth();
+  const { user } = useAuth();
+
+  const [project, setProject] = useState<{ id: string; name: string; slug: string } | null>(null);
+  const [projectLoading, setProjectLoading] = useState(true);
 
   const specId = params.id as string;
   const { spec, loading, error, refetch } = useSpec(specId);
@@ -46,6 +49,38 @@ export default function SpecViewPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedContent, setEditedContent] = useState('');
+
+  // Load project data
+  React.useEffect(() => {
+    async function loadProject() {
+      if (!params.slug) return;
+
+      try {
+        const { getSupabaseClient } = await import('@/lib/supabase-client');
+        const supabase = getSupabaseClient();
+
+        const { data, error } = await supabase
+          .from('projects')
+          .select('id, name, slug')
+          .eq('slug', params.slug as string)
+          .single();
+
+        if (error) {
+          console.error('Error loading project:', error);
+          router.push('/app');
+          return;
+        }
+
+        setProject(data);
+      } catch (error) {
+        console.error('Error loading project:', error);
+      } finally {
+        setProjectLoading(false);
+      }
+    }
+
+    loadProject();
+  }, [params.slug, router]);
 
   // Initialize edited values when spec loads
   React.useEffect(() => {
@@ -121,10 +156,18 @@ export default function SpecViewPage() {
     }
   };
 
-  if (!project) {
+  if (projectLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <p>Loading project...</p>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Project not found</p>
       </div>
     );
   }
