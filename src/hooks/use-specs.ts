@@ -12,6 +12,29 @@ import type {
 } from '@/types/specs';
 
 // ============================================================================
+// Helper: Get auth headers
+// ============================================================================
+
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const { getSupabaseClient } = await import('@/lib/supabase-client');
+  const supabase = getSupabaseClient();
+
+  if (!supabase) {
+    throw new Error('Unable to connect to database');
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    throw new Error('Please sign in to access specs');
+  }
+
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${session.access_token}`,
+  };
+}
+
+// ============================================================================
 // useSpecs - List and manage specs
 // ============================================================================
 
@@ -26,6 +49,8 @@ export function useSpecs(projectId: string, filter?: SpecFilter, sort?: SpecSort
       setLoading(true);
       setError(null);
 
+      const headers = await getAuthHeaders();
+
       const params = new URLSearchParams({
         projectId,
         ...(filter?.search && { search: filter.search }),
@@ -34,7 +59,7 @@ export function useSpecs(projectId: string, filter?: SpecFilter, sort?: SpecSort
         ...(sort && { sort }),
       });
 
-      const response = await fetch(`/api/specs?${params}`);
+      const response = await fetch(`/api/specs?${params}`, { headers });
 
       if (!response.ok) {
         throw new Error('Failed to fetch specs');
@@ -89,7 +114,8 @@ export function useSpec(specId: string | null) {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/specs/${specId}`);
+      const headers = await getAuthHeaders();
+      const response = await fetch(`/api/specs/${specId}`, { headers });
 
       if (!response.ok) {
         throw new Error('Failed to fetch spec');
@@ -134,11 +160,10 @@ export function useCreateSpec() {
       setCreating(true);
       setError(null);
 
+      const headers = await getAuthHeaders();
       const response = await fetch('/api/specs', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(specData),
       });
 
@@ -186,11 +211,10 @@ export function useUpdateSpec() {
       setUpdating(true);
       setError(null);
 
+      const headers = await getAuthHeaders();
       const response = await fetch(`/api/specs/${specId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           ...updates,
           createVersion,
@@ -237,8 +261,10 @@ export function useDeleteSpec() {
       setDeleting(true);
       setError(null);
 
+      const headers = await getAuthHeaders();
       const response = await fetch(`/api/specs/${specId}`, {
         method: 'DELETE',
+        headers,
       });
 
       if (!response.ok) {
@@ -276,11 +302,10 @@ export function useChangeSpecStatus() {
       setChanging(true);
       setError(null);
 
+      const headers = await getAuthHeaders();
       const response = await fetch(`/api/specs/${specId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           status: newStatus,
           ...(newStatus === 'approved' && {

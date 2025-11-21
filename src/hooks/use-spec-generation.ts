@@ -37,6 +37,19 @@ export function useSpecGeneration() {
         message: 'Starting generation...',
       });
 
+      // Get auth token
+      const { getSupabaseClient } = await import('@/lib/supabase-client');
+      const supabase = getSupabaseClient();
+
+      if (!supabase) {
+        throw new Error('Unable to connect to database');
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Please sign in to generate specs');
+      }
+
       // Create abort controller for cancellation
       abortControllerRef.current = new AbortController();
 
@@ -44,6 +57,7 @@ export function useSpecGeneration() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify(request),
         signal: abortControllerRef.current.signal,
