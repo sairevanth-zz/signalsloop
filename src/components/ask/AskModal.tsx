@@ -24,7 +24,7 @@ import { useAskStore } from '@/lib/stores/useAskStore';
 // ============================================================================
 
 export interface AskModalProps {
-  projectId: string;
+  projectId?: string; // Optional - will fetch user's default project if not provided
 }
 
 // ============================================================================
@@ -43,12 +43,54 @@ const SUGGESTED_QUESTIONS = [
 // Component
 // ============================================================================
 
-export function AskModal({ projectId }: AskModalProps) {
+export function AskModal({ projectId: providedProjectId }: AskModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [projectId, setProjectId] = useState<string | null>(providedProjectId || null);
+  const [isLoadingProject, setIsLoadingProject] = useState(!providedProjectId);
   const router = useRouter();
-  const { startNewConversation } = useAskStore();
+  const { startNewConversation, currentProjectId, setCurrentProjectId } = useAskStore();
+
+  // Fetch user's default project if not provided
+  useEffect(() => {
+    if (providedProjectId) {
+      setProjectId(providedProjectId);
+      setCurrentProjectId(providedProjectId);
+      setIsLoadingProject(false);
+      return;
+    }
+
+    // Try to use currentProjectId from store first
+    if (currentProjectId) {
+      setProjectId(currentProjectId);
+      setIsLoadingProject(false);
+      return;
+    }
+
+    // Fetch default project
+    const fetchDefaultProject = async () => {
+      try {
+        // Get user's first project (you may want to add an API endpoint for this)
+        // For now, we'll try to extract from current URL or fetch from API
+        const response = await fetch('/api/projects?limit=1');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.projects && data.projects.length > 0) {
+            const defaultProjectId = data.projects[0].id;
+            setProjectId(defaultProjectId);
+            setCurrentProjectId(defaultProjectId);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching default project:', error);
+      } finally {
+        setIsLoadingProject(false);
+      }
+    };
+
+    fetchDefaultProject();
+  }, [providedProjectId, currentProjectId, setCurrentProjectId]);
 
   // Handle keyboard shortcut (Cmd+K or Ctrl+K)
   useEffect(() => {
@@ -66,11 +108,16 @@ export function AskModal({ projectId }: AskModalProps) {
   // Handle form submission
   const handleSubmit = async (question: string) => {
     const trimmedQuery = question.trim();
-    if (!trimmedQuery) return;
+    if (!trimmedQuery || !projectId) return;
 
     try {
+      // Set project ID in store if not already set
+      if (projectId && !currentProjectId) {
+        setCurrentProjectId(projectId);
+      }
+
       // Start new conversation
-      const conversationId = await startNewConversation(projectId, trimmedQuery);
+      const conversationId = await startNewConversation(trimmedQuery);
 
       // Close modal
       setIsOpen(false);
@@ -107,12 +154,14 @@ export function AskModal({ projectId }: AskModalProps) {
       <Button
         onClick={() => setIsOpen(true)}
         size="icon"
+        disabled={isLoadingProject}
         className={cn(
           'fixed bottom-6 right-6 z-40',
           'size-14 rounded-full shadow-lg',
           'bg-primary hover:bg-primary/90',
           'transition-all duration-200',
-          'hover:scale-110'
+          'hover:scale-110',
+          'disabled:opacity-50 disabled:cursor-not-allowed'
         )}
       >
         <MessageSquare className="size-6" />
@@ -137,8 +186,13 @@ export function AskModal({ projectId }: AskModalProps) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask a question about your feedback..."
+                placeholder={
+                  isLoadingProject
+                    ? 'Loading...'
+                    : 'Ask a question about your feedback...'
+                }
                 className="pl-10 pr-16 h-12 text-base"
+                disabled={isLoadingProject || !projectId}
                 autoFocus
               />
               <kbd
@@ -168,12 +222,14 @@ export function AskModal({ projectId }: AskModalProps) {
                   onClick={() => handleSuggestedClick(question)}
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
+                  disabled={isLoadingProject || !projectId}
                   className={cn(
                     'w-full flex items-center justify-between',
                     'px-4 py-3 rounded-lg',
                     'text-left text-sm',
                     'transition-all duration-150',
                     'hover:bg-muted/50',
+                    'disabled:opacity-50 disabled:cursor-not-allowed',
                     'group'
                   )}
                 >
