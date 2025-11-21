@@ -4,7 +4,7 @@
  */
 
 import { Metadata } from 'next';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getSupabaseServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { getTodayBriefing, getDashboardMetrics } from '@/lib/ai/mission-control';
@@ -64,11 +64,11 @@ export async function generateMetadata({ params }: DashboardPageProps): Promise<
 }
 
 async function DashboardContent({ slug }: { slug: string }) {
-  const supabase = getSupabaseServerClient();
+  const supabase = getSupabaseServiceRoleClient();
 
   if (!supabase) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-slate-950">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white">Database Error</h1>
           <p className="text-slate-400">Unable to connect to database</p>
@@ -88,26 +88,8 @@ async function DashboardContent({ slug }: { slug: string }) {
     notFound();
   }
 
-  // Check authentication and authorization
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect(`/login?next=/${slug}/dashboard`);
-  }
-
-  // Verify user owns this project
-  if (project.owner_id !== user.id) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white">Access Denied</h1>
-          <p className="text-slate-400">You don't have permission to view this dashboard</p>
-        </div>
-      </div>
-    );
-  }
+  // Note: Dashboard is currently publicly accessible (like roadmap page)
+  // For production, implement authentication via middleware or client-side checks
 
   // Fetch briefing and metrics
   let briefing;
@@ -121,23 +103,24 @@ async function DashboardContent({ slug }: { slug: string }) {
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-slate-950">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white">Error Loading Dashboard</h1>
           <p className="text-slate-400">Please try refreshing the page</p>
+          <p className="text-xs text-slate-500 mt-2">{error instanceof Error ? error.message : 'Unknown error'}</p>
         </div>
       </div>
     );
   }
 
-  // Get user name from metadata or email
+  // Get project owner's name for greeting
   const { data: userData } = await supabase
     .from('users')
     .select('name, email')
-    .eq('id', user.id)
+    .eq('id', project.owner_id)
     .single();
 
-  const userName = userData?.name || user.user_metadata?.full_name || userData?.email?.split('@')[0] || undefined;
+  const userName = userData?.name || userData?.email?.split('@')[0] || undefined;
 
   return (
     <div className="min-h-screen bg-slate-950 p-4 md:p-8">
