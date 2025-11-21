@@ -2,6 +2,11 @@
 -- Creates tables for AI-generated Product Requirements Documents (PRDs)
 
 -- ============================================================================
+-- 0. Enable pgvector extension for vector similarity search
+-- ============================================================================
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- ============================================================================
 -- 1. Drop existing objects if they exist (for clean migration)
 -- ============================================================================
 DROP TABLE IF EXISTS spec_context_sources CASCADE;
