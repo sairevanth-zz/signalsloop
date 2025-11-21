@@ -1,0 +1,230 @@
+'use client';
+
+/**
+ * AskChatInterface Component
+ * Main chat interface with sidebar and message area
+ */
+
+import React, { useEffect, useRef } from 'react';
+import { Sparkles, TrendingUp, Lightbulb, Target } from 'lucide-react';
+import { ConversationSidebar } from './ConversationSidebar';
+import { ChatMessage } from './ChatMessage';
+import { ChatInput } from './ChatInput';
+import { cn } from '@/lib/utils';
+import {
+  useAskStore,
+  useMessagesWithStreaming,
+} from '@/stores/ask-store';
+
+// ============================================================================
+// Props Interface
+// ============================================================================
+
+export interface AskChatInterfaceProps {
+  projectId: string;
+  projectName: string;
+}
+
+// ============================================================================
+// Starter Questions
+// ============================================================================
+
+const STARTER_QUESTIONS = [
+  {
+    icon: TrendingUp,
+    iconColor: 'text-blue-600',
+    iconBg: 'bg-blue-100',
+    question: 'How is customer sentiment trending this month?',
+    description: 'Analyze sentiment patterns and trends',
+  },
+  {
+    icon: Lightbulb,
+    iconColor: 'text-amber-600',
+    iconBg: 'bg-amber-100',
+    question: 'What features are customers asking for most?',
+    description: 'Discover top feature requests',
+  },
+  {
+    icon: Target,
+    iconColor: 'text-red-600',
+    iconBg: 'bg-red-100',
+    question: 'What are the most urgent customer complaints?',
+    description: 'Identify critical issues',
+  },
+];
+
+// ============================================================================
+// Component
+// ============================================================================
+
+export function AskChatInterface({ projectId, projectName }: AskChatInterfaceProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const {
+    setCurrentProjectId,
+    clearConversation,
+    startNewConversation,
+    sendMessage,
+    isStreaming,
+    suggestedQuestions,
+  } = useAskStore();
+
+  const messages = useMessagesWithStreaming();
+
+  // Initialize on mount
+  useEffect(() => {
+    setCurrentProjectId(projectId);
+    clearConversation();
+  }, [projectId, setCurrentProjectId, clearConversation]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Handle new conversation
+  const handleStartConversation = async (question: string) => {
+    try {
+      await startNewConversation(question);
+    } catch (error) {
+      console.error('Error starting conversation:', error);
+    }
+  };
+
+  // Handle follow-up message
+  const handleSendMessage = async (query: string) => {
+    try {
+      await sendMessage(query);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+
+  // Handle submit (works for both new and existing conversations)
+  const handleSubmit = async (query: string) => {
+    if (messages.length === 0) {
+      await handleStartConversation(query);
+    } else {
+      await handleSendMessage(query);
+    }
+  };
+
+  const isEmpty = messages.length === 0;
+
+  return (
+    <div className="flex h-screen bg-background">
+      {/* Conversation Sidebar */}
+      <div className="w-64 flex-shrink-0">
+        <ConversationSidebar projectId={projectId} />
+      </div>
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {isEmpty ? (
+          /* Empty State */
+          <div className="flex-1 flex flex-col items-center justify-center p-8">
+            <div className="max-w-3xl w-full space-y-8">
+              {/* Icon */}
+              <div className="flex justify-center">
+                <div className="rounded-full bg-primary/10 p-6">
+                  <Sparkles className="size-12 text-primary" />
+                </div>
+              </div>
+
+              {/* Heading */}
+              <div className="text-center space-y-2">
+                <h1 className="text-4xl font-bold tracking-tight">
+                  Ask SignalsLoop Anything
+                </h1>
+                <p className="text-lg text-muted-foreground">
+                  Get instant insights from your product feedback using AI
+                </p>
+              </div>
+
+              {/* Starter Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {STARTER_QUESTIONS.map((starter, index) => {
+                  const Icon = starter.icon;
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleStartConversation(starter.question)}
+                      disabled={isStreaming}
+                      className={cn(
+                        'group relative overflow-hidden rounded-lg border bg-card p-6',
+                        'text-left transition-all duration-200',
+                        'hover:border-primary hover:shadow-md',
+                        'disabled:opacity-50 disabled:cursor-not-allowed'
+                      )}
+                    >
+                      <div className="space-y-3">
+                        {/* Icon */}
+                        <div
+                          className={cn(
+                            'inline-flex rounded-lg p-3',
+                            starter.iconBg
+                          )}
+                        >
+                          <Icon className={cn('size-6', starter.iconColor)} />
+                        </div>
+
+                        {/* Question */}
+                        <p className="font-medium leading-tight">
+                          {starter.question}
+                        </p>
+
+                        {/* Description */}
+                        <p className="text-sm text-muted-foreground">
+                          {starter.description}
+                        </p>
+                      </div>
+
+                      {/* Hover Effect */}
+                      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Chat Input */}
+              <div className="mt-8">
+                <ChatInput
+                  onSubmit={handleSubmit}
+                  isLoading={isStreaming}
+                  suggestedQuestions={suggestedQuestions}
+                  placeholder="Ask a question about your feedback..."
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Chat State */
+          <>
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto">
+              {messages.map((message) => (
+                <ChatMessage
+                  key={message.id}
+                  message={message}
+                  isStreaming={message.id === 'streaming' && isStreaming}
+                />
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Chat Input */}
+            <div className="border-t">
+              <div className="max-w-4xl mx-auto">
+                <ChatInput
+                  onSubmit={handleSubmit}
+                  isLoading={isStreaming}
+                  placeholder="Ask a follow-up question..."
+                />
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
