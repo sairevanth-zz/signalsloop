@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useSpecGeneration } from '@/hooks/use-spec-generation';
 import { useContextRetrieval } from '@/hooks/use-context-retrieval';
@@ -32,6 +32,7 @@ import { GENERATION_STEP_MESSAGES } from '@/types/specs';
 export default function NewSpecPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, project } = useAuth();
 
   const [step, setStep] = useState<'input' | 'generating' | 'complete'>('input');
@@ -39,6 +40,24 @@ export default function NewSpecPage() {
   // Input state
   const [idea, setIdea] = useState('');
   const [template, setTemplate] = useState<SpecTemplate>('standard');
+  const [feedbackIds, setFeedbackIds] = useState<string[]>([]);
+
+  // Check if coming from feedback page
+  React.useEffect(() => {
+    const fromFeedback = searchParams.get('from') === 'feedback';
+    if (fromFeedback) {
+      const storedFeedback = sessionStorage.getItem('spec_wizard_feedback');
+      if (storedFeedback) {
+        try {
+          const ids = JSON.parse(storedFeedback);
+          setFeedbackIds(ids);
+          sessionStorage.removeItem('spec_wizard_feedback');
+        } catch (error) {
+          console.error('Error parsing feedback IDs:', error);
+        }
+      }
+    }
+  }, [searchParams]);
 
   // Generation hook
   const { generateSpec, cancelGeneration, isGenerating, progress, result, error } =
@@ -55,8 +74,9 @@ export default function NewSpecPage() {
     const request: GenerateSpecRequest = {
       projectId: project.id,
       input: {
-        type: 'idea',
-        idea: idea.trim(),
+        type: feedbackIds.length > 0 ? 'feedback' : 'idea',
+        idea: feedbackIds.length > 0 ? undefined : idea.trim(),
+        feedbackIds: feedbackIds.length > 0 ? feedbackIds : undefined,
       },
       template,
       context: {
@@ -176,22 +196,41 @@ export default function NewSpecPage() {
               <CardTitle>What do you want to build?</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Feedback Mode Notice */}
+              {feedbackIds.length > 0 && (
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <Sparkles className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-purple-900 dark:text-purple-100 mb-1">
+                        Generating from {feedbackIds.length} feedback items
+                      </h4>
+                      <p className="text-sm text-purple-700 dark:text-purple-300">
+                        AI will analyze the selected feedback and create a comprehensive spec
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Idea Input */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Describe your feature idea
-                </label>
-                <Textarea
-                  value={idea}
-                  onChange={(e) => setIdea(e.target.value)}
-                  placeholder="e.g., Add dark mode support with automatic system detection"
-                  rows={4}
-                  className="w-full"
-                />
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                  💡 Tip: Be specific! The more detail you provide, the better the AI can generate your spec.
-                </p>
-              </div>
+              {feedbackIds.length === 0 && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Describe your feature idea
+                  </label>
+                  <Textarea
+                    value={idea}
+                    onChange={(e) => setIdea(e.target.value)}
+                    placeholder="e.g., Add dark mode support with automatic system detection"
+                    rows={4}
+                    className="w-full"
+                  />
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    💡 Tip: Be specific! The more detail you provide, the better the AI can generate your spec.
+                  </p>
+                </div>
+              )}
 
               {/* Template Selection */}
               <div>
@@ -264,7 +303,7 @@ export default function NewSpecPage() {
                 </Link>
                 <Button
                   onClick={handleGenerate}
-                  disabled={!idea.trim() || isGenerating}
+                  disabled={(feedbackIds.length === 0 && !idea.trim()) || isGenerating}
                   className="bg-purple-600 hover:bg-purple-700"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
