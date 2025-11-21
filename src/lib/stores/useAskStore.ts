@@ -33,6 +33,7 @@ interface AskStore {
   setStreamingMessageId: (messageId: string | null) => void;
 
   // Helper actions
+  loadConversations: (projectId: string) => Promise<void>;
   startNewConversation: (projectId: string, initialQuery?: string) => Promise<string>;
   clearConversations: () => void;
 }
@@ -112,6 +113,29 @@ export const useAskStore = create<AskStore>((set, get) => ({
 
   setStreamingMessageId: (messageId) => {
     set({ streamingMessageId: messageId });
+  },
+
+  loadConversations: async (projectId) => {
+    try {
+      set({ isLoading: true });
+
+      // Fetch conversations from API
+      const response = await fetch(`/api/ask/conversations?projectId=${projectId}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to load conversations');
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.conversations) {
+        set({ conversations: data.conversations });
+      }
+    } catch (error) {
+      console.error('Error loading conversations:', error);
+    } finally {
+      set({ isLoading: false });
+    }
   },
 
   startNewConversation: async (projectId, initialQuery) => {
