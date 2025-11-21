@@ -18,7 +18,8 @@ import {
   BarChart3,
   Brain,
   Search,
-  Phone
+  Phone,
+  MessageSquareText
 } from 'lucide-react';
 import {
   Dialog,
@@ -69,8 +70,8 @@ const notifications = [
   {
     id: '1',
     type: 'feature',
-    title: '🎉 Call Intelligence Engine',
-    message: 'Turn customer calls into actionable insights with AI',
+    title: '🤖 Ask SignalsLoop Anything',
+    message: 'Chat with AI about your feedback - Press Cmd+K to try it now!',
     timestamp: 'Just now',
     unread: true
   },
@@ -93,6 +94,18 @@ const notifications = [
 ];
 
 const changelogItems = [
+  {
+    version: 'v2.6.0',
+    date: '2025-01-21',
+    features: [
+      '🤖 NEW: Ask SignalsLoop Anything - ChatGPT-style AI assistant',
+      'Natural language queries about your product feedback',
+      'Semantic search using vector embeddings (1536-dim)',
+      'Conversation history with pinned chats',
+      'Cmd+K / Ctrl+K quick access from anywhere',
+      'Real-time streaming responses with GPT-4o'
+    ]
+  },
   {
     version: 'v2.5.0',
     date: '2025-01-20',
@@ -277,6 +290,19 @@ export default function QuickActionsSidebar({
             >
               <Phone className="w-4 h-4 mr-2" />
               Call Intelligence
+              <Badge variant="secondary" className="ml-auto text-xs bg-green-500 text-white">
+                NEW
+              </Badge>
+            </Button>
+          </a>
+          <a href="/dashboard/ask" className="block">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start hover:bg-purple-100 bg-purple-50 border border-purple-200"
+            >
+              <MessageSquareText className="w-4 h-4 mr-2" />
+              Ask SignalsLoop
               <Badge variant="secondary" className="ml-auto text-xs bg-green-500 text-white">
                 NEW
               </Badge>
