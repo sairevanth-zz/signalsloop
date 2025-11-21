@@ -151,6 +151,12 @@ async function DashboardContent({ slug }: { slug: string }) {
             </div>
             <div className="flex items-center gap-4">
               <a
+                href="/dashboard/ask"
+                className="rounded-lg border border-purple-600/50 bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-purple-700 hover:to-blue-700 hover:shadow-lg hover:shadow-purple-500/20"
+              >
+                💬 Ask AI
+              </a>
+              <a
                 href={`/${slug}/board`}
                 className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700"
               >
