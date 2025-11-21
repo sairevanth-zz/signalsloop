@@ -56,6 +56,22 @@ export default async function MissionControlHelpPage() {
           </p>
         </div>
 
+        {/* System Health Check */}
+        <div className="mb-8 rounded-xl border border-blue-800 bg-blue-900/20 p-6">
+          <h2 className="mb-4 text-xl font-semibold text-blue-400">System Health Check</h2>
+          <p className="mb-4 text-sm text-slate-300">
+            If you're experiencing issues, check the system health to diagnose problems:
+          </p>
+          <Link
+            href="/api/dashboard/health"
+            target="_blank"
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Run Health Check
+          </Link>
+        </div>
+
         {/* Instructions */}
         <div className="mb-8 rounded-xl border border-slate-800 bg-slate-900/50 p-6">
           <h2 className="mb-4 text-xl font-semibold text-white">How to Access</h2>
@@ -82,6 +98,38 @@ export default async function MissionControlHelpPage() {
                 </code>
               </li>
             </ol>
+          </div>
+        </div>
+
+        {/* Setup Requirements */}
+        <div className="mb-8 rounded-xl border border-amber-800 bg-amber-900/20 p-6">
+          <h2 className="mb-4 text-xl font-semibold text-amber-400">Setup Requirements</h2>
+          <div className="space-y-4 text-slate-300">
+            <p>Mission Control requires the following to function properly:</p>
+            <ol className="list-decimal space-y-3 pl-5">
+              <li>
+                <strong>OpenAI API Key:</strong> Configure the{' '}
+                <code className="rounded bg-slate-800 px-2 py-1 text-sm">OPENAI_API_KEY</code>{' '}
+                environment variable. The dashboard uses GPT-4o to generate daily briefings.
+              </li>
+              <li>
+                <strong>Database Migration:</strong> Run the migration file{' '}
+                <code className="rounded bg-slate-800 px-2 py-1 text-sm">
+                  migrations/202511201800_mission_control_clean.sql
+                </code>{' '}
+                to create required tables and functions.
+              </li>
+              <li>
+                <strong>Active Project:</strong> Create at least one project with some feedback data
+                to see meaningful insights.
+              </li>
+            </ol>
+            <div className="mt-4 rounded-lg border border-amber-700 bg-amber-900/30 p-4">
+              <p className="text-sm text-amber-300">
+                <strong>Tip:</strong> Use the System Health Check above to verify all requirements
+                are met.
+              </p>
+            </div>
           </div>
         </div>
 
