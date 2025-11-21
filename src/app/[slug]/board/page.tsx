@@ -70,6 +70,7 @@ import VoteButton from '@/components/VoteButton';
 import { AIInsightsSlideout } from '@/components/AIInsightsSlideout';
 import FeedbackOnBehalfModal from '@/components/FeedbackOnBehalfModal';
 import { SentimentWidget, SentimentTrendChart } from '@/components/sentiment';
+import { SpecsDashboardWidget } from '@/components/specs';
 
 interface Post {
   id: string;
@@ -1080,6 +1081,19 @@ export default function BoardPage() {
                           </DropdownMenuItem>
                         </Link>
                       )}
+                      {user && (
+                        <Link href={`/${project?.slug}/specs`}>
+                          <DropdownMenuItem className="flex items-start gap-3 py-3">
+                            <Sparkles className="h-4 w-4 text-purple-600" />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">Spec Writer ✨</span>
+                              <span className="text-xs text-gray-500">
+                                Transform ideas into PRDs in 60 seconds
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        </Link>
+                      )}
 
                       {isOwnerOrAdmin && <DropdownMenuSeparator />}
                       {isOwnerOrAdmin && project && (
@@ -1454,6 +1468,18 @@ export default function BoardPage() {
                       </Button>
                     </div>
                   )}
+                </div>
+              )
+            }
+
+            {/* Spec Writer Dashboard - Only show for project owners/admins */}
+            {
+              isOwnerOrAdmin && project && (
+                <div className="mb-6">
+                  <SpecsDashboardWidget
+                    projectId={project.id}
+                    projectSlug={project.slug}
+                  />
                 </div>
               )
             }
