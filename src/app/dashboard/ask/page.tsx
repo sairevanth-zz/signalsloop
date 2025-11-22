@@ -28,6 +28,8 @@ function AskPageContent() {
 
   const supabase = getSupabaseClient();
 
+  const projectIdParam = searchParams.get('projectId');
+
   useEffect(() => {
     if (!supabase) return;
 
@@ -45,7 +47,7 @@ function AskPageContent() {
         setAuthChecking(false);
 
         // Get project ID from search params or user's first project
-        let projectId = searchParams.get('projectId');
+        let projectId = projectIdParam;
 
         if (!projectId) {
           // Get user's first project
@@ -104,7 +106,7 @@ function AskPageContent() {
     };
 
     checkAuthAndLoadProject();
-  }, [supabase, searchParams, router]);
+  }, [supabase, projectIdParam, router]);
 
   // Loading state while checking auth
   if (authChecking) {
