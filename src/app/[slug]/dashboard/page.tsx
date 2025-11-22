@@ -6,7 +6,7 @@
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { getTodayBriefing, getDashboardMetrics } from '@/lib/ai/mission-control';
 import { MissionControlGrid, MissionControlGridSkeleton } from '@/components/dashboard/MissionControlGrid';
 
@@ -66,18 +66,8 @@ export async function generateMetadata({ params }: DashboardPageProps): Promise<
 }
 
 async function DashboardContent({ slug }: { slug: string }) {
-  const supabase = getSupabaseServerClient();
-
-  if (!supabase) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white">Database Error</h1>
-          <p className="text-slate-400">Unable to connect to database</p>
-        </div>
-      </div>
-    );
-  }
+  // Create Supabase client with auth support (uses cookies)
+  const supabase = await createServerClient();
 
   // Check authentication first
   const {
