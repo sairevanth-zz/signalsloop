@@ -159,14 +159,19 @@ BEGIN
   WHERE project_id = p_project_id
     AND created_at >= NOW() - INTERVAL '7 days';
 
-  -- Roadmap status
-  SELECT jsonb_build_object(
-    'in_progress', COUNT(*) FILTER (WHERE status = 'in-progress'),
-    'planned', COUNT(*) FILTER (WHERE status = 'planned'),
-    'completed_this_week', COUNT(*) FILTER (WHERE status = 'completed' AND updated_at >= NOW() - INTERVAL '7 days')
-  ) INTO v_roadmap_data
-  FROM roadmap_items
-  WHERE project_id = p_project_id;
+  -- Roadmap status (check if roadmap_items table exists)
+  BEGIN
+    SELECT jsonb_build_object(
+      'in_progress', COUNT(*) FILTER (WHERE status = 'in-progress'),
+      'planned', COUNT(*) FILTER (WHERE status = 'planned'),
+      'completed_this_week', COUNT(*) FILTER (WHERE status = 'completed' AND updated_at >= NOW() - INTERVAL '7 days')
+    ) INTO v_roadmap_data
+    FROM roadmap_items
+    WHERE project_id = p_project_id;
+  EXCEPTION
+    WHEN undefined_table THEN
+      v_roadmap_data := jsonb_build_object('in_progress', 0, 'planned', 0, 'completed_this_week', 0);
+  END;
 
   -- Competitor insights (if table exists)
   BEGIN
