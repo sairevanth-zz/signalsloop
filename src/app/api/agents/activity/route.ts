@@ -67,9 +67,9 @@ export async function GET(request: NextRequest) {
     };
 
     recentEvents?.forEach(event => {
-      const type = event.type.replace('.', '_');
+      const type = event.type.replace('.', '_') as keyof typeof eventCounts;
       if (type in eventCounts) {
-        (eventCounts as any)[type]++;
+        eventCounts[type]++;
       }
     });
 
@@ -86,12 +86,18 @@ export async function GET(request: NextRequest) {
       .select('id', { count: 'exact', head: true })
       .gte('created_at', last7Days.toISOString());
 
-    const { count: competitorCount } = await supabase
+    let competitorCount = 0;
+    const { count: competitorCountValue, error: competitorError } = await supabase
       .from('competitors')
       .select('id', { count: 'exact', head: true })
       .eq('project_id', projectId)
-      .gte('created_at', last7Days.toISOString())
-      .catch(() => ({ count: 0 })); // Table might not exist
+      .gte('created_at', last7Days.toISOString());
+
+    if (competitorError) {
+      console.warn('Competitors table not available, continuing without data:', competitorError.message);
+    } else if (typeof competitorCountValue === 'number') {
+      competitorCount = competitorCountValue;
+    }
 
     // Build activity summary
     const activity = {

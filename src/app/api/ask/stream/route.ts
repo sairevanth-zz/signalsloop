@@ -7,7 +7,6 @@
 
 import { NextRequest } from 'next/server';
 import OpenAI from 'openai';
-import { OpenAIStream, StreamingTextResponse } from 'ai';
 import { createServerClient } from '@/lib/supabase-client';
 import { classifyQuery } from '@/lib/ask/classifier';
 import { retrieveContext } from '@/lib/ask/retrieval';
@@ -73,6 +72,45 @@ async function createStreamingCompletion(
   }
 
   throw lastError || new Error('Failed to create OpenAI completion');
+}
+
+function buildReadableStream(
+  completion: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>,
+  callbacks?: {
+    onFinal?: (content: string) => Promise<void> | void;
+  }
+) {
+  const encoder = new TextEncoder();
+
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      let finalText = '';
+      try {
+        for await (const chunk of completion) {
+          const delta = chunk.choices?.[0]?.delta?.content;
+          const token =
+            typeof delta === 'string'
+              ? delta
+              : Array.isArray(delta)
+                ? delta.map((part) => ('text' in part ? part.text : '')).join('')
+                : '';
+
+          if (token) {
+            finalText += token;
+            controller.enqueue(encoder.encode(token));
+          }
+        }
+
+        if (callbacks?.onFinal) {
+          await callbacks.onFinal(finalText);
+        }
+
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+  });
 }
 
 // ============================================================================
@@ -297,7 +335,7 @@ export async function POST(request: NextRequest) {
     const responseModel = response.model;
 
     // Create streaming response with callbacks
-    const stream = OpenAIStream(response, {
+    const stream = buildReadableStream(response, {
       onFinal: async (finalText: string) => {
         const latencyMs = Date.now() - startTime;
 
@@ -350,8 +388,9 @@ export async function POST(request: NextRequest) {
     });
 
     // 11. Return streaming response with custom headers
-    return new StreamingTextResponse(stream, {
+    return new Response(stream, {
       headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
         'X-Conversation-Id': activeConversationId,
         'X-Query-Type': classification.queryType,
         'X-Sources': JSON.stringify(sources),
