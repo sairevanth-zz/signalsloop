@@ -64,6 +64,9 @@ export async function generateMetadata({ params }: DashboardPageProps): Promise<
 }
 
 async function DashboardContent({ slug }: { slug: string }) {
+  // Use server client for auth checks (has access to user session)
+  const supabaseAuth = getSupabaseServerClient();
+  // Use service role client for data operations (bypasses RLS)
   const supabase = getSupabaseServiceRoleClient();
 
   if (!supabase) {
@@ -88,10 +91,10 @@ async function DashboardContent({ slug }: { slug: string }) {
     notFound();
   }
 
-  // Check authentication - Mission Control contains sensitive business intelligence
+  // Check authentication using the auth client (not service role)
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await supabaseAuth.auth.getUser();
 
   if (!user) {
     redirect(`/login?next=/${slug}/dashboard`);
