@@ -7,6 +7,8 @@
  */
 
 import { EventType, EventHandler } from '@/lib/events/types';
+import { handleFeedbackCreated } from './sentiment-agent';
+import { handleThemeThresholdReached } from './spec-writer-agent';
 
 /**
  * Agent Registry Structure
@@ -20,8 +22,8 @@ export interface AgentRegistry {
 /**
  * The Agent Registry
  *
- * Phase 1: Infrastructure only - no agents yet
- * Phase 2: Will add existing agents (sentiment, theme, duplicate detection)
+ * Phase 1: Infrastructure ✅
+ * Phase 2: Event-driven agents for sentiment and spec writing ✅
  * Phase 3: Will add new autonomous agents (notifications, competitive intel, etc.)
  */
 export const AGENT_REGISTRY: AgentRegistry = {
@@ -30,8 +32,10 @@ export const AGENT_REGISTRY: AgentRegistry = {
   // ============================================================================
 
   [EventType.FEEDBACK_CREATED]: [
-    // Phase 2: Add these agents
-    // - SentimentAnalysisAgent (analyzes sentiment)
+    // ✅ Phase 2: Sentiment Analysis Agent
+    handleFeedbackCreated,
+
+    // Phase 3: Add these agents
     // - DuplicateDetectionAgent (checks for duplicates)
     // - NotificationAgent (alerts team)
     // - CompetitiveIntelligenceAgent (extracts competitor mentions)
@@ -51,7 +55,7 @@ export const AGENT_REGISTRY: AgentRegistry = {
   // ============================================================================
 
   [EventType.SENTIMENT_ANALYZED]: [
-    // Phase 2: Add these agents
+    // Phase 3: Add these agents
     // - ThemeDetectionAgent (categorizes into themes)
     // - UrgentFeedbackAgent (alerts on negative sentiment)
   ],
@@ -61,8 +65,8 @@ export const AGENT_REGISTRY: AgentRegistry = {
   ],
 
   [EventType.THEME_THRESHOLD_REACHED]: [
-    // Phase 2: Add this agent
-    // - ProactiveSpecWriterAgent (auto-drafts specs for high-volume themes)
+    // ✅ Phase 2: Proactive Spec Writer Agent
+    handleThemeThresholdReached,
   ],
 
   // ============================================================================
@@ -70,10 +74,8 @@ export const AGENT_REGISTRY: AgentRegistry = {
   // ============================================================================
 
   [EventType.SPEC_AUTO_DRAFTED]: [
-    // Phase 2: Add this agent
-    // - NotificationAgent (alerts PM to review spec)
-
     // Phase 3: Add this agent
+    // - NotificationAgent (alerts PM to review spec)
     // - SpecQualityAgent (reviews spec for completeness)
   ],
 
