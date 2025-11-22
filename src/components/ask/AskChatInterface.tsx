@@ -17,6 +17,7 @@ import {
   useAskStore,
   useMessagesWithStreaming,
 } from '@/stores/ask-store';
+import { useMemo } from 'react';
 
 // ============================================================================
 // Props Interface
@@ -72,6 +73,17 @@ export function AskChatInterface({ projectId, projectName }: AskChatInterfacePro
   } = useAskStore();
 
   const messages = useMessagesWithStreaming();
+  const safeMessages = useMemo(
+    () =>
+      (messages || []).filter(
+        (m) =>
+          m &&
+          typeof m === 'object' &&
+          typeof (m as { id?: unknown }).id === 'string' &&
+          'content' in m
+      ),
+    [messages]
+  );
 
   // Initialize on mount
   useEffect(() => {
@@ -228,7 +240,7 @@ export function AskChatInterface({ projectId, projectName }: AskChatInterfacePro
           <>
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto">
-              {messages.map((message) => (
+              {safeMessages.map((message) => (
                 <MessageErrorBoundary key={message.id}>
                   <ChatMessage
                     message={message}
