@@ -101,7 +101,7 @@ export function RealtimeToasts({ projectId, enabled = true }: RealtimeToastsProp
     }
   }
 
-  // Show connection status on mount
+  // Show connection status only once when first connected
   useEffect(() => {
     if (isConnected) {
       toast.success(
@@ -110,12 +110,13 @@ export function RealtimeToasts({ projectId, enabled = true }: RealtimeToastsProp
           <span className="text-sm">Live updates connected</span>
         </div>,
         {
+          id: `realtime-connected-${projectId}`, // Unique ID to prevent duplicates
           duration: 2000,
           position: 'bottom-right',
         }
       );
     }
-  }, [isConnected]);
+  }, [isConnected, projectId]);
 
   return null; // This component only handles side effects
 }
