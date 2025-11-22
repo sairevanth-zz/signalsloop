@@ -88,9 +88,21 @@ async function aggregateProjectData(projectId: string): Promise<{
   }
 
   // Fetch recent feedback (last 7 days)
+  // Note: sentiment_score is in sentiment_analysis table, not posts
   const { data: recentFeedback, error: feedbackError } = await supabase
     .from('posts')
-    .select('id, title, content, sentiment_score, vote_count, created_at, category')
+    .select(`
+      id,
+      title,
+      content,
+      vote_count,
+      created_at,
+      category,
+      sentiment_analysis (
+        sentiment_score,
+        sentiment_category
+      )
+    `)
     .eq('project_id', projectId)
     .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
     .order('created_at', { ascending: false })
@@ -191,11 +203,20 @@ export async function generateDailyBriefing(projectId: string): Promise<DailyBri
     .limit(5);
 
   // 3. Get negative feedback that needs attention
+  // Query posts with sentiment_analysis joined
   const { data: urgentFeedback } = await supabase
     .from('posts')
-    .select('id, title, vote_count, sentiment_score')
+    .select(`
+      id,
+      title,
+      vote_count,
+      sentiment_analysis!inner (
+        sentiment_score,
+        sentiment_category
+      )
+    `)
     .eq('project_id', projectId)
-    .lt('sentiment_score', -0.5) // Negative sentiment
+    .lt('sentiment_analysis.sentiment_score', -0.5) // Negative sentiment
     .gte('vote_count', 5) // Multiple votes
     .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
     .order('vote_count', { ascending: false })
@@ -213,7 +234,7 @@ export async function generateDailyBriefing(projectId: string): Promise<DailyBri
     })),
     topFeedback: data.recentFeedback.slice(0, 5).map(f => ({
       title: f.title,
-      sentiment: f.sentiment_score,
+      sentiment: f.sentiment_analysis?.[0]?.sentiment_score || null,
       votes: f.vote_count,
     })),
     roadmap: data.roadmapStats,
