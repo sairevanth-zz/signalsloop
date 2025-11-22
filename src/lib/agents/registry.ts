@@ -7,6 +7,8 @@
  */
 
 import { EventType, EventHandler } from '@/lib/events/types';
+// Phase 1 Agents
+import { triageAgent } from './triager-agent';
 // Phase 2 Agents
 import { handleFeedbackCreated } from './sentiment-agent';
 import { handleThemeThresholdReached } from './spec-writer-agent';
@@ -43,6 +45,11 @@ export const AGENT_REGISTRY: AgentRegistry = {
   // ============================================================================
 
   [EventType.FEEDBACK_CREATED]: [
+    // ✅ Phase 1: Triager Agent (runs first to categorize, prioritize, assign PM, detect duplicates)
+    async (event) => {
+      await triageAgent(event.payload.postId, event.projectId);
+    },
+
     // ✅ Phase 2: Sentiment Analysis Agent
     handleFeedbackCreated,
 
