@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client'
-import { getSupabaseServiceRoleClient } from '@/lib/supabase-client'
 
 /**
  * GET /api/agents/triager/queue
