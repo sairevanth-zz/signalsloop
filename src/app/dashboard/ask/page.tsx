@@ -187,10 +187,10 @@ export default function AskPage() {
   );
 }
 
-class AskErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; message?: string }> {
+class AskErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; message?: string; stack?: string }> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false, message: undefined };
+    this.state = { hasError: false, message: undefined, stack: undefined };
   }
 
   static getDerivedStateFromError(error: unknown) {
@@ -202,6 +202,9 @@ class AskErrorBoundary extends React.Component<{ children: React.ReactNode }, { 
 
   componentDidCatch(error: unknown, info: unknown) {
     console.error('Ask page error boundary:', error, info);
+    this.setState({
+      stack: info && typeof info === 'object' && 'componentStack' in info ? (info as { componentStack?: string }).componentStack : undefined,
+    });
   }
 
   render() {
@@ -213,6 +216,11 @@ class AskErrorBoundary extends React.Component<{ children: React.ReactNode }, { 
             <p className="text-sm text-muted-foreground">
               {this.state.message || 'Please refresh the page or try again in a moment.'}
             </p>
+            {this.state.stack && (
+              <pre className="text-left text-xs text-muted-foreground bg-muted/40 p-3 rounded max-h-48 overflow-auto">
+                {this.state.stack}
+              </pre>
+            )}
             <div className="flex gap-3 justify-center">
               <button
                 className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"

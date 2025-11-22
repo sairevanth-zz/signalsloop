@@ -6,7 +6,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import { Sparkles, TrendingUp, Lightbulb, Target, ArrowLeft, LayoutDashboard } from 'lucide-react';
+import { Sparkles, TrendingUp, Lightbulb, Target, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { ConversationSidebar } from './ConversationSidebar';
 import { ChatMessage } from './ChatMessage';
@@ -229,11 +229,12 @@ export function AskChatInterface({ projectId, projectName }: AskChatInterfacePro
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto">
               {messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message}
-                  isStreaming={message.id === 'streaming' && isStreaming}
-                />
+                <MessageErrorBoundary key={message.id}>
+                  <ChatMessage
+                    message={message}
+                    isStreaming={message.id === 'streaming' && isStreaming}
+                  />
+                </MessageErrorBoundary>
               ))}
               <div ref={messagesEndRef} />
             </div>
@@ -254,4 +255,33 @@ export function AskChatInterface({ projectId, projectName }: AskChatInterfacePro
       </div>
     </div>
   );
+}
+
+class MessageErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; message?: string }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, message: undefined };
+  }
+
+  static getDerivedStateFromError(error: unknown) {
+    return {
+      hasError: true,
+      message: error instanceof Error ? error.message : 'Message render failed',
+    };
+  }
+
+  componentDidCatch(error: unknown, info: unknown) {
+    console.error('Chat message render error:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="px-4 py-2 text-sm text-red-500">
+          Failed to render message. {this.state.message}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
