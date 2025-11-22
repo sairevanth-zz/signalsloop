@@ -11,6 +11,7 @@ import { MetricCard } from './MetricCard';
 import { BentoCard } from './BentoCard';
 import { RealtimeToasts } from './RealtimeToasts';
 import { AgentActivityCard } from './AgentActivityCard';
+import { EventActivityWidget } from './EventActivityWidget';
 import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio } from 'lucide-react';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
@@ -168,6 +169,9 @@ export function MissionControlGrid({ briefing, metrics: initialMetrics, userName
           </div>
         </div>
       </BentoCard>
+
+      {/* System Events Widget */}
+      <EventActivityWidget projectId={projectId} projectSlug={projectSlug} />
 
       {/* Row 3: Opportunities (spans 2 columns) */}
       <BentoCard colSpan={2}>
