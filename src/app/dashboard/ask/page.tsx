@@ -31,8 +31,24 @@ function AskPageContent() {
 
   const projectIdParam = searchParams.get('projectId');
 
+  // Debug: Track what's causing the effect to re-run
+  const prevDeps = React.useRef({ supabase, projectIdParam, router });
   useEffect(() => {
-    console.log('AskPageContent useEffect running', { supabase: !!supabase, projectIdParam });
+    const changes = [];
+    if (prevDeps.current.supabase !== supabase) changes.push('supabase');
+    if (prevDeps.current.projectIdParam !== projectIdParam) changes.push('projectIdParam');
+    if (prevDeps.current.router !== router) changes.push('router');
+
+    if (changes.length > 0) {
+      console.log('AskPageContent useEffect dependencies changed:', changes);
+      prevDeps.current = { supabase, projectIdParam, router };
+    }
+  });
+
+  useEffect(() => {
+    // We use the client from the closure, but don't list it in deps to avoid potential loops 
+    // if the singleton pattern is behaving unexpectedly.
+    // projectIdParam is a primitive string, so it's safe.
     if (!supabase) return;
 
     const checkAuthAndLoadProject = async () => {
@@ -108,7 +124,8 @@ function AskPageContent() {
     };
 
     checkAuthAndLoadProject();
-  }, [supabase, projectIdParam, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectIdParam]);
 
   // Loading state while checking auth
   if (authChecking) {
