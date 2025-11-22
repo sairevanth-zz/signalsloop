@@ -77,9 +77,10 @@ export function AskModal({ projectId: providedProjectId }: AskModalProps) {
     // Fetch default project
     const fetchDefaultProject = async () => {
       try {
-        // Get user's first project (you may want to add an API endpoint for this)
-        // For now, we'll try to extract from current URL or fetch from API
-        const response = await fetch('/api/projects?limit=1');
+        // Get user's first project
+        const response = await fetch('/api/projects?limit=1', {
+          credentials: 'include',
+        });
         if (response.ok) {
           const data = await response.json();
           if (data.projects && data.projects.length > 0) {
