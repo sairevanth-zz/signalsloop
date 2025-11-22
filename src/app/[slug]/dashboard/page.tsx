@@ -4,7 +4,7 @@
  */
 
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { getSupabaseServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { getTodayBriefing, getDashboardMetrics } from '@/lib/ai/mission-control';
@@ -88,8 +88,36 @@ async function DashboardContent({ slug }: { slug: string }) {
     notFound();
   }
 
-  // Note: Dashboard is currently publicly accessible (like roadmap page)
-  // For production, implement authentication via middleware or client-side checks
+  // Check authentication - Mission Control contains sensitive business intelligence
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`/login?next=/${slug}/dashboard`);
+  }
+
+  // Verify user has access to this project
+  if (project.owner_id !== user.id) {
+    // Check if user is a team member
+    const { data: member } = await supabase
+      .from('members')
+      .select('id')
+      .eq('project_id', project.id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!member) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-slate-950">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-white">Access Denied</h1>
+            <p className="text-slate-400">You don't have permission to view this dashboard</p>
+          </div>
+        </div>
+      );
+    }
+  }
 
   // Fetch briefing and metrics
   let briefing;
@@ -194,6 +222,12 @@ async function DashboardContent({ slug }: { slug: string }) {
               <p className="text-slate-400">{project.name}</p>
             </div>
             <div className="flex items-center gap-4">
+              <a
+                href={`/dashboard/ask?projectId=${project.id}`}
+                className="rounded-lg border border-purple-600/50 bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-purple-700 hover:to-blue-700 hover:shadow-lg hover:shadow-purple-500/20"
+              >
+                💬 Ask AI
+              </a>
               <a
                 href={`/${slug}/board`}
                 className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700"
