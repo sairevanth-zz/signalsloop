@@ -8,7 +8,7 @@
 import { NextRequest } from 'next/server';
 import OpenAI from 'openai';
 import { OpenAIStream, StreamingTextResponse } from 'ai';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import { classifyQuery } from '@/lib/ask/classifier';
 import { retrieveContext } from '@/lib/ask/retrieval';
 import type { Message, MessageSource } from '@/types/ask';
@@ -80,11 +80,7 @@ function buildContextSystemMessage(context: string, sources: MessageSource[]): s
 export async function POST(request: NextRequest) {
   try {
     // 1. Get Supabase client
-    const supabase = getSupabaseServerClient();
-
-    if (!supabase) {
-      return new Response('Database connection not available', { status: 500 });
-    }
+    const supabase = await createServerClient();
 
     // 2. Authenticate user
     const {

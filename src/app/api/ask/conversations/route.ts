@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -17,14 +17,7 @@ export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
-
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection not available' },
-        { status: 500 }
-      );
-    }
+    const supabase = await createServerClient();
 
     // Get current user
     const {
