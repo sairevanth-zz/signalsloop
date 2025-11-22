@@ -18,38 +18,24 @@ interface Project {
 }
 
 function AskPageContent() {
-  console.log('AskPageContent rendering');
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Memoize the projectId to prevent unnecessary re-renders
+  const projectIdParam = React.useMemo(() => searchParams.get('projectId'), [searchParams]);
 
   const [loading, setLoading] = useState(true);
   const [authChecking, setAuthChecking] = useState(true);
   const [project, setProject] = useState<Project | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hasRun, setHasRun] = useState(false);
 
   const supabase = getSupabaseClient();
 
-  const projectIdParam = searchParams.get('projectId');
-
-  // Debug: Track what's causing the effect to re-run
-  const prevDeps = React.useRef({ supabase, projectIdParam, router });
   useEffect(() => {
-    const changes = [];
-    if (prevDeps.current.supabase !== supabase) changes.push('supabase');
-    if (prevDeps.current.projectIdParam !== projectIdParam) changes.push('projectIdParam');
-    if (prevDeps.current.router !== router) changes.push('router');
-
-    if (changes.length > 0) {
-      console.log('AskPageContent useEffect dependencies changed:', changes);
-      prevDeps.current = { supabase, projectIdParam, router };
-    }
-  });
-
-  useEffect(() => {
-    // We use the client from the closure, but don't list it in deps to avoid potential loops 
-    // if the singleton pattern is behaving unexpectedly.
-    // projectIdParam is a primitive string, so it's safe.
-    if (!supabase) return;
+    // Only run once
+    if (hasRun || !supabase) return;
+    setHasRun(true);
 
     const checkAuthAndLoadProject = async () => {
       try {
@@ -125,7 +111,7 @@ function AskPageContent() {
 
     checkAuthAndLoadProject();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectIdParam]);
+  }, [hasRun]);
 
   // Loading state while checking auth
   if (authChecking) {
