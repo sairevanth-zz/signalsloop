@@ -113,13 +113,14 @@ export function RealtimeToasts({ projectId, enabled = true }: RealtimeToastsProp
           <span className="text-sm">Live updates connected</span>
         </div>,
         {
+          id: `realtime-connected-${projectId}`, // Unique ID to prevent duplicates
           duration: 2000,
           position: 'bottom-right',
           id: 'realtime-connected', // Prevents duplicate toasts
         }
       );
     }
-  }, [isConnected]);
+  }, [isConnected, projectId]);
 
   return null; // This component only handles side effects
 }

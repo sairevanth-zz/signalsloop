@@ -1,155 +1,136 @@
 /**
  * Mission Control Dashboard Page
  * AI-powered daily briefing and product health overview
- * Auth-protected client component
  */
 
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { getSupabaseClient } from '@/lib/supabase-client';
+import { Metadata } from 'next';
+import { notFound, redirect } from 'next/navigation';
+import { Suspense } from 'react';
+import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { getTodayBriefing, getDashboardMetrics } from '@/lib/ai/mission-control';
 import { MissionControlGrid, MissionControlGridSkeleton } from '@/components/dashboard/MissionControlGrid';
-import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
-import { Loader2 } from 'lucide-react';
 
-interface Project {
-  id: string;
-  name: string;
-  slug: string;
-  owner_id: string;
+export const dynamic = 'force-dynamic';
+
+interface DashboardPageProps {
+  params: Promise<{
+    slug: string;
+  }>;
 }
 
-export default function DashboardPage() {
-  const params = useParams();
-  const router = useRouter();
-  const slug = params.slug as string;
+export async function generateMetadata({ params }: DashboardPageProps): Promise<Metadata> {
+  const { slug } = await params;
 
-  const [loading, setLoading] = useState(true);
-  const [authChecking, setAuthChecking] = useState(true);
-  const [isOwner, setIsOwner] = useState(false);
-  const [project, setProject] = useState<Project | null>(null);
-  const [briefing, setBriefing] = useState<DailyBriefingContent | null>(null);
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [userName, setUserName] = useState<string | undefined>(undefined);
-  const [error, setError] = useState<string | null>(null);
+  try {
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      return { title: 'Dashboard Not Found' };
+    }
 
-  const supabase = getSupabaseClient();
+    const { data: project } = await supabase
+      .from('projects')
+      .select('name, slug')
+      .eq('slug', slug)
+      .single();
 
-  // Check authentication and load data
-  useEffect(() => {
-    if (!supabase || !slug) return;
+    if (!project) {
+      return {
+        title: 'Dashboard Not Found',
+        description: 'The requested dashboard could not be found.',
+      };
+    }
 
-    const checkAuthAndLoadData = async () => {
-      try {
-        // Check authentication
-        const { data: { session }, error: authError } = await supabase.auth.getSession();
+    const title = `${project.name} Mission Control`;
+    const description = `AI-powered dashboard for ${project.name}. Daily briefings, sentiment analysis, and product intelligence.`;
 
-        if (authError || !session) {
-          console.log('No session, redirecting to login');
-          router.push(`/login?next=/${slug}/dashboard`);
-          return;
-        }
-
-        setAuthChecking(false);
-
-        // Load project data
-        const { data: projectData, error: projectError } = await supabase
-          .from('projects')
-          .select('id, name, slug, owner_id')
-          .eq('slug', slug)
-          .single();
-
-        if (projectError || !projectData) {
-          setError('Project not found');
-          setLoading(false);
-          return;
-        }
-
-        setProject(projectData);
-
-        // Check if user is owner
-        const userIsOwner = projectData.owner_id === session.user.id;
-        setIsOwner(userIsOwner);
-
-        // If not owner, redirect to board (Mission Control is for owners only)
-        if (!userIsOwner) {
-          router.push(`/${slug}/board`);
-          return;
-        }
-
-        // Load user name
-        const { data: userData } = await supabase
-          .from('users')
-          .select('name, email')
-          .eq('id', session.user.id)
-          .single();
-
-        setUserName(userData?.name || userData?.email?.split('@')[0] || undefined);
-
-        // Load dashboard data from API (briefing endpoint returns both briefing and metrics)
-        const briefingResponse = await fetch(`/api/dashboard/briefing?projectId=${projectData.id}`);
-
-        if (briefingResponse.ok) {
-          const data = await briefingResponse.json();
-          setBriefing(data.briefing?.content || null);
-          setMetrics(data.metrics || null);
-        } else {
-          console.error('Failed to load dashboard data:', await briefingResponse.text());
-          setError('Failed to load dashboard data. Please try again.');
-        }
-
-        setLoading(false);
-      } catch (err) {
-        console.error('Error loading dashboard:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
-        setLoading(false);
-      }
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        siteName: 'SignalsLoop',
+        type: 'website',
+        locale: 'en_US',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+      },
     };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return { title: 'Dashboard' };
+  }
+}
 
-    checkAuthAndLoadData();
-  }, [supabase, slug, router]);
+async function DashboardContent({ slug }: { slug: string }) {
+  // Create Supabase client with auth support (uses cookies)
+  const supabase = await createServerClient();
 
-  // Loading state while checking auth
-  if (authChecking) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-4" />
-          <p className="text-slate-400">Checking authentication...</p>
-        </div>
-      </div>
-    );
+  // Check authentication first
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`/login?next=/${slug}/dashboard`);
   }
 
-  // Loading state while fetching data
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 p-4 md:p-8">
-        <div className="mx-auto max-w-7xl">
-          {/* Header skeleton */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <div className="h-8 w-64 animate-pulse rounded bg-slate-800" />
-                <div className="h-4 w-32 animate-pulse rounded bg-slate-800" />
-              </div>
-              <div className="flex gap-4">
-                <div className="h-10 w-40 animate-pulse rounded-lg bg-slate-800" />
-                <div className="h-10 w-32 animate-pulse rounded-lg bg-slate-800" />
-              </div>
-            </div>
+  // Get project by slug
+  const { data: project, error: projectError } = await supabase
+    .from('projects')
+    .select('id, name, slug, owner_id')
+    .eq('slug', slug)
+    .single();
+
+  if (projectError || !project) {
+    notFound();
+  }
+
+  // Verify user has access to this project
+  if (project.owner_id !== user.id) {
+    // Check if user is a team member
+    const { data: member } = await supabase
+      .from('members')
+      .select('id')
+      .eq('project_id', project.id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!member) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-slate-950">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-white">Access Denied</h1>
+            <p className="text-slate-400">You don't have permission to view this dashboard</p>
           </div>
-
-          {/* Grid skeleton */}
-          <MissionControlGridSkeleton />
         </div>
-      </div>
-    );
+      );
+    }
   }
 
-  // Error state
-  if (error || !project || !briefing || !metrics) {
+  // Fetch briefing and metrics
+  let briefing;
+  let metrics;
+  let hasError = false;
+  let errorMessage = '';
+
+  try {
+    [briefing, metrics] = await Promise.all([
+      getTodayBriefing(project.id),
+      getDashboardMetrics(project.id),
+    ]);
+  } catch (error) {
+    hasError = true;
+    console.error('Error fetching dashboard data:', error);
+    errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    // Check if it's a missing OpenAI API key error
+    const isOpenAIError = errorMessage.toLowerCase().includes('openai') ||
+                          errorMessage.toLowerCase().includes('api key');
+
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4">
         <div className="max-w-2xl w-full space-y-6">
@@ -168,7 +149,16 @@ export default function DashboardPage() {
           {/* Error details */}
           <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-6">
             <h2 className="text-lg font-semibold text-red-400 mb-2">Error Details</h2>
-            <p className="text-sm text-slate-300 font-mono">{error || 'Failed to load dashboard data'}</p>
+            <p className="text-sm text-slate-300 font-mono">{errorMessage}</p>
+
+            {isOpenAIError && (
+              <div className="mt-4 rounded-lg bg-amber-500/10 border border-amber-500/20 p-4">
+                <p className="text-sm text-amber-400">
+                  <strong>Missing OpenAI API Key:</strong> The Mission Control dashboard requires an OpenAI API key to generate AI briefings.
+                  Please configure the <code className="bg-slate-800 px-2 py-1 rounded">OPENAI_API_KEY</code> environment variable.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Action buttons */}
@@ -179,19 +169,40 @@ export default function DashboardPage() {
             >
               View Feedback Board Instead
             </a>
-            <button
-              onClick={() => window.location.reload()}
+            <a
+              href="/app/mission-control-help"
               className="rounded-lg border border-blue-600 bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 text-center"
             >
-              Retry
-            </button>
+              Get Help & Troubleshooting
+            </a>
           </div>
+
+          {/* Debug info for developers */}
+          <details className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+            <summary className="text-sm text-slate-400 cursor-pointer hover:text-slate-300">
+              Technical Details (for developers)
+            </summary>
+            <div className="mt-4 space-y-2 text-xs text-slate-500 font-mono">
+              <div>Project ID: {project.id}</div>
+              <div>Project Slug: {slug}</div>
+              <div>Timestamp: {new Date().toISOString()}</div>
+              <div>Environment: {process.env.NODE_ENV}</div>
+            </div>
+          </details>
         </div>
       </div>
     );
   }
 
-  // Success state - render dashboard
+  // Get project owner's name for greeting
+  const { data: userData } = await supabase
+    .from('users')
+    .select('name, email')
+    .eq('id', project.owner_id)
+    .single();
+
+  const userName = userData?.name || userData?.email?.split('@')[0] || undefined;
+
   return (
     <div className="min-h-screen bg-slate-950 p-4 md:p-8">
       <div className="mx-auto max-w-7xl">
@@ -204,10 +215,16 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center gap-4">
               <a
-                href="/dashboard/ask"
+                href={`/dashboard/ask?projectId=${project.id}`}
                 className="rounded-lg border border-purple-600/50 bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-purple-700 hover:to-blue-700 hover:shadow-lg hover:shadow-purple-500/20"
               >
                 💬 Ask AI
+              </a>
+              <a
+                href={`/${slug}/events`}
+                className="rounded-lg border border-blue-600/50 bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-blue-700 hover:to-cyan-700 hover:shadow-lg hover:shadow-blue-500/20"
+              >
+                🔍 Events & Debug
               </a>
               <a
                 href={`/${slug}/board`}
@@ -227,11 +244,47 @@ export default function DashboardPage() {
 
         {/* Dashboard Grid */}
         <MissionControlGrid
-          briefing={briefing}
+          briefing={briefing.content}
           metrics={metrics}
           userName={userName}
           projectId={project.id}
+          projectSlug={project.slug}
         />
+      </div>
+    </div>
+  );
+}
+
+export default async function DashboardPage({ params }: DashboardPageProps) {
+  const { slug } = await params;
+
+  return (
+    <Suspense fallback={<DashboardLoadingState />}>
+      <DashboardContent slug={slug} />
+    </Suspense>
+  );
+}
+
+function DashboardLoadingState() {
+  return (
+    <div className="min-h-screen bg-slate-950 p-4 md:p-8">
+      <div className="mx-auto max-w-7xl">
+        {/* Header skeleton */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="h-8 w-64 animate-pulse rounded bg-slate-800" />
+              <div className="h-4 w-32 animate-pulse rounded bg-slate-800" />
+            </div>
+            <div className="flex gap-4">
+              <div className="h-10 w-40 animate-pulse rounded-lg bg-slate-800" />
+              <div className="h-10 w-32 animate-pulse rounded-lg bg-slate-800" />
+            </div>
+          </div>
+        </div>
+
+        {/* Grid skeleton */}
+        <MissionControlGridSkeleton />
       </div>
     </div>
   );
