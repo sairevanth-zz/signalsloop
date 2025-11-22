@@ -6,9 +6,11 @@
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { getSupabaseServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { getSupabaseServerClient } from '@/lib/supabase-client';
 import { getTodayBriefing, getDashboardMetrics } from '@/lib/ai/mission-control';
 import { MissionControlGrid, MissionControlGridSkeleton } from '@/components/dashboard/MissionControlGrid';
+
+export const dynamic = 'force-dynamic';
 
 interface DashboardPageProps {
   params: Promise<{
@@ -64,10 +66,7 @@ export async function generateMetadata({ params }: DashboardPageProps): Promise<
 }
 
 async function DashboardContent({ slug }: { slug: string }) {
-  // Use server client for auth checks (has access to user session)
-  const supabaseAuth = getSupabaseServerClient();
-  // Use service role client for data operations (bypasses RLS)
-  const supabase = getSupabaseServiceRoleClient();
+  const supabase = getSupabaseServerClient();
 
   if (!supabase) {
     return (
@@ -80,6 +79,15 @@ async function DashboardContent({ slug }: { slug: string }) {
     );
   }
 
+  // Check authentication first
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`/login?next=/${slug}/dashboard`);
+  }
+
   // Get project by slug
   const { data: project, error: projectError } = await supabase
     .from('projects')
@@ -89,15 +97,6 @@ async function DashboardContent({ slug }: { slug: string }) {
 
   if (projectError || !project) {
     notFound();
-  }
-
-  // Check authentication using the auth client (not service role)
-  const {
-    data: { user },
-  } = await supabaseAuth.auth.getUser();
-
-  if (!user) {
-    redirect(`/login?next=/${slug}/dashboard`);
   }
 
   // Verify user has access to this project
