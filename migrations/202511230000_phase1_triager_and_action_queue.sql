@@ -352,28 +352,28 @@ ALTER TABLE unified_action_queue ENABLE ROW LEVEL SECURITY;
 CREATE POLICY pm_assignments_select_policy ON pm_assignments
   FOR SELECT USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
 CREATE POLICY pm_assignments_insert_policy ON pm_assignments
   FOR INSERT WITH CHECK (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
 CREATE POLICY pm_assignments_update_policy ON pm_assignments
   FOR UPDATE USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
 CREATE POLICY pm_assignments_delete_policy ON pm_assignments
   FOR DELETE USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
@@ -381,14 +381,14 @@ CREATE POLICY pm_assignments_delete_policy ON pm_assignments
 CREATE POLICY feedback_merges_select_policy ON feedback_merges
   FOR SELECT USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
 CREATE POLICY feedback_merges_insert_policy ON feedback_merges
   FOR INSERT WITH CHECK (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
@@ -396,21 +396,21 @@ CREATE POLICY feedback_merges_insert_policy ON feedback_merges
 CREATE POLICY triage_queue_select_policy ON triage_queue
   FOR SELECT USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
 CREATE POLICY triage_queue_insert_policy ON triage_queue
   FOR INSERT WITH CHECK (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
 CREATE POLICY triage_queue_update_policy ON triage_queue
   FOR UPDATE USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
@@ -418,28 +418,28 @@ CREATE POLICY triage_queue_update_policy ON triage_queue
 CREATE POLICY action_queue_select_policy ON unified_action_queue
   FOR SELECT USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
 CREATE POLICY action_queue_insert_policy ON unified_action_queue
   FOR INSERT WITH CHECK (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
 CREATE POLICY action_queue_update_policy ON unified_action_queue
   FOR UPDATE USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
 CREATE POLICY action_queue_delete_policy ON unified_action_queue
   FOR DELETE USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 

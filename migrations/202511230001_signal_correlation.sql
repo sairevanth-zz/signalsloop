@@ -320,21 +320,21 @@ ALTER TABLE signal_events ENABLE ROW LEVEL SECURITY;
 CREATE POLICY signal_correlations_select_policy ON signal_correlations
   FOR SELECT USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
 CREATE POLICY signal_correlations_insert_policy ON signal_correlations
   FOR INSERT WITH CHECK (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
 CREATE POLICY signal_correlations_update_policy ON signal_correlations
   FOR UPDATE USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
@@ -342,14 +342,14 @@ CREATE POLICY signal_correlations_update_policy ON signal_correlations
 CREATE POLICY signal_events_select_policy ON signal_events
   FOR SELECT USING (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
 CREATE POLICY signal_events_insert_policy ON signal_events
   FOR INSERT WITH CHECK (
     project_id IN (
-      SELECT id FROM projects WHERE user_id = auth.uid()
+      SELECT id FROM projects WHERE owner_id = auth.uid()
     )
   );
 
