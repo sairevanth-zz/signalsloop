@@ -17,7 +17,10 @@ export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[Ask Conversations] GET request received');
+
     const supabase = await createServerClient();
+    console.log('[Ask Conversations] Supabase client created');
 
     // Get current user
     const {
@@ -25,7 +28,14 @@ export async function GET(request: NextRequest) {
       error: authError,
     } = await supabase.auth.getUser();
 
+    console.log('[Ask Conversations] Auth check:', {
+      hasUser: !!user,
+      userId: user?.id,
+      authError: authError?.message
+    });
+
     if (authError || !user) {
+      console.error('[Ask Conversations] Authentication failed:', authError);
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }

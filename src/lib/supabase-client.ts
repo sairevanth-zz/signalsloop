@@ -80,10 +80,16 @@ export async function createServerClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+  // Debug: Log available cookies
+  const allCookies = cookieStore.getAll();
+  console.log('[createServerClient] Available cookies:', allCookies.map(c => c.name));
+
   return createSSRClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
-        return cookieStore.get(name)?.value;
+        const value = cookieStore.get(name)?.value;
+        console.log(`[createServerClient] Getting cookie "${name}":`, value ? 'present' : 'missing');
+        return value;
       },
       set(name: string, value: string, options: CookieOptions) {
         try {

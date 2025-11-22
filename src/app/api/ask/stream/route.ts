@@ -79,8 +79,11 @@ function buildContextSystemMessage(context: string, sources: MessageSource[]): s
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[Ask Stream] Request received');
+
     // 1. Get Supabase client
     const supabase = await createServerClient();
+    console.log('[Ask Stream] Supabase client created');
 
     // 2. Authenticate user
     const {
@@ -88,7 +91,14 @@ export async function POST(request: NextRequest) {
       error: authError,
     } = await supabase.auth.getUser();
 
+    console.log('[Ask Stream] Auth check:', {
+      hasUser: !!user,
+      userId: user?.id,
+      authError: authError?.message
+    });
+
     if (authError || !user) {
+      console.error('[Ask Stream] Authentication failed:', authError);
       return new Response('Unauthorized', { status: 401 });
     }
 
