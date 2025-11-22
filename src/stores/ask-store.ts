@@ -143,7 +143,9 @@ export const useAskStore = create<AskStore>((set, get) => ({
     set({ isLoadingConversations: true });
 
     try {
-      const response = await fetch(`/api/ask/conversations?projectId=${projectId}`);
+      const response = await fetch(`/api/ask/conversations?projectId=${projectId}`, {
+        credentials: 'include',
+      });
 
       if (!response.ok) {
         throw new Error('Failed to load conversations');
@@ -174,7 +176,9 @@ export const useAskStore = create<AskStore>((set, get) => ({
     }
 
     try {
-      const response = await fetch(`/api/ask/conversations/${conversationId}`);
+      const response = await fetch(`/api/ask/conversations/${conversationId}`, {
+        credentials: 'include',
+      });
 
       if (!response.ok) {
         throw new Error('Failed to load conversation');
@@ -201,6 +205,7 @@ export const useAskStore = create<AskStore>((set, get) => ({
     try {
       const response = await fetch(`/api/ask/conversations/${conversationId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -233,6 +238,7 @@ export const useAskStore = create<AskStore>((set, get) => ({
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_pinned: pinned }),
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -288,6 +294,7 @@ export const useAskStore = create<AskStore>((set, get) => ({
           query: initialQuery,
           projectId: currentProjectId,
         }),
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -356,6 +363,7 @@ export const useAskStore = create<AskStore>((set, get) => ({
           conversationId: currentConversation.id,
           projectId: currentProjectId,
         }),
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -392,6 +400,7 @@ export const useAskStore = create<AskStore>((set, get) => ({
           rating,
           feedback,
         }),
+        credentials: 'include',
       });
 
       if (!response.ok) {
