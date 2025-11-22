@@ -7,8 +7,19 @@
  */
 
 import { EventType, EventHandler } from '@/lib/events/types';
+// Phase 2 Agents
 import { handleFeedbackCreated } from './sentiment-agent';
 import { handleThemeThresholdReached } from './spec-writer-agent';
+// Phase 3 Agents
+import {
+  handleSpecAutoDrafted,
+  handleThemeThresholdReached as handleThemeNotification,
+  handleHighVoteFeedback,
+} from './notification-agent';
+import { handleUrgentFeedback } from './urgent-feedback-agent';
+import { handleCompetitorExtraction } from './competitive-intel-agent';
+import { handleUserFeedback, handleUserVote } from './user-engagement-agent';
+import { handleSpecQualityReview } from './spec-quality-agent';
 
 /**
  * Agent Registry Structure
@@ -24,7 +35,7 @@ export interface AgentRegistry {
  *
  * Phase 1: Infrastructure ✅
  * Phase 2: Event-driven agents for sentiment and spec writing ✅
- * Phase 3: Will add new autonomous agents (notifications, competitive intel, etc.)
+ * Phase 3: New autonomous agents (notifications, competitive intel, etc.) ✅
  */
 export const AGENT_REGISTRY: AgentRegistry = {
   // ============================================================================
@@ -35,19 +46,23 @@ export const AGENT_REGISTRY: AgentRegistry = {
     // ✅ Phase 2: Sentiment Analysis Agent
     handleFeedbackCreated,
 
-    // Phase 3: Add these agents
-    // - DuplicateDetectionAgent (checks for duplicates)
-    // - NotificationAgent (alerts team)
-    // - CompetitiveIntelligenceAgent (extracts competitor mentions)
+    // ✅ Phase 3: Competitive Intelligence Agent
+    handleCompetitorExtraction,
+
+    // ✅ Phase 3: User Engagement Agent
+    handleUserFeedback,
   ],
 
   [EventType.FEEDBACK_UPDATED]: [
-    // Phase 3: Add agents that react to updates
+    // Future: Add agents that react to updates
   ],
 
   [EventType.FEEDBACK_VOTED]: [
-    // Phase 3: Add agents that react to votes
-    // - HighVoteNotificationAgent (alerts on high-vote feedback)
+    // ✅ Phase 3: High Vote Notification Agent
+    handleHighVoteFeedback,
+
+    // ✅ Phase 3: User Engagement Agent
+    handleUserVote,
   ],
 
   // ============================================================================
@@ -55,18 +70,22 @@ export const AGENT_REGISTRY: AgentRegistry = {
   // ============================================================================
 
   [EventType.SENTIMENT_ANALYZED]: [
-    // Phase 3: Add these agents
-    // - ThemeDetectionAgent (categorizes into themes)
-    // - UrgentFeedbackAgent (alerts on negative sentiment)
+    // ✅ Phase 3: Urgent Feedback Agent
+    handleUrgentFeedback,
+
+    // Future: Theme Detection Agent (categorizes into themes)
   ],
 
   [EventType.THEME_DETECTED]: [
-    // Phase 3: Add agents
+    // Future: Add agents
   ],
 
   [EventType.THEME_THRESHOLD_REACHED]: [
     // ✅ Phase 2: Proactive Spec Writer Agent
     handleThemeThresholdReached,
+
+    // ✅ Phase 3: Theme Notification Agent
+    handleThemeNotification,
   ],
 
   // ============================================================================
@@ -74,15 +93,16 @@ export const AGENT_REGISTRY: AgentRegistry = {
   // ============================================================================
 
   [EventType.SPEC_AUTO_DRAFTED]: [
-    // Phase 3: Add this agent
-    // - NotificationAgent (alerts PM to review spec)
-    // - SpecQualityAgent (reviews spec for completeness)
+    // ✅ Phase 3: Spec Quality Agent
+    handleSpecQualityReview,
+
+    // ✅ Phase 3: Notification Agent (alerts PM to review spec)
+    handleSpecAutoDrafted,
   ],
 
   [EventType.SPEC_APPROVED]: [
-    // Phase 3: Add these agents
-    // - RoadmapHealthAgent (updates roadmap)
-    // - NotificationAgent (alerts team)
+    // Future: Roadmap Health Agent (updates roadmap)
+    // Future: Notification Agent (alerts team)
   ],
 
   // ============================================================================
@@ -90,9 +110,7 @@ export const AGENT_REGISTRY: AgentRegistry = {
   // ============================================================================
 
   [EventType.COMPETITOR_MENTIONED]: [
-    // Phase 3: Add these agents
-    // - CompetitiveIntelligenceAgent (tracks competitor features)
-    // - NotificationAgent (alerts on competitor mentions)
+    // Future: Competitive tracking and alerting
   ],
 
   // ============================================================================
@@ -100,12 +118,11 @@ export const AGENT_REGISTRY: AgentRegistry = {
   // ============================================================================
 
   [EventType.USER_ENGAGED]: [
-    // Phase 3: Add these agents
+    // Future: Power user recognition and rewards
   ],
 
   [EventType.USER_AT_RISK]: [
-    // Phase 3: Add these agents
-    // - NotificationAgent (alerts team about at-risk users)
+    // Future: At-risk user outreach
   ],
 };
 
