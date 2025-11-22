@@ -6,7 +6,6 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
 import {
   User,
   Bot,
@@ -109,52 +108,10 @@ export function ChatMessage({
         </div>
 
         {/* Message Content */}
-        <div className="prose prose-sm max-w-none dark:prose-invert">
-          <ReactMarkdown
-            components={{
-              // Customize link rendering
-              a: (props) => (
-                <a
-                  {...props}
-                  className="text-primary hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              ),
-              // Customize code blocks
-              code: ({ className, children, ...props }) => {
-                const isInline = !className;
-                return isInline ? (
-                  <code
-                    className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono"
-                    {...props}
-                  >
-                    {children}
-                  </code>
-                ) : (
-                  <code
-                    className={cn('block bg-muted p-4 rounded-lg overflow-x-auto', className)}
-                    {...props}
-                  >
-                    {children}
-                  </code>
-                );
-              },
-              // Customize lists
-              ul: (props) => (
-                <ul className="list-disc list-inside space-y-1" {...props} />
-              ),
-              ol: (props) => (
-                <ol className="list-decimal list-inside space-y-1" {...props} />
-              ),
-            }}
-          >
-            {safeContent}
-          </ReactMarkdown>
-
-          {/* Streaming cursor */}
+        <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap break-words">
+          {safeContent}
           {isStreaming && (
-            <span className="inline-block w-2 h-4 ml-1 bg-primary animate-pulse" />
+            <span className="inline-block w-2 h-4 ml-1 bg-primary animate-pulse align-middle" />
           )}
         </div>
 
