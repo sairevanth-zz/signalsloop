@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient as createSSRClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let supabaseClient: any = null;
@@ -47,6 +46,8 @@ import { getServiceRoleClient as getSingleton } from './supabase-singleton';
 
 // Server-side Supabase client with auth support (uses cookies)
 export async function createServerClient() {
+  // Import cookies inside the function to avoid issues with pages/ directory
+  const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
 
   return createSSRClient(
