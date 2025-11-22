@@ -146,8 +146,8 @@ CREATE TABLE IF NOT EXISTS unified_action_queue (
 
   -- Related entities
   related_post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
-  related_roadmap_id UUID REFERENCES roadmap_items(id) ON DELETE CASCADE,
-  related_competitor_id UUID REFERENCES competitors(id) ON DELETE CASCADE,
+  related_roadmap_id UUID, -- No FK constraint - roadmap_items table doesn't exist yet
+  related_competitor_id UUID, -- No FK constraint - competitors table doesn't exist yet
   related_spec_id UUID REFERENCES specs(id) ON DELETE CASCADE,
 
   -- Metadata (flexible JSON for action-specific data)
