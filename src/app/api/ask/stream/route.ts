@@ -11,7 +11,7 @@ import { OpenAIStream, StreamingTextResponse } from 'ai';
 import { createServerClient } from '@/lib/supabase-client';
 import { classifyQuery } from '@/lib/ask/classifier';
 import { retrieveContext } from '@/lib/ask/retrieval';
-import type { Message, MessageSource } from '@/types/ask';
+import type { MessageSource } from '@/types/ask';
 
 // ============================================================================
 // Configuration
@@ -20,9 +20,60 @@ import type { Message, MessageSource } from '@/types/ask';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const openaiApiKey = process.env.OPENAI_API_KEY;
+const ASK_MODEL = process.env.ASK_AI_MODEL || process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini';
+const FALLBACK_MODELS = Array.from(
+  new Set([
+    ASK_MODEL,
+    process.env.ASK_AI_FALLBACK_MODEL || 'gpt-4o-mini',
+    'gpt-4o',
+  ])
+);
+
+const openai = openaiApiKey
+  ? new OpenAI({
+      apiKey: openaiApiKey,
+    })
+  : null;
+
+async function createStreamingCompletion(
+  messages: OpenAI.Chat.ChatCompletionMessageParam[]
+) {
+  if (!openai) {
+    throw new Error('OpenAI API key is not configured');
+  }
+
+  let lastError: unknown = null;
+
+  for (const model of FALLBACK_MODELS) {
+    if (!model) continue;
+    try {
+      console.log(`[Ask Stream] Attempting OpenAI model: ${model}`);
+      return await openai.chat.completions.create({
+        model,
+        messages,
+        stream: true,
+        temperature: 0.7,
+        max_tokens: 2000,
+      });
+    } catch (error) {
+      lastError = error;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[Ask Stream] Model ${model} failed:`, errorMessage);
+
+      if (
+        error instanceof OpenAI.APIError &&
+        (error.status === 404 || error.status === 400)
+      ) {
+        continue;
+      }
+
+      break;
+    }
+  }
+
+  throw lastError || new Error('Failed to create OpenAI completion');
+}
 
 // ============================================================================
 // Request Type
@@ -33,6 +84,11 @@ interface AskRequest {
   conversationId?: string;
   projectId: string;
 }
+
+type HistoryMessage = {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+};
 
 // ============================================================================
 // System Prompts
@@ -222,8 +278,8 @@ export async function POST(request: NextRequest) {
     // Add conversation history (excluding the current user message we just added)
     if (historyMessages && historyMessages.length > 1) {
       // Exclude the last message (which is the current query)
-      const previousMessages = historyMessages.slice(0, -1);
-      previousMessages.forEach((msg: any) => {
+      const previousMessages = historyMessages.slice(0, -1) as HistoryMessage[];
+      previousMessages.forEach((msg) => {
         messages.push({
           role: msg.role as 'user' | 'assistant' | 'system',
           content: msg.content,
@@ -236,21 +292,12 @@ export async function POST(request: NextRequest) {
 
     // 10. Call OpenAI with streaming
     const startTime = Date.now();
-    let accumulatedResponse = '';
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages,
-      stream: true,
-      temperature: 0.7,
-      max_tokens: 2000,
-    });
+    const response = await createStreamingCompletion(messages);
+    const responseModel = response.model;
 
     // Create streaming response with callbacks
     const stream = OpenAIStream(response, {
-      onToken: async (token: string) => {
-        accumulatedResponse += token;
-      },
       onFinal: async (finalText: string) => {
         const latencyMs = Date.now() - startTime;
 
@@ -265,7 +312,7 @@ export async function POST(request: NextRequest) {
               query_type: classification.queryType,
               sources: sources,
               metadata: {
-                model: 'gpt-4o',
+                model: responseModel,
                 temperature: 0.7,
                 latency_ms: latencyMs,
               },
