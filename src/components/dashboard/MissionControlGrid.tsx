@@ -10,6 +10,7 @@ import { BriefingCard } from './BriefingCard';
 import { MetricCard } from './MetricCard';
 import { BentoCard } from './BentoCard';
 import { RealtimeToasts } from './RealtimeToasts';
+import { AgentActivityCard } from './AgentActivityCard';
 import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio } from 'lucide-react';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
@@ -19,9 +20,10 @@ interface MissionControlGridProps {
   metrics: DashboardMetrics;
   userName?: string;
   projectId: string;
+  projectSlug: string;
 }
 
-export function MissionControlGrid({ briefing, metrics: initialMetrics, userName, projectId }: MissionControlGridProps) {
+export function MissionControlGrid({ briefing, metrics: initialMetrics, userName, projectId, projectSlug }: MissionControlGridProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [liveMetrics, setLiveMetrics] = useState<DashboardMetrics>(initialMetrics);
 
@@ -237,6 +239,9 @@ export function MissionControlGrid({ briefing, metrics: initialMetrics, userName
           </div>
         </BentoCard>
       )}
+
+      {/* Agent Activity Card */}
+      <AgentActivityCard projectId={projectId} projectSlug={projectSlug} />
       </div>
     </>
   );

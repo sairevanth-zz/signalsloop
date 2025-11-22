@@ -242,6 +242,7 @@ async function DashboardContent({ slug }: { slug: string }) {
           metrics={metrics}
           userName={userName}
           projectId={project.id}
+          projectSlug={project.slug}
         />
       </div>
     </div>

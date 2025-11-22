@@ -235,7 +235,7 @@ export async function getUserEngagementSummary(projectId: string): Promise<{
   powerUsers: number;
   atRiskUsers: number;
   activeUsers: number;
-  churned Users: number;
+  churnedUsers: number;
 }> {
   const supabase = getServiceRoleClient();
 
