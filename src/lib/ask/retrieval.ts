@@ -59,10 +59,11 @@ export async function searchFeedbackSemantic(
   limit: number = 10
 ): Promise<RetrievalResult> {
   try {
-    // If embeddings/search are unavailable, short-circuit with a graceful message
-    if (process.env.ASK_SEMANTIC_DISABLED === 'true') {
+    // Temporary safety: skip semantic search entirely if the vector function/index isn't available
+    // (e.g., missing columns like p.upvotes). This prevents hard failures until the DB function is fixed.
+    if (process.env.ASK_SEMANTIC_DISABLED !== 'false') {
       return {
-        context: 'Semantic search is not available right now. You can still ask about sentiment trends and themes.',
+        context: 'Semantic search is temporarily disabled. You can still ask about sentiment trends, themes, or provide more context.',
         sources: [],
       };
     }
