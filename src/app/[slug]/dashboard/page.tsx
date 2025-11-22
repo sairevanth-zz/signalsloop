@@ -221,6 +221,12 @@ async function DashboardContent({ slug }: { slug: string }) {
                 💬 Ask AI
               </a>
               <a
+                href={`/${slug}/events`}
+                className="rounded-lg border border-blue-600/50 bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-blue-700 hover:to-cyan-700 hover:shadow-lg hover:shadow-blue-500/20"
+              >
+                🔍 Events & Debug
+              </a>
+              <a
                 href={`/${slug}/board`}
                 className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700"
               >
