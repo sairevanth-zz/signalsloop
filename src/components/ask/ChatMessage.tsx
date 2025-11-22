@@ -5,7 +5,7 @@
  * Displays a single chat message with avatar, content, sources, and actions
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
   User,
@@ -53,10 +53,20 @@ export function ChatMessage({
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
 
+  // Normalize content to a safe string to prevent React rendering errors if APIs return objects/arrays
+  const safeContent = useMemo(() => {
+    if (typeof message.content === 'string') return message.content;
+    try {
+      return JSON.stringify(message.content);
+    } catch {
+      return String(message.content ?? '');
+    }
+  }, [message.content]);
+
   // Handle copy to clipboard
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(message.content);
+      await navigator.clipboard.writeText(safeContent);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
@@ -103,7 +113,7 @@ export function ChatMessage({
           <ReactMarkdown
             components={{
               // Customize link rendering
-              a: ({ node, ...props }) => (
+              a: (props) => (
                 <a
                   {...props}
                   className="text-primary hover:underline"
@@ -112,7 +122,7 @@ export function ChatMessage({
                 />
               ),
               // Customize code blocks
-              code: ({ node, className, children, ...props }) => {
+              code: ({ className, children, ...props }) => {
                 const isInline = !className;
                 return isInline ? (
                   <code
@@ -131,15 +141,15 @@ export function ChatMessage({
                 );
               },
               // Customize lists
-              ul: ({ node, ...props }) => (
+              ul: (props) => (
                 <ul className="list-disc list-inside space-y-1" {...props} />
               ),
-              ol: ({ node, ...props }) => (
+              ol: (props) => (
                 <ol className="list-decimal list-inside space-y-1" {...props} />
               ),
             }}
           >
-            {message.content}
+            {safeContent}
           </ReactMarkdown>
 
           {/* Streaming cursor */}

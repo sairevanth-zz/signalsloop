@@ -207,9 +207,15 @@ function ConversationItem({
   const [isHovered, setIsHovered] = useState(false);
 
   // Format relative timestamp
-  const relativeTime = formatDistanceToNow(new Date(conversation.last_message_at), {
-    addSuffix: true,
-  });
+  let relativeTime = 'Just now';
+  try {
+    const date = new Date(conversation.last_message_at);
+    if (!isNaN(date.getTime())) {
+      relativeTime = formatDistanceToNow(date, { addSuffix: true });
+    }
+  } catch (err) {
+    console.warn('Invalid conversation timestamp', conversation.last_message_at, err);
+  }
 
   return (
     <div
