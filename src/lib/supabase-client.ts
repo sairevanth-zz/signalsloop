@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient as createSSRClient, type CookieOptions } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let supabaseClient: any = null;
@@ -74,6 +73,8 @@ export const getSupabasePublicServerClient = () => {
 
 // Server client that reads from cookies (for authenticated API routes)
 export async function createServerClient() {
+  // Import cookies dynamically to avoid module-level imports
+  const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
