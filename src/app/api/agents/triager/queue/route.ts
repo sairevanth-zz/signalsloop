@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase-server'
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
 /**
@@ -8,7 +8,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
  */
 export async function GET(req: NextRequest) {
   try {
-    const supabase = await createClient()
+    const supabase = getSupabaseServiceRoleClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
