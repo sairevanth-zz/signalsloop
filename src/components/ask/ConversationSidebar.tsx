@@ -22,8 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { useAskStore } from '@/lib/stores/useAskStore';
-import type { Conversation } from '@/types/ask';
+import { useAskStore, type AskConversation } from '@/stores/ask-store';
 
 // ============================================================================
 // Props Interface
@@ -45,10 +44,9 @@ export function ConversationSidebar({ projectId }: ConversationSidebarProps) {
   const {
     conversations,
     loadConversations,
-    updateConversation,
     deleteConversation,
-    startNewConversation,
-    isLoading,
+    pinConversation,
+    isLoadingConversations,
   } = useAskStore();
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -63,36 +61,22 @@ export function ConversationSidebar({ projectId }: ConversationSidebarProps) {
   const recentConversations = conversations.filter((conv) => !conv.is_pinned);
 
   // Handle new conversation
-  const handleNewConversation = async () => {
-    try {
-      const newConvId = await startNewConversation(projectId);
-      router.push(`/dashboard/ask/${newConvId}`);
-    } catch (error) {
-      console.error('Error creating conversation:', error);
-    }
+  const handleNewConversation = () => {
+    router.push('/dashboard/ask');
   };
 
   // Handle pin/unpin
-  const handleTogglePin = async (conv: Conversation, e: React.MouseEvent) => {
+  const handleTogglePin = async (conv: AskConversation, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      updateConversation(conv.id, { is_pinned: !conv.is_pinned });
-
-      // Update on server
-      await fetch(`/api/ask/conversations/${conv.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_pinned: !conv.is_pinned }),
-      });
+      await pinConversation(conv.id, !conv.is_pinned);
     } catch (error) {
       console.error('Error toggling pin:', error);
-      // Revert on error
-      updateConversation(conv.id, { is_pinned: conv.is_pinned });
     }
   };
 
   // Handle delete
-  const handleDelete = async (conv: Conversation, e: React.MouseEvent) => {
+  const handleDelete = async (conv: AskConversation, e: React.MouseEvent) => {
     e.stopPropagation();
 
     if (!confirm('Delete this conversation?')) return;
@@ -100,13 +84,8 @@ export function ConversationSidebar({ projectId }: ConversationSidebarProps) {
     setDeletingId(conv.id);
 
     try {
-      // Delete from store
-      deleteConversation(conv.id);
-
-      // Delete from server
-      await fetch(`/api/ask/conversations/${conv.id}`, {
-        method: 'DELETE',
-      });
+      // Delete using store action (handles both server and local state)
+      await deleteConversation(conv.id);
 
       // Navigate away if current conversation was deleted
       if (conversationId === conv.id) {
@@ -120,7 +99,7 @@ export function ConversationSidebar({ projectId }: ConversationSidebarProps) {
   };
 
   // Handle conversation click
-  const handleConversationClick = (conv: Conversation) => {
+  const handleConversationClick = (conv: AskConversation) => {
     router.push(`/dashboard/ask/${conv.id}`);
   };
 
@@ -141,14 +120,14 @@ export function ConversationSidebar({ projectId }: ConversationSidebarProps) {
       {/* Conversations List */}
       <div className="flex-1 overflow-y-auto">
         {/* Loading State */}
-        {isLoading && conversations.length === 0 && (
+        {isLoadingConversations && conversations.length === 0 && (
           <div className="p-4 text-center text-sm text-muted-foreground">
             Loading conversations...
           </div>
         )}
 
         {/* Empty State */}
-        {!isLoading && conversations.length === 0 && (
+        {!isLoadingConversations && conversations.length === 0 && (
           <div className="p-4 text-center text-sm text-muted-foreground">
             No conversations yet.
             <br />
