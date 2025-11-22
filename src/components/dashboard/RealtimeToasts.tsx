@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { useRealtimeDashboard, type RealtimeEvent } from '@/hooks/useRealtimeDashboard';
 import { Bell, MessageSquare, Heart, Tag, Target } from 'lucide-react';
@@ -16,6 +16,8 @@ interface RealtimeToastsProps {
 }
 
 export function RealtimeToasts({ projectId, enabled = true }: RealtimeToastsProps) {
+  const hasShownConnectionToast = useRef(false);
+
   const { events, isConnected } = useRealtimeDashboard({
     projectId,
     enabled,
@@ -101,9 +103,10 @@ export function RealtimeToasts({ projectId, enabled = true }: RealtimeToastsProp
     }
   }
 
-  // Show connection status on mount
+  // Show connection status only once when first connected
   useEffect(() => {
-    if (isConnected) {
+    if (isConnected && !hasShownConnectionToast.current) {
+      hasShownConnectionToast.current = true;
       toast.success(
         <div className="flex items-center gap-2">
           <Bell className="h-4 w-4" />
@@ -112,6 +115,7 @@ export function RealtimeToasts({ projectId, enabled = true }: RealtimeToastsProp
         {
           duration: 2000,
           position: 'bottom-right',
+          id: 'realtime-connected', // Prevents duplicate toasts
         }
       );
     }
