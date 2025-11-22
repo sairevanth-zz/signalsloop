@@ -59,6 +59,14 @@ export async function searchFeedbackSemantic(
   limit: number = 10
 ): Promise<RetrievalResult> {
   try {
+    // If embeddings/search are unavailable, short-circuit with a graceful message
+    if (process.env.ASK_SEMANTIC_DISABLED === 'true') {
+      return {
+        context: 'Semantic search is not available right now. You can still ask about sentiment trends and themes.',
+        sources: [],
+      };
+    }
+
     const supabase = getSupabaseServerClient();
 
     if (!supabase) {
@@ -78,7 +86,10 @@ export async function searchFeedbackSemantic(
 
     if (error) {
       console.error('Error in semantic search:', error);
-      throw new Error('Semantic search failed');
+      return {
+        context: 'Semantic search is currently unavailable. Try asking about sentiment, themes, or provide more context.',
+        sources: [],
+      };
     }
 
     if (!data || data.length === 0) {
@@ -91,7 +102,7 @@ export async function searchFeedbackSemantic(
     // Format context string
     const contextParts = data.map((row: SemanticSearchRow, index: number) => {
       return `[${index + 1}] ${row.title}\n` +
-        `Status: ${row.status} | Category: ${row.category || 'N/A'} | Votes: ${row.upvotes}\n` +
+        `Status: ${row.status} | Category: ${row.category || 'N/A'} | Votes: ${row.upvotes ?? 0}\n` +
         `${row.content}\n` +
         `(Similarity: ${(row.similarity * 100).toFixed(1)}%)\n`;
     });
@@ -183,10 +194,6 @@ export async function getSentimentContext(
       } else if (data) {
         sentimentData = data;
       }
-    }
-
-    if (sentError) {
-      console.error('Error getting sentiment data:', sentError);
     }
 
     // Calculate statistics
