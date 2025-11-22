@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client'
-import { supabaseAdmin } from '@/lib/supabase-admin'
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client'
 
 /**
  * GET /api/agents/triager/queue
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Get stats
-    const { data: stats } = await supabaseAdmin
+    const { data: stats } = await getSupabaseServiceRoleClient()
       .rpc('get_triage_stats', { p_project_id: projectId })
 
     return NextResponse.json({
