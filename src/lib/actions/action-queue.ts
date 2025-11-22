@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '@/lib/supabase-admin'
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client'
 import { publishEvent } from '@/lib/events/publisher'
 
 export type ActionType =
@@ -50,7 +50,7 @@ export interface ActionQueueStats {
 export async function addAction(action: Action): Promise<string> {
   console.log(`[Action Queue] Adding action: ${action.title}`)
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseServiceRoleClient()
     .from('unified_action_queue')
     .insert({
       project_id: action.projectId,
@@ -95,7 +95,7 @@ export async function addAction(action: Action): Promise<string> {
  * Get all pending actions for a project
  */
 export async function getPendingActions(projectId: string): Promise<any[]> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseServiceRoleClient()
     .rpc('get_pending_actions', { p_project_id: projectId })
 
   if (error) {
@@ -110,7 +110,7 @@ export async function getPendingActions(projectId: string): Promise<any[]> {
  * Get action queue statistics
  */
 export async function getActionQueueStats(projectId: string): Promise<ActionQueueStats> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseServiceRoleClient()
     .rpc('get_action_queue_stats', { p_project_id: projectId })
 
   if (error) {
@@ -132,7 +132,7 @@ export async function executeAction(
   console.log(`[Action Queue] Executing action: ${actionId}`)
 
   // Fetch action details
-  const { data: action, error: fetchError } = await supabaseAdmin
+  const { data: action, error: fetchError } = await getSupabaseServiceRoleClient()
     .from('unified_action_queue')
     .select('*')
     .eq('id', actionId)
@@ -168,7 +168,7 @@ export async function executeAction(
     }
 
     // Update action as executed
-    const { error: updateError } = await supabaseAdmin
+    const { error: updateError } = await getSupabaseServiceRoleClient()
       .from('unified_action_queue')
       .update({
         executed: true,
@@ -212,7 +212,7 @@ export async function dismissAction(
 ): Promise<void> {
   console.log(`[Action Queue] Dismissing action: ${actionId}`)
 
-  const { error } = await supabaseAdmin
+  const { error } = await getSupabaseServiceRoleClient()
     .from('unified_action_queue')
     .update({
       dismissed: true,
@@ -227,7 +227,7 @@ export async function dismissAction(
   }
 
   // Publish event
-  const { data: action } = await supabaseAdmin
+  const { data: action } = await getSupabaseServiceRoleClient()
     .from('unified_action_queue')
     .select('project_id, action_type')
     .eq('id', actionId)
@@ -253,7 +253,7 @@ export async function dismissAction(
  * Clean up expired actions
  */
 export async function cleanupExpiredActions(): Promise<number> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseServiceRoleClient()
     .from('unified_action_queue')
     .update({
       dismissed: true,
@@ -285,14 +285,14 @@ async function executeMergeSuggestion(action: any): Promise<any> {
   const { sourcePostId, targetPostId, similarityScore } = action.metadata
 
   // Perform merge
-  const { data: source } = await supabaseAdmin
+  const { data: source } = await getSupabaseServiceRoleClient()
     .from('posts')
     .select('vote_count, comment_count')
     .eq('id', sourcePostId)
     .single()
 
   // Update source post
-  await supabaseAdmin
+  await getSupabaseServiceRoleClient()
     .from('posts')
     .update({
       status: 'merged',
@@ -302,7 +302,7 @@ async function executeMergeSuggestion(action: any): Promise<any> {
 
   // Aggregate stats
   if (source) {
-    await supabaseAdmin.rpc('increment_post_stats', {
+    await getSupabaseServiceRoleClient().rpc('increment_post_stats', {
       p_post_id: targetPostId,
       p_votes: source.vote_count || 0,
       p_comments: source.comment_count || 0
@@ -310,7 +310,7 @@ async function executeMergeSuggestion(action: any): Promise<any> {
   }
 
   // Record merge
-  await supabaseAdmin
+  await getSupabaseServiceRoleClient()
     .from('feedback_merges')
     .insert({
       project_id: action.project_id,
@@ -335,7 +335,7 @@ async function executeMergeSuggestion(action: any): Promise<any> {
 async function executePriorityChange(action: any): Promise<any> {
   const { postId, newPriority } = action.metadata
 
-  await supabaseAdmin
+  await getSupabaseServiceRoleClient()
     .from('posts')
     .update({ priority: newPriority })
     .eq('id', postId)
@@ -353,7 +353,7 @@ async function executePriorityChange(action: any): Promise<any> {
 async function approveSpec(action: any): Promise<any> {
   const { specId } = action.metadata
 
-  await supabaseAdmin
+  await getSupabaseServiceRoleClient()
     .from('specs')
     .update({
       status: 'approved',
@@ -377,7 +377,7 @@ async function executeRoadmapAdjustment(action: any): Promise<any> {
   if (newPriority) updates.priority = newPriority
   if (newStatus) updates.status = newStatus
 
-  await supabaseAdmin
+  await getSupabaseServiceRoleClient()
     .from('roadmap_items')
     .update(updates)
     .eq('id', roadmapId)

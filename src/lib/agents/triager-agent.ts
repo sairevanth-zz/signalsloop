@@ -1,5 +1,5 @@
 import { publishEvent } from '@/lib/events/publisher'
-import { supabaseAdmin } from '@/lib/supabase-admin'
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client'
 import { categorize } from '@/lib/ai-categorization'
 import { calculatePriorityScore } from '@/lib/enhanced-priority-scoring'
 import { detectDuplicates } from '@/lib/enhanced-duplicate-detection'
@@ -52,7 +52,7 @@ export async function triageAgent(postId: string, projectId: string): Promise<Tr
     await updateTriageStatus(postId, 'processing')
 
     // 1. Fetch feedback
-    const { data: post, error: fetchError } = await supabaseAdmin
+    const { data: post, error: fetchError } = await getSupabaseServiceRoleClient()
       .from('posts')
       .select('*, projects(*)')
       .eq('id', postId)
@@ -68,7 +68,7 @@ export async function triageAgent(postId: string, projectId: string): Promise<Tr
         const category = await categorize(post.title, post.description || '')
         result.category = category
 
-        await supabaseAdmin
+        await getSupabaseServiceRoleClient()
           .from('posts')
           .update({ category })
           .eq('id', postId)
@@ -99,7 +99,7 @@ export async function triageAgent(postId: string, projectId: string): Promise<Tr
 
         result.priority = priorityResult.priority
 
-        await supabaseAdmin
+        await getSupabaseServiceRoleClient()
           .from('posts')
           .update({ priority: priorityResult.priority })
           .eq('id', postId)
@@ -128,7 +128,7 @@ export async function triageAgent(postId: string, projectId: string): Promise<Tr
         result.similarityScore = topDuplicate.similarity_score
 
         // Check auto-merge settings
-        const { data: settings } = await supabaseAdmin
+        const { data: settings } = await getSupabaseServiceRoleClient()
           .from('pm_assignments')
           .select('auto_merge_enabled, auto_merge_confidence_threshold')
           .eq('project_id', projectId)
@@ -178,7 +178,7 @@ export async function triageAgent(postId: string, projectId: string): Promise<Tr
           result.assignedPmId = assignedPmId
           result.actions.assigned = true
 
-          await supabaseAdmin
+          await getSupabaseServiceRoleClient()
             .from('posts')
             .update({
               assigned_pm_id: assignedPmId,
@@ -198,7 +198,7 @@ export async function triageAgent(postId: string, projectId: string): Promise<Tr
     }
 
     // 6. Record triage in queue
-    await supabaseAdmin
+    await getSupabaseServiceRoleClient()
       .from('triage_queue')
       .update({
         status: 'completed',
@@ -232,7 +232,7 @@ export async function triageAgent(postId: string, projectId: string): Promise<Tr
     console.error(`[Triager] ✗ Triage failed for ${postId}:`, error.message)
 
     // Record error in queue
-    await supabaseAdmin
+    await getSupabaseServiceRoleClient()
       .from('triage_queue')
       .update({
         status: 'failed',
@@ -255,7 +255,7 @@ async function assignToPM(
   priority: number
 ): Promise<string | null> {
   // Fetch PM assignment rules for this project
-  const { data: pmRules, error } = await supabaseAdmin
+  const { data: pmRules, error } = await getSupabaseServiceRoleClient()
     .from('pm_assignments')
     .select('*')
     .eq('project_id', projectId)
@@ -320,7 +320,7 @@ async function mergeFeedback(
   autoMerged: boolean
 ) {
   // 1. Record merge
-  await supabaseAdmin
+  await getSupabaseServiceRoleClient()
     .from('feedback_merges')
     .insert({
       project_id: projectId,
@@ -332,7 +332,7 @@ async function mergeFeedback(
     })
 
   // 2. Update source post
-  await supabaseAdmin
+  await getSupabaseServiceRoleClient()
     .from('posts')
     .update({
       status: 'merged',
@@ -341,7 +341,7 @@ async function mergeFeedback(
     .eq('id', sourceId)
 
   // 3. Aggregate votes and comments to target
-  const { data: source } = await supabaseAdmin
+  const { data: source } = await getSupabaseServiceRoleClient()
     .from('posts')
     .select('vote_count, comment_count')
     .eq('id', sourceId)
@@ -349,7 +349,7 @@ async function mergeFeedback(
 
   if (source) {
     // Use the increment function
-    await supabaseAdmin.rpc('increment_post_stats', {
+    await getSupabaseServiceRoleClient().rpc('increment_post_stats', {
       p_post_id: targetId,
       p_votes: source.vote_count || 0,
       p_comments: source.comment_count || 0
@@ -379,7 +379,7 @@ async function createMergeSuggestion(
   similarityScore: number
 ) {
   // Fetch post titles for description
-  const { data: posts } = await supabaseAdmin
+  const { data: posts } = await getSupabaseServiceRoleClient()
     .from('posts')
     .select('id, title')
     .in('id', [sourceId, targetId])
@@ -411,7 +411,7 @@ async function createMergeSuggestion(
  */
 async function notifyPMOfAssignment(pmId: string, post: any) {
   // Fetch PM details
-  const { data: pm } = await supabaseAdmin
+  const { data: pm } = await getSupabaseServiceRoleClient()
     .from('pm_assignments')
     .select('*')
     .eq('id', pmId)
@@ -437,7 +437,7 @@ async function notifyPMOfAssignment(pmId: string, post: any) {
  * Update triage queue status
  */
 async function updateTriageStatus(postId: string, status: string) {
-  await supabaseAdmin
+  await getSupabaseServiceRoleClient()
     .from('triage_queue')
     .update({ status })
     .eq('post_id', postId)

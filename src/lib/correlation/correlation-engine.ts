@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '@/lib/supabase-admin'
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client'
 import { addAction } from '@/lib/actions/action-queue'
 
 export interface SignalEvent {
@@ -44,7 +44,7 @@ export class CorrelationEngine {
   async recordEvent(event: SignalEvent): Promise<string> {
     console.log(`[Correlation] Recording event: ${event.eventType} for ${event.entityName}`)
 
-    const { data, error } = await supabaseAdmin.rpc('record_signal_event', {
+    const { data, error } = await getSupabaseServiceRoleClient().rpc('record_signal_event', {
       p_project_id: event.projectId,
       p_event_type: event.eventType,
       p_entity_type: event.entityType,
@@ -72,7 +72,7 @@ export class CorrelationEngine {
     theme?: string,
     hours: number = 24
   ): Promise<{ detected: boolean; data: any }> {
-    const { data, error } = await supabaseAdmin.rpc('detect_feedback_spike', {
+    const { data, error } = await getSupabaseServiceRoleClient().rpc('detect_feedback_spike', {
       p_project_id: projectId,
       p_theme: theme,
       p_hours: hours
@@ -130,7 +130,7 @@ export class CorrelationEngine {
     projectId: string,
     timeWindowHours: number = 48
   ): Promise<any[]> {
-    const { data, error } = await supabaseAdmin.rpc('find_temporal_correlations', {
+    const { data, error } = await getSupabaseServiceRoleClient().rpc('find_temporal_correlations', {
       p_project_id: projectId,
       p_time_window_hours: timeWindowHours
     })
@@ -174,7 +174,7 @@ export class CorrelationEngine {
   async createCorrelation(correlation: Correlation): Promise<string> {
     console.log(`[Correlation] Creating correlation: ${correlation.correlationType}`)
 
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await getSupabaseServiceRoleClient()
       .from('signal_correlations')
       .insert({
         project_id: correlation.projectId,
@@ -223,7 +223,7 @@ export class CorrelationEngine {
     }
 
     // Check if competitor had recent event
-    const { data: competitorEvents } = await supabaseAdmin
+    const { data: competitorEvents } = await getSupabaseServiceRoleClient()
       .from('competitive_events')
       .select('*')
       .eq('competitor_id', competitorId)
@@ -293,7 +293,7 @@ export class CorrelationEngine {
     featureId: string
   ): Promise<Correlation | null> {
     // Get sentiment trend for feature-related feedback
-    const { data: sentimentData } = await supabaseAdmin
+    const { data: sentimentData } = await getSupabaseServiceRoleClient()
       .from('sentiment_analysis')
       .select('sentiment_score, created_at, posts!inner(id, title)')
       .eq('posts.project_id', projectId)
@@ -381,7 +381,7 @@ export class CorrelationEngine {
    * Get correlation network for visualization
    */
   async getCorrelationNetwork(projectId: string): Promise<any> {
-    const { data, error } = await supabaseAdmin.rpc('get_correlation_network', {
+    const { data, error } = await getSupabaseServiceRoleClient().rpc('get_correlation_network', {
       p_project_id: projectId
     })
 
