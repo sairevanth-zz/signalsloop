@@ -14,6 +14,9 @@ import { AgentActivityCard } from './AgentActivityCard';
 import { EventActivityWidget } from './EventActivityWidget';
 import { ActionQueueCard } from './ActionQueueCard';
 import { SignalCorrelationView } from './SignalCorrelationView';
+import { InsightReportCard } from './InsightReportCard';
+import { SentimentForecastCard } from './SentimentForecastCard';
+import { AnomalyAlertCard } from './AnomalyAlertCard';
 import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio } from 'lucide-react';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
@@ -227,6 +230,15 @@ export function MissionControlGrid({ briefing, metrics: initialMetrics, userName
 
       {/* Signal Correlation Network (spans 2 columns) */}
       <SignalCorrelationView projectId={projectId} />
+
+      {/* Phase 2: Weekly Insights powered by Claude Sonnet 4 (spans 4 columns) */}
+      <InsightReportCard projectId={projectId} />
+
+      {/* Phase 2: Sentiment Forecast powered by GPT-4o (spans 2 columns) */}
+      <SentimentForecastCard projectId={projectId} />
+
+      {/* Phase 2: Anomaly Alerts powered by GPT-4o (spans 2 columns) */}
+      <AnomalyAlertCard projectId={projectId} />
 
       {/* Competitive Intelligence (if available) - LIVE UPDATES */}
       {(liveMetrics.competitors?.new_insights_count || 0) > 0 && (
