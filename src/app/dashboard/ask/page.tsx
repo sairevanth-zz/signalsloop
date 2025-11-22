@@ -18,6 +18,7 @@ interface Project {
 }
 
 function AskPageContent() {
+  console.log('AskPageContent rendering');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -31,6 +32,7 @@ function AskPageContent() {
   const projectIdParam = searchParams.get('projectId');
 
   useEffect(() => {
+    console.log('AskPageContent useEffect running', { supabase: !!supabase, projectIdParam });
     if (!supabase) return;
 
     const checkAuthAndLoadProject = async () => {

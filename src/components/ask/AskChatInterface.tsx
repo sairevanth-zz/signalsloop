@@ -63,14 +63,12 @@ const STARTER_QUESTIONS = [
 export function AskChatInterface({ projectId, projectName }: AskChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const {
-    setCurrentProjectId,
-    clearConversation,
-    startNewConversation,
-    sendMessage,
-    isStreaming,
-    suggestedQuestions,
-  } = useAskStore();
+  const setCurrentProjectId = useAskStore((state) => state.setCurrentProjectId);
+  const clearConversation = useAskStore((state) => state.clearConversation);
+  const startNewConversation = useAskStore((state) => state.startNewConversation);
+  const sendMessage = useAskStore((state) => state.sendMessage);
+  const isStreaming = useAskStore((state) => state.isStreaming);
+  const suggestedQuestions = useAskStore((state) => state.suggestedQuestions);
 
   const messages = useMessagesWithStreaming();
   const safeMessages = useMemo(
@@ -158,111 +156,111 @@ export function AskChatInterface({ projectId, projectName }: AskChatInterfacePro
 
         {/* Chat Content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {isEmpty ? (
-          /* Empty State */
-          <div className="flex-1 flex flex-col items-center justify-center p-8">
-            <div className="max-w-3xl w-full space-y-8">
-              {/* Icon */}
-              <div className="flex justify-center">
-                <div className="rounded-full bg-primary/10 p-6">
-                  <Sparkles className="size-12 text-primary" />
+          {isEmpty ? (
+            /* Empty State */
+            <div className="flex-1 flex flex-col items-center justify-center p-8">
+              <div className="max-w-3xl w-full space-y-8">
+                {/* Icon */}
+                <div className="flex justify-center">
+                  <div className="rounded-full bg-primary/10 p-6">
+                    <Sparkles className="size-12 text-primary" />
+                  </div>
                 </div>
-              </div>
 
-              {/* Heading */}
-              <div className="text-center space-y-2">
-                <h1 className="text-4xl font-bold tracking-tight">
-                  Ask SignalsLoop Anything
-                </h1>
-                <p className="text-lg text-muted-foreground">
-                  Get instant insights from your product feedback using AI
-                </p>
-              </div>
+                {/* Heading */}
+                <div className="text-center space-y-2">
+                  <h1 className="text-4xl font-bold tracking-tight">
+                    Ask SignalsLoop Anything
+                  </h1>
+                  <p className="text-lg text-muted-foreground">
+                    Get instant insights from your product feedback using AI
+                  </p>
+                </div>
 
-              {/* Starter Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {STARTER_QUESTIONS.map((starter, index) => {
-                  const Icon = starter.icon;
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => handleStartConversation(starter.question)}
-                      disabled={isStreaming}
-                      className={cn(
-                        'group relative overflow-hidden rounded-lg border bg-card p-6',
-                        'text-left transition-all duration-200',
-                        'hover:border-primary hover:shadow-md',
-                        'disabled:opacity-50 disabled:cursor-not-allowed'
-                      )}
-                    >
-                      <div className="space-y-3">
-                        {/* Icon */}
-                        <div
-                          className={cn(
-                            'inline-flex rounded-lg p-3',
-                            starter.iconBg
-                          )}
-                        >
-                          <Icon className={cn('size-6', starter.iconColor)} />
+                {/* Starter Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {STARTER_QUESTIONS.map((starter, index) => {
+                    const Icon = starter.icon;
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => handleStartConversation(starter.question)}
+                        disabled={isStreaming}
+                        className={cn(
+                          'group relative overflow-hidden rounded-lg border bg-card p-6',
+                          'text-left transition-all duration-200',
+                          'hover:border-primary hover:shadow-md',
+                          'disabled:opacity-50 disabled:cursor-not-allowed'
+                        )}
+                      >
+                        <div className="space-y-3">
+                          {/* Icon */}
+                          <div
+                            className={cn(
+                              'inline-flex rounded-lg p-3',
+                              starter.iconBg
+                            )}
+                          >
+                            <Icon className={cn('size-6', starter.iconColor)} />
+                          </div>
+
+                          {/* Question */}
+                          <p className="font-medium leading-tight">
+                            {starter.question}
+                          </p>
+
+                          {/* Description */}
+                          <p className="text-sm text-muted-foreground">
+                            {starter.description}
+                          </p>
                         </div>
 
-                        {/* Question */}
-                        <p className="font-medium leading-tight">
-                          {starter.question}
-                        </p>
+                        {/* Hover Effect */}
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+                    );
+                  })}
+                </div>
 
-                        {/* Description */}
-                        <p className="text-sm text-muted-foreground">
-                          {starter.description}
-                        </p>
-                      </div>
-
-                      {/* Hover Effect */}
-                      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </button>
-                  );
-                })}
+                {/* Chat Input */}
+                <div className="mt-8">
+                  <ChatInput
+                    onSubmit={handleSubmit}
+                    isLoading={isStreaming}
+                    suggestedQuestions={suggestedQuestions}
+                    placeholder="Ask a question about your feedback..."
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Chat State */
+            <>
+              {/* Messages Area */}
+              <div className="flex-1 overflow-y-auto">
+                {safeMessages.map((message) => (
+                  <MessageErrorBoundary key={message.id}>
+                    <ChatMessage
+                      message={message as any}
+                      isStreaming={message.id === 'streaming' && isStreaming}
+                    />
+                  </MessageErrorBoundary>
+                ))}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Chat Input */}
-              <div className="mt-8">
-                <ChatInput
-                  onSubmit={handleSubmit}
-                  isLoading={isStreaming}
-                  suggestedQuestions={suggestedQuestions}
-                  placeholder="Ask a question about your feedback..."
-                />
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Chat State */
-          <>
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto">
-              {safeMessages.map((message) => (
-                <MessageErrorBoundary key={message.id}>
-                  <ChatMessage
-                    message={message}
-                    isStreaming={message.id === 'streaming' && isStreaming}
+              <div className="border-t">
+                <div className="max-w-4xl mx-auto">
+                  <ChatInput
+                    onSubmit={handleSubmit}
+                    isLoading={isStreaming}
+                    placeholder="Ask a follow-up question..."
                   />
-                </MessageErrorBoundary>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Chat Input */}
-            <div className="border-t">
-              <div className="max-w-4xl mx-auto">
-                <ChatInput
-                  onSubmit={handleSubmit}
-                  isLoading={isStreaming}
-                  placeholder="Ask a follow-up question..."
-                />
+                </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
         </div>
       </div>
     </div>

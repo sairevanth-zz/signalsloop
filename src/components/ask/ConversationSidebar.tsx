@@ -41,13 +41,11 @@ export function ConversationSidebar({ projectId }: ConversationSidebarProps) {
   const params = useParams();
   const conversationId = params?.conversationId as string | undefined;
 
-  const {
-    conversations,
-    loadConversations,
-    deleteConversation,
-    pinConversation,
-    isLoadingConversations,
-  } = useAskStore();
+  const conversations = useAskStore((state) => state.conversations);
+  const loadConversations = useAskStore((state) => state.loadConversations);
+  const deleteConversation = useAskStore((state) => state.deleteConversation);
+  const pinConversation = useAskStore((state) => state.pinConversation);
+  const isLoadingConversations = useAskStore((state) => state.isLoadingConversations);
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -188,11 +186,11 @@ export function ConversationSidebar({ projectId }: ConversationSidebarProps) {
 // ============================================================================
 
 interface ConversationItemProps {
-  conversation: Conversation;
+  conversation: AskConversation;
   isActive: boolean;
   isDeleting: boolean;
-  onTogglePin: (conv: Conversation, e: React.MouseEvent) => void;
-  onDelete: (conv: Conversation, e: React.MouseEvent) => void;
+  onTogglePin: (conv: AskConversation, e: React.MouseEvent) => void;
+  onDelete: (conv: AskConversation, e: React.MouseEvent) => void;
   onClick: () => void;
 }
 
