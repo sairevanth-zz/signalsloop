@@ -125,7 +125,7 @@ export async function middleware(request: NextRequest) {
       url.searchParams.set('domain', host);
       url.searchParams.set('id', id);
       const response = NextResponse.rewrite(url);
-      return applySecurityHeaders(response);
+      return finalize(response);
     }
   } catch (error) {
     console.error('Middleware error:', error);
