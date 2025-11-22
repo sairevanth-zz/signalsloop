@@ -30,7 +30,8 @@ export function BriefingCard({ briefing, userName, onRefresh, isRefreshing }: Br
     view_competitor: '🔍',
     review_feedback: '💬',
     update_roadmap: '🗺️',
-  };
+    review_auto_spec: '🤖', // Auto-generated spec
+  } as const;
 
   return (
     <BentoCard colSpan={2} rowSpan={2} className="flex flex-col gap-6">
@@ -95,41 +96,63 @@ export function BriefingCard({ briefing, userName, onRefresh, isRefreshing }: Br
             <span>Recommended Actions</span>
           </div>
           <div className="grid gap-2">
-            {briefing.recommended_actions.slice(0, 3).map((action, index) => (
-              <button
-                key={index}
-                className={cn(
-                  'flex items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-all',
-                  action.priority === 'high'
-                    ? 'border-green-800 bg-green-950/30 hover:bg-green-950/50'
-                    : action.priority === 'medium'
-                    ? 'border-blue-800 bg-blue-950/30 hover:bg-blue-950/50'
-                    : 'border-slate-800 bg-slate-900/30 hover:bg-slate-900/50'
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg">{actionIcons[action.action]}</span>
-                  <div>
-                    <div className="font-medium text-white">{action.label}</div>
-                    {action.context && (
-                      <div className="text-xs text-slate-400">{action.context}</div>
-                    )}
-                  </div>
-                </div>
-                <span
+            {briefing.recommended_actions.slice(0, 3).map((action, index) => {
+              const Component = action.link ? 'a' : 'button';
+              const linkProps = action.link ? { href: action.link } : {};
+
+              return (
+                <Component
+                  key={index}
+                  {...linkProps}
                   className={cn(
-                    'rounded-full px-2 py-1 text-xs font-medium',
+                    'flex items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-all cursor-pointer',
                     action.priority === 'high'
-                      ? 'bg-green-900/50 text-green-300'
+                      ? 'border-green-800 bg-green-950/30 hover:bg-green-950/50 hover:border-green-700'
                       : action.priority === 'medium'
-                      ? 'bg-blue-900/50 text-blue-300'
-                      : 'bg-slate-800 text-slate-300'
+                      ? 'border-blue-800 bg-blue-950/30 hover:bg-blue-950/50 hover:border-blue-700'
+                      : 'border-slate-800 bg-slate-900/30 hover:bg-slate-900/50 hover:border-slate-700'
                   )}
                 >
-                  {action.priority}
-                </span>
-              </button>
-            ))}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <span className="text-lg flex-shrink-0">{actionIcons[action.action as keyof typeof actionIcons] || '📋'}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-white flex items-center gap-2">
+                        <span className="truncate">{action.label}</span>
+                        {action.badge && (
+                          <span
+                            className={cn(
+                              'inline-flex items-center rounded px-1.5 py-0.5 text-xs font-bold flex-shrink-0',
+                              action.badge === 'NEW' && 'bg-purple-600 text-white',
+                              action.badge === 'HOT' && 'bg-orange-600 text-white',
+                              action.badge === 'URGENT' && 'bg-red-600 text-white animate-pulse'
+                            )}
+                          >
+                            {action.badge}
+                          </span>
+                        )}
+                      </div>
+                      {action.context && (
+                        <div className="text-xs text-slate-400 truncate">{action.context}</div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span
+                      className={cn(
+                        'rounded-full px-2 py-1 text-xs font-medium',
+                        action.priority === 'high'
+                          ? 'bg-green-900/50 text-green-300'
+                          : action.priority === 'medium'
+                          ? 'bg-blue-900/50 text-blue-300'
+                          : 'bg-slate-800 text-slate-300'
+                      )}
+                    >
+                      {action.priority}
+                    </span>
+                  </div>
+                </Component>
+              );
+            })}
           </div>
         </div>
       )}
