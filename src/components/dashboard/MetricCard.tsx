@@ -16,6 +16,7 @@ interface MetricCardProps {
   iconColor?: string;
   colSpan?: 1 | 2 | 3;
   rowSpan?: 1 | 2 | 3;
+  badge?: React.ReactNode;
 }
 
 export function MetricCard({
@@ -27,6 +28,7 @@ export function MetricCard({
   iconColor = 'text-blue-400',
   colSpan,
   rowSpan,
+  badge,
 }: MetricCardProps) {
   const trendIcon = {
     up: TrendingUp,
@@ -45,9 +47,12 @@ export function MetricCard({
   return (
     <BentoCard colSpan={colSpan} rowSpan={rowSpan}>
       <div className="flex flex-col gap-4">
-        {/* Header with icon */}
+        {/* Header with icon and badge */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-slate-400">{label}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-slate-400">{label}</span>
+            {badge && <span className="flex items-center">{badge}</span>}
+          </div>
           <Icon className={cn('h-5 w-5', iconColor)} />
         </div>
 

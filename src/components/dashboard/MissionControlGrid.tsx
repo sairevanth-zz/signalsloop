@@ -5,11 +5,13 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BriefingCard } from './BriefingCard';
 import { MetricCard } from './MetricCard';
 import { BentoCard } from './BentoCard';
-import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3 } from 'lucide-react';
+import { RealtimeToasts } from './RealtimeToasts';
+import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio } from 'lucide-react';
+import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
 
 interface MissionControlGridProps {
@@ -19,8 +21,25 @@ interface MissionControlGridProps {
   projectId: string;
 }
 
-export function MissionControlGrid({ briefing, metrics, userName, projectId }: MissionControlGridProps) {
+export function MissionControlGrid({ briefing, metrics: initialMetrics, userName, projectId }: MissionControlGridProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [liveMetrics, setLiveMetrics] = useState<DashboardMetrics>(initialMetrics);
+
+  // Real-time dashboard hook
+  const { isConnected, metrics: realtimeMetrics, events } = useRealtimeDashboard({
+    projectId,
+    enabled: true,
+  });
+
+  // Update metrics when real-time data changes
+  useEffect(() => {
+    if (realtimeMetrics && Object.keys(realtimeMetrics).length > 0) {
+      setLiveMetrics(prev => ({
+        ...prev,
+        ...realtimeMetrics,
+      }));
+    }
+  }, [realtimeMetrics]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -43,34 +62,40 @@ export function MissionControlGrid({ briefing, metrics, userName, projectId }: M
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-fr">
-      {/* Row 1: Hero Briefing Card (takes 2 columns, 2 rows) + Metrics */}
-      <BriefingCard
-        briefing={briefing}
-        userName={userName}
-        onRefresh={handleRefresh}
-        isRefreshing={isRefreshing}
-      />
+    <>
+      {/* Real-time toast notifications */}
+      <RealtimeToasts projectId={projectId} enabled={true} />
 
-      {/* Sentiment Metric */}
-      <MetricCard
-        label="Sentiment Score"
-        value={`${Math.round(metrics.sentiment.current_nps)}`}
-        trend={metrics.sentiment.trend}
-        trendValue={`${metrics.sentiment.change_percent > 0 ? '+' : ''}${metrics.sentiment.change_percent}% vs last week`}
-        icon={Heart}
-        iconColor="text-pink-400"
-      />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-fr">
+        {/* Row 1: Hero Briefing Card (takes 2 columns, 2 rows) + Metrics */}
+        <BriefingCard
+          briefing={briefing}
+          userName={userName}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshing}
+        />
 
-      {/* Velocity Metric */}
-      <MetricCard
-        label="Feedback Velocity"
-        value={`${metrics.feedback.total_this_week}`}
-        trend={metrics.feedback.trend}
-        trendValue={`${Math.round(metrics.feedback.issues_per_week)} issues/week`}
-        icon={Zap}
-        iconColor="text-yellow-400"
-      />
+        {/* Sentiment Metric - LIVE UPDATES */}
+        <MetricCard
+          label="Sentiment Score"
+          value={`${Math.round(liveMetrics.sentiment?.current_nps || 0)}`}
+          trend={liveMetrics.sentiment?.trend || 'stable'}
+          trendValue={`${liveMetrics.sentiment?.change_percent > 0 ? '+' : ''}${liveMetrics.sentiment?.change_percent || 0}% vs last week`}
+          icon={Heart}
+          iconColor="text-pink-400"
+          badge={isConnected ? <Radio className="h-3 w-3 text-green-500 animate-pulse" /> : undefined}
+        />
+
+        {/* Velocity Metric - LIVE UPDATES */}
+        <MetricCard
+          label="Feedback Velocity"
+          value={`${liveMetrics.feedback?.total_this_week || 0}`}
+          trend={liveMetrics.feedback?.trend || 'stable'}
+          trendValue={`${Math.round(liveMetrics.feedback?.issues_per_week || 0)} issues/week`}
+          icon={Zap}
+          iconColor="text-yellow-400"
+          badge={isConnected ? <Radio className="h-3 w-3 text-green-500 animate-pulse" /> : undefined}
+        />
 
       {/* Row 2: Threats Card (below sentiment) */}
       <BentoCard>
@@ -128,15 +153,15 @@ export function MissionControlGrid({ briefing, metrics, userName, projectId }: M
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-400">In Progress</span>
-              <span className="text-lg font-bold text-white">{metrics.roadmap.in_progress}</span>
+              <span className="text-lg font-bold text-white">{liveMetrics.roadmap?.in_progress || 0}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-400">Planned</span>
-              <span className="text-lg font-bold text-white">{metrics.roadmap.planned}</span>
+              <span className="text-lg font-bold text-white">{liveMetrics.roadmap?.planned || 0}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-400">Completed This Week</span>
-              <span className="text-lg font-bold text-green-400">{metrics.roadmap.completed_this_week}</span>
+              <span className="text-lg font-bold text-green-400">{liveMetrics.roadmap?.completed_this_week || 0}</span>
             </div>
           </div>
         </div>
@@ -189,30 +214,31 @@ export function MissionControlGrid({ briefing, metrics, userName, projectId }: M
         </div>
       </BentoCard>
 
-      {/* Competitive Intelligence (if available) */}
-      {metrics.competitors.new_insights_count > 0 && (
+      {/* Competitive Intelligence (if available) - LIVE UPDATES */}
+      {(liveMetrics.competitors?.new_insights_count || 0) > 0 && (
         <BentoCard colSpan={2}>
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-white">Competitive Intelligence</h3>
               <span className="rounded-full bg-purple-950/50 px-2 py-1 text-xs font-medium text-purple-300">
-                {metrics.competitors.new_insights_count} New
+                {liveMetrics.competitors?.new_insights_count || 0} New
               </span>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-                <div className="text-2xl font-bold text-white">{metrics.competitors.new_insights_count}</div>
+                <div className="text-2xl font-bold text-white">{liveMetrics.competitors?.new_insights_count || 0}</div>
                 <div className="text-sm text-slate-400">New Insights (7d)</div>
               </div>
               <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-                <div className="text-2xl font-bold text-red-400">{metrics.competitors.high_priority_count}</div>
+                <div className="text-2xl font-bold text-red-400">{liveMetrics.competitors?.high_priority_count || 0}</div>
                 <div className="text-sm text-slate-400">High Priority</div>
               </div>
             </div>
           </div>
         </BentoCard>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
