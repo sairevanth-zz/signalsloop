@@ -58,13 +58,13 @@ export async function searchFeedbackSemantic(
   query: string,
   limit: number = 10
 ): Promise<RetrievalResult> {
-  const supabase = getSupabaseServerClient();
-
-  if (!supabase) {
-    throw new Error('Database connection not available');
-  }
-
   try {
+    const supabase = getSupabaseServerClient();
+
+    if (!supabase) {
+      throw new Error('Database connection not available');
+    }
+
     // Generate embedding for the query
     const queryEmbedding = await generateEmbedding(query);
 
@@ -111,7 +111,10 @@ export async function searchFeedbackSemantic(
 
   } catch (error) {
     console.error('Error in searchFeedbackSemantic:', error);
-    throw error;
+    return {
+      context: 'Unable to retrieve specific feedback right now. Try asking about sentiment, themes, or provide more context.',
+      sources: [],
+    };
   }
 }
 
@@ -130,13 +133,12 @@ export async function getSentimentContext(
   projectId: string,
   timeRange?: { days?: number; start?: string; end?: string }
 ): Promise<RetrievalResult> {
-  const supabase = getSupabaseServerClient();
-
-  if (!supabase) {
-    throw new Error('Database connection not available');
-  }
-
   try {
+    const supabase = getSupabaseServerClient();
+
+    if (!supabase) {
+      throw new Error('Database connection not available');
+    }
     const days = timeRange?.days || 30;
 
     // Get sentiment distribution using the database function
@@ -233,13 +235,12 @@ export async function getCompetitiveContext(
   projectId: string,
   competitors?: string[]
 ): Promise<RetrievalResult> {
-  const supabase = getSupabaseServerClient();
-
-  if (!supabase) {
-    throw new Error('Database connection not available');
-  }
-
   try {
+    const supabase = getSupabaseServerClient();
+
+    if (!supabase) {
+      throw new Error('Database connection not available');
+    }
     // Build query for competitors
     let competitorQuery = supabase
       .from('competitors')
@@ -335,13 +336,12 @@ export async function getCompetitiveContext(
  * @returns Formatted context string with top themes
  */
 export async function getThemesContext(projectId: string): Promise<RetrievalResult> {
-  const supabase = getSupabaseServerClient();
-
-  if (!supabase) {
-    throw new Error('Database connection not available');
-  }
-
   try {
+    const supabase = getSupabaseServerClient();
+
+    if (!supabase) {
+      throw new Error('Database connection not available');
+    }
     // Get top themes ordered by frequency
     const { data: themes, error } = await supabase
       .from('themes')
