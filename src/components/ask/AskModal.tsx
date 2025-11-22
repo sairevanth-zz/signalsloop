@@ -17,7 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useAskStore } from '@/lib/stores/useAskStore';
+import { useAskStore } from '@/stores/ask-store';
 
 // ============================================================================
 // Props Interface
