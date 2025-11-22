@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { sendFreeWelcomeEmail } from '@/lib/email';
 import { ensureUserRecord } from '@/lib/users';
@@ -30,8 +31,20 @@ export async function GET(request: NextRequest) {
   }
 
   if (code) {
-    // Use anon key for auth operations
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // Use SSR client so session cookies are issued back to the browser
+    const cookieStore = cookies();
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set({ name, value, ...options });
+          });
+        },
+      },
+    });
     
     try {
       console.log('Exchanging code for session:', code.substring(0, 10) + '...');
