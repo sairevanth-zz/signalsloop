@@ -10,33 +10,54 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+export interface BriefingItem {
+  severity: 'critical' | 'warning' | 'info' | 'success';
+  title: string;
+  description: string;
+  action?: {
+    label: string;
+    type: 'draft_spec' | 'view_competitor' | 'review_feedback' | 'update_roadmap' | 'review_auto_spec' | 'execute_action';
+    link?: string;
+    metadata?: Record<string, any>;
+  };
+  metadata?: Record<string, any>;
+}
+
 export interface DailyBriefingContent {
   sentiment_score: number;
   sentiment_trend: 'up' | 'down' | 'stable';
+
+  // Enhanced severity-categorized briefing
+  critical_items: BriefingItem[]; // 🔴 Critical - needs immediate action
+  warning_items: BriefingItem[];  // 🟡 Attention - needs review soon
+  info_items: BriefingItem[];     // 🔵 Info - good to know
+  success_items: BriefingItem[];  // 🟢 Good news - positive updates
+
+  // Legacy fields (kept for backwards compatibility)
   critical_alerts: string[];
   recommended_actions: {
     label: string;
     action: 'draft_spec' | 'view_competitor' | 'review_feedback' | 'update_roadmap' | 'review_auto_spec';
     priority: 'high' | 'medium' | 'low';
     context?: string;
-    link?: string; // Direct link to action (spec, feedback, etc.)
-    artifact_id?: string; // ID of related artifact (spec_id, theme_id, etc.)
+    link?: string;
+    artifact_id?: string;
     artifact_type?: 'spec' | 'feedback' | 'theme' | 'competitor';
-    badge?: string; // Badge text (e.g., "NEW", "READY", "URGENT")
+    badge?: string;
   }[];
   briefing_text: string;
   opportunities: {
     title: string;
     votes: number;
     impact: 'high' | 'medium' | 'low';
-    link?: string; // Link to opportunity detail
-    id?: string; // Theme or feedback ID
+    link?: string;
+    id?: string;
   }[];
   threats: {
     title: string;
     severity: 'high' | 'medium' | 'low';
-    link?: string; // Link to threat detail
-    id?: string; // Competitor or issue ID
+    link?: string;
+    id?: string;
   }[];
 }
 
@@ -315,6 +336,10 @@ Key focus areas:
     let validated: DailyBriefingContent = {
       sentiment_score: briefing.sentiment_score || 50,
       sentiment_trend: briefing.sentiment_trend || 'stable',
+      critical_items: [],
+      warning_items: [],
+      info_items: [],
+      success_items: [],
       critical_alerts: briefing.critical_alerts || [],
       recommended_actions: briefing.recommended_actions || [],
       briefing_text: briefing.briefing_text || 'No significant changes detected.',
@@ -386,6 +411,150 @@ Key focus areas:
         : undefined,
     }));
 
+    // === NEW: Categorize into severity-based briefing items ===
+
+    // CRITICAL ITEMS 🔴
+    // - High severity threats
+    validated.threats.filter(t => t.severity === 'high').forEach(threat => {
+      validated.critical_items.push({
+        severity: 'critical',
+        title: threat.title,
+        description: 'Competitive threat requires immediate attention',
+        action: {
+          label: 'View competitive analysis',
+          type: 'view_competitor',
+          link: threat.link
+        },
+        metadata: { threatId: threat.id }
+      });
+    });
+
+    // - Urgent negative feedback
+    if (urgentFeedback && urgentFeedback.length > 0) {
+      validated.critical_items.push({
+        severity: 'critical',
+        title: `${urgentFeedback.length} urgent feedback items with negative sentiment`,
+        description: `Customer frustration detected in ${urgentFeedback.length} high-voted items`,
+        action: {
+          label: 'Review urgent feedback',
+          type: 'review_feedback',
+          link: `/${projectSlug}/board?filter=urgent`
+        },
+        metadata: { feedbackCount: urgentFeedback.length }
+      });
+    }
+
+    // - Critical alerts from AI
+    validated.critical_alerts.forEach(alert => {
+      validated.critical_items.push({
+        severity: 'critical',
+        title: alert,
+        description: 'AI detected critical issue',
+        metadata: { source: 'ai_analysis' }
+      });
+    });
+
+    // WARNING ITEMS 🟡
+    // - Medium priority recommended actions
+    validated.recommended_actions
+      .filter(a => a.priority === 'high' || a.priority === 'medium')
+      .forEach(action => {
+        validated.warning_items.push({
+          severity: 'warning',
+          title: action.label,
+          description: action.context || 'Action recommended by AI',
+          action: {
+            label: action.label,
+            type: action.action,
+            link: action.link,
+            metadata: {
+              artifactId: action.artifact_id,
+              artifactType: action.artifact_type,
+              badge: action.badge
+            }
+          }
+        });
+      });
+
+    // - High volume themes
+    if (highVolumeThemes && highVolumeThemes.length > 0) {
+      highVolumeThemes.forEach(theme => {
+        validated.warning_items.push({
+          severity: 'warning',
+          title: `High demand for "${theme.theme_name}"`,
+          description: `${theme.frequency} user requests - consider prioritizing`,
+          action: {
+            label: 'Draft spec',
+            type: 'draft_spec',
+            link: `/${projectSlug}/specs/new?theme=${encodeURIComponent(theme.theme_name)}`
+          },
+          metadata: { themeId: theme.id, frequency: theme.frequency }
+        });
+      });
+    }
+
+    // INFO ITEMS 🔵
+    // - Opportunities
+    validated.opportunities.forEach(opp => {
+      validated.info_items.push({
+        severity: 'info',
+        title: opp.title,
+        description: `${opp.votes} votes • ${opp.impact} impact opportunity`,
+        action: {
+          label: 'Explore opportunity',
+          type: 'view_competitor',
+          link: opp.link
+        },
+        metadata: { opportunityId: opp.id, votes: opp.votes, impact: opp.impact }
+      });
+    });
+
+    // - General insights
+    if (data.themes.length > 0) {
+      validated.info_items.push({
+        severity: 'info',
+        title: `${data.themes.length} active themes identified`,
+        description: `Top: ${data.themes.slice(0, 3).map(t => t.theme_name).join(', ')}`,
+        metadata: { themeCount: data.themes.length }
+      });
+    }
+
+    // SUCCESS ITEMS 🟢
+    // - Positive sentiment trend
+    if (validated.sentiment_trend === 'up') {
+      validated.success_items.push({
+        severity: 'success',
+        title: 'Sentiment trending up',
+        description: `Overall customer satisfaction is improving (${validated.sentiment_score}/100)`,
+        metadata: { sentimentScore: validated.sentiment_score }
+      });
+    }
+
+    // - Completed roadmap items
+    if (data.roadmapStats.completed_this_week > 0) {
+      validated.success_items.push({
+        severity: 'success',
+        title: `${data.roadmapStats.completed_this_week} feature${data.roadmapStats.completed_this_week !== 1 ? 's' : ''} shipped this week`,
+        description: 'Great execution velocity',
+        action: {
+          label: 'View roadmap',
+          type: 'update_roadmap',
+          link: `/${projectSlug}/roadmap`
+        },
+        metadata: { completedCount: data.roadmapStats.completed_this_week }
+      });
+    }
+
+    // - Low severity threats (handled well)
+    validated.threats.filter(t => t.severity === 'low').forEach(threat => {
+      validated.success_items.push({
+        severity: 'success',
+        title: `Monitoring: ${threat.title}`,
+        description: 'Low severity - under control',
+        metadata: { threatId: threat.id }
+      });
+    });
+
     return validated;
   } catch (error) {
     console.error('Error generating daily briefing:', error);
@@ -394,6 +563,15 @@ Key focus areas:
     return {
       sentiment_score: 50,
       sentiment_trend: 'stable',
+      critical_items: [{
+        severity: 'critical',
+        title: 'Unable to generate briefing',
+        description: 'AI service temporarily unavailable. Please check back later.',
+        metadata: { error: 'service_unavailable' }
+      }],
+      warning_items: [],
+      info_items: [],
+      success_items: [],
       critical_alerts: ['Unable to generate briefing - AI service unavailable'],
       recommended_actions: [],
       briefing_text: 'Daily briefing is temporarily unavailable. Please check back later.',
