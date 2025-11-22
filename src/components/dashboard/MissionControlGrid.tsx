@@ -12,6 +12,8 @@ import { BentoCard } from './BentoCard';
 import { RealtimeToasts } from './RealtimeToasts';
 import { AgentActivityCard } from './AgentActivityCard';
 import { EventActivityWidget } from './EventActivityWidget';
+import { ActionQueueCard } from './ActionQueueCard';
+import { SignalCorrelationView } from './SignalCorrelationView';
 import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio } from 'lucide-react';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
@@ -219,6 +221,12 @@ export function MissionControlGrid({ briefing, metrics: initialMetrics, userName
           )}
         </div>
       </BentoCard>
+
+      {/* Action Queue - AI Recommendations (spans 2 columns) */}
+      <ActionQueueCard projectId={projectId} />
+
+      {/* Signal Correlation Network (spans 2 columns) */}
+      <SignalCorrelationView projectId={projectId} />
 
       {/* Competitive Intelligence (if available) - LIVE UPDATES */}
       {(liveMetrics.competitors?.new_insights_count || 0) > 0 && (

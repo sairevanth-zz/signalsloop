@@ -39,6 +39,7 @@ import {
 import { NotificationRecipientsManager } from '@/components/NotificationRecipientsManager';
 import { TeammatesSettings } from '@/components/TeammatesSettings';
 import { AgentDashboard } from '@/components/agents/AgentDashboard';
+import { TriagerSettingsPanel } from '@/components/agents/TriagerSettingsPanel';
 
 interface Project {
   id: string;
@@ -796,7 +797,18 @@ export default function SettingsPage() {
           <TabsContent value="agents" className="mt-6">
             <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
               {project ? (
-                <AgentDashboard projectId={project.id} />
+                <Tabs defaultValue="status" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-6">
+                    <TabsTrigger value="status">Agent Status</TabsTrigger>
+                    <TabsTrigger value="triager">Triager Settings</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="status">
+                    <AgentDashboard projectId={project.id} />
+                  </TabsContent>
+                  <TabsContent value="triager">
+                    <TriagerSettingsPanel projectId={project.id} />
+                  </TabsContent>
+                </Tabs>
               ) : (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
