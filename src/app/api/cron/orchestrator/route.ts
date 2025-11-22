@@ -1,12 +1,14 @@
 /**
  * Unified Task Orchestrator
  *
- * This single cron job runs all scheduled tasks, allowing us to use
- * only 1 Vercel cron slot instead of 10+
+ * This endpoint consolidates all scheduled tasks to work within Vercel's
+ * free tier limitations (max 2 cron jobs, daily frequency minimum)
  *
  * Schedule in vercel.json:
- * - Hourly: "0 * * * *" (every hour)
- * - OR call manually with ?schedule=daily&time=09:00
+ * - "0 2 * * *" (2 AM daily) - Night batch: backup
+ * - "0 9 * * *" (9 AM daily) - Morning batch: all other tasks
+ *
+ * OR call manually with ?schedule=morning or ?schedule=night
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -73,27 +75,28 @@ async function executeTask(
 
 /**
  * Task schedule definitions
+ * Consolidated into 2 daily batches to work within Vercel free tier limits
  */
 const TASK_SCHEDULE = {
-  hourly: [
-    { path: '/api/cron/hunter-scan', timeout: 300000 }, // 5 min
-    { path: '/api/cron/calls-analyze', timeout: 180000 }, // 3 min
+  night: [
+    // Batch 1: Run at 2 AM daily
+    { path: '/api/cron/daily-backup', timeout: 600000 }, // 10 min - database backup
   ],
-  daily_morning: [
-    // Run at 9 AM
-    { path: '/api/cron/proactive-spec-writer', timeout: 300000 },
-    { path: '/api/cron/competitive-extraction', timeout: 180000 },
-    { path: '/api/cron/detect-feature-gaps', timeout: 120000 },
-    { path: '/api/cron/strategic-recommendations', timeout: 120000 },
-  ],
-  daily_night: [
-    // Run at 2 AM
-    { path: '/api/cron/daily-backup', timeout: 600000 }, // 10 min
+  morning: [
+    // Batch 2: Run at 9 AM daily
+    { path: '/api/cron/proactive-spec-writer', timeout: 300000 }, // 5 min - auto-draft specs
+    { path: '/api/cron/competitive-extraction', timeout: 180000 }, // 3 min - extract competitors
+    { path: '/api/cron/detect-feature-gaps', timeout: 120000 }, // 2 min - feature gaps
+    { path: '/api/cron/strategic-recommendations', timeout: 120000 }, // 2 min - strategic actions
+    { path: '/api/cron/hunter-scan', timeout: 300000 }, // 5 min - scan external platforms
+    { path: '/api/cron/calls-analyze', timeout: 180000 }, // 3 min - process call recordings
+    { path: '/api/cron/daily-intelligence-digest', timeout: 120000 }, // 2 min - send email digest
+    // Weekly tasks also run in morning batch (only on Sundays)
   ],
   weekly: [
-    // Run on Sundays
-    { path: '/api/cron/scrape-external-reviews', timeout: 600000 },
-    { path: '/api/cron/analyze-competitors', timeout: 300000 },
+    // Run on Sunday mornings (9 AM) in addition to daily tasks
+    { path: '/api/cron/scrape-external-reviews', timeout: 600000 }, // 10 min - G2/Capterra
+    { path: '/api/cron/analyze-competitors', timeout: 300000 }, // 5 min - competitor analysis
   ],
 };
 
@@ -107,8 +110,7 @@ export async function GET(request: NextRequest) {
 
     // Determine which tasks to run based on query params or time
     const { searchParams } = new URL(request.url);
-    const scheduleParam = searchParams.get('schedule'); // hourly, daily, weekly
-    const timeParam = searchParams.get('time'); // e.g., "09:00"
+    const scheduleParam = searchParams.get('schedule'); // 'morning' or 'night'
 
     // Default: determine based on current time
     const now = new Date();
@@ -120,37 +122,41 @@ export async function GET(request: NextRequest) {
 
     if (scheduleParam) {
       // Manual trigger via query param
-      if (scheduleParam === 'hourly') {
-        tasksToRun = TASK_SCHEDULE.hourly;
-        scheduleName = 'Hourly';
-      } else if (scheduleParam === 'daily' && timeParam === '09:00') {
-        tasksToRun = TASK_SCHEDULE.daily_morning;
-        scheduleName = 'Daily Morning';
-      } else if (scheduleParam === 'daily' && timeParam === '02:00') {
-        tasksToRun = TASK_SCHEDULE.daily_night;
-        scheduleName = 'Daily Night';
-      } else if (scheduleParam === 'weekly') {
-        tasksToRun = TASK_SCHEDULE.weekly;
-        scheduleName = 'Weekly';
+      if (scheduleParam === 'night') {
+        tasksToRun = TASK_SCHEDULE.night;
+        scheduleName = 'Night Batch (2 AM)';
+      } else if (scheduleParam === 'morning') {
+        tasksToRun = [...TASK_SCHEDULE.morning];
+        scheduleName = 'Morning Batch (9 AM)';
+        // Add weekly tasks if manually triggered
+        if (searchParams.get('include_weekly') === 'true') {
+          tasksToRun.push(...TASK_SCHEDULE.weekly);
+          scheduleName = 'Morning Batch + Weekly (Sunday 9 AM)';
+        }
       }
     } else {
       // Auto-determine based on current time
       if (currentHour === 2) {
-        // 2 AM UTC - Daily backup
-        tasksToRun = TASK_SCHEDULE.daily_night;
-        scheduleName = 'Daily Night (2 AM)';
+        // 2 AM UTC - Night batch (backup)
+        tasksToRun = TASK_SCHEDULE.night;
+        scheduleName = 'Night Batch (2 AM)';
       } else if (currentHour === 9) {
-        // 9 AM UTC - Morning tasks
-        tasksToRun = TASK_SCHEDULE.daily_morning;
-        scheduleName = 'Daily Morning (9 AM)';
-      } else if (currentDay === 0 && currentHour === 10) {
-        // Sunday 10 AM UTC - Weekly tasks
-        tasksToRun = TASK_SCHEDULE.weekly;
-        scheduleName = 'Weekly (Sunday 10 AM)';
+        // 9 AM UTC - Morning batch
+        tasksToRun = [...TASK_SCHEDULE.morning];
+        scheduleName = 'Morning Batch (9 AM)';
+
+        // Add weekly tasks on Sundays
+        if (currentDay === 0) {
+          tasksToRun.push(...TASK_SCHEDULE.weekly);
+          scheduleName = 'Morning Batch + Weekly (Sunday 9 AM)';
+        }
       } else {
-        // Every other hour - Hourly tasks
-        tasksToRun = TASK_SCHEDULE.hourly;
-        scheduleName = 'Hourly';
+        // Called at unexpected time - run nothing
+        return NextResponse.json({
+          success: true,
+          message: `No tasks scheduled for hour ${currentHour}. Orchestrator runs at 2 AM and 9 AM UTC.`,
+          schedule: 'None',
+        });
       }
     }
 

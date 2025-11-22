@@ -2,7 +2,9 @@
 
 ## Problem
 
-SignalsLoop has **10+ background tasks** but Vercel free tier only allows **2 cron jobs**:
+SignalsLoop has **10 background tasks** but Vercel free tier has **strict limitations**:
+- ❌ Maximum **2 cron jobs** allowed
+- ❌ Minimum **daily frequency** (no hourly cron jobs)
 
 ### Existing Tasks
 1. `proactive-spec-writer` - Auto-draft specs for feedback clusters
@@ -18,41 +20,38 @@ SignalsLoop has **10+ background tasks** but Vercel free tier only allows **2 cr
 
 ## Solution: Task Orchestrator
 
-Instead of 10 separate cron jobs, use **1 unified orchestrator** that runs all tasks based on schedule.
+Instead of 10 separate cron jobs, use **1 unified orchestrator** that runs **twice daily** in batches.
 
 ### Architecture
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│         Vercel Cron (2 slots used)                  │
+│         Vercel Cron (2 slots, both daily)           │
 ├─────────────────────────────────────────────────────┤
-│ 1. /api/cron/orchestrator  (every hour)            │
-│    ├─ 2 AM  → Daily Backup                         │
-│    ├─ 9 AM  → Morning Tasks (4 tasks)              │
-│    ├─ 10 AM → Weekly Tasks (Sundays only)          │
-│    └─ Every hour → Hourly Tasks (2 tasks)          │
+│ 1. /api/cron/orchestrator  (2 AM daily)            │
+│    └─ Night Batch → Database Backup (1 task)       │
 │                                                      │
-│ 2. /api/cron/daily-intelligence-digest (9 AM)      │
-│    └─ User analytics email (separate, unchanged)   │
+│ 2. /api/cron/orchestrator  (9 AM daily)            │
+│    ├─ Morning Batch → Core Tasks (7 tasks)         │
+│    └─ Weekly Batch → Sunday Only (2 tasks)         │
 └─────────────────────────────────────────────────────┘
 ```
 
 ### Task Schedule
 
-**Hourly (Every hour)**
-- `hunter-scan` - Scan Reddit, Twitter, HN, etc. for feedback
-- `calls-analyze` - Process pending call recordings
+**Night Batch (2 AM daily)**
+- `daily-backup` - Backup database to S3
 
-**Daily Morning (9 AM)**
+**Morning Batch (9 AM daily)**
 - `proactive-spec-writer` - Auto-draft specs for feedback clusters ✨ NEW
 - `competitive-extraction` - Extract competitors from feedback
 - `detect-feature-gaps` - Identify competitive feature gaps
 - `strategic-recommendations` - Generate strategic actions
+- `hunter-scan` - Scan external platforms for feedback (was hourly, now daily)
+- `calls-analyze` - Process pending call recordings (was hourly, now daily)
+- `daily-intelligence-digest` - Send user analytics email
 
-**Daily Night (2 AM)**
-- `daily-backup` - Backup database to S3
-
-**Weekly (Sunday 10 AM)**
+**Weekly Batch (Sunday 9 AM, added to morning batch)**
 - `scrape-external-reviews` - Scrape G2/Capterra/TrustRadius
 - `analyze-competitors` - Deep competitor analysis
 
@@ -64,10 +63,13 @@ Instead of 10 separate cron jobs, use **1 unified orchestrator** that runs all t
 **Location:** `src/app/api/cron/orchestrator/route.ts`
 
 The orchestrator:
-- Runs every hour (configured in `vercel.json`)
-- Determines which tasks to run based on current time
-- Calls individual task endpoints sequentially
-- Returns summary of results
+- Runs **twice daily** at 2 AM and 9 AM (configured in `vercel.json`)
+- Determines which batch to run based on current UTC hour
+- At 2 AM: Runs night batch (backup)
+- At 9 AM: Runs morning batch (all other tasks)
+- On Sunday 9 AM: Also runs weekly batch
+- Calls individual task endpoints sequentially via HTTP fetch
+- Returns summary of results with task success/failure details
 
 ### 2. Individual Task Routes
 **Location:** `src/app/api/cron/{task-name}/route.ts`
@@ -86,15 +88,17 @@ Each task:
   "crons": [
     {
       "path": "/api/cron/orchestrator",
-      "schedule": "0 * * * *"
+      "schedule": "0 2 * * *"
     },
     {
-      "path": "/api/cron/daily-intelligence-digest",
+      "path": "/api/cron/orchestrator",
       "schedule": "0 9 * * *"
     }
   ]
 }
 ```
+
+**Note:** Both cron jobs point to the same endpoint. The orchestrator automatically determines which batch to run based on the current UTC hour.
 
 ---
 
@@ -102,19 +106,30 @@ Each task:
 
 ### Automatic (Production)
 
-Tasks run automatically based on schedule:
-- **Every hour:** Orchestrator checks time and runs appropriate tasks
-- **9 AM UTC:** Morning tasks + intelligence digest
-- **2 AM UTC:** Database backup
-- **Sunday 10 AM UTC:** Weekly tasks
+The orchestrator runs **twice daily** via Vercel Cron:
+- **2 AM UTC:** Night batch (database backup)
+- **9 AM UTC:** Morning batch (all other tasks)
+- **Sunday 9 AM UTC:** Morning batch + weekly batch
 
 ### Manual Triggering (Development/Testing)
 
-You can manually trigger tasks via API:
+You can manually trigger batches via API:
 
-**Trigger specific schedule:**
+**Trigger morning batch:**
 ```bash
-curl -X GET "https://yourapp.com/api/cron/orchestrator?schedule=daily&time=09:00" \
+curl -X GET "https://yourapp.com/api/cron/orchestrator?schedule=morning" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
+
+**Trigger night batch:**
+```bash
+curl -X GET "https://yourapp.com/api/cron/orchestrator?schedule=night" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
+
+**Trigger morning batch with weekly tasks:**
+```bash
+curl -X GET "https://yourapp.com/api/cron/orchestrator?schedule=morning&include_weekly=true" \
   -H "Authorization: Bearer YOUR_CRON_SECRET"
 ```
 
@@ -125,8 +140,8 @@ curl -X GET "https://yourapp.com/api/cron/proactive-spec-writer" \
 ```
 
 **Parameters:**
-- `schedule`: `hourly`, `daily`, or `weekly`
-- `time`: `02:00` or `09:00` (for daily tasks)
+- `schedule`: `morning` or `night`
+- `include_weekly`: `true` (optional, for manual weekly task triggers)
 
 ---
 
@@ -177,15 +192,16 @@ export async function GET(request: NextRequest) {
 
 **Edit:** `src/app/api/cron/orchestrator/route.ts`
 
-Add to appropriate schedule:
+Add to appropriate batch (morning, night, or weekly):
 
 ```typescript
 const TASK_SCHEDULE = {
-  hourly: [
-    { path: '/api/cron/hunter-scan', timeout: 300000 },
+  morning: [
+    { path: '/api/cron/proactive-spec-writer', timeout: 300000 },
     { path: '/api/cron/your-new-task', timeout: 120000 }, // ✨ NEW
+    // ... other morning tasks
   ],
-  // ... other schedules
+  // ... other batches
 };
 ```
 
@@ -196,8 +212,8 @@ const TASK_SCHEDULE = {
 curl -X GET "http://localhost:3000/api/cron/your-new-task" \
   -H "Authorization: Bearer YOUR_CRON_SECRET"
 
-# Test orchestrator with your schedule
-curl -X GET "http://localhost:3000/api/cron/orchestrator?schedule=hourly" \
+# Test orchestrator with your batch
+curl -X GET "http://localhost:3000/api/cron/orchestrator?schedule=morning" \
   -H "Authorization: Bearer YOUR_CRON_SECRET"
 ```
 
@@ -209,8 +225,9 @@ curl -X GET "http://localhost:3000/api/cron/orchestrator?schedule=hourly" \
 
 The orchestrator logs all task executions:
 
+**Morning Batch (9 AM):**
 ```
-🤖 Orchestrator: Running Daily Morning tasks (4 tasks)
+🤖 Orchestrator: Running Morning Batch (9 AM) tasks (7 tasks)
   → Starting: /api/cron/proactive-spec-writer
   ✅ /api/cron/proactive-spec-writer (2341ms)
   → Starting: /api/cron/competitive-extraction
@@ -219,7 +236,24 @@ The orchestrator logs all task executions:
   ✅ /api/cron/detect-feature-gaps (987ms)
   → Starting: /api/cron/strategic-recommendations
   ✅ /api/cron/strategic-recommendations (1102ms)
-🤖 Orchestrator: Complete - 4/4 succeeded (5953ms total)
+  → Starting: /api/cron/hunter-scan
+  ✅ /api/cron/hunter-scan (3456ms)
+  → Starting: /api/cron/calls-analyze
+  ✅ /api/cron/calls-analyze (2234ms)
+  → Starting: /api/cron/daily-intelligence-digest
+  ✅ /api/cron/daily-intelligence-digest (876ms)
+🤖 Orchestrator: Complete - 7/7 succeeded (12519ms total)
+```
+
+**Sunday Morning (9 AM + Weekly):**
+```
+🤖 Orchestrator: Running Morning Batch + Weekly (Sunday 9 AM) tasks (9 tasks)
+  [... 7 morning tasks ...]
+  → Starting: /api/cron/scrape-external-reviews
+  ✅ /api/cron/scrape-external-reviews (5432ms)
+  → Starting: /api/cron/analyze-competitors
+  ✅ /api/cron/analyze-competitors (3221ms)
+🤖 Orchestrator: Complete - 9/9 succeeded (21172ms total)
 ```
 
 ### Response Format
@@ -290,16 +324,35 @@ The orchestrator logs all task executions:
   "crons": [
     {
       "path": "/api/cron/orchestrator",
-      "schedule": "0 * * * *"
+      "schedule": "0 2 * * *"
     },
     {
-      "path": "/api/cron/daily-intelligence-digest",
+      "path": "/api/cron/orchestrator",
       "schedule": "0 9 * * *"
     }
   ]
 }
 ```
-✅ **Result:** Deploys successfully, all tasks run on schedule
+✅ **Result:** Deploys successfully, all tasks run twice daily in batches
+
+---
+
+## Important Trade-off: Hourly → Daily
+
+**Previous Design:**
+- `hunter-scan` and `calls-analyze` were intended to run **hourly**
+
+**Current Reality:**
+- Vercel free tier **does not support hourly cron jobs** (minimum frequency is daily)
+
+**Compromise:**
+- These tasks now run **once daily at 9 AM** instead of hourly
+- For truly time-sensitive hourly scanning, consider:
+  1. **External cron service:** Use free services like [cron-job.org](https://cron-job.org) or [EasyCron](https://www.easycron.com/) to ping your API hourly
+  2. **Webhook-based:** Set up webhooks from platforms (e.g., Reddit webhooks, Twitter webhooks)
+  3. **Upgrade to Vercel Pro:** Allows more cron jobs and higher frequencies
+
+**Recommendation:** For most use cases, daily scanning is sufficient. External platforms update slowly, so hourly vs daily has minimal impact.
 
 ---
 
@@ -370,8 +423,19 @@ Each task has individual timeout to prevent long-running tasks from blocking oth
 
 ## Summary
 
-**Problem:** 10 cron jobs, Vercel allows 2
-**Solution:** 1 orchestrator that runs all tasks
-**Result:** Scalable, flexible, works within free tier limits
+**Problem:**
+- 10 background tasks needed
+- Vercel free tier limits: max 2 cron jobs, daily frequency minimum
 
-All tasks continue to work exactly as before, just orchestrated centrally! 🎉
+**Solution:**
+- 1 orchestrator endpoint called twice daily (2 AM, 9 AM)
+- Batches tasks into night/morning/weekly groups
+- Uses both Vercel cron slots
+
+**Result:**
+- ✅ Scalable: Add unlimited tasks without hitting Vercel limit
+- ✅ Works within free tier (uses 2/2 cron slots)
+- ✅ All 10 tasks run on schedule
+- ⚠️ Trade-off: "Hourly" tasks now run daily (acceptable for most use cases)
+
+All tasks continue to work, just consolidated into daily batches! 🎉
