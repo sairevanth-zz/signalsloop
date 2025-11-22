@@ -152,16 +152,38 @@ export async function getSentimentContext(
       console.error('Error getting sentiment distribution:', distError);
     }
 
-    // Get overall sentiment stats
-    const { data: sentimentData, error: sentError } = await supabase
-      .from('sentiment_analysis')
-      .select('sentiment_category, sentiment_score, emotional_tone')
-      .eq('post_id', supabase
-        .from('posts')
-        .select('id')
-        .eq('project_id', projectId)
-      )
-      .gte('analyzed_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+    // Fetch relevant post IDs for this project
+    const { data: projectPosts, error: postsError } = await supabase
+      .from('posts')
+      .select('id')
+      .eq('project_id', projectId);
+
+    if (postsError) {
+      console.error('Error getting posts for sentiment:', postsError);
+    }
+
+    const postIds = projectPosts?.map((post: { id: string }) => post.id) || [];
+
+    let sentimentData: Array<{
+      sentiment_category: string | null;
+      sentiment_score: string | number | null;
+      emotional_tone?: string | null;
+    }> = [];
+
+    if (postIds.length > 0) {
+      // Get overall sentiment stats
+      const { data, error: sentError } = await supabase
+        .from('sentiment_analysis')
+        .select('sentiment_category, sentiment_score, emotional_tone, post_id')
+        .in('post_id', postIds)
+        .gte('analyzed_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+
+      if (sentError) {
+        console.error('Error getting sentiment data:', sentError);
+      } else if (data) {
+        sentimentData = data;
+      }
+    }
 
     if (sentError) {
       console.error('Error getting sentiment data:', sentError);

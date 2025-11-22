@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -16,7 +16,7 @@ export const runtime = 'nodejs';
 // ============================================================================
 
 async function verifyConversationOwnership(
-  supabase: any,
+  supabase: Awaited<ReturnType<typeof createServerClient>>,
   conversationId: string,
   userId: string
 ) {
@@ -46,14 +46,7 @@ export async function GET(
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
   try {
-    const supabase = getSupabaseServerClient();
-
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection not available' },
-        { status: 500 }
-      );
-    }
+    const supabase = await createServerClient();
 
     // Get current user
     const {
@@ -122,14 +115,7 @@ export async function PATCH(
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
   try {
-    const supabase = getSupabaseServerClient();
-
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection not available' },
-        { status: 500 }
-      );
-    }
+    const supabase = await createServerClient();
 
     // Get current user
     const {
@@ -221,14 +207,7 @@ export async function DELETE(
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
   try {
-    const supabase = getSupabaseServerClient();
-
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection not available' },
-        { status: 500 }
-      );
-    }
+    const supabase = await createServerClient();
 
     // Get current user
     const {
