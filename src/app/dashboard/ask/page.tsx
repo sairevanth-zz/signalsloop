@@ -5,7 +5,7 @@
 
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { AskChatInterface } from '@/components/ask/AskChatInterface';
@@ -180,7 +180,58 @@ export default function AskPage() {
         </div>
       </div>
     }>
-      <AskPageContent />
+      <AskErrorBoundary>
+        <AskPageContent />
+      </AskErrorBoundary>
     </Suspense>
   );
+}
+
+class AskErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; message?: string }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, message: undefined };
+  }
+
+  static getDerivedStateFromError(error: unknown) {
+    return {
+      hasError: true,
+      message: error instanceof Error ? error.message : 'Something went wrong while loading Ask.',
+    };
+  }
+
+  componentDidCatch(error: unknown, info: unknown) {
+    console.error('Ask page error boundary:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex min-h-screen items-center justify-center p-4">
+          <div className="max-w-md w-full space-y-4 text-center">
+            <div className="text-lg font-semibold text-white">Ask SignalsLoop ran into a problem</div>
+            <p className="text-sm text-muted-foreground">
+              {this.state.message || 'Please refresh the page or try again in a moment.'}
+            </p>
+            <div className="flex gap-3 justify-center">
+              <button
+                className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+                onClick={() => window.location.reload()}
+              >
+                Refresh
+              </button>
+              <button
+                className="rounded-lg border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                onClick={() => (window.location.href = '/app')}
+              >
+                Back to Projects
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
 }
