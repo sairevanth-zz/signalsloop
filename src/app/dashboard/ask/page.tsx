@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { AskChatInterface } from '@/components/ask/AskChatInterface';
@@ -17,7 +17,7 @@ interface Project {
   owner_id: string;
 }
 
-export default function AskPage() {
+function AskPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -168,4 +168,19 @@ export default function AskPage() {
 
   // Success state - render chat interface
   return <AskChatInterface projectId={project.id} projectName={project.name} />;
+}
+
+export default function AskPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading Ask SignalsLoop...</p>
+        </div>
+      </div>
+    }>
+      <AskPageContent />
+    </Suspense>
+  );
 }

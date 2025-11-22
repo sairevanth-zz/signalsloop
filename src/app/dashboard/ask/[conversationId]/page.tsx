@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { AskConversationView } from '@/components/ask/AskConversationView';
@@ -23,7 +23,7 @@ interface Project {
   name: string;
 }
 
-export default function ConversationPage() {
+function ConversationPageContent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -170,5 +170,20 @@ export default function ConversationPage() {
       projectName={project.name}
       initialQuery={initialQuery || undefined}
     />
+  );
+}
+
+export default function ConversationPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading conversation...</p>
+        </div>
+      </div>
+    }>
+      <ConversationPageContent />
+    </Suspense>
   );
 }
