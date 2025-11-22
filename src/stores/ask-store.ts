@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand';
+import React from 'react';
 
 // ============================================================================
 // Types
@@ -510,25 +511,31 @@ export const useRecentConversations = () => {
 
 /**
  * Get all messages with streaming content
+ * Uses shallow comparison to prevent unnecessary re-renders
  */
 export const useMessagesWithStreaming = () => {
-  return useAskStore((state) => {
-    if (!state.isStreaming) {
-      return state.messages;
+  const messages = useAskStore((state) => state.messages);
+  const isStreaming = useAskStore((state) => state.isStreaming);
+  const streamingContent = useAskStore((state) => state.streamingContent);
+  const currentConversation = useAskStore((state) => state.currentConversation);
+
+  return React.useMemo(() => {
+    if (!isStreaming) {
+      return messages;
     }
 
     // Add streaming message
     return [
-      ...state.messages,
+      ...messages,
       {
         id: 'streaming',
-        conversation_id: state.currentConversation?.id || '',
+        conversation_id: currentConversation?.id || '',
         role: 'assistant' as const,
-        content: state.streamingContent,
+        content: streamingContent,
         created_at: new Date().toISOString(),
       },
     ];
-  });
+  }, [messages, isStreaming, streamingContent, currentConversation?.id]);
 };
 
 /**
