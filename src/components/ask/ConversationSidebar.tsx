@@ -49,10 +49,15 @@ export function ConversationSidebar({ projectId }: ConversationSidebarProps) {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Load conversations on mount
+  // Load conversations on mount - use ref to ensure it only runs once per projectId
+  const hasLoaded = React.useRef<string | null>(null);
   useEffect(() => {
+    if (hasLoaded.current === projectId) return;
+    hasLoaded.current = projectId;
+
     loadConversations(projectId);
-  }, [projectId, loadConversations]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
 
   // Separate pinned and recent conversations
   const pinnedConversations = conversations.filter((conv) => conv.is_pinned);

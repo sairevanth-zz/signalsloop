@@ -83,11 +83,17 @@ export function AskChatInterface({ projectId, projectName }: AskChatInterfacePro
     [messages]
   );
 
-  // Initialize on mount
+
+  // Initialize on mount - use ref to ensure it only runs once
+  const hasInitialized = React.useRef(false);
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     setCurrentProjectId(projectId);
     clearConversation();
-  }, [projectId, setCurrentProjectId, clearConversation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
