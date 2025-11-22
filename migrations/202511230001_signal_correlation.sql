@@ -316,6 +316,13 @@ CREATE TRIGGER trigger_update_correlation_timestamp
 ALTER TABLE signal_correlations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE signal_events ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (in case of re-run)
+DROP POLICY IF EXISTS signal_correlations_select_policy ON signal_correlations;
+DROP POLICY IF EXISTS signal_correlations_insert_policy ON signal_correlations;
+DROP POLICY IF EXISTS signal_correlations_update_policy ON signal_correlations;
+DROP POLICY IF EXISTS signal_events_select_policy ON signal_events;
+DROP POLICY IF EXISTS signal_events_insert_policy ON signal_events;
+
 -- Correlations policies
 CREATE POLICY signal_correlations_select_policy ON signal_correlations
   FOR SELECT USING (

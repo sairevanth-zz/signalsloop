@@ -348,6 +348,21 @@ ALTER TABLE feedback_merges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE triage_queue ENABLE ROW LEVEL SECURITY;
 ALTER TABLE unified_action_queue ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (in case of re-run)
+DROP POLICY IF EXISTS pm_assignments_select_policy ON pm_assignments;
+DROP POLICY IF EXISTS pm_assignments_insert_policy ON pm_assignments;
+DROP POLICY IF EXISTS pm_assignments_update_policy ON pm_assignments;
+DROP POLICY IF EXISTS pm_assignments_delete_policy ON pm_assignments;
+DROP POLICY IF EXISTS feedback_merges_select_policy ON feedback_merges;
+DROP POLICY IF EXISTS feedback_merges_insert_policy ON feedback_merges;
+DROP POLICY IF EXISTS triage_queue_select_policy ON triage_queue;
+DROP POLICY IF EXISTS triage_queue_insert_policy ON triage_queue;
+DROP POLICY IF EXISTS triage_queue_update_policy ON triage_queue;
+DROP POLICY IF EXISTS action_queue_select_policy ON unified_action_queue;
+DROP POLICY IF EXISTS action_queue_insert_policy ON unified_action_queue;
+DROP POLICY IF EXISTS action_queue_update_policy ON unified_action_queue;
+DROP POLICY IF EXISTS action_queue_delete_policy ON unified_action_queue;
+
 -- PM Assignments policies
 CREATE POLICY pm_assignments_select_policy ON pm_assignments
   FOR SELECT USING (
