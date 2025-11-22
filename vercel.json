@@ -7,6 +7,11 @@
     {
       "path": "/api/cron/daily-intelligence-digest",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/proactive-spec-writer",
+      "schedule": "0 10 * * *",
+      "description": "Auto-draft specs for high-volume feedback clusters"
     }
   ],
   "functions": {
