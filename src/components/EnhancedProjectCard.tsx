@@ -323,11 +323,24 @@ export default function EnhancedProjectCard({
               </Button>
             </Link>
 
+            <Link href={`/app/roadmap?projectId=${project.id}`}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="relative bg-gradient-to-r from-purple-50 to-pink-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-pink-100 transition-all duration-200 hover:scale-105"
+                title="AI Roadmap - Priority Intelligence & Impact Simulation"
+              >
+                <Sparkles className="w-4 h-4 text-purple-600 transition-transform duration-200 group-hover:scale-110" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+              </Button>
+            </Link>
+
             <Link href={`/${project.slug}/roadmap`}>
               <Button
                 variant="outline"
                 size="sm"
                 className="bg-white/60 backdrop-blur-sm border-white/20 hover:bg-white/80 transition-all duration-200 hover:scale-105"
+                title="Public Roadmap"
               >
                 <Map className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
               </Button>
