@@ -137,6 +137,44 @@ export function ImpactSimulator({
           {/* Results */}
           {prediction && (
             <div className="space-y-4">
+              {/* Data Quality Warning */}
+              {(prediction.confidence < 0.5 || prediction.dataQuality === 'low') && (
+                <Card className="p-4 border-yellow-200 bg-yellow-50">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 mt-0.5 text-yellow-600" />
+                    <div className="flex-1">
+                      <h4 className="font-medium text-yellow-900 mb-1">
+                        Limited Prediction Accuracy
+                      </h4>
+                      <p className="text-sm text-yellow-800">
+                        {prediction.dataQuality === 'low' && prediction.confidence < 0.4 ? (
+                          <>
+                            This prediction has <strong>low confidence ({(prediction.confidence * 100).toFixed(0)}%)</strong> and <strong>low data quality</strong>.
+                            {' '}The system is making educated guesses based on limited feedback data and no historical feature data.
+                            {' '}Consider these predictions as rough estimates only.
+                          </>
+                        ) : prediction.dataQuality === 'low' ? (
+                          <>
+                            Data quality is <strong>low</strong>. The prediction is based on limited historical feature data.
+                            {' '}Add more historical feature impact data or gather more user feedback to improve accuracy.
+                          </>
+                        ) : (
+                          <>
+                            Confidence is <strong>below 50%</strong>. Consider gathering more feedback or adding historical feature data
+                            {' '}to improve prediction accuracy.
+                          </>
+                        )}
+                      </p>
+                      {prediction.similarFeatures && prediction.similarFeatures.length === 0 && (
+                        <p className="text-sm text-yellow-800 mt-2">
+                          <strong>Tip:</strong> Track feature launches in the Feature Impact History table to enable more accurate predictions over time.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              )}
+
               {/* Confidence & Data Quality */}
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-2">

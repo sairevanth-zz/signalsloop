@@ -120,11 +120,20 @@ export async function simulateFeatureImpact(
   // 2. Find similar historical features
   const similarFeatures = await findSimilarFeatures(projectId, theme.theme_name);
 
-  // 3. Calculate predictions based on historical data
-  const predictions = calculatePredictions(similarFeatures, theme);
+  // 3. Calculate predictions based on historical data and current feedback
+  const predictions = await calculatePredictions(projectId, suggestionId, similarFeatures, theme);
 
   // 4. Use AI to generate business justification and insights
   const aiInsights = await generateAIInsights(suggestion, similarFeatures, predictions);
+
+  // Calculate confidence and data quality using enhanced metrics
+  const confidence = await calculateOverallConfidence(
+    projectId,
+    theme.id,
+    similarFeatures.length,
+    predictions
+  );
+  const dataQuality = await assessDataQuality(projectId, theme.id, similarFeatures.length);
 
   return {
     scenario: {
@@ -142,8 +151,8 @@ export async function simulateFeatureImpact(
     keyAssumptions: aiInsights.assumptions,
     mitigationStrategies: aiInsights.mitigations,
     similarFeatures: similarFeatures.slice(0, 5), // Top 5 similar
-    confidence: calculateOverallConfidence(similarFeatures.length, predictions),
-    dataQuality: assessDataQuality(similarFeatures.length)
+    confidence,
+    dataQuality
   };
 }
 
@@ -239,6 +248,7 @@ export async function compareScenarios(
 
 /**
  * Find similar features from history based on theme name, category, etc.
+ * Enhanced algorithm with better similarity scoring
  */
 async function findSimilarFeatures(
   projectId: string,
@@ -258,22 +268,51 @@ async function findSimilarFeatures(
     return [];
   }
 
-  // Simple similarity: keyword matching for now
-  // TODO: Use embeddings for better semantic matching
-  const keywords = themeName.toLowerCase().split(' ');
+  // Enhanced similarity: keyword matching with better scoring
+  // TODO: Use embeddings for semantic matching in future
+  const themeWords = themeName.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+
+  // Common stop words to ignore
+  const stopWords = new Set(['the', 'and', 'for', 'with', 'from', 'this', 'that']);
+  const meaningfulWords = themeWords.filter(w => !stopWords.has(w));
 
   const scored = features.map(f => {
-    const featureKeywords = f.feature_name.toLowerCase().split(' ');
-    const matchCount = keywords.filter(k => featureKeywords.some(fk => fk.includes(k) || k.includes(fk))).length;
+    const featureWords = f.feature_name.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    const meaningfulFeatureWords = featureWords.filter(w => !stopWords.has(w));
+
+    // Calculate multiple similarity metrics
+    let matchScore = 0;
+
+    // 1. Exact word matches (highest weight)
+    const exactMatches = meaningfulWords.filter(w => meaningfulFeatureWords.includes(w)).length;
+    matchScore += exactMatches * 2;
+
+    // 2. Partial word matches (medium weight)
+    const partialMatches = meaningfulWords.filter(w =>
+      meaningfulFeatureWords.some(fw => fw.includes(w) || w.includes(fw))
+    ).length - exactMatches;
+    matchScore += partialMatches * 1;
+
+    // 3. Category match bonus
+    if (f.feature_category) {
+      const categoryWords = f.feature_category.toLowerCase().split(/\s+/);
+      const categoryMatch = meaningfulWords.some(w => categoryWords.includes(w));
+      if (categoryMatch) matchScore += 1;
+    }
+
+    // Normalize by average word count
+    const avgWordCount = (meaningfulWords.length + meaningfulFeatureWords.length) / 2;
+    const similarity = avgWordCount > 0 ? matchScore / avgWordCount : 0;
 
     return {
       feature: f,
-      similarity: matchCount / Math.max(keywords.length, featureKeywords.length)
+      similarity: Math.min(1.0, similarity)
     };
   });
 
-  // Return top matches
+  // Return top matches (similarity > 0.1)
   return scored
+    .filter(s => s.similarity > 0.1)
     .sort((a, b) => b.similarity - a.similarity)
     .slice(0, 10)
     .map(s => ({
@@ -287,33 +326,44 @@ async function findSimilarFeatures(
 
 /**
  * Calculate predictions from historical similar features
+ * Enhanced to use current feedback data when historical data is unavailable
  */
-function calculatePredictions(similarFeatures: any[], theme: any) {
+async function calculatePredictions(
+  projectId: string,
+  suggestionId: string,
+  similarFeatures: any[],
+  theme: any
+) {
+  const supabase = getServiceRoleClient();
+
+  // Fetch current feedback data for better baseline predictions
+  const { data: feedbackData } = await supabase
+    .from('posts')
+    .select('id, vote_count, comment_count, category')
+    .contains('themes', [theme.id])
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  const { data: sentimentData } = await supabase
+    .from('sentiment_analysis')
+    .select('sentiment_score, text_snippet')
+    .contains('theme_ids', [theme.id])
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  // Calculate current data metrics
+  const currentDataMetrics = {
+    feedbackVolume: feedbackData?.length || 0,
+    avgEngagement: feedbackData
+      ? feedbackData.reduce((sum, p) => sum + (p.vote_count || 0) + (p.comment_count || 0), 0) / Math.max(feedbackData.length, 1)
+      : 0,
+    currentSentiment: theme.avg_sentiment || 0,
+    sentimentSampleSize: sentimentData?.length || 0
+  };
+
   if (similarFeatures.length === 0) {
-    // No historical data - use conservative estimates
-    return {
-      sentimentImpact: {
-        predicted: 0.1,
-        confidence: 0.3,
-        range: { min: -0.1, max: 0.3 }
-      },
-      churnImpact: {
-        predicted: -0.02,
-        confidence: 0.3,
-        range: { min: -0.05, max: 0.01 },
-        affectedCustomers: Math.round((theme.frequency || 0) * 0.1)
-      },
-      adoptionRate: {
-        predicted: 0.4,
-        confidence: 0.3,
-        range: { min: 0.2, max: 0.6 }
-      },
-      revenueImpact: {
-        predicted: 0,
-        confidence: 0.2,
-        range: { min: -5000, max: 10000 }
-      }
-    };
+    // No historical data - use data-driven estimates based on current feedback
+    return calculatePredictionsFromCurrentData(theme, currentDataMetrics);
   }
 
   // Calculate averages from similar features
@@ -337,31 +387,31 @@ function calculatePredictions(similarFeatures: any[], theme: any) {
       similarFeatures.length
   );
 
-  // Confidence based on sample size
-  const confidence = Math.min(0.9, 0.4 + similarFeatures.length * 0.1);
+  // Confidence based on multiple factors (not just sample size)
+  const historicalDataConfidence = Math.min(0.5, 0.2 + similarFeatures.length * 0.05);
+  const currentDataConfidence = calculateCurrentDataConfidence(currentDataMetrics);
+  const confidence = Math.min(0.9, (historicalDataConfidence + currentDataConfidence) / 2);
 
-  // Estimate revenue impact (simplistic model)
-  // Assume reducing churn by 1% = $10,000/year for every 100 customers
-  const customerBase = theme.frequency || 100;
-  const estimatedRevenue = avgChurnImpact * customerBase * 100 * 1000;
+  // Fixed revenue calculation - use proper estimation model
+  const estimatedRevenue = calculateRevenueImpact(theme, avgChurnImpact, currentDataMetrics);
 
   return {
     sentimentImpact: {
       predicted: avgSentimentImpact,
       confidence,
       range: {
-        min: avgSentimentImpact - sentimentStdDev,
-        max: avgSentimentImpact + sentimentStdDev
+        min: avgSentimentImpact - sentimentStdDev * 1.5,
+        max: avgSentimentImpact + sentimentStdDev * 1.5
       }
     },
     churnImpact: {
       predicted: avgChurnImpact,
       confidence,
       range: {
-        min: avgChurnImpact - churnStdDev,
-        max: avgChurnImpact + churnStdDev
+        min: avgChurnImpact - churnStdDev * 1.5,
+        max: avgChurnImpact + churnStdDev * 1.5
       },
-      affectedCustomers: Math.round(customerBase * Math.abs(avgChurnImpact) * 10)
+      affectedCustomers: estimateAffectedCustomers(theme, currentDataMetrics)
     },
     adoptionRate: {
       predicted: avgAdoptionRate,
@@ -373,13 +423,177 @@ function calculatePredictions(similarFeatures: any[], theme: any) {
     },
     revenueImpact: {
       predicted: estimatedRevenue,
-      confidence: confidence * 0.7, // Lower confidence on revenue
+      confidence: confidence * 0.7, // Lower confidence on revenue (needs business data)
       range: {
         min: estimatedRevenue * 0.5,
-        max: estimatedRevenue * 1.5
+        max: estimatedRevenue * 2.0
       }
     }
   };
+}
+
+/**
+ * Calculate predictions using only current feedback data (no historical data available)
+ * More accurate than hardcoded fallbacks
+ */
+function calculatePredictionsFromCurrentData(theme: any, currentDataMetrics: any) {
+  // Predict sentiment impact based on current sentiment
+  // If current sentiment is very negative, fixing it will have high positive impact
+  const currentSentiment = currentDataMetrics.currentSentiment;
+  let predictedSentimentImpact = 0.15; // Default moderate improvement
+
+  if (currentSentiment < -0.3) {
+    // High pain point - expect significant improvement
+    predictedSentimentImpact = 0.25;
+  } else if (currentSentiment < 0) {
+    // Moderate pain point
+    predictedSentimentImpact = 0.18;
+  } else if (currentSentiment > 0.3) {
+    // Nice-to-have feature - smaller improvement
+    predictedSentimentImpact = 0.08;
+  }
+
+  // Predict churn impact based on sentiment and engagement
+  const avgEngagement = currentDataMetrics.avgEngagement;
+  let predictedChurnImpact = -0.015; // Default small churn reduction
+
+  if (currentSentiment < -0.3 && avgEngagement > 5) {
+    // High frustration with high engagement = significant churn risk
+    predictedChurnImpact = -0.04; // 4% churn reduction if fixed
+  } else if (currentSentiment < -0.1 && avgEngagement > 3) {
+    // Moderate issue
+    predictedChurnImpact = -0.025; // 2.5% churn reduction
+  } else if (currentSentiment > 0.2) {
+    // Positive feature request - minimal churn impact
+    predictedChurnImpact = -0.005; // 0.5% churn reduction
+  }
+
+  // Predict adoption rate based on engagement
+  let predictedAdoption = 0.35; // Default
+
+  if (avgEngagement > 10) {
+    // High engagement indicates high interest
+    predictedAdoption = 0.55;
+  } else if (avgEngagement > 5) {
+    predictedAdoption = 0.45;
+  } else if (avgEngagement < 2) {
+    predictedAdoption = 0.25;
+  }
+
+  // Calculate confidence based on data quality
+  const confidence = calculateCurrentDataConfidence(currentDataMetrics);
+
+  // Revenue estimation (conservative without historical data)
+  const estimatedRevenue = calculateRevenueImpact(theme, predictedChurnImpact, currentDataMetrics);
+
+  return {
+    sentimentImpact: {
+      predicted: predictedSentimentImpact,
+      confidence,
+      range: {
+        min: predictedSentimentImpact * 0.5,
+        max: predictedSentimentImpact * 1.8
+      }
+    },
+    churnImpact: {
+      predicted: predictedChurnImpact,
+      confidence,
+      range: {
+        min: predictedChurnImpact * 2.0, // Wider range due to uncertainty
+        max: predictedChurnImpact * 0.3
+      },
+      affectedCustomers: estimateAffectedCustomers(theme, currentDataMetrics)
+    },
+    adoptionRate: {
+      predicted: predictedAdoption,
+      confidence,
+      range: {
+        min: Math.max(0.15, predictedAdoption - 0.25),
+        max: Math.min(0.8, predictedAdoption + 0.25)
+      }
+    },
+    revenueImpact: {
+      predicted: estimatedRevenue,
+      confidence: confidence * 0.6, // Lower confidence without historical data
+      range: {
+        min: 0, // Conservative lower bound
+        max: estimatedRevenue * 3.0 // Wide upper range
+      }
+    }
+  };
+}
+
+/**
+ * Calculate confidence based on current data quality
+ */
+function calculateCurrentDataConfidence(metrics: any): number {
+  let confidence = 0.2; // Base confidence
+
+  // More feedback = higher confidence
+  if (metrics.feedbackVolume >= 50) {
+    confidence += 0.2;
+  } else if (metrics.feedbackVolume >= 20) {
+    confidence += 0.15;
+  } else if (metrics.feedbackVolume >= 10) {
+    confidence += 0.1;
+  } else if (metrics.feedbackVolume >= 5) {
+    confidence += 0.05;
+  }
+
+  // Sentiment sample size matters
+  if (metrics.sentimentSampleSize >= 30) {
+    confidence += 0.15;
+  } else if (metrics.sentimentSampleSize >= 10) {
+    confidence += 0.1;
+  } else if (metrics.sentimentSampleSize >= 5) {
+    confidence += 0.05;
+  }
+
+  // Engagement indicates data quality
+  if (metrics.avgEngagement >= 10) {
+    confidence += 0.1;
+  } else if (metrics.avgEngagement >= 5) {
+    confidence += 0.05;
+  }
+
+  return Math.min(0.7, confidence); // Cap at 0.7 without historical validation
+}
+
+/**
+ * Fixed revenue calculation - doesn't use mention count as customer count
+ */
+function calculateRevenueImpact(theme: any, churnImpact: number, currentDataMetrics: any): number {
+  // Revenue impact calculation requires actual business metrics
+  // Without subscriber data, we estimate conservatively
+
+  // Estimate potential annual value based on engagement and mention frequency
+  const mentionFrequency = theme.frequency || 0;
+  const avgEngagement = currentDataMetrics.avgEngagement || 1;
+
+  // High engagement + many mentions = higher potential value
+  // Assume each highly engaged mention represents ~$100-500/year in risk/opportunity
+  const valuePerMention = avgEngagement > 5 ? 300 : avgEngagement > 2 ? 150 : 50;
+
+  // Churn impact translates to revenue
+  // If we reduce churn by X%, revenue impact = (affected customers * value per mention)
+  const estimatedAnnualImpact = Math.abs(churnImpact) * mentionFrequency * valuePerMention;
+
+  // Return conservative estimate
+  return Math.round(estimatedAnnualImpact);
+}
+
+/**
+ * Estimate affected customers (not using mention count directly)
+ */
+function estimateAffectedCustomers(theme: any, currentDataMetrics: any): number {
+  const mentionFrequency = theme.frequency || 0;
+  const avgEngagement = currentDataMetrics.avgEngagement || 1;
+
+  // Each mention might represent 1-5 affected customers depending on engagement
+  // High engagement = more customers affected per mention
+  const multiplier = avgEngagement > 10 ? 5 : avgEngagement > 5 ? 3 : avgEngagement > 2 ? 2 : 1;
+
+  return Math.round(mentionFrequency * multiplier);
 }
 
 /**
@@ -510,22 +724,119 @@ function assessRiskLevel(predictions: any): 'low' | 'medium' | 'high' {
 }
 
 /**
- * Calculate overall confidence based on data availability
+ * Calculate overall confidence based on multiple data sources
+ * Enhanced to consider both historical and current data quality
  */
-function calculateOverallConfidence(similarFeatureCount: number, predictions: any): number {
-  if (similarFeatureCount === 0) return 0.2;
-  if (similarFeatureCount < 3) return 0.4;
-  if (similarFeatureCount < 5) return 0.6;
-  if (similarFeatureCount < 10) return 0.8;
-  return 0.9;
+async function calculateOverallConfidence(
+  projectId: string,
+  themeId: string,
+  similarFeatureCount: number,
+  predictions: any
+): Promise<number> {
+  const supabase = getServiceRoleClient();
+
+  // Get current data availability
+  const { count: feedbackCount } = await supabase
+    .from('posts')
+    .select('id', { count: 'exact', head: true })
+    .contains('themes', [themeId]);
+
+  const { count: sentimentCount } = await supabase
+    .from('sentiment_analysis')
+    .select('id', { count: 'exact', head: true })
+    .contains('theme_ids', [themeId]);
+
+  let confidence = 0.2; // Base confidence
+
+  // Historical data contribution (up to 0.4)
+  if (similarFeatureCount >= 10) {
+    confidence += 0.4;
+  } else if (similarFeatureCount >= 5) {
+    confidence += 0.3;
+  } else if (similarFeatureCount >= 3) {
+    confidence += 0.2;
+  } else if (similarFeatureCount >= 1) {
+    confidence += 0.1;
+  }
+
+  // Current feedback data contribution (up to 0.3)
+  if ((feedbackCount || 0) >= 50) {
+    confidence += 0.3;
+  } else if ((feedbackCount || 0) >= 20) {
+    confidence += 0.2;
+  } else if ((feedbackCount || 0) >= 10) {
+    confidence += 0.15;
+  } else if ((feedbackCount || 0) >= 5) {
+    confidence += 0.1;
+  }
+
+  // Sentiment data contribution (up to 0.1)
+  if ((sentimentCount || 0) >= 30) {
+    confidence += 0.1;
+  } else if ((sentimentCount || 0) >= 10) {
+    confidence += 0.05;
+  }
+
+  return Math.min(0.9, confidence);
 }
 
 /**
- * Assess data quality
+ * Assess data quality based on multiple factors
+ * Enhanced to look at all available data sources
  */
-function assessDataQuality(similarFeatureCount: number): 'high' | 'medium' | 'low' {
-  if (similarFeatureCount >= 5) return 'high';
-  if (similarFeatureCount >= 2) return 'medium';
+async function assessDataQuality(
+  projectId: string,
+  themeId: string,
+  similarFeatureCount: number
+): Promise<'high' | 'medium' | 'low'> {
+  const supabase = getServiceRoleClient();
+
+  // Get current data availability
+  const { count: feedbackCount } = await supabase
+    .from('posts')
+    .select('id', { count: 'exact', head: true })
+    .contains('themes', [themeId]);
+
+  const { count: sentimentCount } = await supabase
+    .from('sentiment_analysis')
+    .select('id', { count: 'exact', head: true })
+    .contains('theme_ids', [themeId]);
+
+  // Score data quality (0-100 scale)
+  let qualityScore = 0;
+
+  // Historical features (up to 40 points)
+  if (similarFeatureCount >= 5) {
+    qualityScore += 40;
+  } else if (similarFeatureCount >= 3) {
+    qualityScore += 30;
+  } else if (similarFeatureCount >= 1) {
+    qualityScore += 15;
+  }
+
+  // Feedback volume (up to 40 points)
+  if ((feedbackCount || 0) >= 50) {
+    qualityScore += 40;
+  } else if ((feedbackCount || 0) >= 20) {
+    qualityScore += 30;
+  } else if ((feedbackCount || 0) >= 10) {
+    qualityScore += 20;
+  } else if ((feedbackCount || 0) >= 5) {
+    qualityScore += 10;
+  }
+
+  // Sentiment analysis (up to 20 points)
+  if ((sentimentCount || 0) >= 30) {
+    qualityScore += 20;
+  } else if ((sentimentCount || 0) >= 10) {
+    qualityScore += 15;
+  } else if ((sentimentCount || 0) >= 5) {
+    qualityScore += 10;
+  }
+
+  // Classify quality
+  if (qualityScore >= 70) return 'high';
+  if (qualityScore >= 40) return 'medium';
   return 'low';
 }
 
