@@ -291,12 +291,11 @@ RETURNS JSON AS $$
         FROM stakeholder_reports r
         WHERE r.stakeholder_id = s.id
       )
-    )
+    ) ORDER BY s.created_at DESC
   ), '[]'::json)
   FROM stakeholders s
-  WHERE s.project_id = p_project_id
-  ORDER BY s.created_at DESC;
-$$ LANGUAGE SQL;
+  WHERE s.project_id = p_project_id;
+$$ LANGUAGE SQL STABLE;
 
 -- Function to track report engagement (opens)
 CREATE OR REPLACE FUNCTION track_report_open(p_report_id UUID)
