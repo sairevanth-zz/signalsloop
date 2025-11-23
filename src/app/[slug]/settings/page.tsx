@@ -34,7 +34,8 @@ import {
   Plug,
   Mail,
   Users,
-  Activity
+  Activity,
+  Briefcase
 } from 'lucide-react';
 import { NotificationRecipientsManager } from '@/components/NotificationRecipientsManager';
 import { TeammatesSettings } from '@/components/TeammatesSettings';
@@ -529,6 +530,13 @@ export default function SettingsPage() {
                   <Users className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Team</span>
                 </TabsTrigger>
+                <TabsTrigger
+                  value="stakeholders"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
+                >
+                  <Briefcase className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Stakeholders</span>
+                </TabsTrigger>
               </TabsList>
             </div>
           </div>
@@ -847,6 +855,31 @@ export default function SettingsPage() {
                   </p>
                 </div>
               )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="stakeholders" className="mt-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Stakeholder Management</h3>
+                  <p className="text-gray-600">
+                    Manage stakeholders and automated status reports
+                  </p>
+                </div>
+              </div>
+              <div className="text-center py-8">
+                <p className="text-gray-600 mb-4">
+                  Configure stakeholders and automated reporting:
+                </p>
+                <Button
+                  onClick={() => router.push(`/${projectSlug}/settings/stakeholders`)}
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+                >
+                  <Briefcase className="h-4 w-4 mr-2" />
+                  Open Stakeholder Dashboard
+                </Button>
+              </div>
             </div>
           </TabsContent>
 

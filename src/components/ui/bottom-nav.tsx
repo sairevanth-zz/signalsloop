@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Home, MessageSquare, Map, Plus, User } from 'lucide-react';
+import { Home, MessageSquare, Map, Plus, User, Flask } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 interface BottomNavProps {
@@ -34,10 +34,10 @@ export function BottomNav({ projectSlug, onNewPost }: BottomNavProps) {
       isPrimary: true,
     },
     {
-      href: `/app/feedback`,
-      label: 'Feedback',
-      icon: MessageSquare,
-      isActive: pathname?.includes('/feedback'),
+      href: projectSlug ? `/${projectSlug}/experiments` : '/app/experiments',
+      label: 'Experiments',
+      icon: Flask,
+      isActive: pathname?.includes('/experiments'),
     },
     {
       href: projectSlug ? `/${projectSlug}/settings` : '/app/settings',
