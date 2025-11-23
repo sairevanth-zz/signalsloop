@@ -81,10 +81,26 @@ export async function triggerThemeDetection(
       return { success: false, themesDetected: 0 };
     }
 
-    // TODO: Call the theme detection API
-    // This would integrate with the existing theme detection feature
-    // For now, we just mark items as analyzed
+    // Call the theme detection API endpoint
+    const apiUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const response = await fetch(`${apiUrl}/api/detect-themes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId,
+        force: false, // Only analyze recent items
+      }),
+    });
 
+    if (!response.ok) {
+      throw new Error(`Theme detection API failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    // Mark items as analyzed
     const now = new Date().toISOString();
     const { error } = await supabase
       .from('discovered_feedback')
@@ -95,14 +111,18 @@ export async function triggerThemeDetection(
       );
 
     if (error) {
-      throw error;
+      console.error('[Hunter-Theme] Error marking items as analyzed:', error);
+      // Don't fail the request, just log the error
     }
 
     console.log(
-      `[Hunter-Theme] Marked ${feedback.length} items for theme analysis`
+      `[Hunter-Theme] Detected ${result.newCount || 0} new themes from ${feedback.length} items`
     );
 
-    return { success: true, themesDetected: 0 };
+    return {
+      success: true,
+      themesDetected: result.newCount || 0,
+    };
   } catch (error) {
     console.error('[Hunter-Theme] Error triggering detection:', error);
     return { success: false, themesDetected: 0 };
