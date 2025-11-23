@@ -33,6 +33,7 @@ import {
 import { RecommendationCard } from './RecommendationCard';
 import { PriorityMatrix } from './PriorityMatrix';
 import { ExportDialog } from './ExportDialog';
+import { PriorityHistoryViewer } from './PriorityHistoryViewer';
 import { toast } from 'sonner';
 
 interface RoadmapSuggestion {
@@ -340,6 +341,9 @@ export function RoadmapDashboard({ projectId }: RoadmapDashboardProps) {
           ))}
         </div>
       </div>
+
+      {/* Priority Change History */}
+      <PriorityHistoryViewer projectId={projectId} days={30} />
 
       {/* Content */}
       {viewMode === 'list' ? (
