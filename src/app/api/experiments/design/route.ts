@@ -76,10 +76,14 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Design Assistant API] POST error:', error);
+    if (error instanceof Error) {
+      console.error('[Design Assistant API] Error stack:', error.stack);
+    }
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Unknown error',
         details: 'Failed to generate experiment design. Please check your feature idea and try again.',
+        debug: error instanceof Error ? error.stack : undefined
       },
       { status: 500 }
     );
