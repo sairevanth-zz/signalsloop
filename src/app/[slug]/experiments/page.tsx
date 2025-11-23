@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Flask, Plus, TrendingUp, CheckCircle, Clock, Play } from 'lucide-react';
+import { FlaskConical, Plus, TrendingUp, CheckCircle, Clock, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
 
@@ -124,7 +124,7 @@ export default function ExperimentsPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Flask className="h-8 w-8" />
+            <FlaskConical className="h-8 w-8" />
             Experimentation Intelligence
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -145,7 +145,7 @@ export default function ExperimentsPage() {
               <p className="text-sm text-muted-foreground">Total Experiments</p>
               <p className="text-3xl font-bold mt-1">{stats.total}</p>
             </div>
-            <Flask className="h-8 w-8 text-blue-500" />
+            <FlaskConical className="h-8 w-8 text-blue-500" />
           </div>
         </Card>
 
@@ -197,7 +197,7 @@ export default function ExperimentsPage() {
       {/* Experiments List */}
       {experiments.length === 0 ? (
         <Card className="p-12 text-center">
-          <Flask className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <FlaskConical className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">No experiments yet</h3>
           <p className="text-muted-foreground mb-4">
             Use AI to design rigorous experiments and track results automatically
