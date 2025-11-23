@@ -35,6 +35,7 @@ import { PriorityMatrix } from './PriorityMatrix';
 import { ExportDialog } from './ExportDialog';
 import { PriorityHistoryViewer } from './PriorityHistoryViewer';
 import { toast } from 'sonner';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface RoadmapSuggestion {
   id: string;
@@ -96,12 +97,25 @@ export function RoadmapDashboard({ projectId }: RoadmapDashboardProps) {
   const fetchSuggestions = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('auth_token'); // Adjust based on auth implementation
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        toast.error('Unable to connect to database');
+        setLoading(false);
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error('Please sign in to view roadmap');
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(
         `/api/roadmap/suggestions?projectId=${projectId}`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${session.access_token}`
           }
         }
       );
@@ -166,12 +180,25 @@ export function RoadmapDashboard({ projectId }: RoadmapDashboardProps) {
   const handleGenerateRoadmap = async (withReasoning: boolean = false) => {
     setGenerating(true);
     try {
-      const token = localStorage.getItem('auth_token');
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        toast.error('Unable to connect to database');
+        setGenerating(false);
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error('Please sign in to generate roadmap');
+        setGenerating(false);
+        return;
+      }
+
       const response = await fetch('/api/roadmap/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           projectId,

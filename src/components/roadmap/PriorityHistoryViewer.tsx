@@ -20,7 +20,7 @@ import {
   Zap,
   RefreshCw
 } from 'lucide-react';
-import { createClient } from '@/lib/supabase-client';
+import { createClient } from '@supabase/supabase-js';
 
 interface PriorityChange {
   id: string;
@@ -49,7 +49,16 @@ export function PriorityHistoryViewer({ projectId, days = 7 }: PriorityHistoryVi
   const loadHistory = async () => {
     setLoading(true);
     try {
-      const supabase = createClient();
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        console.error('Missing Supabase environment variables');
+        setLoading(false);
+        return;
+      }
+
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      );
 
       const { data, error } = await supabase
         .rpc('get_recent_priority_changes', {

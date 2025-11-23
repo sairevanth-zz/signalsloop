@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { Download, FileText, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface ExportDialogProps {
   projectId: string;
@@ -56,12 +57,25 @@ export function ExportDialog({
 
     setExporting(true);
     try {
-      const token = localStorage.getItem('auth_token');
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        toast.error('Unable to connect to database');
+        setExporting(false);
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error('Please sign in to export');
+        setExporting(false);
+        return;
+      }
+
       const response = await fetch('/api/roadmap/export', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           projectId,
