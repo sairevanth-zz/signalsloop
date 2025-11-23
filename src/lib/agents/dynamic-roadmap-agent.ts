@@ -575,22 +575,21 @@ async function notifyPriorityChanges(
 
   html += `<p><a href="${process.env.NEXT_PUBLIC_BASE_URL}/app/roadmap?projectId=${projectId}">View Roadmap →</a></p>`;
 
-  // Get team members to notify
-  const { data: members } = await supabase
-    .from('team_members')
-    .select('users!inner(email)')
-    .eq('project_id', projectId);
+  // Get project owner to notify
+  const { data: projectData } = await supabase
+    .from('projects')
+    .select('owner_id, users!inner(email)')
+    .eq('id', projectId)
+    .single();
 
-  if (members && members.length > 0) {
-    for (const member of members) {
-      const email = (member as any).users?.email;
-      if (email) {
-        await sendEmail({
-          to: email,
-          subject,
-          html
-        });
-      }
+  if (projectData) {
+    const email = (projectData as any).users?.email;
+    if (email) {
+      await sendEmail({
+        to: email,
+        subject,
+        html
+      });
     }
   }
 }

@@ -342,9 +342,9 @@ CREATE POLICY "Users can view priority history for their projects"
 ON roadmap_priority_history FOR SELECT
 USING (
     EXISTS (
-        SELECT 1 FROM team_members tm
-        WHERE tm.project_id = roadmap_priority_history.project_id
-          AND tm.user_id = auth.uid()
+        SELECT 1 FROM projects p
+        WHERE p.id = roadmap_priority_history.project_id
+          AND p.owner_id = auth.uid()
     )
 );
 
@@ -353,23 +353,23 @@ ON roadmap_priority_history FOR ALL
 USING (auth.jwt()->>'role' = 'service_role');
 
 -- Team Capacity Policies
-CREATE POLICY "Team members can view capacity for their projects"
+CREATE POLICY "Project owners can view capacity for their projects"
 ON team_capacity FOR SELECT
 USING (
     EXISTS (
-        SELECT 1 FROM team_members tm
-        WHERE tm.project_id = team_capacity.project_id
-          AND tm.user_id = auth.uid()
+        SELECT 1 FROM projects p
+        WHERE p.id = team_capacity.project_id
+          AND p.owner_id = auth.uid()
     )
 );
 
-CREATE POLICY "Team members can manage capacity for their projects"
+CREATE POLICY "Project owners can manage capacity for their projects"
 ON team_capacity FOR ALL
 USING (
     EXISTS (
-        SELECT 1 FROM team_members tm
-        WHERE tm.project_id = team_capacity.project_id
-          AND tm.user_id = auth.uid()
+        SELECT 1 FROM projects p
+        WHERE p.id = team_capacity.project_id
+          AND p.owner_id = auth.uid()
     )
 );
 
@@ -378,23 +378,23 @@ ON team_capacity FOR ALL
 USING (auth.jwt()->>'role' = 'service_role');
 
 -- Feature Impact History Policies
-CREATE POLICY "Team members can view impact history for their projects"
+CREATE POLICY "Project owners can view impact history for their projects"
 ON feature_impact_history FOR SELECT
 USING (
     EXISTS (
-        SELECT 1 FROM team_members tm
-        WHERE tm.project_id = feature_impact_history.project_id
-          AND tm.user_id = auth.uid()
+        SELECT 1 FROM projects p
+        WHERE p.id = feature_impact_history.project_id
+          AND p.owner_id = auth.uid()
     )
 );
 
-CREATE POLICY "Team members can manage impact history for their projects"
+CREATE POLICY "Project owners can manage impact history for their projects"
 ON feature_impact_history FOR ALL
 USING (
     EXISTS (
-        SELECT 1 FROM team_members tm
-        WHERE tm.project_id = feature_impact_history.project_id
-          AND tm.user_id = auth.uid()
+        SELECT 1 FROM projects p
+        WHERE p.id = feature_impact_history.project_id
+          AND p.owner_id = auth.uid()
     )
 );
 
