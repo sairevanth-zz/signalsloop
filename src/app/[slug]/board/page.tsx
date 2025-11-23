@@ -40,7 +40,6 @@ import {
   Download,
   GitMerge,
   Brain,
-  Flask,
 } from 'lucide-react';
 import {
   Select,
@@ -1077,19 +1076,6 @@ export default function BoardPage() {
                               <span className="text-sm font-medium text-gray-900">User Stories</span>
                               <span className="text-xs text-gray-500">
                                 AI-generated sprint-ready stories from themes
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        </Link>
-                      )}
-                      {user && (
-                        <Link href={`/${project?.slug}/experiments`}>
-                          <DropdownMenuItem className="flex items-start gap-3 py-3">
-                            <Flask className="h-4 w-4 text-green-600" />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">Experiments</span>
-                              <span className="text-xs text-gray-500">
-                                AI-powered A/B test design and results analysis
                               </span>
                             </div>
                           </DropdownMenuItem>
