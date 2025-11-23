@@ -8,6 +8,12 @@
  * - Business Impact (urgency, keywords, velocity)
  * - Effort (lower effort = higher score for quick wins)
  * - Competitive Pressure (how many competitors have this)
+ *
+ * DATA PIPELINE FIXES (2025-11-23):
+ * - Fixed sentiment fetching: Now queries sentiment_analysis table directly for accurate scores
+ * - Added proxy urgency: Calculates urgency (1-5) from post engagement (vote_count + comment_count)
+ * - Fixed category extraction: Uses posts.category field instead of non-existent classification array
+ * - Improved accuracy: Priority scores now based on real data instead of empty arrays
  */
 
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
@@ -243,7 +249,13 @@ export async function generateRoadmapSuggestions(projectId: string) {
         feedback_themes (
           feedback_id,
           posts (
-            id
+            id,
+            category,
+            vote_count,
+            comment_count,
+            sentiment_analysis (
+              sentiment_score
+            )
           )
         )
       `)
@@ -283,27 +295,54 @@ export async function generateRoadmapSuggestions(projectId: string) {
     const suggestions = [];
 
     for (const theme of themes) {
-      // Extract urgency scores from feedback
+      // Calculate proxy urgency scores from post engagement metrics
+      // Higher votes + comments = higher urgency signal from users
       const urgencyScores = theme.feedback_themes
-        ?.map((ft: any) => ft.posts?.urgency_score)
+        ?.map((ft: any) => {
+          const post = ft.posts;
+          if (!post) return null;
+
+          // Calculate urgency proxy (1-5 scale) based on engagement
+          const voteCount = post.vote_count || 0;
+          const commentCount = post.comment_count || 0;
+          const engagementScore = voteCount + (commentCount * 2); // Comments weighted higher
+
+          // Map engagement to 1-5 urgency scale
+          if (engagementScore >= 50) return 5;
+          if (engagementScore >= 20) return 4;
+          if (engagementScore >= 10) return 3;
+          if (engagementScore >= 5) return 2;
+          return 1;
+        })
         .filter((score: number | null | undefined): score is number =>
           score !== null && score !== undefined
         ) || [];
 
-      // Extract business impact keywords from feedback classifications
+      // Extract business impact keywords from post categories and sentiment
       const businessImpactKeywords = theme.feedback_themes
-        ?.flatMap((ft: any) => ft.posts?.classification || [])
+        ?.map((ft: any) => ft.posts?.category)
         .filter(Boolean) || [];
 
       // Get estimated effort (TODO: implement effort estimation)
       // For now, default to 'medium'
       const estimatedEffort = 'medium' as const;
 
+      // Calculate average sentiment from individual posts when available
+      const sentimentScores = theme.feedback_themes
+        ?.map((ft: any) => ft.posts?.sentiment_analysis?.[0]?.sentiment_score)
+        .filter((score: number | null | undefined): score is number =>
+          score !== null && score !== undefined
+        ) || [];
+
+      const avgSentiment = sentimentScores.length > 0
+        ? sentimentScores.reduce((a, b) => a + Number(b), 0) / sentimentScores.length
+        : Number(theme.avg_sentiment) || 0;
+
       const themeData: ThemeData = {
         theme_id: theme.id,
         theme_name: theme.theme_name,
         mention_count: theme.frequency || 0,
-        avg_sentiment: Number(theme.avg_sentiment) || 0,
+        avg_sentiment: avgSentiment,
         first_detected_at: theme.first_seen,
         business_impact_keywords: businessImpactKeywords,
         urgency_scores: urgencyScores,
