@@ -363,16 +363,14 @@ RETURNS JSON AS $$
   SELECT json_build_object(
     'experiment', row_to_json(e.*),
     'results', (
-      SELECT COALESCE(json_agg(row_to_json(r.*)), '[]'::json)
+      SELECT COALESCE(json_agg(row_to_json(r.*) ORDER BY r.measured_at DESC), '[]'::json)
       FROM experiment_results r
       WHERE r.experiment_id = p_experiment_id
-      ORDER BY r.measured_at DESC
     ),
     'learnings', (
-      SELECT COALESCE(json_agg(row_to_json(l.*)), '[]'::json)
+      SELECT COALESCE(json_agg(row_to_json(l.*) ORDER BY l.impact_score DESC NULLS LAST, l.created_at DESC), '[]'::json)
       FROM experiment_learnings l
       WHERE l.experiment_id = p_experiment_id
-      ORDER BY l.impact_score DESC NULLS LAST, l.created_at DESC
     ),
     'snapshots', (
       SELECT COALESCE(json_agg(row_to_json(s.*)), '[]'::json)
@@ -414,8 +412,7 @@ RETURNS JSON AS $$
         FROM experiment_learnings l
         WHERE l.experiment_id = e.id
       )
-    )
-    ORDER BY e.created_at DESC
+    ) ORDER BY e.created_at DESC
   ), '[]'::json)
   FROM experiments e
   WHERE e.project_id = p_project_id
