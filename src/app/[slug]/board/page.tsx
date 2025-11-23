@@ -40,7 +40,7 @@ import {
   Download,
   GitMerge,
   Brain,
-  Flask,
+  FlaskConical,
 } from 'lucide-react';
 import {
   Select,
@@ -816,14 +816,14 @@ export default function BoardPage() {
       }
 
       // Check which posts already have sentiment analysis
-      const postIds = postsWithoutSentiment.map(p => p.id);
+      const postIds = postsWithoutSentiment.map((p: any) => p.id);
       const { data: existingAnalysis } = await supabase
         .from('sentiment_analysis')
         .select('post_id')
         .in('post_id', postIds);
 
-      const analyzedIds = new Set(existingAnalysis?.map(a => a.post_id) || []);
-      const postsToAnalyze = postIds.filter(id => !analyzedIds.has(id));
+      const analyzedIds = new Set(existingAnalysis?.map((a: { post_id: string }) => a.post_id) || []);
+      const postsToAnalyze = postIds.filter((id: string) => !analyzedIds.has(id));
 
       if (postsToAnalyze.length === 0) {
         toast.success('All posts already have sentiment analysis!');
@@ -1085,7 +1085,7 @@ export default function BoardPage() {
                       {user && project?.slug && (
                         <Link href={`/${project.slug}/experiments`} prefetch={false}>
                           <DropdownMenuItem className="flex items-start gap-3 py-3">
-                            <Flask className="h-4 w-4 text-green-600" />
+                            <FlaskConical className="h-4 w-4 text-green-600" />
                             <div className="flex flex-col">
                               <span className="text-sm font-medium text-gray-900">Experiments</span>
                               <span className="text-xs text-gray-500">
