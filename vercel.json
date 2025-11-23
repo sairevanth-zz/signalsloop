@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/orchestrator",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/send-stakeholder-reports",
+      "schedule": "0 9 * * 1"
     }
   ],
   "functions": {
