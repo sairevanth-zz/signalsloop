@@ -123,7 +123,7 @@ Return ONLY a valid JSON object with these exact keys (camelCase):
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4-turbo-preview',
       messages: [
         {
           role: 'system',
@@ -420,7 +420,7 @@ Return JSON with standard fields PLUS:
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4-turbo-preview',
       messages: [
         {
           role: 'system',
