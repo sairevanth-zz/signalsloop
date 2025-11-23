@@ -1,5 +1,5 @@
 -- =====================================================
--- Dynamic Roadmap Intelligence Feature
+-- Dynamic Roadmap Intelligence Feature (Safe Version)
 -- =====================================================
 -- Enables automatic roadmap priority adjustments based on:
 -- - Feedback velocity changes
@@ -7,6 +7,15 @@
 -- - Competitive pressure
 -- - Revenue impact signals
 -- =====================================================
+
+-- Drop existing objects if they exist (for clean reinstall)
+DROP TABLE IF EXISTS roadmap_priority_history CASCADE;
+DROP TABLE IF EXISTS team_capacity CASCADE;
+DROP TABLE IF EXISTS feature_impact_history CASCADE;
+
+DROP FUNCTION IF EXISTS get_recent_priority_changes(UUID, INT);
+DROP FUNCTION IF EXISTS calculate_team_velocity(UUID, INT);
+DROP FUNCTION IF EXISTS get_feature_impact_stats(UUID, TEXT);
 
 -- =====================================================
 -- 1. ROADMAP PRIORITY HISTORY TABLE
