@@ -21,9 +21,11 @@ import {
   Sparkles,
   TrendingUp,
   Users,
-  Zap
+  Zap,
+  LineChart
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ImpactSimulator } from './ImpactSimulator';
 
 interface RecommendationCardProps {
   suggestion: any;
@@ -133,6 +135,21 @@ export function RecommendationCard({
         </div>
 
         <div className="flex gap-2">
+          <ImpactSimulator
+            projectId={projectId}
+            suggestionId={suggestion.id}
+            themeName={suggestion.themes?.theme_name || 'Unknown Theme'}
+            trigger={
+              <Button
+                variant="outline"
+                size="sm"
+                title="Simulate impact of building or deferring this feature"
+              >
+                <LineChart className="w-4 h-4 mr-2" />
+                Simulate Impact
+              </Button>
+            }
+          />
           <Button
             variant="outline"
             size="icon"

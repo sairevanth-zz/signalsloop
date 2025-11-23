@@ -84,6 +84,7 @@ const TASK_SCHEDULE = {
   ],
   morning: [
     // Batch 2: Run at 9 AM daily
+    { path: '/api/cron/dynamic-roadmap', timeout: 180000 }, // 3 min - auto-adjust roadmap priorities
     { path: '/api/cron/proactive-spec-writer', timeout: 300000 }, // 5 min - auto-draft specs
     { path: '/api/cron/competitive-extraction', timeout: 180000 }, // 3 min - extract competitors
     { path: '/api/cron/detect-feature-gaps', timeout: 120000 }, // 2 min - feature gaps
