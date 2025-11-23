@@ -37,9 +37,17 @@ export default function ExperimentsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Fix hydration by ensuring initial client render matches server
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Get project ID
   useEffect(() => {
+    if (!mounted) return;
+
     const fetchProject = async () => {
       const supabase = getSupabaseClient();
       if (!supabase) return;
@@ -56,7 +64,7 @@ export default function ExperimentsPage() {
     };
 
     fetchProject();
-  }, [projectSlug]);
+  }, [projectSlug, mounted]);
 
   // Fetch experiments
   useEffect(() => {
@@ -101,7 +109,8 @@ export default function ExperimentsPage() {
     cancelled: 'bg-red-100 text-red-800',
   };
 
-  if (loading) {
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted || loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-muted-foreground">Loading experiments...</div>
