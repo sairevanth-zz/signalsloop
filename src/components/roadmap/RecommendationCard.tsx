@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImpactSimulator } from './ImpactSimulator';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface RecommendationCardProps {
   suggestion: any;
@@ -73,12 +74,25 @@ export function RecommendationCard({
   const handlePinToggle = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('auth_token');
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        toast.error('Unable to connect to database');
+        setLoading(false);
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error('Please sign in');
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(`/api/roadmap/${suggestion.id}/override`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           pinned: !suggestion.pinned
