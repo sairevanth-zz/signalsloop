@@ -232,7 +232,7 @@ export async function generateRoadmapSuggestions(projectId: string) {
 
   try {
     // 1. Fetch all themes for project with related feedback data
-    const { data: themes, error: themesError } = await supabase
+    const { data: themes, error: themesError} = await supabase
       .from('themes')
       .select(`
         id,
@@ -242,10 +242,8 @@ export async function generateRoadmapSuggestions(projectId: string) {
         first_seen,
         feedback_themes (
           feedback_id,
-          posts!inner (
-            id,
-            urgency_score,
-            classification
+          posts (
+            id
           )
         )
       `)
