@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * Auto-Generated User Stories Page
+ * Mission Control Page
  *
- * AI-powered conversion of themes to sprint-ready user stories
+ * Direct access to Mission Control dashboard with project selector
  */
 
 import { useEffect, useState, Suspense } from 'react';
@@ -14,8 +14,7 @@ import GlobalBanner from '@/components/GlobalBanner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { ArrowLeft, Zap, FileText, Target, FolderKanban } from 'lucide-react';
-import { UserStoriesDashboard } from '@/components/user-stories/UserStoriesDashboard';
+import { ArrowLeft, Brain, Sparkles, Target, TrendingUp } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -60,34 +59,34 @@ function ProjectSelector() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <div className="mb-6">
-              <Zap className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+              <Brain className="w-16 h-16 text-blue-600 mx-auto mb-4" />
             </div>
-            <h1 className="text-4xl font-bold mb-4">Auto-Generated User Stories</h1>
+            <h1 className="text-4xl font-bold mb-4">Mission Control</h1>
             <p className="text-lg text-gray-600 mb-8">
-              Convert feedback themes into development-ready user stories
+              AI-powered executive dashboard with real-time insights and sentiment tracking
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <FileText className="w-8 h-8 text-blue-600 mb-3" />
-              <h3 className="font-semibold mb-2">AI-Generated Stories</h3>
+              <Sparkles className="w-8 h-8 text-blue-600 mb-3" />
+              <h3 className="font-semibold mb-2">AI-Powered Briefings</h3>
               <p className="text-sm text-gray-600">
-                GPT-4 converts themes into proper user story format with acceptance criteria
+                Get executive summaries and actionable insights powered by GPT-4
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <Target className="w-8 h-8 text-green-600 mb-3" />
-              <h3 className="font-semibold mb-2">Story Point Estimation</h3>
+              <TrendingUp className="w-8 h-8 text-green-600 mb-3" />
+              <h3 className="font-semibold mb-2">Real-Time Sentiment</h3>
               <p className="text-sm text-gray-600">
-                Automatic Fibonacci scale estimation based on complexity and effort
+                Track customer sentiment and feedback velocity in real-time
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <ArrowLeft className="w-8 h-8 text-purple-600 mb-3" />
-              <h3 className="font-semibold mb-2">Jira Export</h3>
+              <Target className="w-8 h-8 text-purple-600 mb-3" />
+              <h3 className="font-semibold mb-2">Priority Insights</h3>
               <p className="text-sm text-gray-600">
-                One-click export to Jira with all fields properly formatted
+                Understand what matters most to your customers right now
               </p>
             </div>
           </div>
@@ -95,11 +94,11 @@ function ProjectSelector() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FolderKanban className="w-5 h-5" />
+                <Brain className="w-5 h-5" />
                 Select a Project
               </CardTitle>
               <CardDescription>
-                Choose a project to view and generate user stories
+                Choose a project to view its Mission Control dashboard
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -119,7 +118,7 @@ function ProjectSelector() {
                   {projects.map((project) => (
                     <button
                       key={project.id}
-                      onClick={() => router.push(`/app/user-stories?projectId=${project.id}`)}
+                      onClick={() => router.push(`/${project.slug}/dashboard`)}
                       className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all text-left group"
                     >
                       <div>
@@ -149,18 +148,8 @@ function ProjectSelector() {
   );
 }
 
-function UserStoriesContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+function MissionControlContent() {
   const { user, loading } = useAuth();
-  const [projectId, setProjectId] = useState<string>('');
-
-  useEffect(() => {
-    const id = searchParams.get('projectId');
-    if (id) {
-      setProjectId(id);
-    }
-  }, [searchParams]);
 
   if (loading) {
     return (
@@ -182,11 +171,11 @@ function UserStoriesContent() {
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-2xl mx-auto text-center">
             <div className="mb-6">
-              <Zap className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+              <Brain className="w-16 h-16 text-blue-600 mx-auto mb-4" />
             </div>
-            <h1 className="text-4xl font-bold mb-4">Auto-Generated User Stories</h1>
+            <h1 className="text-4xl font-bold mb-4">Mission Control</h1>
             <p className="text-lg text-gray-600 mb-8">
-              Transform feedback themes into sprint-ready user stories with AI
+              AI-powered executive dashboard with real-time insights
             </p>
             <Button asChild size="lg">
               <Link href="/login">Sign In to Get Started</Link>
@@ -197,29 +186,10 @@ function UserStoriesContent() {
     );
   }
 
-  if (!projectId) {
-    return (
-      <ProjectSelector />
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <GlobalBanner showBackButton={true} backLabel="Back to Dashboard" />
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Auto-Generated User Stories</h1>
-          <p className="text-gray-600">
-            Transform feedback themes into sprint-ready development work
-          </p>
-        </div>
-        <UserStoriesDashboard projectId={projectId} />
-      </div>
-    </div>
-  );
+  return <ProjectSelector />;
 }
 
-export default function UserStoriesPage() {
+export default function MissionControlPage() {
   return (
     <Suspense
       fallback={
@@ -233,7 +203,7 @@ export default function UserStoriesPage() {
         </div>
       }
     >
-      <UserStoriesContent />
+      <MissionControlContent />
     </Suspense>
   );
 }
