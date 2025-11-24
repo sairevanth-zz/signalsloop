@@ -34,6 +34,8 @@ import { RecommendationCard } from './RecommendationCard';
 import { PriorityMatrix } from './PriorityMatrix';
 import { ExportDialog } from './ExportDialog';
 import { PriorityHistoryViewer } from './PriorityHistoryViewer';
+import { FeatureImpactHistory } from './FeatureImpactHistory';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
 
@@ -83,6 +85,7 @@ export function RoadmapDashboard({ projectId }: RoadmapDashboardProps) {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list');
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState<'roadmap' | 'feature-history'>('roadmap');
 
   // Fetch suggestions
   useEffect(() => {
@@ -257,40 +260,51 @@ export function RoadmapDashboard({ projectId }: RoadmapDashboardProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">AI Roadmap Suggestions</h1>
+          <h1 className="text-3xl font-bold">AI Roadmap Dashboard</h1>
           <p className="text-gray-600 mt-1">
-            Prioritized product roadmap based on {suggestions.length} feedback themes
+            Plan features and track their real-world impact
           </p>
         </div>
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setShowExportDialog(true)}
-            disabled={suggestions.length === 0}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
+        {activeTab === 'roadmap' && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowExportDialog(true)}
+              disabled={suggestions.length === 0}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
 
-          <Button
-            onClick={() => handleGenerateRoadmap(false)}
-            disabled={generating}
-          >
-            {generating ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Generate Roadmap
-              </>
-            )}
-          </Button>
-        </div>
+            <Button
+              onClick={() => handleGenerateRoadmap(false)}
+              disabled={generating}
+            >
+              {generating ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate Roadmap
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
+        <TabsList>
+          <TabsTrigger value="roadmap">Roadmap Suggestions</TabsTrigger>
+          <TabsTrigger value="feature-history">Feature Impact History</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="roadmap" className="space-y-6">
 
       {/* Filters Bar */}
       <div className="bg-white rounded-lg border p-4 space-y-4">
@@ -420,6 +434,12 @@ export function RoadmapDashboard({ projectId }: RoadmapDashboardProps) {
           selectedPriorities={selectedPriorities}
         />
       )}
+        </TabsContent>
+
+        <TabsContent value="feature-history">
+          <FeatureImpactHistory projectId={projectId} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
