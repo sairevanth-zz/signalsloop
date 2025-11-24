@@ -12,6 +12,7 @@
 
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import OpenAI from 'openai';
+import { estimateFeatureEffort } from '@/lib/predictions/effort-estimation';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -135,12 +136,20 @@ export async function simulateFeatureImpact(
   );
   const dataQuality = await assessDataQuality(projectId, theme.id, similarFeatures.length);
 
+  // Estimate effort based on historical data and theme characteristics
+  const effortEstimate = await estimateFeatureEffort(
+    projectId,
+    theme.theme_name,
+    theme.id,
+    theme.frequency || 0
+  );
+
   return {
     scenario: {
       action: 'build',
       suggestionId: suggestion.id,
       themeName: theme.theme_name,
-      estimatedEffort: 'medium' // TODO: Get from suggestion
+      estimatedEffort: effortEstimate.effort,
     },
     sentimentImpact: predictions.sentimentImpact,
     churnImpact: predictions.churnImpact,
@@ -247,6 +256,94 @@ export async function compareScenarios(
 // =====================================================
 
 /**
+ * Calculate cosine similarity between two embedding vectors
+ */
+function cosineSimilarity(a: number[], b: number[]): number {
+  if (a.length !== b.length) {
+    throw new Error('Vectors must have same length');
+  }
+
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+/**
+ * Find similar features using semantic embeddings
+ * This provides more accurate matching than keyword-based approaches
+ */
+async function findSimilarFeaturesWithEmbeddings(
+  projectId: string,
+  themeName: string,
+  features: any[]
+): Promise<any[]> {
+  if (!process.env.OPENAI_API_KEY) {
+    return [];
+  }
+
+  try {
+    // Generate embedding for the theme name
+    const response = await openai.embeddings.create({
+      model: 'text-embedding-3-small',
+      input: themeName,
+      encoding_format: 'float',
+    });
+
+    const themeEmbedding = response.data[0].embedding;
+
+    // Calculate similarity for each feature
+    const scored = await Promise.all(
+      features.map(async (feature) => {
+        try {
+          // Generate embedding for feature name
+          const featureResponse = await openai.embeddings.create({
+            model: 'text-embedding-3-small',
+            input: feature.feature_name,
+            encoding_format: 'float',
+          });
+
+          const featureEmbedding = featureResponse.data[0].embedding;
+          const similarity = cosineSimilarity(themeEmbedding, featureEmbedding);
+
+          return {
+            feature,
+            similarity: Math.max(0, similarity) // Ensure non-negative
+          };
+        } catch (error) {
+          console.error(`[Embeddings] Error processing feature ${feature.feature_name}:`, error);
+          return { feature, similarity: 0 };
+        }
+      })
+    );
+
+    // Return top matches (similarity > 0.5 for embeddings)
+    return scored
+      .filter(s => s.similarity > 0.5)
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, 10)
+      .map(s => ({
+        name: s.feature.feature_name,
+        sentimentImpact: Number(s.feature.sentiment_impact) || 0,
+        churnImpact: Number(s.feature.churn_impact) || 0,
+        adoptionRate: Number(s.feature.post_adoption_rate) || 0,
+        successRating: s.feature.success_rating || 3,
+        similarity: s.similarity
+      }));
+  } catch (error) {
+    console.error('[Embeddings] Error in semantic feature matching:', error);
+    return [];
+  }
+}
+
+/**
  * Find similar features from history based on theme name, category, etc.
  * Enhanced algorithm with better similarity scoring
  */
@@ -268,29 +365,76 @@ async function findSimilarFeatures(
     return [];
   }
 
-  // Enhanced similarity: keyword matching with better scoring
-  // TODO: Use embeddings for semantic matching in future
+  // Enhanced similarity: hybrid approach using embeddings + keyword matching
+  // Try to use embeddings for semantic matching first
+  const useEmbeddings = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.length > 0;
+
+  let embeddingResults: any[] = [];
+  if (useEmbeddings) {
+    try {
+      embeddingResults = await findSimilarFeaturesWithEmbeddings(projectId, themeName, features);
+    } catch (error) {
+      console.error('[Impact Simulation] Embeddings search failed, falling back to keyword matching:', error);
+    }
+  }
+
+  // Always do keyword matching as fallback/complement
   const themeWords = themeName.toLowerCase().split(/\s+/).filter(w => w.length > 2);
 
   // Common stop words to ignore
-  const stopWords = new Set(['the', 'and', 'for', 'with', 'from', 'this', 'that']);
+  const stopWords = new Set(['the', 'and', 'for', 'with', 'from', 'this', 'that', 'are', 'was', 'were', 'been', 'have', 'has']);
   const meaningfulWords = themeWords.filter(w => !stopWords.has(w));
+
+  // Simple stemming function (basic suffix removal)
+  const stem = (word: string): string => {
+    // Remove common suffixes
+    return word
+      .replace(/(ing|ed|s|es|tion|ness|ment|ity|er|or|ly|ful)$/, '')
+      .substring(0, Math.max(3, word.length - 3)); // Keep at least 3 chars
+  };
+
+  // Common feature synonyms for better matching
+  const synonyms: Record<string, string[]> = {
+    'dark': ['night', 'theme', 'mode'],
+    'auth': ['login', 'signin', 'authentication', 'signup', 'register'],
+    'search': ['find', 'lookup', 'query', 'filter'],
+    'export': ['download', 'save', 'extract'],
+    'import': ['upload', 'load', 'add'],
+    'notification': ['alert', 'notify', 'reminder'],
+    'performance': ['speed', 'fast', 'slow', 'optimize'],
+    'bug': ['issue', 'error', 'problem', 'fix'],
+    'integration': ['connect', 'link', 'sync'],
+    'mobile': ['ios', 'android', 'app', 'phone'],
+  };
+
+  // Get stems and synonyms for theme words
+  const themeStems = meaningfulWords.map(stem);
+  const themeSynonyms = new Set(meaningfulWords.flatMap(w => synonyms[w] || []));
 
   const scored = features.map(f => {
     const featureWords = f.feature_name.toLowerCase().split(/\s+/).filter(w => w.length > 2);
     const meaningfulFeatureWords = featureWords.filter(w => !stopWords.has(w));
+    const featureStems = meaningfulFeatureWords.map(stem);
 
     // Calculate multiple similarity metrics
     let matchScore = 0;
 
     // 1. Exact word matches (highest weight)
     const exactMatches = meaningfulWords.filter(w => meaningfulFeatureWords.includes(w)).length;
-    matchScore += exactMatches * 2;
+    matchScore += exactMatches * 3;
 
-    // 2. Partial word matches (medium weight)
+    // 2. Stemmed word matches (high weight)
+    const stemMatches = themeStems.filter(s => featureStems.includes(s)).length - exactMatches;
+    matchScore += stemMatches * 2;
+
+    // 3. Synonym matches (medium-high weight)
+    const synonymMatches = meaningfulFeatureWords.filter(w => themeSynonyms.has(w)).length;
+    matchScore += synonymMatches * 1.5;
+
+    // 4. Partial word matches (medium weight)
     const partialMatches = meaningfulWords.filter(w =>
       meaningfulFeatureWords.some(fw => fw.includes(w) || w.includes(fw))
-    ).length - exactMatches;
+    ).length - exactMatches - stemMatches;
     matchScore += partialMatches * 1;
 
     // 3. Category match bonus
@@ -310,7 +454,41 @@ async function findSimilarFeatures(
     };
   });
 
-  // Return top matches (similarity > 0.1)
+  // Merge embedding results with keyword results if both available
+  if (embeddingResults.length > 0) {
+    // Create a map of embedding results for quick lookup
+    const embeddingMap = new Map(
+      embeddingResults.map(r => [r.name, r.similarity])
+    );
+
+    // Combine scores: 70% embeddings, 30% keywords for features in both
+    const combined = scored.map(s => {
+      const embeddingSim = embeddingMap.get(s.feature.feature_name) || 0;
+      const combinedScore = embeddingSim > 0
+        ? embeddingSim * 0.7 + s.similarity * 0.3
+        : s.similarity;
+
+      return {
+        feature: s.feature,
+        similarity: combinedScore
+      };
+    });
+
+    // Return top matches (similarity > 0.1)
+    return combined
+      .filter(s => s.similarity > 0.1)
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, 10)
+      .map(s => ({
+        name: s.feature.feature_name,
+        sentimentImpact: Number(s.feature.sentiment_impact) || 0,
+        churnImpact: Number(s.feature.churn_impact) || 0,
+        adoptionRate: Number(s.feature.post_adoption_rate) || 0,
+        successRating: s.feature.success_rating || 3
+      }));
+  }
+
+  // Fallback to keyword-only results
   return scored
     .filter(s => s.similarity > 0.1)
     .sort((a, b) => b.similarity - a.similarity)

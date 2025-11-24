@@ -13,6 +13,7 @@
 
 import OpenAI from 'openai';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { estimateFeatureEffort } from '@/lib/predictions/effort-estimation';
 
 // =====================================================
 // TYPES
@@ -391,9 +392,47 @@ export async function generateAllReasoning(projectId: string): Promise<void> {
 
   console.log(`Generating reasoning for ${suggestions.length} suggestions...`);
 
+  // Get total number of active competitors for the project
+  const { count: totalCompetitors } = await supabase
+    .from('competitors')
+    .select('*', { count: 'exact', head: true })
+    .eq('project_id', projectId)
+    .in('status', ['active', 'monitoring']);
+
+  const competitorCount = totalCompetitors || 0;
+
   // Process each suggestion with rate limiting
   for (const suggestion of suggestions) {
     try {
+      // Get the theme details to find cluster_id
+      const { data: themeDetails } = await supabase
+        .from('themes')
+        .select('cluster_id')
+        .eq('id', suggestion.theme_id)
+        .single();
+
+      // Fetch related themes (same cluster or similar category)
+      const { data: relatedThemesData } = await supabase
+        .from('themes')
+        .select('id, theme_name, frequency, avg_sentiment')
+        .eq('project_id', projectId)
+        .neq('id', suggestion.theme_id)
+        .or(
+          themeDetails?.cluster_id
+            ? `cluster_id.eq.${themeDetails.cluster_id}`
+            : 'cluster_id.is.null'
+        )
+        .order('frequency', { ascending: false })
+        .limit(3);
+
+      // Map to RelatedTheme format
+      const relatedThemes: RelatedTheme[] = (relatedThemesData || []).map(rt => ({
+        name: rt.theme_name,
+        relationship: themeDetails?.cluster_id
+          ? 'Same cluster'
+          : 'Similar sentiment pattern'
+      }));
+
       // Fetch supporting feedback samples
       const { data: feedbackSamples } = await supabase
         .from('posts')
@@ -425,6 +464,14 @@ export async function generateAllReasoning(projectId: string): Promise<void> {
         (cf: any) => cf.competitors?.name
       ).filter(Boolean) || [];
 
+      // Estimate effort based on historical data and theme characteristics
+      const effortEstimate = await estimateFeatureEffort(
+        projectId,
+        suggestion.themes.theme_name,
+        suggestion.theme_id,
+        suggestion.themes.frequency || 0
+      );
+
       // Build reasoning input
       const reasoningInput: ReasoningInput = {
         theme: {
@@ -434,7 +481,7 @@ export async function generateAllReasoning(projectId: string): Promise<void> {
           priority_score: Number(suggestion.priority_score),
           priority_level: suggestion.priority_level,
           first_detected_at: suggestion.themes.first_seen,
-          estimated_effort: 'medium' // TODO: Get from theme
+          estimated_effort: effortEstimate.effort,
         },
         feedback_samples: (feedbackSamples || []).map((f: any) => ({
           content: f.content,
@@ -445,9 +492,9 @@ export async function generateAllReasoning(projectId: string): Promise<void> {
         })),
         competitive_context: {
           competitors_with_feature: competitorsWithFeature,
-          total_competitors: 5 // TODO: Get from project settings
+          total_competitors: competitorCount
         },
-        related_themes: [] // TODO: Implement theme relationship detection
+        related_themes: relatedThemes
       };
 
       // Generate reasoning

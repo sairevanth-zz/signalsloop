@@ -17,6 +17,7 @@
  */
 
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { estimateFeatureEffort } from '@/lib/predictions/effort-estimation';
 
 // =====================================================
 // TYPES
@@ -323,9 +324,14 @@ export async function generateRoadmapSuggestions(projectId: string) {
         ?.map((ft: any) => ft.posts?.category)
         .filter(Boolean) || [];
 
-      // Get estimated effort (TODO: implement effort estimation)
-      // For now, default to 'medium'
-      const estimatedEffort = 'medium' as const;
+      // Get estimated effort based on historical data and theme characteristics
+      const effortEstimate = await estimateFeatureEffort(
+        projectId,
+        theme.theme_name,
+        theme.id,
+        theme.frequency || 0
+      );
+      const estimatedEffort = effortEstimate.effort;
 
       // Calculate average sentiment from individual posts when available
       const sentimentScores = theme.feedback_themes

@@ -1,3 +1,5 @@
+'use client';
+
 import posthog from 'posthog-js';
 
 // Initialize PostHog (call this in your _app.tsx)

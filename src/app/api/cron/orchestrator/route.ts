@@ -100,6 +100,7 @@ const TASK_SCHEDULE = {
     // Run on Sunday mornings (9 AM) in addition to daily tasks
     { path: '/api/cron/scrape-external-reviews', timeout: 600000 }, // 10 min - G2/Capterra
     { path: '/api/cron/analyze-competitors', timeout: 300000 }, // 5 min - competitor analysis
+    { path: '/api/cron/collect-feature-metrics', timeout: 180000 }, // 3 min - collect post-launch feature metrics
   ],
 };
 

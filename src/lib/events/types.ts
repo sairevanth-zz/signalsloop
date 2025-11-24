@@ -70,6 +70,11 @@ export enum EventType {
   // Roadmap Domain
   ROADMAP_UPDATED = 'roadmap.updated',
   ROADMAP_STALLED = 'roadmap.stalled',
+
+  // Feature Impact Domain
+  FEATURE_LAUNCHED = 'feature.launched',
+  FEATURE_METRICS_COLLECTED = 'feature.metrics_collected',
+  FEATURE_RETROSPECTIVE_RECORDED = 'feature.retrospective_recorded',
 }
 
 /**
@@ -84,6 +89,7 @@ export enum AggregateType {
   USER = 'user',
   PROJECT = 'project',
   ROADMAP = 'roadmap',
+  FEATURE_IMPACT = 'feature_impact',
 }
 
 /**
