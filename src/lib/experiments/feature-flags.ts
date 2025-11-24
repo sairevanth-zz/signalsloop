@@ -28,6 +28,44 @@ export interface FeatureFlagResult {
   timestamp: string;
 }
 
+export interface MetricResult {
+  variant: string;
+  sampleSize: number;
+  mean?: number;
+  stdDev?: number;
+  conversionRate?: number;
+  pValue?: number;
+  isSignificant: boolean;
+  credibleInterval?: { lower: number; upper: number };
+}
+
+export interface VariantMetrics {
+  name: string;
+  users: number;
+  conversions: Record<string, {
+    count: number;
+    conversionRate: number;
+    mean?: number;
+    stdDev?: number;
+  }>;
+}
+
+export interface ExperimentMetrics {
+  variants: VariantMetrics[];
+  metrics: Record<string, MetricResult[]>;
+  lastUpdated: string;
+  experimentStatus?: string;
+}
+
+export interface FlagStatus {
+  key: string;
+  name: string;
+  isOn: boolean;
+  variations: any[];
+  createdAt: number;
+  modifiedAt: number;
+}
+
 /**
  * LaunchDarkly Integration
  */
@@ -157,6 +195,130 @@ export class LaunchDarklyIntegration {
   getDashboardUrl(flagKey: string): string {
     return `https://app.launchdarkly.com/${this.projectKey}/${this.environmentKey}/features/${flagKey}`;
   }
+
+  /**
+   * Fetch live experiment metrics from LaunchDarkly
+   * Uses the Experimentation API to get conversion metrics
+   */
+  async fetchExperimentMetrics(
+    flagKey: string,
+    metricKeys: string[]
+  ): Promise<ExperimentMetrics> {
+    // LaunchDarkly Experimentation API endpoint
+    const url = `https://app.launchdarkly.com/api/v2/flags/${this.projectKey}/${flagKey}/experiments/${this.environmentKey}`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': this.apiKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          // No experiment data yet
+          return {
+            variants: [],
+            metrics: {},
+            lastUpdated: new Date().toISOString(),
+          };
+        }
+        throw new Error(`Failed to fetch LaunchDarkly metrics: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Parse LaunchDarkly response into our standard format
+      const variants: VariantMetrics[] = [];
+      const metrics: Record<string, MetricResult[]> = {};
+
+      // Extract variant data
+      if (data.results && data.results.variations) {
+        for (const variation of data.results.variations) {
+          const variantData: VariantMetrics = {
+            name: variation.name || variation._id,
+            users: variation.count || 0,
+            conversions: {},
+          };
+
+          // Extract metric data for this variant
+          if (data.results.metrics) {
+            for (const metric of data.results.metrics) {
+              const metricData = variation.metrics?.[metric.key];
+              if (metricData) {
+                variantData.conversions[metric.key] = {
+                  count: metricData.count || 0,
+                  conversionRate: metricData.conversionRate || 0,
+                  mean: metricData.mean,
+                  stdDev: metricData.stdDev,
+                };
+
+                // Add to metrics map
+                if (!metrics[metric.key]) {
+                  metrics[metric.key] = [];
+                }
+
+                metrics[metric.key].push({
+                  variant: variantData.name,
+                  sampleSize: variantData.users,
+                  mean: metricData.mean,
+                  stdDev: metricData.stdDev,
+                  conversionRate: metricData.conversionRate,
+                  pValue: metricData.pValue,
+                  isSignificant: metricData.pValue ? metricData.pValue < 0.05 : false,
+                  credibleInterval: metricData.credibleInterval,
+                });
+              }
+            }
+          }
+
+          variants.push(variantData);
+        }
+      }
+
+      return {
+        variants,
+        metrics,
+        lastUpdated: data.lastUpdated || new Date().toISOString(),
+        experimentStatus: data.status,
+      };
+    } catch (error) {
+      console.error('Error fetching LaunchDarkly metrics:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch flag status and metadata
+   */
+  async getFlagStatus(flagKey: string): Promise<FlagStatus> {
+    const url = `https://app.launchdarkly.com/api/v2/flags/${this.projectKey}/${flagKey}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch flag status: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    return {
+      key: data.key,
+      name: data.name,
+      isOn: data.environments?.[this.environmentKey]?.on || false,
+      variations: data.variations || [],
+      createdAt: data.creationDate,
+      modifiedAt: data._lastModified,
+    };
+  }
 }
 
 /**
@@ -254,6 +416,137 @@ export class OptimizelyIntegration {
    */
   getDashboardUrl(experimentKey: string): string {
     return `https://app.optimizely.com/v2/projects/${this.projectId}/experiments/${experimentKey}`;
+  }
+
+  /**
+   * Fetch live experiment metrics from Optimizely
+   * Uses the Stats Engine API to get experiment results
+   */
+  async fetchExperimentMetrics(
+    experimentId: string
+  ): Promise<ExperimentMetrics> {
+    // Optimizely Stats Engine API
+    const url = `https://api.optimizely.com/v2/experiments/${experimentId}/results`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return {
+            variants: [],
+            metrics: {},
+            lastUpdated: new Date().toISOString(),
+          };
+        }
+        throw new Error(`Failed to fetch Optimizely metrics: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Parse Optimizely response
+      const variants: VariantMetrics[] = [];
+      const metrics: Record<string, MetricResult[]> = {};
+
+      // Extract variant data
+      if (data.variations) {
+        for (const variation of data.variations) {
+          const variantData: VariantMetrics = {
+            name: variation.name || variation.variation_key,
+            users: variation.visitors || 0,
+            conversions: {},
+          };
+
+          // Extract metrics for this variant
+          if (data.metrics) {
+            for (const metric of data.metrics) {
+              const metricKey = metric.event_key;
+              const variationMetric = metric.results.find(
+                (r: any) => r.variation_id === variation.variation_id
+              );
+
+              if (variationMetric) {
+                variantData.conversions[metricKey] = {
+                  count: variationMetric.conversion_count || 0,
+                  conversionRate: variationMetric.conversion_rate || 0,
+                  mean: variationMetric.value_per_visitor,
+                  stdDev: variationMetric.standard_error,
+                };
+
+                // Add to metrics map
+                if (!metrics[metricKey]) {
+                  metrics[metricKey] = [];
+                }
+
+                metrics[metricKey].push({
+                  variant: variantData.name,
+                  sampleSize: variantData.users,
+                  mean: variationMetric.value_per_visitor,
+                  stdDev: variationMetric.standard_error,
+                  conversionRate: variationMetric.conversion_rate,
+                  pValue: variationMetric.p_value,
+                  isSignificant: variationMetric.is_significant || false,
+                  credibleInterval: variationMetric.confidence_interval
+                    ? {
+                        lower: variationMetric.confidence_interval[0],
+                        upper: variationMetric.confidence_interval[1],
+                      }
+                    : undefined,
+                });
+              }
+            }
+          }
+
+          variants.push(variantData);
+        }
+      }
+
+      return {
+        variants,
+        metrics,
+        lastUpdated: data.last_modified || new Date().toISOString(),
+        experimentStatus: data.status,
+      };
+    } catch (error) {
+      console.error('Error fetching Optimizely metrics:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get experiment status
+   */
+  async getExperimentStatus(experimentId: string): Promise<FlagStatus> {
+    const url = `https://api.optimizely.com/v2/experiments/${experimentId}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch experiment status: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    return {
+      key: data.key,
+      name: data.name || data.description,
+      isOn: data.status === 'running',
+      variations: data.variations || [],
+      createdAt: new Date(data.created).getTime(),
+      modifiedAt: new Date(data.last_modified).getTime(),
+    };
   }
 }
 
