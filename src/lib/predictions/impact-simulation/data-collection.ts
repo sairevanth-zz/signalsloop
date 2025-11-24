@@ -14,6 +14,7 @@
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import { publishEvent } from '@/lib/events/publisher';
 import { EventType, AggregateType } from '@/lib/events/types';
+import { getFeatureAdoptionRate, getChurnRate, getNPS } from '@/lib/analytics';
 
 // =====================================================
 // TYPES
@@ -329,16 +330,37 @@ async function collectCurrentMetrics(
 
   const { count: feedbackCount } = await feedbackQuery;
 
-  // TODO: Integrate with subscription/analytics platform for churn and NPS
-  // For now, these will be null unless manually provided
-  const churnRate = null;
-  const npsScore = null;
+  // Integrate with analytics platform for churn and NPS
+  // These require external analytics/subscription platforms to be configured
+  let churnRate: number | null = null;
+  let npsScore: number | null = null;
+
+  try {
+    // Get churn rate from analytics platform (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    churnRate = await getChurnRate(thirtyDaysAgo, new Date());
+
+    // Get NPS score from analytics platform (last 30 days)
+    npsScore = await getNPS(thirtyDaysAgo, new Date());
+
+    if (churnRate !== null) {
+      console.log(`[Data Collection] Churn rate: ${(churnRate * 100).toFixed(1)}%`);
+    }
+
+    if (npsScore !== null) {
+      console.log(`[Data Collection] NPS score: ${npsScore}`);
+    }
+  } catch (error) {
+    console.error('[Data Collection] Error fetching churn/NPS metrics:', error);
+    // Leave as null if analytics unavailable
+  }
 
   return {
     sentimentAvg: Number(avgSentiment.toFixed(2)),
     feedbackVolumeWeekly: feedbackCount || 0,
-    churnRate: churnRate,
-    npsScore: npsScore
+    churnRate,
+    npsScore,
   };
 }
 
@@ -349,20 +371,39 @@ async function estimateAdoptionRate(
   projectId: string,
   featureName: string
 ): Promise<number | null> {
-  // TODO: Integrate with analytics platform to track actual feature usage
-  // For now, return null to indicate this metric needs manual collection
+  // Integrate with configured analytics platform to track actual feature usage
+  // Supported platforms: Amplitude, Mixpanel, PostHog, Segment, Custom
+  //
+  // Setup: Set environment variables in .env.local:
+  // - ANALYTICS_PROVIDER=amplitude|mixpanel|posthog|segment|custom
+  // - ANALYTICS_ENABLED=true
+  // - ANALYTICS_API_KEY=your_api_key
+  // - ANALYTICS_API_SECRET=your_api_secret (if required)
 
-  // Example integration points:
-  // - Amplitude: Track feature usage events
-  // - Mixpanel: Query feature adoption funnel
-  // - PostHog: Feature flag adoption rates
-  // - Internal analytics: Custom usage tracking
+  try {
+    // Calculate 30-day post-launch window
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
 
-  console.log(
-    `[Data Collection] Adoption rate estimation not implemented yet for feature: ${featureName}`
-  );
+    // Get adoption rate from analytics platform
+    const adoptionRate = await getFeatureAdoptionRate(featureName, startDate, endDate);
 
-  return null;
+    if (adoptionRate !== null) {
+      console.log(
+        `[Data Collection] Adoption rate for ${featureName}: ${(adoptionRate * 100).toFixed(1)}%`
+      );
+      return adoptionRate;
+    }
+
+    console.log(
+      `[Data Collection] Analytics not configured - adoption rate unavailable for: ${featureName}`
+    );
+    return null;
+  } catch (error) {
+    console.error(`[Data Collection] Error fetching adoption rate for ${featureName}:`, error);
+    return null;
+  }
 }
 
 // =====================================================

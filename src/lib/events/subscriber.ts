@@ -6,6 +6,7 @@
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import { DomainEvent, EventHandler, EventSubscription } from './types';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { sendToDeadLetterQueue } from './dead-letter-queue';
 
 /**
  * Subscribes to a specific event type and calls the handler when events occur
@@ -70,7 +71,12 @@ export async function subscribeToEvent(
           await handler(event);
         } catch (error) {
           console.error(`Error handling event ${eventType}:`, error);
-          // TODO: Implement dead letter queue for failed events
+
+          // Send to dead letter queue for later retry/investigation
+          await sendToDeadLetterQueue(
+            event,
+            error instanceof Error ? error : new Error(String(error))
+          );
         }
       }
     )
@@ -169,6 +175,12 @@ export function pollForEvents(
             await handler(event as DomainEvent);
           } catch (error) {
             console.error(`Error handling event ${eventType}:`, error);
+
+            // Send to dead letter queue for later retry/investigation
+            await sendToDeadLetterQueue(
+              event as DomainEvent,
+              error instanceof Error ? error : new Error(String(error))
+            );
           }
         }
       }
