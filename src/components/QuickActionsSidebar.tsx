@@ -328,18 +328,19 @@ export default function QuickActionsSidebar({
               AI Roadmap
             </Button>
           </a>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start hover:bg-purple-100 text-purple-700 font-medium"
-            onClick={() => window.alert('Select a project first to view its Mission Control Dashboard')}
-          >
-            <Brain className="w-4 h-4 mr-2" />
-            Mission Control
-            <Badge variant="secondary" className="ml-auto text-xs bg-blue-100 text-blue-700">
-              Dashboard
-            </Badge>
-          </Button>
+          <a href="/app/mission-control" className="block">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start hover:bg-purple-100 bg-blue-50 border border-blue-200"
+            >
+              <Brain className="w-4 h-4 mr-2" />
+              Mission Control
+              <Badge variant="secondary" className="ml-auto text-xs bg-blue-500 text-white">
+                NEW
+              </Badge>
+            </Button>
+          </a>
         </CardContent>
       </Card>
 

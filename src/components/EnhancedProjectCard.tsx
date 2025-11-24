@@ -24,7 +24,8 @@ import {
   Target,
   FileText,
   Brain,
-  Phone
+  Phone,
+  BarChart3
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -220,6 +221,12 @@ export default function EnhancedProjectCard({
                   <Badge className="ml-auto text-xs bg-blue-500 text-white">NEW</Badge>
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/app/analytics?projectId=${project.id}`}>
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  Analytics
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href={`/${project.slug}/settings`}>
@@ -299,6 +306,16 @@ export default function EnhancedProjectCard({
               >
                 <Phone className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              </Button>
+            </Link>
+            <Link href={`/app/analytics?projectId=${project.id}`}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-gradient-to-r from-indigo-50 to-cyan-50 backdrop-blur-sm border-indigo-200 hover:from-indigo-100 hover:to-cyan-100 transition-all duration-200 hover:scale-105"
+                title="Analytics Dashboard"
+              >
+                <BarChart3 className="w-4 h-4 text-indigo-600 transition-transform duration-200 group-hover:scale-110" />
               </Button>
             </Link>
             <Link href={`/${project.slug}/competitive`}>
