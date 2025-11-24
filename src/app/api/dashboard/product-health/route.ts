@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getDashboardMetrics } from '@/lib/ai/mission-control';
-import { createServerClient } from '@/lib/auth/supabase-server';
+import { getSupabaseServerClient } from '@/lib/supabase-client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +21,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify user has access to this project
-    const supabase = createServerClient();
+    const supabase = getSupabaseServerClient();
+
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database connection unavailable' }, { status: 500 });
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
