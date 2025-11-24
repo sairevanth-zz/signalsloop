@@ -341,6 +341,16 @@ export default function QuickActionsSidebar({
               </Badge>
             </Button>
           </a>
+          <a href="/app/analytics" className="block">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start hover:bg-purple-100"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Analytics
+            </Button>
+          </a>
         </CardContent>
       </Card>
 
