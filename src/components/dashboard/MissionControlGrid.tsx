@@ -18,6 +18,7 @@ import { InsightReportCard } from './InsightReportCard';
 import { SentimentForecastCard } from './SentimentForecastCard';
 import { AnomalyAlertCard } from './AnomalyAlertCard';
 import { ProductHealthScoreCard } from './ProductHealthScoreCard';
+import { LiveExperimentsCard } from './LiveExperimentsCard';
 import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio } from 'lucide-react';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
@@ -245,6 +246,9 @@ export function MissionControlGrid({ briefing, metrics: initialMetrics, userName
 
       {/* Phase 2: Anomaly Alerts powered by GPT-4o (spans 2 columns) */}
       <AnomalyAlertCard projectId={projectId} />
+
+      {/* Live Experiments powered by LaunchDarkly/Optimizely (spans 2 columns) */}
+      <LiveExperimentsCard projectId={projectId} projectSlug={projectSlug} />
 
       {/* Competitive Intelligence (if available) - LIVE UPDATES */}
       {(liveMetrics.competitors?.new_insights_count || 0) > 0 && (

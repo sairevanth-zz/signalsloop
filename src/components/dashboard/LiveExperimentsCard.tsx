@@ -97,12 +97,20 @@ export function LiveExperimentsCard({ projectId, projectSlug }: LiveExperimentsC
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Beaker className="h-12 w-12 text-slate-700 mb-3" />
             <p className="text-sm text-slate-400 mb-2">No running experiments</p>
-            <Link
-              href={`/${projectSlug}/experiments/new`}
-              className="text-xs text-blue-400 hover:text-blue-300"
-            >
-              Create your first experiment →
-            </Link>
+            <div className="flex flex-col gap-2">
+              <Link
+                href={`/${projectSlug}/settings/integrations`}
+                className="text-xs text-purple-400 hover:text-purple-300"
+              >
+                Configure LaunchDarkly/Optimizely →
+              </Link>
+              <Link
+                href={`/${projectSlug}/experiments/new`}
+                className="text-xs text-blue-400 hover:text-blue-300"
+              >
+                Create your first experiment →
+              </Link>
+            </div>
           </div>
         </div>
       </BentoCard>
