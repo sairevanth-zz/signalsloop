@@ -12,6 +12,8 @@
  */
 
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
+import { publishEvent } from '@/lib/events/publisher';
+import { EventType, AggregateType } from '@/lib/events/types';
 
 // =====================================================
 // TYPES
@@ -70,6 +72,31 @@ export async function recordFeatureLaunch(data: FeatureLaunchData): Promise<stri
     throw error;
   }
 
+  // Publish feature launch event
+  try {
+    await publishEvent({
+      type: EventType.FEATURE_LAUNCHED,
+      aggregate_type: AggregateType.FEATURE_IMPACT,
+      aggregate_id: record.id,
+      payload: {
+        feature_name: data.featureName,
+        feature_category: data.featureCategory,
+        suggestion_id: data.suggestionId,
+        effort_estimate: data.effortEstimate,
+        actual_effort_days: data.actualEffortDays,
+        pre_metrics: preLaunchMetrics,
+      },
+      metadata: {
+        project_id: data.projectId,
+        source: 'feature_tracking',
+      },
+      version: 1,
+    });
+  } catch (eventError) {
+    console.error('[Data Collection] Failed to publish feature launch event:', eventError);
+    // Don't fail the entire operation if event publishing fails
+  }
+
   console.log(`[Data Collection] Feature launch recorded: ${data.featureName} (ID: ${record.id})`);
   return record.id;
 }
@@ -118,6 +145,31 @@ export async function collectPostLaunchMetrics(featureHistoryId: string): Promis
     throw updateError;
   }
 
+  // Publish metrics collection event
+  try {
+    await publishEvent({
+      type: EventType.FEATURE_METRICS_COLLECTED,
+      aggregate_type: AggregateType.FEATURE_IMPACT,
+      aggregate_id: featureHistoryId,
+      payload: {
+        feature_name: feature.feature_name,
+        post_metrics: postLaunchMetrics,
+        adoption_rate: adoptionRate,
+        days_since_launch: Math.floor(
+          (Date.now() - new Date(feature.launched_at).getTime()) / (1000 * 60 * 60 * 24)
+        ),
+      },
+      metadata: {
+        project_id: feature.project_id,
+        source: 'metrics_collection',
+      },
+      version: 1,
+    });
+  } catch (eventError) {
+    console.error('[Data Collection] Failed to publish metrics collection event:', eventError);
+    // Don't fail the entire operation if event publishing fails
+  }
+
   console.log(`[Data Collection] Post-launch metrics collected for feature: ${feature.feature_name}`);
 }
 
@@ -131,6 +183,13 @@ export async function recordFeatureRetrospective(
   revenueImpactEstimate?: number
 ): Promise<void> {
   const supabase = getServiceRoleClient();
+
+  // Get feature record for event payload
+  const { data: feature } = await supabase
+    .from('feature_impact_history')
+    .select('project_id, feature_name')
+    .eq('id', featureHistoryId)
+    .single();
 
   const { error } = await supabase
     .from('feature_impact_history')
@@ -147,6 +206,31 @@ export async function recordFeatureRetrospective(
     throw error;
   }
 
+  // Publish retrospective event
+  if (feature) {
+    try {
+      await publishEvent({
+        type: EventType.FEATURE_RETROSPECTIVE_RECORDED,
+        aggregate_type: AggregateType.FEATURE_IMPACT,
+        aggregate_id: featureHistoryId,
+        payload: {
+          feature_name: feature.feature_name,
+          success_rating: successRating,
+          lessons_learned: lessonsLearned,
+          revenue_impact_estimate: revenueImpactEstimate,
+        },
+        metadata: {
+          project_id: feature.project_id,
+          source: 'retrospective',
+        },
+        version: 1,
+      });
+    } catch (eventError) {
+      console.error('[Data Collection] Failed to publish retrospective event:', eventError);
+      // Don't fail the entire operation if event publishing fails
+    }
+  }
+
   console.log(`[Data Collection] Retrospective recorded for feature ID: ${featureHistoryId}`);
 }
 
@@ -156,6 +240,7 @@ export async function recordFeatureRetrospective(
 
 /**
  * Collect current metrics snapshot for a project
+ * If suggestionId is provided, metrics are filtered to posts related to that theme
  */
 async function collectCurrentMetrics(
   projectId: string,
@@ -167,23 +252,82 @@ async function collectCurrentMetrics(
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
 
-  // Get sentiment data
-  const { data: sentimentData } = await supabase
+  // Get theme_id from suggestion if provided
+  let themeId: string | null = null;
+  if (suggestionId) {
+    const { data: suggestion } = await supabase
+      .from('roadmap_suggestions')
+      .select('theme_id')
+      .eq('id', suggestionId)
+      .single();
+
+    themeId = suggestion?.theme_id || null;
+  }
+
+  // Get post IDs related to this theme (if theme filtering is enabled)
+  let relevantPostIds: string[] | null = null;
+  if (themeId) {
+    const { data: feedbackThemes } = await supabase
+      .from('feedback_themes')
+      .select('feedback_id')
+      .eq('theme_id', themeId);
+
+    relevantPostIds = feedbackThemes ? feedbackThemes.map(ft => ft.feedback_id) : [];
+
+    // If no posts found for this theme, return empty metrics
+    if (relevantPostIds.length === 0) {
+      return {
+        sentimentAvg: 0,
+        feedbackVolumeWeekly: 0,
+        churnRate: null,
+        npsScore: null
+      };
+    }
+  }
+
+  // Build sentiment query with optional post filtering
+  let sentimentQuery = supabase
     .from('sentiment_analysis')
-    .select('sentiment_score')
-    .eq('project_id', projectId)
+    .select('sentiment_score, post_id')
     .gte('created_at', weekAgo.toISOString());
+
+  // Filter by relevant posts if theme-specific
+  if (relevantPostIds && relevantPostIds.length > 0) {
+    sentimentQuery = sentimentQuery.in('post_id', relevantPostIds);
+  } else if (!themeId) {
+    // If no theme filtering, filter by project
+    // Join through posts table to filter by project_id
+    const { data: projectPosts } = await supabase
+      .from('posts')
+      .select('id')
+      .eq('project_id', projectId)
+      .gte('created_at', weekAgo.toISOString());
+
+    const projectPostIds = projectPosts ? projectPosts.map(p => p.id) : [];
+    if (projectPostIds.length > 0) {
+      sentimentQuery = sentimentQuery.in('post_id', projectPostIds);
+    }
+  }
+
+  const { data: sentimentData } = await sentimentQuery;
 
   const avgSentiment = sentimentData && sentimentData.length > 0
     ? sentimentData.reduce((sum, s) => sum + s.sentiment_score, 0) / sentimentData.length
     : 0;
 
-  // Get feedback volume (posts in last 7 days)
-  const { count: feedbackCount } = await supabase
+  // Build feedback volume query with optional post filtering
+  let feedbackQuery = supabase
     .from('posts')
     .select('id', { count: 'exact', head: true })
     .eq('project_id', projectId)
     .gte('created_at', weekAgo.toISOString());
+
+  // Filter by relevant posts if theme-specific
+  if (relevantPostIds && relevantPostIds.length > 0) {
+    feedbackQuery = feedbackQuery.in('id', relevantPostIds);
+  }
+
+  const { count: feedbackCount } = await feedbackQuery;
 
   // TODO: Integrate with subscription/analytics platform for churn and NPS
   // For now, these will be null unless manually provided
@@ -250,18 +394,22 @@ export async function findFeaturesNeedingPostLaunchCollection(
 
 /**
  * Batch collect post-launch metrics for all eligible features
+ * Returns the count of features successfully collected
  */
-export async function batchCollectPostLaunchMetrics(projectId: string): Promise<void> {
+export async function batchCollectPostLaunchMetrics(projectId: string): Promise<number> {
   const features = await findFeaturesNeedingPostLaunchCollection(projectId);
 
   console.log(
     `[Data Collection] Found ${features.length} features needing post-launch collection`
   );
 
+  let successCount = 0;
+
   for (const feature of features) {
     try {
       await collectPostLaunchMetrics(feature.id);
       console.log(`[Data Collection] ✓ Collected metrics for: ${feature.feature_name}`);
+      successCount++;
     } catch (error) {
       console.error(
         `[Data Collection] ✗ Failed to collect metrics for: ${feature.feature_name}`,
@@ -269,4 +417,6 @@ export async function batchCollectPostLaunchMetrics(projectId: string): Promise<
       );
     }
   }
+
+  return successCount;
 }

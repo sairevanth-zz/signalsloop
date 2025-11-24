@@ -10,6 +10,7 @@
  */
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -70,11 +71,18 @@ export function ImpactSimulator({
 
       if (result.success) {
         setPrediction(result.data);
+        toast.success('Impact simulation completed successfully');
       } else {
         console.error('Simulation failed:', result.error);
+        toast.error('Simulation failed', {
+          description: result.error || 'Unable to complete impact simulation. Please try again.'
+        });
       }
     } catch (error) {
       console.error('Simulation error:', error);
+      toast.error('Simulation error', {
+        description: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.'
+      });
     } finally {
       setLoading(false);
     }
