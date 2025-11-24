@@ -724,8 +724,37 @@ function assessRiskLevel(predictions: any): 'low' | 'medium' | 'high' {
 }
 
 /**
+ * Detect product maturity based on historical data
+ */
+async function detectProductMaturity(projectId: string): Promise<'early' | 'growth' | 'mature'> {
+  const supabase = getServiceRoleClient();
+
+  // Count total launched features
+  const { count: launchedFeatures } = await supabase
+    .from('feature_impact_history')
+    .select('id', { count: 'exact', head: true })
+    .eq('project_id', projectId);
+
+  // Count total feedback items
+  const { count: totalFeedback } = await supabase
+    .from('posts')
+    .select('id', { count: 'exact', head: true })
+    .eq('project_id', projectId);
+
+  // Determine maturity stage
+  if ((launchedFeatures || 0) < 3 || (totalFeedback || 0) < 20) {
+    return 'early'; // Early-stage: Limited historical data
+  } else if ((launchedFeatures || 0) < 10 || (totalFeedback || 0) < 100) {
+    return 'growth'; // Growth-stage: Building data
+  } else {
+    return 'mature'; // Mature: Rich historical data
+  }
+}
+
+/**
  * Calculate overall confidence based on multiple data sources
  * Enhanced to consider both historical and current data quality
+ * Adjusted for product maturity to avoid penalizing early-stage products
  */
 async function calculateOverallConfidence(
   projectId: string,
@@ -735,6 +764,9 @@ async function calculateOverallConfidence(
 ): Promise<number> {
   const supabase = getServiceRoleClient();
 
+  // Detect product maturity
+  const maturity = await detectProductMaturity(projectId);
+
   // Get current data availability
   const { count: feedbackCount } = await supabase
     .from('posts')
@@ -746,35 +778,110 @@ async function calculateOverallConfidence(
     .select('id', { count: 'exact', head: true })
     .contains('theme_ids', [themeId]);
 
-  let confidence = 0.2; // Base confidence
+  // Adjust base confidence based on maturity
+  // Early-stage products start with higher base confidence since they have less data by nature
+  let confidence = maturity === 'early' ? 0.3 : maturity === 'growth' ? 0.25 : 0.2;
 
   // Historical data contribution (up to 0.4)
-  if (similarFeatureCount >= 10) {
-    confidence += 0.4;
-  } else if (similarFeatureCount >= 5) {
-    confidence += 0.3;
-  } else if (similarFeatureCount >= 3) {
-    confidence += 0.2;
-  } else if (similarFeatureCount >= 1) {
-    confidence += 0.1;
+  // More progressive scoring for early-stage products
+  if (maturity === 'early') {
+    // Early-stage: More forgiving thresholds
+    if (similarFeatureCount >= 3) {
+      confidence += 0.4;
+    } else if (similarFeatureCount >= 2) {
+      confidence += 0.3;
+    } else if (similarFeatureCount >= 1) {
+      confidence += 0.2;
+    }
+  } else if (maturity === 'growth') {
+    // Growth-stage: Moderate thresholds
+    if (similarFeatureCount >= 5) {
+      confidence += 0.4;
+    } else if (similarFeatureCount >= 3) {
+      confidence += 0.3;
+    } else if (similarFeatureCount >= 2) {
+      confidence += 0.2;
+    } else if (similarFeatureCount >= 1) {
+      confidence += 0.1;
+    }
+  } else {
+    // Mature: Original strict thresholds
+    if (similarFeatureCount >= 10) {
+      confidence += 0.4;
+    } else if (similarFeatureCount >= 5) {
+      confidence += 0.3;
+    } else if (similarFeatureCount >= 3) {
+      confidence += 0.2;
+    } else if (similarFeatureCount >= 1) {
+      confidence += 0.1;
+    }
   }
 
   // Current feedback data contribution (up to 0.3)
-  if ((feedbackCount || 0) >= 50) {
-    confidence += 0.3;
-  } else if ((feedbackCount || 0) >= 20) {
-    confidence += 0.2;
-  } else if ((feedbackCount || 0) >= 10) {
-    confidence += 0.15;
-  } else if ((feedbackCount || 0) >= 5) {
-    confidence += 0.1;
+  // Progressive scoring based on maturity
+  const feedbackScore = (feedbackCount || 0);
+  if (maturity === 'early') {
+    // Early-stage: Lower thresholds
+    if (feedbackScore >= 10) {
+      confidence += 0.3;
+    } else if (feedbackScore >= 5) {
+      confidence += 0.25;
+    } else if (feedbackScore >= 3) {
+      confidence += 0.2;
+    } else if (feedbackScore >= 1) {
+      confidence += 0.15;
+    }
+  } else if (maturity === 'growth') {
+    // Growth-stage: Moderate thresholds
+    if (feedbackScore >= 30) {
+      confidence += 0.3;
+    } else if (feedbackScore >= 15) {
+      confidence += 0.25;
+    } else if (feedbackScore >= 8) {
+      confidence += 0.2;
+    } else if (feedbackScore >= 3) {
+      confidence += 0.15;
+    }
+  } else {
+    // Mature: Original thresholds
+    if (feedbackScore >= 50) {
+      confidence += 0.3;
+    } else if (feedbackScore >= 20) {
+      confidence += 0.2;
+    } else if (feedbackScore >= 10) {
+      confidence += 0.15;
+    } else if (feedbackScore >= 5) {
+      confidence += 0.1;
+    }
   }
 
   // Sentiment data contribution (up to 0.1)
-  if ((sentimentCount || 0) >= 30) {
-    confidence += 0.1;
-  } else if ((sentimentCount || 0) >= 10) {
-    confidence += 0.05;
+  const sentimentScore = (sentimentCount || 0);
+  if (maturity === 'early') {
+    // Early-stage: Lower thresholds
+    if (sentimentScore >= 5) {
+      confidence += 0.1;
+    } else if (sentimentScore >= 2) {
+      confidence += 0.07;
+    } else if (sentimentScore >= 1) {
+      confidence += 0.05;
+    }
+  } else if (maturity === 'growth') {
+    // Growth-stage: Moderate thresholds
+    if (sentimentScore >= 15) {
+      confidence += 0.1;
+    } else if (sentimentScore >= 7) {
+      confidence += 0.07;
+    } else if (sentimentScore >= 3) {
+      confidence += 0.05;
+    }
+  } else {
+    // Mature: Original thresholds
+    if (sentimentScore >= 30) {
+      confidence += 0.1;
+    } else if (sentimentScore >= 10) {
+      confidence += 0.05;
+    }
   }
 
   return Math.min(0.9, confidence);
@@ -783,6 +890,7 @@ async function calculateOverallConfidence(
 /**
  * Assess data quality based on multiple factors
  * Enhanced to look at all available data sources
+ * Adjusted thresholds based on product maturity
  */
 async function assessDataQuality(
   projectId: string,
@@ -790,6 +898,9 @@ async function assessDataQuality(
   similarFeatureCount: number
 ): Promise<'high' | 'medium' | 'low'> {
   const supabase = getServiceRoleClient();
+
+  // Detect product maturity
+  const maturity = await detectProductMaturity(projectId);
 
   // Get current data availability
   const { count: feedbackCount } = await supabase
@@ -802,42 +913,121 @@ async function assessDataQuality(
     .select('id', { count: 'exact', head: true })
     .contains('theme_ids', [themeId]);
 
-  // Score data quality (0-100 scale)
+  // Score data quality (0-100 scale) with maturity-adjusted thresholds
   let qualityScore = 0;
 
   // Historical features (up to 40 points)
-  if (similarFeatureCount >= 5) {
-    qualityScore += 40;
-  } else if (similarFeatureCount >= 3) {
-    qualityScore += 30;
-  } else if (similarFeatureCount >= 1) {
-    qualityScore += 15;
+  if (maturity === 'early') {
+    // Early-stage: Lower bar for quality
+    if (similarFeatureCount >= 2) {
+      qualityScore += 40;
+    } else if (similarFeatureCount >= 1) {
+      qualityScore += 30;
+    }
+  } else if (maturity === 'growth') {
+    // Growth-stage: Moderate bar
+    if (similarFeatureCount >= 3) {
+      qualityScore += 40;
+    } else if (similarFeatureCount >= 2) {
+      qualityScore += 30;
+    } else if (similarFeatureCount >= 1) {
+      qualityScore += 20;
+    }
+  } else {
+    // Mature: Original strict thresholds
+    if (similarFeatureCount >= 5) {
+      qualityScore += 40;
+    } else if (similarFeatureCount >= 3) {
+      qualityScore += 30;
+    } else if (similarFeatureCount >= 1) {
+      qualityScore += 15;
+    }
   }
 
   // Feedback volume (up to 40 points)
-  if ((feedbackCount || 0) >= 50) {
-    qualityScore += 40;
-  } else if ((feedbackCount || 0) >= 20) {
-    qualityScore += 30;
-  } else if ((feedbackCount || 0) >= 10) {
-    qualityScore += 20;
-  } else if ((feedbackCount || 0) >= 5) {
-    qualityScore += 10;
+  const feedbackScore = (feedbackCount || 0);
+  if (maturity === 'early') {
+    // Early-stage: Lower bar
+    if (feedbackScore >= 10) {
+      qualityScore += 40;
+    } else if (feedbackScore >= 5) {
+      qualityScore += 30;
+    } else if (feedbackScore >= 3) {
+      qualityScore += 20;
+    } else if (feedbackScore >= 1) {
+      qualityScore += 10;
+    }
+  } else if (maturity === 'growth') {
+    // Growth-stage: Moderate bar
+    if (feedbackScore >= 30) {
+      qualityScore += 40;
+    } else if (feedbackScore >= 15) {
+      qualityScore += 30;
+    } else if (feedbackScore >= 8) {
+      qualityScore += 20;
+    } else if (feedbackScore >= 3) {
+      qualityScore += 10;
+    }
+  } else {
+    // Mature: Original thresholds
+    if (feedbackScore >= 50) {
+      qualityScore += 40;
+    } else if (feedbackScore >= 20) {
+      qualityScore += 30;
+    } else if (feedbackScore >= 10) {
+      qualityScore += 20;
+    } else if (feedbackScore >= 5) {
+      qualityScore += 10;
+    }
   }
 
   // Sentiment analysis (up to 20 points)
-  if ((sentimentCount || 0) >= 30) {
-    qualityScore += 20;
-  } else if ((sentimentCount || 0) >= 10) {
-    qualityScore += 15;
-  } else if ((sentimentCount || 0) >= 5) {
-    qualityScore += 10;
+  const sentimentScore = (sentimentCount || 0);
+  if (maturity === 'early') {
+    // Early-stage: Lower bar
+    if (sentimentScore >= 5) {
+      qualityScore += 20;
+    } else if (sentimentScore >= 2) {
+      qualityScore += 15;
+    } else if (sentimentScore >= 1) {
+      qualityScore += 10;
+    }
+  } else if (maturity === 'growth') {
+    // Growth-stage: Moderate bar
+    if (sentimentScore >= 15) {
+      qualityScore += 20;
+    } else if (sentimentScore >= 7) {
+      qualityScore += 15;
+    } else if (sentimentScore >= 3) {
+      qualityScore += 10;
+    }
+  } else {
+    // Mature: Original thresholds
+    if (sentimentScore >= 30) {
+      qualityScore += 20;
+    } else if (sentimentScore >= 10) {
+      qualityScore += 15;
+    } else if (sentimentScore >= 5) {
+      qualityScore += 10;
+    }
   }
 
-  // Classify quality
-  if (qualityScore >= 70) return 'high';
-  if (qualityScore >= 40) return 'medium';
-  return 'low';
+  // Classify quality with maturity context
+  // Early-stage products have lower bars for "high" quality
+  if (maturity === 'early') {
+    if (qualityScore >= 60) return 'high';
+    if (qualityScore >= 30) return 'medium';
+    return 'low';
+  } else if (maturity === 'growth') {
+    if (qualityScore >= 65) return 'high';
+    if (qualityScore >= 35) return 'medium';
+    return 'low';
+  } else {
+    // Mature: Original thresholds
+    if (qualityScore >= 70) return 'high';
+    if (qualityScore >= 40) return 'medium';
+    return 'low';
+  }
 }
 
 /**

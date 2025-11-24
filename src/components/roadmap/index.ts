@@ -9,3 +9,4 @@ export { PriorityMatrix } from './PriorityMatrix';
 export { ExportDialog } from './ExportDialog';
 export { ImpactSimulator } from './ImpactSimulator';
 export { PriorityHistoryViewer } from './PriorityHistoryViewer';
+export { FeatureImpactHistory } from './FeatureImpactHistory';
