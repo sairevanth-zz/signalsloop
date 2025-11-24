@@ -74,9 +74,31 @@ export async function POST(request: NextRequest) {
       // Record retrospective
       const { featureHistoryId, successRating, lessonsLearned, revenueImpactEstimate } = body;
 
-      if (!featureHistoryId || !successRating || !lessonsLearned) {
+      // Validate required fields
+      if (!featureHistoryId) {
         return NextResponse.json(
-          { success: false, error: 'Missing required fields: featureHistoryId, successRating, lessonsLearned' },
+          { success: false, error: 'Missing required field: featureHistoryId' },
+          { status: 400 }
+        );
+      }
+
+      if (typeof successRating !== 'number') {
+        return NextResponse.json(
+          { success: false, error: 'successRating must be a number' },
+          { status: 400 }
+        );
+      }
+
+      if (successRating < 1 || successRating > 5) {
+        return NextResponse.json(
+          { success: false, error: 'successRating must be between 1 and 5' },
+          { status: 400 }
+        );
+      }
+
+      if (typeof lessonsLearned !== 'string' || lessonsLearned.trim().length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'lessonsLearned must be a non-empty string' },
           { status: 400 }
         );
       }
@@ -84,7 +106,7 @@ export async function POST(request: NextRequest) {
       await recordFeatureRetrospective(
         featureHistoryId,
         successRating,
-        lessonsLearned,
+        lessonsLearned.trim(),
         revenueImpactEstimate
       );
 

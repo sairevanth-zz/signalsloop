@@ -13,6 +13,7 @@
 
 import OpenAI from 'openai';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { estimateFeatureEffort } from '@/lib/predictions/effort-estimation';
 
 // =====================================================
 // TYPES
@@ -425,6 +426,14 @@ export async function generateAllReasoning(projectId: string): Promise<void> {
         (cf: any) => cf.competitors?.name
       ).filter(Boolean) || [];
 
+      // Estimate effort based on historical data and theme characteristics
+      const effortEstimate = await estimateFeatureEffort(
+        projectId,
+        suggestion.themes.theme_name,
+        suggestion.theme_id,
+        suggestion.themes.frequency || 0
+      );
+
       // Build reasoning input
       const reasoningInput: ReasoningInput = {
         theme: {
@@ -434,7 +443,7 @@ export async function generateAllReasoning(projectId: string): Promise<void> {
           priority_score: Number(suggestion.priority_score),
           priority_level: suggestion.priority_level,
           first_detected_at: suggestion.themes.first_seen,
-          estimated_effort: 'medium' // TODO: Get from theme
+          estimated_effort: effortEstimate.effort,
         },
         feedback_samples: (feedbackSamples || []).map((f: any) => ({
           content: f.content,

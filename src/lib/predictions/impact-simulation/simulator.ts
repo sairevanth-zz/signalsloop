@@ -12,6 +12,7 @@
 
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import OpenAI from 'openai';
+import { estimateFeatureEffort } from '@/lib/predictions/effort-estimation';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -135,12 +136,20 @@ export async function simulateFeatureImpact(
   );
   const dataQuality = await assessDataQuality(projectId, theme.id, similarFeatures.length);
 
+  // Estimate effort based on historical data and theme characteristics
+  const effortEstimate = await estimateFeatureEffort(
+    projectId,
+    theme.theme_name,
+    theme.id,
+    theme.frequency || 0
+  );
+
   return {
     scenario: {
       action: 'build',
       suggestionId: suggestion.id,
       themeName: theme.theme_name,
-      estimatedEffort: 'medium' // TODO: Get from suggestion
+      estimatedEffort: effortEstimate.effort,
     },
     sentimentImpact: predictions.sentimentImpact,
     churnImpact: predictions.churnImpact,
@@ -268,29 +277,64 @@ async function findSimilarFeatures(
     return [];
   }
 
-  // Enhanced similarity: keyword matching with better scoring
+  // Enhanced similarity: keyword matching with stemming and synonyms
   // TODO: Use embeddings for semantic matching in future
   const themeWords = themeName.toLowerCase().split(/\s+/).filter(w => w.length > 2);
 
   // Common stop words to ignore
-  const stopWords = new Set(['the', 'and', 'for', 'with', 'from', 'this', 'that']);
+  const stopWords = new Set(['the', 'and', 'for', 'with', 'from', 'this', 'that', 'are', 'was', 'were', 'been', 'have', 'has']);
   const meaningfulWords = themeWords.filter(w => !stopWords.has(w));
+
+  // Simple stemming function (basic suffix removal)
+  const stem = (word: string): string => {
+    // Remove common suffixes
+    return word
+      .replace(/(ing|ed|s|es|tion|ness|ment|ity|er|or|ly|ful)$/, '')
+      .substring(0, Math.max(3, word.length - 3)); // Keep at least 3 chars
+  };
+
+  // Common feature synonyms for better matching
+  const synonyms: Record<string, string[]> = {
+    'dark': ['night', 'theme', 'mode'],
+    'auth': ['login', 'signin', 'authentication', 'signup', 'register'],
+    'search': ['find', 'lookup', 'query', 'filter'],
+    'export': ['download', 'save', 'extract'],
+    'import': ['upload', 'load', 'add'],
+    'notification': ['alert', 'notify', 'reminder'],
+    'performance': ['speed', 'fast', 'slow', 'optimize'],
+    'bug': ['issue', 'error', 'problem', 'fix'],
+    'integration': ['connect', 'link', 'sync'],
+    'mobile': ['ios', 'android', 'app', 'phone'],
+  };
+
+  // Get stems and synonyms for theme words
+  const themeStems = meaningfulWords.map(stem);
+  const themeSynonyms = new Set(meaningfulWords.flatMap(w => synonyms[w] || []));
 
   const scored = features.map(f => {
     const featureWords = f.feature_name.toLowerCase().split(/\s+/).filter(w => w.length > 2);
     const meaningfulFeatureWords = featureWords.filter(w => !stopWords.has(w));
+    const featureStems = meaningfulFeatureWords.map(stem);
 
     // Calculate multiple similarity metrics
     let matchScore = 0;
 
     // 1. Exact word matches (highest weight)
     const exactMatches = meaningfulWords.filter(w => meaningfulFeatureWords.includes(w)).length;
-    matchScore += exactMatches * 2;
+    matchScore += exactMatches * 3;
 
-    // 2. Partial word matches (medium weight)
+    // 2. Stemmed word matches (high weight)
+    const stemMatches = themeStems.filter(s => featureStems.includes(s)).length - exactMatches;
+    matchScore += stemMatches * 2;
+
+    // 3. Synonym matches (medium-high weight)
+    const synonymMatches = meaningfulFeatureWords.filter(w => themeSynonyms.has(w)).length;
+    matchScore += synonymMatches * 1.5;
+
+    // 4. Partial word matches (medium weight)
     const partialMatches = meaningfulWords.filter(w =>
       meaningfulFeatureWords.some(fw => fw.includes(w) || w.includes(fw))
-    ).length - exactMatches;
+    ).length - exactMatches - stemMatches;
     matchScore += partialMatches * 1;
 
     // 3. Category match bonus
