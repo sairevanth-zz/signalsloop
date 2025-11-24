@@ -5,10 +5,13 @@
  * free tier limitations (max 2 cron jobs, daily frequency minimum)
  *
  * Schedule in vercel.json:
- * - "0 2 * * *" (2 AM daily) - Night batch: backup
- * - "0 9 * * *" (9 AM daily) - Morning batch: all other tasks
+ * - orchestrator?schedule=morning: "0 9 * * *" (9 AM daily)
+ * - orchestrator?schedule=evening: "0 21 * * *" (9 PM daily)
  *
- * OR call manually with ?schedule=morning or ?schedule=night
+ * Both schedules run process-events first, then batch-specific tasks.
+ * This ensures agents process events twice daily (9 AM and 9 PM).
+ *
+ * OR call manually with ?schedule=morning, ?schedule=evening, or ?schedule=weekly
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -75,17 +78,13 @@ async function executeTask(
 
 /**
  * Task schedule definitions
- * Consolidated into 2 daily batches to work within Vercel free tier limits
+ * Both morning and evening batches run process-events first to ensure
+ * agents react to events twice daily within Vercel free tier constraints
  */
 const TASK_SCHEDULE = {
-  night: [
-    // Batch 1: Run at 2 AM daily
-    { path: '/api/cron/daily-backup', timeout: 600000 }, // 10 min - database backup
-    { path: '/api/cron/process-events', timeout: 60000 }, // 1 min - process unhandled events (sentiment analysis, etc.)
-  ],
   morning: [
-    // Batch 2: Run at 9 AM daily
-    { path: '/api/cron/process-events', timeout: 60000 }, // 1 min - process any remaining events from overnight
+    // Run at 9 AM daily - Start with event processing, then intelligence tasks
+    { path: '/api/cron/process-events', timeout: 60000 }, // 1 min - process agent events FIRST
     { path: '/api/cron/dynamic-roadmap', timeout: 180000 }, // 3 min - auto-adjust roadmap priorities
     { path: '/api/cron/proactive-spec-writer', timeout: 300000 }, // 5 min - auto-draft specs
     { path: '/api/cron/competitive-extraction', timeout: 180000 }, // 3 min - extract competitors
@@ -94,10 +93,16 @@ const TASK_SCHEDULE = {
     { path: '/api/cron/hunter-scan', timeout: 300000 }, // 5 min - scan external platforms
     { path: '/api/cron/calls-analyze', timeout: 180000 }, // 3 min - process call recordings
     { path: '/api/cron/daily-intelligence-digest', timeout: 120000 }, // 2 min - send email digest
-    // Weekly tasks also run in morning batch (only on Sundays)
+    { path: '/api/cron/sync-experiments', timeout: 180000 }, // 3 min - sync experiment results
+    { path: '/api/cron/send-stakeholder-reports', timeout: 120000 }, // 2 min - stakeholder reports (weekly on Mondays)
+  ],
+  evening: [
+    // Run at 9 PM daily - Process events, then maintenance tasks
+    { path: '/api/cron/process-events', timeout: 60000 }, // 1 min - process agent events FIRST
+    { path: '/api/cron/daily-backup', timeout: 600000 }, // 10 min - database backup
   ],
   weekly: [
-    // Run on Sunday mornings (9 AM) in addition to daily tasks
+    // Run on Sunday mornings (9 AM) in addition to morning tasks
     { path: '/api/cron/scrape-external-reviews', timeout: 600000 }, // 10 min - G2/Capterra
     { path: '/api/cron/analyze-competitors', timeout: 300000 }, // 5 min - competitor analysis
     { path: '/api/cron/collect-feature-metrics', timeout: 180000 }, // 3 min - collect post-launch feature metrics
@@ -114,7 +119,7 @@ export async function GET(request: NextRequest) {
 
     // Determine which tasks to run based on query params or time
     const { searchParams } = new URL(request.url);
-    const scheduleParam = searchParams.get('schedule'); // 'morning' or 'night'
+    const scheduleParam = searchParams.get('schedule'); // 'morning', 'evening', or 'weekly'
 
     // Default: determine based on current time
     const now = new Date();
@@ -126,25 +131,19 @@ export async function GET(request: NextRequest) {
 
     if (scheduleParam) {
       // Manual trigger via query param
-      if (scheduleParam === 'night') {
-        tasksToRun = TASK_SCHEDULE.night;
-        scheduleName = 'Night Batch (2 AM)';
-      } else if (scheduleParam === 'morning') {
+      if (scheduleParam === 'morning') {
         tasksToRun = [...TASK_SCHEDULE.morning];
         scheduleName = 'Morning Batch (9 AM)';
-        // Add weekly tasks if manually triggered
-        if (searchParams.get('include_weekly') === 'true') {
-          tasksToRun.push(...TASK_SCHEDULE.weekly);
-          scheduleName = 'Morning Batch + Weekly (Sunday 9 AM)';
-        }
+      } else if (scheduleParam === 'evening') {
+        tasksToRun = [...TASK_SCHEDULE.evening];
+        scheduleName = 'Evening Batch (9 PM)';
+      } else if (scheduleParam === 'weekly') {
+        tasksToRun = [...TASK_SCHEDULE.morning, ...TASK_SCHEDULE.weekly];
+        scheduleName = 'Morning + Weekly Batch (Sunday 9 AM)';
       }
     } else {
       // Auto-determine based on current time
-      if (currentHour === 2) {
-        // 2 AM UTC - Night batch (backup)
-        tasksToRun = TASK_SCHEDULE.night;
-        scheduleName = 'Night Batch (2 AM)';
-      } else if (currentHour === 9) {
+      if (currentHour === 9) {
         // 9 AM UTC - Morning batch
         tasksToRun = [...TASK_SCHEDULE.morning];
         scheduleName = 'Morning Batch (9 AM)';
@@ -152,14 +151,19 @@ export async function GET(request: NextRequest) {
         // Add weekly tasks on Sundays
         if (currentDay === 0) {
           tasksToRun.push(...TASK_SCHEDULE.weekly);
-          scheduleName = 'Morning Batch + Weekly (Sunday 9 AM)';
+          scheduleName = 'Morning + Weekly Batch (Sunday 9 AM)';
         }
+      } else if (currentHour === 21) {
+        // 9 PM UTC - Evening batch
+        tasksToRun = [...TASK_SCHEDULE.evening];
+        scheduleName = 'Evening Batch (9 PM)';
       } else {
         // Called at unexpected time - run nothing
         return NextResponse.json({
           success: true,
-          message: `No tasks scheduled for hour ${currentHour}. Orchestrator runs at 2 AM and 9 AM UTC.`,
+          message: `No tasks scheduled for hour ${currentHour}. Orchestrator runs at 9 AM and 9 PM UTC daily.`,
           schedule: 'None',
+          note: 'Process-events runs as part of morning and evening batches',
         });
       }
     }

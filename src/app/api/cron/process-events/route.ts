@@ -10,7 +10,11 @@
  * 3. Marks events as processed after successful handling
  * 4. Retries failed events with exponential backoff
  *
- * Schedule: Every 5 minutes via vercel.json cron
+ * Schedule: TWICE DAILY via orchestrator (Vercel free tier: max 2 crons, daily frequency)
+ * - Morning batch (9 AM): Process events, then run intelligence tasks
+ * - Evening batch (9 PM): Process events, then run backup/maintenance
+ * - Ensures agents react within ~12 hours of event creation
+ * - Trade-off: Slower than hourly, but works within free tier limits
  *
  * GET /api/cron/process-events
  */
