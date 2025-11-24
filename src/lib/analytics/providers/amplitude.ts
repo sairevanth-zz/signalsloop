@@ -38,40 +38,85 @@ export class AmplitudeProvider implements IAnalyticsProvider {
     }
 
     try {
-      // TODO: Implement Amplitude API call
-      // Example: Query for event "Feature Used" where feature_name = featureName
-      //
-      // const response = await fetch(`${this.baseUrl}/events/segmentation`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Basic ${Buffer.from(`${this.config.apiKey}:${this.config.apiSecret}`).toString('base64')}`,
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     start: startDate.toISOString().split('T')[0],
-      //     end: endDate.toISOString().split('T')[0],
-      //     event: 'Feature Used',
-      //     where: [{ 'event.properties.feature_name': featureName }],
-      //   }),
-      // });
-      //
-      // const data = await response.json();
-      // const activeUsers = data.data.series[0][0]; // Users who used feature
-      // const totalUsers = await this.getTotalActiveUsers(startDate, endDate);
-      //
-      // return {
-      //   totalUsers,
-      //   activeUsers,
-      //   adoptionRate: totalUsers > 0 ? activeUsers / totalUsers : 0,
-      //   featureName,
-      //   timeRange: { start: startDate, end: endDate },
-      // };
+      // Query for "Feature Used" event with specific feature name
+      const response = await fetch(`${this.baseUrl}/events/segmentation`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${Buffer.from(`${this.config.apiKey}:${this.config.apiSecret}`).toString('base64')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          start: startDate.toISOString().split('T')[0],
+          end: endDate.toISOString().split('T')[0],
+          e: {
+            event_type: 'Feature Used',
+            filters: [
+              {
+                subprop_type: 'event',
+                subprop_key: 'feature_name',
+                subprop_op: 'is',
+                subprop_value: [featureName],
+              },
+            ],
+          },
+          m: 'uniques',
+        }),
+      });
 
-      console.log(`[Amplitude] Feature adoption not implemented for: ${featureName}`);
-      return null;
+      if (!response.ok) {
+        console.error(`[Amplitude] API error: ${response.status} ${response.statusText}`);
+        return null;
+      }
+
+      const data = await response.json();
+      const activeUsers = data.data?.xValues?.[0] || 0;
+
+      // Get total active users for the period
+      const totalUsers = await this.getTotalActiveUsers(startDate, endDate);
+
+      return {
+        totalUsers: totalUsers || 0,
+        activeUsers,
+        adoptionRate: totalUsers > 0 ? activeUsers / totalUsers : 0,
+        featureName,
+        timeRange: { start: startDate, end: endDate },
+      };
     } catch (error) {
       console.error('[Amplitude] Error fetching feature adoption:', error);
       return null;
+    }
+  }
+
+  private async getTotalActiveUsers(
+    startDate: Date,
+    endDate: Date
+  ): Promise<number> {
+    try {
+      const response = await fetch(`${this.baseUrl}/events/segmentation`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${Buffer.from(`${this.config.apiKey}:${this.config.apiSecret}`).toString('base64')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          start: startDate.toISOString().split('T')[0],
+          end: endDate.toISOString().split('T')[0],
+          e: {
+            event_type: '_active',
+          },
+          m: 'uniques',
+        }),
+      });
+
+      if (!response.ok) {
+        return 0;
+      }
+
+      const data = await response.json();
+      return data.data?.xValues?.[0] || 0;
+    } catch (error) {
+      console.error('[Amplitude] Error fetching total active users:', error);
+      return 0;
     }
   }
 
@@ -84,17 +129,43 @@ export class AmplitudeProvider implements IAnalyticsProvider {
     }
 
     try {
-      // TODO: Implement Amplitude retention/churn query
-      // This typically requires:
-      // 1. Query for active users at start of period
-      // 2. Query for users who were active at start but not at end
-      // 3. Calculate churn rate = churned / total
-      //
-      // Note: Amplitude's Retention Analysis API can be used for this
-      // See: https://developers.amplitude.com/docs/dashboard-rest-api#retention-analysis
+      // Use Amplitude's Retention Analysis API to calculate churn
+      // Churn = users who were active at start but not retained
+      const response = await fetch(`${this.baseUrl}/retention`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${Buffer.from(`${this.config.apiKey}:${this.config.apiSecret}`).toString('base64')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          start: startDate.toISOString().split('T')[0],
+          end: endDate.toISOString().split('T')[0],
+          rm: 'retention_first_time', // First-time retention
+          rb: 'day_0', // Start from day 0
+          ra: ['day_30'], // Check retention at 30 days
+        }),
+      });
 
-      console.log('[Amplitude] Churn rate calculation not implemented');
-      return null;
+      if (!response.ok) {
+        console.error(`[Amplitude] Retention API error: ${response.status} ${response.statusText}`);
+        return null;
+      }
+
+      const data = await response.json();
+
+      // Extract retention data
+      // Amplitude returns retention as percentage of users who came back
+      const retentionRate = data.data?.values?.[0]?.[1] || 0; // 30-day retention rate
+      const churnRate = 1 - (retentionRate / 100);
+      const totalCustomers = data.data?.values?.[0]?.[0] || 0;
+      const churnedCustomers = Math.round(totalCustomers * churnRate);
+
+      return {
+        totalCustomers,
+        churnedCustomers,
+        churnRate,
+        timeRange: { start: startDate, end: endDate },
+      };
     } catch (error) {
       console.error('[Amplitude] Error fetching churn rate:', error);
       return null;
@@ -110,26 +181,75 @@ export class AmplitudeProvider implements IAnalyticsProvider {
     }
 
     try {
-      // TODO: Implement NPS query
-      // Assumes you're tracking NPS scores as events in Amplitude
-      // Event: "NPS Survey Completed" with property "score" (0-10)
-      //
-      // const response = await fetch(`${this.baseUrl}/events/segmentation`, {
-      //   method: 'POST',
-      //   headers: { ... },
-      //   body: JSON.stringify({
-      //     start: startDate.toISOString().split('T')[0],
-      //     end: endDate.toISOString().split('T')[0],
-      //     event: 'NPS Survey Completed',
-      //     group_by: [{ type: 'event', value: 'event.properties.score' }],
-      //   }),
-      // });
-      //
-      // Then categorize scores: 0-6 (detractors), 7-8 (passives), 9-10 (promoters)
-      // NPS = (% promoters - % detractors)
+      // Query for NPS Survey Completed events with score breakdown
+      const response = await fetch(`${this.baseUrl}/events/segmentation`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${Buffer.from(`${this.config.apiKey}:${this.config.apiSecret}`).toString('base64')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          start: startDate.toISOString().split('T')[0],
+          end: endDate.toISOString().split('T')[0],
+          e: {
+            event_type: 'NPS Survey Completed',
+          },
+          s: [
+            {
+              prop: 'gp:score',
+              op: 'is',
+              values: [],
+            },
+          ],
+          m: 'uniques',
+        }),
+      });
 
-      console.log('[Amplitude] NPS score calculation not implemented');
-      return null;
+      if (!response.ok) {
+        console.error(`[Amplitude] NPS API error: ${response.status} ${response.statusText}`);
+        return null;
+      }
+
+      const data = await response.json();
+
+      // Extract scores from segmentation data
+      const scoreData = data.data?.seriesLabels || [];
+      const scoreCounts = data.data?.series?.[0] || [];
+
+      let promoters = 0;
+      let passives = 0;
+      let detractors = 0;
+      let totalResponses = 0;
+
+      // Categorize scores
+      scoreData.forEach((score: string, index: number) => {
+        const scoreNum = parseInt(score, 10);
+        const count = scoreCounts[index] || 0;
+
+        totalResponses += count;
+
+        if (scoreNum >= 9) {
+          promoters += count;
+        } else if (scoreNum >= 7) {
+          passives += count;
+        } else {
+          detractors += count;
+        }
+      });
+
+      // Calculate NPS: (% Promoters - % Detractors)
+      const promoterPercentage = totalResponses > 0 ? (promoters / totalResponses) * 100 : 0;
+      const detractorPercentage = totalResponses > 0 ? (detractors / totalResponses) * 100 : 0;
+      const npsScore = promoterPercentage - detractorPercentage;
+
+      return {
+        score: Math.round(npsScore),
+        promoters,
+        passives,
+        detractors,
+        totalResponses,
+        timeRange: { start: startDate, end: endDate },
+      };
     } catch (error) {
       console.error('[Amplitude] Error fetching NPS score:', error);
       return null;
