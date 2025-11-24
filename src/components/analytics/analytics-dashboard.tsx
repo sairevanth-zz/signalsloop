@@ -45,6 +45,7 @@ export function AnalyticsDashboard({ projectId }: AnalyticsDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<Record<string, MetricData>>({});
   const [chartData, setChartData] = useState<Record<string, ChartDataPoint[]>>({});
+  const [trafficSourcesData, setTrafficSourcesData] = useState<Array<{ name: string; value: number; percentage: number }>>([]);
 
   useEffect(() => {
     fetchAnalytics();
@@ -53,56 +54,41 @@ export function AnalyticsDashboard({ projectId }: AnalyticsDashboardProps) {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      // In a real implementation, these would be actual API calls to PostHog or your analytics service
-      // For now, we'll simulate the data
-      
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
+      const response = await fetch(`/api/app/analytics/${projectId}?timeRange=${timeRange}`);
 
-      // Simulated metrics data
-      const mockMetrics = {
-        pageViews: { value: 2847, change: 12.5, trend: 'up' as const, timeframe: timeRange },
-        uniqueVisitors: { value: 1823, change: -3.2, trend: 'down' as const, timeframe: timeRange },
-        newPosts: { value: 45, change: 18.7, trend: 'up' as const, timeframe: timeRange },
-        totalVotes: { value: 312, change: 25.1, trend: 'up' as const, timeframe: timeRange },
-        widgetLoads: { value: 156, change: 8.3, trend: 'up' as const, timeframe: timeRange },
-        conversions: { value: 7, change: 40.0, trend: 'up' as const, timeframe: timeRange }
-      };
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics data');
+      }
 
-      // Simulated chart data
-      const mockChartData = {
-        pageViews: generateMockTimeSeriesData(timeRange, 2000, 3000),
-        posts: generateMockTimeSeriesData(timeRange, 5, 15),
-        votes: generateMockTimeSeriesData(timeRange, 20, 50),
-        conversions: generateMockTimeSeriesData(timeRange, 0, 3)
-      };
+      const data = await response.json();
 
-      setMetrics(mockMetrics);
-      setChartData(mockChartData);
-      
+      setMetrics(data.metrics);
+      setChartData(data.chartData);
+      setTrafficSourcesData(data.trafficSources);
+
     } catch (error) {
       console.error('Error fetching analytics:', error);
+      // Fall back to showing empty data
+      setMetrics({
+        pageViews: { value: 0, change: 0, trend: 'neutral' as const, timeframe: timeRange },
+        uniqueVisitors: { value: 0, change: 0, trend: 'neutral' as const, timeframe: timeRange },
+        newPosts: { value: 0, change: 0, trend: 'neutral' as const, timeframe: timeRange },
+        totalVotes: { value: 0, change: 0, trend: 'neutral' as const, timeframe: timeRange },
+        widgetLoads: { value: 0, change: 0, trend: 'neutral' as const, timeframe: timeRange },
+        conversions: { value: 0, change: 0, trend: 'neutral' as const, timeframe: timeRange }
+      });
+      setChartData({
+        pageViews: [],
+        posts: [],
+        votes: [],
+        conversions: []
+      });
+      setTrafficSourcesData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const generateMockTimeSeriesData = (range: string, min: number, max: number): ChartDataPoint[] => {
-    const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
-    const data = [];
-    
-    for (let i = days; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      
-      data.push({
-        date: date.toISOString().split('T')[0],
-        value: Math.floor(Math.random() * (max - min) + min),
-        label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      });
-    }
-    
-    return data;
-  };
 
   const renderMetricCard = (
     title: string,
@@ -227,15 +213,24 @@ export function AnalyticsDashboard({ projectId }: AnalyticsDashboardProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={chartData.pageViews}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="label" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="value" stroke="#6366F1" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
+                {chartData.pageViews && chartData.pageViews.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={chartData.pageViews}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="label" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="value" stroke="#6366F1" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[300px] flex items-center justify-center text-gray-500">
+                    <div className="text-center">
+                      <TrendingUp className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                      <p>No page view data yet</p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -244,37 +239,35 @@ export function AnalyticsDashboard({ projectId }: AnalyticsDashboardProps) {
                 <CardTitle>Traffic Sources</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Direct', value: 35, color: '#6366F1' },
-                        { name: 'Widget', value: 28, color: '#8B5CF6' },
-                        { name: 'Search', value: 20, color: '#EC4899' },
-                        { name: 'Social', value: 10, color: '#F59E0B' },
-                        { name: 'Other', value: 7, color: '#10B981' }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }: {name: string, percent: number}) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {[
-                        { name: 'Direct', value: 35, color: '#6366F1' },
-                        { name: 'Widget', value: 28, color: '#8B5CF6' },
-                        { name: 'Search', value: 20, color: '#EC4899' },
-                        { name: 'Social', value: 10, color: '#F59E0B' },
-                        { name: 'Other', value: 7, color: '#10B981' }
-                      ].map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                {trafficSourcesData.length > 0 && trafficSourcesData.some(s => s.value > 0) ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={trafficSourcesData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percentage }: {name: string, percentage: number}) => `${name} ${percentage}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {trafficSourcesData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[300px] flex items-center justify-center text-gray-500">
+                    <div className="text-center">
+                      <Globe className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                      <p>No traffic data available yet</p>
+                      <p className="text-sm mt-1">Install the widget to start tracking</p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
