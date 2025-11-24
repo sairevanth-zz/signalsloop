@@ -17,6 +17,7 @@ import { SignalCorrelationView } from './SignalCorrelationView';
 import { InsightReportCard } from './InsightReportCard';
 import { SentimentForecastCard } from './SentimentForecastCard';
 import { AnomalyAlertCard } from './AnomalyAlertCard';
+import { ProductHealthScoreCard } from './ProductHealthScoreCard';
 import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio } from 'lucide-react';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
@@ -224,6 +225,11 @@ export function MissionControlGrid({ briefing, metrics: initialMetrics, userName
           )}
         </div>
       </BentoCard>
+
+      {/* Product Health Score (spans 2 columns) */}
+      {liveMetrics.health_score && (
+        <ProductHealthScoreCard healthScore={liveMetrics.health_score} />
+      )}
 
       {/* Action Queue - AI Recommendations (spans 2 columns) */}
       <ActionQueueCard projectId={projectId} />

@@ -5,6 +5,7 @@
 
 import OpenAI from 'openai';
 import { getSupabaseServerClient } from '../supabase-client';
+import { calculateProductHealthScore, type ProductHealthScore } from './product-health-score';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -82,6 +83,7 @@ export interface DashboardMetrics {
     new_insights_count: number;
     high_priority_count: number;
   };
+  health_score?: ProductHealthScore;
 }
 
 /**
@@ -663,5 +665,11 @@ export async function getDashboardMetrics(projectId: string): Promise<DashboardM
     throw new Error('No metrics data returned from database');
   }
 
-  return metrics as DashboardMetrics;
+  const dashboardMetrics = metrics as DashboardMetrics;
+
+  // Calculate Product Health Score
+  const healthScore = calculateProductHealthScore(dashboardMetrics);
+  dashboardMetrics.health_score = healthScore;
+
+  return dashboardMetrics;
 }
