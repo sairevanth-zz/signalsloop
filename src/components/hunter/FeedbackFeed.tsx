@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlatformBadge } from './PlatformBadge';
 import { ClassificationBadge } from './ClassificationBadge';
+import { CompactRevenueBadge } from '@/components/feedback/RevenueBadge';
 import {
   DiscoveredFeedback,
   PlatformType,
@@ -63,6 +64,7 @@ export function FeedbackFeed({
   const [classificationFilter, setClassificationFilter] = useState<string>('all');
   const [urgencyFilter, setUrgencyFilter] = useState<string>('all');
   const [sentimentFilter, setSentimentFilter] = useState<string>('all');
+  const [segmentFilter, setSegmentFilter] = useState<string>('all');
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -161,13 +163,25 @@ export function FeedbackFeed({
     loadFeedback(true);
   };
 
-  const filteredFeedback = searchQuery
-    ? feedback.filter(
-        (item) =>
-          item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.title?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : feedback;
+  // Client-side filtering for search and segment
+  const filteredFeedback = feedback.filter((item) => {
+    // Search filter
+    if (searchQuery) {
+      const matchesSearch =
+        item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.title?.toLowerCase().includes(searchQuery.toLowerCase());
+      if (!matchesSearch) return false;
+    }
+
+    // Segment filter
+    if (segmentFilter !== 'all') {
+      if (!item.customer_segment || item.customer_segment.toLowerCase() !== segmentFilter.toLowerCase()) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 
   const getSentimentColor = (score: number | null) => {
     if (score === null) return 'text-gray-500';
@@ -204,7 +218,7 @@ export function FeedbackFeed({
 
       {/* Filters */}
       {enableFilters && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
           <Select value={platformFilter} onValueChange={setPlatformFilter}>
             <SelectTrigger>
               <SelectValue placeholder="All Platforms" />
@@ -258,6 +272,18 @@ export function FeedbackFeed({
               <SelectItem value="negative">😞 Negative</SelectItem>
             </SelectContent>
           </Select>
+
+          <Select value={segmentFilter} onValueChange={setSegmentFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="All Customers" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Customers</SelectItem>
+              <SelectItem value="enterprise">💼 Enterprise</SelectItem>
+              <SelectItem value="mid-market">🏢 Mid-Market</SelectItem>
+              <SelectItem value="smb">🏪 SMB</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       )}
 
@@ -304,6 +330,12 @@ export function FeedbackFeed({
                   <PlatformBadge platform={item.platform} size="sm" />
                   {item.classification && (
                     <ClassificationBadge classification={item.classification} size="sm" />
+                  )}
+                  {(item.customer_segment || item.customer_plan_tier) && (
+                    <CompactRevenueBadge
+                      segment={item.customer_segment}
+                      planTier={item.customer_plan_tier}
+                    />
                   )}
                   {item.urgency_score && item.urgency_score >= 4 && (
                     <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">

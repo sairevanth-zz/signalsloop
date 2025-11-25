@@ -217,6 +217,14 @@ export interface DiscoveredFeedback {
   is_archived: boolean;
   created_at: string;
   updated_at: string;
+
+  // Customer data (from CRM integration)
+  customer_profile_id?: string;
+  customer_email?: string;
+  customer_company?: string;
+  customer_segment?: string;
+  customer_mrr?: number;
+  customer_plan_tier?: string;
 }
 
 /**
