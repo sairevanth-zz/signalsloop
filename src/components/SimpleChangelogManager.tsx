@@ -143,8 +143,15 @@ export default function SimpleChangelogManager({ projectId, projectSlug }: Simpl
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button 
-                    onClick={() => window.open(`/${projectSlug}/changelog/${release.slug}`, '_blank')}
+                  <button
+                    onClick={() =>
+                      window.open(
+                        release.is_published
+                          ? `/${projectSlug}/changelog/${release.slug}`
+                          : `/${projectSlug}/settings/changelog/${release.id}`,
+                        '_blank'
+                      )
+                    }
                     className="text-blue-600 hover:text-blue-800 text-sm"
                   >
                     View
