@@ -38,6 +38,7 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
   const [ingesting, setIngesting] = useState(false);
   const [boards, setBoards] = useState<Array<{ id: number; name: string }>>([]);
   const [boardsLoading, setBoardsLoading] = useState(false);
+  const [status, setStatus] = useState<string>('');
 
   useEffect(() => {
     let active = true;
@@ -102,6 +103,7 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
   const handleSyncVelocity = async () => {
     if (!selectedConnection || !boardId) return;
     setSyncing(true);
+    setStatus('');
     try {
       const res = await fetch('/api/integrations/jira/sync-velocity', {
         method: 'POST',
@@ -110,6 +112,7 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
       });
       const json = await res.json();
       if (!json.success) {
+        setStatus('Velocity sync failed. Check connection/board.');
         console.error('[CrossToolPanel] Velocity sync failed:', json.error);
       }
       // Refresh data after sync
@@ -120,9 +123,13 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
           velocity: refreshJson.velocity || [],
           usage: refreshJson.usage || { wau: 0, events_7d: 0, top_events: [] },
         });
+        if (json.success) {
+          setStatus('Velocity synced.');
+        }
       }
     } catch (error) {
       console.error('[CrossToolPanel] Velocity sync error:', error);
+      setStatus('Velocity sync failed. See console.');
     } finally {
       setSyncing(false);
     }
@@ -130,6 +137,7 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
 
   const handleIngestSampleUsage = async () => {
     setIngesting(true);
+    setStatus('');
     try {
       const now = new Date().toISOString();
       const res = await fetch('/api/integrations/analytics/ingest', {
@@ -149,6 +157,7 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
       const json = await res.json();
       if (!json.success) {
         console.error('[CrossToolPanel] Sample ingest failed:', json.error);
+        setStatus('Usage ingest failed.');
       }
 
       // Refresh usage stats
@@ -159,9 +168,13 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
           velocity: refreshJson.velocity || [],
           usage: refreshJson.usage || { wau: 0, events_7d: 0, top_events: [] },
         });
+        if (json.success) {
+          setStatus('Demo usage ingested.');
+        }
       }
     } catch (error) {
       console.error('[CrossToolPanel] Usage ingest error:', error);
+      setStatus('Usage ingest failed. See console.');
     } finally {
       setIngesting(false);
     }
@@ -316,6 +329,12 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {status && (
+          <div className="rounded border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200">
+            {status}
           </div>
         )}
       </div>
