@@ -125,15 +125,11 @@ export function ReleaseNotesGenerator({
               {result.release.slug && (
                 <a
                   className="text-sm text-blue-600 hover:underline"
-                  href={
-                    result.release.is_published
-                      ? `/${projectSlug}/changelog/${result.release.slug}`
-                      : `/${projectSlug}/settings/changelog/${result.release.id || result.release.slug}`
-                  }
+                  href={`/${projectSlug}/changelog/${result.release.slug}`}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  View draft
+                  View
                 </a>
               )}
             </div>

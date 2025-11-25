@@ -543,6 +543,8 @@ export async function generateAutoReleaseNotes(
         tags: parsed.tags,
         version: parsed.version,
         metadata: { ...(existingDraft.metadata || {}), ...metadata },
+        is_published: true,
+        published_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq('id', existingDraft.id)
@@ -570,7 +572,8 @@ export async function generateAutoReleaseNotes(
         release_type: releaseType,
         tags: parsed.tags,
         version: parsed.version,
-        is_published: false,
+        is_published: true,
+        published_at: new Date().toISOString(),
         is_featured: false,
         metadata,
       })
