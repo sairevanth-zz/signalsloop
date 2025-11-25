@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ReleaseNotesGenerator } from './ReleaseNotesGenerator';
 
 interface SimpleChangelogManagerProps {
   projectId: string;
@@ -85,6 +86,12 @@ export default function SimpleChangelogManager({ projectId, projectSlug }: Simpl
           View Public Changelog
         </button>
       </div>
+
+      <ReleaseNotesGenerator
+        projectId={projectId}
+        projectSlug={projectSlug}
+        onGenerated={loadReleases}
+      />
 
       {releases.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg">

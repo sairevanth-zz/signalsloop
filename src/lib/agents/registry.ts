@@ -22,6 +22,7 @@ import { handleUrgentFeedback } from './urgent-feedback-agent';
 import { handleCompetitorExtraction } from './competitive-intel-agent';
 import { handleUserFeedback, handleUserVote } from './user-engagement-agent';
 import { handleSpecQualityReview } from './spec-quality-agent';
+import { handleFeatureLaunched } from './release-planning-agent';
 
 /**
  * Agent Registry Structure
@@ -118,6 +119,23 @@ export const AGENT_REGISTRY: AgentRegistry = {
 
   [EventType.COMPETITOR_MENTIONED]: [
     // Future: Competitive tracking and alerting
+  ],
+
+  // ============================================================================
+  // Feature Impact Domain Events
+  // ============================================================================
+
+  [EventType.FEATURE_LAUNCHED]: [
+    // ✅ Release Planning Agent - draft release notes when features ship
+    handleFeatureLaunched,
+  ],
+
+  [EventType.FEATURE_METRICS_COLLECTED]: [
+    // Future: Use post-launch metrics to enrich release notes
+  ],
+
+  [EventType.FEATURE_RETROSPECTIVE_RECORDED]: [
+    // Future: Feed learnings back into roadmap and release planning
   ],
 
   // ============================================================================
