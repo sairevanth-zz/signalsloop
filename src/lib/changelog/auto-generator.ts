@@ -384,12 +384,58 @@ async function fetchFeatureContext(
   return featureContexts;
 }
 
+async function fetchCompletedPostsAsFeatures(
+  projectId: string,
+  options: ReleaseGenerationOptions
+): Promise<FeatureContext[]> {
+  const supabase = getServiceRoleClient();
+  const lookbackDays = options.lookbackDays ?? DEFAULT_LOOKBACK_DAYS;
+  const updatedAfter = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: posts, error } = await supabase
+    .from('posts')
+    .select('id, title, description, content, vote_count, status, created_at, updated_at')
+    .eq('project_id', projectId)
+    .in('status', ['done', 'completed'])
+    .gte('updated_at', updatedAfter)
+    .order('updated_at', { ascending: false })
+    .limit(options.maxFeatures || 6);
+
+  if (error || !posts) {
+    console.error('[Release Planner] Failed to load completed posts:', error);
+    return [];
+  }
+
+  return posts.map((post: any) => ({
+    id: post.id,
+    title: post.title || 'Completed item',
+    priority: 'medium',
+    summary: post.description || post.content || '',
+    whyMatters: post.description || post.content || '',
+    recommendation: '',
+    feedbackNotes: [
+      {
+        id: post.id,
+        text: post.description || post.content || post.title || 'Completed item',
+        votes: post.vote_count || 0,
+      },
+    ],
+    userStories: [],
+    impactNotes: [],
+  }));
+}
+
 export async function generateAutoReleaseNotes(
   projectId: string,
   options: ReleaseGenerationOptions = {}
 ): Promise<ReleaseGenerationResult> {
   const supabase = getServiceRoleClient();
-  const features = await fetchFeatureContext(projectId, options);
+  let features = await fetchFeatureContext(projectId, options);
+
+  if (features.length === 0) {
+    const postFeatures = await fetchCompletedPostsAsFeatures(projectId, options);
+    features = postFeatures;
+  }
 
   if (features.length === 0) {
     return {
