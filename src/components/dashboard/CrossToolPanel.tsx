@@ -52,9 +52,12 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
             velocity: json.velocity || [],
             usage: json.usage || { wau: 0, events_7d: 0, top_events: [] },
           });
+        } else if (active && !json.success) {
+          setStatus('Failed to load cross-tool data.');
         }
       } catch (error) {
         console.error('[CrossToolPanel] Failed to load data:', error);
+        if (active) setStatus('Failed to load cross-tool data.');
       } finally {
         if (active) setLoading(false);
       }

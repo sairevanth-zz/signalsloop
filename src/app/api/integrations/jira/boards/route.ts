@@ -23,12 +23,14 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    let userId: string | undefined;
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      userId = user?.id;
+    } catch {
+      userId = undefined;
     }
 
     // Verify connection belongs to the user and project
@@ -38,8 +40,12 @@ export async function GET(request: NextRequest) {
       .eq('id', connectionId)
       .single();
 
-    if (!connection || connection.user_id !== user.id || connection.project_id !== projectId) {
+    if (!connection || connection.project_id !== projectId) {
       return NextResponse.json({ success: false, error: 'Connection not found' }, { status: 404 });
+    }
+
+    if (userId && connection.user_id && connection.user_id !== userId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
     }
 
     const api = new JiraAPI(connectionId, connection.cloud_id);

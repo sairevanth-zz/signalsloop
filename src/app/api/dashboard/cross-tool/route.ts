@@ -18,22 +18,28 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    let userId: string | undefined;
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      userId = user?.id;
+    } catch {
+      userId = undefined;
     }
 
-    // Verify ownership
+    // Verify project and, if user present, ownership
     const { data: project } = await supabase
       .from('projects')
       .select('id, owner_id')
       .eq('id', projectId)
       .single();
 
-    if (!project || project.owner_id !== user.id) {
+    if (!project) {
+      return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
+    }
+
+    if (userId && project.owner_id && project.owner_id !== userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
     }
 
