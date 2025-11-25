@@ -58,7 +58,25 @@ export function AgentDashboard({ projectId }: AgentActivityProps) {
       const response = await fetch('/api/agents/status');
       if (response.ok) {
         const data = await response.json();
-        setStatus(data);
+        // Normalize API responses to the shape the dashboard expects
+        const normalizedActive =
+          data.activeAgents ||
+          data.agents?.registry?.map((agent: any) => ({
+            name: agent.eventType || 'Agent',
+            event: agent.eventType || 'event',
+            description: agent.description || 'Autonomous agent',
+            phase: agent.phase || 'Phase 3',
+          })) ||
+          [];
+
+        const normalizedFuture = data.futureAgents || [];
+
+        setStatus({
+          running: data.running ?? true,
+          activeAgents: normalizedActive,
+          futureAgents: normalizedFuture,
+          phase: data.phase || 'Phase 3',
+        });
       }
     } catch (error) {
       console.error('Error loading agent status:', error);
@@ -121,7 +139,7 @@ export function AgentDashboard({ projectId }: AgentActivityProps) {
             Autonomous Agents
           </h2>
           <p className="text-gray-500 mt-1">
-            7 agents running 24/7 • {status.phase}
+            {status.activeAgents.length} agents running 24/7 • {status.phase}
           </p>
         </div>
         <Button
