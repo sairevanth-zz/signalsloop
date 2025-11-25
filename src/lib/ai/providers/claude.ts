@@ -25,7 +25,8 @@ const CLAUDE_MODEL_MAP: Record<string, string> = {
   'claude-3-opus': 'claude-3-opus-20240229',
   'claude-3-sonnet': 'claude-3-sonnet-20240229',
   'claude-3-haiku': 'claude-3-haiku-20240307',
-  'claude-3-5-sonnet': 'claude-3-5-sonnet-20241022',
+  // Use the currently available Claude 3.5 Sonnet model
+  'claude-3-5-sonnet': 'claude-3-5-sonnet-20240620',
 };
 
 export class ClaudeProvider implements IAIProvider {
