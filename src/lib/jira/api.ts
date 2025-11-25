@@ -91,6 +91,16 @@ export interface JiraProject {
 }
 
 /**
+ * Jira Board (Agile)
+ */
+export interface JiraBoard {
+  id: number;
+  name: string;
+  type?: string;
+  location?: Record<string, any>;
+}
+
+/**
  * Jira Issue Type
  */
 export interface JiraIssueType {
@@ -230,6 +240,21 @@ export class JiraAPI {
    */
   async getBoardVelocity(boardId: string): Promise<JiraVelocityReport> {
     return this.request(`/rest/agile/1.0/board/${boardId}/velocity`);
+  }
+
+  /**
+   * List boards (paginated)
+   */
+  async listBoards(params: { startAt?: number; maxResults?: number } = {}): Promise<{
+    startAt: number;
+    maxResults: number;
+    isLast: boolean;
+    values: JiraBoard[];
+  }> {
+    const { startAt = 0, maxResults = 50 } = params;
+    return this.request(
+      `/rest/agile/1.0/board?startAt=${startAt}&maxResults=${maxResults}`
+    );
   }
 
   // ============================================================================

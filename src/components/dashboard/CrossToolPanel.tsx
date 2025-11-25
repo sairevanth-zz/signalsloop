@@ -36,6 +36,8 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
   const [boardId, setBoardId] = useState<string>('');
   const [syncing, setSyncing] = useState(false);
   const [ingesting, setIngesting] = useState(false);
+  const [boards, setBoards] = useState<Array<{ id: number; name: string }>>([]);
+  const [boardsLoading, setBoardsLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -78,6 +80,24 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
       active = false;
     };
   }, [projectId, selectedConnection]);
+
+  const loadBoards = async (connectionId: string) => {
+    if (!connectionId) return;
+    setBoardsLoading(true);
+    try {
+      const res = await fetch(`/api/integrations/jira/boards?connectionId=${connectionId}&projectId=${projectId}`);
+      const json = await res.json();
+      if (json.success) {
+        setBoards(json.boards || []);
+      } else {
+        console.error('[CrossToolPanel] Failed to load boards:', json.error);
+      }
+    } catch (error) {
+      console.error('[CrossToolPanel] Boards load error:', error);
+    } finally {
+      setBoardsLoading(false);
+    }
+  };
 
   const handleSyncVelocity = async () => {
     if (!selectedConnection || !boardId) return;
@@ -201,7 +221,12 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
                 <select
                   className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-white"
                   value={selectedConnection}
-                  onChange={(e) => setSelectedConnection(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedConnection(e.target.value);
+                    setBoardId('');
+                    setBoards([]);
+                    loadBoards(e.target.value);
+                  }}
                 >
                   <option value="">Select Jira connection</option>
                   {connections.map((conn) => (
@@ -210,12 +235,32 @@ export function CrossToolPanel({ projectId }: CrossToolPanelProps) {
                     </option>
                   ))}
                 </select>
-                <input
-                  className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-white"
-                  placeholder="Board ID (e.g., 23)"
-                  value={boardId}
-                  onChange={(e) => setBoardId(e.target.value)}
-                />
+                {boards.length > 0 ? (
+                  <select
+                    className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-white"
+                    value={boardId}
+                    onChange={(e) => setBoardId(e.target.value)}
+                  >
+                    <option value="">Select Board</option>
+                    {boards.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} (#{b.id})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-white"
+                    placeholder="Board ID (e.g., 23)"
+                    value={boardId}
+                    onChange={(e) => setBoardId(e.target.value)}
+                  />
+                )}
+                {boardsLoading && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Loading boards...
+                  </div>
+                )}
                 <button
                   onClick={handleSyncVelocity}
                   disabled={!selectedConnection || !boardId || syncing}
