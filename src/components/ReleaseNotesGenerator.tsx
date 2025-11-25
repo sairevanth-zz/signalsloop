@@ -122,14 +122,20 @@ export function ReleaseNotesGenerator({
                   <p className="text-sm text-gray-600">{result.release.excerpt}</p>
                 )}
               </div>
-              <a
-                className="text-sm text-blue-600 hover:underline"
-                href={`/${projectSlug}/changelog/${result.release.slug}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                View draft
-              </a>
+              {result.release.slug && (
+                <a
+                  className="text-sm text-blue-600 hover:underline"
+                  href={
+                    result.release.is_published
+                      ? `/${projectSlug}/changelog/${result.release.slug}`
+                      : `/${projectSlug}/settings/changelog/${result.release.id || result.release.slug}`
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View draft
+                </a>
+              )}
             </div>
 
             {result.entries && result.entries.length > 0 && (
