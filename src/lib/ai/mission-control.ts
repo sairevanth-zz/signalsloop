@@ -74,6 +74,17 @@ export interface DashboardMetrics {
     total_this_week: number;
     trend: 'up' | 'down';
   };
+  execution?: {
+    avg_velocity_points: number;
+    last_sprint_points: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+  usage?: {
+    weekly_active: number;
+    events_7d: number;
+    events_per_user: number;
+    trend: 'up' | 'down' | 'stable';
+  };
   roadmap: {
     in_progress: number;
     planned: number;
@@ -95,6 +106,17 @@ async function aggregateProjectData(projectId: string): Promise<{
   roadmapStats: any;
   recentFeedback: any[];
   themes: any[];
+  executionStats?: {
+    avg_velocity_points: number;
+    last_sprint_points: number;
+    trend: 'up' | 'down' | 'stable';
+  };
+  usageStats?: {
+    weekly_active: number;
+    events_7d: number;
+    events_per_user: number;
+    trend: 'up' | 'down' | 'stable';
+  };
 }> {
   const supabase = getSupabaseServerClient();
 
@@ -163,12 +185,17 @@ async function aggregateProjectData(projectId: string): Promise<{
     // Table might not exist
   }
 
+  const executionStats = await getExecutionVelocityStats(projectId);
+  const usageStats = await getUsageStats(projectId);
+
   return {
     feedbackStats: metrics?.feedback || {},
     competitorStats: { insights: competitorInsights, ...metrics?.competitors },
     roadmapStats: metrics?.roadmap || {},
     recentFeedback: recentFeedback || [],
     themes: themes || [],
+    executionStats,
+    usageStats,
   };
 }
 
@@ -667,9 +694,131 @@ export async function getDashboardMetrics(projectId: string): Promise<DashboardM
 
   const dashboardMetrics = metrics as DashboardMetrics;
 
+  // Enrich with cross-tool intelligence metrics
+  try {
+    dashboardMetrics.execution = await getExecutionVelocityStats(projectId);
+  } catch (e) {
+    console.warn('[MissionControl] Failed to load execution velocity stats:', e);
+  }
+
+  try {
+    dashboardMetrics.usage = await getUsageStats(projectId);
+  } catch (e) {
+    console.warn('[MissionControl] Failed to load usage analytics stats:', e);
+  }
+
   // Calculate Product Health Score
   const healthScore = calculateProductHealthScore(dashboardMetrics);
   dashboardMetrics.health_score = healthScore;
 
   return dashboardMetrics;
+}
+
+/**
+ * Compute execution velocity from Jira sprint data
+ */
+async function getExecutionVelocityStats(projectId: string): Promise<DashboardMetrics['execution']> {
+  const supabase = getSupabaseServerClient();
+  if (!supabase) return { avg_velocity_points: 0, last_sprint_points: 0, trend: 'stable' };
+
+  const { data, error } = await supabase
+    .from('team_velocity')
+    .select('completed_points, sprint_end_date')
+    .eq('project_id', projectId)
+    .order('sprint_end_date', { ascending: false })
+    .limit(6);
+
+  if (error || !data) {
+    console.warn('[MissionControl] team_velocity fetch failed:', error);
+    return { avg_velocity_points: 0, last_sprint_points: 0, trend: 'stable' };
+  }
+
+  const completed = data.map(row => Number(row.completed_points) || 0);
+  const lastSprint = completed[0] || 0;
+  const recent = completed.slice(0, 3);
+  const previous = completed.slice(3, 6);
+  const avgRecent = average(recent);
+  const avgPrevious = average(previous);
+
+  return {
+    avg_velocity_points: Math.round(avgRecent * 10) / 10,
+    last_sprint_points: Math.round(lastSprint * 10) / 10,
+    trend: calculateTrend(avgRecent, avgPrevious),
+  };
+}
+
+/**
+ * Compute usage analytics stats from ingestion table
+ */
+async function getUsageStats(projectId: string): Promise<DashboardMetrics['usage']> {
+  const supabase = getSupabaseServerClient();
+  if (!supabase) return { weekly_active: 0, events_7d: 0, events_per_user: 0, trend: 'stable' };
+
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Recent 7d
+  const { data: recentData, error: recentError } = await supabase
+    .from('usage_analytics_events')
+    .select('distinct_id,user_id,occurred_at')
+    .eq('project_id', projectId)
+    .gte('occurred_at', sevenDaysAgo)
+    .order('occurred_at', { ascending: false })
+    .limit(500);
+
+  // Previous 7d
+  const { data: prevData, error: prevError } = await supabase
+    .from('usage_analytics_events')
+    .select('distinct_id,user_id,occurred_at')
+    .eq('project_id', projectId)
+    .gte('occurred_at', fourteenDaysAgo)
+    .lt('occurred_at', sevenDaysAgo)
+    .order('occurred_at', { ascending: false })
+    .limit(500);
+
+  if (recentError) {
+    console.warn('[MissionControl] usage analytics recent fetch failed:', recentError);
+  }
+  if (prevError) {
+    console.warn('[MissionControl] usage analytics previous fetch failed:', prevError);
+  }
+
+  const recentEvents = recentData || [];
+  const prevEvents = prevData || [];
+
+  const recentUsers = new Set(
+    recentEvents.map(e => e.distinct_id || e.user_id).filter(Boolean)
+  );
+  const prevUsers = new Set(
+    prevEvents.map(e => e.distinct_id || e.user_id).filter(Boolean)
+  );
+
+  const weeklyActive = recentUsers.size;
+  const events7d = recentEvents.length;
+  const eventsPerUser = weeklyActive > 0 ? events7d / weeklyActive : 0;
+
+  const trend = calculateTrend(events7d, prevEvents.length);
+
+  return {
+    weekly_active: weeklyActive,
+    events_7d: events7d,
+    events_per_user: Math.round(eventsPerUser * 10) / 10,
+    trend,
+  };
+}
+
+function average(values: number[]): number {
+  if (!values || values.length === 0) return 0;
+  return values.reduce((sum, v) => sum + v, 0) / values.length;
+}
+
+function calculateTrend(current: number, previous: number): 'up' | 'down' | 'stable' {
+  if (!previous && !current) return 'stable';
+  if (!previous) return 'up';
+
+  const delta = (current - previous) / previous;
+  if (delta > 0.1) return 'up';
+  if (delta < -0.1) return 'down';
+  return 'stable';
 }

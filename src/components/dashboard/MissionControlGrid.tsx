@@ -19,7 +19,7 @@ import { SentimentForecastCard } from './SentimentForecastCard';
 import { AnomalyAlertCard } from './AnomalyAlertCard';
 import { ProductHealthScoreCard } from './ProductHealthScoreCard';
 import { LiveExperimentsCard } from './LiveExperimentsCard';
-import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio } from 'lucide-react';
+import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio, Activity, Users } from 'lucide-react';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
 
@@ -105,6 +105,26 @@ export function MissionControlGrid({ briefing, metrics: initialMetrics, userName
           icon={Zap}
           iconColor="text-yellow-400"
           badge={isConnected ? <Radio className="h-3 w-3 text-green-500 animate-pulse" /> : undefined}
+        />
+
+        {/* Execution Velocity (Jira) */}
+        <MetricCard
+          label="Execution Velocity"
+          value={`${liveMetrics.execution?.last_sprint_points ?? 0} pts`}
+          trend={liveMetrics.execution?.trend || 'stable'}
+          trendValue={`Avg ${liveMetrics.execution?.avg_velocity_points ?? 0} pts`}
+          icon={Activity}
+          iconColor="text-emerald-400"
+        />
+
+        {/* Usage Engagement */}
+        <MetricCard
+          label="Product Usage"
+          value={`${liveMetrics.usage?.weekly_active ?? 0} WAU`}
+          trend={liveMetrics.usage?.trend || 'stable'}
+          trendValue={`${liveMetrics.usage?.events_7d ?? 0} events · ${liveMetrics.usage?.events_per_user ?? 0}/user`}
+          icon={Users}
+          iconColor="text-blue-300"
         />
 
       {/* Row 2: Threats Card (below sentiment) */}
