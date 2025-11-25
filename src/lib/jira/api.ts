@@ -122,6 +122,27 @@ export interface JiraUser {
 }
 
 /**
+ * Jira Velocity report (Agile API)
+ */
+export interface JiraVelocityReport {
+  sprints: Array<{
+    id: number;
+    name: string;
+    startDate?: string;
+    endDate?: string;
+    completeDate?: string;
+    state?: string;
+  }>;
+  velocityStatEntries: Record<
+    string,
+    {
+      estimated?: { value?: number };
+      completed?: { value?: number };
+    }
+  >;
+}
+
+/**
  * Jira Webhook creation payload
  */
 export interface CreateWebhookPayload {
@@ -195,6 +216,20 @@ export class JiraAPI {
     }
 
     return response.json();
+  }
+
+  /**
+   * Get board metadata
+   */
+  async getBoard(boardId: string): Promise<{ id: number; name: string }> {
+    return this.request(`/rest/agile/1.0/board/${boardId}`);
+  }
+
+  /**
+   * Get sprint velocity report for a board
+   */
+  async getBoardVelocity(boardId: string): Promise<JiraVelocityReport> {
+    return this.request(`/rest/agile/1.0/board/${boardId}/velocity`);
   }
 
   // ============================================================================
