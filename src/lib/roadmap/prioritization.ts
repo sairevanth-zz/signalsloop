@@ -33,11 +33,17 @@ export interface ThemeData {
   urgency_scores: number[];
   competitor_count: number;
   estimated_effort: 'low' | 'medium' | 'high' | 'very_high';
+  execution_velocity_points?: number;
+  usage_trend?: 'up' | 'down' | 'stable';
+  usage_events_7d?: number;
 }
 
 export interface PriorityContext {
   maxMentions: number;
   totalCompetitors: number;
+  executionVelocityPoints?: number;
+  usageTrend?: 'up' | 'down' | 'stable';
+  usageEvents7d?: number;
 }
 
 export interface ScoringBreakdown {
@@ -175,6 +181,43 @@ export function calculateCompetitiveScore(
   return competitorCount / totalCompetitors;
 }
 
+function adjustEffortWithVelocity(
+  effortScore: number,
+  executionVelocityPoints?: number | null
+): number {
+  if (executionVelocityPoints === undefined || executionVelocityPoints === null) {
+    return effortScore;
+  }
+
+  // If velocity is low, slightly penalize effort-heavy items; if high, reward
+  if (executionVelocityPoints < 15) {
+    return effortScore * 0.9;
+  }
+
+  if (executionVelocityPoints > 30) {
+    return Math.min(1, effortScore * 1.05);
+  }
+
+  return effortScore;
+}
+
+function adjustBusinessWithUsage(
+  businessScore: number,
+  usageTrend?: 'up' | 'down' | 'stable'
+): number {
+  if (!usageTrend) return businessScore;
+
+  if (usageTrend === 'down') {
+    return Math.min(1, businessScore + 0.05);
+  }
+
+  if (usageTrend === 'up') {
+    return Math.max(0, businessScore - 0.02);
+  }
+
+  return businessScore;
+}
+
 // =====================================================
 // MAIN PRIORITIZATION FUNCTION
 // =====================================================
@@ -195,6 +238,17 @@ export function calculatePriorityScore(
     effort: calculateEffortScore(theme.estimated_effort),
     competitive: calculateCompetitiveScore(theme.competitor_count, context.totalCompetitors)
   };
+
+  // Cross-tool adjustments (execution capacity + usage trends)
+  scores.effort = adjustEffortWithVelocity(
+    scores.effort,
+    context.executionVelocityPoints ?? theme.execution_velocity_points
+  );
+
+  scores.businessImpact = adjustBusinessWithUsage(
+    scores.businessImpact,
+    context.usageTrend ?? theme.usage_trend
+  );
 
   // Calculate weighted total score
   const totalScore = (
@@ -285,14 +339,17 @@ export async function generateRoadmapSuggestions(projectId: string) {
       competitorMap.set(cf.feature_name, count + 1);
     });
 
+    // 3. Cross-tool signals (execution velocity + usage)
+    const crossToolSignals = await getCrossToolSignals(supabase, projectId);
+
     const totalCompetitors = new Set(
       competitiveFeatures?.map(cf => cf.competitor_id) || []
     ).size || 5; // Default to 5 if no competitors
 
-    // 3. Calculate max mentions for normalization
+    // 4. Calculate max mentions for normalization
     const maxMentions = Math.max(...themes.map(t => t.frequency || 0), 1);
 
-    // 4. Score each theme
+    // 5. Score each theme
     const suggestions = [];
 
     for (const theme of themes) {
@@ -353,12 +410,18 @@ export async function generateRoadmapSuggestions(projectId: string) {
         business_impact_keywords: businessImpactKeywords,
         urgency_scores: urgencyScores,
         competitor_count: competitorMap.get(theme.theme_name) || 0,
-        estimated_effort: estimatedEffort
+        estimated_effort: estimatedEffort,
+        execution_velocity_points: crossToolSignals.executionVelocityPoints,
+        usage_trend: crossToolSignals.usageTrend,
+        usage_events_7d: crossToolSignals.usageEvents7d
       };
 
       const { totalScore, breakdown } = calculatePriorityScore(themeData, {
         maxMentions,
-        totalCompetitors
+        totalCompetitors,
+        executionVelocityPoints: crossToolSignals.executionVelocityPoints,
+        usageTrend: crossToolSignals.usageTrend,
+        usageEvents7d: crossToolSignals.usageEvents7d
       });
 
       const priorityLevel = assignPriorityLevel(totalScore);
@@ -423,6 +486,64 @@ export async function generateRoadmapSuggestions(projectId: string) {
 
     throw error;
   }
+}
+
+async function getCrossToolSignals(supabase: any, projectId: string): Promise<{
+  executionVelocityPoints: number;
+  usageTrend: 'up' | 'down' | 'stable';
+  usageEvents7d: number;
+}> {
+  // Execution velocity: average completed points over last 3 sprints
+  const { data: velocityRows } = await supabase
+    .from('team_velocity')
+    .select('completed_points')
+    .eq('project_id', projectId)
+    .order('sprint_end_date', { ascending: false })
+    .limit(3);
+
+  const velocityPoints = (velocityRows || [])
+    .map((v: any) => Number(v.completed_points) || 0)
+    .filter((n: number) => !Number.isNaN(n));
+
+  const executionVelocityPoints = velocityPoints.length
+    ? velocityPoints.reduce((a: number, b: number) => a + b, 0) / velocityPoints.length
+    : 0;
+
+  // Usage trend: events in last 7d vs previous 7d
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { count: recentEvents = 0 } = await supabase
+    .from('usage_analytics_events')
+    .select('*', { count: 'exact', head: true })
+    .eq('project_id', projectId)
+    .gte('occurred_at', sevenDaysAgo);
+
+  const { count: previousEvents = 0 } = await supabase
+    .from('usage_analytics_events')
+    .select('*', { count: 'exact', head: true })
+    .eq('project_id', projectId)
+    .gte('occurred_at', fourteenDaysAgo)
+    .lt('occurred_at', sevenDaysAgo);
+
+  const usageTrend = determineTrend(recentEvents || 0, previousEvents || 0);
+
+  return {
+    executionVelocityPoints,
+    usageTrend,
+    usageEvents7d: recentEvents || 0,
+  };
+}
+
+function determineTrend(current: number, previous: number): 'up' | 'down' | 'stable' {
+  if (previous === 0 && current === 0) return 'stable';
+  if (previous === 0) return 'up';
+
+  const delta = (current - previous) / previous;
+  if (delta > 0.1) return 'up';
+  if (delta < -0.1) return 'down';
+  return 'stable';
 }
 
 /**
