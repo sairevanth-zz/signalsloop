@@ -3,7 +3,6 @@
  * Wrapper around Anthropic SDK with unified interface
  */
 
-import Anthropic from '@anthropic-ai/sdk';
 import type {
   IAIProvider,
   AIProvider,
@@ -13,6 +12,14 @@ import type {
   AICompletionResult,
   MODEL_REGISTRY,
 } from '../types';
+
+// Dynamically import Anthropic SDK
+let Anthropic: any;
+try {
+  Anthropic = require('@anthropic-ai/sdk').default;
+} catch (error) {
+  throw new Error('@anthropic-ai/sdk not installed. Run: npm install @anthropic-ai/sdk');
+}
 
 const CLAUDE_MODEL_MAP: Record<string, string> = {
   'claude-3-opus': 'claude-3-opus-20240229',

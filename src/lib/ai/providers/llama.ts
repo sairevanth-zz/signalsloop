@@ -3,7 +3,6 @@
  * Ultra-fast, cost-effective inference for simple tasks
  */
 
-import Groq from 'groq-sdk';
 import type {
   IAIProvider,
   AIProvider,
@@ -13,6 +12,14 @@ import type {
   AICompletionResult,
   MODEL_REGISTRY,
 } from '../types';
+
+// Dynamically import Groq SDK
+let Groq: any;
+try {
+  Groq = require('groq-sdk').default;
+} catch (error) {
+  throw new Error('groq-sdk not installed. Run: npm install groq-sdk');
+}
 
 const GROQ_MODEL_MAP: Record<string, string> = {
   'llama-3.1-70b': 'llama-3.1-70b-versatile',

@@ -5,8 +5,6 @@
  */
 
 import { OpenAIProvider } from './providers/openai';
-import { ClaudeProvider } from './providers/claude';
-import { LlamaProvider } from './providers/llama';
 import type {
   IAIProvider,
   AIProvider,
@@ -34,16 +32,19 @@ export class AIRouter {
       console.warn('[AI Router] OpenAI provider not available:', error);
     }
 
+    // Optional providers - only load if dependencies are installed
     try {
+      const { ClaudeProvider } = require('./providers/claude');
       this.providers.set('claude', new ClaudeProvider());
     } catch (error) {
-      console.warn('[AI Router] Claude provider not available:', error);
+      console.warn('[AI Router] Claude provider not available (install @anthropic-ai/sdk to enable)');
     }
 
     try {
+      const { LlamaProvider } = require('./providers/llama');
       this.providers.set('llama', new LlamaProvider());
     } catch (error) {
-      console.warn('[AI Router] Llama provider not available:', error);
+      console.warn('[AI Router] Llama provider not available (install groq-sdk to enable)');
     }
   }
 

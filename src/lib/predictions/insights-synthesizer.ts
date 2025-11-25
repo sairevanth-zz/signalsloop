@@ -11,12 +11,19 @@
  * - Trend analysis and predictions
  */
 
-import Anthropic from '@anthropic-ai/sdk';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
+// Dynamically import Claude SDK if available
+let Anthropic: any;
+try {
+  Anthropic = require('@anthropic-ai/sdk').default;
+} catch (error) {
+  console.warn('[Insights] @anthropic-ai/sdk not installed, insights will be disabled');
+}
+
+const anthropic = Anthropic && process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : null;
 
 const MODEL = 'claude-sonnet-4-20250514'; // Latest Claude Sonnet 4
 
@@ -327,6 +334,11 @@ ${anomalySummaries.map((a, i) => `${i + 1}. ${a.type} (${a.severity}): ${a.summa
 - Sentiment breakdown: ${weeklyData.sentimentDistribution.positive} positive, ${weeklyData.sentimentDistribution.negative} negative, ${weeklyData.sentimentDistribution.neutral} neutral
 
 Please provide comprehensive strategic insights as JSON.`;
+
+  // Check if anthropic client is available
+  if (!anthropic) {
+    throw new Error('Claude SDK not installed. Run: npm install @anthropic-ai/sdk');
+  }
 
   try {
     const response = await anthropic.messages.create({
