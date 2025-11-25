@@ -64,11 +64,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await generateAutoReleaseNotes(projectId, {
-      lookbackDays,
-      maxFeatures,
-      triggeredBy: 'api',
-    });
+    let result;
+    try {
+      result = await generateAutoReleaseNotes(projectId, {
+        lookbackDays,
+        maxFeatures,
+        triggeredBy: 'api',
+      });
+    } catch (genError: any) {
+      console.error('[API changelog/auto-generate] Generation failed:', genError);
+      return NextResponse.json(
+        { success: false, error: genError?.message || 'Generation failed' },
+        { status: 500 }
+      );
+    }
 
     const statusCode = result.success ? 200 : 400;
 
@@ -80,6 +89,7 @@ export async function POST(request: NextRequest) {
         entries: result.entries,
         communications: result.communications,
         detectedFeatures: result.detectedFeatures,
+        rawModelOutput: result.rawModelOutput,
       },
       { status: statusCode }
     );

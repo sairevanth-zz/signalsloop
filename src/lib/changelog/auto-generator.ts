@@ -430,11 +430,21 @@ export async function generateAutoReleaseNotes(
   options: ReleaseGenerationOptions = {}
 ): Promise<ReleaseGenerationResult> {
   const supabase = getServiceRoleClient();
-  let features = await fetchFeatureContext(projectId, options);
+  let features: FeatureContext[] = [];
+
+  try {
+    features = await fetchFeatureContext(projectId, options);
+  } catch (err) {
+    console.error('[Release Planner] Error loading roadmap suggestions:', err);
+  }
 
   if (features.length === 0) {
-    const postFeatures = await fetchCompletedPostsAsFeatures(projectId, options);
-    features = postFeatures;
+    try {
+      const postFeatures = await fetchCompletedPostsAsFeatures(projectId, options);
+      features = postFeatures;
+    } catch (err) {
+      console.error('[Release Planner] Error loading completed posts:', err);
+    }
   }
 
   if (features.length === 0) {
@@ -448,15 +458,25 @@ export async function generateAutoReleaseNotes(
 
   const prompt = buildPrompt(features);
 
-  const completion = await complete({
-    type: 'generation',
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: prompt },
-    ],
-    options: { temperature: 0.5, maxTokens: 1200 },
-    priority: 'high',
-  });
+  let completion;
+  try {
+    completion = await complete({
+      type: 'generation',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: prompt },
+      ],
+      options: { temperature: 0.5, maxTokens: 1200 },
+      priority: 'high',
+    });
+  } catch (err: any) {
+    console.error('[Release Planner] AI generation failed:', err);
+    return {
+      success: false,
+      message: `AI generation failed: ${err?.message || 'unknown error'}`,
+      detectedFeatures: features.length,
+    };
+  }
 
   const fallbackTitle = `Release - ${new Date().toISOString().slice(0, 10)}`;
   const parsed = parseModelOutput(completion.content || '', fallbackTitle);
