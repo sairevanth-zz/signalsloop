@@ -7,17 +7,18 @@
  *
  * This agent replaced the cron-based /api/cron/proactive-spec-writer workflow
  * Now specs are generated immediately when a theme reaches threshold, not daily
+ *
+ * MIGRATION: Now uses multi-provider AI router with Claude for long-context tasks
+ * - Handles 200K tokens (vs 128K with GPT-4o)
+ * - Can process 50+ feedback items without chunking
+ * - Better spec quality with full context
  */
 
 import { DomainEvent } from '@/lib/events/types';
-import OpenAI from 'openai';
+import { complete } from '@/lib/ai/router';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import { generateEmbedding, prepareSpecForEmbedding, generateContentHash } from '@/lib/specs/embeddings';
 import { SPEC_GENERATION_SYSTEM_PROMPT, getSpecGenerationPrompt, getFeedbackSynthesisPrompt } from '@/lib/specs/prompts';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 /**
  * Handle theme.threshold_reached event
@@ -88,14 +89,17 @@ export async function handleThemeThresholdReached(event: DomainEvent): Promise<v
       }))
     );
 
-    const synthesisResponse = await openai.chat.completions.create({
-      model: 'gpt-4o',
+    const synthesisResponse = await complete({
+      type: 'reasoning',  // Synthesis requires reasoning ability
       messages: [{ role: 'user', content: synthesisPrompt }],
-      response_format: { type: 'json_object' },
-      temperature: 0.7,
+      options: {
+        responseFormat: 'json',
+        temperature: 0.7,
+      },
+      priority: 'medium',
     });
 
-    const synthesis = JSON.parse(synthesisResponse.choices[0].message.content || '{}');
+    const synthesis = JSON.parse(synthesisResponse.content || '{}');
     const ideaText = synthesis.synthesizedProblem || payload.theme_name;
 
     // Calculate total votes
@@ -118,18 +122,31 @@ export async function handleThemeThresholdReached(event: DomainEvent): Promise<v
       customContext: `This spec was auto-generated based on ${payload.frequency} user requests (${totalVotes} total votes). High-demand feature cluster detected with average sentiment: ${payload.avg_sentiment?.toFixed(2) || 'N/A'}.`,
     });
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+    // Estimate context length for smart routing
+    const estimatedTokens = Math.ceil(
+      (generationPrompt.length + SPEC_GENERATION_SYSTEM_PROMPT.length) / 4
+    );
+
+    console.log(`[SPEC WRITER AGENT] Generating spec with ~${estimatedTokens} context tokens`);
+
+    const completion = await complete({
+      type: 'generation',  // Router chooses GPT-4o or Claude based on context
       messages: [
         { role: 'system', content: SPEC_GENERATION_SYSTEM_PROMPT },
         { role: 'user', content: generationPrompt },
       ],
-      temperature: 0.7,
-      max_tokens: 4000,
+      options: {
+        temperature: 0.7,
+        maxTokens: 4000,
+      },
+      contextLength: estimatedTokens,  // Router uses Claude if >32K tokens
+      priority: 'high',  // Use best available model for spec generation
     });
 
-    const generatedContent = completion.choices[0].message.content || '';
-    const totalTokens = completion.usage?.total_tokens || 0;
+    const generatedContent = completion.content || '';
+    const totalTokens = completion.usage.totalTokens || 0;
+
+    console.log(`[SPEC WRITER AGENT] Generated with ${completion.provider}/${completion.model} (${totalTokens} tokens)`);
 
     // Extract title from generated content
     const titleMatch = generatedContent.match(/^#\s+(.+)$/m);
@@ -158,7 +175,7 @@ export async function handleThemeThresholdReached(event: DomainEvent): Promise<v
         content: generatedContent,
         status: 'draft', // PM must review before approving
         template: 'standard',
-        generation_model: 'gpt-4o',
+        generation_model: `${completion.provider}/${completion.model}`,  // Track which AI provider/model was used
         generation_tokens: totalTokens,
         generation_time_ms: Date.now() - startTime,
         context_sources: [],
