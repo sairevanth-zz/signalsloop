@@ -121,9 +121,22 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 })
 
-// Suppress console errors in tests
+// Suppress noisy console output in tests
 const originalError = console.error
+const originalLog = console.log
 beforeAll(() => {
+  console.log = (...args) => {
+    if (
+      typeof args[0] === 'string' &&
+      (args[0].includes('Initializing real-time dashboard') ||
+        args[0].includes('Cleaning up real-time subscriptions') ||
+        args[0].includes('Posts channel status'))
+    ) {
+      return
+    }
+    originalLog.call(console, ...args)
+  }
+
   console.error = (...args) => {
     if (
       typeof args[0] === 'string' &&
@@ -139,4 +152,5 @@ beforeAll(() => {
 
 afterAll(() => {
   console.error = originalError
+  console.log = originalLog
 })
