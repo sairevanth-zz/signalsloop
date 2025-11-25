@@ -5,16 +5,16 @@
  */
 
 import { OpenAIProvider } from './providers/openai';
-import type {
-  IAIProvider,
-  AIProvider,
-  AIModel,
-  AITaskType,
-  AITaskRequest,
-  AICompletionResult,
-  RouterConfig,
+import {
   DEFAULT_ROUTER_CONFIG,
   MODEL_REGISTRY,
+  type IAIProvider,
+  type AIProvider,
+  type AIModel,
+  type AITaskType,
+  type AITaskRequest,
+  type AICompletionResult,
+  type RouterConfig,
 } from './types';
 
 export class AIRouter {
