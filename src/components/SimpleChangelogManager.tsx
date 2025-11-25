@@ -46,6 +46,31 @@ export default function SimpleChangelogManager({ projectId, projectSlug }: Simpl
     }
   };
 
+  const handleTogglePublish = async (releaseId: string, isPublished: boolean) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/projects-by-id/${projectId}/changelog/${releaseId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          is_published: !isPublished,
+          published_at: !isPublished ? new Date().toISOString() : null,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to update publish status');
+      }
+
+      await loadReleases();
+    } catch (err) {
+      console.error('Error toggling publish status:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update publish status');
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-8">
@@ -155,6 +180,12 @@ export default function SimpleChangelogManager({ projectId, projectSlug }: Simpl
                     className="text-blue-600 hover:text-blue-800 text-sm"
                   >
                     View
+                  </button>
+                  <button
+                    onClick={() => handleTogglePublish(release.id, release.is_published)}
+                    className="text-gray-600 hover:text-gray-800 text-sm"
+                  >
+                    {release.is_published ? 'Unpublish' : 'Publish'}
                   </button>
                   <button 
                     onClick={() => {
