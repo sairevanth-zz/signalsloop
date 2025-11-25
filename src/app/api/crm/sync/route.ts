@@ -18,7 +18,7 @@ export const maxDuration = 300; // 5 minutes
 interface SyncResult {
   success: boolean;
   provider: string;
-  customersSync ed: number;
+  customersSynced: number;
   customersCreated: number;
   customersUpdated: number;
   feedbackEnriched: number;
