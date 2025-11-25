@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { notifyStatusChangeParticipants, sendStatusChangeEmail } from '@/lib/email';
 import { triggerWebhooks } from '@/lib/webhooks';
 import { triggerSlackNotification } from '@/lib/slack';
 import { triggerDiscordNotification } from '@/lib/discord';
+import { getServiceRoleClient } from '@/lib/supabase-singleton';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -16,17 +16,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Validate status
+    // Normalize/validate status (UI sometimes uses "completed")
+    const normalizedStatus = newStatus === 'completed' ? 'done' : newStatus;
     const validStatuses = ['open', 'planned', 'in_progress', 'done', 'declined'];
-    if (!validStatuses.includes(newStatus)) {
+    if (!validStatuses.includes(normalizedStatus)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
     // Use service role client for direct database access
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE!
-    );
+    const supabase = getServiceRoleClient();
 
     // Get the post details before updating
     const { data: post, error: fetchError } = await supabase
@@ -46,7 +44,7 @@ export async function PATCH(request: NextRequest) {
     const { error: updateError } = await supabase
       .from('posts')
       .update({ 
-        status: newStatus,
+        status: normalizedStatus,
         updated_at: new Date().toISOString()
       })
       .eq('id', postId)
@@ -54,7 +52,10 @@ export async function PATCH(request: NextRequest) {
 
     if (updateError) {
       console.error('Error updating post status:', updateError);
-      return NextResponse.json({ error: 'Failed to update post status' }, { status: 500 });
+      return NextResponse.json(
+        { error: `Failed to update post status: ${updateError.message || 'Unknown error'}` },
+        { status: 500 }
+      );
     }
 
     const statusChanged = oldStatus !== newStatus;
