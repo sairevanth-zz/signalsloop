@@ -94,6 +94,7 @@ const TASK_SCHEDULE = {
     { path: '/api/cron/calls-analyze', timeout: 180000 }, // 3 min - process call recordings
     { path: '/api/cron/daily-intelligence-digest', timeout: 120000 }, // 2 min - send email digest
     { path: '/api/cron/sync-experiments', timeout: 180000 }, // 3 min - sync experiment results
+    { path: '/api/cron/sync-customers', timeout: 300000 }, // 5 min - sync customer data from CRM (Salesforce/HubSpot)
     { path: '/api/cron/send-stakeholder-reports', timeout: 120000 }, // 2 min - stakeholder reports (weekly on Mondays)
   ],
   evening: [
