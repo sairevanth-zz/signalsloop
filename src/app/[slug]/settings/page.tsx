@@ -605,7 +605,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <Button
-                  onClick={() => router.push(`/${projectSlug}/settings/integrations`)}
+                  onClick={() => router.push(`/${projectSlug}/settings/integrations?section=crm`)}
                   className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
                 >
                   Configure
@@ -637,7 +637,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <Button
-                  onClick={() => router.push(`/${projectSlug}/settings/integrations`)}
+                  onClick={() => router.push(`/${projectSlug}/settings/integrations?section=experiments`)}
                   className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
                 >
                   Configure

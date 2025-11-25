@@ -18,7 +18,12 @@ interface Integration {
   created_at: string;
 }
 
+import { useSearchParams } from 'next/navigation';
+
 export default function IntegrationsSettingsPage({ params }: { params: { slug: string } }) {
+  const searchParams = useSearchParams();
+  const section = searchParams.get('section'); // 'crm' or 'experiments'
+
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -229,16 +234,34 @@ export default function IntegrationsSettingsPage({ params }: { params: { slug: s
   const experimentIntegrations = integrations.filter(i => ['launchdarkly', 'optimizely'].includes(i.provider));
   const crmIntegrations = integrations.filter(i => ['salesforce', 'hubspot'].includes(i.provider));
 
+  // Determine what to show based on section parameter
+  const showCRM = !section || section === 'crm';
+  const showExperiments = !section || section === 'experiments';
+
+  // Update page title based on section
+  const pageTitle = section === 'crm'
+    ? 'CRM Systems'
+    : section === 'experiments'
+    ? 'Experiment Platforms'
+    : 'Integrations';
+
+  const pageDescription = section === 'crm'
+    ? 'Connect Salesforce or HubSpot to prioritize feedback by customer revenue'
+    : section === 'experiments'
+    ? 'Connect LaunchDarkly or Optimizely to sync experiment results in real-time'
+    : 'Connect your tools to unlock revenue-based prioritization and real-time experiment tracking';
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Integrations</h1>
+        <h1 className="text-3xl font-bold text-white mb-2">{pageTitle}</h1>
         <p className="text-slate-400">
-          Connect your tools to unlock revenue-based prioritization and real-time experiment tracking
+          {pageDescription}
         </p>
       </div>
 
       {/* CRM Integrations Section */}
+      {showCRM && (
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <DollarSign className="h-6 w-6 text-green-400" />
@@ -408,8 +431,10 @@ export default function IntegrationsSettingsPage({ params }: { params: { slug: s
           </div>
         </div>
       </div>
+      )}
 
       {/* Experiment Platforms Section */}
+      {showExperiments && (
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <Beaker className="h-6 w-6 text-purple-400" />
@@ -603,11 +628,13 @@ export default function IntegrationsSettingsPage({ params }: { params: { slug: s
           </div>
         </div>
       </div>
+      )}
 
       {/* Documentation Links */}
       <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-6">
         <h2 className="text-lg font-semibold text-white mb-3">Documentation</h2>
         <div className="space-y-3">
+          {showCRM && (
           <div>
             <p className="text-xs font-medium text-slate-400 mb-1">CRM Integrations</p>
             <div className="space-y-1">
@@ -631,6 +658,8 @@ export default function IntegrationsSettingsPage({ params }: { params: { slug: s
               </a>
             </div>
           </div>
+          )}
+          {showExperiments && (
           <div>
             <p className="text-xs font-medium text-slate-400 mb-1">Experiment Platforms</p>
             <div className="space-y-1">
@@ -654,6 +683,7 @@ export default function IntegrationsSettingsPage({ params }: { params: { slug: s
               </a>
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>
