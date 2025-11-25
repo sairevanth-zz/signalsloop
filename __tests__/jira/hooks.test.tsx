@@ -15,7 +15,13 @@ jest.mock('@/lib/supabase-client', () => ({
           single: jest.fn(() => Promise.resolve({ data: null, error: null }))
         }))
       }))
-    }))
+    })),
+    auth: {
+      getSession: jest.fn(async () => ({
+        data: { session: { access_token: 'test-access-token' } },
+        error: null
+      }))
+    }
   }))
 }));
 
@@ -214,7 +220,10 @@ describe('useCreateJiraIssue', () => {
       '/api/integrations/jira/create-issue',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+          Authorization: expect.any(String),
+        }),
         body: expect.any(String)
       })
     );

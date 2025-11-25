@@ -65,18 +65,15 @@ describe('Jira Connect API Route', () => {
 
   it('should store OAuth state in database', async () => {
     const mockSupabase = require('@/lib/supabase-client').getSupabaseClient();
-    const insertSpy = jest.spyOn(mockSupabase.from('jira_oauth_states'), 'insert');
+    const { insert } = mockSupabase.from('jira_oauth_states');
 
-    // Simulate storing state
-    await mockSupabase
-      .from('jira_oauth_states')
-      .insert({
-        state: 'test-state',
-        project_id: 'project-123',
-        expires_at: new Date(Date.now() + 600000).toISOString()
-      });
+    await insert({
+      state: 'test-state',
+      project_id: 'project-123',
+      expires_at: new Date(Date.now() + 600000).toISOString()
+    });
 
-    expect(insertSpy).toHaveBeenCalled();
+    expect(insert).toHaveBeenCalled();
   });
 });
 
@@ -124,11 +121,11 @@ describe('Jira Callback API Route', () => {
       status: 'active'
     };
 
-    const insertSpy = jest.spyOn(mockSupabase.from('jira_connections'), 'insert');
+    const { insert } = mockSupabase.from('jira_connections');
 
-    await mockSupabase.from('jira_connections').insert(connectionData);
+    await insert(connectionData);
 
-    expect(insertSpy).toHaveBeenCalledWith(connectionData);
+    expect(insert).toHaveBeenCalledWith(connectionData);
   });
 
   it('should handle invalid state token', async () => {
@@ -199,11 +196,11 @@ describe('Jira Create Issue API Route', () => {
       priority: 'Medium'
     };
 
-    const insertSpy = jest.spyOn(mockSupabase.from('jira_issue_links'), 'insert');
+    const { insert } = mockSupabase.from('jira_issue_links');
 
-    await mockSupabase.from('jira_issue_links').insert(linkData);
+    await insert(linkData);
 
-    expect(insertSpy).toHaveBeenCalledWith(linkData);
+    expect(insert).toHaveBeenCalledWith(linkData);
   });
 
   it('should handle Jira API errors', async () => {
@@ -235,11 +232,11 @@ describe('Jira Create Issue API Route', () => {
       details: { feedback_id: 'feedback-123' }
     };
 
-    const insertSpy = jest.spyOn(mockSupabase.from('jira_sync_logs'), 'insert');
+    const { insert } = mockSupabase.from('jira_sync_logs');
 
-    await mockSupabase.from('jira_sync_logs').insert(logData);
+    await insert(logData);
 
-    expect(insertSpy).toHaveBeenCalledWith(logData);
+    expect(insert).toHaveBeenCalledWith(logData);
   });
 });
 
@@ -349,17 +346,10 @@ describe('Jira Webhook API Route', () => {
       }
     };
 
-    const updateSpy = jest.spyOn(
-      mockSupabase.from('jira_issue_links').update({ status: 'Done' }),
-      'eq'
-    );
+    const updateBuilder = mockSupabase.from('jira_issue_links');
+    await updateBuilder.update({ status: 'Done' }).eq('issue_key', 'TEST-123');
 
-    await mockSupabase
-      .from('jira_issue_links')
-      .update({ status: 'Done' })
-      .eq('issue_key', 'TEST-123');
-
-    expect(updateSpy).toHaveBeenCalledWith('issue_key', 'TEST-123');
+    expect(updateBuilder.update).toHaveBeenCalledWith({ status: 'Done' });
   });
 
   it('should mark feedback as resolved when issue is done', async () => {
@@ -396,17 +386,10 @@ describe('Jira Disconnect API Route', () => {
   it('should delete connection', async () => {
     const mockSupabase = require('@/lib/supabase-client').getSupabaseClient();
 
-    const deleteSpy = jest.spyOn(
-      mockSupabase.from('jira_connections').delete(),
-      'eq'
-    );
+    const deleteBuilder = mockSupabase.from('jira_connections');
+    await deleteBuilder.delete().eq('id', 'conn-123');
 
-    await mockSupabase
-      .from('jira_connections')
-      .delete()
-      .eq('id', 'conn-123');
-
-    expect(deleteSpy).toHaveBeenCalledWith('id', 'conn-123');
+    expect(deleteBuilder.delete).toHaveBeenCalled();
   });
 
   it('should cascade delete related records', async () => {

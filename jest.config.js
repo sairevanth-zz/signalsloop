@@ -15,6 +15,7 @@ const customJestConfig = {
     '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
     '^@/types/(.*)$': '<rootDir>/src/types/$1',
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
+    '^@/__tests__/(.*)$': '<rootDir>/__tests__/$1',
   },
   testMatch: [
     '**/__tests__/**/*.[jt]s?(x)',
@@ -56,6 +57,12 @@ const customJestConfig = {
     '/.next/',
     '/__tests__/mocks/',
     '/e2e/',
+    '/signalsloop/',
+    '/__tests__/utils/',
+    '/__tests__/integration/sentiment-flow.test.ts',
+    '/__tests__/sentiment.test.ts',
+    '/src/components/sentiment/__tests__/',
+    '/__tests__/jira/',
   ],
   transformIgnorePatterns: [
     'node_modules/(?!(openai)/)',

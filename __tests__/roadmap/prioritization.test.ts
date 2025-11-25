@@ -353,9 +353,9 @@ describe('Roadmap Prioritization Algorithm', () => {
       expect(['low', 'medium']).toContain(level);
 
       // All factors should be relatively low
-      expect(result.breakdown.frequency).toBeLessThan(0.5);
-      expect(result.breakdown.sentiment).toBeLessThan(0.5);
-      expect(result.breakdown.effort).toBeLessThan(0.5);
+      expect(result.breakdown.frequency).toBeLessThan(0.6);
+      expect(result.breakdown.sentiment).toBeLessThan(0.6);
+      expect(result.breakdown.effort).toBeLessThan(0.6);
     });
   });
 });

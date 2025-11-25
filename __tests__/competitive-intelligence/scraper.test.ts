@@ -27,7 +27,7 @@ jest.mock('puppeteer-core', () => ({
   },
 }));
 
-jest.mock('../../../src/lib/competitive-intelligence/scrapers/browser-config', () => ({
+jest.mock('../../src/lib/competitive-intelligence/scrapers/browser-config', () => ({
   getBrowserConfig: jest.fn(() => ({
     executablePath: '/usr/bin/chromium',
     headless: true,

@@ -1,22 +1,7 @@
 #!/usr/bin/env tsx
 
-/**
- * Generate Embeddings for Feedback Items
- *
- * This script generates embeddings for all feedback items in a project
- * to enable semantic search in the Ask SignalsLoop Anything feature.
- *
- * Usage:
- *   npm run embeddings <project-id>
- *   # or
- *   tsx scripts/generate-embeddings.ts <project-id>
- *
- * Example:
- *   npm run embeddings 550e8400-e29b-41d4-a716-446655440000
- */
-
 import dotenv from 'dotenv';
-import { generateProjectEmbeddings } from '../src/lib/ask/embeddings';
+import { generateExpandedProjectEmbeddings } from '../src/lib/ask/embeddings-all-context';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
@@ -72,21 +57,35 @@ async function main() {
   try {
     const startTime = Date.now();
 
-    const result = await generateProjectEmbeddings(projectId);
+    const result = await generateExpandedProjectEmbeddings(projectId);
 
     const endTime = Date.now();
     const duration = ((endTime - startTime) / 1000).toFixed(2);
 
     console.log('\n---\n');
     console.log('✅ Embedding generation complete!\n');
-    console.log('Results:');
-    console.log(`  Total items:     ${result.total}`);
-    console.log(`  Already had:     ${result.skipped}`);
-    console.log(`  Newly created:   ${result.success}`);
-    console.log(`  Errors:          ${result.errors}`);
-    console.log(`  Duration:        ${duration}s`);
+    console.log('Results by context:');
+    const printSummary = (label: string, summary: { total: number; skipped: number; success: number; errors: number }) => {
+      console.log(
+        `  ${label.padEnd(13)} total=${summary.total} new=${summary.success} skipped=${summary.skipped} errors=${summary.errors}`
+      );
+    };
 
-    if (result.errors > 0) {
+    printSummary('Feedback', result.feedback);
+    printSummary('Roadmap', result.roadmap);
+    printSummary('Competitors', result.competitors);
+    printSummary('Personas', result.personas);
+    printSummary('Product docs', result.productDocs);
+    console.log(`  Duration:      ${duration}s`);
+
+    const totalErrors =
+      result.feedback.errors +
+      result.roadmap.errors +
+      result.competitors.errors +
+      result.personas.errors +
+      result.productDocs.errors;
+
+    if (totalErrors > 0) {
       console.log('\n⚠️  Some items failed to process. Check the logs above for details.');
       process.exit(1);
     }

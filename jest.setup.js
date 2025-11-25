@@ -34,7 +34,14 @@ jest.mock('@/lib/supabase-client', () => ({
       single: jest.fn(),
       order: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
+      maybeSingle: jest.fn(),
     })),
+    auth: {
+      getSession: jest.fn(async () => ({
+        data: { session: { access_token: 'test-access-token' } },
+        error: null,
+      })),
+    },
   })),
 }));
 
@@ -49,6 +56,27 @@ process.env.OPENAI_API_KEY = 'test-openai-key';
 
 // Mock fetch globally
 global.fetch = jest.fn()
+
+// Polyfill Request for tests that rely on Next's web Request
+if (typeof global.Request === 'undefined') {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { Request } = require('next/dist/server/web/spec-extension/request');
+    global.Request = Request;
+  } catch {
+    global.Request = class Request {};
+  }
+}
+
+if (typeof global.Response === 'undefined') {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { Response } = require('next/dist/server/web/spec-extension/response');
+    global.Response = Response;
+  } catch {
+    global.Response = class Response {};
+  }
+}
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {

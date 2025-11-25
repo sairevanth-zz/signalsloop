@@ -202,16 +202,17 @@ describe('Jira Integration - Full Workflow', () => {
       expect(issue.key).toBe('MOBILE-123');
 
       // Step 4: Link issue to feedback
-      mockSupabase.from = jest.fn((table) => {
+      const originalFrom = mockSupabase.from;
+      const linkInsert = jest.fn(() => Promise.resolve({
+        data: { id: 'link-123' },
+        error: null
+      }));
+
+      jest.spyOn(mockSupabase, 'from').mockImplementation((table: string) => {
         if (table === 'jira_issue_links') {
-          return {
-            insert: jest.fn(() => Promise.resolve({
-              data: { id: 'link-123' },
-              error: null
-            }))
-          };
+          return { insert: linkInsert };
         }
-        return mockSupabase.from(table);
+        return originalFrom(table);
       });
 
       await mockSupabase.from('jira_issue_links').insert({

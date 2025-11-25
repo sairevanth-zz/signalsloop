@@ -28,7 +28,7 @@ export interface AskMessage {
   content: string;
   query_type?: string;
   sources?: Array<{
-    type: 'feedback' | 'theme' | 'competitor' | 'metric';
+    type: 'feedback' | 'theme' | 'competitor' | 'metric' | 'roadmap' | 'persona' | 'product_doc';
     id: string;
     title?: string;
     preview?: string;

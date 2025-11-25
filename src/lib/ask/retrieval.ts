@@ -27,6 +27,17 @@ interface SemanticSearchRow {
   similarity: number;
 }
 
+type ContextType = 'feedback' | 'roadmap' | 'competitor' | 'persona' | 'product_doc';
+
+interface MultiContextSearchRow {
+  context_type: ContextType;
+  context_id: string;
+  title: string;
+  content: string;
+  metadata: Record<string, any> | null;
+  similarity: number;
+}
+
 // ============================================================================
 // Embedding Generation
 // ============================================================================
@@ -125,6 +136,140 @@ export async function searchFeedbackSemantic(
     console.error('Error in searchFeedbackSemantic:', error);
     return {
       context: 'Unable to retrieve specific feedback right now. Try asking about sentiment, themes, or provide more context.',
+      sources: [],
+    };
+  }
+}
+
+const CONTEXT_LABELS: Record<ContextType, string> = {
+  feedback: 'Feedback',
+  roadmap: 'Roadmap',
+  competitor: 'Competitor',
+  persona: 'Persona',
+  product_doc: 'Product Doc',
+};
+
+function formatMetadata(row: MultiContextSearchRow): string {
+  const meta = row.metadata || {};
+
+  switch (row.context_type) {
+    case 'feedback':
+      return `Status: ${meta.status ?? 'unknown'} | Category: ${meta.category ?? 'n/a'} | Votes: ${meta.upvotes ?? 0}`;
+    case 'roadmap':
+      return `Priority: ${meta.priority ?? 'n/a'} | Status: ${meta.status ?? 'n/a'} | Score: ${meta.score ?? 'n/a'}`;
+    case 'competitor':
+      return `Category: ${meta.category ?? 'n/a'} | Status: ${meta.status ?? 'n/a'} | Mentions: ${meta.total_mentions ?? 0}`;
+    case 'persona':
+      return `Role: ${meta.role ?? 'n/a'}`;
+    case 'product_doc':
+      return `Type: ${meta.doc_type ?? 'n/a'}${meta.source_url ? ` | Source: ${meta.source_url}` : ''}`;
+    default:
+      return '';
+  }
+}
+
+function truncateContent(text: string, limit: number = 500): string {
+  if (!text) return '';
+  const clean = text.trim();
+  return clean.length > limit ? `${clean.substring(0, limit)}...` : clean;
+}
+
+/**
+ * Cross-context semantic search (feedback, roadmap, competitors, personas, docs)
+ */
+export async function searchAllContextSemantic(
+  projectId: string,
+  query: string,
+  limit: number = 12
+): Promise<RetrievalResult> {
+  try {
+    if (process.env.ASK_SEMANTIC_DISABLED !== 'false') {
+      return {
+        context: 'Semantic search is temporarily disabled. You can still ask about sentiment trends, themes, or provide more context.',
+        sources: [],
+      };
+    }
+
+    const supabase = getSupabaseServerClient();
+
+    if (!supabase) {
+      throw new Error('Database connection not available');
+    }
+
+    const queryEmbedding = await generateEmbedding(query);
+
+    const { data, error } = await supabase.rpc('search_context_semantic', {
+      query_embedding: queryEmbedding,
+      p_project_id: projectId,
+      match_threshold: 0.6,
+      match_count: limit,
+    });
+
+    if (error) {
+      console.error('Error in cross-context semantic search:', error);
+      return {
+        context: 'Semantic search is currently unavailable. Try asking about sentiment, themes, or provide more context.',
+        sources: [],
+      };
+    }
+
+    if (!data || data.length === 0) {
+      return {
+        context: 'No relevant context found for this query.',
+        sources: [],
+      };
+    }
+
+    const grouped: Record<ContextType, MultiContextSearchRow[]> = {
+      feedback: [],
+      roadmap: [],
+      competitor: [],
+      persona: [],
+      product_doc: [],
+    };
+
+    (data as MultiContextSearchRow[]).forEach((row) => {
+      grouped[row.context_type]?.push(row);
+    });
+
+    const sections: string[] = [];
+    const sources: MessageSource[] = [];
+    let counter = 1;
+    const typeOrder: ContextType[] = ['feedback', 'roadmap', 'competitor', 'persona', 'product_doc'];
+
+    typeOrder.forEach((type) => {
+      const rows = grouped[type];
+      if (!rows || rows.length === 0) return;
+
+      sections.push(`## ${CONTEXT_LABELS[type]}`);
+
+      rows.forEach((row) => {
+        const metaLine = formatMetadata(row);
+        const snippet = truncateContent(row.content || '');
+        sections.push(
+          `[${counter}] ${row.title || 'Untitled'}${metaLine ? `\n${metaLine}` : ''}\n${snippet}\n(Similarity: ${(row.similarity * 100).toFixed(1)}%)`
+        );
+
+        sources.push({
+          type: row.context_type as MessageSource['type'],
+          id: row.context_id,
+          title: row.title,
+          preview: snippet.substring(0, 180),
+          similarity: row.similarity,
+        });
+
+        counter += 1;
+      });
+    });
+
+    return {
+      context: sections.join('\n\n'),
+      sources,
+    };
+  } catch (error) {
+    console.error('Error in searchAllContextSemantic:', error);
+    return {
+      context: 'Unable to retrieve context right now. Try asking about sentiment, themes, or provide more detail.',
       sources: [],
     };
   }
@@ -455,7 +600,7 @@ export async function retrieveContext(
     switch (queryType) {
       case 'feedback': {
         // Search for specific feedback using semantic search
-        return await searchFeedbackSemantic(projectId, searchQuery, 10);
+        return await searchAllContextSemantic(projectId, searchQuery, 12);
       }
 
       case 'sentiment': {
@@ -481,7 +626,7 @@ export async function retrieveContext(
       case 'actions': {
         // Combine feedback, sentiment, and themes for comprehensive view
         const [feedbackResult, sentimentResult, themesResult] = await Promise.all([
-          searchFeedbackSemantic(projectId, searchQuery, 5),
+          searchAllContextSemantic(projectId, searchQuery, 8),
           getSentimentContext(projectId, { days: 30 }),
           getThemesContext(projectId),
         ]);
@@ -505,11 +650,8 @@ export async function retrieveContext(
 
       case 'general':
       default: {
-        // For general queries, return minimal context or help text
-        return {
-          context: 'I can help you analyze feedback, sentiment, themes, competitors, and metrics. What would you like to know?',
-          sources: [],
-        };
+        // For general queries, attempt a broad search to ground the response
+        return await searchAllContextSemantic(projectId, searchQuery, 8);
       }
     }
   } catch (error) {

@@ -21,6 +21,19 @@ jest.mock('openai', () => {
   }
 })
 
+// Mock AI router to avoid hitting actual providers
+jest.mock('@/lib/ai/router', () => ({
+  complete: jest.fn(async () => ({
+    content: JSON.stringify({
+      sentiment_category: 'positive',
+      sentiment_score: 0.25,
+      emotional_tone: 'neutral',
+      confidence_score: 0.9,
+      reasoning: 'Mocked router response',
+    }),
+  })),
+}))
+
 // Mock the cache manager
 jest.mock('@/lib/ai-cache-manager', () => ({
   withCache: (fn: any) => fn,

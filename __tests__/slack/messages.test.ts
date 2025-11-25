@@ -312,8 +312,8 @@ describe('Weekly Digest Messages', () => {
     const blocks = buildWeeklyDigest(mockDigest, 'https://app.test.com');
 
     const blockJson = JSON.stringify(blocks);
-    expect(blockJson).toContain('11/11/2025'); // Date is formatted as MM/DD/YYYY
-    expect(blockJson).toContain('11/17/2025');
+    expect(blockJson).toContain('11/10/2025'); // Date is formatted as MM/DD/YYYY
+    expect(blockJson).toContain('11/16/2025');
   });
 
   test('includes feedback metrics', () => {

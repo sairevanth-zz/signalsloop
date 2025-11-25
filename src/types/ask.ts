@@ -73,7 +73,7 @@ export interface Conversation {
  * Message source reference
  */
 export interface MessageSource {
-  type: 'feedback' | 'theme' | 'competitor' | 'metric';
+  type: 'feedback' | 'theme' | 'competitor' | 'metric' | 'roadmap' | 'persona' | 'product_doc';
   id: string;
   title?: string;
   preview?: string;

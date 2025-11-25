@@ -18,7 +18,7 @@ import {
  * Get Supabase client with service role key for admin operations
  * This bypasses RLS policies and should only be used in secure server contexts
  */
-function getServiceRoleClient() {
+export function getServiceRoleClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
