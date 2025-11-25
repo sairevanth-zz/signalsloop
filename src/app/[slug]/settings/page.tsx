@@ -35,7 +35,8 @@ import {
   Mail,
   Users,
   Activity,
-  Briefcase
+  Briefcase,
+  DollarSign
 } from 'lucide-react';
 import { NotificationRecipientsManager } from '@/components/NotificationRecipientsManager';
 import { TeammatesSettings } from '@/components/TeammatesSettings';
@@ -580,6 +581,38 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="integrations" className="mt-6 space-y-6">
+            {/* CRM Systems - Salesforce & HubSpot */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-green-500" />
+                    CRM Systems
+                  </h3>
+                  <p className="text-gray-600 mt-1">
+                    Connect Salesforce or HubSpot to prioritize feedback by customer revenue
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900">Revenue-Based Prioritization</div>
+                    <div className="text-sm text-gray-600">Configure Salesforce & HubSpot integrations</div>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => router.push(`/${projectSlug}/settings/integrations`)}
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                >
+                  Configure
+                </Button>
+              </div>
+            </div>
+
             {/* Experiment Platforms - LaunchDarkly & Optimizely */}
             <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
