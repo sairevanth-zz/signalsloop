@@ -11,6 +11,7 @@ import { MetricCard } from './MetricCard';
 import { BentoCard } from './BentoCard';
 import { RealtimeToasts } from './RealtimeToasts';
 import { AgentActivityCard } from './AgentActivityCard';
+import { CrossToolPanel } from './CrossToolPanel';
 import { EventActivityWidget } from './EventActivityWidget';
 import { ActionQueueCard } from './ActionQueueCard';
 import { SignalCorrelationView } from './SignalCorrelationView';
@@ -199,6 +200,9 @@ export function MissionControlGrid({ briefing, metrics: initialMetrics, userName
 
       {/* System Events Widget */}
       <EventActivityWidget projectId={projectId} projectSlug={projectSlug} />
+
+      {/* Cross-Tool Intelligence */}
+      <CrossToolPanel projectId={projectId} />
 
       {/* Row 3: Opportunities (spans 2 columns) */}
       <BentoCard colSpan={2}>
