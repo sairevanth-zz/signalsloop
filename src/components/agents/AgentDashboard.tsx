@@ -62,7 +62,7 @@ export function AgentDashboard({ projectId }: AgentActivityProps) {
         const normalizedActive =
           data.activeAgents ||
           data.agents?.registry?.map((agent: any) => ({
-            name: agent.eventType || 'Agent',
+            name: agent.name || agent.eventType || 'Agent',
             event: agent.eventType || 'event',
             description: agent.description || 'Autonomous agent',
             phase: agent.phase || 'Phase 3',

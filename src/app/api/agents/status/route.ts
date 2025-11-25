@@ -15,6 +15,85 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-client';
 import { AGENT_REGISTRY } from '@/lib/agents/registry';
 
+type AgentCatalogEntry = {
+  name: string;
+  description: string;
+  phase: string;
+};
+
+const AGENT_CATALOG: Record<string, AgentCatalogEntry> = {
+  'feedback.created': {
+    name: 'Feedback Triager',
+    description: 'Auto-categorizes, prioritizes, deduplicates, and routes new feedback',
+    phase: 'Phase 1',
+  },
+  'feedback.updated': {
+    name: 'Feedback Update Monitor',
+    description: 'Listens for feedback updates to keep signals fresh',
+    phase: 'Phase 3',
+  },
+  'feedback.voted': {
+    name: 'Vote Tracker',
+    description: 'React to vote spikes and update demand signals',
+    phase: 'Phase 3',
+  },
+  'sentiment.analyzed': {
+    name: 'Urgent Feedback Agent',
+    description: 'Flags urgent items from sentiment drops',
+    phase: 'Phase 3',
+  },
+  'theme.detected': {
+    name: 'Theme Detection Agent',
+    description: 'Clusters feedback into themes',
+    phase: 'Phase 3',
+  },
+  'theme.threshold_reached': {
+    name: 'Spec Writer Agent',
+    description: 'Auto-drafts specs when a theme crosses demand threshold',
+    phase: 'Phase 2',
+  },
+  'spec.auto_drafted': {
+    name: 'Spec Quality Agent',
+    description: 'Reviews auto-drafted specs for quality gates',
+    phase: 'Phase 3',
+  },
+  'spec.approved': {
+    name: 'Spec Approval Agent',
+    description: 'Keeps roadmap in sync when specs are approved',
+    phase: 'Phase 3',
+  },
+  'competitor.mentioned': {
+    name: 'Competitive Intel Agent',
+    description: 'Tracks competitor mentions and signals',
+    phase: 'Phase 3',
+  },
+  'feature.launched': {
+    name: 'Release Planning Agent',
+    description: 'Auto-drafts release notes from completed features',
+    phase: 'Phase 3',
+  },
+  'feature.metrics_collected': {
+    name: 'Impact Tracking Agent',
+    description: 'Collects and correlates post-launch metrics',
+    phase: 'Phase 3',
+  },
+  'feature.retrospective_recorded': {
+    name: 'Retrospective Agent',
+    description: 'Captures learnings and feeds back into roadmap',
+    phase: 'Phase 3',
+  },
+  'user.engaged': {
+    name: 'User Engagement Agent',
+    description: 'Re-engages users after key interactions',
+    phase: 'Phase 3',
+  },
+  'user.at_risk': {
+    name: 'Churn Risk Agent',
+    description: 'Surfaces outreach prompts for at-risk users',
+    phase: 'Phase 3',
+  },
+};
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -103,6 +182,16 @@ export async function GET(request: NextRequest) {
     const lastProcessedEvent = recentEvents?.[0];
     const lastProcessingRun = lastProcessedEvent?.processed_at || null;
 
+    const activeAgents = Object.keys(AGENT_REGISTRY).map(eventType => {
+      const catalog = AGENT_CATALOG[eventType];
+      return {
+        name: catalog?.name || 'Autonomous agent',
+        event: eventType,
+        description: catalog?.description || 'Autonomous agent',
+        phase: catalog?.phase || 'Phase 3',
+      };
+    });
+
     return NextResponse.json({
       systemHealth,
       healthIssues: healthIssues.length > 0 ? healthIssues : ['All systems operational'],
@@ -149,6 +238,10 @@ export async function GET(request: NextRequest) {
       metrics: {
         processingRate: Math.round(processingRate * 100),
       },
+      activeAgents,
+      futureAgents: [],
+      running: true,
+      phase: 'Phase 3',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
