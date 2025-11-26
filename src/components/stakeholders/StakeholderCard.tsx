@@ -25,6 +25,7 @@ interface StakeholderCardProps {
   stakeholder: Stakeholder;
   onGenerateReport: (stakeholderId: string) => void;
   onTokenRefresh?: (stakeholderId: string, token: string) => void;
+  onEmailPortal?: (stakeholderId: string) => void;
 }
 
 const roleLabels: Record<string, { label: string; color: string }> = {
@@ -35,7 +36,7 @@ const roleLabels: Record<string, { label: string; color: string }> = {
   customer_success: { label: 'Customer Success', color: 'bg-orange-100 text-orange-800' },
 };
 
-export function StakeholderCard({ stakeholder, onGenerateReport, onTokenRefresh }: StakeholderCardProps) {
+export function StakeholderCard({ stakeholder, onGenerateReport, onTokenRefresh, onEmailPortal }: StakeholderCardProps) {
   const roleInfo = roleLabels[stakeholder.role];
   const reportCount = stakeholder.report_count || 0;
   const openRate = reportCount > 0
@@ -152,6 +153,14 @@ export function StakeholderCard({ stakeholder, onGenerateReport, onTokenRefresh 
               >
                 <Copy className="h-4 w-4 mr-2" />
                 Copy Link
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => onEmailPortal?.(stakeholder.id)}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Email Link
               </Button>
             </>
           ) : (

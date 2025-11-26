@@ -187,6 +187,25 @@ export default function StakeholdersPage() {
     }
   };
 
+  const handleEmailPortal = async (stakeholderId: string) => {
+    try {
+      const res = await fetch('/api/stakeholders/email-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stakeholderId }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast.success('Portal link emailed to stakeholder');
+      } else {
+        toast.error(json.error || 'Failed to email portal link');
+      }
+    } catch (error) {
+      console.error('Error emailing portal link:', error);
+      toast.error('Failed to email portal link');
+    }
+  };
+
   const stats = {
     total: stakeholders.length,
     reportsThisWeek: stakeholders.reduce((sum, s) => {
@@ -273,17 +292,24 @@ export default function StakeholdersPage() {
                     >
                       Copy Link
                     </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => generatePortalLink(s.id)}
-                    >
-                      {hasToken ? 'Regenerate Link' : 'Generate Link'}
-                    </Button>
-                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => generatePortalLink(s.id)}
+                  >
+                    {hasToken ? 'Regenerate Link' : 'Generate Link'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEmailPortal(s.id)}
+                  >
+                    Email Link
+                  </Button>
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
           </div>
         )}
       </Card>
@@ -343,6 +369,7 @@ export default function StakeholdersPage() {
               stakeholder={stakeholder}
               onGenerateReport={handleGenerateReport}
               onTokenRefresh={refreshToken}
+              onEmailPortal={handleEmailPortal}
             />
           ))}
         </div>
