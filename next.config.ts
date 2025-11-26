@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    instrumentationHook: true, // Enable OpenTelemetry instrumentation
   },
   // Explicitly enable edge runtime for API routes if needed
   // This ensures API routes are properly deployed
