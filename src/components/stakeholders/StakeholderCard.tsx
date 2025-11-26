@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Send, ExternalLink, TrendingUp } from 'lucide-react';
+import { Mail, Send, ExternalLink, TrendingUp, Copy } from 'lucide-react';
 
 interface Stakeholder {
   id: string;
@@ -45,8 +45,17 @@ export function StakeholderCard({ stakeholder, onGenerateReport }: StakeholderCa
     : 0;
 
   const portalUrl = stakeholder.access_token
-    ? `${window.location.origin}/stakeholder-portal/${stakeholder.access_token}`
+    ? `${typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')}/stakeholder-portal/${stakeholder.access_token}`
     : null;
+
+  const copyPortalLink = async () => {
+    if (!portalUrl) return;
+    try {
+      await navigator.clipboard.writeText(portalUrl);
+    } catch (error) {
+      console.error('Failed to copy portal link', error);
+    }
+  };
 
   return (
     <Card className="p-6">
@@ -107,14 +116,24 @@ export function StakeholderCard({ stakeholder, onGenerateReport }: StakeholderCa
           </Button>
 
           {portalUrl && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => window.open(portalUrl, '_blank')}
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Portal Link
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => window.open(portalUrl, '_blank')}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Open Portal
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={copyPortalLink}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Link
+              </Button>
+            </>
           )}
         </div>
       </div>
