@@ -24,6 +24,7 @@ interface Stakeholder {
 interface StakeholderCardProps {
   stakeholder: Stakeholder;
   onGenerateReport: (stakeholderId: string) => void;
+  onTokenRefresh?: (stakeholderId: string, token: string) => void;
 }
 
 const roleLabels: Record<string, { label: string; color: string }> = {
@@ -34,7 +35,7 @@ const roleLabels: Record<string, { label: string; color: string }> = {
   customer_success: { label: 'Customer Success', color: 'bg-orange-100 text-orange-800' },
 };
 
-export function StakeholderCard({ stakeholder, onGenerateReport }: StakeholderCardProps) {
+export function StakeholderCard({ stakeholder, onGenerateReport, onTokenRefresh }: StakeholderCardProps) {
   const roleInfo = roleLabels[stakeholder.role];
   const reportCount = stakeholder.report_count || 0;
   const openRate = reportCount > 0
@@ -52,8 +53,27 @@ export function StakeholderCard({ stakeholder, onGenerateReport }: StakeholderCa
     if (!portalUrl) return;
     try {
       await navigator.clipboard.writeText(portalUrl);
+      onTokenRefresh?.(stakeholder.id, stakeholder.access_token || '');
     } catch (error) {
       console.error('Failed to copy portal link', error);
+    }
+  };
+
+  const generatePortalLink = async () => {
+    try {
+      const res = await fetch('/api/stakeholders/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stakeholderId: stakeholder.id }),
+      });
+      const json = await res.json();
+      if (json.success && json.access_token) {
+        const updatedUrl = `${typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')}/stakeholder-portal/${json.access_token}`;
+        await navigator.clipboard.writeText(updatedUrl);
+        onTokenRefresh?.(stakeholder.id, json.access_token);
+      }
+    } catch (error) {
+      console.error('Failed to generate portal link', error);
     }
   };
 
@@ -115,7 +135,7 @@ export function StakeholderCard({ stakeholder, onGenerateReport }: StakeholderCa
             Send Report Now
           </Button>
 
-          {portalUrl && (
+          {portalUrl ? (
             <>
               <Button
                 variant="ghost"
@@ -134,6 +154,15 @@ export function StakeholderCard({ stakeholder, onGenerateReport }: StakeholderCa
                 Copy Link
               </Button>
             </>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={generatePortalLink}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Generate Portal Link
+            </Button>
           )}
         </div>
       </div>

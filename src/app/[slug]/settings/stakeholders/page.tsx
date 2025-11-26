@@ -109,6 +109,14 @@ export default function StakeholdersPage() {
     }
   };
 
+  const refreshToken = (stakeholderId: string, token: string) => {
+    setStakeholders(prev =>
+      prev.map(s =>
+        s.id === stakeholderId ? { ...s, access_token: token } : s
+      )
+    );
+  };
+
   const handleGenerateReport = async (stakeholderId: string) => {
     try {
       toast.loading('Generating report...');
@@ -232,6 +240,7 @@ export default function StakeholdersPage() {
               key={stakeholder.id}
               stakeholder={stakeholder}
               onGenerateReport={handleGenerateReport}
+              onTokenRefresh={refreshToken}
             />
           ))}
         </div>
