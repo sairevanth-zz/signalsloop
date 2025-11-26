@@ -124,7 +124,7 @@ function escapeHtml(text: string): string {
     .replace(/'/g, '&#39;');
 }
 
-async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
   if (!resendApiKey) {
     const message = 'RESEND_API_KEY is not configured';
     console.error(message);
@@ -2745,41 +2745,3 @@ export async function sendDailyIntelligenceDigest(params: {
     throw error;
   }
 }
-
-
-/**
- * Generic email sender for custom emails
- * Use this for one-off emails that don't fit the standard templates
- */
-export async function sendEmail({
-  to,
-  subject,
-  html,
-  from,
-}: {
-  to: string;
-  subject: string;
-  html: string;
-  from?: string;
-}) {
-  try {
-    const { data, error } = await resend.emails.send({
-      from: from || FROM_ADDRESS,
-      to: [to],
-      subject,
-      html,
-    });
-
-    if (error) {
-      console.error('Error sending email:', error);
-      throw error;
-    }
-
-    console.log('[Email] Email sent successfully to:', to);
-    return { success: true, data };
-  } catch (error) {
-    console.error('Failed to send email:', error);
-    throw error;
-  }
-}
-
