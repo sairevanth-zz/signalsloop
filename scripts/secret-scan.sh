@@ -11,10 +11,7 @@ if [[ "${SKIP_SECRET_SCAN:-0}" == "1" ]]; then
   exit 0
 fi
 
-if ! command -v rg >/dev/null 2>&1; then
-  echo "❌ Secret scan requires ripgrep (rg) to be installed."
-  exit 1
-fi
+# Using standard grep instead of ripgrep
 
 staged_files=$(git diff --cached --name-only --diff-filter=ACMR)
 
@@ -53,7 +50,7 @@ while IFS= read -r file; do
   fi
 
   match_tmp=$(mktemp)
-  if git show ":$file" 2>/dev/null | rg --line-number --color=never --no-filename "${pattern_args[@]}" >"$match_tmp"; then
+  if git show ":$file" 2>/dev/null | grep -nE "$(IFS='|'; echo "${patterns[*]}")" --color=never >"$match_tmp"; then
     sed "s#^#$file:#" "$match_tmp" >>"$tmpfile"
     found=1
   fi
