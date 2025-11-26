@@ -25,11 +25,11 @@ patterns=(
   'whsec_[0-9A-Za-z]{10,}'                   # Stripe webhook secrets
   're_[A-Za-z0-9_-]{20,}'                    # Resend / other keys starting with re_
   'eyJ[A-Za-z0-9._-]{10,}\.[A-Za-z0-9._-]{10,}\.[A-Za-z0-9._-]{10,}' # JWT tokens
-  'AIza[0-9A-Za-z\-_]{35}'                   # Google API keys
-  'xox[baprs]-[A-Za-z0-9-]{10,}'             # Slack tokens
-  'SUPABASE_SERVICE_ROLE\s*='                # Supabase service role key assignment
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY\s*='        # Supabase anon key assignment
-  'OPENAI_API_KEY\s*='                       # OpenAI keys
+  'AIza[0-9A-Za-z_-]{35}'                    # Google API keys
+  'xox[baprs]-[A-Za-z0-9_-]{10,}'            # Slack tokens
+  'SUPABASE_SERVICE_ROLE[[:space:]]*='       # Supabase service role key assignment
+  'NEXT_PUBLIC_SUPABASE_ANON_KEY[[:space:]]*=' # Supabase anon key assignment
+  'OPENAI_API_KEY[[:space:]]*='              # OpenAI keys
   'sk-proj-[A-Za-z0-9_-]{30,}'               # OpenAI project keys
   '-----BEGIN (RSA )?PRIVATE KEY-----'       # PEM private keys
 )
@@ -50,7 +50,7 @@ while IFS= read -r file; do
   fi
 
   match_tmp=$(mktemp)
-  if git show ":$file" 2>/dev/null | grep -nE "$(IFS='|'; echo "${patterns[*]}")" --color=never >"$match_tmp"; then
+  if git show ":$file" 2>/dev/null | grep -nE "${pattern_args[@]}" --color=never >"$match_tmp" 2>/dev/null; then
     sed "s#^#$file:#" "$match_tmp" >>"$tmpfile"
     found=1
   fi
