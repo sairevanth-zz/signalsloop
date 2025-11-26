@@ -117,6 +117,50 @@ export default function StakeholdersPage() {
     );
   };
 
+  const generatePortalLink = async (stakeholderId: string) => {
+    try {
+      const res = await fetch('/api/stakeholders/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stakeholderId }),
+      });
+      const json = await res.json();
+      if (json.success && json.access_token) {
+        refreshToken(stakeholderId, json.access_token);
+        await navigator.clipboard.writeText(json.portalUrl);
+        toast.success('Portal link generated and copied');
+      } else {
+        toast.error(json.error || 'Failed to generate portal link');
+      }
+    } catch (error) {
+      console.error('Error generating portal link:', error);
+      toast.error('Failed to generate portal link');
+    }
+  };
+
+  const copyPortalLink = async (token?: string) => {
+    if (!token) {
+      toast.error('No portal link yet. Generate one first.');
+      return;
+    }
+    const url = `${window.location.origin}/stakeholder-portal/${token}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Portal link copied');
+    } catch {
+      toast.error('Failed to copy link');
+    }
+  };
+
+  const openPortal = (token?: string) => {
+    if (!token) {
+      toast.error('No portal link yet. Generate one first.');
+      return;
+    }
+    const url = `${window.location.origin}/stakeholder-portal/${token}`;
+    window.open(url, '_blank');
+  };
+
   const handleGenerateReport = async (stakeholderId: string) => {
     try {
       toast.loading('Generating report...');
@@ -185,6 +229,64 @@ export default function StakeholdersPage() {
           Add Stakeholder
         </Button>
       </div>
+
+      {/* Portal Links */}
+      <Card className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-xl font-semibold">Stakeholder Portal Access</h2>
+            <p className="text-muted-foreground text-sm">
+              Open or copy the self-service portal link for any stakeholder. Generate a link if missing.
+            </p>
+          </div>
+        </div>
+
+        {stakeholders.length === 0 ? (
+          <div className="text-sm text-muted-foreground">
+            Add a stakeholder to generate a portal link.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {stakeholders.map((s) => {
+              const hasToken = !!s.access_token;
+              return (
+                <div
+                  key={s.id}
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+                >
+                  <div>
+                    <div className="font-medium">{s.name}</div>
+                    <div className="text-xs text-muted-foreground">{s.email}</div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openPortal(s.access_token)}
+                    >
+                      Open Portal
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyPortalLink(s.access_token)}
+                    >
+                      Copy Link
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => generatePortalLink(s.id)}
+                    >
+                      {hasToken ? 'Regenerate Link' : 'Generate Link'}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
