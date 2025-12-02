@@ -7,3 +7,4 @@
 export { OutcomeCard } from './OutcomeCard';
 export { OutcomeTimeline } from './OutcomeTimeline';
 export { OutcomeReport } from './OutcomeReport';
+export { OutcomesDashboard } from './OutcomesDashboard';

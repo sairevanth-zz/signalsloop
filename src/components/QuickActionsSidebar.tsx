@@ -70,10 +70,18 @@ const notifications = [
   {
     id: '1',
     type: 'feature',
-    title: '🤖 Ask SignalsLoop Anything',
-    message: 'Chat with AI about your feedback - Press Cmd+K to try it now!',
+    title: '🎯 Feature Outcome Attribution',
+    message: 'Track what happens after you ship features - Check out Outcomes in your project!',
     timestamp: 'Just now',
     unread: true
+  },
+  {
+    id: '2',
+    type: 'feature',
+    title: '🤖 Ask SignalsLoop Anything',
+    message: 'Chat with AI about your feedback - Press Cmd+K to try it now!',
+    timestamp: '1 day ago',
+    unread: false
   },
   {
     id: '2',
@@ -94,6 +102,18 @@ const notifications = [
 ];
 
 const changelogItems = [
+  {
+    version: 'v2.7.0',
+    date: '2025-12-03',
+    features: [
+      '🎯 NEW: Feature Outcome Attribution Loop - Track what happens after you ship',
+      'Automatic 30-day monitoring of feature impact on sentiment and feedback',
+      'GPT-4o powered success classification with detailed reasoning',
+      'Pre/post metrics comparison with actionable insights',
+      'Visual timeline and comprehensive outcome reports',
+      'Learn what works: The system gets smarter with every launch'
+    ]
+  },
   {
     version: 'v2.6.0',
     date: '2025-01-21',
