@@ -140,6 +140,12 @@ function DevilsAdvocateContent() {
                   are spent.
                 </CardDescription>
               </div>
+              <Button asChild variant="outline">
+                <Link href={`/app/competitor-events?projectId=${projectId}`}>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Track Competitors
+                </Link>
+              </Button>
             </div>
           </CardHeader>
         </Card>
