@@ -16,6 +16,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -32,6 +38,12 @@ import {
   Clock,
   BarChart3,
   ArrowLeft,
+  Rocket,
+  Target,
+  Sparkles,
+  ArrowRight,
+  ExternalLink,
+  Info,
 } from 'lucide-react';
 import { OutcomeCard } from './OutcomeCard';
 import { OutcomeTimeline } from './OutcomeTimeline';
@@ -190,19 +202,31 @@ export function OutcomesDashboard({ projectId, projectSlug }: OutcomesDashboardP
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <div>
-                  <p className="text-2xl font-bold">
-                    {(summary.successRate * 100).toFixed(0)}%
-                  </p>
-                  <p className="text-xs text-muted-foreground">Success Rate</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Card className="cursor-help">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <div>
+                        <p className="text-2xl font-bold">
+                          {(summary.successRate * 100).toFixed(0)}%
+                        </p>
+                        <p className="text-xs text-muted-foreground">Success Rate</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="text-sm">
+                  Percentage of completed outcomes classified as "Success" or "Partial Success".
+                  {summary.total === 0 && " Starting at 0% is normal - ship features to build your track record!"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           <Card>
             <CardContent className="pt-6">
@@ -229,23 +253,207 @@ export function OutcomesDashboard({ projectId, projectSlug }: OutcomesDashboardP
 
       {/* Empty State */}
       {outcomes.length === 0 && (
-        <Card className="p-12">
-          <div className="text-center">
-            <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Outcomes Yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Start tracking feature outcomes by shipping items from your roadmap.
-              When you mark a feature as "completed", we'll automatically monitor
-              its impact for 30 days.
-            </p>
-            <Button asChild>
-              <Link href={`/app/roadmap?projectId=${projectId}`}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Go to Roadmap
-              </Link>
-            </Button>
-          </div>
-        </Card>
+        <div className="space-y-6">
+          {/* Hero Section */}
+          <Card className="relative overflow-hidden border-2 border-dashed">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 opacity-50" />
+            <CardContent className="relative p-12">
+              <div className="text-center max-w-2xl mx-auto">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 mb-4">
+                  <Target className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  Track What Happens After You Ship
+                </h3>
+                <p className="text-muted-foreground text-lg mb-6">
+                  Stop guessing if your features worked. Get AI-powered insights on every launch.
+                </p>
+                <div className="flex items-center justify-center gap-3">
+                  <Button asChild size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                    <Link href={`/app/roadmap?projectId=${projectId}`}>
+                      <Rocket className="w-4 h-4 mr-2" />
+                      Go to Roadmap
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" size="lg">
+                    <a href="https://docs.signalsloop.com/outcomes" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Learn More
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* How It Works */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-600" />
+                How Outcome Attribution Works
+              </CardTitle>
+              <CardDescription>
+                Automatic 30-day monitoring with GPT-4o powered analysis
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-6">
+                {/* Step 1 */}
+                <div className="relative">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center mb-3 ring-4 ring-green-50">
+                      <Rocket className="w-6 h-6 text-green-600" />
+                    </div>
+                    <h4 className="font-semibold mb-2">1. Ship a Feature</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Mark a roadmap item as "completed" - we capture baseline metrics automatically
+                    </p>
+                  </div>
+                  <div className="hidden md:block absolute top-6 -right-3 text-muted-foreground">
+                    <ArrowRight className="w-6 h-6" />
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="relative">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center mb-3 ring-4 ring-blue-50">
+                      <Clock className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <h4 className="font-semibold mb-2">2. Monitor Impact</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Track sentiment and feedback volume changes for 30 days post-launch
+                    </p>
+                  </div>
+                  <div className="hidden md:block absolute top-6 -right-3 text-muted-foreground">
+                    <ArrowRight className="w-6 h-6" />
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="relative">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center mb-3 ring-4 ring-purple-50">
+                      <Sparkles className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <h4 className="font-semibold mb-2">3. AI Classification</h4>
+                    <p className="text-sm text-muted-foreground">
+                      GPT-4o analyzes metrics and classifies outcome with detailed reasoning
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Preview Examples */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-blue-600" />
+                What You'll See
+              </CardTitle>
+              <CardDescription>
+                Example outcome cards after you ship features
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* Success Example */}
+                <div className="border rounded-lg p-4 bg-gradient-to-br from-green-50/50 to-emerald-50/50">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h4 className="font-semibold text-sm">Dark Mode Support</h4>
+                      <p className="text-xs text-muted-foreground">Shipped 28 days ago</p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-700 border-green-300">
+                      Success
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-white/60 rounded p-2">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                        <TrendingUp className="w-3 h-3" />
+                        Sentiment
+                      </div>
+                      <div className="text-sm font-semibold text-green-600">+12.5%</div>
+                    </div>
+                    <div className="bg-white/60 rounded p-2">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                        <TrendingDown className="w-3 h-3" />
+                        Complaints
+                      </div>
+                      <div className="text-sm font-semibold text-green-600">-45%</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="flex-1 bg-white/60 rounded-full h-2">
+                      <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }} />
+                    </div>
+                    <span className="text-muted-foreground">Day 30</span>
+                  </div>
+                </div>
+
+                {/* Monitoring Example */}
+                <div className="border rounded-lg p-4 bg-gradient-to-br from-blue-50/50 to-cyan-50/50">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h4 className="font-semibold text-sm">Email Notifications</h4>
+                      <p className="text-xs text-muted-foreground">Shipped 12 days ago</p>
+                    </div>
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+                      Monitoring
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-white/60 rounded p-2">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                        <TrendingUp className="w-3 h-3" />
+                        Sentiment
+                      </div>
+                      <div className="text-sm font-semibold text-blue-600">+5.2%</div>
+                    </div>
+                    <div className="bg-white/60 rounded p-2">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                        <Minus className="w-3 h-3" />
+                        Feedback
+                      </div>
+                      <div className="text-sm font-semibold text-muted-foreground">+2</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="flex-1 bg-white/60 rounded-full h-2">
+                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: '40%' }} />
+                    </div>
+                    <span className="text-muted-foreground">Day 12/30</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Info Banner */}
+          <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5">
+                  <Info className="w-5 h-5 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-purple-900 font-medium mb-1">
+                    Success Rate starts at 0%
+                  </p>
+                  <p className="text-sm text-purple-700">
+                    This is completely normal when you're starting out. As you ship features and collect
+                    outcomes, you'll build a track record of what works and what doesn't. The system learns
+                    from each launch to help you make better decisions.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Main Content */}
