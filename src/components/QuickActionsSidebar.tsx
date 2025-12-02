@@ -19,7 +19,8 @@ import {
   Brain,
   Search,
   Phone,
-  MessageSquareText
+  MessageSquareText,
+  Shield
 } from 'lucide-react';
 import {
   Dialog,
@@ -102,6 +103,18 @@ const notifications = [
 ];
 
 const changelogItems = [
+  {
+    version: 'v2.8.0',
+    date: '2025-12-05',
+    features: [
+      '🛡️ NEW: Devil\'s Advocate Agent - Adversarial AI challenges your PRDs',
+      'Ruthlessly finds flaws before engineering resources are spent',
+      'GPT-4o Red Team analysis with competitive intelligence',
+      'Risk alerts with severity levels and recommended actions',
+      'Vector-based competitor event search and matching',
+      'Evidence-backed challenges with confidence scoring'
+    ]
+  },
   {
     version: 'v2.7.0',
     date: '2025-12-03',
@@ -369,6 +382,19 @@ export default function QuickActionsSidebar({
             >
               <BarChart3 className="w-4 h-4 mr-2" />
               Analytics
+            </Button>
+          </a>
+          <a href="/app/devils-advocate" className="block">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start hover:bg-purple-100 bg-red-50 border border-red-200"
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Devil's Advocate
+              <Badge variant="secondary" className="ml-auto text-xs bg-red-500 text-white">
+                NEW
+              </Badge>
             </Button>
           </a>
         </CardContent>

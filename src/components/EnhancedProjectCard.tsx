@@ -234,6 +234,13 @@ export default function EnhancedProjectCard({
                   <Badge className="ml-auto text-xs bg-purple-500 text-white">NEW</Badge>
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/app/devils-advocate?projectId=${project.id}`}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Devil's Advocate
+                  <Badge className="ml-auto text-xs bg-red-500 text-white">NEW</Badge>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href={`/${project.slug}/settings`}>
