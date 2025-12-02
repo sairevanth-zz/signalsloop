@@ -238,14 +238,12 @@ export function OutcomesDashboard({ projectId, projectSlug }: OutcomesDashboardP
               When you mark a feature as "completed", we'll automatically monitor
               its impact for 30 days.
             </p>
-            {projectSlug && (
-              <Button asChild>
-                <Link href={`/app/roadmap?projectId=${projectId}`}>
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Go to Roadmap
-                </Link>
-              </Button>
-            )}
+            <Button asChild>
+              <Link href={`/app/roadmap?projectId=${projectId}`}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Go to Roadmap
+              </Link>
+            </Button>
           </div>
         </Card>
       )}
