@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Link from 'next/link';
-import { ArrowLeft, Plus, ExternalLink, Sparkles, TrendingUp, Shield, Calendar } from 'lucide-react';
+import { ArrowLeft, Plus, ExternalLink, Sparkles, TrendingUp, Shield, Calendar, Building2 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { toast } from 'sonner';
 
@@ -212,10 +212,18 @@ function CompetitorEventsContent() {
               Track competitor updates to power Devil's Advocate analysis
             </p>
           </div>
-          <Button onClick={() => setShowForm(!showForm)} size="lg">
-            <Plus className="w-4 h-4 mr-2" />
-            {showForm ? 'Cancel' : 'Add Event'}
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="lg">
+              <Link href={`/app/competitors?projectId=${projectId}`}>
+                <Building2 className="w-4 h-4 mr-2" />
+                Manage Competitors
+              </Link>
+            </Button>
+            <Button onClick={() => setShowForm(!showForm)} size="lg">
+              <Plus className="w-4 h-4 mr-2" />
+              {showForm ? 'Cancel' : 'Add Event'}
+            </Button>
+          </div>
         </div>
 
         {/* Info Banner */}
@@ -267,6 +275,18 @@ function CompetitorEventsContent() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {competitors.length === 0 && (
+                    <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                      <Building2 className="w-3 h-3" />
+                      No competitors yet.{' '}
+                      <Link
+                        href={`/app/competitors?projectId=${projectId}`}
+                        className="underline hover:text-amber-800"
+                      >
+                        Add competitors first
+                      </Link>
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -372,9 +392,17 @@ function CompetitorEventsContent() {
                   Start tracking competitor updates to power your Devil's Advocate analysis
                 </p>
                 {competitors.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Add competitors first in the Competitive Intelligence dashboard
-                  </p>
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Add competitors first to start tracking events
+                    </p>
+                    <Button asChild>
+                      <Link href={`/app/competitors?projectId=${projectId}`}>
+                        <Building2 className="w-4 h-4 mr-2" />
+                        Add Competitors
+                      </Link>
+                    </Button>
+                  </div>
                 ) : (
                   <Button onClick={() => setShowForm(true)}>
                     <Plus className="w-4 h-4 mr-2" />
