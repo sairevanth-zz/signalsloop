@@ -96,6 +96,8 @@ const TASK_SCHEDULE = {
     { path: '/api/cron/sync-experiments', timeout: 180000 }, // 3 min - sync experiment results
     { path: '/api/cron/sync-customers', timeout: 300000 }, // 5 min - sync customer data from CRM (Salesforce/HubSpot)
     { path: '/api/cron/send-stakeholder-reports', timeout: 120000 }, // 2 min - stakeholder reports (weekly on Mondays)
+    { path: '/api/cron/outcome-metrics', timeout: 120000 }, // 2 min - update outcome attribution metrics
+    { path: '/api/cron/outcome-classify', timeout: 300000 }, // 5 min - classify feature outcomes (T+30 days)
   ],
   evening: [
     // Run at 9 PM daily - Process events, then maintenance tasks
