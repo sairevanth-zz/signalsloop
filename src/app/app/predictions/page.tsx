@@ -24,6 +24,12 @@ import type { FeaturePrediction } from '@/types/prediction';
 import { Sparkles, Plus, Loader2, TrendingUp, Brain } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface Project {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 export default function PredictionsPage() {
   const [predictions, setPredictions] = useState<FeaturePrediction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,19 +41,53 @@ export default function PredictionsPage() {
   const [featureName, setFeatureName] = useState('');
   const [featureDescription, setFeatureDescription] = useState('');
 
-  // Get project ID from localStorage or context
+  // Project selection
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
 
   useEffect(() => {
-    // Try to get project ID from localStorage
-    const storedProjectId = localStorage.getItem('currentProjectId');
-    if (storedProjectId) {
-      setProjectId(storedProjectId);
-      loadPredictions(storedProjectId);
-    } else {
-      setLoading(false);
-    }
+    loadUserProjects();
   }, []);
+
+  useEffect(() => {
+    if (projectId) {
+      loadPredictions(projectId);
+      localStorage.setItem('currentProjectId', projectId);
+    }
+  }, [projectId]);
+
+  async function loadUserProjects() {
+    try {
+      setLoadingProjects(true);
+      const response = await fetch('/api/projects');
+
+      if (!response.ok) {
+        throw new Error('Failed to load projects');
+      }
+
+      const data = await response.json();
+      const userProjects = data.projects || [];
+      setProjects(userProjects);
+
+      // Try to get project ID from localStorage
+      const storedProjectId = localStorage.getItem('currentProjectId');
+      if (storedProjectId && userProjects.find((p: Project) => p.id === storedProjectId)) {
+        setProjectId(storedProjectId);
+      } else if (userProjects.length > 0) {
+        // Auto-select first project if none stored
+        setProjectId(userProjects[0].id);
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Failed to load projects:', error);
+      toast.error('Failed to load projects');
+      setLoading(false);
+    } finally {
+      setLoadingProjects(false);
+    }
+  }
 
   async function loadPredictions(projectId: string) {
     try {
@@ -144,10 +184,35 @@ export default function PredictionsPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Sparkles className="size-8 text-purple-500" />
-            Feature Success Predictions
-          </h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold flex items-center gap-3">
+              <Sparkles className="size-8 text-purple-500" />
+              Feature Success Predictions
+            </h1>
+            {/* Project Selector */}
+            {loadingProjects ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+                Loading projects...
+              </div>
+            ) : projects.length > 1 ? (
+              <select
+                value={projectId || ''}
+                onChange={(e) => setProjectId(e.target.value)}
+                className="rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            ) : projects.length === 1 ? (
+              <span className="text-sm text-muted-foreground">
+                Project: {projects[0].name}
+              </span>
+            ) : null}
+          </div>
           <Button onClick={() => setShowNewDialog(true)} className="gap-2">
             <Plus className="size-4" />
             Generate Prediction
