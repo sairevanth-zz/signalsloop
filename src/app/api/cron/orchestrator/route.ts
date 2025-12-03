@@ -85,6 +85,8 @@ const TASK_SCHEDULE = {
   morning: [
     // Run at 9 AM daily - Start with event processing, then intelligence tasks
     { path: '/api/cron/process-events', timeout: 60000 }, // 1 min - process agent events FIRST
+    { path: '/api/cron/generate-suggestions', timeout: 300000 }, // 5 min - generate AI proactive suggestions
+    { path: '/api/cron/scheduled-queries', timeout: 300000 }, // 5 min - execute scheduled queries
     { path: '/api/cron/dynamic-roadmap', timeout: 180000 }, // 3 min - auto-adjust roadmap priorities
     { path: '/api/cron/proactive-spec-writer', timeout: 300000 }, // 5 min - auto-draft specs
     { path: '/api/cron/competitive-extraction', timeout: 180000 }, // 3 min - extract competitors
@@ -102,6 +104,7 @@ const TASK_SCHEDULE = {
   evening: [
     // Run at 9 PM daily - Process events, then maintenance tasks
     { path: '/api/cron/process-events', timeout: 60000 }, // 1 min - process agent events FIRST
+    { path: '/api/cron/scheduled-queries', timeout: 300000 }, // 5 min - execute scheduled queries (2x daily)
     { path: '/api/cron/daily-backup', timeout: 600000 }, // 10 min - database backup
   ],
   weekly: [
