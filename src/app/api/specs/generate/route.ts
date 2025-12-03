@@ -5,7 +5,7 @@
 
 import { NextRequest } from 'next/server';
 import OpenAI from 'openai';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { checkAIUsageLimit } from '@/lib/ai-rate-limit';
 import { generateEmbedding, prepareSpecForEmbedding, generateContentHash } from '@/lib/specs/embeddings';
 import { SPEC_GENERATION_SYSTEM_PROMPT, getSpecGenerationPrompt, getFeedbackSynthesisPrompt } from '@/lib/specs/prompts';
@@ -32,7 +32,9 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest) {
   const encoder = new TextEncoder();
-  const supabase = getSupabaseServerClient();
+
+  // Create server client with auth support (uses cookies)
+  const supabase = await createServerClient();
 
   if (!supabase) {
     return new Response('Database connection not available', { status: 500 });
