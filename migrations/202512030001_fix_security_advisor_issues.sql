@@ -28,12 +28,12 @@ CREATE POLICY "Users can read events for their projects"
   FOR SELECT
   TO authenticated
   USING (
-    -- Allow if no project_id (global events) or user is member of project
+    -- Allow if no project_id (global events) or user is owner of project
     (metadata->>'project_id') IS NULL OR
-    (metadata->>'project_id')::UUID IN (
-      SELECT project_id
-      FROM team_members
-      WHERE user_id = auth.uid()
+    EXISTS (
+      SELECT 1 FROM projects
+      WHERE projects.id = (metadata->>'project_id')::UUID
+      AND projects.owner_id = auth.uid()
     )
   );
 
@@ -51,12 +51,12 @@ CREATE POLICY "Users can insert events for their projects"
   FOR INSERT
   TO authenticated
   WITH CHECK (
-    -- Allow if no project_id or user is member of project
+    -- Allow if no project_id or user is owner of project
     (metadata->>'project_id') IS NULL OR
-    (metadata->>'project_id')::UUID IN (
-      SELECT project_id
-      FROM team_members
-      WHERE user_id = auth.uid()
+    EXISTS (
+      SELECT 1 FROM projects
+      WHERE projects.id = (metadata->>'project_id')::UUID
+      AND projects.owner_id = auth.uid()
     )
   );
 
