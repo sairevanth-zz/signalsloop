@@ -464,11 +464,45 @@ export default function EnhancedDashboardPage() {
             <div className="flex-1 space-y-4 sm:space-y-6 min-w-0">
               {/* Analytics Cards */}
               {analytics && (
-                <DashboardAnalytics 
+                <DashboardAnalytics
                   analytics={analytics}
                   loading={analyticsLoading}
                 />
               )}
+
+              {/* New Feature Banner - Predictions */}
+              <div data-predictions-banner className="bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl p-6 shadow-lg">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="size-5 text-white" />
+                      <Badge className="bg-white/20 text-white border-white/30">NEW</Badge>
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      Predictive Feature Success Engine
+                    </h3>
+                    <p className="text-white/90 text-sm mb-4">
+                      Predict feature success BEFORE building using AI-powered analysis of your historical data and customer feedback. Get adoption forecasts, sentiment impact predictions, and confidence scores.
+                    </p>
+                    <Button
+                      onClick={() => router.push('/app/predictions')}
+                      className="bg-white text-purple-600 hover:bg-white/90"
+                    >
+                      <TrendingUp className="size-4 mr-2" />
+                      Try Feature Predictions
+                    </Button>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const banner = document.querySelector('[data-predictions-banner]');
+                      if (banner) banner.remove();
+                    }}
+                    className="text-white/80 hover:text-white"
+                  >
+                    <X className="size-5" />
+                  </button>
+                </div>
+              </div>
 
               {/* Search and Filters */}
               <DashboardSearchFilters

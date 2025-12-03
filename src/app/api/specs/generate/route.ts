@@ -45,7 +45,13 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return new Response('Unauthorized', { status: 401 });
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized', message: 'Please sign in to generate specs' }),
+      {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 
   try {
