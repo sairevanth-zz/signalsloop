@@ -64,13 +64,12 @@ CREATE POLICY "Users can insert events for their projects"
 -- Part 2: Fix view security issues
 -- ============================================================================
 
--- Supabase Security Advisor detects views that may bypass RLS.
--- The solution is to ensure views are owned by appropriate roles and use security barrier.
--- We'll set security_barrier = true on all flagged views to ensure RLS is checked.
+-- Supabase Security Advisor flags views that can bypass RLS.
+-- The issue is that views are owned by the postgres role (superuser).
+-- Solution: Change view ownership to 'authenticated' role so they respect RLS.
 
 DO $$
 DECLARE
-  view_record RECORD;
   view_names text[] := ARRAY[
     'themes_with_details',
     'admin_feedback_on_behalf',
@@ -96,7 +95,8 @@ DECLARE
   ];
   view_name text;
 BEGIN
-  -- Fix each view by setting security_barrier option
+  -- Change ownership of each view from postgres to authenticated role
+  -- This ensures views don't bypass RLS policies
   FOREACH view_name IN ARRAY view_names
   LOOP
     -- Check if view exists before modifying
@@ -104,15 +104,18 @@ BEGIN
       SELECT 1 FROM information_schema.views
       WHERE table_schema = 'public' AND table_name = view_name
     ) THEN
-      -- Set security_barrier to ensure RLS policies are applied
-      -- This prevents the view from being used to bypass RLS
+      -- Change owner to authenticated role
+      -- Views owned by authenticated role respect RLS policies
+      EXECUTE format('ALTER VIEW %I OWNER TO authenticated', view_name);
+
+      -- Set security_barrier for extra protection
       EXECUTE format('ALTER VIEW %I SET (security_barrier = true)', view_name);
 
       -- Add documentation comment
       EXECUTE format(
         'COMMENT ON VIEW %I IS %L',
         view_name,
-        'SECURITY: Security barrier enabled to ensure RLS policies are applied. This view respects all Row Level Security policies on underlying tables.'
+        'SECURITY: Owner set to authenticated role and security_barrier enabled. This view fully respects RLS policies on all underlying tables.'
       );
 
       RAISE NOTICE 'Fixed security for view: %', view_name;
