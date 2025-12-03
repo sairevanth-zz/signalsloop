@@ -234,6 +234,18 @@ export function PredictionDetails({ prediction, onClose }: PredictionDetailsProp
               </div>
             )}
 
+            {adoptionRate >= 0.4 && adoptionRate <= 0.7 && (
+              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                <div className="font-medium text-blue-900 dark:text-blue-100">
+                  ⚖️ Moderate adoption expected - Validate before building
+                </div>
+                <div className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                  This feature shows moderate potential. Consider gathering more customer feedback,
+                  running a beta test, or building an MVP to validate demand before full investment.
+                </div>
+              </div>
+            )}
+
             {adoptionRate < 0.4 && (
               <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
                 <div className="font-medium text-amber-900 dark:text-amber-100">
@@ -245,14 +257,52 @@ export function PredictionDetails({ prediction, onClose }: PredictionDetailsProp
               </div>
             )}
 
-            {confidence < 0.6 && (
-              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                <div className="font-medium text-blue-900 dark:text-blue-100">
-                  ℹ Low confidence - Need more data
+            {confidence < 0.7 && (
+              <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                <div className="font-medium text-purple-900 dark:text-purple-100">
+                  ℹ️ Building prediction confidence
                 </div>
-                <div className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                  This prediction has limited historical data. Ship smaller features to build
-                  prediction accuracy over time.
+                <div className="text-sm text-purple-700 dark:text-purple-300 mt-1">
+                  This prediction has {prediction.strategy_metadata.historical_outcomes_count || 0}{' '}
+                  historical features to learn from. Ship more features and track their outcomes to
+                  improve prediction accuracy over time.
+                </div>
+              </div>
+            )}
+
+            {prediction.input_features.competitor_has_feature && (
+              <div className="p-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800">
+                <div className="font-medium text-orange-900 dark:text-orange-100">
+                  🏃 Competitive gap identified
+                </div>
+                <div className="text-sm text-orange-700 dark:text-orange-300 mt-1">
+                  Competitors are {prediction.input_features.competitor_advantage_months} months ahead
+                  with this capability. Consider if this is table stakes for your market or if you can
+                  differentiate with a superior implementation.
+                </div>
+              </div>
+            )}
+
+            {prediction.input_features.feedback_volume > 5 && (
+              <div className="p-3 rounded-lg bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800">
+                <div className="font-medium text-teal-900 dark:text-teal-100">
+                  💬 Strong customer signal
+                </div>
+                <div className="text-sm text-teal-700 dark:text-teal-300 mt-1">
+                  {prediction.input_features.feedback_volume} customers have requested this. Engage
+                  with them during development to ensure you're solving the right problem.
+                </div>
+              </div>
+            )}
+
+            {prediction.input_features.addresses_churn_theme && (
+              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
+                <div className="font-medium text-red-900 dark:text-red-100">
+                  🚨 Retention opportunity
+                </div>
+                <div className="text-sm text-red-700 dark:text-red-300 mt-1">
+                  This feature addresses a churn-related theme. Prioritize for at-risk customer
+                  segments and measure retention impact closely.
                 </div>
               </div>
             )}
