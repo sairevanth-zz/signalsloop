@@ -104,6 +104,18 @@ const notifications = [
 
 const changelogItems = [
   {
+    version: 'v2.9.0',
+    date: '2025-12-07',
+    features: [
+      '✨ NEW: Predictive Feature Success Engine - Predict before you build',
+      'AI-powered predictions for adoption rate, sentiment impact, and ROI',
+      'Hybrid strategies: heuristic scoring, similar feature matching, and ML',
+      'Explainable predictions with confidence scores and key factors',
+      'Historical learning: system gets smarter with every shipped feature',
+      'Pre-ship validation to prioritize high-impact work'
+    ]
+  },
+  {
     version: 'v2.8.0',
     date: '2025-12-05',
     features: [
@@ -393,6 +405,19 @@ export default function QuickActionsSidebar({
               <Shield className="w-4 h-4 mr-2" />
               Devil's Advocate
               <Badge variant="secondary" className="ml-auto text-xs bg-red-500 text-white">
+                NEW
+              </Badge>
+            </Button>
+          </a>
+          <a href="/app/predictions" className="block">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start hover:bg-purple-100 bg-purple-50 border border-purple-200"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Feature Predictions
+              <Badge variant="secondary" className="ml-auto text-xs bg-purple-500 text-white">
                 NEW
               </Badge>
             </Button>
