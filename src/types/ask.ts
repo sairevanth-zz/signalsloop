@@ -92,6 +92,181 @@ export interface MessageMetadata {
   cached?: boolean;            // Whether response was cached
 }
 
+// ============================================================================
+// V2: Voice Input Types
+// ============================================================================
+
+/**
+ * Voice recording state
+ */
+export type VoiceRecordingState = 'idle' | 'recording' | 'processing' | 'error';
+
+/**
+ * Voice recording result
+ */
+export interface VoiceRecordingResult {
+  blob: Blob;
+  duration: number;
+  mimeType: string;
+}
+
+/**
+ * Transcription result from Whisper API
+ */
+export interface TranscriptionResult {
+  text: string;
+  duration: number;
+  language?: string;
+}
+
+// ============================================================================
+// V2: Action Execution Types
+// ============================================================================
+
+/**
+ * Action type that can be executed
+ */
+export type ActionType =
+  | 'create_prd'
+  | 'create_spec'
+  | 'escalate_issue'
+  | 'generate_report'
+  | 'create_roadmap_item'
+  | 'send_notification'
+  | 'schedule_query';
+
+/**
+ * Action execution status
+ */
+export type ActionStatus =
+  | 'pending'
+  | 'executing'
+  | 'completed'
+  | 'failed'
+  | 'cancelled';
+
+/**
+ * Action intent detection result
+ */
+export interface ActionIntent {
+  requires_action: boolean;
+  action_type?: ActionType;
+  parameters?: Record<string, any>;
+  confirmation_message?: string;
+  confidence: number;
+}
+
+/**
+ * Action result after execution
+ */
+export interface ActionResult {
+  success: boolean;
+  action_type: ActionType;
+  data?: any;
+  error?: string;
+  created_resource_id?: string;
+  created_resource_url?: string;
+}
+
+/**
+ * Action execution log entry
+ */
+export interface ActionExecution {
+  id: string;
+  message_id: string;
+  project_id: string;
+  user_id: string;
+  action_type: ActionType;
+  action_parameters: Record<string, any>;
+  status: ActionStatus;
+  result_data?: any;
+  error_message?: string;
+  started_at?: string;
+  completed_at?: string;
+  duration_ms?: number;
+  created_at: string;
+}
+
+// ============================================================================
+// V2: Scheduled Queries Types
+// ============================================================================
+
+/**
+ * Scheduled query frequency
+ */
+export type ScheduleFrequency = 'daily' | 'weekly' | 'monthly';
+
+/**
+ * Scheduled query delivery method
+ */
+export type DeliveryMethod = 'email' | 'slack' | 'both';
+
+/**
+ * Scheduled query entity
+ */
+export interface ScheduledQuery {
+  id: string;
+  project_id: string;
+  user_id: string;
+  query_text: string;
+  frequency: ScheduleFrequency;
+  day_of_week?: number;        // 0-6 (Sunday-Saturday)
+  day_of_month?: number;        // 1-31
+  time_utc: string;
+  delivery_method: DeliveryMethod;
+  slack_channel_id?: string;
+  is_active: boolean;
+  last_run_at?: string;
+  next_run_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================================
+// V2: Proactive Suggestions Types
+// ============================================================================
+
+/**
+ * Suggestion type
+ */
+export type SuggestionType =
+  | 'sentiment_drop'
+  | 'theme_spike'
+  | 'churn_risk'
+  | 'opportunity'
+  | 'competitor_move';
+
+/**
+ * Suggestion priority
+ */
+export type SuggestionPriority = 'low' | 'medium' | 'high' | 'critical';
+
+/**
+ * Suggestion status
+ */
+export type SuggestionStatus = 'active' | 'dismissed' | 'acted_upon';
+
+/**
+ * Proactive suggestion entity
+ */
+export interface ProactiveSuggestion {
+  id: string;
+  project_id: string;
+  suggestion_type: SuggestionType;
+  title: string;
+  description: string;
+  query_suggestion: string;
+  priority: SuggestionPriority;
+  status: SuggestionStatus;
+  context_data?: Record<string, any>;
+  viewed_by_users: string[];
+  dismissed_by?: string;
+  dismissed_at?: string;
+  acted_upon_at?: string;
+  created_at: string;
+  expires_at?: string;
+}
+
 /**
  * Message entity
  */
@@ -104,6 +279,13 @@ export interface Message {
   sources: MessageSource[];
   metadata: MessageMetadata;
   created_at: string;
+  // V2 additions
+  is_voice_input?: boolean;
+  voice_transcript?: string;
+  voice_duration_seconds?: number;
+  action_executed?: string;
+  action_result?: ActionResult;
+  action_status?: ActionStatus;
 }
 
 /**
@@ -336,6 +518,157 @@ export interface BatchGenerateEmbeddingsResponse {
   generated: number;
   skipped: number;
   failed: number;
+  error?: string;
+}
+
+// ============================================================================
+// V2: Voice API Types
+// ============================================================================
+
+/**
+ * Transcribe audio request
+ */
+export interface TranscribeRequest {
+  audio: File | Blob;
+  language?: string;
+}
+
+/**
+ * Transcribe audio response
+ */
+export interface TranscribeResponse {
+  success: boolean;
+  transcription?: TranscriptionResult;
+  error?: string;
+}
+
+// ============================================================================
+// V2: Action API Types
+// ============================================================================
+
+/**
+ * Detect action intent request
+ */
+export interface DetectActionRequest {
+  query: string;
+  projectId: string;
+  conversationContext?: Message[];
+}
+
+/**
+ * Detect action intent response
+ */
+export interface DetectActionResponse {
+  success: boolean;
+  intent?: ActionIntent;
+  error?: string;
+}
+
+/**
+ * Execute action request
+ */
+export interface ExecuteActionRequest {
+  messageId: string;
+  projectId: string;
+  actionType: ActionType;
+  parameters: Record<string, any>;
+}
+
+/**
+ * Execute action response
+ */
+export interface ExecuteActionResponse {
+  success: boolean;
+  execution?: ActionExecution;
+  result?: ActionResult;
+  error?: string;
+}
+
+// ============================================================================
+// V2: Scheduled Queries API Types
+// ============================================================================
+
+/**
+ * Create scheduled query request
+ */
+export interface CreateScheduledQueryRequest {
+  projectId: string;
+  query_text: string;
+  frequency: ScheduleFrequency;
+  day_of_week?: number;
+  day_of_month?: number;
+  time_utc: string;
+  delivery_method: DeliveryMethod;
+  slack_channel_id?: string;
+}
+
+/**
+ * Create scheduled query response
+ */
+export interface CreateScheduledQueryResponse {
+  success: boolean;
+  scheduled_query?: ScheduledQuery;
+  error?: string;
+}
+
+/**
+ * List scheduled queries response
+ */
+export interface ListScheduledQueriesResponse {
+  success: boolean;
+  queries?: ScheduledQuery[];
+  error?: string;
+}
+
+/**
+ * Update scheduled query request
+ */
+export interface UpdateScheduledQueryRequest {
+  queryId: string;
+  is_active?: boolean;
+  query_text?: string;
+  frequency?: ScheduleFrequency;
+  day_of_week?: number;
+  day_of_month?: number;
+  time_utc?: string;
+  delivery_method?: DeliveryMethod;
+  slack_channel_id?: string;
+}
+
+/**
+ * Update scheduled query response
+ */
+export interface UpdateScheduledQueryResponse {
+  success: boolean;
+  scheduled_query?: ScheduledQuery;
+  error?: string;
+}
+
+// ============================================================================
+// V2: Proactive Suggestions API Types
+// ============================================================================
+
+/**
+ * List proactive suggestions response
+ */
+export interface ListProactiveSuggestionsResponse {
+  success: boolean;
+  suggestions?: ProactiveSuggestion[];
+  error?: string;
+}
+
+/**
+ * Dismiss suggestion request
+ */
+export interface DismissSuggestionRequest {
+  suggestionId: string;
+}
+
+/**
+ * Dismiss suggestion response
+ */
+export interface DismissSuggestionResponse {
+  success: boolean;
   error?: string;
 }
 

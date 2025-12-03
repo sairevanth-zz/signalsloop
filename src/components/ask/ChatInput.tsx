@@ -10,6 +10,7 @@ import { Send, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { VoiceInputButton } from './VoiceInputButton';
 
 // ============================================================================
 // Props Interface
@@ -96,6 +97,13 @@ export function ChatInput({
     }
   };
 
+  // Handle voice transcription
+  const handleVoiceTranscription = (transcription: string) => {
+    setInput(transcription);
+    // Focus textarea after transcription
+    textareaRef.current?.focus();
+  };
+
   const isDisabled = isLoading || isSending;
 
   return (
@@ -151,6 +159,14 @@ export function ChatInput({
               rows={1}
             />
           </div>
+
+          {/* Voice Input Button */}
+          <VoiceInputButton
+            onTranscriptionComplete={handleVoiceTranscription}
+            disabled={isDisabled}
+            maxDurationSeconds={120}
+            className="h-[44px] w-[44px]"
+          />
 
           {/* Send Button */}
           <Button
