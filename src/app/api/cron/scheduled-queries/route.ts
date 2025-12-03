@@ -16,16 +16,6 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes max
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Create Supabase client with service role for cron
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 const SYSTEM_PROMPT = `You are a professional AI assistant for SignalsLoop, a product feedback management platform.
 Provide concise, actionable insights based on the data provided.
 Format your response in markdown with clear sections.`;
@@ -44,6 +34,16 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('[Scheduled Queries Cron] Starting execution');
+
+    // Create clients inside the handler to avoid build-time initialization
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // Find scheduled queries that need to be run
     const { data: queriestoRun, error: fetchError } = await supabase
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Deliver the result
-        await deliverScheduledQueryResult(scheduledQuery, response, sources);
+        await deliverScheduledQueryResult(supabase, scheduledQuery, response, sources);
 
         // Update last_run_at
         await supabase
@@ -162,6 +162,7 @@ export async function GET(request: NextRequest) {
 // ============================================================================
 
 async function deliverScheduledQueryResult(
+  supabase: ReturnType<typeof createClient>,
   scheduledQuery: any,
   response: string,
   sources: any[]

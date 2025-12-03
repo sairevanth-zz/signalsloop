@@ -14,11 +14,6 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes max
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 // ============================================================================
 // GET Handler - Generate suggestions for all projects
 // ============================================================================
@@ -33,6 +28,12 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('[Generate Suggestions Cron] Starting suggestion generation');
+
+    // Create Supabase client with service role for cron
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // Get all active projects
     // For MVP, we'll process all projects. In production, add limits/pagination
@@ -83,7 +84,7 @@ export async function GET(request: NextRequest) {
           .lt('expires_at', new Date().toISOString());
 
         // Generate new suggestions
-        const suggestions = await generateProactiveSuggestions(project.id);
+        const suggestions = await generateProactiveSuggestions(project.id, supabase);
 
         results.succeeded++;
         results.total_suggestions += suggestions.length;

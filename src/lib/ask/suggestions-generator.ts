@@ -7,15 +7,6 @@ import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import type { SuggestionType, SuggestionPriority } from '@/types/ask';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 // ============================================================================
 // Main Suggestion Generation Function
 // ============================================================================
@@ -24,9 +15,13 @@ const supabase = createClient(
  * Generates proactive suggestions for a project based on recent feedback data
  *
  * @param projectId - Project ID to generate suggestions for
+ * @param supabase - Supabase client instance
  * @returns Array of generated suggestions
  */
-export async function generateProactiveSuggestions(projectId: string) {
+export async function generateProactiveSuggestions(
+  projectId: string,
+  supabase: ReturnType<typeof createClient>
+) {
   console.log(`[Suggestions Generator] Generating suggestions for project: ${projectId}`);
 
   const suggestions: Array<{
@@ -40,23 +35,23 @@ export async function generateProactiveSuggestions(projectId: string) {
 
   try {
     // 1. Check for sentiment drops
-    const sentimentDropSuggestion = await detectSentimentDrop(projectId);
+    const sentimentDropSuggestion = await detectSentimentDrop(projectId, supabase);
     if (sentimentDropSuggestion) suggestions.push(sentimentDropSuggestion);
 
     // 2. Check for theme spikes
-    const themeSpikeSuggestion = await detectThemeSpike(projectId);
+    const themeSpikeSuggestion = await detectThemeSpike(projectId, supabase);
     if (themeSpikeSuggestion) suggestions.push(themeSpikeSuggestion);
 
     // 3. Check for churn risks
-    const churnRiskSuggestion = await detectChurnRisk(projectId);
+    const churnRiskSuggestion = await detectChurnRisk(projectId, supabase);
     if (churnRiskSuggestion) suggestions.push(churnRiskSuggestion);
 
     // 4. Check for opportunities
-    const opportunitySuggestion = await detectOpportunity(projectId);
+    const opportunitySuggestion = await detectOpportunity(projectId, supabase);
     if (opportunitySuggestion) suggestions.push(opportunitySuggestion);
 
     // 5. Check for competitor moves (requires competitor_events table)
-    const competitorSuggestion = await detectCompetitorMove(projectId);
+    const competitorSuggestion = await detectCompetitorMove(projectId, supabase);
     if (competitorSuggestion) suggestions.push(competitorSuggestion);
 
     // Insert suggestions into database
@@ -95,7 +90,10 @@ export async function generateProactiveSuggestions(projectId: string) {
 /**
  * Detect sentiment drops (negative sentiment increase)
  */
-async function detectSentimentDrop(projectId: string) {
+async function detectSentimentDrop(
+  projectId: string,
+  supabase: ReturnType<typeof createClient>
+) {
   try {
     // Get sentiment from last 7 days vs previous 7 days
     const now = new Date();
@@ -158,7 +156,10 @@ async function detectSentimentDrop(projectId: string) {
 /**
  * Detect theme spikes (sudden increase in mentions)
  */
-async function detectThemeSpike(projectId: string) {
+async function detectThemeSpike(
+  projectId: string,
+  supabase: ReturnType<typeof createClient>
+) {
   try {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
@@ -215,7 +216,10 @@ async function detectThemeSpike(projectId: string) {
 /**
  * Detect churn risks
  */
-async function detectChurnRisk(projectId: string) {
+async function detectChurnRisk(
+  projectId: string,
+  supabase: ReturnType<typeof createClient>
+) {
   try {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
@@ -259,7 +263,10 @@ async function detectChurnRisk(projectId: string) {
 /**
  * Detect opportunities
  */
-async function detectOpportunity(projectId: string) {
+async function detectOpportunity(
+  projectId: string,
+  supabase: ReturnType<typeof createClient>
+) {
   try {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
@@ -313,7 +320,10 @@ async function detectOpportunity(projectId: string) {
 /**
  * Detect competitor moves
  */
-async function detectCompetitorMove(projectId: string) {
+async function detectCompetitorMove(
+  projectId: string,
+  supabase: ReturnType<typeof createClient>
+) {
   try {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
