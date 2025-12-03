@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/orchestrator?schedule=evening",
       "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/cron/scheduled-queries",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/generate-suggestions",
+      "schedule": "0 6 * * *"
     }
   ],
   "functions": {
