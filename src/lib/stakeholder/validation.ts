@@ -46,34 +46,41 @@ export function validateComponent(component: ComponentSpec): { valid: boolean; e
         break;
 
       case 'FeedbackList':
-        // Allow empty data_query (will be fetched), but validate if items provided
-        if (component.props.items) {
-          if (!Array.isArray(component.props.items)) {
-            return { valid: false, error: 'Invalid feedback items' };
-          }
+        // STRICT: FeedbackList should ONLY use data_query
+        // If it has static items, it's likely a Claude error
+        if (component.props.items && !component.data_query) {
+          return { valid: false, error: 'FeedbackList with static items but no data_query - rejecting' };
+        }
 
-          // Filter out placeholder/invalid items
-          const validItems = component.props.items.filter((item: any) =>
-            item.title &&
-            item.title !== 'Invalid Data' &&
-            item.title !== 'No data' &&
-            item.title !== 'N/A' &&
-            item.title.trim().length > 0 &&
-            item.id !== 'placeholder'
-          );
+        // If items provided WITH data_query, filter out placeholder/invalid items
+        if (component.props.items && Array.isArray(component.props.items)) {
+          const bannedPhrases = [
+            'Invalid Data', 'No data', 'N/A', 'Sample', 'Placeholder',
+            'Example', 'Test', 'Demo', 'Mock', 'Fake', 'TODO'
+          ];
 
-          // If we filtered out items and now have none, require data_query
-          if (validItems.length === 0 && !component.data_query) {
-            return { valid: false, error: 'No valid feedback items and no data_query' };
-          }
+          const validItems = component.props.items.filter((item: any) => {
+            if (!item.title || item.title.trim().length === 0) return false;
+            if (item.id === 'placeholder' || item.id === 'example') return false;
+
+            // Check if title contains any banned phrases
+            const titleLower = item.title.toLowerCase();
+            for (const phrase of bannedPhrases) {
+              if (titleLower.includes(phrase.toLowerCase())) {
+                return false;
+              }
+            }
+
+            return true;
+          });
 
           // Update props with only valid items
           component.props.items = validItems;
         }
 
-        // If no items provided, require data_query
-        if ((!component.props.items || component.props.items.length === 0) && !component.data_query) {
-          return { valid: false, error: 'FeedbackList requires either items or data_query' };
+        // Require data_query (items are optional and will be populated)
+        if (!component.data_query) {
+          return { valid: false, error: 'FeedbackList requires data_query' };
         }
         break;
 

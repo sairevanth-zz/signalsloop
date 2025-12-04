@@ -63,7 +63,10 @@ AVAILABLE COMPONENTS (USE CREATIVELY):
 COMPONENT SELECTION RULES:
 ❌ NEVER respond with just SummaryText + FeedbackList (too boring!)
 ❌ NEVER use less than 3 components
+❌ NEVER include "items" array in FeedbackList props (CRITICAL - use data_query!)
+❌ NEVER use placeholder text: "Invalid Data", "No data", "Sample", etc.
 ✅ ALWAYS mix visual + data components
+✅ ALWAYS use data_query for FeedbackList
 ✅ ALWAYS think "if this were a $10k/month dashboard, what would it show?"
 
 ROLE-SPECIFIC VISUALIZATION PRIORITIES:
@@ -133,6 +136,15 @@ export async function generateStakeholderResponse(
       ...comp,
       order: comp.order || idx + 1,
     }));
+
+    // CRITICAL: Remove FeedbackList components with static items (Claude mistake)
+    parsed.components = parsed.components.filter((comp) => {
+      if (comp.type === 'FeedbackList' && comp.props.items && !comp.data_query) {
+        console.warn('[Response Generator] Removing FeedbackList with static items - Claude error');
+        return false;
+      }
+      return true;
+    });
 
     // VALIDATION: Remove invalid components
     const { validComponents, errors } = validateResponse(parsed.components);
@@ -337,9 +349,17 @@ ThemeCloud (GREAT for "what are customers saying"):
 { "type": "ThemeCloud", "order": 4, "props": { "themes": ${JSON.stringify(context.themes?.slice(0, 15) || [])}, "title": "Top Themes" } }
 
 FeedbackList (use WITH visuals, not alone):
-IMPORTANT: Use data_query to fetch live data, NOT placeholder items!
-CORRECT: { "type": "FeedbackList", "order": 5, "props": { "limit": 5, "showSentiment": true, "title": "Recent Customer Feedback", "data_query": { "type": "feedback", "limit": 5, "params": {"sentiment": "negative"} } } }
-WRONG: { "type": "FeedbackList", "props": { "items": [{"id": "1", "title": "Invalid Data"}] } } ❌ Never use placeholder data!
+⚠️ CRITICAL: NEVER include static "items" array in FeedbackList props!
+⚠️ ALWAYS use data_query to fetch real data from the database!
+
+CORRECT:
+{ "type": "FeedbackList", "order": 5, "props": { "limit": 5, "showSentiment": true, "title": "Recent Customer Feedback" }, "data_query": { "type": "feedback", "limit": 5, "params": {"sentiment": "negative"} } }
+
+WRONG EXAMPLES (NEVER DO THIS):
+❌ { "type": "FeedbackList", "props": { "items": [{"id": "1", "title": "Invalid Data"}] } }
+❌ { "type": "FeedbackList", "props": { "items": [{"id": "1", "title": "Sample feedback"}] } }
+❌ { "type": "FeedbackList", "props": { "items": [{"id": "placeholder", "title": "No data"}] } }
+❌ Any FeedbackList with "items" in props (use data_query instead!)
 
 TimelineEvents (for recent activity):
 { "type": "TimelineEvents", "order": 3, "props": { "events": [], "title": "Recent Activity" } }
@@ -351,9 +371,10 @@ CRITICAL RULES:
 - Mix static props (use context data) with data_query (for live fetching)
 - ALWAYS include visualizations - this is a premium dashboard, not a chatbot
 - For ${role}: Use role-specific visualization priorities from system prompt
-- NEVER use placeholder text like "Invalid Data", "No data", "N/A" in items
-- For FeedbackList: ALWAYS use data_query, NEVER use static placeholder items
-- If you don't have real data, use data_query to fetch it OR skip that component
+- ⚠️ NEVER EVER include "items" array in FeedbackList props - this will cause errors!
+- ⚠️ FeedbackList MUST use data_query - NO EXCEPTIONS!
+- ⚠️ FORBIDDEN: "Invalid Data", "No data", "N/A", "Sample", "Placeholder", "Example" in any content
+- If you can't provide real data from context, use data_query OR skip that component entirely
 
 Respond with ONLY valid JSON (no markdown, no explanation):
 { "components": [...], "follow_up_questions": ["...", "...", "..."] }`;
