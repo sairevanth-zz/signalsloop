@@ -7,7 +7,7 @@
 CREATE TABLE IF NOT EXISTS stakeholder_queries (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
 
   -- Query details
   query_text TEXT NOT NULL,

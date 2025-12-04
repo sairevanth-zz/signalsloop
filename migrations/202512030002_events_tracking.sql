@@ -24,13 +24,15 @@ CREATE INDEX idx_timeline_events_severity ON timeline_events(project_id, severit
 -- RLS Policies
 ALTER TABLE timeline_events ENABLE ROW LEVEL SECURITY;
 
--- Users can view events for projects they have access to
+-- Users can view events for their projects
 CREATE POLICY "Users can view timeline events for their projects"
   ON timeline_events
   FOR SELECT
   USING (
-    project_id IN (
-      SELECT project_id FROM project_members WHERE user_id = auth.uid()
+    EXISTS (
+      SELECT 1 FROM projects
+      WHERE projects.id = timeline_events.project_id
+        AND projects.owner_id = auth.uid()
     )
   );
 
@@ -39,16 +41,39 @@ CREATE POLICY "Users can create timeline events for their projects"
   ON timeline_events
   FOR INSERT
   WITH CHECK (
-    project_id IN (
-      SELECT project_id FROM project_members WHERE user_id = auth.uid()
+    EXISTS (
+      SELECT 1 FROM projects
+      WHERE projects.id = timeline_events.project_id
+        AND projects.owner_id = auth.uid()
     )
   );
+
+-- Users can update/delete events for their projects
+CREATE POLICY "Users can manage timeline events for their projects"
+  ON timeline_events
+  FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM projects
+      WHERE projects.id = timeline_events.project_id
+        AND projects.owner_id = auth.uid()
+    )
+  );
+
+-- Function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_timeline_events_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Updated timestamp trigger
 CREATE TRIGGER update_timeline_events_updated_at
   BEFORE UPDATE ON timeline_events
   FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at_column();
+  EXECUTE FUNCTION update_timeline_events_updated_at();
 
 -- Function to detect feedback spikes (runs periodically)
 CREATE OR REPLACE FUNCTION detect_feedback_spikes(p_project_id UUID, lookback_days INTEGER DEFAULT 7)
