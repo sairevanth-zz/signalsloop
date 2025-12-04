@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { generateResponsePlan } from '@/lib/stakeholder/response-generator';
 import { fetchComponentData } from '@/lib/stakeholder/data-fetcher';
-import { createServerClient } from '@/lib/supabase-server';
+import { createServerClient } from '@/lib/supabase-client';
 
 export const maxDuration = 10; // Vercel free tier limit
 
