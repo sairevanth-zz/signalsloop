@@ -8,7 +8,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60; // 60 seconds for Vercel Pro
+// Free tier: 10s max, Pro: 60s max, Enterprise: 900s max
+export const maxDuration = 10; // 10 seconds for Vercel Free tier
 
 /**
  * POST - Execute all due scheduled reports
