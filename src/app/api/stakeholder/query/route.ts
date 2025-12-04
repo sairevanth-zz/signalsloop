@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js';
 import { generateStakeholderResponse } from '@/lib/stakeholder/response-generator';
 import { fetchProjectContext } from '@/lib/stakeholder/data-fetcher';
 import { QueryRequest, QueryResponse } from '@/types/stakeholder';
+import { checkUserRateLimits, checkProjectRateLimit, formatResetTime } from '@/lib/stakeholder/rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -48,6 +49,50 @@ export async function POST(request: NextRequest) {
       const token = authHeader.replace('Bearer ', '');
       const { data: { user } } = await supabase.auth.getUser(token);
       userId = user?.id || null;
+    }
+
+    // Apply rate limiting
+    if (userId) {
+      const userLimit = checkUserRateLimits(userId);
+      if (!userLimit.allowed) {
+        return NextResponse.json(
+          {
+            error: 'Rate limit exceeded',
+            details: `You've exceeded the ${userLimit.limit} rate limit. Please try again in ${formatResetTime(userLimit.resetAt!)}`,
+            retryAfter: userLimit.resetAt,
+          },
+          {
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': userLimit.limit || 'unknown',
+              'X-RateLimit-Remaining': '0',
+              'X-RateLimit-Reset': userLimit.resetAt?.toString() || '',
+              'Retry-After': Math.ceil((userLimit.resetAt! - Date.now()) / 1000).toString(),
+            },
+          }
+        );
+      }
+    }
+
+    // Check project-level rate limit
+    const projectLimit = checkProjectRateLimit(projectId);
+    if (!projectLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Project rate limit exceeded',
+          details: `This project has exceeded its daily query limit. Resets in ${formatResetTime(projectLimit.resetAt)}`,
+          retryAfter: projectLimit.resetAt,
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': 'project-daily',
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': projectLimit.resetAt.toString(),
+            'Retry-After': Math.ceil((projectLimit.resetAt - Date.now()) / 1000).toString(),
+          },
+        }
+      );
     }
 
     // Fetch context data for the project

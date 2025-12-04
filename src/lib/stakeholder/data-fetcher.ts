@@ -5,6 +5,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { ComponentSpec, ComponentDataResult } from '@/types/stakeholder';
+import { withCache, CacheKeys, CacheTTL } from './cache';
 
 /**
  * Fetch data for a component with a data_query
@@ -143,7 +144,7 @@ async function fetchFeedbackData(
 }
 
 /**
- * Fetch themes data
+ * Fetch themes data with sentiment calculation
  */
 async function fetchThemesData(
   supabase: any,
@@ -151,32 +152,106 @@ async function fetchThemesData(
   limit: number = 15,
   params?: Record<string, any>
 ): Promise<ComponentDataResult> {
-  try {
-    const { data, error } = await supabase
+  // Use cache for expensive sentiment calculation
+  return await withCache(
+    CacheKeys.themesSentiment(projectId),
+    CacheTTL.themesSentiment,
+    async () => {
+      try {
+        const { data: themesData, error: themesError } = await supabase
       .from('themes')
       .select('theme_name, frequency, first_seen')
       .eq('project_id', projectId)
       .order('frequency', { ascending: false })
       .limit(limit);
 
-    if (error) throw error;
+    if (themesError) {
+      console.error('[Data Fetcher] Themes query error:', themesError);
+      return { data: { themes: [] } };
+    }
 
-    // Transform data for ThemeCloud component
-    const themes = data?.map((theme: any) => ({
-      name: theme.theme_name,
-      count: theme.frequency,
-      sentiment: 0, // TODO: Calculate sentiment per theme
-      trend: 'stable' as const,
-    })) || [];
+    if (!themesData || themesData.length === 0) {
+      return { data: { themes: [] } };
+    }
 
-    return { data: { themes } };
-  } catch (error) {
-    console.error('[Data Fetcher] Error fetching themes:', error);
-    return {
-      data: { themes: [] },
-      error: error instanceof Error ? error.message : 'Failed to fetch themes',
-    };
-  }
+    // Calculate sentiment for each theme by analyzing posts with that category
+    const themesWithSentiment = await Promise.all(
+      themesData.map(async (theme: any) => {
+        try {
+          // Fetch posts with this category and their sentiment
+          const { data: posts } = await supabase
+            .from('posts')
+            .select(`
+              id,
+              category,
+              sentiment_analysis!left(sentiment_score)
+            `)
+            .eq('project_id', projectId)
+            .eq('category', theme.theme_name)
+            .limit(100); // Sample up to 100 posts for sentiment calculation
+
+          // Calculate average sentiment
+          let avgSentiment = 0;
+          let sentimentCount = 0;
+
+          if (posts && posts.length > 0) {
+            posts.forEach((post: any) => {
+              if (post.sentiment_analysis && post.sentiment_analysis.length > 0) {
+                const score = post.sentiment_analysis[0].sentiment_score;
+                if (typeof score === 'number') {
+                  avgSentiment += score;
+                  sentimentCount++;
+                }
+              }
+            });
+
+            if (sentimentCount > 0) {
+              avgSentiment = avgSentiment / sentimentCount;
+            }
+          }
+
+          // Determine trend based on recent vs older posts
+          let trend: 'up' | 'down' | 'stable' = 'stable';
+          if (posts && posts.length >= 10) {
+            const recentPosts = posts.slice(0, Math.floor(posts.length / 2));
+            const olderPosts = posts.slice(Math.floor(posts.length / 2));
+
+            const recentCount = recentPosts.length;
+            const olderCount = olderPosts.length;
+
+            if (recentCount > olderCount * 1.3) {
+              trend = 'up';
+            } else if (recentCount < olderCount * 0.7) {
+              trend = 'down';
+            }
+          }
+
+          return {
+            name: theme.theme_name,
+            count: theme.frequency,
+            sentiment: parseFloat(avgSentiment.toFixed(3)),
+            trend,
+          };
+        } catch (err) {
+          console.warn(`[Data Fetcher] Error calculating sentiment for theme ${theme.theme_name}:`, err);
+          return {
+            name: theme.theme_name,
+            count: theme.frequency,
+            sentiment: 0,
+            trend: 'stable' as const,
+          };
+        }
+      })
+    );
+
+        console.log(`[Data Fetcher] Fetched ${themesWithSentiment.length} themes with sentiment analysis`);
+        return { data: { themes: themesWithSentiment } };
+      } catch (error) {
+        console.error('[Data Fetcher] Error fetching themes:', error);
+        return { data: { themes: [] } };
+      }
+    }
+  );
 }
 
 /**
@@ -262,34 +337,84 @@ async function fetchEventsData(
   params?: Record<string, any>
 ): Promise<ComponentDataResult> {
   try {
-    // For now, return mock events
-    // TODO: Implement real events tracking
-    const events = [];
+    // First, auto-generate events from recent activity
+    try {
+      await supabase.rpc('generate_timeline_events', { p_project_id: projectId });
+    } catch (genError) {
+      // Log but don't fail if auto-generation fails
+      console.warn('[Data Fetcher] Auto-generate events failed:', genError);
+    }
 
+    // Build query
+    let query = supabase
+      .from('timeline_events')
+      .select('id, event_type, title, description, event_date, severity, metadata')
+      .eq('project_id', projectId)
+      .order('event_date', { ascending: false })
+      .limit(limit);
+
+    // Apply type filter if specified
+    if (params?.eventTypes && Array.isArray(params.eventTypes)) {
+      query = query.in('event_type', params.eventTypes);
+    }
+
+    // Apply severity filter if specified
+    if (params?.severity) {
+      query = query.eq('severity', params.severity);
+    }
+
+    // Apply time range filter
+    if (params?.timeRange) {
+      const days = parseInt(params.timeRange.replace('d', '')) || 30;
+      const date = new Date();
+      date.setDate(date.getDate() - days);
+      query = query.gte('event_date', date.toISOString());
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('[Data Fetcher] Events query error:', error);
+      return { data: { events: [] } };
+    }
+
+    // Transform data for TimelineEvents component
+    const events = data?.map((event: any) => ({
+      id: event.id,
+      type: event.event_type,
+      title: event.title,
+      description: event.description,
+      date: event.event_date,
+      severity: event.severity,
+      metadata: event.metadata,
+    })) || [];
+
+    console.log(`[Data Fetcher] Fetched ${events.length} timeline events for project ${projectId}`);
     return { data: { events } };
   } catch (error) {
     console.error('[Data Fetcher] Error fetching events:', error);
-    return {
-      data: { events: [] },
-      error: error instanceof Error ? error.message : 'Failed to fetch events',
-    };
+    return { data: { events: [] } };
   }
 }
 
 /**
- * Fetch context data for all projects
+ * Fetch context data for all projects (with caching)
  */
 export async function fetchProjectContext(projectId: string): Promise<any> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return await withCache(
+    CacheKeys.projectContext(projectId),
+    CacheTTL.projectContext,
+    async () => {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !supabaseKey) {
-    return {};
-  }
+      if (!supabaseUrl || !supabaseKey) {
+        return {};
+      }
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
+      const supabase = createClient(supabaseUrl, supabaseKey);
 
-  try {
+      try {
     // Fetch various context data in parallel
     const [
       { data: recentFeedback },
@@ -346,10 +471,11 @@ export async function fetchProjectContext(projectId: string): Promise<any> {
         id: fb.id,
         title: fb.title,
         sentiment: fb.sentiment_analysis?.[0]?.sentiment_score || 0,
-      })) || [],
-    };
-  } catch (error) {
-    console.error('[Data Fetcher] Error fetching project context:', error);
-    return {};
-  }
+        })) || [],
+      };
+    } catch (error) {
+      console.error('[Data Fetcher] Error fetching project context:', error);
+      return {};
+    }
+  });
 }
