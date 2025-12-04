@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   BarChart,
@@ -28,7 +29,10 @@ import {
   MessageSquare,
   Users,
   Zap,
-  Award
+  Award,
+  ArrowLeft,
+  History,
+  Sparkles
 } from 'lucide-react';
 
 interface Analytics {
@@ -46,6 +50,7 @@ const COLORS = ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#6366f1'
 
 export default function StakeholderAnalyticsPage() {
   const params = useParams();
+  const router = useRouter();
   const projectId = params?.projectId as string;
 
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
@@ -97,14 +102,48 @@ export default function StakeholderAnalyticsPage() {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-          <TrendingUp className="w-8 h-8 text-purple-600" />
-          Stakeholder Intelligence Analytics
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Usage patterns and performance metrics
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <TrendingUp className="w-8 h-8 text-purple-600" />
+            Stakeholder Intelligence Analytics
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Usage patterns and performance metrics
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/dashboard/${projectId}/stakeholder`)}
+            className="gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/dashboard/${projectId}/stakeholder/history`)}
+            className="gap-2"
+          >
+            <History className="w-4 h-4" />
+            History
+          </Button>
+
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => router.push(`/dashboard/${projectId}/stakeholder`)}
+            className="gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            New Query
+          </Button>
+        </div>
       </div>
 
       {/* Time Range Selector */}
