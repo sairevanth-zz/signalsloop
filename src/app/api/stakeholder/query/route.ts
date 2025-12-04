@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
           response_components: componentResponse.components,
           follow_up_questions: componentResponse.follow_up_questions,
           generation_time_ms: generationTime,
-          model_used: 'gpt-4o',
+          model_used: 'claude-sonnet-4',
         });
       } catch (error) {
         console.error('[Stakeholder API] Error storing query:', error);
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       follow_up_questions: componentResponse.follow_up_questions || [],
       metadata: {
         generation_time_ms: generationTime,
-        model_used: 'gpt-4o',
+        model_used: 'claude-sonnet-4',
       },
     };
 

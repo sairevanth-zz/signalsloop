@@ -238,7 +238,7 @@ export default function StakeholderPage() {
 
           {/* Metadata */}
           <div className="text-xs text-gray-500 dark:text-gray-500 text-center">
-            Generated in {response.metadata.generation_time_ms}ms using {response.metadata.model_used}
+            Generated in {response.metadata.generation_time_ms}ms • Powered by Claude Sonnet 4 • {response.components.length} components
           </div>
         </div>
       ))}

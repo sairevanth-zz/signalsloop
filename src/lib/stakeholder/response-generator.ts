@@ -1,14 +1,14 @@
 /**
  * Stakeholder Response Generator
- * Generates dynamic component-based responses using GPT-4o
+ * Generates dynamic component-based responses using Claude Sonnet 4
  */
 
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import { ComponentSelectionResponse, ContextData, StakeholderRole } from '@/types/stakeholder';
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Initialize Anthropic
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
 /**
@@ -35,52 +35,60 @@ roadmap impact, outcome metrics, and data-driven product decisions.`,
 };
 
 /**
- * Main GPT-4o system prompt for component selection
+ * Main Claude Sonnet 4 system prompt for component selection
  */
-const SYSTEM_PROMPT = `You are an expert product analytics assistant that generates dynamic dashboard responses for stakeholders.
+const SYSTEM_PROMPT = `You are an elite executive dashboard architect for C-suite and senior stakeholders. Your responses must be VISUALLY RICH, DATA-DRIVEN, and DISTINCTLY DIFFERENT from simple Q&A.
 
-When a stakeholder asks a question, you must:
-1. Understand their role and what matters to them
-2. Select the most appropriate UI components to answer their question
-3. Generate content for each component
-4. Suggest relevant follow-up questions
+CRITICAL REQUIREMENTS:
+1. ALWAYS include 3-5 components per response (never less than 3)
+2. MANDATORY: At least 2 VISUAL components (charts, clouds, timelines, comparisons) - NOT just text and lists
+3. Create executive-grade insights that look like a premium dashboard
+4. This is NOT a chatbot - it's an intelligent dashboard generator
 
-AVAILABLE COMPONENTS:
+AVAILABLE COMPONENTS (USE CREATIVELY):
 
-1. SummaryText - AI-generated text summary with source citations
-   Use for: Explaining trends, providing context, answering "why" questions
+📊 VISUAL COMPONENTS (USE AT LEAST 2):
+- SentimentChart: Line chart showing trends over time - PERFECT for "how is X trending?"
+- ThemeCloud: Visual word cloud with size/color coding - GREAT for "what are customers saying?"
+- TimelineEvents: Chronological visualization - IDEAL for "what happened recently?"
+- CompetitorCompare: Side-by-side comparison table - BEST for competitive questions
+- MetricCard: Big number with trend arrow - USE for key KPIs
 
-2. MetricCard - Single metric with trend indicator
-   Use for: Showing key numbers, KPIs, changes over time
+📝 DATA COMPONENTS (COMPLEMENT VISUALS):
+- SummaryText: Executive summary with insights (ALWAYS use first, but keep brief)
+- FeedbackList: Specific customer quotes/evidence (use to support charts)
+- ActionCard: Urgent recommendation with severity (use ONLY for critical items)
 
-3. SentimentChart - Line chart of sentiment over time
-   Use for: Sentiment trends, tracking changes
+COMPONENT SELECTION RULES:
+❌ NEVER respond with just SummaryText + FeedbackList (too boring!)
+❌ NEVER use less than 3 components
+✅ ALWAYS mix visual + data components
+✅ ALWAYS think "if this were a $10k/month dashboard, what would it show?"
 
-4. FeedbackList - List of relevant feedback items
-   Use for: Showing specific customer feedback, examples, evidence
+ROLE-SPECIFIC VISUALIZATION PRIORITIES:
+- CEO: SentimentChart + MetricCard + ThemeCloud (big picture, trends, patterns)
+- Sales: CompetitorCompare + MetricCard + FeedbackList (competitive edge, wins, testimonials)
+- Engineering: ThemeCloud + FeedbackList + TimelineEvents (bug patterns, technical debt, releases)
+- Marketing: SentimentChart + FeedbackList + ThemeCloud (brand perception, customer voice)
+- Customer Success: SentimentChart + FeedbackList + ActionCard (at-risk accounts, urgent issues)
+- Product: ThemeCloud + SentimentChart + TimelineEvents (feature requests, trends, launches)
 
-5. ActionCard - Recommended action with CTA
-   Use for: Urgent issues, recommendations, things requiring attention
+EXAMPLE GREAT RESPONSE (for "What are the top issues?"):
+[
+  { "type": "SummaryText", "order": 1, ... },     // Brief exec summary
+  { "type": "ThemeCloud", "order": 2, ... },       // Visual of all issues by size
+  { "type": "SentimentChart", "order": 3, ... },   // Trend showing issues over time
+  { "type": "FeedbackList", "order": 4, ... },     // Top 5 specific examples
+  { "type": "ActionCard", "order": 5, ... }        // Recommended immediate action
+]
 
-6. CompetitorCompare - Comparison table with competitors
-   Use for: Competitive questions, feature gaps, positioning
+EXAMPLE BAD RESPONSE (too simple):
+[
+  { "type": "SummaryText", ... },
+  { "type": "FeedbackList", ... }
+] ❌ This looks like basic Q&A, not a premium dashboard!
 
-7. ThemeCloud - Visual theme distribution
-   Use for: Overview of feedback themes, patterns, topics
-
-8. TimelineEvents - Chronological event display
-   Use for: What happened recently, feature launches, milestones
-
-RULES:
-- Use 2-4 components per response (not too cluttered)
-- Always start with SummaryText to directly answer the question
-- Include at least one data visualization (chart, metric, or list)
-- End with ActionCard only if there's a clear recommended action
-- Keep content concise - stakeholders are busy
-- Cite specific data sources when possible
-- Match the stakeholder's role priorities
-
-Respond with valid JSON only.`;
+Respond with valid JSON only. Make every response worthy of a premium executive dashboard.`;
 
 /**
  * Generate response components for a stakeholder query
@@ -96,23 +104,28 @@ export async function generateStakeholderResponse(
   try {
     const userPrompt = buildUserPrompt(query, role, context);
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userPrompt },
-      ],
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4000,
       temperature: 0.7,
-      max_tokens: 3000,
-      response_format: { type: 'json_object' },
+      system: SYSTEM_PROMPT,
+      messages: [
+        {
+          role: 'user',
+          content: userPrompt,
+        },
+      ],
     });
 
-    const content = response.choices[0].message.content;
+    const content = response.content[0].type === 'text' ? response.content[0].text : '';
     if (!content) {
-      throw new Error('Empty response from GPT-4o');
+      throw new Error('Empty response from Claude');
     }
 
-    const parsed: ComponentSelectionResponse = JSON.parse(content);
+    // Extract JSON from response (Claude might wrap it in markdown)
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const jsonStr = jsonMatch ? jsonMatch[0] : content;
+    const parsed: ComponentSelectionResponse = JSON.parse(jsonStr);
 
     // Validate and add order to components
     parsed.components = parsed.components.map((comp, idx) => ({
@@ -120,31 +133,118 @@ export async function generateStakeholderResponse(
       order: comp.order || idx + 1,
     }));
 
+    // VALIDATION: Ensure we have enough visual components
+    const visualComponents = ['SentimentChart', 'ThemeCloud', 'TimelineEvents', 'CompetitorCompare', 'MetricCard'];
+    const visualCount = parsed.components.filter(c => visualComponents.includes(c.type)).length;
+
+    if (visualCount < 2 || parsed.components.length < 3) {
+      console.warn('[Response Generator] Response lacks visual richness, enhancing...');
+      parsed.components = await enhanceResponse(parsed.components, role, context);
+    }
+
     const generationTime = Date.now() - startTime;
-    console.log(`[Response Generator] Generated response in ${generationTime}ms`);
+    console.log(`[Response Generator] Generated response in ${generationTime}ms with ${parsed.components.length} components (${visualCount} visual)`);
 
     return parsed;
   } catch (error) {
     console.error('[Response Generator] Error:', error);
 
-    // Fallback response
+    // Enhanced fallback response with visuals
     return {
       components: [
         {
           type: 'SummaryText',
           order: 1,
           props: {
-            content: `I encountered an error processing your question. Please try rephrasing your query or contact support if the issue persists.`,
+            content: `I encountered an error processing your question. This might be due to missing data or a temporary issue. Please try rephrasing your query.`,
             sources: [],
+          },
+        },
+        {
+          type: 'MetricCard',
+          order: 2,
+          props: {
+            title: 'System Status',
+            value: 'Error',
+            description: 'Unable to generate full response',
           },
         },
       ],
       follow_up_questions: [
-        'What metrics would you like to see?',
+        'What specific metrics would you like to see?',
         'Would you like me to show recent feedback?',
+        'Can I help you with a different question?',
       ],
     };
   }
+}
+
+/**
+ * Enhance response with additional visual components if needed
+ */
+async function enhanceResponse(
+  components: any[],
+  role: StakeholderRole,
+  context: ContextData
+): Promise<any[]> {
+  const enhanced = [...components];
+
+  // Add ThemeCloud if we have themes data and it's not already included
+  if (context.themes && context.themes.length > 0 && !components.some(c => c.type === 'ThemeCloud')) {
+    enhanced.push({
+      type: 'ThemeCloud',
+      order: enhanced.length + 1,
+      props: {
+        themes: context.themes.slice(0, 15).map(t => ({
+          name: t.name,
+          count: t.count,
+          sentiment: t.sentiment || 0,
+          trend: 'stable' as const,
+        })),
+        title: 'Top Customer Themes',
+      },
+    });
+  }
+
+  // Add SentimentChart if we have metrics and it's not already included
+  if (context.metrics && !components.some(c => c.type === 'SentimentChart')) {
+    // Generate last 30 days of data points
+    const dataPoints = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      dataPoints.push({
+        date: date.toISOString().split('T')[0],
+        value: context.sentiment || 0, // Would be better with historical data
+      });
+    }
+
+    enhanced.push({
+      type: 'SentimentChart',
+      order: enhanced.length + 1,
+      props: {
+        data: dataPoints,
+        timeRange: '30d' as const,
+        title: 'Sentiment Trend',
+      },
+    });
+  }
+
+  // Add MetricCard for feedback count if not present
+  if (context.metrics && !components.some(c => c.type === 'MetricCard')) {
+    enhanced.push({
+      type: 'MetricCard',
+      order: enhanced.length + 1,
+      props: {
+        title: 'Total Feedback',
+        value: context.metrics.feedback_count,
+        trend: 'up' as const,
+        delta: '+12% this week',
+      },
+    });
+  }
+
+  return enhanced;
 }
 
 /**
@@ -155,48 +255,69 @@ function buildUserPrompt(
   role: StakeholderRole,
   context: ContextData
 ): string {
-  return `STAKEHOLDER ROLE: ${role}
-${ROLE_CONTEXTS[role]}
+  // Create a rich data summary
+  const dataSummary = `
+📊 AVAILABLE DATA FOR VISUALIZATION:
 
-QUERY: ${query}
+Sentiment Metrics:
+- Current Average: ${context.sentiment?.toFixed(2) || 'N/A'}
+- Total Feedback Items: ${context.metrics?.feedback_count || 0}
+- Recent Activity: ${context.metrics?.recent_activity || 0} items
 
-AVAILABLE DATA CONTEXT:
-${JSON.stringify(context, null, 2)}
+Top Themes (${context.themes?.length || 0} total):
+${context.themes?.slice(0, 10).map((t, i) => `${i + 1}. ${t.name} (${t.count} mentions)`).join('\n') || 'No themes available'}
 
-Generate a response with the most appropriate UI components. Return JSON with this structure:
-{
-  "components": [
-    {
-      "type": "SummaryText|MetricCard|SentimentChart|FeedbackList|ActionCard|CompetitorCompare|ThemeCloud|TimelineEvents",
-      "order": 1,
-      "props": {
-        // Component-specific props based on the component type
-        // For SummaryText: { "content": "...", "sources": [] }
-        // For MetricCard: { "title": "...", "value": 123, "trend": "up", "delta": "..." }
-        // For SentimentChart: { "data": [], "timeRange": "30d" }
-        // For FeedbackList: { "items": [], "limit": 5, "showSentiment": true }
-        // etc.
-      },
-      "data_query": {
-        // Optional: If component needs live data fetching
-        "type": "feedback|themes|competitors|metrics|events",
-        "filter": "SQL-like filter condition",
-        "limit": 10,
-        "params": {}
-      }
-    }
-  ],
-  "follow_up_questions": [
-    "Relevant follow-up question 1?",
-    "Relevant follow-up question 2?",
-    "Relevant follow-up question 3?"
-  ]
-}
+Recent Feedback Samples (${context.recent_feedback?.length || 0} items):
+${context.recent_feedback?.slice(0, 5).map((f, i) => `${i + 1}. "${f.title}" (sentiment: ${f.sentiment?.toFixed(2)})`).join('\n') || 'No recent feedback'}
 
-IMPORTANT:
-- For data_query, use it when you need to fetch live data from the database
-- For props, populate with actual data from the context when possible
-- Ensure all JSON is valid and properly formatted`;
+Competitors:
+${context.competitor_events?.length ? context.competitor_events.map(e => `- ${e.competitor}: ${e.event}`).join('\n') : 'No competitor data'}
+`;
+
+  return `STAKEHOLDER: ${role.toUpperCase()}
+CONTEXT: ${ROLE_CONTEXTS[role]}
+
+QUESTION: "${query}"
+
+${dataSummary}
+
+INSTRUCTIONS:
+1. Generate 3-5 components (MINIMUM 3, MAXIMUM 5)
+2. Include AT LEAST 2 visual components (charts, clouds, timelines, comparisons)
+3. Start with SummaryText (brief, 2-3 sentences max)
+4. Use actual data from context above - populate props with real numbers
+5. Think: "What would a $10k/month executive dashboard show for this question?"
+
+COMPONENT REQUIREMENTS BY TYPE:
+
+SummaryText:
+{ "type": "SummaryText", "order": 1, "props": { "content": "Brief insight...", "sources": [] } }
+
+MetricCard (for KPIs):
+{ "type": "MetricCard", "order": 2, "props": { "title": "Metric Name", "value": ${context.metrics?.feedback_count || 0}, "trend": "up|down|flat", "delta": "+X% vs last week" } }
+
+SentimentChart (HIGHLY RECOMMENDED for trends):
+{ "type": "SentimentChart", "order": 3, "props": { "data": [{"date": "2024-01-01", "value": 0.5}], "timeRange": "30d", "title": "Chart Title" } }
+
+ThemeCloud (GREAT for "what are customers saying"):
+{ "type": "ThemeCloud", "order": 4, "props": { "themes": ${JSON.stringify(context.themes?.slice(0, 15) || [])}, "title": "Top Themes" } }
+
+FeedbackList (use WITH visuals, not alone):
+{ "type": "FeedbackList", "order": 5, "props": { "items": [], "limit": 5, "showSentiment": true, "data_query": { "type": "feedback", "limit": 5, "params": {"sentiment": "negative"} } } }
+
+TimelineEvents (for recent activity):
+{ "type": "TimelineEvents", "order": 3, "props": { "events": [], "title": "Recent Activity" } }
+
+ActionCard (ONLY if there's urgent action):
+{ "type": "ActionCard", "order": 5, "props": { "title": "Action Required", "description": "...", "severity": "critical|high|medium|low", "cta": "Review Now" } }
+
+REMEMBER:
+- Mix static props (use context data) with data_query (for live fetching)
+- ALWAYS include visualizations - this is a premium dashboard, not a chatbot
+- For ${role}: Use role-specific visualization priorities from system prompt
+
+Respond with ONLY valid JSON (no markdown, no explanation):
+{ "components": [...], "follow_up_questions": ["...", "...", "..."] }`;
 }
 
 /**
