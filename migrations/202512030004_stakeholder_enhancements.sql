@@ -80,6 +80,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_query_analytics_project_role
 -- ============================================================================
 
 -- Function to calculate and store daily sentiment snapshot
+DROP FUNCTION IF EXISTS calculate_daily_sentiment(UUID, DATE);
 CREATE OR REPLACE FUNCTION calculate_daily_sentiment(p_project_id UUID, p_date DATE DEFAULT CURRENT_DATE)
 RETURNS void AS $$
 DECLARE
@@ -136,6 +137,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to backfill historical sentiment data
+DROP FUNCTION IF EXISTS backfill_sentiment_history(UUID, INTEGER);
 CREATE OR REPLACE FUNCTION backfill_sentiment_history(
   p_project_id UUID,
   p_days_back INTEGER DEFAULT 90
@@ -162,6 +164,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to get sentiment trend for charts
+DROP FUNCTION IF EXISTS get_sentiment_trend(UUID, INTEGER);
 CREATE OR REPLACE FUNCTION get_sentiment_trend(
   p_project_id UUID,
   p_days INTEGER DEFAULT 30
@@ -189,6 +192,7 @@ $$ LANGUAGE plpgsql;
 -- ============================================================================
 
 -- Function to get most common queries by role
+DROP FUNCTION IF EXISTS get_popular_queries(UUID, TEXT, INTEGER);
 CREATE OR REPLACE FUNCTION get_popular_queries(
   p_project_id UUID,
   p_role TEXT DEFAULT NULL,

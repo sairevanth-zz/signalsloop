@@ -151,6 +151,7 @@ CREATE POLICY "Users can view execution history for their reports"
 -- ============================================================================
 
 -- Function to calculate next run time
+DROP FUNCTION IF EXISTS calculate_next_run_time(TEXT, TIME, INTEGER, INTEGER, TEXT, TIMESTAMPTZ);
 CREATE OR REPLACE FUNCTION calculate_next_run_time(
   p_frequency TEXT,
   p_time_of_day TIME,
@@ -196,14 +197,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger to update next_run_at when schedule changes
-DROP TRIGGER IF EXISTS update_scheduled_reports_next_run ON scheduled_reports;
-CREATE TRIGGER update_scheduled_reports_next_run
-  BEFORE INSERT OR UPDATE ON scheduled_reports
-  FOR EACH ROW
-  WHEN (NEW.is_active = true AND (TG_OP = 'INSERT' OR OLD.frequency IS DISTINCT FROM NEW.frequency OR OLD.time_of_day IS DISTINCT FROM NEW.time_of_day OR OLD.day_of_week IS DISTINCT FROM NEW.day_of_week OR OLD.day_of_month IS DISTINCT FROM NEW.day_of_month))
-  EXECUTE FUNCTION update_next_run_time();
-
+-- Function to update next run time (for trigger)
+DROP FUNCTION IF EXISTS update_next_run_time() CASCADE;
 CREATE OR REPLACE FUNCTION update_next_run_time()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -218,6 +213,14 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Trigger to update next_run_at when schedule changes
+DROP TRIGGER IF EXISTS update_scheduled_reports_next_run ON scheduled_reports;
+CREATE TRIGGER update_scheduled_reports_next_run
+  BEFORE INSERT OR UPDATE ON scheduled_reports
+  FOR EACH ROW
+  WHEN (NEW.is_active = true AND (TG_OP = 'INSERT' OR OLD.frequency IS DISTINCT FROM NEW.frequency OR OLD.time_of_day IS DISTINCT FROM NEW.time_of_day OR OLD.day_of_week IS DISTINCT FROM NEW.day_of_week OR OLD.day_of_month IS DISTINCT FROM NEW.day_of_month))
+  EXECUTE FUNCTION update_next_run_time();
 
 -- Trigger to update updated_at timestamp
 DROP TRIGGER IF EXISTS update_scheduled_reports_updated_at ON scheduled_reports;
