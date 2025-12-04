@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase-client';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -79,7 +79,10 @@ export default function StakeholderPage() {
 
     try {
       // Get auth token
-      const supabase = createClient();
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
       const { data: { session } } = await supabase.auth.getSession();
 
       const headers: HeadersInit = { 'Content-Type': 'application/json' };
