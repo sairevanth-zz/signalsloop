@@ -74,21 +74,10 @@ async function fetchFeedbackData(
   params?: Record<string, any>
 ): Promise<ComponentDataResult> {
   try {
+    // First, try to fetch posts data
     let query = supabase
       .from('posts')
-      .select(
-        `
-        id,
-        title,
-        content,
-        created_at,
-        source,
-        category,
-        sentiment_analysis!left (
-          sentiment_score
-        )
-      `
-      )
+      .select('id, title, content, created_at, source, category')
       .eq('project_id', projectId)
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -100,20 +89,42 @@ async function fetchFeedbackData(
       query = query.gte('created_at', date.toISOString());
     }
 
-    const { data, error } = await query;
+    const { data: posts, error: postsError } = await query;
 
-    if (error) throw error;
+    if (postsError) {
+      console.error('[Data Fetcher] Posts query error:', postsError);
+      // Return empty data instead of error to avoid breaking UI
+      return { data: { items: [] } };
+    }
+
+    if (!posts || posts.length === 0) {
+      console.log('[Data Fetcher] No posts found for project:', projectId);
+      return { data: { items: [] } };
+    }
+
+    // Fetch sentiment data separately to avoid join issues
+    const postIds = posts.map((p: any) => p.id);
+    const { data: sentiments } = await supabase
+      .from('sentiment_analysis')
+      .select('post_id, sentiment_score')
+      .in('post_id', postIds);
+
+    // Create sentiment map for fast lookup
+    const sentimentMap = new Map();
+    sentiments?.forEach((s: any) => {
+      sentimentMap.set(s.post_id, s.sentiment_score);
+    });
 
     // Transform data for FeedbackList component
-    let items = data?.map((post: any) => ({
+    let items = posts.map((post: any) => ({
       id: post.id,
       title: post.title,
       content: post.content,
-      sentiment: post.sentiment_analysis?.[0]?.sentiment_score || 0,
+      sentiment: sentimentMap.get(post.id) || 0,
       source: post.source,
       created_at: post.created_at,
       themes: post.category ? [post.category] : [],
-    })) || [];
+    }));
 
     // Apply sentiment filter after fetching
     if (params?.sentiment === 'negative') {
@@ -122,13 +133,12 @@ async function fetchFeedbackData(
       items = items.filter(item => item.sentiment > 0.3);
     }
 
+    console.log(`[Data Fetcher] Fetched ${items.length} feedback items for project ${projectId}`);
     return { data: { items } };
   } catch (error) {
     console.error('[Data Fetcher] Error fetching feedback:', error);
-    return {
-      data: { items: [] },
-      error: error instanceof Error ? error.message : 'Failed to fetch feedback',
-    };
+    // Return empty data instead of error to avoid breaking UI
+    return { data: { items: [] } };
   }
 }
 

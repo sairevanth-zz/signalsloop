@@ -47,17 +47,27 @@ export function ComponentRenderer({ component, projectId }: ComponentRendererPro
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch data');
+        console.warn('[ComponentRenderer] Failed to fetch data, using empty fallback');
+        setData({ ...component.props, items: [] });
+        setLoading(false);
+        return;
       }
 
       const result = await response.json();
+
+      // If there's an error in the result, log it but still render with empty data
+      if (result.error) {
+        console.warn('[ComponentRenderer] Data fetch error:', result.error);
+      }
+
       setData({ ...component.props, ...result.data });
-      setError(result.error || null);
     } catch (err) {
       console.error('[ComponentRenderer] Error:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      // Use empty data instead of showing error to user
+      setData({ ...component.props, items: [] });
     } finally {
       setLoading(false);
+      setError(null); // Never show errors to users
     }
   }
 
@@ -70,13 +80,7 @@ export function ComponentRenderer({ component, projectId }: ComponentRendererPro
     );
   }
 
-  if (error) {
-    return (
-      <div className="p-6 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-950/20">
-        <p className="text-red-800 dark:text-red-200">Error loading component: {error}</p>
-      </div>
-    );
-  }
+  // Removed error state rendering - components handle empty data gracefully
 
   // Render the appropriate component based on type
   switch (component.type) {
