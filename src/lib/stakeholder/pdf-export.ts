@@ -59,51 +59,88 @@ export async function exportToPDF(
 
 /**
  * Export with full PDF generation using jsPDF and html2canvas
- * Requires: npm install jspdf html2canvas @types/jspdf
- *
- * Uncomment this once you have the dependencies installed:
- *
- * import jsPDF from 'jspdf';
- * import html2canvas from 'html2canvas';
- *
- * export async function exportToPDFWithCanvas(element: HTMLElement, filename: string): Promise<void> {
- *   try {
- *     const canvas = await html2canvas(element, {
- *       scale: 2,
- *       logging: false,
- *       useCORS: true
- *     });
- *
- *     const imgData = canvas.toDataURL('image/png');
- *     const pdf = new jsPDF({
- *       orientation: 'portrait',
- *       unit: 'mm',
- *       format: 'a4'
- *     });
- *
- *     const imgWidth = 210; // A4 width in mm
- *     const pageHeight = 297; // A4 height in mm
- *     const imgHeight = (canvas.height * imgWidth) / canvas.width;
- *     let heightLeft = imgHeight;
- *     let position = 0;
- *
- *     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
- *     heightLeft -= pageHeight;
- *
- *     while (heightLeft >= 0) {
- *       position = heightLeft - imgHeight;
- *       pdf.addPage();
- *       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
- *       heightLeft -= pageHeight;
- *     }
- *
- *     pdf.save(filename);
- *   } catch (error) {
- *     console.error('[PDF Export with Canvas] Error:', error);
- *     throw error;
- *   }
- * }
  */
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
+export async function exportToPDFWithCanvas(
+  queryText: string,
+  userRole: string,
+  components: any[],
+  projectId: string
+): Promise<void> {
+  try {
+    // Create a temporary container for rendering
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.width = '800px';
+    container.style.backgroundColor = '#ffffff';
+    container.style.padding = '40px';
+    document.body.appendChild(container);
+
+    // Call API to get HTML
+    const response = await fetch('/api/stakeholder/export-pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        queryText,
+        userRole,
+        components,
+        projectId
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate PDF data');
+    }
+
+    const { html } = await response.json();
+    container.innerHTML = html;
+
+    // Wait for images to load
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Generate canvas from HTML
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      logging: false,
+      useCORS: true,
+      backgroundColor: '#ffffff'
+    });
+
+    // Remove temporary container
+    document.body.removeChild(container);
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const imgWidth = 210; // A4 width in mm
+    const pageHeight = 297; // A4 height in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft >= 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    pdf.save(`stakeholder-report-${Date.now()}.pdf`);
+  } catch (error) {
+    console.error('[PDF Export with Canvas] Error:', error);
+    throw error;
+  }
+}
 
 /**
  * Email export functionality

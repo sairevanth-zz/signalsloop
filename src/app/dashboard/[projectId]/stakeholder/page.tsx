@@ -3,14 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import { useStreamingQuery } from '@/hooks/useStreamingQuery';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ComponentListRenderer } from '@/components/stakeholder/ComponentRenderer';
+import { VoiceInput } from '@/components/stakeholder/VoiceInput';
+import { FilterBar } from '@/components/stakeholder/FilterBar';
+import { ActionExecutor } from '@/components/stakeholder/ActionExecutor';
+import { StakeholderFilterProvider } from '@/contexts/StakeholderFilterContext';
 import { StakeholderRole, QueryResponse, StakeholderQuery } from '@/types/stakeholder';
-import { exportToPDF } from '@/lib/stakeholder/pdf-export';
-import { Send, Loader2, Sparkles, MessageSquare, Star, Download, History, BarChart3 } from 'lucide-react';
+import { detectActionIntent } from '@/lib/stakeholder/action-executor';
+import { exportToPDF, exportToPDFWithCanvas } from '@/lib/stakeholder/pdf-export';
+import { Send, Loader2, Sparkles, MessageSquare, Star, Download, History, BarChart3, FileText, Clock } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -31,6 +37,9 @@ export default function StakeholderPage() {
   const [queries, setQueries] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [exportingIndex, setExportingIndex] = useState<number | null>(null);
+  const [streamingEnabled, setStreamingEnabled] = useState(true);
+
+  const streamingQuery = useStreamingQuery();
 
   // Example queries to help users get started
   const exampleQueries: Record<StakeholderRole, string[]> = {
@@ -77,6 +86,41 @@ export default function StakeholderPage() {
     setLoading(true);
     setQueries([...queries, queryText]);
 
+    // Use streaming if enabled
+    if (streamingEnabled) {
+      try {
+        streamingQuery.reset();
+        await streamingQuery.executeStreamingQuery(queryText, role, projectId);
+
+        // Once streaming is complete, add to responses
+        if (streamingQuery.components.length > 0 && !streamingQuery.error) {
+          const streamedResponse: QueryResponse = {
+            summary: streamingQuery.summary,
+            components: streamingQuery.components,
+            follow_up_questions: streamingQuery.followUpQuestions,
+            metadata: {
+              generation_time_ms: streamingQuery.generationTime || 0,
+              component_count: streamingQuery.components.length,
+            },
+          };
+          setResponses([...responses, streamedResponse]);
+        }
+
+        if (streamingQuery.error) {
+          alert('Failed to process your query. Please try again.');
+        }
+
+        setQuery('');
+        setLoading(false);
+      } catch (error) {
+        console.error('[Stakeholder Streaming] Error:', error);
+        alert('Failed to process your query. Please try again.');
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Regular non-streaming query
     try {
       // Get auth token
       const supabase = getSupabaseClient();
@@ -124,10 +168,15 @@ export default function StakeholderPage() {
     submitQuery(followUpQuery);
   };
 
+  const handleVoiceTranscript = (text: string) => {
+    // Append transcribed text to current query
+    setQuery((prev) => (prev ? `${prev} ${text}` : text));
+  };
+
   const handleExport = async (index: number) => {
     setExportingIndex(index);
     try {
-      await exportToPDF(
+      await exportToPDFWithCanvas(
         queries[index],
         role,
         responses[index].components,
@@ -142,9 +191,10 @@ export default function StakeholderPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <StakeholderFilterProvider>
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <Sparkles className="w-8 h-8 text-purple-600" />
@@ -177,6 +227,16 @@ export default function StakeholderPage() {
             Analytics
           </Button>
 
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/dashboard/${projectId}/stakeholder/scheduled-reports`)}
+            className="gap-2"
+          >
+            <Clock className="w-4 h-4" />
+            Scheduled Reports
+          </Button>
+
           {/* Role Selector */}
           <Select value={role} onValueChange={(value) => setRole(value as StakeholderRole)}>
             <SelectTrigger className="w-[180px]">
@@ -193,6 +253,9 @@ export default function StakeholderPage() {
           </Select>
         </div>
       </div>
+
+      {/* Active Filters */}
+      <FilterBar />
 
       {/* Example Queries */}
       {responses.length === 0 && (
@@ -235,23 +298,49 @@ export default function StakeholderPage() {
                 AI will generate a custom dashboard based on your question
               </p>
 
-              <Button type="submit" disabled={loading || !query.trim()}>
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 mr-2" />
-                    Ask
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-2">
+                <VoiceInput onTranscript={handleVoiceTranscript} disabled={loading} />
+
+                <Button type="submit" disabled={loading || !query.trim()}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Ask
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </form>
       </Card>
+
+      {/* Streaming Progress */}
+      {streamingQuery.isStreaming && (
+        <Card className="p-6 border-purple-500 bg-purple-50 dark:bg-purple-950/20">
+          <div className="flex items-center gap-3 mb-4">
+            <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+            <div>
+              <p className="font-semibold text-gray-900 dark:text-gray-100">{streamingQuery.status}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {streamingQuery.components.length} component{streamingQuery.components.length !== 1 ? 's' : ''} generated so far
+              </p>
+            </div>
+          </div>
+
+          {/* Show components as they arrive */}
+          {streamingQuery.components.length > 0 && (
+            <div className="space-y-4 mt-4">
+              <ComponentListRenderer components={streamingQuery.components} projectId={projectId} />
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Responses */}
       {responses.map((response, idx) => (
@@ -268,6 +357,25 @@ export default function StakeholderPage() {
 
           {/* AI Response Components */}
           <ComponentListRenderer components={response.components} projectId={projectId} />
+
+          {/* Action Executor */}
+          {(() => {
+            const detectedActions = detectActionIntent(queries[idx]);
+            if (detectedActions.length > 0) {
+              return (
+                <ActionExecutor
+                  actions={detectedActions}
+                  projectId={projectId}
+                  context={{
+                    query: queries[idx],
+                    role,
+                    components: response.components,
+                  }}
+                />
+              );
+            }
+            return null;
+          })()}
 
           {/* Follow-up Questions */}
           {response.follow_up_questions && response.follow_up_questions.length > 0 && (
@@ -312,8 +420,8 @@ export default function StakeholderPage() {
                 </>
               ) : (
                 <>
-                  <Download className="w-4 h-4" />
-                  Export HTML
+                  <FileText className="w-4 h-4" />
+                  Export PDF
                 </>
               )}
             </Button>
@@ -331,5 +439,6 @@ export default function StakeholderPage() {
         </Card>
       )}
     </div>
+    </StakeholderFilterProvider>
   );
 }

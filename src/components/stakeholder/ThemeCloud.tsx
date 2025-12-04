@@ -4,10 +4,16 @@ import React from 'react';
 import { ThemeCloudProps } from '@/types/stakeholder';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Minus, Tag } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Tag, MousePointerClick } from 'lucide-react';
+import { useStakeholderFilters } from '@/contexts/StakeholderFilterContext';
 
 export function ThemeCloud({ themes, maxThemes = 15, title }: ThemeCloudProps) {
   const displayThemes = themes.slice(0, maxThemes);
+  const { setFilter, filters } = useStakeholderFilters();
+
+  const handleThemeClick = (themeName: string) => {
+    setFilter('theme', themeName);
+  };
 
   // Calculate size based on count (normalized)
   const maxCount = Math.max(...displayThemes.map((t) => t.count));
@@ -37,11 +43,17 @@ export function ThemeCloud({ themes, maxThemes = 15, title }: ThemeCloudProps) {
 
   return (
     <Card className="p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Tag className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          {title || 'Top Themes'}
-        </h3>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Tag className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            {title || 'Top Themes'}
+          </h3>
+        </div>
+        <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+          <MousePointerClick className="w-3 h-3" />
+          <span>Click to filter</span>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3 items-center justify-center py-4">
@@ -51,8 +63,9 @@ export function ThemeCloud({ themes, maxThemes = 15, title }: ThemeCloudProps) {
             className="inline-flex items-center gap-2 transition-transform hover:scale-105"
           >
             <Badge
-              className={`${getThemeSize(theme.count)} ${getSentimentColor(theme.sentiment)} font-medium px-3 py-1.5 cursor-pointer`}
+              className={`${getThemeSize(theme.count)} ${getSentimentColor(theme.sentiment)} font-medium px-3 py-1.5 cursor-pointer hover:ring-2 hover:ring-purple-400 transition-all ${filters.theme === theme.name ? 'ring-2 ring-purple-600' : ''}`}
               variant="secondary"
+              onClick={() => handleThemeClick(theme.name)}
             >
               <span>{theme.name}</span>
               <span className="ml-2 text-xs opacity-70">({theme.count})</span>
