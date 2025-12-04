@@ -1,9 +1,9 @@
 import { NextRequest } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
-import { generateResponsePlan } from '@/lib/stakeholder/response-generator';
-import { fetchComponentData } from '@/lib/stakeholder/data-fetcher';
-import { createServerClient } from '@/lib/supabase-client';
+import { createClient } from '@supabase/supabase-js';
+import { generateStakeholderResponse } from '@/lib/stakeholder/response-generator';
+import { fetchProjectContext, fetchComponentData } from '@/lib/stakeholder/data-fetcher';
 
+export const runtime = 'nodejs';
 export const maxDuration = 10; // Vercel free tier limit
 
 /**
@@ -29,34 +29,28 @@ export async function POST(request: NextRequest) {
           return;
         }
 
-        // Authenticate user
-        const supabase = await createServerClient();
-        const {
-          data: { user },
-          error: authError,
-        } = await supabase.auth.getUser();
+        // Get Supabase client
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-        if (authError || !user) {
+        if (!supabaseUrl || !supabaseKey) {
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ error: 'Unauthorized' })}\n\n`)
+            encoder.encode(`data: ${JSON.stringify({ error: 'Supabase credentials not configured' })}\n\n`)
           );
           controller.close();
           return;
         }
 
-        // Verify project access
-        const { data: project, error: projectError } = await supabase
-          .from('projects')
-          .select('id, owner_id')
-          .eq('id', projectId)
-          .single();
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
-        if (projectError || !project || project.owner_id !== user.id) {
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ error: 'Project not found' })}\n\n`)
-          );
-          controller.close();
-          return;
+        // Authenticate user
+        const authHeader = request.headers.get('authorization');
+        let userId: string | null = null;
+
+        if (authHeader) {
+          const token = authHeader.replace('Bearer ', '');
+          const { data: { user } } = await supabase.auth.getUser(token);
+          userId = user?.id || null;
         }
 
         const startTime = Date.now();
@@ -66,9 +60,9 @@ export async function POST(request: NextRequest) {
           encoder.encode(`data: ${JSON.stringify({ type: 'status', message: 'Analyzing your question...' })}\n\n`)
         );
 
-        // Generate response plan
-        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-        const responsePlan = await generateResponsePlan(anthropic, query, role, projectId, supabase);
+        // Fetch context and generate response
+        const contextData = await fetchProjectContext(supabase, projectId);
+        const responsePlan = await generateStakeholderResponse(query, role, contextData, projectId);
 
         // Send component count
         controller.enqueue(
@@ -127,17 +121,19 @@ export async function POST(request: NextRequest) {
         const generationTime = Date.now() - startTime;
 
         // Save query to database
-        try {
-          await supabase.from('stakeholder_queries').insert({
-            project_id: projectId,
-            user_id: user.id,
-            query_text: query,
-            user_role: role,
-            response_components: responsePlan.components,
-            generation_time_ms: generationTime,
-          });
-        } catch (dbError) {
-          console.error('[Query Stream] Failed to save query:', dbError);
+        if (userId) {
+          try {
+            await supabase.from('stakeholder_queries').insert({
+              project_id: projectId,
+              user_id: userId,
+              query_text: query,
+              user_role: role,
+              response_components: responsePlan.components,
+              generation_time_ms: generationTime,
+            });
+          } catch (dbError) {
+            console.error('[Query Stream] Failed to save query:', dbError);
+          }
         }
 
         // Send completion
