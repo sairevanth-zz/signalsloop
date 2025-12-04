@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalsLoop - AI Product Manager That Never Sleeps | Autonomous Feedback Discovery</title>
+    <meta name="description" content="SignalsLoop is an AI-native product OS that discovers feedback from 8 platforms, writes specs in 30 seconds, and prioritizes your roadmap automatically. Replace your entire product stack.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Colors */
+            --color-bg: #0A0E17;
+            --color-bg-light: #131720;
+            --color-bg-lighter: #1A1F2E;
+            --color-primary: #00F0FF;
+            --color-secondary: #FF0080;
+            --color-tertiary: #FFD93D;
+            --color-text: #E8ECF4;
+            --color-text-dim: #8B92A8;
+            --color-border: rgba(0, 240, 255, 0.15);
+
+            /* Typography */
+            --font-display: 'Syne', sans-serif;
+            --font-body: 'Manrope', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* Spacing */
+            --space-xs: 0.5rem;
+            --space-sm: 1rem;
+            --space-md: 2rem;
+            --space-lg: 4rem;
+            --space-xl: 6rem;
+
+            /* Effects */
+            --glow-primary: 0 0 20px rgba(0, 240, 255, 0.3);
+            --glow-secondary: 0 0 20px rgba(255, 0, 128, 0.3);
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(0, 240, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 0, 128, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Noise texture */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--space-md);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Header */
+        header {
+            padding: var(--space-md) 0;
+            position: relative;
+            z-index: 100;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: var(--space-md);
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--color-text-dim);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--color-primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--color-primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: var(--space-xl) 0;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            max-width: 900px;
+        }
+
+        .hero-label {
+            display: inline-block;
+            padding: var(--space-xs) var(--space-sm);
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid var(--color-border);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--space-md);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: var(--space-md);
+            background: linear-gradient(135deg, var(--color-text) 0%, var(--color-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.03em;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 2vw, 1.4rem);
+            color: var(--color-text-dim);
+            margin-bottom: var(--space-lg);
+            line-height: 1.7;
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.6s both;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-family: var(--font-body);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            color: var(--color-bg);
+            box-shadow: var(--glow-primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-text);
+            border-color: var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--color-primary);
+            background: rgba(0, 240, 255, 0.05);
+        }
+
+        .btn::after {
+            content: '→';
+            transition: transform 0.3s ease;
+        }
+
+        .btn:hover::after {
+            transform: translateX(4px);
+        }
+
+        /* Trust Signals */
+        .trust-signals {
+            display: flex;
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.8s both;
+        }
+
+        .trust-signal {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--color-text-dim);
+            font-size: 0.9rem;
+        }
+
+        .trust-signal::before {
+            content: '✓';
+            color: var(--color-primary);
+            font-weight: 700;
+        }
+
+        /* Animated Background Network */
+        .hero-visual {
+            position: absolute;
+            top: 0;
+            right: -10%;
+            width: 60%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .network-node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--color-primary);
+            border-radius: 50%;
+            box-shadow: var(--glow-primary);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .network-node::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--color-primary);
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+
+        /* Section Styling */
+        section {
+            padding: var(--space-xl) 0;
+            position: relative;
+        }
+
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-sm);
+        }
+
+        h2 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: var(--space-md);
+            letter-spacing: -0.02em;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--color-text-dim);
+            max-width: 700px;
+            margin-bottom: var(--space-lg);
+        }
+
+        /* Problem Section */
+        .problems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+        }
+
+        .problem-card {
+            padding: var(--space-md);
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .problem-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.05), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .problem-card:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-4px);
+        }
+
+        .problem-card:hover::before {
+            opacity: 1;
+        }
+
+        .problem-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--space-sm);
+        }
+
+        .problem-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+        }
+
+        .problem-card p {
+            color: var(--color-text-dim);
+            line-height: 1.7;
+        }
+
+        /* Features Section */
+        .feature {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-xl);
+            align-items: center;
+            margin-bottom: var(--space-xl);
+        }
+
+        .feature:nth-child(even) {
+            direction: rtl;
+        }
+
+        .feature:nth-child(even) > * {
+            direction: ltr;
+        }
+
+        .feature-content h3 {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 3vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+            line-height: 1.2;
+        }
+
+        .feature-content p {
+            color: var(--color-text-dim);
+            margin-bottom: var(--space-md);
+            font-size: 1.1rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: start;
+            gap: 0.5rem;
+            color: var(--color-text-dim);
+            font-size: 0.95rem;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            color: var(--color-primary);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .feature-visual {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            padding: var(--space-md);
+            aspect-ratio: 16/10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-visual::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg at 50% 50%, transparent, var(--color-primary), transparent);
+            opacity: 0.1;
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .platform-icons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-sm);
+            position: relative;
+            z-index: 2;
+        }
+
+        .platform-icon {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: var(--space-sm);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--color-text-dim);
+            transition: all 0.3s ease;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .platform-icon:nth-child(1) { animation-delay: 0s; }
+        .platform-icon:nth-child(2) { animation-delay: 0.2s; }
+        .platform-icon:nth-child(3) { animation-delay: 0.4s; }
+        .platform-icon:nth-child(4) { animation-delay: 0.6s; }
+        .platform-icon:nth-child(5) { animation-delay: 0.8s; }
+        .platform-icon:nth-child(6) { animation-delay: 1s; }
+        .platform-icon:nth-child(7) { animation-delay: 1.2s; }
+        .platform-icon:nth-child(8) { animation-delay: 1.4s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .platform-icon:hover {
+            border-color: var(--color-primary);
+            transform: scale(1.1);
+            box-shadow: var(--glow-primary);
+        }
+
+        /* Strategy Cards */
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-md);
+            margin: var(--space-lg) 0;
+        }
+
+        .strategy-card {
+            padding: var(--space-md);
+            background: var(--color-bg-light);
+            border: 2px solid var(--color-border);
+            border-radius: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .strategy-card.attack { border-color: rgba(255, 68, 68, 0.3); }
+        .strategy-card.defend { border-color: rgba(59, 130, 246, 0.3); }
+        .strategy-card.react { border-color: rgba(255, 208, 61, 0.3); }
+        .strategy-card.ignore { border-color: rgba(139, 146, 168, 0.3); }
+
+        .strategy-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .strategy-card.attack:hover {
+            border-color: #FF4444;
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.3);
+        }
+
+        .strategy-card.defend:hover {
+            border-color: #3B82F6;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .strategy-card.react:hover {
+            border-color: #FFD03D;
+            box-shadow: 0 0 30px rgba(255, 208, 61, 0.3);
+        }
+
+        .strategy-card.ignore:hover {
+            border-color: #8B92A8;
+            box-shadow: 0 0 30px rgba(139, 146, 168, 0.3);
+        }
+
+        .strategy-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--space-sm);
+        }
+
+        .strategy-card h4 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+
+        .strategy-card p {
+            color: var(--color-text-dim);
+            font-size: 0.95rem;
+        }
+
+        /* How It Works Timeline */
+        .timeline {
+            position: relative;
+            padding: var(--space-lg) 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--color-primary), var(--color-secondary));
+            transform: translateX(-50%);
+        }
+
+        .timeline-step {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+            position: relative;
+        }
+
+        .timeline-step:nth-child(even) .step-content {
+            grid-column: 2;
+        }
+
+        .timeline-step:nth-child(even) .step-visual {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .step-number {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--color-bg);
+            z-index: 10;
+            box-shadow: var(--glow-primary);
+        }
+
+        .step-content {
+            padding: var(--space-md);
+        }
+
+        .step-content h3 {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+        }
+
+        .step-icon {
+            font-size: 2rem;
+            margin-bottom: var(--space-sm);
+        }
+
+        /* Testimonials */
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+        }
+
+        .testimonial {
+            padding: var(--space-md);
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .testimonial::before {
+            content: '"';
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            font-size: 6rem;
+            font-family: var(--font-display);
+            color: var(--color-primary);
+            opacity: 0.2;
+        }
+
+        .testimonial:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-4px);
+            box-shadow: var(--glow-primary);
+        }
+
+        .testimonial-text {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: var(--space-sm);
+            position: relative;
+            z-index: 2;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            color: var(--color-text-dim);
+            font-size: 0.9rem;
+        }
+
+        .testimonial-author::before {
+            content: '';
+            width: 40px;
+            height: 2px;
+            background: var(--color-primary);
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            margin: var(--space-lg) 0;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--color-bg-light);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: var(--space-sm) var(--space-md);
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        th {
+            background: var(--color-bg-lighter);
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--color-primary);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            color: var(--color-text-dim);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(0, 240, 255, 0.03);
+        }
+
+        td:first-child {
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        td:last-child {
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        /* FAQ */
+        .faq-list {
+            max-width: 800px;
+            margin: var(--space-lg) auto;
+        }
+
+        .faq-item {
+            margin-bottom: var(--space-md);
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item:hover {
+            border-color: var(--color-primary);
+        }
+
+        .faq-question {
+            padding: var(--space-md);
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .faq-question::after {
+            content: '+';
+            font-size: 1.5rem;
+            color: var(--color-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-question::after {
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            padding: 0 var(--space-md) var(--space-md);
+            color: var(--color-text-dim);
+            line-height: 1.7;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+        }
+
+        /* Final CTA */
+        .final-cta {
+            text-align: center;
+            padding: var(--space-xl) 0;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.05), rgba(255, 0, 128, 0.05));
+            border-top: 1px solid var(--color-border);
+            border-bottom: 1px solid var(--color-border);
+            margin-top: var(--space-xl);
+        }
+
+        .final-cta h2 {
+            margin-bottom: var(--space-sm);
+        }
+
+        .final-cta p {
+            font-size: 1.2rem;
+            color: var(--color-text-dim);
+            margin-bottom: var(--space-lg);
+        }
+
+        .final-cta-buttons {
+            display: flex;
+            gap: var(--space-sm);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .final-cta-note {
+            margin-top: var(--space-md);
+            color: var(--color-text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: var(--space-lg) 0;
+            text-align: center;
+            color: var(--color-text-dim);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-sm);
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--color-text-dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--color-primary);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Scroll Animations */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .feature {
+                grid-template-columns: 1fr;
+            }
+
+            .feature:nth-child(even) {
+                direction: ltr;
+            }
+
+            .timeline::before {
+                left: 30px;
+            }
+
+            .timeline-step {
+                grid-template-columns: 1fr;
+                padding-left: 80px;
+            }
+
+            .timeline-step:nth-child(even) .step-content {
+                grid-column: 1;
+            }
+
+            .timeline-step:nth-child(even) .step-visual {
+                grid-column: 1;
+                grid-row: 2;
+            }
+
+            .step-number {
+                left: 30px;
+                top: 0;
+                transform: translate(0, 0);
+            }
+
+            .hero-visual {
+                opacity: 0.3;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --space-lg: 3rem;
+                --space-xl: 4rem;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .problems-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .platform-icons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .strategy-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--color-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--color-primary), var(--color-secondary));
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">SignalsLoop</div>
+                <ul class="nav-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#testimonials">Testimonials</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-label">✨ AI-Native Product OS</div>
+                <h1>The AI Product Manager That Never Sleeps</h1>
+                <p class="hero-subtitle">
+                    While you build, SignalsLoop discovers feedback from 8 platforms, writes specs, tracks competitors, and prioritizes your roadmap—automatically.
+                </p>
+                <div class="hero-cta">
+                    <a href="#trial" class="btn btn-primary">Start Free Trial</a>
+                    <a href="#demo" class="btn btn-secondary">See How It Works</a>
+                </div>
+                <div class="trust-signals">
+                    <div class="trust-signal">No credit card required</div>
+                    <div class="trust-signal">7-day free trial</div>
+                    <div class="trust-signal">Setup in 5 minutes</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animated Background -->
+        <div class="hero-visual">
+            <div class="network-node" style="top: 20%; left: 20%;"></div>
+            <div class="network-node" style="top: 40%; left: 40%;"></div>
+            <div class="network-node" style="top: 60%; left: 25%;"></div>
+            <div class="network-node" style="top: 30%; left: 60%;"></div>
+            <div class="network-node" style="top: 70%; left: 50%;"></div>
+            <div class="network-node" style="top: 50%; left: 70%;"></div>
+        </div>
+    </section>
+
+    <!-- Trust Bar -->
+    <section style="padding: var(--space-md) 0; text-align: center; border-top: 1px solid var(--color-border);">
+        <div class="container">
+            <p style="color: var(--color-text-dim); font-size: 0.95rem;">
+                Join 500+ product managers who've automated their feedback workflow
+            </p>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="scroll-reveal">
+        <div class="container">
+            <div style="text-align: center; max-width: 900px; margin: 0 auto var(--space-xl);">
+                <h2>Your Users Are Talking. You're Just Not Listening in the Right Places.</h2>
+            </div>
+
+            <div class="problems-grid">
+                <div class="problem-card">
+                    <div class="problem-icon">🔍</div>
+                    <h3>Feedback Lives Everywhere</h3>
+                    <p>Your users don't fill out feedback forms. They complain on Reddit, tweet frustrations, write G2 reviews, and open GitHub issues. You're missing 95% of the conversation.</p>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-icon">⏰</div>
+                    <h3>PMs Spend 60% on Busywork</h3>
+                    <p>Triaging feedback. Writing specs. Checking competitor websites. Updating Jira. Prioritizing roadmaps. You became a PM to build great products, not to be a data entry clerk.</p>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-icon">🐌</div>
+                    <h3>6 Weeks from Feedback to Feature</h3>
+                    <p>By the time you've manually collected feedback, written specs, and prioritized—competitors have already shipped. Speed is the only moat that matters.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Overview -->
+    <section class="scroll-reveal">
+        <div class="container" style="text-align: center;">
+            <div class="section-label">The SignalsLoop Difference</div>
+            <h2>One Platform. Eight Data Sources.<br>Zero Manual Work.</h2>
+            <p class="section-subtitle" style="margin: var(--space-md) auto;">
+                SignalsLoop is the only product tool that discovers feedback, analyzes sentiment, writes specs, and closes the loop—autonomously.
+            </p>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="scroll-reveal">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: var(--space-xl);">
+                <div class="section-label">Core Capabilities</div>
+                <h2>What Makes SignalsLoop Different</h2>
+            </div>
+
+            <!-- Feature 1: Feedback Discovery -->
+            <div class="feature">
+                <div class="feature-content">
+                    <h3>We Find Feedback You Didn't Know Existed</h3>
+                    <p>SignalsLoop scans 8 platforms every 30 minutes—Reddit, Twitter, Hacker News, Product Hunt, G2, GitHub, Discord, and Slack. No manual import. No Chrome extensions. No hoping users fill out forms.</p>
+
+                    <blockquote style="padding: var(--space-sm); border-left: 3px solid var(--color-primary); margin: var(--space-md) 0; font-style: italic; color: var(--color-text-dim);">
+                        "We discovered a $200K churn risk buried in a Reddit thread from 3 months ago. Our feedback widget never captured it."
+                    </blockquote>
+
+                    <ul class="feature-list">
+                        <li>Reddit monitoring (no API key needed)</li>
+                        <li>Twitter sentiment tracking</li>
+                        <li>Hacker News mention detection</li>
+                        <li>G2 review analysis</li>
+                        <li>GitHub issue aggregation</li>
+                        <li>Discord/Slack integration</li>
+                        <li>Auto-deduplication & clustering</li>
+                    </ul>
+
+                    <a href="#" class="btn btn-secondary">Learn How Discovery Works</a>
+                </div>
+
+                <div class="feature-visual">
+                    <div class="platform-icons">
+                        <div class="platform-icon">📱 Reddit</div>
+                        <div class="platform-icon">🐦 Twitter</div>
+                        <div class="platform-icon">🔶 HN</div>
+                        <div class="platform-icon">🚀 PH</div>
+                        <div class="platform-icon">⭐ G2</div>
+                        <div class="platform-icon">💻 GitHub</div>
+                        <div class="platform-icon">💬 Discord</div>
+                        <div class="platform-icon">📢 Slack</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 2: Competitive Intelligence -->
+            <div class="feature">
+                <div class="feature-content">
+                    <h3>Track Competitors Without Paying $50K/Year</h3>
+                    <p>When users mention competitors in feedback, SignalsLoop automatically extracts it. We analyze dual sentiment (how they feel about you vs. them), detect feature gaps, and generate strategic recommendations.</p>
+
+                    <div class="strategy-grid">
+                        <div class="strategy-card attack">
+                            <div class="strategy-icon">🗡️</div>
+                            <h4>ATTACK</h4>
+                            <p>Exploit competitor weakness</p>
+                        </div>
+                        <div class="strategy-card defend">
+                            <div class="strategy-icon">🛡️</div>
+                            <h4>DEFEND</h4>
+                            <p>Protect against competitor strength</p>
+                        </div>
+                        <div class="strategy-card react">
+                            <div class="strategy-icon">⚡</div>
+                            <h4>REACT</h4>
+                            <p>Respond to market shift</p>
+                        </div>
+                        <div class="strategy-card ignore">
+                            <div class="strategy-icon">🤐</div>
+                            <h4>IGNORE</h4>
+                            <p>Acknowledge but don't act</p>
+                        </div>
+                    </div>
+
+                    <ul class="feature-list">
+                        <li>Automatic competitor extraction</li>
+                        <li>Dual sentiment analysis</li>
+                        <li>Feature gap detection</li>
+                        <li>Win/loss tracking</li>
+                        <li>Strategic recommendations</li>
+                    </ul>
+
+                    <a href="#" class="btn btn-secondary">See Competitive Intel Demo</a>
+                </div>
+
+                <div class="feature-visual">
+                    <div style="text-align: center; position: relative; z-index: 2;">
+                        <div style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--color-text-dim);">
+                            <div style="margin-bottom: 1rem;">
+                                <div style="color: var(--color-primary);">Competitor A</div>
+                                <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem;">
+                                    <span>Sentiment: +0.42</span>
+                                    <span>|</span>
+                                    <span>67 mentions</span>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="color: var(--color-secondary);">Competitor B</div>
+                                <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem;">
+                                    <span>Sentiment: +0.61</span>
+                                    <span>|</span>
+                                    <span>43 mentions</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="color: var(--color-tertiary);">Competitor C</div>
+                                <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem;">
+                                    <span>Sentiment: -0.38</span>
+                                    <span>|</span>
+                                    <span>29 mentions</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 3: AI Spec Writer -->
+            <div class="feature">
+                <div class="feature-content">
+                    <h3>From One-Line Idea to Full PRD in 30 Seconds</h3>
+                    <p>Stop spending 4 hours writing specs. SignalsLoop uses RAG (Retrieval-Augmented Generation) to learn from your past specs, personas, and feedback—then auto-drafts comprehensive PRDs with problem statements, user stories, acceptance criteria, and success metrics.</p>
+
+                    <div style="padding: var(--space-md); background: var(--color-bg-lighter); border-radius: 12px; margin: var(--space-md) 0;">
+                        <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--space-sm); align-items: center; text-align: center;">
+                            <div>
+                                <div style="color: var(--color-secondary); font-weight: 600;">Before</div>
+                                <div style="font-size: 2rem; font-family: var(--font-display); font-weight: 800; color: var(--color-text-dim);">4 hours</div>
+                            </div>
+                            <div style="color: var(--color-primary); font-size: 1.5rem;">→</div>
+                            <div>
+                                <div style="color: var(--color-primary); font-weight: 600;">After</div>
+                                <div style="font-size: 2rem; font-family: var(--font-display); font-weight: 800; color: var(--color-primary);">30 sec</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="feature-list">
+                        <li>Learns from your past specs (RAG)</li>
+                        <li>4 template types</li>
+                        <li>Auto-generates acceptance criteria</li>
+                        <li>Includes context from feedback</li>
+                        <li>Exports to Markdown or Jira</li>
+                        <li>Version control & inline editing</li>
+                    </ul>
+
+                    <a href="#" class="btn btn-secondary">Generate Your First Spec</a>
+                </div>
+
+                <div class="feature-visual">
+                    <div style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-text-dim); text-align: left; position: relative; z-index: 2; width: 100%;">
+                        <div style="color: var(--color-primary);"># Product Requirement</div>
+                        <div style="margin-top: 1rem;">
+                            <div style="color: var(--color-tertiary);">## Problem Statement</div>
+                            <div style="margin-top: 0.5rem; opacity: 0.7;">Users need...</div>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <div style="color: var(--color-tertiary);">## User Stories</div>
+                            <div style="margin-top: 0.5rem; opacity: 0.7;">As a PM, I want to...</div>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <div style="color: var(--color-tertiary);">## Acceptance Criteria</div>
+                            <div style="margin-top: 0.5rem; opacity: 0.7;">✓ Feature does X...</div>
+                        </div>
+                        <div style="margin-top: 1rem; text-align: center; color: var(--color-primary); animation: pulse 2s ease-in-out infinite;">
+                            Generating...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 4: Mission Control -->
+            <div class="feature">
+                <div class="feature-content">
+                    <h3>Your Product Brain, Updated Every Morning</h3>
+                    <p>Wake up to an AI-generated briefing: critical alerts, recommended actions, sentiment trends, competitive threats, and roadmap pulse. It's like having a senior PM summarize everything that happened overnight.</p>
+
+                    <ul class="feature-list">
+                        <li>Daily AI briefing (auto-generated)</li>
+                        <li>Real-time metrics widgets</li>
+                        <li>Threat monitoring</li>
+                        <li>Opportunities dashboard</li>
+                        <li>One-click refresh</li>
+                    </ul>
+
+                    <a href="#" class="btn btn-secondary">See Mission Control</a>
+                </div>
+
+                <div class="feature-visual">
+                    <div style="text-align: center; position: relative; z-index: 2;">
+                        <div style="font-size: 0.9rem; color: var(--color-text-dim);">
+                            <div style="margin-bottom: 1rem;">📊 Sentiment Score: <span style="color: var(--color-primary); font-weight: 700;">+0.78</span></div>
+                            <div style="margin-bottom: 1rem;">📈 Feedback Velocity: <span style="color: var(--color-primary); font-weight: 700;">47/week</span></div>
+                            <div style="margin-bottom: 1rem;">🎯 Roadmap Pulse: <span style="color: var(--color-primary); font-weight: 700;">12 in progress</span></div>
+                            <div style="margin-bottom: 1rem;">⚠️ Critical Alerts: <span style="color: var(--color-secondary); font-weight: 700;">3 urgent</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Timeline -->
+    <section id="how-it-works" class="scroll-reveal">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: var(--space-xl);">
+                <div class="section-label">The SignalsLoop Workflow</div>
+                <h2>From User Complaint to Shipped Feature in 72 Hours</h2>
+            </div>
+
+            <div class="timeline">
+                <div class="timeline-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div class="step-icon">🔍</div>
+                        <h3>SignalsLoop Finds Feedback Automatically</h3>
+                        <p>Every 30 minutes, our AI scans 8 platforms for mentions of your product. Sentiment analysis flags urgent issues. Theme clustering identifies patterns.</p>
+                    </div>
+                    <div class="step-visual">
+                        <div style="padding: var(--space-md); background: var(--color-bg-light); border: 1px solid var(--color-border); border-radius: 16px;">
+                            <div style="text-align: center; color: var(--color-text-dim); font-size: 0.9rem;">
+                                8 Platforms → AI Analysis → Clustered Themes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div class="step-icon">🧠</div>
+                        <h3>AI Writes Specs & Prioritizes Roadmap</h3>
+                        <p>When a theme reaches critical mass (20+ mentions), our Spec Writer Agent auto-drafts a PRD. Multi-factor scoring ranks it against your roadmap.</p>
+                    </div>
+                    <div class="step-visual">
+                        <div style="padding: var(--space-md); background: var(--color-bg-light); border: 1px solid var(--color-border); border-radius: 16px;">
+                            <div style="text-align: center; color: var(--color-text-dim); font-size: 0.9rem;">
+                                Theme → AI Spec → Priority Score
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div class="step-icon">🚀</div>
+                        <h3>One-Click to Jira, Ship, Publish</h3>
+                        <p>Create Jira issues in one click. Ship the feature. Publish changelog. Feedback auto-marked "Done." Users notified. Loop closed.</p>
+                    </div>
+                    <div class="step-visual">
+                        <div style="padding: var(--space-md); background: var(--color-bg-light); border: 1px solid var(--color-border); border-radius: 16px;">
+                            <div style="text-align: center; color: var(--color-text-dim); font-size: 0.9rem;">
+                                Jira → Build → Changelog → ✅ Done
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section id="testimonials" class="scroll-reveal">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: var(--space-xl);">
+                <div class="section-label">Social Proof</div>
+                <h2>Product Teams Are Shipping Faster with SignalsLoop</h2>
+            </div>
+
+            <div class="testimonials-grid">
+                <div class="testimonial">
+                    <p class="testimonial-text">We used to spend 10 hours/week manually collecting feedback from Reddit and Twitter. SignalsLoop does it automatically. We've shipped 3x more features this quarter.</p>
+                    <div class="testimonial-author">Sarah Chen, Head of Product</div>
+                </div>
+
+                <div class="testimonial">
+                    <p class="testimonial-text">The AI spec writer is insane. What took me 4 hours now takes 30 seconds. And it's better than what I wrote manually because it learns from our past specs.</p>
+                    <div class="testimonial-author">Marcus Johnson, Senior PM</div>
+                </div>
+
+                <div class="testimonial">
+                    <p class="testimonial-text">We discovered we were losing 40% of trials to a competitor—buried in a Hacker News comment from 2 months ago. SignalsLoop found it. We shipped the missing feature in a week.</p>
+                    <div class="testimonial-author">Emily Rodriguez, Founder</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparison Table -->
+    <section class="scroll-reveal">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: var(--space-lg);">
+                <h2>SignalsLoop vs. The Old Way</h2>
+            </div>
+
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>What You Need</th>
+                            <th>The Old Way</th>
+                            <th>SignalsLoop</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Feedback Collection</td>
+                            <td>Manual import + Chrome extension + hoping users fill forms</td>
+                            <td>Automatic discovery from 8 platforms</td>
+                        </tr>
+                        <tr>
+                            <td>Sentiment Analysis</td>
+                            <td>Manually read 100s of comments</td>
+                            <td>AI analyzes every piece in real-time</td>
+                        </tr>
+                        <tr>
+                            <td>Competitive Intelligence</td>
+                            <td>Pay $50K/year for separate tool</td>
+                            <td>Built-in, automatic extraction</td>
+                        </tr>
+                        <tr>
+                            <td>Spec Writing</td>
+                            <td>4 hours per PRD in Notion/Google Docs</td>
+                            <td>30-second AI generation with RAG</td>
+                        </tr>
+                        <tr>
+                            <td>Roadmap Prioritization</td>
+                            <td>Gut feel + spreadsheet chaos</td>
+                            <td>Multi-factor AI scoring algorithm</td>
+                        </tr>
+                        <tr>
+                            <td>Jira Integration</td>
+                            <td>Copy-paste hell</td>
+                            <td>One-click with AI-generated fields</td>
+                        </tr>
+                        <tr>
+                            <td>Total Tools Needed</td>
+                            <td>5-7 separate platforms</td>
+                            <td>One</td>
+                        </tr>
+                        <tr>
+                            <td>Time Spent on Busywork</td>
+                            <td>60% of PM time</td>
+                            <td>~5% of PM time</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="scroll-reveal">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: var(--space-lg);">
+                <div class="section-label">Questions?</div>
+                <h2>Frequently Asked Questions</h2>
+            </div>
+
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question">How does SignalsLoop discover feedback from Reddit without me paying for the API?</div>
+                    <div class="faq-answer">We use RSS feeds and public APIs that don't require expensive API keys. You get the same data, but we engineered around the $5K/month Reddit API pricing.</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">Does SignalsLoop replace my existing tools?</div>
+                    <div class="faq-answer">For most teams, yes. SignalsLoop replaces feedback boards, competitive intelligence tools, spec templates, roadmap spreadsheets, and manual Jira workflows. You'll still use Jira for dev execution—we integrate seamlessly.</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">How accurate is the AI sentiment analysis?</div>
+                    <div class="faq-answer">Our sentiment engine uses GPT-4o with custom prompts optimized for product feedback. It's 92% accurate vs. human labeling. You can always override AI decisions.</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">Can I try it before committing?</div>
+                    <div class="faq-answer">Yes! Start with a free trial (no credit card required). Connect your platforms, let SignalsLoop discover feedback for 7 days, and see the results. Most teams see value within 48 hours.</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">Is my data secure?</div>
+                    <div class="faq-answer">Yes. We use row-level security on all database tables, AES-256-GCM encryption for OAuth tokens, and enterprise-grade security practices. Your data is never used to train AI models.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta" id="pricing">
+        <div class="container">
+            <h2>Stop Guessing. Start Shipping.</h2>
+            <p>Join 500+ product managers who've put their feedback workflow on autopilot.</p>
+
+            <div class="final-cta-buttons">
+                <a href="#trial" class="btn btn-primary" style="font-size: 1.1rem; padding: 1.2rem 2.5rem;">Start Free Trial</a>
+                <a href="#demo" class="btn btn-secondary" style="font-size: 1.1rem; padding: 1.2rem 2.5rem;">Book a Demo</a>
+            </div>
+
+            <p class="final-cta-note">No credit card required • 7-day free trial • Setup in 5 minutes</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#docs">Docs</a>
+                <a href="#blog">Blog</a>
+                <a href="#privacy">Privacy</a>
+                <a href="#terms">Terms</a>
+                <a href="#contact">Contact</a>
+            </div>
+            <p style="margin-top: var(--space-sm); font-size: 0.85rem;">
+                © 2024 SignalsLoop. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // FAQ Accordion
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.parentElement;
+                const isActive = item.classList.contains('active');
+
+                // Close all FAQs
+                document.querySelectorAll('.faq-item').forEach(faq => {
+                    faq.classList.remove('active');
+                });
+
+                // Open clicked FAQ if it wasn't active
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // Scroll Reveal Animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scroll-reveal').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth Scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Dynamic network nodes animation
+        const heroVisual = document.querySelector('.hero-visual');
+        if (heroVisual) {
+            const nodes = heroVisual.querySelectorAll('.network-node');
+            nodes.forEach((node, index) => {
+                node.style.animationDelay = `${index * 0.3}s`;
+            });
+        }
+    </script>
+</body>
+</html>

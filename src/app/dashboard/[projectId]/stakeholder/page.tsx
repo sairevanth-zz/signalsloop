@@ -1,14 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ComponentListRenderer } from '@/components/stakeholder/ComponentRenderer';
 import { StakeholderRole, QueryResponse, StakeholderQuery } from '@/types/stakeholder';
-import { Send, Loader2, Sparkles, MessageSquare, Star } from 'lucide-react';
+import { exportToPDF } from '@/lib/stakeholder/pdf-export';
+import { Send, Loader2, Sparkles, MessageSquare, Star, Download, History, BarChart3 } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -19,6 +20,7 @@ import {
 
 export default function StakeholderPage() {
   const params = useParams();
+  const router = useRouter();
   const projectId = params?.projectId as string;
 
   const [query, setQuery] = useState('');
@@ -27,6 +29,7 @@ export default function StakeholderPage() {
   const [responses, setResponses] = useState<QueryResponse[]>([]);
   const [queries, setQueries] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [exportingIndex, setExportingIndex] = useState<number | null>(null);
 
   // Example queries to help users get started
   const exampleQueries: Record<StakeholderRole, string[]> = {
@@ -108,6 +111,23 @@ export default function StakeholderPage() {
     submitQuery(followUpQuery);
   };
 
+  const handleExport = async (index: number) => {
+    setExportingIndex(index);
+    try {
+      await exportToPDF(
+        queries[index],
+        role,
+        responses[index].components,
+        projectId
+      );
+    } catch (error) {
+      console.error('[Export] Error:', error);
+      alert('Failed to export report. Please try again.');
+    } finally {
+      setExportingIndex(null);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Header */}
@@ -122,20 +142,43 @@ export default function StakeholderPage() {
           </p>
         </div>
 
-        {/* Role Selector */}
-        <Select value={role} onValueChange={(value) => setRole(value as StakeholderRole)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ceo">CEO</SelectItem>
-            <SelectItem value="sales">Sales</SelectItem>
-            <SelectItem value="engineering">Engineering</SelectItem>
-            <SelectItem value="marketing">Marketing</SelectItem>
-            <SelectItem value="customer_success">Customer Success</SelectItem>
-            <SelectItem value="product">Product</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          {/* Navigation Buttons */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/dashboard/${projectId}/stakeholder/history`)}
+            className="gap-2"
+          >
+            <History className="w-4 h-4" />
+            History
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/dashboard/${projectId}/stakeholder/analytics`)}
+            className="gap-2"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Analytics
+          </Button>
+
+          {/* Role Selector */}
+          <Select value={role} onValueChange={(value) => setRole(value as StakeholderRole)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ceo">CEO</SelectItem>
+              <SelectItem value="sales">Sales</SelectItem>
+              <SelectItem value="engineering">Engineering</SelectItem>
+              <SelectItem value="marketing">Marketing</SelectItem>
+              <SelectItem value="customer_success">Customer Success</SelectItem>
+              <SelectItem value="product">Product</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Example Queries */}
@@ -236,9 +279,31 @@ export default function StakeholderPage() {
             </Card>
           )}
 
-          {/* Metadata */}
-          <div className="text-xs text-gray-500 dark:text-gray-500 text-center">
-            Generated in {response.metadata.generation_time_ms}ms • Powered by Claude Sonnet 4 • {response.components.length} components
+          {/* Actions and Metadata */}
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-gray-500 dark:text-gray-500">
+              Generated in {response.metadata.generation_time_ms}ms • Powered by Claude Sonnet 4 • {response.components.length} components
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExport(idx)}
+              disabled={exportingIndex === idx}
+              className="gap-2"
+            >
+              {exportingIndex === idx ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  Export HTML
+                </>
+              )}
+            </Button>
           </div>
         </div>
       ))}

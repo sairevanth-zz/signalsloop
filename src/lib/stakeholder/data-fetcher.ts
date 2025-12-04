@@ -49,6 +49,9 @@ export async function fetchComponentData(
       case 'events':
         return await fetchEventsData(supabase, projectId, filter, limit, params);
 
+      case 'sentiment':
+        return await fetchSentimentData(supabase, projectId, params);
+
       default:
         return {
           data: component.props,
@@ -419,6 +422,75 @@ async function fetchEventsData(
   } catch (error) {
     console.error('[Data Fetcher] Error fetching events:', error);
     return { data: { events: [] } };
+  }
+}
+
+/**
+ * Fetch sentiment trend data
+ */
+async function fetchSentimentData(
+  supabase: any,
+  projectId: string,
+  params?: Record<string, any>
+): Promise<ComponentDataResult> {
+  try {
+    const days = params?.days || 30;
+
+    // First try to fetch from sentiment_history table
+    const { data: trendData, error } = await supabase.rpc('get_sentiment_trend', {
+      p_project_id: projectId,
+      p_days: days
+    });
+
+    if (error) {
+      console.error('[Data Fetcher] Error fetching sentiment trend:', error);
+    }
+
+    // If no data exists, trigger backfill
+    if (!trendData || trendData.length === 0) {
+      console.log('[Data Fetcher] No sentiment history found, triggering backfill...');
+
+      const { error: backfillError } = await supabase.rpc('backfill_sentiment_history', {
+        p_project_id: projectId,
+        p_days_back: days
+      });
+
+      if (backfillError) {
+        console.error('[Data Fetcher] Backfill error:', backfillError);
+        // Return empty data if backfill fails
+        return { data: { data: [] } };
+      }
+
+      // Fetch again after backfill
+      const { data: newTrendData, error: newError } = await supabase.rpc('get_sentiment_trend', {
+        p_project_id: projectId,
+        p_days: days
+      });
+
+      if (newError || !newTrendData) {
+        return { data: { data: [] } };
+      }
+
+      // Transform data for SentimentChart
+      const formattedData = newTrendData.map((item: any) => ({
+        date: item.date,
+        value: parseFloat(item.avg_sentiment || 0)
+      }));
+
+      return { data: { data: formattedData } };
+    }
+
+    // Transform data for SentimentChart
+    const formattedData = trendData.map((item: any) => ({
+      date: item.date,
+      value: parseFloat(item.avg_sentiment || 0)
+    }));
+
+    console.log(`[Data Fetcher] Fetched ${formattedData.length} sentiment data points`);
+    return { data: { data: formattedData } };
+  } catch (error) {
+    console.error('[Data Fetcher] Error fetching sentiment data:', error);
+    return { data: { data: [] } };
   }
 }
 

@@ -241,31 +241,19 @@ async function enhanceResponse(
 
   // Add SentimentChart if we have metrics and it's not already included
   if (context.metrics && !components.some(c => c.type === 'SentimentChart')) {
-    // Generate realistic-looking trend data (simulated historical pattern)
-    const dataPoints = [];
-    const baseSentiment = context.sentiment || 0;
-
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-
-      // Add some variation to make it look realistic (+/- 0.15 range)
-      const variation = (Math.sin(i / 5) * 0.08) + (Math.random() - 0.5) * 0.07;
-      const value = Math.max(-1, Math.min(1, baseSentiment + variation));
-
-      dataPoints.push({
-        date: date.toISOString().split('T')[0],
-        value: parseFloat(value.toFixed(3)),
-      });
-    }
-
+    // Use data_query to fetch real historical sentiment data
     enhanced.push({
       type: 'SentimentChart',
       order: enhanced.length + 1,
       props: {
-        data: dataPoints,
         timeRange: '30d' as const,
         title: 'Sentiment Trend (Last 30 Days)',
+      },
+      data_query: {
+        type: 'sentiment',
+        params: {
+          days: 30,
+        },
       },
     });
   }
