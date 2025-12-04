@@ -83,28 +83,15 @@ async function fetchFeedbackData(
         content,
         created_at,
         source,
-        sentiment_scores (
-          score,
-          label
-        ),
-        posts_themes (
-          themes (
-            theme_name
-          )
+        category,
+        sentiment_analysis!left (
+          sentiment_score
         )
       `
       )
       .eq('project_id', projectId)
       .order('created_at', { ascending: false })
       .limit(limit);
-
-    // Apply filters if provided
-    if (params?.sentiment === 'negative') {
-      // Filter for negative sentiment
-      query = query.lt('sentiment_scores.score', -0.3);
-    } else if (params?.sentiment === 'positive') {
-      query = query.gt('sentiment_scores.score', 0.3);
-    }
 
     if (params?.timeRange) {
       const days = parseInt(params.timeRange.replace('d', ''));
@@ -118,15 +105,22 @@ async function fetchFeedbackData(
     if (error) throw error;
 
     // Transform data for FeedbackList component
-    const items = data?.map((post: any) => ({
+    let items = data?.map((post: any) => ({
       id: post.id,
       title: post.title,
       content: post.content,
-      sentiment: post.sentiment_scores?.[0]?.score || 0,
+      sentiment: post.sentiment_analysis?.[0]?.sentiment_score || 0,
       source: post.source,
       created_at: post.created_at,
-      themes: post.posts_themes?.map((pt: any) => pt.themes?.theme_name).filter(Boolean) || [],
+      themes: post.category ? [post.category] : [],
     })) || [];
+
+    // Apply sentiment filter after fetching
+    if (params?.sentiment === 'negative') {
+      items = items.filter(item => item.sentiment < -0.3);
+    } else if (params?.sentiment === 'positive') {
+      items = items.filter(item => item.sentiment > 0.3);
+    }
 
     return { data: { items } };
   } catch (error) {
@@ -295,7 +289,7 @@ export async function fetchProjectContext(projectId: string): Promise<any> {
     ] = await Promise.all([
       supabase
         .from('posts')
-        .select('id, title, sentiment_scores(score)')
+        .select('id, title, sentiment_analysis!left(sentiment_score)')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false })
         .limit(10),
@@ -320,7 +314,7 @@ export async function fetchProjectContext(projectId: string): Promise<any> {
     const avgSentiment =
       recentFeedback && recentFeedback.length > 0
         ? recentFeedback.reduce(
-            (sum: number, fb: any) => sum + (fb.sentiment_scores?.[0]?.score || 0),
+            (sum: number, fb: any) => sum + (fb.sentiment_analysis?.[0]?.sentiment_score || 0),
             0
           ) / recentFeedback.length
         : 0;
@@ -341,7 +335,7 @@ export async function fetchProjectContext(projectId: string): Promise<any> {
       recent_feedback: recentFeedback?.map((fb: any) => ({
         id: fb.id,
         title: fb.title,
-        sentiment: fb.sentiment_scores?.[0]?.score || 0,
+        sentiment: fb.sentiment_analysis?.[0]?.sentiment_score || 0,
       })) || [],
     };
   } catch (error) {
