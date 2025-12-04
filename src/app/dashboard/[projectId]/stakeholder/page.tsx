@@ -37,7 +37,7 @@ export default function StakeholderPage() {
   const [queries, setQueries] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [exportingIndex, setExportingIndex] = useState<number | null>(null);
-  const [streamingEnabled, setStreamingEnabled] = useState(true);
+  const [streamingEnabled, setStreamingEnabled] = useState(false); // Disabled by default until verified working
 
   const streamingQuery = useStreamingQuery();
 
