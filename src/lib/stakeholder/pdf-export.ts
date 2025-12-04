@@ -100,29 +100,33 @@ export async function exportToPDFWithCanvas(
     const { html } = await response.json();
     container.innerHTML = html;
 
-    // Sanitize CSS to replace oklch() colors with hex (html2canvas doesn't support oklch)
+    // Force RGB colors - iterate through all elements and convert computed styles to inline RGB
+    // This ensures html2canvas doesn't encounter oklch() colors
     const allElements = container.querySelectorAll('*');
     allElements.forEach((el: Element) => {
       const htmlEl = el as HTMLElement;
       const computedStyle = window.getComputedStyle(htmlEl);
 
-      // Replace problematic color properties
-      ['color', 'backgroundColor', 'borderColor'].forEach(prop => {
-        const value = computedStyle.getPropertyValue(prop);
-        if (value && (value.includes('oklch') || value.includes('oklab'))) {
-          // Convert to RGB by reading computed value
-          const div = document.createElement('div');
-          div.style.color = value;
-          document.body.appendChild(div);
-          const rgb = window.getComputedStyle(div).color;
-          document.body.removeChild(div);
+      // Get computed RGB values and set as inline styles (this overrides any oklch from stylesheets)
+      const color = computedStyle.color;
+      const bgColor = computedStyle.backgroundColor;
+      const borderColor = computedStyle.borderColor;
+      const borderLeftColor = computedStyle.borderLeftColor;
+      const borderRightColor = computedStyle.borderRightColor;
+      const borderTopColor = computedStyle.borderTopColor;
+      const borderBottomColor = computedStyle.borderBottomColor;
 
-          if (prop === 'color') htmlEl.style.color = rgb;
-          else if (prop === 'backgroundColor') htmlEl.style.backgroundColor = rgb;
-          else if (prop === 'borderColor') htmlEl.style.borderColor = rgb;
-        }
-      });
+      // Set inline styles with computed RGB values (browser converts oklch to RGB in getComputedStyle)
+      if (color && color !== 'rgba(0, 0, 0, 0)') htmlEl.style.color = color;
+      if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') htmlEl.style.backgroundColor = bgColor;
+      if (borderLeftColor && borderLeftColor !== 'rgba(0, 0, 0, 0)') htmlEl.style.borderLeftColor = borderLeftColor;
+      if (borderRightColor && borderRightColor !== 'rgba(0, 0, 0, 0)') htmlEl.style.borderRightColor = borderRightColor;
+      if (borderTopColor && borderTopColor !== 'rgba(0, 0, 0, 0)') htmlEl.style.borderTopColor = borderTopColor;
+      if (borderBottomColor && borderBottomColor !== 'rgba(0, 0, 0, 0)') htmlEl.style.borderBottomColor = borderBottomColor;
     });
+
+    // Remove all style and link tags to prevent external stylesheets from interfering
+    container.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => el.remove());
 
     // Wait for images to load
     await new Promise(resolve => setTimeout(resolve, 500));
