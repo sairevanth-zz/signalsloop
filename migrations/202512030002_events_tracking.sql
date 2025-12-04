@@ -17,14 +17,15 @@ CREATE TABLE IF NOT EXISTS timeline_events (
 );
 
 -- Index for fast queries
-CREATE INDEX idx_timeline_events_project_date ON timeline_events(project_id, event_date DESC);
-CREATE INDEX idx_timeline_events_type ON timeline_events(project_id, event_type);
-CREATE INDEX idx_timeline_events_severity ON timeline_events(project_id, severity) WHERE severity IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_timeline_events_project_date ON timeline_events(project_id, event_date DESC);
+CREATE INDEX IF NOT EXISTS idx_timeline_events_type ON timeline_events(project_id, event_type);
+CREATE INDEX IF NOT EXISTS idx_timeline_events_severity ON timeline_events(project_id, severity) WHERE severity IS NOT NULL;
 
 -- RLS Policies
 ALTER TABLE timeline_events ENABLE ROW LEVEL SECURITY;
 
 -- Users can view events for their projects
+DROP POLICY IF EXISTS "Users can view timeline events for their projects" ON timeline_events;
 CREATE POLICY "Users can view timeline events for their projects"
   ON timeline_events
   FOR SELECT
@@ -37,6 +38,7 @@ CREATE POLICY "Users can view timeline events for their projects"
   );
 
 -- Users can create events for their projects
+DROP POLICY IF EXISTS "Users can create timeline events for their projects" ON timeline_events;
 CREATE POLICY "Users can create timeline events for their projects"
   ON timeline_events
   FOR INSERT
@@ -49,6 +51,7 @@ CREATE POLICY "Users can create timeline events for their projects"
   );
 
 -- Users can update/delete events for their projects
+DROP POLICY IF EXISTS "Users can manage timeline events for their projects" ON timeline_events;
 CREATE POLICY "Users can manage timeline events for their projects"
   ON timeline_events
   FOR ALL
@@ -70,6 +73,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Updated timestamp trigger
+DROP TRIGGER IF EXISTS update_timeline_events_updated_at ON timeline_events;
 CREATE TRIGGER update_timeline_events_updated_at
   BEFORE UPDATE ON timeline_events
   FOR EACH ROW

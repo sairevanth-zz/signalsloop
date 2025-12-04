@@ -41,23 +41,26 @@ CREATE TABLE IF NOT EXISTS stakeholder_queries (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_stakeholder_queries_project ON stakeholder_queries(project_id);
-CREATE INDEX idx_stakeholder_queries_user ON stakeholder_queries(user_id);
-CREATE INDEX idx_stakeholder_queries_created ON stakeholder_queries(created_at DESC);
-CREATE INDEX idx_stakeholder_queries_role ON stakeholder_queries(user_role);
+CREATE INDEX IF NOT EXISTS idx_stakeholder_queries_project ON stakeholder_queries(project_id);
+CREATE INDEX IF NOT EXISTS idx_stakeholder_queries_user ON stakeholder_queries(user_id);
+CREATE INDEX IF NOT EXISTS idx_stakeholder_queries_created ON stakeholder_queries(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_stakeholder_queries_role ON stakeholder_queries(user_role);
 
 -- Enable RLS
 ALTER TABLE stakeholder_queries ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
+DROP POLICY IF EXISTS "Users can view their own queries" ON stakeholder_queries;
 CREATE POLICY "Users can view their own queries"
   ON stakeholder_queries FOR SELECT
   USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can insert their own queries" ON stakeholder_queries;
 CREATE POLICY "Users can insert their own queries"
   ON stakeholder_queries FOR INSERT
   WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can update their own queries" ON stakeholder_queries;
 CREATE POLICY "Users can update their own queries"
   ON stakeholder_queries FOR UPDATE
   USING (user_id = auth.uid());
@@ -72,6 +75,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger for updated_at
+DROP TRIGGER IF EXISTS update_stakeholder_queries_updated_at ON stakeholder_queries;
 CREATE TRIGGER update_stakeholder_queries_updated_at
   BEFORE UPDATE ON stakeholder_queries
   FOR EACH ROW
