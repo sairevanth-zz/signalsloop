@@ -8,6 +8,25 @@ import { ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
 
 export function FeedbackList({ items, limit = 5, showSentiment = true, title }: FeedbackListProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Handle undefined or empty items gracefully
+  if (!items || items.length === 0) {
+    return (
+      <Card className="p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            {title || 'Recent Feedback'}
+          </h3>
+        </div>
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <p>No feedback items available for this query.</p>
+          <p className="text-sm mt-2">Try adjusting your filters or check back later.</p>
+        </div>
+      </Card>
+    );
+  }
+
   const displayItems = items.slice(0, limit);
 
   const getSentimentLabel = (sentiment: number) => {

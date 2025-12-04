@@ -47,8 +47,33 @@ export function validateComponent(component: ComponentSpec): { valid: boolean; e
 
       case 'FeedbackList':
         // Allow empty data_query (will be fetched), but validate if items provided
-        if (component.props.items && !Array.isArray(component.props.items)) {
-          return { valid: false, error: 'Invalid feedback items' };
+        if (component.props.items) {
+          if (!Array.isArray(component.props.items)) {
+            return { valid: false, error: 'Invalid feedback items' };
+          }
+
+          // Filter out placeholder/invalid items
+          const validItems = component.props.items.filter((item: any) =>
+            item.title &&
+            item.title !== 'Invalid Data' &&
+            item.title !== 'No data' &&
+            item.title !== 'N/A' &&
+            item.title.trim().length > 0 &&
+            item.id !== 'placeholder'
+          );
+
+          // If we filtered out items and now have none, require data_query
+          if (validItems.length === 0 && !component.data_query) {
+            return { valid: false, error: 'No valid feedback items and no data_query' };
+          }
+
+          // Update props with only valid items
+          component.props.items = validItems;
+        }
+
+        // If no items provided, require data_query
+        if ((!component.props.items || component.props.items.length === 0) && !component.data_query) {
+          return { valid: false, error: 'FeedbackList requires either items or data_query' };
         }
         break;
 

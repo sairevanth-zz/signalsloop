@@ -337,7 +337,9 @@ ThemeCloud (GREAT for "what are customers saying"):
 { "type": "ThemeCloud", "order": 4, "props": { "themes": ${JSON.stringify(context.themes?.slice(0, 15) || [])}, "title": "Top Themes" } }
 
 FeedbackList (use WITH visuals, not alone):
-{ "type": "FeedbackList", "order": 5, "props": { "items": [], "limit": 5, "showSentiment": true, "data_query": { "type": "feedback", "limit": 5, "params": {"sentiment": "negative"} } } }
+IMPORTANT: Use data_query to fetch live data, NOT placeholder items!
+CORRECT: { "type": "FeedbackList", "order": 5, "props": { "limit": 5, "showSentiment": true, "title": "Recent Customer Feedback", "data_query": { "type": "feedback", "limit": 5, "params": {"sentiment": "negative"} } } }
+WRONG: { "type": "FeedbackList", "props": { "items": [{"id": "1", "title": "Invalid Data"}] } } ❌ Never use placeholder data!
 
 TimelineEvents (for recent activity):
 { "type": "TimelineEvents", "order": 3, "props": { "events": [], "title": "Recent Activity" } }
@@ -345,10 +347,13 @@ TimelineEvents (for recent activity):
 ActionCard (ONLY if there's urgent action):
 { "type": "ActionCard", "order": 5, "props": { "title": "Action Required", "description": "...", "severity": "critical|high|medium|low", "cta": "Review Now" } }
 
-REMEMBER:
+CRITICAL RULES:
 - Mix static props (use context data) with data_query (for live fetching)
 - ALWAYS include visualizations - this is a premium dashboard, not a chatbot
 - For ${role}: Use role-specific visualization priorities from system prompt
+- NEVER use placeholder text like "Invalid Data", "No data", "N/A" in items
+- For FeedbackList: ALWAYS use data_query, NEVER use static placeholder items
+- If you don't have real data, use data_query to fetch it OR skip that component
 
 Respond with ONLY valid JSON (no markdown, no explanation):
 { "components": [...], "follow_up_questions": ["...", "...", "..."] }`;
