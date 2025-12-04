@@ -75,13 +75,14 @@ async function fetchFeedbackData(
   params?: Record<string, any>
 ): Promise<ComponentDataResult> {
   try {
-    // First, try to fetch posts data
+    // OPTIMIZATION: Use composite index (project_id, created_at DESC)
+    // Build query to leverage idx_posts_project_created index
     let query = supabase
       .from('posts')
       .select('id, title, content, created_at, source, category')
       .eq('project_id', projectId)
       .order('created_at', { ascending: false })
-      .limit(limit);
+      .limit(Math.min(limit, 100)); // Cap at 100 to prevent expensive queries
 
     if (params?.timeRange) {
       const days = parseInt(params.timeRange.replace('d', ''));
@@ -144,7 +145,7 @@ async function fetchFeedbackData(
 }
 
 /**
- * Fetch themes data with sentiment calculation
+ * Fetch themes data with sentiment calculation (optimized)
  */
 async function fetchThemesData(
   supabase: any,
@@ -158,6 +159,30 @@ async function fetchThemesData(
     CacheTTL.themesSentiment,
     async () => {
       try {
+        // OPTIMIZATION: Try to use materialized view first (much faster)
+        const { data: cachedThemes, error: cacheError } = await supabase
+          .from('theme_sentiment_cache')
+          .select('theme_name, frequency, avg_sentiment, post_count')
+          .eq('project_id', projectId)
+          .order('frequency', { ascending: false })
+          .limit(limit);
+
+        if (!cacheError && cachedThemes && cachedThemes.length > 0) {
+          console.log('[Data Fetcher] Using materialized view for theme sentiment (fast path)');
+
+          const themes = cachedThemes.map((theme: any) => ({
+            name: theme.theme_name,
+            count: theme.frequency,
+            sentiment: parseFloat((theme.avg_sentiment || 0).toFixed(3)),
+            trend: 'stable' as const, // Trend calculation requires time-series data
+          }));
+
+          return { data: { themes } };
+        }
+
+        // Fallback to regular query if materialized view is empty or errored
+        console.log('[Data Fetcher] Using live calculation for theme sentiment (slow path)');
+
         const { data: themesData, error: themesError } = await supabase
       .from('themes')
       .select('theme_name, frequency, first_seen')
