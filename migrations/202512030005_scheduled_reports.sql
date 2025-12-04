@@ -151,7 +151,11 @@ CREATE POLICY "Users can view execution history for their reports"
 -- ============================================================================
 
 -- Function to calculate next run time
-DROP FUNCTION IF EXISTS calculate_next_run_time(TEXT, TIME, INTEGER, INTEGER, TEXT, TIMESTAMPTZ);
+-- Drop all versions of this function
+DROP FUNCTION IF EXISTS calculate_next_run_time(TEXT, TIME, INTEGER, INTEGER, TEXT, TIMESTAMPTZ) CASCADE;
+DROP FUNCTION IF EXISTS calculate_next_run_time(TEXT, TIME, INTEGER, INTEGER, TEXT) CASCADE;
+DROP FUNCTION IF EXISTS calculate_next_run_time CASCADE;
+
 CREATE OR REPLACE FUNCTION calculate_next_run_time(
   p_frequency TEXT,
   p_time_of_day TIME,
