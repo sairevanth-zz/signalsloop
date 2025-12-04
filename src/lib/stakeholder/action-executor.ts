@@ -218,13 +218,18 @@ export function detectActionIntent(query: string): Action[] {
   const actions: Action[] = [];
   const lowerQuery = query.toLowerCase();
 
-  // Detect PRD creation
-  if (
-    lowerQuery.includes('create prd') ||
-    lowerQuery.includes('create a prd') ||
-    lowerQuery.includes('write prd') ||
-    lowerQuery.includes('product requirements')
-  ) {
+  // Detect PRD creation (flexible matching)
+  const prdPatterns = [
+    /create.*prd/i,
+    /write.*prd/i,
+    /generate.*prd/i,
+    /make.*prd/i,
+    /build.*prd/i,
+    /product requirements/i,
+    /requirements document/i,
+  ];
+
+  if (prdPatterns.some(pattern => pattern.test(query))) {
     actions.push({
       id: 'prd_' + Date.now(),
       type: 'create_prd',
@@ -235,12 +240,16 @@ export function detectActionIntent(query: string): Action[] {
     });
   }
 
-  // Detect Slack sharing
-  if (
-    lowerQuery.includes('send to slack') ||
-    lowerQuery.includes('share on slack') ||
-    lowerQuery.includes('post to slack')
-  ) {
+  // Detect Slack sharing (flexible matching)
+  const slackPatterns = [
+    /send.*slack/i,
+    /share.*slack/i,
+    /post.*slack/i,
+    /slack.*message/i,
+    /notify.*slack/i,
+  ];
+
+  if (slackPatterns.some(pattern => pattern.test(query))) {
     actions.push({
       id: 'slack_' + Date.now(),
       type: 'send_slack',
@@ -251,12 +260,17 @@ export function detectActionIntent(query: string): Action[] {
     });
   }
 
-  // Detect JIRA ticket creation
-  if (
-    lowerQuery.includes('create jira') ||
-    lowerQuery.includes('create ticket') ||
-    lowerQuery.includes('file a bug')
-  ) {
+  // Detect JIRA ticket creation (flexible matching)
+  const jiraPatterns = [
+    /create.*jira/i,
+    /create.*ticket/i,
+    /file.*bug/i,
+    /jira.*ticket/i,
+    /open.*ticket/i,
+    /create.*issue/i,
+  ];
+
+  if (jiraPatterns.some(pattern => pattern.test(query))) {
     actions.push({
       id: 'jira_' + Date.now(),
       type: 'create_jira',
@@ -267,12 +281,16 @@ export function detectActionIntent(query: string): Action[] {
     });
   }
 
-  // Detect email sending
-  if (
-    lowerQuery.includes('send email') ||
-    lowerQuery.includes('email this') ||
-    lowerQuery.includes('email report')
-  ) {
+  // Detect email sending (flexible matching)
+  const emailPatterns = [
+    /send.*email/i,
+    /email.*report/i,
+    /email.*this/i,
+    /mail.*report/i,
+    /share.*email/i,
+  ];
+
+  if (emailPatterns.some(pattern => pattern.test(query))) {
     actions.push({
       id: 'email_' + Date.now(),
       type: 'send_email',
