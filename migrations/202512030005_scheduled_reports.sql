@@ -202,14 +202,25 @@ DROP FUNCTION IF EXISTS update_next_run_time() CASCADE;
 CREATE OR REPLACE FUNCTION update_next_run_time()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.next_run_at := calculate_next_run_time(
-    NEW.frequency,
-    NEW.time_of_day,
-    NEW.day_of_week,
-    NEW.day_of_month,
-    NEW.timezone,
-    COALESCE(NEW.last_run_at, NOW())
-  );
+  -- Only update next_run_at if active and schedule fields changed (or INSERT)
+  IF NEW.is_active = true AND (
+    TG_OP = 'INSERT' OR
+    OLD.frequency IS DISTINCT FROM NEW.frequency OR
+    OLD.time_of_day IS DISTINCT FROM NEW.time_of_day OR
+    OLD.day_of_week IS DISTINCT FROM NEW.day_of_week OR
+    OLD.day_of_month IS DISTINCT FROM NEW.day_of_month OR
+    OLD.timezone IS DISTINCT FROM NEW.timezone
+  ) THEN
+    NEW.next_run_at := calculate_next_run_time(
+      NEW.frequency,
+      NEW.time_of_day,
+      NEW.day_of_week,
+      NEW.day_of_month,
+      NEW.timezone,
+      COALESCE(NEW.last_run_at, NOW())
+    );
+  END IF;
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -219,7 +230,6 @@ DROP TRIGGER IF EXISTS update_scheduled_reports_next_run ON scheduled_reports;
 CREATE TRIGGER update_scheduled_reports_next_run
   BEFORE INSERT OR UPDATE ON scheduled_reports
   FOR EACH ROW
-  WHEN (NEW.is_active = true AND (TG_OP = 'INSERT' OR OLD.frequency IS DISTINCT FROM NEW.frequency OR OLD.time_of_day IS DISTINCT FROM NEW.time_of_day OR OLD.day_of_week IS DISTINCT FROM NEW.day_of_week OR OLD.day_of_month IS DISTINCT FROM NEW.day_of_month))
   EXECUTE FUNCTION update_next_run_time();
 
 -- Trigger to update updated_at timestamp
