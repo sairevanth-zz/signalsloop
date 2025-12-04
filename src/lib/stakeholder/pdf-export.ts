@@ -77,6 +77,8 @@ export async function exportToPDFWithCanvas(
     container.style.width = '800px';
     container.style.backgroundColor = '#ffffff';
     container.style.padding = '40px';
+    // Force RGB colors to avoid oklch() issues with html2canvas
+    container.style.colorScheme = 'light';
     document.body.appendChild(container);
 
     // Call API to get HTML
@@ -97,6 +99,30 @@ export async function exportToPDFWithCanvas(
 
     const { html } = await response.json();
     container.innerHTML = html;
+
+    // Sanitize CSS to replace oklch() colors with hex (html2canvas doesn't support oklch)
+    const allElements = container.querySelectorAll('*');
+    allElements.forEach((el: Element) => {
+      const htmlEl = el as HTMLElement;
+      const computedStyle = window.getComputedStyle(htmlEl);
+
+      // Replace problematic color properties
+      ['color', 'backgroundColor', 'borderColor'].forEach(prop => {
+        const value = computedStyle.getPropertyValue(prop);
+        if (value && (value.includes('oklch') || value.includes('oklab'))) {
+          // Convert to RGB by reading computed value
+          const div = document.createElement('div');
+          div.style.color = value;
+          document.body.appendChild(div);
+          const rgb = window.getComputedStyle(div).color;
+          document.body.removeChild(div);
+
+          if (prop === 'color') htmlEl.style.color = rgb;
+          else if (prop === 'backgroundColor') htmlEl.style.backgroundColor = rgb;
+          else if (prop === 'borderColor') htmlEl.style.borderColor = rgb;
+        }
+      });
+    });
 
     // Wait for images to load
     await new Promise(resolve => setTimeout(resolve, 500));
