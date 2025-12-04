@@ -70,17 +70,6 @@ export async function exportToPDFWithCanvas(
   projectId: string
 ): Promise<void> {
   try {
-    // Create a temporary container for rendering
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.width = '800px';
-    container.style.backgroundColor = '#ffffff';
-    container.style.padding = '40px';
-    // Force RGB colors to avoid oklch() issues with html2canvas
-    container.style.colorScheme = 'light';
-    document.body.appendChild(container);
-
     // Call API to get HTML
     const response = await fetch('/api/stakeholder/export-pdf', {
       method: 'POST',
@@ -98,49 +87,41 @@ export async function exportToPDFWithCanvas(
     }
 
     const { html } = await response.json();
-    container.innerHTML = html;
 
-    // Force RGB colors - iterate through all elements and convert computed styles to inline RGB
-    // This ensures html2canvas doesn't encounter oklch() colors
-    const allElements = container.querySelectorAll('*');
-    allElements.forEach((el: Element) => {
-      const htmlEl = el as HTMLElement;
-      const computedStyle = window.getComputedStyle(htmlEl);
+    // Create an isolated iframe to avoid inheriting page styles (especially oklch colors)
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.left = '-9999px';
+    iframe.style.width = '800px';
+    iframe.style.height = '1200px';
+    document.body.appendChild(iframe);
 
-      // Get computed RGB values and set as inline styles (this overrides any oklch from stylesheets)
-      const color = computedStyle.color;
-      const bgColor = computedStyle.backgroundColor;
-      const borderColor = computedStyle.borderColor;
-      const borderLeftColor = computedStyle.borderLeftColor;
-      const borderRightColor = computedStyle.borderRightColor;
-      const borderTopColor = computedStyle.borderTopColor;
-      const borderBottomColor = computedStyle.borderBottomColor;
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!iframeDoc) {
+      throw new Error('Failed to access iframe document');
+    }
 
-      // Set inline styles with computed RGB values (browser converts oklch to RGB in getComputedStyle)
-      if (color && color !== 'rgba(0, 0, 0, 0)') htmlEl.style.color = color;
-      if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)') htmlEl.style.backgroundColor = bgColor;
-      if (borderLeftColor && borderLeftColor !== 'rgba(0, 0, 0, 0)') htmlEl.style.borderLeftColor = borderLeftColor;
-      if (borderRightColor && borderRightColor !== 'rgba(0, 0, 0, 0)') htmlEl.style.borderRightColor = borderRightColor;
-      if (borderTopColor && borderTopColor !== 'rgba(0, 0, 0, 0)') htmlEl.style.borderTopColor = borderTopColor;
-      if (borderBottomColor && borderBottomColor !== 'rgba(0, 0, 0, 0)') htmlEl.style.borderBottomColor = borderBottomColor;
-    });
+    // Write the HTML directly to iframe (isolated from parent page styles)
+    iframeDoc.open();
+    iframeDoc.write(html);
+    iframeDoc.close();
 
-    // Remove all style and link tags to prevent external stylesheets from interfering
-    container.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => el.remove());
+    // Wait for content to render
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Wait for images to load
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Generate canvas from HTML
-    const canvas = await html2canvas(container, {
+    // Generate canvas from iframe content
+    const iframeBody = iframeDoc.body;
+    const canvas = await html2canvas(iframeBody, {
       scale: 2,
       logging: false,
       useCORS: true,
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      windowWidth: 800,
+      windowHeight: iframeBody.scrollHeight
     });
 
-    // Remove temporary container
-    document.body.removeChild(container);
+    // Remove iframe
+    document.body.removeChild(iframe);
 
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({
