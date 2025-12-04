@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createServerClient } from '@/lib/supabase-client';
 
-export const maxDuration = 10;
+export const runtime = 'nodejs';
+export const maxDuration = 60; // Increase to 60s for PRD generation (requires paid Vercel plan)
+// Note: If on free tier, this will use the 10s limit automatically
 
 /**
  * Create Product Requirements Document (PRD)
@@ -50,68 +52,48 @@ export async function POST(request: NextRequest) {
     // Generate PRD using Claude
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    const prdPrompt = `You are a product manager creating a Product Requirements Document (PRD).
+    const prdPrompt = `Create a concise Product Requirements Document (PRD) for: ${project.name}
 
-Project: ${project.name}
+Context: ${context.query || 'N/A'}
+Key Themes: ${context.themes?.join(', ') || 'N/A'}
+Feedback: ${context.feedback?.length || 0} items
 
-Context from analysis:
-- User Query: ${context.query || 'N/A'}
-- Key Themes: ${context.themes?.join(', ') || 'N/A'}
-- Insights: ${context.insights || 'N/A'}
-- Feedback Count: ${context.feedback?.length || 0}
+Create a PRD with these sections (be concise):
 
-Based on this analysis, create a comprehensive PRD with the following sections:
+1. **Executive Summary** (2-3 sentences)
+2. **Problem Statement** (what pain points we're addressing)
+3. **Goals** (3-5 key objectives)
+4. **User Stories** (3-5 key stories with acceptance criteria)
+5. **Feature Requirements** (must-haves and nice-to-haves)
+6. **Success Metrics** (how we'll measure success)
 
-1. **Executive Summary**
-   - Brief overview of the problem and proposed solution
+Format in clean markdown. Keep it under 1000 words.`;
 
-2. **Problem Statement**
-   - What customer pain points are we addressing?
-   - Why is this important now?
-
-3. **Goals and Objectives**
-   - What are we trying to achieve?
-   - Success metrics
-
-4. **User Stories**
-   - Key user personas and their needs
-   - Acceptance criteria
-
-5. **Feature Requirements**
-   - Must-have features
-   - Nice-to-have features
-   - Out of scope
-
-6. **Technical Considerations**
-   - Dependencies
-   - Constraints
-   - Implementation notes
-
-7. **Timeline and Milestones**
-   - Suggested phases
-   - Key deliverables
-
-8. **Success Metrics**
-   - KPIs to track
-   - How we'll measure success
-
-Format the response in clean markdown.`;
-
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4000,
-      messages: [
-        {
-          role: 'user',
-          content: prdPrompt,
-        },
-      ],
-    });
+    // Generate PRD with timeout handling
+    const message = await Promise.race([
+      anthropic.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000, // Reduced for faster generation
+        messages: [
+          {
+            role: 'user',
+            content: prdPrompt,
+          },
+        ],
+      }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('PRD generation timed out')), 8000)
+      )
+    ]) as Anthropic.Message;
 
     const prdContent = message.content[0].type === 'text' ? message.content[0].text : '';
 
+    if (!prdContent) {
+      throw new Error('Failed to generate PRD content');
+    }
+
     // Save PRD to database (optional)
-    const { data: savedPRD } = await supabase
+    const { data: savedPRD, error: saveError } = await supabase
       .from('documents')
       .insert({
         project_id: projectId,
@@ -123,12 +105,19 @@ Format the response in clean markdown.`;
       .select()
       .single();
 
+    if (saveError) {
+      console.warn('[Create PRD] Failed to save to database:', saveError);
+      // Continue anyway, we still have the PRD content
+    }
+
     return NextResponse.json({
       success: true,
+      message: 'PRD created successfully! Check your downloads folder or copy the content below.',
       prd: {
         id: savedPRD?.id,
         content: prdContent,
         createdAt: new Date().toISOString(),
+        wordCount: prdContent.split(/\s+/).length,
       },
     });
   } catch (error: any) {

@@ -132,7 +132,24 @@ export function ActionExecutor({ actions, projectId, context }: ActionExecutorPr
             result: result.data,
           },
         }));
-        alert(result.message);
+
+        // Show success message with PRD content if available
+        if (result.data?.prd?.content) {
+          // Create a modal or download the PRD
+          const blob = new Blob([result.data.prd.content], { type: 'text/markdown' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `PRD-${Date.now()}.md`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+
+          alert(`✅ ${result.message}\n\nPRD has been downloaded as a markdown file.`);
+        } else {
+          alert(result.message);
+        }
       } else {
         setActionStates((prev) => ({
           ...prev,

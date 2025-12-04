@@ -55,8 +55,8 @@ export async function executeCreatePRD(
 
     return {
       success: true,
-      message: 'PRD created successfully',
-      data: result.prd,
+      message: result.message || 'PRD created successfully',
+      data: result,
     };
   } catch (error: any) {
     return {
