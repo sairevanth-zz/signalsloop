@@ -29,25 +29,45 @@ export function PushNotificationPrompt({
 }: PushNotificationPromptProps) {
   const [permission, setPermission] = useState<PermissionState>('default');
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingSubscription, setIsCheckingSubscription] = useState(true);
+  const [hasSubscription, setHasSubscription] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
 
-  // Check if push notifications are supported
+  // Check if push notifications are supported and if already subscribed
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    async function checkStatus() {
+      if (typeof window === 'undefined') return;
 
-    if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-      setPermission('unsupported');
-      return;
+      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+        setPermission('unsupported');
+        setIsCheckingSubscription(false);
+        return;
+      }
+
+      setPermission(Notification.permission as PermissionState);
+
+      // Check local storage for dismissed state
+      const dismissed = localStorage.getItem(`push-dismissed-${projectId}`);
+      if (dismissed) {
+        setIsDismissed(true);
+      }
+
+      // Check if there's an existing subscription
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          const subscription = await registration.pushManager.getSubscription();
+          setHasSubscription(!!subscription);
+        }
+      } catch (err) {
+        console.error('Error checking subscription:', err);
+      } finally {
+        setIsCheckingSubscription(false);
+      }
     }
 
-    setPermission(Notification.permission as PermissionState);
-
-    // Check local storage for dismissed state
-    const dismissed = localStorage.getItem(`push-dismissed-${projectId}`);
-    if (dismissed) {
-      setIsDismissed(true);
-    }
+    checkStatus();
   }, [projectId]);
 
   const registerServiceWorker = useCallback(async () => {
@@ -103,6 +123,7 @@ export function PushNotificationPrompt({
         throw new Error('Failed to save subscription');
       }
 
+      setHasSubscription(true);
       onSubscribed?.();
     } catch (err) {
       console.error('Error subscribing to push:', err);
@@ -118,8 +139,19 @@ export function PushNotificationPrompt({
     onDismiss?.();
   }, [projectId, onDismiss]);
 
-  // Don't render if already subscribed, denied, unsupported, or dismissed
-  if (permission === 'granted' || permission === 'denied' || permission === 'unsupported' || isDismissed) {
+  // Don't render if still checking, already subscribed, denied, unsupported, or dismissed
+  if (isCheckingSubscription) {
+    return null;
+  }
+  
+  // Don't show if already has subscription, denied, unsupported, or dismissed (and has subscription)
+  if (hasSubscription || permission === 'denied' || permission === 'unsupported') {
+    return null;
+  }
+  
+  // If permission granted but no subscription, allow dismissing only temporarily
+  // (don't check localStorage dismissed state - user needs to complete subscription)
+  if (permission !== 'granted' && isDismissed) {
     return null;
   }
 
@@ -190,35 +222,35 @@ export function PushNotificationPrompt({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       className={cn(
-        'relative p-4 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-lg',
+        'relative p-4 bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg',
         className
       )}
     >
       <button
         onClick={handleDismiss}
-        className="absolute top-2 right-2 p-1 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded transition-colors"
+        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
       >
         <X className="w-4 h-4" />
       </button>
 
       <div className="flex items-start gap-3">
-        <div className="p-2 bg-blue-500/20 rounded-lg">
-          <Bell className="w-5 h-5 text-blue-400" />
+        <div className="p-2 bg-blue-100 rounded-lg">
+          <Bell className="w-5 h-5 text-blue-600" />
         </div>
         <div className="flex-1">
-          <h3 className="font-medium text-white">Enable Push Notifications</h3>
-          <p className="text-sm text-slate-400 mt-1">
+          <h3 className="font-medium text-gray-900">Enable Push Notifications</h3>
+          <p className="text-sm text-gray-600 mt-1">
             Get instant alerts for critical feedback, anomalies, and competitor updates.
           </p>
           
           {error && (
-            <p className="text-sm text-red-400 mt-2">{error}</p>
+            <p className="text-sm text-red-600 mt-2">{error}</p>
           )}
 
           <button
             onClick={subscribeToPush}
             disabled={isLoading}
-            className="mt-3 flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+            className="mt-3 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
           >
             {isLoading ? (
               <>
