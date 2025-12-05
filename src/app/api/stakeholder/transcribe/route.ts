@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-export const maxDuration = 10; // Vercel free tier limit
+export const maxDuration = 60; // Vercel Pro tier - 60s for audio transcription
 
 /**
  * Voice transcription endpoint using OpenAI Whisper API

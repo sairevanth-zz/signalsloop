@@ -3,7 +3,7 @@ import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { calculatePriorityScore } from '@/lib/enhanced-priority-scoring';
 
 export const runtime = 'nodejs';
-export const maxDuration = 300; // 5 minutes for Pro plan
+export const maxDuration = 60; // Vercel Pro tier - 60s for batch prioritization
 
 const DEFAULT_BATCH_LIMIT = 10; // Reduced to prevent timeouts - process 10 posts at a time
 

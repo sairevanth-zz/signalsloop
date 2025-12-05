@@ -1,8 +1,8 @@
 /**
- * Event Processor - Polling-Based Agent Execution
+ * Event Processor - Polling-Based Agent Execution (Vercel Pro Tier)
  *
- * This endpoint replaces the long-running agent runner with a polling-based approach
- * that works within Vercel's serverless constraints.
+ * This endpoint processes domain events through the agent registry.
+ * Now runs every 5 minutes with Vercel Pro tier for near real-time processing.
  *
  * How it works:
  * 1. Queries events table for unprocessed events (processed = false)
@@ -10,11 +10,10 @@
  * 3. Marks events as processed after successful handling
  * 4. Retries failed events with exponential backoff
  *
- * Schedule: TWICE DAILY via orchestrator (Vercel free tier: max 2 crons, daily frequency)
- * - Morning batch (9 AM): Process events, then run intelligence tasks
- * - Evening batch (9 PM): Process events, then run backup/maintenance
- * - Ensures agents react within ~12 hours of event creation
- * - Trade-off: Slower than hourly, but works within free tier limits
+ * Schedule: EVERY 5 MINUTES (Vercel Pro tier - independent cron job)
+ * - Real-time event processing for immediate agent reactions
+ * - 60s max duration per invocation
+ * - Processes up to 10 events per batch
  *
  * GET /api/cron/process-events
  */

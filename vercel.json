@@ -1,17 +1,77 @@
 {
   "crons": [
     {
+      "path": "/api/cron/process-events",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/cron/orchestrator?schedule=morning",
       "schedule": "0 9 * * *"
     },
     {
       "path": "/api/cron/orchestrator?schedule=evening",
       "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/cron/generate-suggestions",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/scheduled-queries",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/daily-intelligence-digest",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/outcome-metrics",
+      "schedule": "0 */12 * * *"
+    },
+    {
+      "path": "/api/cron/hunter-scan",
+      "schedule": "0 */8 * * *"
+    },
+    {
+      "path": "/api/cron/send-stakeholder-reports",
+      "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/cron/outcome-classify",
+      "schedule": "0 3 * * *"
     }
   ],
   "functions": {
     "app/api/**/*.ts": {
-      "maxDuration": 10,
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "app/api/cron/**/*.ts": {
+      "maxDuration": 300,
+      "memory": 1024
+    },
+    "app/api/ai/**/*.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "app/api/stakeholder/**/*.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "app/api/devils-advocate/**/*.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "app/api/roadmap/**/*.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "app/api/specs/**/*.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "app/api/predictions/**/*.ts": {
+      "maxDuration": 60,
       "memory": 1024
     }
   },

@@ -3,8 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { createServerClient } from '@/lib/supabase-client';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60; // Increase to 60s for PRD generation (requires paid Vercel plan)
-// Note: If on free tier, this will use the 10s limit automatically
+export const maxDuration = 60; // Vercel Pro tier - 60s for PRD generation
 
 /**
  * Create Product Requirements Document (PRD)

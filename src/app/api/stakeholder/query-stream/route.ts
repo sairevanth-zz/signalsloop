@@ -4,7 +4,7 @@ import { generateStakeholderResponse } from '@/lib/stakeholder/response-generato
 import { fetchProjectContext, fetchComponentData } from '@/lib/stakeholder/data-fetcher';
 
 export const runtime = 'nodejs';
-export const maxDuration = 10; // Vercel free tier limit
+export const maxDuration = 60; // Vercel Pro tier - 60s for streaming responses
 
 /**
  * Streaming Stakeholder Query API

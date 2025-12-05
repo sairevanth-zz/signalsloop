@@ -1,15 +1,22 @@
 /**
- * Unified Task Orchestrator
+ * Unified Task Orchestrator (Vercel Pro Tier)
  *
- * This endpoint consolidates all scheduled tasks to work within Vercel's
- * free tier limitations (max 2 cron jobs, daily frequency minimum)
+ * This endpoint orchestrates batch tasks for morning and evening runs.
+ * With Vercel Pro tier, we now have:
+ * - Up to 10 cron jobs (key tasks run independently for reliability)
+ * - Functions can run up to 300s (cron) / 60s (standard)
+ * - Better scheduling flexibility (every minute if needed)
  *
  * Schedule in vercel.json:
- * - orchestrator?schedule=morning: "0 9 * * *" (9 AM daily)
- * - orchestrator?schedule=evening: "0 21 * * *" (9 PM daily)
+ * - orchestrator?schedule=morning: "0 9 * * *" (9 AM daily) - intelligence tasks
+ * - orchestrator?schedule=evening: "0 21 * * *" (9 PM daily) - maintenance tasks
  *
- * Both schedules run process-events first, then batch-specific tasks.
- * This ensures agents process events twice daily (9 AM and 9 PM).
+ * Critical tasks now run independently via separate cron jobs:
+ * - process-events: every 5 minutes (real-time event processing)
+ * - generate-suggestions: every 6 hours
+ * - scheduled-queries: every 4 hours
+ * - hunter-scan: every 8 hours
+ * - outcome-metrics: every 12 hours
  *
  * OR call manually with ?schedule=morning, ?schedule=evening, or ?schedule=weekly
  */
@@ -77,34 +84,34 @@ async function executeTask(
 }
 
 /**
- * Task schedule definitions
- * Both morning and evening batches run process-events first to ensure
- * agents react to events twice daily within Vercel free tier constraints
+ * Task schedule definitions (Vercel Pro Tier)
+ * 
+ * With Pro tier, critical tasks now run via independent cron jobs:
+ * - process-events: every 5 min (independent cron)
+ * - generate-suggestions: every 6 hours (independent cron)
+ * - scheduled-queries: every 4 hours (independent cron)
+ * - hunter-scan: every 8 hours (independent cron)
+ * - outcome-metrics: every 12 hours (independent cron)
+ * - outcome-classify: daily at 3 AM (independent cron)
+ * - daily-intelligence-digest: daily at 8 AM (independent cron)
+ * - send-stakeholder-reports: weekly on Mondays (independent cron)
+ * 
+ * The orchestrator now handles only batch tasks that benefit from sequential execution.
  */
 const TASK_SCHEDULE = {
   morning: [
-    // Run at 9 AM daily - Start with event processing, then intelligence tasks
-    { path: '/api/cron/process-events', timeout: 60000 }, // 1 min - process agent events FIRST
-    { path: '/api/cron/generate-suggestions', timeout: 300000 }, // 5 min - generate AI proactive suggestions
-    { path: '/api/cron/scheduled-queries', timeout: 300000 }, // 5 min - execute scheduled queries
+    // Run at 9 AM daily - Intelligence and analysis tasks
     { path: '/api/cron/dynamic-roadmap', timeout: 180000 }, // 3 min - auto-adjust roadmap priorities
     { path: '/api/cron/proactive-spec-writer', timeout: 300000 }, // 5 min - auto-draft specs
     { path: '/api/cron/competitive-extraction', timeout: 180000 }, // 3 min - extract competitors
     { path: '/api/cron/detect-feature-gaps', timeout: 120000 }, // 2 min - feature gaps
     { path: '/api/cron/strategic-recommendations', timeout: 120000 }, // 2 min - strategic actions
-    { path: '/api/cron/hunter-scan', timeout: 300000 }, // 5 min - scan external platforms
     { path: '/api/cron/calls-analyze', timeout: 180000 }, // 3 min - process call recordings
-    { path: '/api/cron/daily-intelligence-digest', timeout: 120000 }, // 2 min - send email digest
     { path: '/api/cron/sync-experiments', timeout: 180000 }, // 3 min - sync experiment results
-    { path: '/api/cron/sync-customers', timeout: 300000 }, // 5 min - sync customer data from CRM (Salesforce/HubSpot)
-    { path: '/api/cron/send-stakeholder-reports', timeout: 120000 }, // 2 min - stakeholder reports (weekly on Mondays)
-    { path: '/api/cron/outcome-metrics', timeout: 120000 }, // 2 min - update outcome attribution metrics
-    { path: '/api/cron/outcome-classify', timeout: 300000 }, // 5 min - classify feature outcomes (T+30 days)
+    { path: '/api/cron/sync-customers', timeout: 300000 }, // 5 min - sync customer data from CRM
   ],
   evening: [
-    // Run at 9 PM daily - Process events, then maintenance tasks
-    { path: '/api/cron/process-events', timeout: 60000 }, // 1 min - process agent events FIRST
-    { path: '/api/cron/scheduled-queries', timeout: 300000 }, // 5 min - execute scheduled queries (2x daily)
+    // Run at 9 PM daily - Maintenance and cleanup tasks
     { path: '/api/cron/daily-backup', timeout: 600000 }, // 10 min - database backup
   ],
   weekly: [

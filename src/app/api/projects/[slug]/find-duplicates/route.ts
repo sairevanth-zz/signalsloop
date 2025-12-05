@@ -3,7 +3,7 @@ import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { detectDuplicateClusters, type DuplicateCandidate } from '@/lib/enhanced-duplicate-detection';
 
 export const runtime = 'nodejs';
-export const maxDuration = 300; // 5 minutes for Pro plan
+export const maxDuration = 60; // Vercel Pro tier - 60s for duplicate detection
 
 const DEFAULT_BATCH_LIMIT = 50;
 const DEFAULT_SIMILARITY_THRESHOLD = 0.70; // 70% similarity - balanced to avoid false positives
