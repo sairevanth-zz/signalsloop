@@ -11,6 +11,7 @@ import { createServerClient } from '@/lib/supabase-client';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import { extractFeaturesFromSpec } from '@/lib/predictions/extract-features';
 import { predictFeatureSuccess } from '@/lib/predictions/predict-success';
+import { createReasoningTrace } from '@/lib/reasoning/capture-reasoning';
 import type { GeneratePredictionRequest, GeneratePredictionResponse } from '@/types/prediction';
 import { z } from 'zod';
 
@@ -231,6 +232,87 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[Predictions API] Prediction generated successfully:', savedPrediction.id);
+
+    // 4. Capture reasoning trace for transparency
+    try {
+      await createReasoningTrace({
+        project_id: validated.project_id,
+        feature: 'prediction',
+        decision_type: 'feature_success_prediction',
+        decision_summary: `Predicted ${Math.round(prediction.predicted_adoption_rate * 100)}% adoption for "${validated.feature_name}"`,
+        inputs: {
+          feature_name: validated.feature_name,
+          feature_description: validated.feature_description || '',
+          raw_data: features,
+          data_sources: [
+            { type: 'feature_inputs', count: Object.keys(features).length },
+            { type: 'historical_outcomes', count: prediction.strategy_metadata?.historical_outcomes_count || 0 },
+            { type: 'similar_features', count: prediction.similar_feature_ids?.length || 0 },
+          ],
+        },
+        reasoning_steps: [
+          {
+            step_number: 1,
+            description: 'Feature Analysis',
+            conclusion: `Analyzed feature category (${features.feature_category}), target segment (${features.target_segment}), and complexity (${features.technical_complexity})`,
+            confidence: 0.9,
+            evidence: [
+              `Category: ${features.feature_category}`,
+              `Target: ${features.target_segment}`,
+              `Complexity: ${features.technical_complexity}`,
+              `Effort: ${features.estimated_effort_weeks} weeks`,
+            ],
+          },
+          {
+            step_number: 2,
+            description: 'Historical Pattern Matching',
+            conclusion: `Compared against ${prediction.strategy_metadata?.historical_outcomes_count || 0} historical features using ${prediction.prediction_strategy} strategy`,
+            confidence: prediction.confidence_score,
+            evidence: [
+              `Strategy: ${prediction.prediction_strategy}`,
+              `Similar features found: ${prediction.similar_feature_ids?.length || 0}`,
+            ],
+          },
+          {
+            step_number: 3,
+            description: 'Adoption Prediction',
+            conclusion: `Calculated adoption rate of ${Math.round(prediction.predicted_adoption_rate * 100)}% with confidence interval ${Math.round(prediction.confidence_interval_low * 100)}-${Math.round(prediction.confidence_interval_high * 100)}%`,
+            confidence: prediction.confidence_score,
+            evidence: prediction.explanation_factors?.map((f: { factor: string; impact: string }) => `${f.factor}: ${f.impact}`) || [],
+          },
+        ],
+        outputs: {
+          result: {
+            adoption_rate: prediction.predicted_adoption_rate,
+            sentiment_impact: prediction.predicted_sentiment_impact,
+            confidence: prediction.confidence_score,
+          },
+          confidence: prediction.confidence_score,
+          alternatives_considered: [
+            {
+              alternative: 'Heuristic-only scoring',
+              why_rejected: prediction.prediction_strategy !== 'heuristic' 
+                ? 'Hybrid strategy provided better confidence with historical data'
+                : 'Used as primary strategy due to limited historical data',
+            },
+          ],
+        },
+        metadata: {
+          model_used: 'gpt-4o',
+          timestamp: new Date().toISOString(),
+          latency_ms: 0, // Not tracked in this endpoint
+          tokens_used: 0,
+          version: '1.0',
+        },
+        entity_type: 'prediction',
+        entity_id: savedPrediction.id,
+        triggered_by: user.id,
+      });
+      console.log('[Predictions API] Reasoning trace captured for prediction:', savedPrediction.id);
+    } catch (reasoningError) {
+      // Don't fail the request if reasoning capture fails
+      console.error('[Predictions API] Failed to capture reasoning:', reasoningError);
+    }
 
     const response: GeneratePredictionResponse = {
       success: true,
