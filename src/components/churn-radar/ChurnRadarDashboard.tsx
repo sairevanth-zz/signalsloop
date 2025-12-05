@@ -73,6 +73,7 @@ export function ChurnRadarDashboard({ projectId, className }: ChurnRadarDashboar
   const [customers, setCustomers] = useState<CustomerHealth[]>([]);
   const [alerts, setAlerts] = useState<ChurnAlert[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerHealth | null>(null);
   const [riskFilter, setRiskFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('healthScore');
@@ -286,7 +287,7 @@ export function ChurnRadarDashboard({ projectId, className }: ChurnRadarDashboar
                         body: JSON.stringify({ projectId }),
                       });
                       if (response.ok) {
-                        fetchData(); // Refresh data
+                        loadData(); // Refresh data
                       }
                     } catch (err) {
                       console.error('Error seeding data:', err);
