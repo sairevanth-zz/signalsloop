@@ -236,21 +236,16 @@ export async function POST(request: NextRequest) {
     // 4. Capture reasoning trace for transparency
     try {
       await createReasoningTrace({
-        project_id: validated.project_id,
+        projectId: validated.project_id,
         feature: 'prediction',
-        decision_type: 'feature_success_prediction',
-        decision_summary: `Predicted ${Math.round(prediction.predicted_adoption_rate * 100)}% adoption for "${validated.feature_name}"`,
-        inputs: {
-          feature_name: validated.feature_name,
-          feature_description: validated.feature_description || '',
-          raw_data: features,
-          data_sources: [
-            { type: 'feature_inputs', count: Object.keys(features).length },
-            { type: 'historical_outcomes', count: prediction.strategy_metadata?.historical_outcomes_count || 0 },
-            { type: 'similar_features', count: prediction.similar_feature_ids?.length || 0 },
-          ],
-        },
-        reasoning_steps: [
+        decisionType: 'feature_success_prediction',
+        decisionSummary: `Predicted ${Math.round(prediction.predicted_adoption_rate * 100)}% adoption for "${validated.feature_name}"`,
+        dataSources: [
+          { type: 'feature_inputs', count: Object.keys(features).length },
+          { type: 'historical_outcomes', count: prediction.strategy_metadata?.historical_outcomes_count || 0 },
+          { type: 'similar_features', count: prediction.similar_feature_ids?.length || 0 },
+        ],
+        reasoningSteps: [
           {
             step_number: 1,
             description: 'Feature Analysis',
@@ -281,32 +276,20 @@ export async function POST(request: NextRequest) {
             evidence: prediction.explanation_factors?.map((f: { factor: string; impact: string }) => `${f.factor}: ${f.impact}`) || [],
           },
         ],
-        outputs: {
-          result: {
-            adoption_rate: prediction.predicted_adoption_rate,
-            sentiment_impact: prediction.predicted_sentiment_impact,
-            confidence: prediction.confidence_score,
+        decision: `${Math.round(prediction.predicted_adoption_rate * 100)}% predicted adoption rate`,
+        confidence: prediction.confidence_score,
+        alternatives: [
+          {
+            alternative: 'Heuristic-only scoring',
+            why_rejected: prediction.prediction_strategy !== 'heuristic' 
+              ? 'Hybrid strategy provided better confidence with historical data'
+              : 'Used as primary strategy due to limited historical data',
           },
-          confidence: prediction.confidence_score,
-          alternatives_considered: [
-            {
-              alternative: 'Heuristic-only scoring',
-              why_rejected: prediction.prediction_strategy !== 'heuristic' 
-                ? 'Hybrid strategy provided better confidence with historical data'
-                : 'Used as primary strategy due to limited historical data',
-            },
-          ],
-        },
-        metadata: {
-          model_used: 'gpt-4o',
-          timestamp: new Date().toISOString(),
-          latency_ms: 0, // Not tracked in this endpoint
-          tokens_used: 0,
-          version: '1.0',
-        },
-        entity_type: 'prediction',
-        entity_id: savedPrediction.id,
-        triggered_by: user.id,
+        ],
+        modelUsed: 'gpt-4o',
+        entityType: 'prediction',
+        entityId: savedPrediction.id,
+        triggeredBy: user.id,
       });
       console.log('[Predictions API] Reasoning trace captured for prediction:', savedPrediction.id);
     } catch (reasoningError) {
