@@ -21,8 +21,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { FeaturePrediction } from '@/types/prediction';
-import { Sparkles, Plus, Loader2, TrendingUp, Brain } from 'lucide-react';
+import { Sparkles, Plus, Loader2, TrendingUp, Brain, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 interface Project {
   id: string;
@@ -223,6 +224,28 @@ export default function PredictionsPage() {
           and customer feedback.
         </p>
       </div>
+
+      {/* AI Reasoning Banner */}
+      <Link href="/app/reasoning">
+        <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 border border-purple-200 dark:border-purple-800 hover:shadow-md transition-all cursor-pointer group">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50">
+                <Brain className="size-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-purple-900 dark:text-purple-100">
+                  AI Reasoning Dashboard
+                </h3>
+                <p className="text-sm text-purple-700 dark:text-purple-300">
+                  Click "Why?" on any prediction to see the full reasoning process
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="size-5 text-purple-500 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+      </Link>
 
       {/* Stats */}
       {predictions.length > 0 && (
