@@ -20,7 +20,7 @@ import { SentimentForecastCard } from './SentimentForecastCard';
 import { AnomalyAlertCard } from './AnomalyAlertCard';
 import { ProductHealthScoreCard } from './ProductHealthScoreCard';
 import { LiveExperimentsCard } from './LiveExperimentsCard';
-import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio, Activity, Users, Inbox, FileBarChart, AlertTriangle, ChevronRight } from 'lucide-react';
+import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio, Activity, Users, Inbox, FileBarChart, AlertTriangle, ChevronRight, Swords, Sliders, Brain } from 'lucide-react';
 import Link from 'next/link';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
@@ -365,6 +365,73 @@ export function MissionControlGrid({ briefing, briefingId, metrics: initialMetri
                 <h4 className="font-medium text-white mb-1">Churn Radar</h4>
                 <p className="text-xs text-slate-400">
                   Predict and prevent churn with health scores and smart alerts
+                </p>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </BentoCard>
+
+      {/* Premium Competitive & AI Tools (spans 4 columns) */}
+      <BentoCard colSpan={4} className="bg-gradient-to-r from-orange-950 via-slate-900 to-purple-950">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-white flex items-center gap-2">
+              <Shield className="h-5 w-5 text-orange-400" />
+              Premium Intelligence Tools
+            </h3>
+            <span className="rounded-full bg-orange-500/20 px-2 py-1 text-xs font-medium text-orange-400">
+              PREMIUM
+            </span>
+          </div>
+          <p className="text-sm text-slate-400">
+            Enterprise-grade competitive intelligence and AI customization
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* War Room */}
+            <Link href={`/${projectSlug}/war-room`} className="group">
+              <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-orange-500 hover:bg-slate-800">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="p-2 rounded-lg bg-orange-500/20">
+                    <Swords className="h-5 w-5 text-orange-400" />
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-orange-400 transition-colors" />
+                </div>
+                <h4 className="font-medium text-white mb-1">Competitor War Room</h4>
+                <p className="text-xs text-slate-400">
+                  Real-time alerts, job posting intel, and hiring trends
+                </p>
+              </div>
+            </Link>
+
+            {/* Competitive Intelligence */}
+            <Link href={`/${projectSlug}/competitive`} className="group">
+              <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-purple-500 hover:bg-slate-800">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="p-2 rounded-lg bg-purple-500/20">
+                    <Shield className="h-5 w-5 text-purple-400" />
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                </div>
+                <h4 className="font-medium text-white mb-1">Competitive Intel</h4>
+                <p className="text-xs text-slate-400">
+                  Feature gaps, strengths/weaknesses, strategic recommendations
+                </p>
+              </div>
+            </Link>
+
+            {/* AI Reasoning */}
+            <Link href={`/app/reasoning`} className="group">
+              <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-indigo-500 hover:bg-slate-800">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="p-2 rounded-lg bg-indigo-500/20">
+                    <Brain className="h-5 w-5 text-indigo-400" />
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+                </div>
+                <h4 className="font-medium text-white mb-1">AI Reasoning</h4>
+                <p className="text-xs text-slate-400">
+                  Understand why AI makes decisions with full transparency
                 </p>
               </div>
             </Link>

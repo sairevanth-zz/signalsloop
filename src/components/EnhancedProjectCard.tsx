@@ -29,6 +29,8 @@ import {
   Inbox,
   FileBarChart,
   AlertTriangle,
+  Swords,
+  Sliders,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -243,6 +245,13 @@ export default function EnhancedProjectCard({
                   <AlertTriangle className="mr-2 h-4 w-4" />
                   Churn Radar
                   <Badge className="ml-auto text-xs bg-red-500 text-white">NEW</Badge>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/${project.slug}/war-room`}>
+                  <Swords className="mr-2 h-4 w-4" />
+                  War Room
+                  <Badge className="ml-auto text-xs bg-orange-500 text-white">NEW</Badge>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>

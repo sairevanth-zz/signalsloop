@@ -1,6 +1,6 @@
-# SignalsLoop Phase 1-2 Features Documentation
+# SignalsLoop Phase 1-3 Features Documentation
 
-This document describes the four major features implemented as part of the Phase 1-2 product roadmap.
+This document describes the six major features implemented as part of the Phase 1-3 product roadmap.
 
 ## Table of Contents
 
@@ -261,3 +261,130 @@ INTERCOM_ACCESS_TOKEN=your-intercom-token
 - Identify 90%+ of churning accounts before they leave
 - Save 1+ customer/month worth subscription cost
 - 30% reduction in surprise churn
+
+---
+
+# Phase 3: Premium/Enterprise Features
+
+## 5. Competitor War Room
+
+### Overview
+Real-time competitor monitoring with alerts, job posting intelligence, and hiring trend analysis.
+
+### Key Features
+- **Real-time Alerts**: Instant notifications when competitors launch features, change pricing, or make acquisitions
+- **Job Posting Intelligence**: Track competitor job postings to understand their strategic direction
+- **Hiring Trend Analysis**: Visualize which departments competitors are expanding
+- **AI Analysis**: Automatic interpretation of what hiring patterns suggest about competitor strategy
+- **Customer Impact**: Identify which of your customers might be affected by competitor moves
+- **Revenue at Risk**: Calculate potential revenue impact from competitive threats
+
+### Alert Types
+- Feature Launch
+- Pricing Change
+- Acquisition
+- Job Posting Trend
+- Review Trend
+- Social Mention
+- Press Release
+
+### Database Tables
+- `competitor_alerts` - Real-time competitor alerts
+- `competitor_job_postings` - Tracked job postings
+- `competitor_monitoring_config` - Monitoring preferences per competitor
+
+### API Endpoints
+```
+GET  /api/war-room                  - Get war room summary and hiring trends
+GET  /api/war-room/alerts           - List alerts with filters
+POST /api/war-room/alerts           - Create alert
+PATCH /api/war-room/alerts          - Update alert status
+GET  /api/war-room/jobs             - List job postings
+```
+
+### UI Components
+- `WarRoomDashboard` - Main dashboard with summary cards, alerts, and job postings
+- Alert filtering by status, severity, and type
+- Job posting cards with AI interpretation
+- Hiring trend visualization by department
+
+### Page Routes
+- `/{slug}/war-room` - Competitor War Room dashboard
+
+---
+
+## 6. AI Weight Customization ("Why?" Button Enhancement)
+
+### Overview
+Allows users to customize how AI weighs different factors when making prioritization decisions.
+
+### Key Features
+- **Weight Sliders**: Adjust importance of customer requests, revenue impact, strategic alignment, competitive pressure, and technical effort
+- **Presets**: Quick selection of common weight configurations
+- **Export**: Download weight configuration for executive presentations
+- **Team Defaults**: Set project-wide default weights
+- **Personal Preferences**: Individual users can have their own weight settings
+
+### Weight Presets
+| Preset | Description |
+|--------|-------------|
+| Balanced | Equal consideration for all factors |
+| ROI Focused | Prioritize revenue impact (40%) |
+| Customer First | Prioritize customer requests (45%) |
+| Competitive | React to competitive threats (40%) |
+| Custom | User-defined configuration |
+
+### Database Tables
+- `ai_weight_preferences` - Stores weight configurations per user/project
+
+### API Endpoints
+```
+GET  /api/ai-weights               - Get weight preferences and available presets
+POST /api/ai-weights               - Save weight preferences
+```
+
+### UI Components
+- `WeightCustomizer` - Slider-based weight adjustment component
+- Preset selector
+- Total weight validation (must sum to 100%)
+- Export to JSON functionality
+
+### Integration with Existing Features
+The weight customization integrates with:
+- Priority scoring in roadmap
+- Feature predictions
+- AI recommendations in Mission Control
+
+---
+
+## Phase 3 Migrations
+
+```bash
+# Run after Phase 1-2 migrations:
+supabase/migrations/202512_competitor_war_room.sql
+```
+
+---
+
+## Updated Pricing
+
+| Tier | Price | Features |
+|------|-------|----------|
+| Free | $0 | 3 integrations, basic AI, 100 items/mo |
+| Pro | $49/mo | 10 integrations, Executive Brief, Spec Quality, Churn Radar (5 accounts) |
+| Business | $99/mo | Unlimited integrations, Competitor War Room, Churn Radar (unlimited), AI Weight Customization, API access |
+| Add-on | +$29/mo | Competitor War Room for Pro users |
+
+---
+
+## Phase 3 Success Metrics
+
+### Competitor War Room
+- Match competitor features within 2 weeks of their launch
+- 95%+ alert accuracy (relevant alerts)
+- Correctly predict competitor strategic direction 80%+ of the time
+
+### AI Weight Customization
+- 50%+ users customize weights at least once
+- 2x improvement in AI recommendation relevance
+- 30% reduction in "override" of AI suggestions

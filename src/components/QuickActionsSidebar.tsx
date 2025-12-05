@@ -24,6 +24,8 @@ import {
   Inbox,
   FileBarChart,
   AlertTriangle,
+  Swords,
+  Sliders,
 } from 'lucide-react';
 import {
   Dialog,
@@ -72,28 +74,44 @@ const templates = [
 
 const notifications = [
   {
+    id: 'war-room',
+    type: 'feature',
+    title: '⚔️ Competitor War Room',
+    message: 'Real-time competitor alerts, job posting intelligence, and hiring trends!',
+    timestamp: 'Just now',
+    unread: true
+  },
+  {
+    id: 'ai-weights',
+    type: 'feature',
+    title: '🧠 AI Weight Customization',
+    message: 'Control how AI weighs factors when making prioritization decisions!',
+    timestamp: 'Just now',
+    unread: true
+  },
+  {
     id: 'inbox',
     type: 'feature',
     title: '📬 Universal Feedback Inbox',
     message: 'All your feedback from Slack, Intercom, G2, Twitter in one AI-powered inbox!',
-    timestamp: 'Just now',
-    unread: true
+    timestamp: '2 days ago',
+    unread: false
   },
   {
     id: 'briefs',
     type: 'feature',
     title: '📊 Executive Auto-Briefs',
     message: 'Generate weekly stakeholder reports with insights, action items & risks!',
-    timestamp: 'Just now',
-    unread: true
+    timestamp: '2 days ago',
+    unread: false
   },
   {
     id: 'churn',
     type: 'feature',
     title: '🚨 Churn Radar',
     message: 'Predict customer churn with health scores and smart alerts!',
-    timestamp: 'Just now',
-    unread: true
+    timestamp: '2 days ago',
+    unread: false
   },
   {
     id: '0',
@@ -138,6 +156,22 @@ const notifications = [
 ];
 
 const changelogItems = [
+  {
+    version: 'v5.0.0',
+    date: '2025-12-12',
+    features: [
+      '⚔️ NEW: Competitor War Room - Real-time competitive intelligence',
+      'Real-time alerts when competitors launch features or change pricing',
+      'Job posting intelligence - track competitor hiring trends',
+      'AI analysis of strategic signals from job postings',
+      'Customer impact assessment for each competitive move',
+      '🧠 NEW: AI Weight Customization - Control how AI prioritizes',
+      'Adjust weights for customer requests, revenue impact, strategic alignment',
+      'Preset options: Balanced, ROI-focused, Customer-first, Competitive',
+      'Export weights for executive presentations',
+      'Team-wide default settings'
+    ]
+  },
   {
     version: 'v4.0.0',
     date: '2025-12-10',
@@ -554,6 +588,30 @@ export default function QuickActionsSidebar({
             <AlertTriangle className="w-4 h-4 mr-2" />
             Churn Radar
             <Badge variant="secondary" className="ml-auto text-xs bg-red-500 text-white">
+              NEW
+            </Badge>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start hover:bg-orange-100 bg-orange-50 border border-orange-200"
+            disabled
+          >
+            <Swords className="w-4 h-4 mr-2" />
+            War Room
+            <Badge variant="secondary" className="ml-auto text-xs bg-orange-500 text-white">
+              NEW
+            </Badge>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start hover:bg-purple-100 bg-purple-50 border border-purple-200"
+            disabled
+          >
+            <Sliders className="w-4 h-4 mr-2" />
+            AI Weights
+            <Badge variant="secondary" className="ml-auto text-xs bg-purple-500 text-white">
               NEW
             </Badge>
           </Button>
