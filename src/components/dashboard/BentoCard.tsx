@@ -6,7 +6,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-interface BentoCardProps {
+interface BentoCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   hover?: boolean;
@@ -20,6 +20,7 @@ export function BentoCard({
   hover = true,
   colSpan = 1,
   rowSpan = 1,
+  ...props
 }: BentoCardProps) {
   return (
     <div
@@ -35,6 +36,7 @@ export function BentoCard({
         rowSpan === 3 && 'row-span-3',
         className
       )}
+      {...props}
     >
       {children}
     </div>

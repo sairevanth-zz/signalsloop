@@ -122,7 +122,7 @@ export function ActionQueueCard({ projectId }: { projectId: string }) {
   }
 
   return (
-    <Card className="col-span-2">
+    <Card className="col-span-2" data-tour="action-queue">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>

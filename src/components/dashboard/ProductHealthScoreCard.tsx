@@ -30,7 +30,7 @@ export function ProductHealthScoreCard({ healthScore }: ProductHealthScoreCardPr
       : Minus;
 
   return (
-    <BentoCard colSpan={2}>
+    <BentoCard colSpan={2} data-tour="health-score">
       <div className="flex flex-col gap-4">
         {/* Header */}
         <div className="flex items-center justify-between">

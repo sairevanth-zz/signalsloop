@@ -216,7 +216,7 @@ export function AnomalyAlertCard({ projectId }: Props) {
   }
 
   return (
-    <Card className="col-span-2">
+    <Card className="col-span-2" data-tour="anomaly-card">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>

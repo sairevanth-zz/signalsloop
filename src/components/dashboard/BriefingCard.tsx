@@ -1,19 +1,24 @@
 /**
  * BriefingCard - Main hero card displaying the AI-generated daily briefing
  * Enhanced with severity-categorized items (🔴🟡🔵🟢)
+ * Now includes audio briefing player with TTS support
  */
 
 'use client';
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { BentoCard } from './BentoCard';
 import { Sparkles, AlertCircle, Zap, RefreshCw, AlertTriangle, Info, CheckCircle2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { DailyBriefingContent, BriefingItem } from '@/lib/ai/mission-control';
+import type { Voice } from '@/lib/ai/tts/types';
+import { AudioBriefingPlayer } from './AudioBriefingPlayer';
 import Link from 'next/link';
 
 interface BriefingCardProps {
   briefing: DailyBriefingContent;
+  briefingId?: string;
+  projectId?: string;
   userName?: string;
   onRefresh?: () => void;
   isRefreshing?: boolean;
@@ -96,13 +101,52 @@ function BriefingItemComponent({ item }: { item: BriefingItem }) {
   );
 }
 
-export function BriefingCard({ briefing, userName, onRefresh, isRefreshing }: BriefingCardProps) {
+export function BriefingCard({ briefing, briefingId, projectId, userName, onRefresh, isRefreshing }: BriefingCardProps) {
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioDuration, setAudioDuration] = useState<number>(0);
+  const [selectedVoice, setSelectedVoice] = useState<Voice>('nova');
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
   };
+
+  const handleGenerateAudio = useCallback(async (voice: Voice) => {
+    if (!projectId || !briefingId) return;
+    
+    setIsGeneratingAudio(true);
+    try {
+      const response = await fetch('/api/dashboard/briefing/audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, briefingId, voice }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate audio');
+      }
+
+      const data = await response.json();
+      setAudioUrl(data.audioUrl);
+      setAudioDuration(data.duration || 0);
+      setSelectedVoice(voice);
+    } catch (error) {
+      console.error('Error generating audio:', error);
+    } finally {
+      setIsGeneratingAudio(false);
+    }
+  }, [projectId, briefingId]);
+
+  const handleVoiceChange = useCallback((voice: Voice) => {
+    setSelectedVoice(voice);
+    // If audio was already generated, regenerate with new voice
+    if (audioUrl && projectId && briefingId) {
+      handleGenerateAudio(voice);
+    }
+  }, [audioUrl, projectId, briefingId, handleGenerateAudio]);
 
   const hasCritical = briefing.critical_items?.length > 0;
   const hasWarning = briefing.warning_items?.length > 0;
@@ -111,7 +155,7 @@ export function BriefingCard({ briefing, userName, onRefresh, isRefreshing }: Br
   const hasNewFormat = hasCritical || hasWarning || hasInfo || hasSuccess;
 
   return (
-    <BentoCard colSpan={2} rowSpan={2} className="flex flex-col gap-6">
+    <BentoCard colSpan={2} rowSpan={2} className="flex flex-col gap-6" data-tour="briefing-card">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
@@ -143,6 +187,18 @@ export function BriefingCard({ briefing, userName, onRefresh, isRefreshing }: Br
       <div className="text-base leading-relaxed text-slate-200">
         {briefing.briefing_text}
       </div>
+
+      {/* Audio Briefing Player */}
+      {projectId && briefingId && (
+        <AudioBriefingPlayer
+          audioUrl={audioUrl || undefined}
+          duration={audioDuration}
+          voice={selectedVoice}
+          isLoading={isGeneratingAudio}
+          onGenerate={handleGenerateAudio}
+          onVoiceChange={handleVoiceChange}
+        />
+      )}
 
       {/* NEW FORMAT: Severity-Categorized Items */}
       {hasNewFormat ? (

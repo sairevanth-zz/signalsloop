@@ -26,13 +26,14 @@ import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-co
 
 interface MissionControlGridProps {
   briefing: DailyBriefingContent;
+  briefingId?: string;
   metrics: DashboardMetrics;
   userName?: string;
   projectId: string;
   projectSlug: string;
 }
 
-export function MissionControlGrid({ briefing, metrics: initialMetrics, userName, projectId, projectSlug }: MissionControlGridProps) {
+export function MissionControlGrid({ briefing, briefingId, metrics: initialMetrics, userName, projectId, projectSlug }: MissionControlGridProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [liveMetrics, setLiveMetrics] = useState<DashboardMetrics>(initialMetrics);
 
@@ -77,10 +78,12 @@ export function MissionControlGrid({ briefing, metrics: initialMetrics, userName
       {/* Real-time toast notifications */}
       <RealtimeToasts projectId={projectId} enabled={true} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-fr">
+      <div data-tour="mission-control" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-fr">
         {/* Row 1: Hero Briefing Card (takes 2 columns, 2 rows) + Metrics */}
         <BriefingCard
           briefing={briefing}
+          briefingId={briefingId}
+          projectId={projectId}
           userName={userName}
           onRefresh={handleRefresh}
           isRefreshing={isRefreshing}
