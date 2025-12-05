@@ -269,9 +269,47 @@ export function ChurnRadarDashboard({ projectId, className }: ChurnRadarDashboar
             <Card className="p-12 text-center">
               <Users className="h-12 w-12 mx-auto text-gray-300 mb-4" />
               <h3 className="font-semibold text-gray-700 mb-2">No customers tracked</h3>
-              <p className="text-sm text-gray-500">
-                Customer health data will appear here once calculated
+              <p className="text-sm text-gray-500 mb-6">
+                Customer health data will appear here once calculated.
+                <br />
+                Connect your CRM or add sample data to get started.
               </p>
+              <div className="flex gap-3 justify-center">
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    setRefreshing(true);
+                    try {
+                      const response = await fetch('/api/churn-radar/seed', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ projectId }),
+                      });
+                      if (response.ok) {
+                        fetchData(); // Refresh data
+                      }
+                    } catch (err) {
+                      console.error('Error seeding data:', err);
+                    } finally {
+                      setRefreshing(false);
+                    }
+                  }}
+                  disabled={refreshing}
+                >
+                  {refreshing ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Users className="h-4 w-4 mr-2" />
+                  )}
+                  Add Sample Customers
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => window.location.href = `/${window.location.pathname.split('/')[1]}/settings/integrations`}
+                >
+                  Connect CRM
+                </Button>
+              </div>
             </Card>
           ) : (
             <div className="space-y-3">
