@@ -3,20 +3,11 @@
  * Handles push notifications and offline caching
  */
 
-const CACHE_NAME = 'signalsloop-v1';
-const STATIC_ASSETS = [
-  '/icon-192x192.png',
-  '/badge-72x72.png',
-];
+const CACHE_NAME = 'signalsloop-v2';
 
-// Install event - cache static assets
+// Install event - skip caching to avoid errors with missing assets
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
-  // Activate immediately
+  // Activate immediately without caching
   self.skipWaiting();
 });
 
