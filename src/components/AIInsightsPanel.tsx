@@ -21,6 +21,7 @@ import {
   Heart
 } from 'lucide-react';
 import { PriorityMixBar } from '@/components/PriorityMix';
+import { WhyBadge } from '@/components/reasoning';
 import {
   ResponsiveContainer,
   BarChart,
@@ -404,6 +405,12 @@ export function AIInsightsPanel({ projectSlug }: AIInsightsPanelProps) {
             <CardTitle className="flex items-center gap-2 text-gray-700">
               <Heart className="h-5 w-5 text-pink-600" />
               Sentiment Analysis
+              <WhyBadge
+                entityType="project"
+                entityId={projectSlug}
+                feature="sentiment_analysis"
+                size="sm"
+              />
             </CardTitle>
           </CardHeader>
           <CardContent>

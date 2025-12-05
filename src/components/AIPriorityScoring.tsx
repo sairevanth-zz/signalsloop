@@ -14,6 +14,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { FeatureGate } from '@/components/FeatureGating';
+import { WhyBadge } from '@/components/reasoning';
 
 interface PriorityScore {
   score: number;
@@ -201,6 +202,12 @@ export function AIPriorityScoring({
                     {priorityScore.score}
                   </span>
                   <span className="text-lg text-gray-500">/ 10</span>
+                  <WhyBadge
+                    entityType="post"
+                    entityId={postId}
+                    feature="prioritization"
+                    size="sm"
+                  />
                 </div>
                 <Badge className={getPriorityColor(priorityScore.level)}>
                   {priorityScore.level} Priority
