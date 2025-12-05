@@ -8,7 +8,7 @@
  * Shows project selector if needed
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -79,7 +79,7 @@ interface Project {
   slug: string;
 }
 
-export default function AIReasoningPage() {
+function AIReasoningContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const projectId = searchParams?.get('projectId');
@@ -423,5 +423,38 @@ export default function AIReasoningPage() {
         />
       )}
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 dark:from-slate-950 dark:to-purple-950/30">
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <Skeleton className="w-12 h-12 rounded-xl" />
+            <div>
+              <Skeleton className="h-8 w-64 mb-2" />
+              <Skeleton className="h-4 w-96" />
+            </div>
+          </div>
+        </div>
+        <Skeleton className="h-10 w-[300px] mb-6" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-24 w-full" />
+          ))}
+        </div>
+        <Skeleton className="h-96 w-full" />
+      </div>
+    </div>
+  );
+}
+
+export default function AIReasoningPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AIReasoningContent />
+    </Suspense>
   );
 }
