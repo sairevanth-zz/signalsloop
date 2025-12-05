@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import { updatePreferences } from '@/lib/notifications/web-push';
 
 export const dynamic = 'force-dynamic';
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = getSupabaseServerClient();
+    const supabase = await createServerClient();
     if (!supabase) {
       return NextResponse.json(
         { error: 'Database connection not available' },
@@ -85,7 +85,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const supabase = getSupabaseServerClient();
+    const supabase = await createServerClient();
     if (!supabase) {
       return NextResponse.json(
         { error: 'Database connection not available' },

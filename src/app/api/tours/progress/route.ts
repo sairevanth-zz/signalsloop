@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import {
   saveTourProgressToDatabase,
   getTourProgressFromDatabase,
@@ -20,7 +20,7 @@ export const runtime = 'nodejs';
  */
 export async function GET() {
   try {
-    const supabase = getSupabaseServerClient();
+    const supabase = await createServerClient();
     if (!supabase) {
       return NextResponse.json(
         { error: 'Database connection not available' },
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = getSupabaseServerClient();
+    const supabase = await createServerClient();
     if (!supabase) {
       return NextResponse.json(
         { error: 'Database connection not available' },
@@ -114,7 +114,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const { tourId } = await request.json();
 
-    const supabase = getSupabaseServerClient();
+    const supabase = await createServerClient();
     if (!supabase) {
       return NextResponse.json(
         { error: 'Database connection not available' },

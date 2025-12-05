@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import { saveSubscription, getVapidPublicKey } from '@/lib/notifications/web-push';
 import type { PushSubscriptionData } from '@/lib/notifications/types';
 
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = getSupabaseServerClient();
+    const supabase = await createServerClient();
     if (!supabase) {
       return NextResponse.json(
         { error: 'Database connection not available' },
