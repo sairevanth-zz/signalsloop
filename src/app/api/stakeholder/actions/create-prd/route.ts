@@ -69,22 +69,17 @@ Create a PRD with these sections (be concise):
 
 Format in clean markdown. Keep it under 1000 words.`;
 
-    // Generate PRD with timeout handling
-    const message = await Promise.race([
-      anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000, // Reduced for faster generation
-        messages: [
-          {
-            role: 'user',
-            content: prdPrompt,
-          },
-        ],
-      }),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('PRD generation timed out')), 8000)
-      )
-    ]) as Anthropic.Message;
+    // Generate PRD (simplified - removed timeout race condition)
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      messages: [
+        {
+          role: 'user',
+          content: prdPrompt,
+        },
+      ],
+    });
 
     const prdContent = message.content[0].type === 'text' ? message.content[0].text : '';
 
@@ -92,22 +87,31 @@ Format in clean markdown. Keep it under 1000 words.`;
       throw new Error('Failed to generate PRD content');
     }
 
-    // Save PRD to database (optional)
-    const { data: savedPRD, error: saveError } = await supabase
-      .from('documents')
-      .insert({
-        project_id: projectId,
-        user_id: user.id,
-        title: `PRD - ${new Date().toISOString().split('T')[0]}`,
-        content: prdContent,
-        type: 'prd',
-      })
-      .select()
-      .single();
+    console.log('[Create PRD] Generated PRD with', prdContent.length, 'characters');
 
-    if (saveError) {
-      console.warn('[Create PRD] Failed to save to database:', saveError);
-      // Continue anyway, we still have the PRD content
+    // Try to save to database, but don't fail if table doesn't exist
+    let savedPRD = null;
+    try {
+      const { data, error: saveError } = await supabase
+        .from('documents')
+        .insert({
+          project_id: projectId,
+          user_id: user.id,
+          title: `PRD - ${new Date().toISOString().split('T')[0]}`,
+          content: prdContent,
+          type: 'prd',
+        })
+        .select()
+        .single();
+
+      if (saveError) {
+        console.warn('[Create PRD] Failed to save to database:', saveError);
+      } else {
+        savedPRD = data;
+      }
+    } catch (dbError) {
+      console.warn('[Create PRD] Database save error (table may not exist):', dbError);
+      // Continue anyway - we still have the PRD content
     }
 
     return NextResponse.json({
