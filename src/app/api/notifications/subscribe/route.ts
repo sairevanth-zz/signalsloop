@@ -102,8 +102,12 @@ export async function GET() {
   const publicKey = getVapidPublicKey();
 
   if (!publicKey) {
+    console.error('[Subscribe API] VAPID public key not found. Set NEXT_PUBLIC_VAPID_PUBLIC_KEY env var.');
     return NextResponse.json(
-      { error: 'Push notifications not configured' },
+      { 
+        error: 'Push notifications not configured. NEXT_PUBLIC_VAPID_PUBLIC_KEY environment variable is missing.',
+        hint: 'Add NEXT_PUBLIC_VAPID_PUBLIC_KEY to your Vercel environment variables'
+      },
       { status: 503 }
     );
   }

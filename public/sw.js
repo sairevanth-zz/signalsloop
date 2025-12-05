@@ -1,28 +1,26 @@
 /**
  * Service Worker for SignalsLoop PWA
- * Handles push notifications and offline caching
+ * Handles push notifications
  */
 
-const CACHE_NAME = 'signalsloop-v2';
+const CACHE_NAME = 'signalsloop-v3';
 
-// Install event - skip caching to avoid errors with missing assets
+// Install event - activate immediately
 self.addEventListener('install', (event) => {
-  // Activate immediately without caching
   self.skipWaiting();
 });
 
-// Activate event - cleanup old caches
+// Activate event - take control immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME)
+          .filter((name) => name.startsWith('signalsloop-') && name !== CACHE_NAME)
           .map((name) => caches.delete(name))
       );
     })
   );
-  // Take control immediately
   self.clients.claim();
 });
 
@@ -43,8 +41,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body || 'New notification',
-    icon: data.icon || '/icon-192x192.png',
-    badge: data.badge || '/badge-72x72.png',
+    icon: data.icon || '/favicon.ico',
+    badge: data.badge || '/favicon.ico',
     image: data.image,
     vibrate: [100, 50, 100],
     data: {
@@ -56,7 +54,7 @@ self.addEventListener('push', (event) => {
     requireInteraction: data.requireInteraction || false,
     silent: data.silent || false,
     timestamp: data.timestamp || Date.now(),
-    renotify: !!data.tag, // Renotify if using tags
+    renotify: !!data.tag,
   };
 
   event.waitUntil(
@@ -71,19 +69,15 @@ self.addEventListener('notificationclick', (event) => {
   const action = event.action;
   const url = event.notification.data?.url || '/';
 
-  // Handle different actions
   if (action === 'dismiss') {
     return;
   }
 
-  // Default action: open URL
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Check if there's already a window open
       for (const client of clientList) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
           client.focus();
-          // Navigate to the notification URL
           client.postMessage({
             type: 'NOTIFICATION_CLICK',
             url: url,
@@ -92,7 +86,6 @@ self.addEventListener('notificationclick', (event) => {
           return;
         }
       }
-      // If no window is open, open a new one
       if (clients.openWindow) {
         return clients.openWindow(url);
       }
@@ -100,9 +93,8 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Notification close event (for analytics)
+// Notification close event
 self.addEventListener('notificationclose', (event) => {
-  // Could send analytics here
   console.log('[SW] Notification closed:', event.notification.tag);
 });
 
@@ -110,45 +102,5 @@ self.addEventListener('notificationclose', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
-  }
-});
-
-// Fetch event - Network first strategy for API, cache first for assets
-self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-
-  // Only handle same-origin requests
-  if (url.origin !== self.location.origin) {
-    return;
-  }
-
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  // For API requests, use network first
-  if (url.pathname.startsWith('/api/')) {
-    return;
-  }
-
-  // For static assets, use cache first
-  if (STATIC_ASSETS.some((asset) => url.pathname === asset)) {
-    event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        return fetch(event.request).then((response) => {
-          if (response && response.status === 200) {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return response;
-        });
-      })
-    );
   }
 });
