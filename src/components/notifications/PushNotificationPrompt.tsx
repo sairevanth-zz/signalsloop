@@ -75,8 +75,21 @@ export function PushNotificationPrompt({
       throw new Error('Service workers not supported');
     }
 
-    const registration = await navigator.serviceWorker.register('/sw.js');
-    await navigator.serviceWorker.ready;
+    // Register with timeout
+    const registrationPromise = navigator.serviceWorker.register('/sw.js');
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Service worker registration timed out')), 10000);
+    });
+
+    const registration = await Promise.race([registrationPromise, timeoutPromise]);
+    
+    // Wait for ready with timeout
+    const readyPromise = navigator.serviceWorker.ready;
+    const readyTimeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Service worker activation timed out')), 10000);
+    });
+
+    await Promise.race([readyPromise, readyTimeoutPromise]);
     return registration;
   }, []);
 
@@ -85,31 +98,45 @@ export function PushNotificationPrompt({
     setError(null);
 
     try {
-      // Request notification permission
+      // Step 1: Request notification permission
+      console.log('[Push] Requesting permission...');
       const result = await Notification.requestPermission();
       setPermission(result as PermissionState);
 
       if (result !== 'granted') {
-        throw new Error('Permission denied');
+        throw new Error('Notification permission denied by browser');
       }
+      console.log('[Push] Permission granted');
 
-      // Register service worker
+      // Step 2: Register service worker
+      console.log('[Push] Registering service worker...');
       const registration = await registerServiceWorker();
+      console.log('[Push] Service worker registered');
 
-      // Get VAPID public key
+      // Step 3: Get VAPID public key
+      console.log('[Push] Fetching VAPID key...');
       const vapidResponse = await fetch('/api/notifications/subscribe');
       if (!vapidResponse.ok) {
-        throw new Error('Push notifications not configured');
+        const errorData = await vapidResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || `VAPID fetch failed: ${vapidResponse.status}`);
       }
       const { publicKey } = await vapidResponse.json();
+      
+      if (!publicKey) {
+        throw new Error('VAPID public key not configured on server');
+      }
+      console.log('[Push] Got VAPID key');
 
-      // Subscribe to push
+      // Step 4: Subscribe to push manager
+      console.log('[Push] Subscribing to push manager...');
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
+      console.log('[Push] Push subscription created');
 
-      // Send subscription to backend
+      // Step 5: Save subscription to backend
+      console.log('[Push] Saving subscription to backend...');
       const response = await fetch('/api/notifications/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -120,14 +147,17 @@ export function PushNotificationPrompt({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save subscription');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Save failed: ${response.status}`);
       }
+      console.log('[Push] Subscription saved successfully');
 
       setHasSubscription(true);
       onSubscribed?.();
     } catch (err) {
-      console.error('Error subscribing to push:', err);
-      setError(err instanceof Error ? err.message : 'Failed to enable notifications');
+      console.error('[Push] Error:', err);
+      const message = err instanceof Error ? err.message : 'Failed to enable notifications';
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -244,7 +274,10 @@ export function PushNotificationPrompt({
           </p>
           
           {error && (
-            <p className="text-sm text-red-600 mt-2">{error}</p>
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-700 font-medium">Failed to enable</p>
+              <p className="text-xs text-red-600 mt-1">{error}</p>
+            </div>
           )}
 
           <button
