@@ -21,6 +21,9 @@ import { TwitterSyncer } from './syncers/twitter-syncer';
 import { RedditSyncer } from './syncers/reddit-syncer';
 import { G2Syncer } from './syncers/g2-syncer';
 import { AppStoreSyncer } from './syncers/appstore-syncer';
+import { PlayStoreSyncer } from './syncers/playstore-syncer';
+import { HackerNewsSyncer } from './syncers/hackernews-syncer';
+import { ProductHuntSyncer } from './syncers/producthunt-syncer';
 
 export class SyncOrchestrator {
   private supabase: SupabaseClient;
@@ -42,6 +45,9 @@ export class SyncOrchestrator {
     this.syncers.set('reddit', new RedditSyncer());
     this.syncers.set('g2', new G2Syncer());
     this.syncers.set('app_store', new AppStoreSyncer());
+    this.syncers.set('play_store', new PlayStoreSyncer());
+    this.syncers.set('hackernews', new HackerNewsSyncer());
+    this.syncers.set('producthunt', new ProductHuntSyncer());
   }
   
   /**
