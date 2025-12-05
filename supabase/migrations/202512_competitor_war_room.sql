@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS competitor_alerts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   competitor_name VARCHAR(255) NOT NULL,
-  competitor_id UUID REFERENCES competitors(id) ON DELETE SET NULL,
+  competitor_id UUID, -- Optional reference, no FK constraint as competitors table may not exist
   
   -- Alert details
   alert_type VARCHAR(50) NOT NULL, -- 'feature_launch', 'pricing_change', 'acquisition', 'job_posting', 'review_trend', 'social_mention', 'press_release'
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS competitor_job_postings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   competitor_name VARCHAR(255) NOT NULL,
-  competitor_id UUID REFERENCES competitors(id) ON DELETE SET NULL,
+  competitor_id UUID, -- Optional reference, no FK constraint as competitors table may not exist
   
   -- Job details
   job_title VARCHAR(500) NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS competitor_monitoring_config (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   competitor_name VARCHAR(255) NOT NULL,
-  competitor_id UUID REFERENCES competitors(id) ON DELETE SET NULL,
+  competitor_id UUID, -- Optional reference, no FK constraint as competitors table may not exist
   
   -- Monitoring settings
   is_active BOOLEAN DEFAULT true,
