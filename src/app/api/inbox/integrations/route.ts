@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase-server';
+import { createServerClient } from '@/lib/supabase-client';
 import { SyncOrchestrator } from '@/lib/inbox/sync-orchestrator';
 import { IntegrationType } from '@/lib/inbox/types';
 

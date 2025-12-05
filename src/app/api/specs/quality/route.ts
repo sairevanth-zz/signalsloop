@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase-server';
+import { createServerClient } from '@/lib/supabase-client';
 import { specQualityScorer } from '@/lib/specs/quality-scorer';
 import type { SpecTemplate } from '@/types/specs';
 

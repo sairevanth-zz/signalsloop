@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase-server';
+import { createServerClient } from '@/lib/supabase-client';
 import { executiveBriefService } from '@/lib/briefs/executive-brief-service';
 
 interface RouteParams {
