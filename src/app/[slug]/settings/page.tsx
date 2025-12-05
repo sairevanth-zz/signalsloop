@@ -36,12 +36,14 @@ import {
   Users,
   Activity,
   Briefcase,
-  DollarSign
+  DollarSign,
+  Bell
 } from 'lucide-react';
 import { NotificationRecipientsManager } from '@/components/NotificationRecipientsManager';
 import { TeammatesSettings } from '@/components/TeammatesSettings';
 import { AgentDashboard } from '@/components/agents/AgentDashboard';
 import { TriagerSettingsPanel } from '@/components/agents/TriagerSettingsPanel';
+import { NotificationSettings, PushNotificationPrompt } from '@/components/notifications';
 
 interface Project {
   id: string;
@@ -490,6 +492,13 @@ export default function SettingsPage() {
                   <span className="hidden sm:inline">Emails</span>
                 </TabsTrigger>
                 <TabsTrigger
+                  value="push"
+                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
+                >
+                  <Bell className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Push</span>
+                </TabsTrigger>
+                <TabsTrigger
                   value="webhooks"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
@@ -716,6 +725,36 @@ export default function SettingsPage() {
               projectSlug={project.slug}
               currentUserId={authUser?.id}
             />
+          </TabsContent>
+
+          <TabsContent value="push" className="mt-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                    <Bell className="w-5 h-5 text-purple-500" />
+                    Push Notifications
+                  </h3>
+                  <p className="text-gray-600 mt-1">
+                    Get real-time alerts for anomalies, competitive intel, and important updates
+                  </p>
+                </div>
+              </div>
+              
+              {/* Enable Push Notifications */}
+              <div className="mb-8">
+                <PushNotificationPrompt 
+                  projectId={project.id} 
+                  variant="card" 
+                />
+              </div>
+
+              {/* Notification Preferences */}
+              <div className="border-t pt-6">
+                <h4 className="text-lg font-medium text-gray-900 mb-4">Notification Preferences</h4>
+                <NotificationSettings projectId={project.id} />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="webhooks" className="mt-6">
