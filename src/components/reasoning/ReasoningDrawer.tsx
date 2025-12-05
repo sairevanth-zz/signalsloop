@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   ReasoningTrace,
@@ -181,7 +180,7 @@ export function ReasoningDrawer({
             </div>
 
             {/* Content */}
-            <ScrollArea className="flex-1">
+            <div className="flex-1 overflow-y-auto">
               {loading ? (
                 <div className="p-6 space-y-4">
                   <Skeleton className="h-24 w-full" />
@@ -417,7 +416,7 @@ export function ReasoningDrawer({
                   )}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           </motion.div>
         </>
       )}
