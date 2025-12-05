@@ -69,12 +69,20 @@ const templates = [
 
 const notifications = [
   {
+    id: '0',
+    type: 'feature',
+    title: '🧠 AI Reasoning Layer',
+    message: 'Click "Why?" on any AI recommendation to see the full reasoning process!',
+    timestamp: 'Just now',
+    unread: true
+  },
+  {
     id: '1',
     type: 'feature',
     title: '🎯 Feature Outcome Attribution',
     message: 'Track what happens after you ship features - Check out Outcomes in your project!',
-    timestamp: 'Just now',
-    unread: true
+    timestamp: '1 day ago',
+    unread: false
   },
   {
     id: '2',
@@ -103,6 +111,18 @@ const notifications = [
 ];
 
 const changelogItems = [
+  {
+    version: 'v3.0.0',
+    date: '2025-12-08',
+    features: [
+      '🧠 NEW: AI Reasoning Layer - Transparent AI decision-making',
+      'Click "Why?" to see the full reasoning behind any AI recommendation',
+      'Step-by-step reasoning timeline with evidence and confidence scores',
+      'Alternatives considered - see what other options AI evaluated',
+      'Full audit trail of all AI decisions with data sources',
+      'Integration across predictions, prioritization, and all AI features'
+    ]
+  },
   {
     version: 'v2.9.0',
     date: '2025-12-07',
@@ -417,6 +437,19 @@ export default function QuickActionsSidebar({
             >
               <Sparkles className="w-4 h-4 mr-2" />
               Feature Predictions
+              <Badge variant="secondary" className="ml-auto text-xs bg-purple-500 text-white">
+                NEW
+              </Badge>
+            </Button>
+          </a>
+          <a href="/app/reasoning" className="block">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start hover:bg-purple-100 bg-indigo-50 border border-indigo-200"
+            >
+              <Brain className="w-4 h-4 mr-2" />
+              AI Reasoning
               <Badge variant="secondary" className="ml-auto text-xs bg-purple-500 text-white">
                 NEW
               </Badge>

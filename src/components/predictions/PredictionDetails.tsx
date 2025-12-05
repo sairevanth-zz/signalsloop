@@ -9,7 +9,8 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { FeaturePrediction } from '@/types/prediction';
-import { X, TrendingUp, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { X, TrendingUp, AlertCircle, CheckCircle2, Brain } from 'lucide-react';
+import { WhyButton } from '@/components/reasoning';
 
 interface PredictionDetailsProps {
   prediction: FeaturePrediction;
@@ -26,9 +27,17 @@ export function PredictionDetails({ prediction, onClose }: PredictionDetailsProp
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-bold">{prediction.feature_name}</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Prediction generated {new Date(prediction.created_at).toLocaleDateString()}
-          </p>
+          <div className="flex items-center gap-3 mt-1">
+            <p className="text-sm text-muted-foreground">
+              Prediction generated {new Date(prediction.created_at).toLocaleDateString()}
+            </p>
+            <WhyButton
+              entityType="prediction"
+              entityId={prediction.id}
+              feature="prediction"
+              size="sm"
+            />
+          </div>
         </div>
         {onClose && (
           <Button variant="ghost" size="icon" onClick={onClose}>
