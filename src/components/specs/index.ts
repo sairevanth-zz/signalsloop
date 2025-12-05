@@ -10,3 +10,4 @@ export {
   GenerateSpecFromFeedback,
   SpecWriterFloatingButton,
 } from './generate-spec-from-feedback';
+export { SpecQualityScore } from './SpecQualityScore';

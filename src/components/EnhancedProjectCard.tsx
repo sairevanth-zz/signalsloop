@@ -25,7 +25,10 @@ import {
   FileText,
   Brain,
   Phone,
-  BarChart3
+  BarChart3,
+  Inbox,
+  FileBarChart,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -219,6 +222,27 @@ export default function EnhancedProjectCard({
                   <Brain className="mr-2 h-4 w-4" />
                   Mission Control
                   <Badge className="ml-auto text-xs bg-blue-500 text-white">NEW</Badge>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/${project.slug}/inbox`}>
+                  <Inbox className="mr-2 h-4 w-4" />
+                  Universal Inbox
+                  <Badge className="ml-auto text-xs bg-green-500 text-white">NEW</Badge>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/${project.slug}/briefs`}>
+                  <FileBarChart className="mr-2 h-4 w-4" />
+                  Executive Briefs
+                  <Badge className="ml-auto text-xs bg-purple-500 text-white">NEW</Badge>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/${project.slug}/churn-radar`}>
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  Churn Radar
+                  <Badge className="ml-auto text-xs bg-red-500 text-white">NEW</Badge>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>

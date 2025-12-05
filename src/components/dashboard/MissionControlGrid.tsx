@@ -20,7 +20,8 @@ import { SentimentForecastCard } from './SentimentForecastCard';
 import { AnomalyAlertCard } from './AnomalyAlertCard';
 import { ProductHealthScoreCard } from './ProductHealthScoreCard';
 import { LiveExperimentsCard } from './LiveExperimentsCard';
-import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio, Activity, Users } from 'lucide-react';
+import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio, Activity, Users, Inbox, FileBarChart, AlertTriangle, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
 
@@ -303,6 +304,73 @@ export function MissionControlGrid({ briefing, briefingId, metrics: initialMetri
 
       {/* Agent Activity Card */}
       <AgentActivityCard projectId={projectId} projectSlug={projectSlug} />
+
+      {/* Quick Links to New Features (spans 4 columns) */}
+      <BentoCard colSpan={4} className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-white flex items-center gap-2">
+              <Zap className="h-5 w-5 text-yellow-400" />
+              Customer Intelligence Suite
+            </h3>
+            <span className="rounded-full bg-green-500/20 px-2 py-1 text-xs font-medium text-green-400">
+              NEW
+            </span>
+          </div>
+          <p className="text-sm text-slate-400">
+            Advanced tools for understanding your customers and preventing churn
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Universal Inbox */}
+            <Link href={`/${projectSlug}/inbox`} className="group">
+              <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-green-500 hover:bg-slate-800">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="p-2 rounded-lg bg-green-500/20">
+                    <Inbox className="h-5 w-5 text-green-400" />
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-green-400 transition-colors" />
+                </div>
+                <h4 className="font-medium text-white mb-1">Universal Inbox</h4>
+                <p className="text-xs text-slate-400">
+                  All feedback from Slack, Intercom, G2, and more in one AI-powered inbox
+                </p>
+              </div>
+            </Link>
+
+            {/* Executive Briefs */}
+            <Link href={`/${projectSlug}/briefs`} className="group">
+              <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-blue-500 hover:bg-slate-800">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="p-2 rounded-lg bg-blue-500/20">
+                    <FileBarChart className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-blue-400 transition-colors" />
+                </div>
+                <h4 className="font-medium text-white mb-1">Executive Briefs</h4>
+                <p className="text-xs text-slate-400">
+                  Auto-generated weekly reports with insights, action items & risks
+                </p>
+              </div>
+            </Link>
+
+            {/* Churn Radar */}
+            <Link href={`/${projectSlug}/churn-radar`} className="group">
+              <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-red-500 hover:bg-slate-800">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="p-2 rounded-lg bg-red-500/20">
+                    <AlertTriangle className="h-5 w-5 text-red-400" />
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-red-400 transition-colors" />
+                </div>
+                <h4 className="font-medium text-white mb-1">Churn Radar</h4>
+                <p className="text-xs text-slate-400">
+                  Predict and prevent churn with health scores and smart alerts
+                </p>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </BentoCard>
       </div>
     </>
   );

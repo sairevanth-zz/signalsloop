@@ -20,7 +20,10 @@ import {
   Search,
   Phone,
   MessageSquareText,
-  Shield
+  Shield,
+  Inbox,
+  FileBarChart,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   Dialog,
@@ -69,12 +72,36 @@ const templates = [
 
 const notifications = [
   {
+    id: 'inbox',
+    type: 'feature',
+    title: '📬 Universal Feedback Inbox',
+    message: 'All your feedback from Slack, Intercom, G2, Twitter in one AI-powered inbox!',
+    timestamp: 'Just now',
+    unread: true
+  },
+  {
+    id: 'briefs',
+    type: 'feature',
+    title: '📊 Executive Auto-Briefs',
+    message: 'Generate weekly stakeholder reports with insights, action items & risks!',
+    timestamp: 'Just now',
+    unread: true
+  },
+  {
+    id: 'churn',
+    type: 'feature',
+    title: '🚨 Churn Radar',
+    message: 'Predict customer churn with health scores and smart alerts!',
+    timestamp: 'Just now',
+    unread: true
+  },
+  {
     id: '0',
     type: 'feature',
     title: '🧠 AI Reasoning Layer',
     message: 'Click "Why?" on any AI recommendation to see the full reasoning process!',
-    timestamp: 'Just now',
-    unread: true
+    timestamp: '1 day ago',
+    unread: false
   },
   {
     id: '1',
@@ -111,6 +138,27 @@ const notifications = [
 ];
 
 const changelogItems = [
+  {
+    version: 'v4.0.0',
+    date: '2025-12-10',
+    features: [
+      '📬 NEW: Universal Feedback Inbox - All feedback in one place',
+      'Aggregate feedback from Slack, Discord, Intercom, Gmail, Twitter, G2, App Store & more',
+      'AI-powered classification, sentiment analysis, and urgency detection',
+      'Smart deduplication and customer unification across sources',
+      'Reply directly from the inbox to any source channel',
+      '📊 NEW: Executive Auto-Brief - Automated stakeholder reports',
+      'Generate daily, weekly, or monthly executive briefings with AI',
+      'Includes sentiment analysis, key insights, action items, and risk alerts',
+      'Revenue at risk calculations and competitor intelligence',
+      'Send via email or Slack with one click',
+      '🚨 NEW: Churn Radar - Predict and prevent customer churn',
+      'Health scores calculated from engagement, sentiment, support, usage, and payment signals',
+      'Automated alerts for at-risk accounts with recommended actions',
+      'Track customer health history and identify patterns',
+      'Revenue impact analysis for churn risk prioritization'
+    ]
+  },
   {
     version: 'v3.0.0',
     date: '2025-12-08',
@@ -455,6 +503,60 @@ export default function QuickActionsSidebar({
               </Badge>
             </Button>
           </a>
+        </CardContent>
+      </Card>
+
+      {/* New Phase 1-2 Features */}
+      <Card className="bg-gradient-to-br from-green-50 to-blue-50 border-green-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-green-900 flex items-center gap-2">
+            <Zap className="w-4 h-4" />
+            Customer Intelligence
+            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-300">
+              New
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-xs text-gray-600 mb-3">
+            Select a project to access these features
+          </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start hover:bg-green-100 bg-green-50 border border-green-200"
+            disabled
+          >
+            <Inbox className="w-4 h-4 mr-2" />
+            Universal Inbox
+            <Badge variant="secondary" className="ml-auto text-xs bg-green-500 text-white">
+              NEW
+            </Badge>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start hover:bg-blue-100 bg-blue-50 border border-blue-200"
+            disabled
+          >
+            <FileBarChart className="w-4 h-4 mr-2" />
+            Executive Briefs
+            <Badge variant="secondary" className="ml-auto text-xs bg-blue-500 text-white">
+              NEW
+            </Badge>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start hover:bg-red-100 bg-red-50 border border-red-200"
+            disabled
+          >
+            <AlertTriangle className="w-4 h-4 mr-2" />
+            Churn Radar
+            <Badge variant="secondary" className="ml-auto text-xs bg-red-500 text-white">
+              NEW
+            </Badge>
+          </Button>
         </CardContent>
       </Card>
 
