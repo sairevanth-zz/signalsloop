@@ -7,21 +7,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { getFeatureFlagIntegration } from '@/lib/experiments/feature-flags';
+import { verifyLaunchDarklySignature } from '@/lib/webhook-security';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    // Get raw body for signature verification
+    const rawBody = await request.text();
+    const body = JSON.parse(rawBody);
 
-    console.log('[LaunchDarkly Webhook] Received:', body);
+    console.log('[LaunchDarkly Webhook] Received event:', body.kind || body._eventType);
 
-    // Verify webhook signature (if configured)
+    // Verify webhook signature (required if secret is configured)
     const signature = request.headers.get('x-ld-signature');
-    if (signature && process.env.LAUNCHDARKLY_WEBHOOK_SECRET) {
-      // TODO: Implement signature verification
-      // const isValid = verifyWebhookSignature(body, signature);
-      // if (!isValid) {
-      //   return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-      // }
+    const webhookSecret = process.env.LAUNCHDARKLY_WEBHOOK_SECRET;
+    
+    if (webhookSecret) {
+      const verification = verifyLaunchDarklySignature(rawBody, signature, webhookSecret);
+      if (!verification.valid) {
+        console.error('[LaunchDarkly Webhook] Signature verification failed:', verification.error);
+        return NextResponse.json(
+          { error: 'Invalid signature', details: verification.error },
+          { status: 401 }
+        );
+      }
+      console.log('[LaunchDarkly Webhook] Signature verified');
+    } else {
+      console.warn('[LaunchDarkly Webhook] No webhook secret configured - signature not verified');
     }
 
     const supabase = getSupabaseServiceRoleClient();

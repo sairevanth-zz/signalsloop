@@ -7,17 +7,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { getFeatureFlagIntegration } from '@/lib/experiments/feature-flags';
+import { verifyOptimizelySignature } from '@/lib/webhook-security';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    // Get raw body for signature verification
+    const rawBody = await request.text();
+    const body = JSON.parse(rawBody);
 
-    console.log('[Optimizely Webhook] Received:', body);
+    console.log('[Optimizely Webhook] Received event:', body.event_type || body.type);
 
-    // Verify webhook signature (if configured)
+    // Verify webhook signature (required if secret is configured)
     const signature = request.headers.get('x-optimizely-signature');
-    if (signature && process.env.OPTIMIZELY_WEBHOOK_SECRET) {
-      // TODO: Implement signature verification
+    const webhookSecret = process.env.OPTIMIZELY_WEBHOOK_SECRET;
+    
+    if (webhookSecret) {
+      const verification = verifyOptimizelySignature(rawBody, signature, webhookSecret);
+      if (!verification.valid) {
+        console.error('[Optimizely Webhook] Signature verification failed:', verification.error);
+        return NextResponse.json(
+          { error: 'Invalid signature', details: verification.error },
+          { status: 401 }
+        );
+      }
+      console.log('[Optimizely Webhook] Signature verified');
+    } else {
+      console.warn('[Optimizely Webhook] No webhook secret configured - signature not verified');
     }
 
     const supabase = getSupabaseServiceRoleClient();
