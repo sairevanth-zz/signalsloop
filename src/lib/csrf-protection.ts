@@ -5,19 +5,54 @@ import { serialize, parse } from 'cookie';
 /**
  * CSRF Protection using csrf-csrf package
  * Implements Double Submit Cookie pattern
+ * 
+ * SECURITY: CSRF_SECRET environment variable MUST be set in production.
+ * Generate with: openssl rand -hex 32
  */
 
-const CSRF_SECRET = process.env.CSRF_SECRET || 'your-csrf-secret-change-this-in-production';
 const CSRF_COOKIE_NAME = '__Host-csrf-token';
 const CSRF_HEADER_NAME = 'x-csrf-token';
 
-// Initialize CSRF protection
+/**
+ * Get CSRF secret from environment
+ * @throws Error if CSRF_SECRET is not configured in production
+ */
+function getCSRFSecret(): string {
+  const secret = process.env.CSRF_SECRET;
+  
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'SECURITY ERROR: CSRF_SECRET environment variable is not set. ' +
+        'This is required in production. Generate with: openssl rand -hex 32'
+      );
+    }
+    // Only allow fallback in development with a warning
+    console.warn(
+      '⚠️  CSRF_SECRET not set - using development fallback. ' +
+      'Set CSRF_SECRET in production!'
+    );
+    return 'dev-only-csrf-secret-not-for-production';
+  }
+  
+  // Validate secret strength (should be at least 32 characters)
+  if (secret.length < 32) {
+    throw new Error(
+      'SECURITY ERROR: CSRF_SECRET is too short. ' +
+      'Must be at least 32 characters. Generate with: openssl rand -hex 32'
+    );
+  }
+  
+  return secret;
+}
+
+// Initialize CSRF protection with validated secret
 const {
   generateToken,
   validateRequest,
   doubleCsrfProtection,
 } = doubleCsrf({
-  getSecret: () => CSRF_SECRET,
+  getSecret: getCSRFSecret,
   cookieName: CSRF_COOKIE_NAME,
   cookieOptions: {
     httpOnly: true,

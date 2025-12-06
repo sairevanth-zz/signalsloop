@@ -382,6 +382,10 @@ export async function validateAuth(request: NextRequest): Promise<{
 
 /**
  * Admin authentication validator (JWT-based)
+ * 
+ * SECURITY: Admin access is controlled via environment variables only.
+ * Set ADMIN_USER_IDS and/or ADMIN_EMAILS to grant admin access.
+ * NO hardcoded fallback emails are used for security.
  */
 export async function validateAdminAuth(request: NextRequest): Promise<{
   valid: boolean;
@@ -410,12 +414,14 @@ export async function validateAdminAuth(request: NextRequest): Promise<{
       return { valid: false, error: 'Invalid authentication token' };
     }
 
+    // Get admin user IDs from environment (comma-separated)
     const adminUserIds = (process.env.ADMIN_USER_IDS || '')
       .split(',')
       .map((id) => id.trim())
       .filter(Boolean);
 
-    const configuredAdminEmails = (
+    // Get admin emails from environment (comma-separated)
+    const adminEmails = (
       process.env.ADMIN_EMAILS ||
       process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
       ''
@@ -424,20 +430,28 @@ export async function validateAdminAuth(request: NextRequest): Promise<{
       .map((email) => email.trim().toLowerCase())
       .filter(Boolean);
 
-    const fallbackAdminEmails = [
-      'sai.chandupatla@gmail.com',
-      'admin@signalsloop.com',
-    ];
-
-    const allowedEmails =
-      configuredAdminEmails.length > 0 ? configuredAdminEmails : fallbackAdminEmails;
+    // SECURITY: No hardcoded fallback emails
+    // Admin access must be explicitly configured via environment variables
+    if (adminUserIds.length === 0 && adminEmails.length === 0) {
+      console.error(
+        'SECURITY WARNING: No admin users configured. ' +
+        'Set ADMIN_USER_IDS or ADMIN_EMAILS environment variable.'
+      );
+      return { 
+        valid: false, 
+        error: 'Admin access not configured. Contact system administrator.' 
+      };
+    }
 
     const userEmail = (user.email || '').toLowerCase();
-    const matchesUserId =
-      adminUserIds.length > 0 && adminUserIds.includes(user.id);
-    const matchesEmail = allowedEmails.includes(userEmail);
+    const matchesUserId = adminUserIds.includes(user.id);
+    const matchesEmail = adminEmails.includes(userEmail);
 
     if (!matchesUserId && !matchesEmail) {
+      // Log unauthorized admin access attempts
+      console.warn(
+        `Unauthorized admin access attempt: ${userEmail} (${user.id})`
+      );
       return { valid: false, error: 'Admin access required' };
     }
 
