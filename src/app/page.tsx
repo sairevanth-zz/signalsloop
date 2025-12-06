@@ -165,9 +165,7 @@ export default function Homepage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 gradient-cyan-purple rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-sm">S</span>
-          </div>
+          <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-8 h-8 rounded-lg shadow-sm mb-4" />
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-4"></div>
           <p className="text-gray-700">Loading...</p>
         </div>
@@ -183,12 +181,10 @@ export default function Homepage() {
         <div className="container mx-auto px-4 py-4 md:py-5">
           <div className="flex items-center justify-between gap-2">
             <Link href="/" className="flex items-center space-x-3 min-touch-target tap-highlight-transparent group">
-              <div className="w-10 h-10 md:w-11 md:h-11 gradient-cyan-purple rounded-3xl flex items-center justify-center flex-shrink-0 shadow-soft group-hover:scale-105 transition-transform">
-                <span className="text-white font-display font-bold text-lg md:text-xl">S</span>
-              </div>
+              <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex-shrink-0 shadow-soft group-hover:scale-105 transition-transform" />
               <span className="font-body text-lg md:text-2xl font-display font-bold text-gray-900 hidden xs:inline">SignalsLoop</span>
             </Link>
-            
+
             <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-body text-sm text-gray-700 whitespace-nowrap">
               <Link href="#features" className="hover:text-cyan-500 transition-colors min-touch-target font-medium">
                 Features
@@ -269,239 +265,239 @@ export default function Homepage() {
         <div className="absolute bottom-[30%] right-[18%] w-40 h-40 border-2 border-purple-300/15 rounded-full spin-slow hidden lg:block" style={{ animationDelay: '5s', animationDuration: '25s' }}></div>
 
         <div className="relative z-10">
-        <div className="container mx-auto text-center max-w-6xl">
+          <div className="container mx-auto text-center max-w-6xl">
 
-          {/* Single focused badge */}
-          <div className="mb-8 flex items-center justify-center gap-3 animate-fade-in">
-            <Badge className="gradient-cyan-purple text-white border-0 font-body font-semibold text-sm px-4 py-2 rounded-full shadow-depth-md hover:shadow-depth-lg transition-all hover:scale-105">
-              <span className="inline-block mr-1.5">🚀</span> 5 AI Models • Auto-Categorize • Prioritize • Build Roadmaps
-            </Badge>
-          </div>
-
-          {/* Simplified trust indicators */}
-          <div className="flex flex-wrap justify-center gap-2 mb-10 text-xs font-medium">
-            <div className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full shadow-depth-sm border border-gray-100">
-              <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full"></div>
-              <span>Free Forever Plan</span>
+            {/* Single focused badge */}
+            <div className="mb-8 flex items-center justify-center gap-3 animate-fade-in">
+              <Badge className="gradient-cyan-purple text-white border-0 font-body font-semibold text-sm px-4 py-2 rounded-full shadow-depth-md hover:shadow-depth-lg transition-all hover:scale-105">
+                <span className="inline-block mr-1.5">🚀</span> 5 AI Models • Auto-Categorize • Prioritize • Build Roadmaps
+              </Badge>
             </div>
-            <div className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full shadow-depth-sm border border-gray-100">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-              <span>$19/mo vs $99-299/mo</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full shadow-depth-sm border border-gray-100">
-              <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full"></div>
-              <span>2-Minute Setup</span>
-            </div>
-          </div>
 
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display text-gray-900 mb-8 leading-tight animate-fade-in px-4">
-            The AI Product Intelligence<br className="hidden sm:block" />
-            <span className="relative inline-block bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 bg-clip-text text-transparent">
-              Platform That Builds Your<br className="hidden sm:block" />
-              Roadmap for You.
-            </span>
-          </h1>
-
-          <p className="font-body-relaxed text-xl sm:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto px-4">
-            Connect with thousands of customers through public boards. AI reads every conversation, identifies patterns, prioritizes opportunities, and generates a <strong className="text-gray-900">data-driven roadmap—automatically.</strong>
-          </p>
-
-          <p className="font-body text-base text-gray-500 mb-12 max-w-2xl mx-auto px-4">
-            Powered by 5 proprietary AI models for categorization, priority scoring, duplicate detection, smart replies, and intelligent writing assistance.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 px-4">
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-2xl blur-md opacity-60 group-hover:opacity-100 transition duration-300 animate-pulse-slow" style={{
-                boxShadow: '0 0 60px rgba(0, 217, 255, 0.4), 0 0 100px rgba(0, 217, 255, 0.2)'
-              }}></div>
-              <div className="absolute -inset-2 bg-gradient-to-r from-cyan-400 to-sky-400 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
-              <Button
-                onClick={handleProCheckout}
-                size="lg"
-                className="relative btn-primary-glow font-body text-lg px-12 py-6 text-white font-bold rounded-2xl min-h-[64px] w-full sm:w-auto hover:scale-105 transition-all duration-300"
-              >
-                Get Started Free 🚀
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
-            <Link href="/demo/board" className="w-full sm:w-auto">
-              <Button
-                size="lg"
-                variant="outline"
-                className="font-body text-lg px-12 py-6 rounded-2xl border-2 border-gray-200 hover:border-cyan-400 hover:bg-cyan-50/50 transition-all duration-200 min-h-[64px] w-full font-semibold text-gray-700 hover:text-cyan-600 shadow-depth-sm hover:shadow-depth-md"
-              >
-                View Live Demo 👀
-              </Button>
-            </Link>
-          </div>
-
-          {/* Trust Signals - Clean and Minimal */}
-          <div className="flex flex-wrap items-center justify-center gap-6 mb-12 text-sm text-gray-500">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-cyan-500" />
-              <span>No credit card</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-cyan-500" />
-              <span>2-min setup</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-cyan-500" />
-              <span>Free forever</span>
-            </div>
-          </div>
-
-          {/* Founder/PM Testimonials - Professional & Refined */}
-          <div className="max-w-5xl mx-auto mb-8 px-4">
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Testimonial 1 - Indie Maker */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-depth-lg border border-gray-100 hover:shadow-depth-xl hover:-translate-y-1 transition-all duration-300">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 gradient-cyan-purple rounded-full flex items-center justify-center shadow-depth-sm">
-                    <span className="text-white text-lg font-bold">V</span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-gray-900">Vipin</div>
-                    <div className="text-xs text-gray-500 font-medium">Solo Founder @ Apex Cloud Hub</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-0.5 mb-3">
-                  {[1,2,3,4,5].map((star) => (
-                    <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-sm text-gray-600 font-body-relaxed leading-relaxed">
-                  "As a solo founder, I was drowning in feedback from 500+ users. SignalsLoop's AI sorted everything overnight. <strong className="text-gray-900">I saved 12 hours/week</strong> and finally knew what to build next."
-                </p>
+            {/* Simplified trust indicators */}
+            <div className="flex flex-wrap justify-center gap-2 mb-10 text-xs font-medium">
+              <div className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full shadow-depth-sm border border-gray-100">
+                <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full"></div>
+                <span>Free Forever Plan</span>
               </div>
-
-              {/* Testimonial 2 - Product Manager */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-depth-lg border border-gray-100 hover:shadow-depth-xl hover:-translate-y-1 transition-all duration-300">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center shadow-depth-sm">
-                    <span className="text-white text-lg font-bold">S</span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-gray-900">Srini</div>
-                    <div className="text-xs text-gray-500 font-medium">Head of Product @ Sanjeevani</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-0.5 mb-3">
-                  {[1,2,3,4,5].map((star) => (
-                    <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-sm text-gray-600 font-body-relaxed leading-relaxed">
-                  "We switched from a legacy tool (~$99/mo) to SignalsLoop. <strong className="text-gray-900">Got better AI features for 1/5th the price.</strong> The priority scoring alone changed how we plan our roadmap."
-                </p>
+              <div className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full shadow-depth-sm border border-gray-100">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                <span>$19/mo vs $99-299/mo</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full shadow-depth-sm border border-gray-100">
+                <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full"></div>
+                <span>2-Minute Setup</span>
               </div>
             </div>
-          </div>
-          
-          {/* Professional Social Proof */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-6 bg-white rounded-3xl px-8 py-4 shadow-lg border border-gray-100">
+
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display text-gray-900 mb-8 leading-tight animate-fade-in px-4">
+              The AI Product Intelligence<br className="hidden sm:block" />
+              <span className="relative inline-block bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 bg-clip-text text-transparent">
+                Platform That Builds Your<br className="hidden sm:block" />
+                Roadmap for You.
+              </span>
+            </h1>
+
+            <p className="font-body-relaxed text-xl sm:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto px-4">
+              Connect with thousands of customers through public boards. AI reads every conversation, identifies patterns, prioritizes opportunities, and generates a <strong className="text-gray-900">data-driven roadmap—automatically.</strong>
+            </p>
+
+            <p className="font-body text-base text-gray-500 mb-12 max-w-2xl mx-auto px-4">
+              Powered by 5 proprietary AI models for categorization, priority scoring, duplicate detection, smart replies, and intelligent writing assistance.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 px-4">
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-2xl blur-md opacity-60 group-hover:opacity-100 transition duration-300 animate-pulse-slow" style={{
+                  boxShadow: '0 0 60px rgba(0, 217, 255, 0.4), 0 0 100px rgba(0, 217, 255, 0.2)'
+                }}></div>
+                <div className="absolute -inset-2 bg-gradient-to-r from-cyan-400 to-sky-400 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
+                <Button
+                  onClick={handleProCheckout}
+                  size="lg"
+                  className="relative btn-primary-glow font-body text-lg px-12 py-6 text-white font-bold rounded-2xl min-h-[64px] w-full sm:w-auto hover:scale-105 transition-all duration-300"
+                >
+                  Get Started Free 🚀
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+              <Link href="/demo/board" className="w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="font-body text-lg px-12 py-6 rounded-2xl border-2 border-gray-200 hover:border-cyan-400 hover:bg-cyan-50/50 transition-all duration-200 min-h-[64px] w-full font-semibold text-gray-700 hover:text-cyan-600 shadow-depth-sm hover:shadow-depth-md"
+                >
+                  View Live Demo 👀
+                </Button>
+              </Link>
+            </div>
+
+            {/* Trust Signals - Clean and Minimal */}
+            <div className="flex flex-wrap items-center justify-center gap-6 mb-12 text-sm text-gray-500">
               <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  {[1,2,3,4].map((i) => (
-                    <div key={i} className="w-9 h-9 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">{String.fromCharCode(64 + i)}</span>
+                <CheckCircle className="h-4 w-4 text-cyan-500" />
+                <span>No credit card</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-cyan-500" />
+                <span>2-min setup</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-cyan-500" />
+                <span>Free forever</span>
+              </div>
+            </div>
+
+            {/* Founder/PM Testimonials - Professional & Refined */}
+            <div className="max-w-5xl mx-auto mb-8 px-4">
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Testimonial 1 - Indie Maker */}
+                <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-depth-lg border border-gray-100 hover:shadow-depth-xl hover:-translate-y-1 transition-all duration-300">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 gradient-cyan-purple rounded-full flex items-center justify-center shadow-depth-sm">
+                      <span className="text-white text-lg font-bold">V</span>
                     </div>
-                  ))}
-                  <div className="w-9 h-9 bg-gray-100 rounded-full border-2 border-white flex items-center justify-center">
-                    <span className="text-gray-700 text-sm font-bold">+</span>
+                    <div>
+                      <div className="font-bold text-gray-900">Vipin</div>
+                      <div className="text-xs text-gray-500 font-medium">Solo Founder @ Apex Cloud Hub</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-0.5 mb-3">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-600 font-body-relaxed leading-relaxed">
+                    "As a solo founder, I was drowning in feedback from 500+ users. SignalsLoop's AI sorted everything overnight. <strong className="text-gray-900">I saved 12 hours/week</strong> and finally knew what to build next."
+                  </p>
+                </div>
+
+                {/* Testimonial 2 - Product Manager */}
+                <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-depth-lg border border-gray-100 hover:shadow-depth-xl hover:-translate-y-1 transition-all duration-300">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center shadow-depth-sm">
+                      <span className="text-white text-lg font-bold">S</span>
+                    </div>
+                    <div>
+                      <div className="font-bold text-gray-900">Srini</div>
+                      <div className="text-xs text-gray-500 font-medium">Head of Product @ Sanjeevani</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-0.5 mb-3">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-600 font-body-relaxed leading-relaxed">
+                    "We switched from a legacy tool (~$99/mo) to SignalsLoop. <strong className="text-gray-900">Got better AI features for 1/5th the price.</strong> The priority scoring alone changed how we plan our roadmap."
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Professional Social Proof */}
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-6 bg-white rounded-3xl px-8 py-4 shadow-lg border border-gray-100">
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="w-9 h-9 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">{String.fromCharCode(64 + i)}</span>
+                      </div>
+                    ))}
+                    <div className="w-9 h-9 bg-gray-100 rounded-full border-2 border-white flex items-center justify-center">
+                      <span className="text-gray-700 text-sm font-bold">+</span>
+                    </div>
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-gray-900">Product Teams</div>
+                    <div className="text-xs text-gray-500">Building with SignalsLoop</div>
                   </div>
                 </div>
+                <div className="h-10 w-px bg-gray-200"></div>
                 <div className="text-left">
-                  <div className="text-sm font-bold text-gray-900">Product Teams</div>
-                  <div className="text-xs text-gray-500">Building with SignalsLoop</div>
+                  <div className="text-sm font-bold text-gray-900">AI Priorities</div>
+                  <div className="text-xs text-gray-500">Refreshed daily</div>
+                </div>
+                <div className="h-10 w-px bg-gray-200"></div>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  ))}
+                  <span className="ml-1 text-sm font-bold text-gray-900">5.0</span>
                 </div>
               </div>
-              <div className="h-10 w-px bg-gray-200"></div>
-              <div className="text-left">
-                <div className="text-sm font-bold text-gray-900">AI Priorities</div>
-                <div className="text-xs text-gray-500">Refreshed daily</div>
+            </div>
+
+            {/* Trust Badges */}
+            <div className="flex flex-wrap items-center justify-center gap-6 mb-12 text-xs text-gray-700">
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100">
+                <Shield className="h-5 w-5 text-blue-500" />
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">SSL Encrypted</div>
+                  <div className="text-xs">256-bit Security</div>
+                </div>
               </div>
-              <div className="h-10 w-px bg-gray-200"></div>
-              <div className="flex items-center gap-1">
-                {[1,2,3,4,5].map((star) => (
-                  <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                ))}
-                <span className="ml-1 text-sm font-bold text-gray-900">5.0</span>
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">GDPR Compliant</div>
+                  <div className="text-xs">Data Protected</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100">
+                <Zap className="h-5 w-5 text-yellow-500" />
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">99.9% Uptime</div>
+                  <div className="text-xs">Always Available</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100">
+                <Users className="h-5 w-5 text-cyan-400" />
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">Customer-Driven Teams</div>
+                  <div className="text-xs">Guiding the roadmap</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Product Hunt Badge */}
+            <div className="flex justify-center mb-12">
+              <a
+                href="https://www.producthunt.com/products/signalsloop?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-signalsloop"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1034282&theme=light&t=1762334865008"
+                  alt="SignalsLoop - AI feedback management that auto-prioritizes your roadmap | Product Hunt"
+                  className="h-14 w-auto"
+                />
+              </a>
+            </div>
+
+            {/* Product Screenshot */}
+            <div className="bg-white rounded-3xl shadow-2xl p-4 sm:p-6 max-w-6xl mx-auto border border-white/60">
+              <div className="relative w-full overflow-hidden rounded-3xl" style={{ paddingTop: '62.5%' }}>
+                <iframe
+                  title="SignalsLoop interactive demo"
+                  src="https://app.supademo.com/embed/cmhkamr7w17c3u1hmtosgmqp0?embed=1"
+                  className="absolute inset-0 h-full w-full border-0"
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
               </div>
             </div>
           </div>
 
-          {/* Trust Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-6 mb-12 text-xs text-gray-700">
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100">
-              <Shield className="h-5 w-5 text-blue-500" />
-              <div className="text-left">
-                <div className="font-semibold text-gray-900">SSL Encrypted</div>
-                <div className="text-xs">256-bit Security</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <div className="text-left">
-                <div className="font-semibold text-gray-900">GDPR Compliant</div>
-                <div className="text-xs">Data Protected</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100">
-              <Zap className="h-5 w-5 text-yellow-500" />
-              <div className="text-left">
-                <div className="font-semibold text-gray-900">99.9% Uptime</div>
-                <div className="text-xs">Always Available</div>
-              </div>
-            </div>
-          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100">
-            <Users className="h-5 w-5 text-cyan-400" />
-            <div className="text-left">
-              <div className="font-semibold text-gray-900">Customer-Driven Teams</div>
-              <div className="text-xs">Guiding the roadmap</div>
+          {/* Scroll Indicator */}
+          <div className="flex justify-center mt-16 pb-8">
+            <div className="scroll-indicator flex flex-col items-center gap-2 text-gray-400 hover:text-cyan-500 transition-colors cursor-pointer">
+              <span className="text-xs font-medium uppercase tracking-wider">Scroll to Explore</span>
+              <ChevronDown className="h-6 w-6" />
             </div>
           </div>
-        </div>
-
-          {/* Product Hunt Badge */}
-          <div className="flex justify-center mb-12">
-            <a
-              href="https://www.producthunt.com/products/signalsloop?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-signalsloop"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1034282&theme=light&t=1762334865008"
-                alt="SignalsLoop - AI feedback management that auto-prioritizes your roadmap | Product Hunt"
-                className="h-14 w-auto"
-              />
-            </a>
-          </div>
-
-          {/* Product Screenshot */}
-          <div className="bg-white rounded-3xl shadow-2xl p-4 sm:p-6 max-w-6xl mx-auto border border-white/60">
-            <div className="relative w-full overflow-hidden rounded-3xl" style={{ paddingTop: '62.5%' }}>
-              <iframe
-                title="SignalsLoop interactive demo"
-                src="https://app.supademo.com/embed/cmhkamr7w17c3u1hmtosgmqp0?embed=1"
-                className="absolute inset-0 h-full w-full border-0"
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div className="flex justify-center mt-16 pb-8">
-          <div className="scroll-indicator flex flex-col items-center gap-2 text-gray-400 hover:text-cyan-500 transition-colors cursor-pointer">
-            <span className="text-xs font-medium uppercase tracking-wider">Scroll to Explore</span>
-            <ChevronDown className="h-6 w-6" />
-          </div>
-        </div>
         </div>
       </section>
 
@@ -656,111 +652,111 @@ export default function Homepage() {
                            radial-gradient(circle at 40% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 50%)`
         }}></div>
         <div className="relative z-10">
-        <div className="container mx-auto max-w-5xl">
-          <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4 bg-red-100 text-red-700 border-red-200 text-base px-4 py-2">
-              The Feedback Nightmare Every PM Lives
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
-              It's Monday. You Have 500 Feedback Items.
-            </h2>
-            <p className="font-body text-lg text-gray-700 max-w-2xl mx-auto">
-              Your CEO wants a roadmap by Friday. Here's how your week actually goes...
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6 mb-12">
-            {/* Pain Point 1 */}
-            <div className="bg-red-50 rounded-3xl p-6 border-l-4 border-red-500 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">📧</div>
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Feedback Is Everywhere</h3>
-                  <p className="text-gray-700 font-body-relaxed">
-                    47 Slack DMs, 23 support tickets, 15 customer emails, 8 sales call notes. Some urgent, some vague, all scattered across tools you can't search.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Pain Point 2 */}
-            <div className="bg-orange-50 rounded-3xl p-6 border-l-4 border-orange-500 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">⏰</div>
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Manual Work Eats Your Week</h3>
-                  <p className="text-gray-700 font-body-relaxed">
-                    Reading each item, tagging categories, assigning priorities. 15 hours gone. You're only halfway through, and new feedback keeps coming.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Pain Point 3 */}
-            <div className="bg-yellow-50 rounded-3xl p-6 border-l-4 border-yellow-500 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">🔍</div>
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-2">You're Missing the Pattern</h3>
-                  <p className="text-gray-700 font-body-relaxed">
-                    "Dark mode" was requested 47 times, but you missed it. Different words ("dark theme," "night mode," "eye-friendly") hid the same need.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Pain Point 4 */}
-            <div className="bg-amber-50 rounded-3xl p-6 border-l-4 border-red-500 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">😤</div>
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Users Feel Ignored</h3>
-                  <p className="text-gray-700 font-body-relaxed">
-                    Srini submitted feedback 2 months ago. Never got a reply. Didn't know you were building it. They switched to your competitor last week.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* The Kicker */}
-          <div className="bg-gray-900 rounded-3xl p-8 text-white text-center mb-8">
-            <p className="font-body text-xl md:text-2xl font-bold mb-3">
-              Friday arrives. You're exhausted. The roadmap? A guess.
-            </p>
-            <p className="font-body text-base md:text-lg opacity-90">
-              You picked the loudest requests, not the most important ones. Your CEO nods, but you know it's not data-driven—it's survival.
-            </p>
-          </div>
-
-          {/* Solution Transition */}
-          <div className="text-center">
-            <div className="inline-block gradient-cyan-purple text-white rounded-3xl px-8 md:px-12 py-8 shadow-cyan">
-              <h3 className="text-2xl md:text-3xl font-bold mb-4">What If AI Did All of This For You?</h3>
-              <p className="font-body text-lg md:text-xl opacity-95 mb-6 max-w-2xl">
-                SignalsLoop reads every piece of feedback, categorizes it, finds duplicates, scores priorities, and builds your roadmap—<strong>in seconds, not weeks</strong>.
+          <div className="container mx-auto max-w-5xl">
+            <div className="text-center mb-12">
+              <Badge variant="secondary" className="mb-4 bg-red-100 text-red-700 border-red-200 text-base px-4 py-2">
+                The Feedback Nightmare Every PM Lives
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                It's Monday. You Have 500 Feedback Items.
+              </h2>
+              <p className="font-body text-lg text-gray-700 max-w-2xl mx-auto">
+                Your CEO wants a roadmap by Friday. Here's how your week actually goes...
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-3xl">
-                  <div className="font-bold mb-1">✓ Auto-Categorized</div>
-                  <div className="text-xs opacity-80">Bug/Feature/Request</div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6 mb-12">
+              {/* Pain Point 1 */}
+              <div className="bg-red-50 rounded-3xl p-6 border-l-4 border-red-500 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="text-2xl">📧</div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-2">Feedback Is Everywhere</h3>
+                    <p className="text-gray-700 font-body-relaxed">
+                      47 Slack DMs, 23 support tickets, 15 customer emails, 8 sales call notes. Some urgent, some vague, all scattered across tools you can't search.
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-3xl">
-                  <div className="font-bold mb-1">✓ Priority Scored</div>
-                  <div className="text-xs opacity-80">AI ranks urgency</div>
+              </div>
+
+              {/* Pain Point 2 */}
+              <div className="bg-orange-50 rounded-3xl p-6 border-l-4 border-orange-500 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="text-2xl">⏰</div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-2">Manual Work Eats Your Week</h3>
+                    <p className="text-gray-700 font-body-relaxed">
+                      Reading each item, tagging categories, assigning priorities. 15 hours gone. You're only halfway through, and new feedback keeps coming.
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-3xl">
-                  <div className="font-bold mb-1">✓ Duplicates Merged</div>
-                  <div className="text-xs opacity-80">47 "dark modes" → 1</div>
+              </div>
+
+              {/* Pain Point 3 */}
+              <div className="bg-yellow-50 rounded-3xl p-6 border-l-4 border-yellow-500 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="text-2xl">🔍</div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-2">You're Missing the Pattern</h3>
+                    <p className="text-gray-700 font-body-relaxed">
+                      "Dark mode" was requested 47 times, but you missed it. Different words ("dark theme," "night mode," "eye-friendly") hid the same need.
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-3xl">
-                  <div className="font-bold mb-1">✓ Users Updated</div>
-                  <div className="text-xs opacity-80">Public roadmap</div>
+              </div>
+
+              {/* Pain Point 4 */}
+              <div className="bg-amber-50 rounded-3xl p-6 border-l-4 border-red-500 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="text-2xl">😤</div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-2">Users Feel Ignored</h3>
+                    <p className="text-gray-700 font-body-relaxed">
+                      Srini submitted feedback 2 months ago. Never got a reply. Didn't know you were building it. They switched to your competitor last week.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* The Kicker */}
+            <div className="bg-gray-900 rounded-3xl p-8 text-white text-center mb-8">
+              <p className="font-body text-xl md:text-2xl font-bold mb-3">
+                Friday arrives. You're exhausted. The roadmap? A guess.
+              </p>
+              <p className="font-body text-base md:text-lg opacity-90">
+                You picked the loudest requests, not the most important ones. Your CEO nods, but you know it's not data-driven—it's survival.
+              </p>
+            </div>
+
+            {/* Solution Transition */}
+            <div className="text-center">
+              <div className="inline-block gradient-cyan-purple text-white rounded-3xl px-8 md:px-12 py-8 shadow-cyan">
+                <h3 className="text-2xl md:text-3xl font-bold mb-4">What If AI Did All of This For You?</h3>
+                <p className="font-body text-lg md:text-xl opacity-95 mb-6 max-w-2xl">
+                  SignalsLoop reads every piece of feedback, categorizes it, finds duplicates, scores priorities, and builds your roadmap—<strong>in seconds, not weeks</strong>.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                  <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-3xl">
+                    <div className="font-bold mb-1">✓ Auto-Categorized</div>
+                    <div className="text-xs opacity-80">Bug/Feature/Request</div>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-3xl">
+                    <div className="font-bold mb-1">✓ Priority Scored</div>
+                    <div className="text-xs opacity-80">AI ranks urgency</div>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-3xl">
+                    <div className="font-bold mb-1">✓ Duplicates Merged</div>
+                    <div className="text-xs opacity-80">47 "dark modes" → 1</div>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-3xl">
+                    <div className="font-bold mb-1">✓ Users Updated</div>
+                    <div className="text-xs opacity-80">Public roadmap</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
         </div>
       </section>
 
@@ -780,7 +776,7 @@ export default function Homepage() {
               Watch your scattered feedback transform into an actionable roadmap
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-6xl mx-auto">
             {/* Before SignalsLoop */}
             <div className="card-glow p-6 md:p-8 border border-red-100/50">
@@ -788,7 +784,7 @@ export default function Homepage() {
                 <h3 className="font-body text-xl md:text-2xl font-bold text-red-600 mb-2">Before SignalsLoop</h3>
                 <p className="text-gray-700 text-sm md:text-base">Feedback scattered everywhere</p>
               </div>
-              
+
               <div className="space-y-4">
                 {/* Scattered feedback icons */}
                 <div className="flex flex-wrap gap-2 md:gap-3 justify-center">
@@ -809,7 +805,7 @@ export default function Homepage() {
                     <span className="text-xs md:text-sm text-pink-700">Support tickets</span>
                   </div>
                 </div>
-                
+
                 {/* Visual chaos representation */}
                 <div className="bg-gray-100 rounded-2xl p-4 md:p-6 mt-4 md:mt-6">
                   <div className="text-center text-gray-500 text-xs md:text-sm mb-3 md:mb-4">Visual Chaos</div>
@@ -824,7 +820,7 @@ export default function Homepage() {
                 </div>
               </div>
             </div>
-            
+
             {/* After SignalsLoop */}
             <div className="card-glow p-6 md:p-8 border border-green-100/50">
               <div className="text-center mb-6">
@@ -1101,9 +1097,9 @@ export default function Homepage() {
             <div className="flex items-center gap-4 mb-4">
               <div className="flex-1">
                 <div className="h-8 rounded-full overflow-hidden flex">
-                  <div className="bg-red-500 h-full" style={{width: '35%'}}></div>
-                  <div className="bg-orange-500 h-full" style={{width: '45%'}}></div>
-                  <div className="bg-green-500 h-full" style={{width: '20%'}}></div>
+                  <div className="bg-red-500 h-full" style={{ width: '35%' }}></div>
+                  <div className="bg-orange-500 h-full" style={{ width: '45%' }}></div>
+                  <div className="bg-green-500 h-full" style={{ width: '20%' }}></div>
                 </div>
               </div>
             </div>
@@ -1278,7 +1274,7 @@ export default function Homepage() {
               See how our AI processes and categorizes feedback in real-time
             </p>
           </div>
-          
+
           <div className="max-w-4xl mx-auto">
             <div className="card-glow p-4 md:p-8 border border-cyan-50/50">
               {/* Demo Flow */}
@@ -1294,7 +1290,7 @@ export default function Homepage() {
                     <div className="text-xs text-gray-500">Submitted by Srini</div>
                   </div>
                 </div>
-                
+
                 {/* Step 2: AI Processing */}
                 <div className="text-center">
                   <div className="bg-cyan-50 rounded-3xl p-6 mb-4">
@@ -1306,13 +1302,13 @@ export default function Homepage() {
                   <div className="bg-cyan-50 rounded-2xl p-3">
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-2 h-2 bg-cyan-300 rounded-full animate-pulse"></div>
-                      <div className="w-2 h-2 bg-cyan-300 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                      <div className="w-2 h-2 bg-cyan-300 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                      <div className="w-2 h-2 bg-cyan-300 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-cyan-300 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                     </div>
                     <div className="text-xs text-cyan-500 mt-2">Analyzing content...</div>
                   </div>
                 </div>
-                
+
                 {/* Step 3: Categorized Result */}
                 <div className="text-center">
                   <div className="bg-green-100 rounded-3xl p-6 mb-4">
@@ -1327,7 +1323,7 @@ export default function Homepage() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Arrow indicators */}
               <div className="hidden md:flex items-center justify-between mt-6 md:mt-8">
                 <div className="flex-1 flex justify-center">
@@ -1338,13 +1334,13 @@ export default function Homepage() {
                 </div>
                 <div className="flex-1"></div>
               </div>
-              
+
               {/* Mobile arrow indicators */}
               <div className="md:hidden flex flex-col items-center gap-4 mt-6">
                 <ArrowRight className="h-5 w-5 text-gray-400 rotate-90" />
                 <ArrowRight className="h-5 w-5 text-gray-400 rotate-90" />
               </div>
-              
+
               {/* Additional examples */}
               <div className="mt-8 md:mt-12 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
@@ -1542,14 +1538,14 @@ export default function Homepage() {
               No complex setup. No backend integration. Just copy, paste, and start collecting organized feedback. 2-minute setup, lifetime value.
             </p>
           </div>
-          
+
           <div className="max-w-3xl mx-auto">
             <div className="bg-gray-900 rounded-3xl p-4 md:p-8 text-white font-mono text-xs md:text-sm shadow-multi">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 md:mb-6">
                 <span className="text-green-400 font-medium text-sm">→ Install Widget</span>
-                <Button 
-                  size="sm" 
-                  variant="secondary" 
+                <Button
+                  size="sm"
+                  variant="secondary"
                   className="rounded-2xl hover:bg-gray-700 transition-colors w-full sm:w-auto min-h-[44px]"
                   onClick={() => {
                     navigator.clipboard.writeText('<script src="https://signalsloop.com/embed/demo.js"></script>');
@@ -1563,13 +1559,13 @@ export default function Homepage() {
                 {`<script src="https://signalsloop.com/embed/demo.js"></script>`}
               </code>
             </div>
-            
+
             {/* Widget Preview */}
             <div className="mt-6 md:mt-8 bg-white rounded-3xl p-4 md:p-6 shadow-lg border border-gray-200">
               <div className="text-center mb-4">
                 <span className="text-sm text-gray-700 font-medium">Widget Preview</span>
               </div>
-              
+
               {/* Realistic Website Integration */}
               <div className="bg-gray-50 rounded-2xl p-3 md:p-4 relative overflow-hidden">
                 {/* Browser frame */}
@@ -1585,7 +1581,7 @@ export default function Homepage() {
                       myapp.com/dashboard
                     </div>
                   </div>
-                  
+
                   {/* Website Content */}
                   <div className="bg-white">
                     {/* App Header */}
@@ -1605,7 +1601,7 @@ export default function Homepage() {
                         <span className="hover:text-gray-900 cursor-pointer">Settings</span>
                       </nav>
                     </div>
-                    
+
                     {/* Dashboard Content */}
                     <div className="p-4 md:p-6">
                       {/* Welcome Section */}
@@ -1613,7 +1609,7 @@ export default function Homepage() {
                         <h2 className="font-body text-lg md:text-xl font-semibold text-gray-900 mb-2">Welcome back, Srini!</h2>
                         <p className="text-sm md:text-base text-gray-700">Here's what's happening with your app today.</p>
                       </div>
-                      
+
                       {/* Stats Grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
                         <div className="bg-blue-50 rounded-2xl p-3 md:p-4 border border-cyan-200">
@@ -1629,7 +1625,7 @@ export default function Homepage() {
                           <div className="text-xs md:text-sm text-cyan-500">New Signups</div>
                         </div>
                       </div>
-                      
+
                       {/* Recent Activity */}
                       <div className="bg-gray-50 rounded-2xl p-4">
                         <h3 className="font-medium text-gray-900 mb-3">Recent Activity</h3>
@@ -1654,7 +1650,7 @@ export default function Homepage() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Widget button - naturally positioned */}
                 <div className="absolute bottom-4 right-4">
                   <div className="gradient-cyan-purple text-white px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2 hover:bg-blue-700 transition-all duration-200 cursor-pointer">
@@ -1662,7 +1658,7 @@ export default function Homepage() {
                     <span className="text-sm font-medium">Feedback</span>
                   </div>
                 </div>
-                
+
                 {/* Callout annotation */}
                 <div className="absolute bottom-12 md:bottom-16 right-1 md:right-2 bg-white rounded-2xl shadow-lg border border-gray-200 p-2 md:p-3 max-w-40 md:max-w-48">
                   <div className="flex items-start gap-2">
@@ -1678,13 +1674,13 @@ export default function Homepage() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="text-center mt-4">
                 <span className="text-sm text-gray-700">Add to any website in 2 minutes</span>
                 <p className="text-xs text-gray-500 mt-1">Trusted by startups to enterprise</p>
               </div>
             </div>
-            
+
             <div className="text-center mt-8">
               <div className="inline-flex items-center space-x-3 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-gray-200">
                 <Zap className="h-5 w-5 text-cyan-500" />
@@ -1918,7 +1914,7 @@ export default function Homepage() {
               </button>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             <Card className="border border-gray-200 shadow-depth-lg hover:shadow-depth-xl transition-all duration-300 hover:-translate-y-2 bg-white rounded-3xl overflow-hidden">
               <CardHeader className="text-center pb-8 pt-10 px-8 border-b border-gray-100">
@@ -1976,7 +1972,7 @@ export default function Homepage() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="border-2 border-cyan-200 shadow-depth-xl hover:shadow-depth-xl transition-all duration-300 hover:-translate-y-2 bg-white rounded-3xl overflow-visible relative ring-2 ring-cyan-100/50">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                 <Badge className="gradient-cyan-purple text-white border-0 px-5 py-1.5 rounded-full shadow-depth-md font-semibold text-xs whitespace-nowrap">
@@ -2385,13 +2381,13 @@ export default function Homepage() {
           <p className="font-body text-lg sm:text-xl mb-6 opacity-90 px-4">
             Join 100+ teams already saving 15+ hours per week with AI-powered feedback organization
           </p>
-          
+
           {/* Enhanced Trust/Urgency Combo */}
           <div className="mb-8">
             <Badge className="bg-white text-cyan-500 text-base md:text-lg px-4 py-2 mb-4">
               ✨ Free AI categorization for early adopters
             </Badge>
-            
+
             {/* Trust indicators under badge */}
             <div className="flex flex-wrap justify-center gap-4 text-sm opacity-90">
               <div className="flex items-center gap-2">
@@ -2408,15 +2404,15 @@ export default function Homepage() {
               </div>
             </div>
           </div>
-          
-          <Button 
+
+          <Button
             onClick={handleProCheckout}
-            size="lg" 
+            size="lg"
             className="bg-white text-cyan-500 hover:bg-gray-100 text-base md:text-lg px-6 md:px-10 py-3 md:py-4 font-bold rounded-3xl hover:scale-110 hover-lift transition-all duration-200 shadow-lg hover:shadow-xl min-h-[44px]"
           >
             🚀 Get Started in 2 Minutes
-              <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
-            </Button>
+            <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
+          </Button>
         </div>
       </section>
 
@@ -2436,7 +2432,7 @@ export default function Homepage() {
               Your data is protected with industry-leading security standards and enterprise-grade infrastructure.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
             <div className="text-center bg-white rounded-3xl p-6 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100">
               <div className="text-3xl mb-3">🔐</div>
@@ -2462,7 +2458,7 @@ export default function Homepage() {
               <p className="text-gray-700">Own your data</p>
             </div>
           </div>
-          
+
           {/* Technology Stack */}
           <div className="mt-12 text-center">
             <p className="text-gray-700 mb-4">Built with modern, secure technology stack:</p>
@@ -2499,7 +2495,7 @@ export default function Homepage() {
                 <span className="font-body text-xl font-bold">SignalsLoop</span>
               </div>
             </div>
-            
+
             <div>
               <h3 className="font-semibold mb-4">Product</h3>
               <ul className="space-y-2 text-gray-400">
@@ -2510,8 +2506,8 @@ export default function Homepage() {
                 <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
               </ul>
             </div>
-            
-            
+
+
             <div>
               <h3 className="font-semibold mb-4">Legal</h3>
               <ul className="space-y-2 text-gray-400">
@@ -2521,7 +2517,7 @@ export default function Homepage() {
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
             <p>&copy; 2024 SignalsLoop. All rights reserved.</p>
           </div>

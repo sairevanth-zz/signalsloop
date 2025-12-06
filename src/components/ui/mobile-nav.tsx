@@ -65,23 +65,21 @@ export function MobileNav({ user, onSignOut, currentPath }: MobileNavProps) {
       {isOpen && (
         <div className="fixed inset-0 z-[9999] lg:hidden">
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
             onClick={toggleMenu}
             aria-hidden="true"
           />
-          
+
           {/* Slide-out Menu */}
-          <nav 
+          <nav
             className="fixed top-0 right-0 bottom-0 w-[85%] max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-out momentum-scroll safe-top safe-bottom"
             style={{ animation: 'slideInRight 0.3s ease-out' }}
           >
             {/* Menu Header */}
             <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                  <Zap className="h-5 w-5 text-blue-600" />
-                </div>
+                <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-8 h-8 rounded-lg shadow-sm" />
                 <span className="text-lg font-bold text-white">SignalsLoop</span>
               </div>
               <Button
@@ -117,17 +115,16 @@ export function MobileNav({ user, onSignOut, currentPath }: MobileNavProps) {
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentPath === item.href;
-                
+
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={toggleMenu}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-touch-target tap-highlight-transparent ${
-                      isActive
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-touch-target tap-highlight-transparent ${isActive
                         ? 'bg-blue-50 text-blue-600 font-medium'
                         : 'text-gray-700 hover:bg-gray-100'
-                    }`}
+                      }`}
                   >
                     <Icon className="h-5 w-5 flex-shrink-0" />
                     <span className="text-base">{item.label}</span>

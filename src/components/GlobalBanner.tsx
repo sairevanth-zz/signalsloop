@@ -16,13 +16,13 @@ import {
 import { Menu, CreditCard, LogOut, X, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function GlobalBanner({ 
+export default function GlobalBanner({
   projectSlug,
   showBilling = true,
   showBackButton = false,
   backUrl = "/app",
   backLabel = "Back"
-}: { 
+}: {
   projectSlug?: string;
   showBilling?: boolean;
   showBackButton?: boolean;
@@ -52,7 +52,7 @@ export default function GlobalBanner({
 
   useEffect(() => {
     const supabase = getSupabaseClient();
-    
+
     // Get current user
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
@@ -153,9 +153,7 @@ export default function GlobalBanner({
         <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
-              </div>
+              <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-8 h-8 rounded-lg shadow-sm" />
               <span className="text-base sm:text-xl font-bold text-gray-900 hidden sm:block">SignalsLoop</span>
             </div>
             <div className="flex items-center">
@@ -188,9 +186,7 @@ export default function GlobalBanner({
               </Button>
             )}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-sm">S</span>
-              </div>
+              <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-8 h-8 rounded-lg shadow-sm flex-shrink-0" />
               <span className="text-base sm:text-xl font-bold text-gray-900 hidden sm:block">SignalsLoop</span>
               {projectSlug && (
                 <Badge variant="outline" className="hidden lg:inline-flex text-xs">
@@ -199,20 +195,20 @@ export default function GlobalBanner({
               )}
             </div>
           </div>
-          
+
           {/* Desktop Actions */}
           <div className="hidden sm:flex items-center gap-2">
             {user ? (
               <>
                 {showBilling && billingInfo && (
                   <>
-                    <Badge 
+                    <Badge
                       variant={billingInfo.plan === 'pro' ? 'default' : 'secondary'}
                       className={`text-xs ${billingInfo.plan === 'pro' ? 'bg-blue-600' : ''}`}
                     >
                       {billingInfo.is_trial ? 'Pro (Trial)' : `${billingInfo.plan.charAt(0).toUpperCase() + billingInfo.plan.slice(1)}`}
                     </Badge>
-                    
+
                     {billingInfo.is_trial ? (
                       <Button
                         onClick={handleCancelTrial}
@@ -249,19 +245,19 @@ export default function GlobalBanner({
                     ) : null}
                   </>
                 )}
-                
-                <Button 
-                  onClick={handleSignOut} 
-                  variant="ghost" 
+
+                <Button
+                  onClick={handleSignOut}
+                  variant="ghost"
                   size="sm"
                 >
                   Sign Out
                 </Button>
               </>
             ) : (
-              <Button 
-                onClick={() => router.push('/login')} 
-                variant="ghost" 
+              <Button
+                onClick={() => router.push('/login')}
+                variant="ghost"
                 size="sm"
               >
                 Sign In
@@ -274,8 +270,8 @@ export default function GlobalBanner({
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     className="h-9 w-9 p-0"
                   >
@@ -286,7 +282,7 @@ export default function GlobalBanner({
                   {showBilling && billingInfo && (
                     <>
                       <div className="px-2 py-1.5">
-                        <Badge 
+                        <Badge
                           variant={billingInfo.plan === 'pro' ? 'default' : 'secondary'}
                           className={`text-xs w-full justify-center ${billingInfo.plan === 'pro' ? 'bg-blue-600' : ''}`}
                         >
@@ -325,9 +321,9 @@ export default function GlobalBanner({
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button 
-                onClick={() => router.push('/login')} 
-                variant="ghost" 
+              <Button
+                onClick={() => router.push('/login')}
+                variant="ghost"
                 size="sm"
                 className="text-sm"
               >

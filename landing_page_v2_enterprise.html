@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalsLoop - Enterprise Product Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff4ff',
+                            100: '#dbe6fe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af', // Deep Royal Blue
+                            900: '#1e3a8a',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'card': '0 10px 40px -10px rgba(0, 0, 0, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-white text-slate-900 antialiased">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center gap-2">
+                    <img src="public/signalsloop-logo-v2.png" alt="SignalsLoop Logo"
+                        class="w-10 h-10 rounded-lg shadow-sm">
+                    <span class="text-xl font-bold tracking-tight text-slate-900">SignalsLoop</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#product"
+                        class="text-sm font-medium text-slate-600 hover:text-primary-700 transition-colors">Product</a>
+                    <a href="#solutions"
+                        class="text-sm font-medium text-slate-600 hover:text-primary-700 transition-colors">Solutions</a>
+                    <a href="#customers"
+                        class="text-sm font-medium text-slate-600 hover:text-primary-700 transition-colors">Customers</a>
+                    <a href="#pricing"
+                        class="text-sm font-medium text-slate-600 hover:text-primary-700 transition-colors">Pricing</a>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-primary-700">Log in</a>
+                    <a href="#"
+                        class="bg-primary-700 hover:bg-primary-800 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm">Get
+                        Started</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="max-w-2xl">
+                    <div
+                        class="inline-flex items-center px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-bold uppercase tracking-wide mb-6 border border-primary-100">
+                        New: Prediction Engine 2.0
+                    </div>
+                    <h1 class="text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 mb-6 leading-[1.1]">
+                        Stop Shipping Features. <span class="text-primary-700">Start Predicting Outcomes.</span>
+                    </h1>
+                    <p class="text-lg text-slate-600 mb-8 leading-relaxed">
+                        The world's first AI-Native Product OS. SignalsLoop autonomously hunts for signals, predicts
+                        feature success, and red-teams your roadmap before you write a single line of code.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="#"
+                            class="inline-flex justify-center items-center px-8 py-4 bg-primary-700 hover:bg-primary-800 text-white rounded-xl font-semibold text-lg transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                            Get Early Access
+                        </a>
+                        <a href="#"
+                            class="inline-flex justify-center items-center px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-semibold text-lg transition-all">
+                            Watch Demo
+                        </a>
+                    </div>
+                    <p class="mt-6 text-sm text-slate-500 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                        No credit card required
+                        <span class="mx-2 text-slate-300">|</span>
+                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                        SOC2 Compliant
+                    </p>
+                </div>
+
+                <!-- Hero Visual -->
+                <div class="relative">
+                    <div
+                        class="absolute -inset-4 bg-gradient-to-r from-primary-100 to-purple-100 rounded-[2rem] blur-2xl opacity-50 -z-10">
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
+                        <div class="bg-slate-50 border-b border-slate-100 p-4 flex items-center gap-2">
+                            <div class="flex gap-1.5">
+                                <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                            </div>
+                            <div
+                                class="ml-4 bg-white px-3 py-1 rounded-md text-xs text-slate-400 border border-slate-200 flex-1 text-center">
+                                signalsloop.app</div>
+                        </div>
+                        <div class="p-8">
+                            <!-- UI Mockup -->
+                            <div class="flex items-center justify-between mb-8">
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-900">Feature: Dark Mode</h3>
+                                    <p class="text-sm text-slate-500">Proposed for Q3 Roadmap</p>
+                                </div>
+                                <div
+                                    class="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-semibold border border-green-100">
+                                    82% Success Probability
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-6 mb-8">
+                                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                    <div class="text-xs font-semibold text-slate-500 uppercase mb-2">Revenue Influence
+                                    </div>
+                                    <div class="text-2xl font-bold text-slate-900">$1.2M <span
+                                            class="text-sm font-normal text-slate-500">ARR</span></div>
+                                </div>
+                                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                    <div class="text-xs font-semibold text-slate-500 uppercase mb-2">Churn Risk</div>
+                                    <div class="text-2xl font-bold text-slate-900">Low <span
+                                            class="text-sm font-normal text-slate-500">(< 1%)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-600 shrink-0">
+                                        ⚠️</div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-red-900">Devil's Advocate Alert</p>
+                                        <p class="text-sm text-red-700">Competitor X just launched a free version of
+                                            this. Re-evaluate pricing strategy.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof -->
+    <section class="py-10 border-y border-slate-100 bg-slate-50/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-sm font-semibold text-slate-500 uppercase tracking-widest mb-8">Trusted by
+                forward-thinking product teams</p>
+            <div
+                class="flex flex-wrap justify-center gap-12 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+                <!-- Logos (Text placeholders for now) -->
+                <span class="text-xl font-bold text-slate-800">LINEAR</span>
+                <span class="text-xl font-bold text-slate-800">VERCEL</span>
+                <span class="text-xl font-bold text-slate-800">STRIPE</span>
+                <span class="text-xl font-bold text-slate-800">ATTIO</span>
+                <span class="text-xl font-bold text-slate-800">INTERCOM</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-20">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6">You Are Building Blind.</h2>
+                <p class="text-xl text-slate-600">Modern product management is broken. You are drowning in noise and
+                    starving for truth.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div
+                    class="p-8 rounded-2xl bg-white border border-slate-100 shadow-card hover:shadow-lg transition-shadow">
+                    <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center text-2xl mb-6">📢</div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">The Echo Chamber</h3>
+                    <p class="text-slate-600 leading-relaxed">You only hear from the loudest users, missing the silent
+                        majority who just churn.</p>
+                </div>
+                <div
+                    class="p-8 rounded-2xl bg-white border border-slate-100 shadow-card hover:shadow-lg transition-shadow">
+                    <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center text-2xl mb-6">💸</div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">The "Flop" Risk</h3>
+                    <p class="text-slate-600 leading-relaxed">You spend $50k building a feature, only to find out nobody
+                        cares.</p>
+                </div>
+                <div
+                    class="p-8 rounded-2xl bg-white border border-slate-100 shadow-card hover:shadow-lg transition-shadow">
+                    <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center text-2xl mb-6">🤝</div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">The Yes-Men</h3>
+                    <p class="text-slate-600 leading-relaxed">Your team agrees with your roadmap because it’s safe. No
+                        one challenges assumptions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution / Features -->
+    <section class="py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-20">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Autonomous Teammates</h2>
+                <p class="text-xl text-slate-600">Don't sell "Features." Hire Agents.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <!-- Card 1 -->
+                <div
+                    class="bg-white p-10 rounded-3xl shadow-soft border border-slate-100 hover:border-primary-200 transition-colors group">
+                    <div
+                        class="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-600 mb-8 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-4">The Oracle (Predictive Engine)</h3>
+                    <p class="text-slate-600 mb-6">Know the outcome before you build. Simulate adoption probability and
+                        revenue influence based on historical data.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3 text-slate-700">
+                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Adoption Probability Scoring
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-700">
+                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Revenue Influence Analysis
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Card 2 -->
+                <div
+                    class="bg-white p-10 rounded-3xl shadow-soft border border-slate-100 hover:border-red-200 transition-colors group">
+                    <div
+                        class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 mb-8 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-4">The Devil's Advocate</h3>
+                    <p class="text-slate-600 mb-6">The teammate that fights back. It monitors competitors and market
+                        shifts to attack your PRDs 24/7.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3 text-slate-700">
+                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Competitive Risk Alerts
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-700">
+                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Blindspot Detection
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-24 bg-primary-900 text-white overflow-hidden relative">
+        <div
+            class="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10">
+        </div>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <h2 class="text-4xl md:text-5xl font-bold mb-8">Build With a Brain,<br>Not Just a Backlog.</h2>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#"
+                    class="px-8 py-4 bg-white text-primary-900 rounded-xl font-bold text-lg hover:bg-slate-100 transition-colors shadow-lg">
+                    Request Access
+                </a>
+                <a href="#"
+                    class="px-8 py-4 bg-transparent border border-white/30 text-white rounded-xl font-bold text-lg hover:bg-white/10 transition-colors">
+                    Talk to Sales
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-white py-12 border-t border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center gap-2 mb-4 md:mb-0">
+                <img src="public/signalsloop-logo-v2.png" alt="SignalsLoop Logo" class="w-8 h-8 rounded-lg shadow-sm">
+                <span class="font-bold text-slate-900">SignalsLoop</span>
+            </div>
+            <div class="text-slate-500 text-sm">
+                &copy; 2025 SignalsLoop Inc. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>

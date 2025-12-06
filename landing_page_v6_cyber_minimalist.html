@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalsLoop - SYSTEM_ONLINE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['IBM Plex Mono', 'monospace'],
+                    },
+                    colors: {
+                        cyber: {
+                            black: '#050505',
+                            dark: '#0a0a0a',
+                            grid: '#1f1f1f',
+                            accent: '#00ff9d', // Cyber Green
+                            dim: '#333333',
+                        }
+                    },
+                    backgroundImage: {
+                        'grid-pattern': 'linear-gradient(to right, #1f1f1f 1px, transparent 1px), linear-gradient(to bottom, #1f1f1f 1px, transparent 1px)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050505;
+            color: #ffffff;
+        }
+
+        .bg-grid {
+            background-size: 40px 40px;
+        }
+
+        .cyber-border {
+            border: 1px solid #333;
+            position: relative;
+        }
+
+        .cyber-border::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid #00ff9d;
+            border-left: 2px solid #00ff9d;
+        }
+
+        .cyber-border::before {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            right: -1px;
+            width: 10px;
+            height: 10px;
+            border-bottom: 2px solid #00ff9d;
+            border-right: 2px solid #00ff9d;
+        }
+
+        .glitch-hover:hover {
+            text-shadow: 2px 0 #ff0000, -2px 0 #0000ff;
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-cyber-accent selection:text-black">
+
+    <!-- Grid Background -->
+    <div class="fixed inset-0 bg-grid-pattern bg-grid opacity-20 pointer-events-none z-0"></div>
+
+    <!-- Header -->
+    <header class="fixed w-full z-50 bg-cyber-black/90 border-b border-cyber-dim backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <img src="public/signalsloop-logo-v2.png" alt="SignalsLoop Logo"
+                    class="w-8 h-8 rounded shadow-[0_0_15px_rgba(59,130,246,0.6)] border border-cyber-accent/30">
+                <span class="font-mono font-bold tracking-tight">SIGNALSLOOP_OS</span>
+            </div>
+            <div class="hidden md:flex gap-8 font-mono text-xs text-gray-400">
+                <a href="#" class="hover:text-cyber-accent">[01] INTELLIGENCE</a>
+                <a href="#" class="hover:text-cyber-accent">[02] SIMULATION</a>
+                <a href="#" class="hover:text-cyber-accent">[03] RED_TEAM</a>
+            </div>
+            <button
+                class="font-mono text-xs border border-cyber-dim px-4 py-2 hover:bg-cyber-accent hover:text-black transition-colors">
+                INITIATE_ACCESS
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="relative z-10 pt-32 pb-20 border-b border-cyber-dim">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+            <div>
+                <div class="font-mono text-cyber-accent text-xs mb-6 border-l-2 border-cyber-accent pl-4">
+                    SYSTEM STATUS: PREDICTIVE MODELING ACTIVE
+                </div>
+                <h1 class="text-6xl md:text-8xl font-bold tracking-tighter mb-8 leading-none">
+                    PREDICT<br>
+                    THE<br>
+                    <span class="text-cyber-accent glitch-hover cursor-default">FUTURE</span>
+                </h1>
+                <p class="text-xl text-gray-400 font-mono mb-12 max-w-md leading-relaxed">
+                    > The first AI-Native Product OS.<br>
+                    > Hunts signals.<br>
+                    > Predicts outcomes.<br>
+                    > Red-teams strategy.
+                </p>
+                <div class="flex gap-4">
+                    <button
+                        class="bg-cyber-accent text-black font-mono font-bold px-8 py-4 hover:bg-white transition-colors">
+                        START_ENGINE()
+                    </button>
+                    <button
+                        class="border border-cyber-dim text-white font-mono px-8 py-4 hover:border-cyber-accent transition-colors">
+                        VIEW_DEMO
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cyber Dashboard -->
+            <div class="cyber-border bg-cyber-dark p-6 relative">
+                <div class="absolute top-2 right-2 font-mono text-[10px] text-gray-500">ID: 8472-X</div>
+
+                <!-- Header -->
+                <div class="flex justify-between items-end mb-8 border-b border-cyber-dim pb-4">
+                    <div>
+                        <div class="font-mono text-xs text-gray-500 mb-1">TARGET FEATURE</div>
+                        <div class="text-2xl font-bold">Dark Mode V2</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-mono text-xs text-gray-500 mb-1">PROBABILITY</div>
+                        <div class="text-4xl font-bold text-cyber-accent">82.4%</div>
+                    </div>
+                </div>
+
+                <!-- Data Grid -->
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-cyber-grid/50 p-4 border border-cyber-dim">
+                        <div class="font-mono text-[10px] text-gray-500 mb-2">REVENUE_IMPACT</div>
+                        <div class="text-xl font-bold">$1,240,000</div>
+                        <div class="w-full bg-gray-800 h-1 mt-2">
+                            <div class="bg-white h-full w-[75%]"></div>
+                        </div>
+                    </div>
+                    <div class="bg-cyber-grid/50 p-4 border border-cyber-dim">
+                        <div class="font-mono text-[10px] text-gray-500 mb-2">SENTIMENT_ANALYSIS</div>
+                        <div class="text-xl font-bold text-green-400">POSITIVE</div>
+                        <div class="w-full bg-gray-800 h-1 mt-2">
+                            <div class="bg-green-400 h-full w-[90%]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Console Output -->
+                <div class="bg-black border border-cyber-dim p-4 font-mono text-xs h-32 overflow-hidden text-gray-400">
+                    <div class="mb-1"><span class="text-blue-400">info</span> Scanning Reddit r/SaaS...</div>
+                    <div class="mb-1"><span class="text-blue-400">info</span> Found 42 mentions of "Dark Mode"</div>
+                    <div class="mb-1"><span class="text-yellow-400">warn</span> Competitor X launched similar feature
+                    </div>
+                    <div class="mb-1"><span class="text-green-400">success</span> Prediction model updated</div>
+                    <div class="animate-pulse">_</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Ticker -->
+    <div class="border-b border-cyber-dim bg-cyber-grid/30 py-4 overflow-hidden">
+        <div class="flex gap-12 justify-center font-mono text-xs text-gray-400 tracking-widest">
+            <span>SIGNALS_PROCESSED: 4,291,002</span>
+            <span>PREDICTIONS_ACCURACY: 94.2%</span>
+            <span>AGENTS_ACTIVE: 842</span>
+            <span>SYSTEM_LATENCY: 12ms</span>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <section class="py-32">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="cyber-border p-8 hover:bg-cyber-grid/30 transition-colors group">
+                    <div class="font-mono text-cyber-accent text-xs mb-4">MODULE_01</div>
+                    <h3 class="text-2xl font-bold mb-4 group-hover:text-cyber-accent transition-colors">The Oracle</h3>
+                    <p class="text-gray-400 font-mono text-sm leading-relaxed">
+                        Predictive engine utilizing historical regression models to forecast feature adoption rates.
+                    </p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="cyber-border p-8 hover:bg-cyber-grid/30 transition-colors group">
+                    <div class="font-mono text-red-500 text-xs mb-4">MODULE_02</div>
+                    <h3 class="text-2xl font-bold mb-4 group-hover:text-red-500 transition-colors">Devil's Advocate</h3>
+                    <p class="text-gray-400 font-mono text-sm leading-relaxed">
+                        Adversarial AI agent designed to identify strategic risks and competitive threats in real-time.
+                    </p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="cyber-border p-8 hover:bg-cyber-grid/30 transition-colors group">
+                    <div class="font-mono text-blue-400 text-xs mb-4">MODULE_03</div>
+                    <h3 class="text-2xl font-bold mb-4 group-hover:text-blue-400 transition-colors">Signal Hunter</h3>
+                    <p class="text-gray-400 font-mono text-sm leading-relaxed">
+                        Autonomous scraping agents monitoring 8+ platforms for brand mentions and sentiment shifts.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-cyber-dim py-12 text-center">
+        <div class="font-mono text-xs text-gray-500">
+            SIGNALSLOOP_OS // VERSION 2.0.4 // <a href="#" class="text-white hover:text-cyber-accent">INITIATE_LOGIN</a>
+        </div>
+    </footer>
+
+</body>
+
+</html>
