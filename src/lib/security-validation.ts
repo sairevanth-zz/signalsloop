@@ -73,6 +73,13 @@ export function validateSecurityConfig(): SecurityValidationResult {
     warnings.push(rateLimitCheck.message);
   }
 
+  // 7. Check session timeout configuration
+  const sessionCheck = validateSessionConfig();
+  checks.push(sessionCheck);
+  if (sessionCheck.status === 'warn') {
+    warnings.push(sessionCheck.message);
+  }
+
   return {
     valid: criticalErrors.length === 0,
     checks,
@@ -275,6 +282,34 @@ function validateRateLimitConfig(): SecurityCheck {
     name: 'Rate Limiting',
     status: 'pass',
     message: 'Rate limiting properly configured with Redis',
+    critical: false,
+  };
+}
+
+/**
+ * Validate session configuration
+ */
+function validateSessionConfig(): SecurityCheck {
+  const sessionDuration = parseInt(process.env.SESSION_DURATION_SECONDS || '3600', 10);
+  const idleTimeout = parseInt(process.env.IDLE_TIMEOUT_SECONDS || '1800', 10);
+  
+  // For SOC 2: session should be max 4 hours, idle timeout 15-30 min
+  const isSessionTooLong = sessionDuration > 14400; // 4 hours
+  const isIdleTooLong = idleTimeout > 3600; // 1 hour
+  
+  if (isSessionTooLong || isIdleTooLong) {
+    return {
+      name: 'Session Timeout',
+      status: 'warn',
+      message: `Session settings may be too lenient for SOC 2 (session: ${sessionDuration/60}min, idle: ${idleTimeout/60}min)`,
+      critical: false,
+    };
+  }
+
+  return {
+    name: 'Session Timeout',
+    status: 'pass',
+    message: `Session timeout configured (session: ${sessionDuration/60}min, idle: ${idleTimeout/60}min)`,
     critical: false,
   };
 }

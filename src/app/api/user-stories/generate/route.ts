@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { generateUserStoryWithRetry } from '@/lib/user-stories/generation';
 import { GenerateStoryInput, FeedbackItemForStory } from '@/types/user-stories';
 import { Theme } from '@/types/themes';
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     console.log(`[USER-STORIES-API] Generating story for theme: ${theme_id}`);
 
     // Get Supabase client
-    const supabase = createClient();
+    const supabase = getSupabaseServiceRoleClient();
 
     // Fetch theme data
     const { data: theme, error: themeError } = await supabase
@@ -205,8 +205,8 @@ export async function POST(request: NextRequest) {
 
     // Log the failure
     try {
-      const supabase = createClient();
-      const body = await request.json();
+      const supabase = getSupabaseServiceRoleClient();
+      const body = await request.clone().json();
       await supabase.from('story_generation_logs').insert({
         project_id: body.project_id,
         theme_id: body.theme_id,

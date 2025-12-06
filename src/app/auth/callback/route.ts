@@ -5,6 +5,7 @@ import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { sendFreeWelcomeEmail } from '@/lib/email';
 import { ensureUserRecord } from '@/lib/users';
 import { sendSignupNotification } from '@/lib/slack-notifications';
+import { logAuditEvent, AuditEventTypes } from '@/lib/audit-logger';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -27,6 +28,22 @@ export async function GET(request: NextRequest) {
   // Handle OAuth errors
   if (error) {
     console.error('OAuth error:', error);
+    
+    // Audit log: Failed login attempt
+    const forwarded = request.headers.get('x-forwarded-for');
+    logAuditEvent({
+      eventType: AuditEventTypes.USER_LOGIN,
+      eventCategory: 'auth',
+      action: 'login',
+      actionStatus: 'failure',
+      ipAddress: forwarded ? forwarded.split(',')[0].trim() : undefined,
+      userAgent: request.headers.get('user-agent') || undefined,
+      metadata: {
+        error: error,
+        errorDescription: searchParams.get('error_description') || undefined,
+      },
+    }).catch(err => console.error('[AUDIT] Failed to log failed login:', err));
+    
     return NextResponse.redirect(`${origin}/login?error=oauth_error&details=${error}`);
   }
 
@@ -59,6 +76,25 @@ export async function GET(request: NextRequest) {
         console.log('User authenticated:', data.user.email);
         console.log('User metadata:', data.user.user_metadata);
         console.log('User created at:', data.user.created_at);
+
+        // Audit log: User login success
+        const forwarded = request.headers.get('x-forwarded-for');
+        const ipAddress = forwarded ? forwarded.split(',')[0].trim() : undefined;
+        
+        logAuditEvent({
+          eventType: AuditEventTypes.USER_LOGIN,
+          eventCategory: 'auth',
+          actorId: data.user.id,
+          actorEmail: data.user.email || undefined,
+          action: 'login',
+          actionStatus: 'success',
+          ipAddress,
+          userAgent: request.headers.get('user-agent') || undefined,
+          metadata: {
+            provider: data.user.app_metadata?.provider || 'unknown',
+            isNewUser: false, // Will be updated below if new
+          },
+        }).catch(err => console.error('[AUDIT] Failed to log login:', err));
 
         try {
           console.log('[WELCOME EMAIL] Starting welcome email check for user:', data.user.id);
@@ -107,6 +143,22 @@ export async function GET(request: NextRequest) {
 
               if (isNewUser) {
                 console.log('[SIGNUP] New user detected:', data.user.id);
+
+                // Audit log: New user signup
+                logAuditEvent({
+                  eventType: AuditEventTypes.USER_CREATE,
+                  eventCategory: 'auth',
+                  actorId: data.user.id,
+                  actorEmail: userRecord.email || data.user.email || undefined,
+                  action: 'signup',
+                  actionStatus: 'success',
+                  ipAddress,
+                  userAgent: request.headers.get('user-agent') || undefined,
+                  metadata: {
+                    provider: data.user.app_metadata?.provider || 'unknown',
+                    plan: userRecord.plan || 'free',
+                  },
+                }).catch(err => console.error('[AUDIT] Failed to log signup:', err));
 
                 // Send immediate Slack notification (before enrichment)
                 try {

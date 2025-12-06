@@ -40,7 +40,11 @@ const buildReturnPath = (slug?: string | null) => {
   return '/app/billing';
 };
 
-export async function POST(request: Request) {
+/**
+ * Shared checkout session creation logic
+ * Exported for use by yearly-checkout route
+ */
+export async function createCheckoutSession(body: CheckoutBody, request: Request) {
   try {
     const body = (await request.json()) as CheckoutBody;
     const billingCycle: BillingCycle = body.billingCycle ?? 'monthly';
@@ -199,4 +203,12 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * POST handler for checkout endpoint
+ */
+export async function POST(request: Request) {
+  const body = (await request.json()) as CheckoutBody;
+  return createCheckoutSession(body, request);
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { logAuditEvent, AuditEventTypes } from '@/lib/audit-logger';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -65,14 +66,33 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
   try {
     const supabase = createSupabaseServerClient();
+    
+    // Get user before signing out for audit log
+    const { data: { user } } = await supabase.auth.getUser();
+    
     const { error } = await supabase.auth.signOut();
 
     if (error) {
       console.error('Failed to sign out Supabase session on server:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Audit log: User logout
+    if (user) {
+      const forwarded = request.headers.get('x-forwarded-for');
+      logAuditEvent({
+        eventType: AuditEventTypes.USER_LOGOUT,
+        eventCategory: 'auth',
+        actorId: user.id,
+        actorEmail: user.email || undefined,
+        action: 'logout',
+        actionStatus: 'success',
+        ipAddress: forwarded ? forwarded.split(',')[0].trim() : undefined,
+        userAgent: request.headers.get('user-agent') || undefined,
+      }).catch(err => console.error('[AUDIT] Failed to log logout:', err));
     }
 
     return NextResponse.json({ success: true });

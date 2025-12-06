@@ -1,0 +1,65 @@
+# Dependabot Configuration
+# Automatically creates PRs for dependency updates and security vulnerabilities
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # NPM/Node.js dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 10
+    # Security updates should be prioritized
+    groups:
+      # Group minor and patch updates to reduce PR noise
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+        exclude-patterns:
+          # Don't group security-sensitive packages
+          - "@supabase/*"
+          - "next"
+          - "next-auth"
+          - "stripe"
+      # Keep major updates separate for review
+    ignore:
+      # Ignore packages that are pinned for compatibility
+      # Add any packages here that should not be auto-updated
+    labels:
+      - "dependencies"
+      - "automated"
+    commit-message:
+      prefix: "chore(deps):"
+    reviewers:
+      - "sairevanth-zz" # Add your GitHub username
+    # Auto-merge for patch updates (requires GitHub Actions workflow)
+    # Uncomment if you want to enable auto-merge
+    # pull-request-branch-name:
+    #   separator: "-"
+
+  # GitHub Actions workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 5
+    labels:
+      - "github-actions"
+      - "automated"
+    commit-message:
+      prefix: "chore(ci):"
+
+# Security vulnerability alerts will be automatically created regardless of this config
+# Make sure to enable "Dependabot alerts" in repository settings:
+# Settings > Code security and analysis > Dependabot alerts

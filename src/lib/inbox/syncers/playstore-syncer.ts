@@ -153,33 +153,10 @@ export class PlayStoreSyncer extends BaseSyncer {
     country: string,
     language: string
   ): Promise<PlayStoreReview[]> {
-    // Dynamic import to handle cases where package isn't installed
-    try {
-      // @ts-ignore - optional dependency
-      const gplay = await import('google-play-scraper');
-      
-      const reviews = await gplay.reviews({
-        appId,
-        lang: language,
-        country,
-        sort: gplay.sort.NEWEST,
-        num: 50,
-      });
-      
-      return reviews.data.map((r: any) => ({
-        id: r.id,
-        author: r.userName,
-        rating: r.score,
-        title: r.title || '',
-        content: r.text,
-        date: new Date(r.date),
-        version: r.version,
-        thumbsUp: r.thumbsUp,
-      }));
-    } catch (error) {
-      // Package not installed or other error
-      console.log('[PlayStore] google-play-scraper not available, skipping');
-      return [];
-    }
+    // This method requires google-play-scraper which is an optional dependency
+    // For builds without this package, we return an empty array
+    // To enable: npm install google-play-scraper
+    console.log('[PlayStore] google-play-scraper is an optional dependency - configure SERPAPI_KEY instead');
+    return [];
   }
 }

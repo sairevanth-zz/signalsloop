@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -29,7 +29,7 @@ export async function GET(
     const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    const supabase = createClient();
+    const supabase = getSupabaseServiceRoleClient();
 
     let query = supabase
       .from('user_stories_with_details')
@@ -83,7 +83,7 @@ export async function POST(
     const { projectId } = params;
     const body = await request.json();
 
-    const supabase = createClient();
+    const supabase = getSupabaseServiceRoleClient();
 
     const { data: story, error } = await supabase
       .from('user_stories')
@@ -130,7 +130,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const supabase = createClient();
+    const supabase = getSupabaseServiceRoleClient();
 
     const { data: story, error } = await supabase
       .from('user_stories')
@@ -173,7 +173,7 @@ export async function DELETE(
       );
     }
 
-    const supabase = createClient();
+    const supabase = getSupabaseServiceRoleClient();
 
     const { error } = await supabase
       .from('user_stories')
