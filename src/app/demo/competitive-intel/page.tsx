@@ -111,164 +111,151 @@ export default function CompetitiveIntelDemoPage() {
     const allProducts = [userProduct, ...competitors.filter(c => c.trim().length > 0)];
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-blue-500/30">
+        <div className="min-h-screen bg-background p-6 md:p-12">
+            <div className="max-w-5xl mx-auto space-y-12">
 
-            {/* Background Gradients */}
-            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[100px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[100px]" />
-            </div>
-
-            <div className="relative z-10 container mx-auto px-4 py-12 md:py-20">
-                <div className="max-w-5xl mx-auto space-y-12">
-
-                    {/* Header */}
-                    <div className="space-y-4 text-center">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 text-blue-300 text-xs font-medium mb-2">
-                            <span>🎯</span>
-                            <span>AI-Powered Competitive Analysis</span>
-                        </div>
-                        <h1 className="text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-br from-white via-white to-slate-400 bg-clip-text text-transparent pb-2">
-                            Competitive Intel in 60 Seconds
-                        </h1>
-                        <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-                            See what your competitors' users hate, and find exactly how to exploit it.
-                        </p>
-                    </div>
-
-                    <AnimatePresence mode="wait">
-
-                        {/* STEP 1: Products */}
-                        {step === 1 && (
-                            <motion.div
-                                key="step1"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                className="max-w-xl mx-auto space-y-8"
-                            >
-                                <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-8 shadow-xl">
-                                    <ProductInputForm
-                                        userProduct={userProduct}
-                                        setUserProduct={setUserProduct}
-                                        competitors={competitors}
-                                        setCompetitors={setCompetitors}
-                                    />
-
-                                    <div className="mt-8">
-                                        <Button size="lg" className="w-full bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/25 rounded-xl" onClick={handleStartSession}>
-                                            Continue to Data Sources
-                                        </Button>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {/* STEP 2: Data Collection */}
-                        {step === 2 && (
-                            <motion.div
-                                key="step2"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                className="space-y-8"
-                            >
-                                <Tabs defaultValue="auto" className="w-full max-w-3xl mx-auto">
-                                    <TabsList className="grid w-full grid-cols-3 mb-8 bg-slate-800/50">
-                                        <TabsTrigger value="auto" className="data-[state=active]:bg-blue-600">Auto-Collect</TabsTrigger>
-                                        <TabsTrigger value="paste" className="data-[state=active]:bg-blue-600">Paste Reviews</TabsTrigger>
-                                        <TabsTrigger value="upload" className="data-[state=active]:bg-blue-600">Upload CSV</TabsTrigger>
-                                    </TabsList>
-
-                                    <TabsContent value="auto" className="space-y-6">
-                                        <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6">
-                                            <h3 className="text-lg font-semibold mb-4 text-slate-200">Select Public Sources</h3>
-                                            <DataSourceSelector
-                                                selectedSources={selectedSources}
-                                                onToggle={(s) => {
-                                                    if (selectedSources.includes(s)) setSelectedSources(selectedSources.filter(x => x !== s));
-                                                    else setSelectedSources([...selectedSources, s]);
-                                                }}
-                                            />
-                                        </div>
-                                    </TabsContent>
-
-                                    <TabsContent value="paste">
-                                        <ReviewPasteArea
-                                            products={allProducts}
-                                            onAddReviews={(p, t) => handleManualAdd(p, t, 'text')}
-                                        />
-                                    </TabsContent>
-
-                                    <TabsContent value="upload">
-                                        <CSVUploader
-                                            products={allProducts}
-                                            onUpload={(p, c) => handleManualAdd(p, c, 'csv')}
-                                        />
-                                    </TabsContent>
-
-                                    <div className="mt-8 flex justify-end">
-                                        <Button size="lg" className="px-8 bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/25 rounded-xl" onClick={startAnalysis}>
-                                            Analyze Competition
-                                        </Button>
-                                    </div>
-                                </Tabs>
-                            </motion.div>
-                        )}
-
-                        {/* STEP 3: Processing */}
-                        {step === 3 && (
-                            <motion.div
-                                key="step3"
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 1.05 }}
-                                className="flex justify-center py-12"
-                            >
-                                <CollectionProgress status={status} />
-                            </motion.div>
-                        )}
-
-                        {/* STEP 4: Results */}
-                        {step === 4 && results && (
-                            <motion.div
-                                key="step4"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="space-y-12"
-                            >
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                    {/* Executive Summary */}
-                                    <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6 shadow-xl col-span-1 lg:col-span-2">
-                                        <h3 className="text-lg font-semibold mb-2 text-slate-200">Executive Summary</h3>
-                                        <p className="text-slate-400 leading-relaxed">
-                                            {results.executive_summary}
-                                        </p>
-                                    </div>
-
-                                    {/* Sentiment */}
-                                    <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6 shadow-xl">
-                                        <SentimentComparison data={results.sentiment_comparison} />
-                                    </div>
-
-                                    {/* Complaints */}
-                                    <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl p-6 shadow-xl">
-                                        <ComplaintsList complaints={results.top_complaints_by_competitor} />
-                                    </div>
-                                </div>
-
-                                {/* Feature Gaps */}
-                                <FeatureGaps gaps={results.feature_gaps} />
-
-                                {/* CTA */}
-                                <div className="pt-8">
-                                    <SignupCTA />
-                                </div>
-                            </motion.div>
-                        )}
-
-                    </AnimatePresence>
+                {/* Header */}
+                <div className="space-y-4 text-center">
+                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+                        Competitive Intel in <span className="text-blue-600 dark:text-blue-400">60 Seconds</span>
+                    </h1>
+                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        See what your competitors' users hate, and find exactly how to exploit it.
+                    </p>
                 </div>
+
+                <AnimatePresence mode="wait">
+
+                    {/* STEP 1: Products */}
+                    {step === 1 && (
+                        <motion.div
+                            key="step1"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="max-w-xl mx-auto space-y-8"
+                        >
+                            <div className="bg-card border rounded-xl p-8 shadow-sm">
+                                <ProductInputForm
+                                    userProduct={userProduct}
+                                    setUserProduct={setUserProduct}
+                                    competitors={competitors}
+                                    setCompetitors={setCompetitors}
+                                />
+
+                                <div className="mt-8">
+                                    <Button size="lg" className="w-full" onClick={handleStartSession}>
+                                        Continue to Data Sources
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* STEP 2: Data Collection */}
+                    {step === 2 && (
+                        <motion.div
+                            key="step2"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="space-y-8"
+                        >
+                            <Tabs defaultValue="auto" className="w-full max-w-3xl mx-auto">
+                                <TabsList className="grid w-full grid-cols-3 mb-8">
+                                    <TabsTrigger value="auto">Auto-Collect</TabsTrigger>
+                                    <TabsTrigger value="paste">Paste Reviews</TabsTrigger>
+                                    <TabsTrigger value="upload">Upload CSV</TabsTrigger>
+                                </TabsList>
+
+                                <TabsContent value="auto" className="space-y-6">
+                                    <div className="bg-card border rounded-xl p-6">
+                                        <h3 className="text-lg font-semibold mb-4">Select Public Sources</h3>
+                                        <DataSourceSelector
+                                            selectedSources={selectedSources}
+                                            onToggle={(s) => {
+                                                if (selectedSources.includes(s)) setSelectedSources(selectedSources.filter(x => x !== s));
+                                                else setSelectedSources([...selectedSources, s]);
+                                            }}
+                                        />
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="paste">
+                                    <ReviewPasteArea
+                                        products={allProducts}
+                                        onAddReviews={(p, t) => handleManualAdd(p, t, 'text')}
+                                    />
+                                </TabsContent>
+
+                                <TabsContent value="upload">
+                                    <CSVUploader
+                                        products={allProducts}
+                                        onUpload={(p, c) => handleManualAdd(p, c, 'csv')}
+                                    />
+                                </TabsContent>
+
+                                <div className="mt-8 flex justify-end">
+                                    <Button size="lg" className="px-8" onClick={startAnalysis}>
+                                        Analyze Competition
+                                    </Button>
+                                </div>
+                            </Tabs>
+                        </motion.div>
+                    )}
+
+                    {/* STEP 3: Processing */}
+                    {step === 3 && (
+                        <motion.div
+                            key="step3"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.05 }}
+                            className="flex justify-center py-12"
+                        >
+                            <CollectionProgress status={status} />
+                        </motion.div>
+                    )}
+
+                    {/* STEP 4: Results */}
+                    {step === 4 && results && (
+                        <motion.div
+                            key="step4"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="space-y-12"
+                        >
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {/* Executive Summary */}
+                                <div className="bg-card border rounded-xl p-6 shadow-sm col-span-1 lg:col-span-2">
+                                    <h3 className="text-lg font-semibold mb-2">Executive Summary</h3>
+                                    <p className="text-muted-foreground leading-relaxed">
+                                        {results.executive_summary}
+                                    </p>
+                                </div>
+
+                                {/* Sentiment */}
+                                <div className="bg-card border rounded-xl p-6 shadow-sm">
+                                    <SentimentComparison data={results.sentiment_comparison} />
+                                </div>
+
+                                {/* Complaints */}
+                                <div className="bg-card border rounded-xl p-6 shadow-sm">
+                                    <ComplaintsList complaints={results.top_complaints_by_competitor} />
+                                </div>
+                            </div>
+
+                            {/* Feature Gaps */}
+                            <FeatureGaps gaps={results.feature_gaps} />
+
+                            {/* CTA */}
+                            <div className="pt-8">
+                                <SignupCTA />
+                            </div>
+                        </motion.div>
+                    )}
+
+                </AnimatePresence>
             </div>
         </div>
     );

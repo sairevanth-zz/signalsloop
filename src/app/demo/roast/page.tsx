@@ -78,71 +78,60 @@ export default function RoastPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-orange-500/30">
+        <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 py-12 px-4">
+            <div className="max-w-4xl mx-auto space-y-8">
 
-            {/* Background Gradients */}
-            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-500/10 rounded-full blur-[100px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-red-500/10 rounded-full blur-[100px]" />
-            </div>
+                {/* Header */}
+                <div className="text-center space-y-4">
+                    <div className="inline-flex items-center justify-center p-3 bg-red-100 dark:bg-red-900/30 rounded-full mb-2">
+                        <Flame className="w-8 h-8 text-red-600 dark:text-red-500" />
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
+                        Roast My Roadmap
+                    </h1>
+                    <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                        Get your product roadmap reviewed by an AI Chief Product Officer.
+                        Brutal, honest, and constructive feedback in 30 seconds.
+                    </p>
+                </div>
 
-            <div className="relative z-10 container mx-auto px-4 py-12 md:py-20">
-                <div className="max-w-4xl mx-auto space-y-8">
+                {status === 'idle' && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <RoadmapInput onInputChange={handleInputChange} />
 
-                    {/* Header */}
-                    <div className="text-center space-y-4">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20 text-orange-300 text-xs font-medium mb-2">
-                            <Flame className="w-3 h-3" />
-                            <span>AI Chief Product Officer</span>
+                        <div>
+                            <div className="px-1 mb-2">
+                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Optional Context</h3>
+                            </div>
+                            <ContextForm data={context} onChange={setContext} />
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-br from-white via-white to-slate-400 bg-clip-text text-transparent pb-2">
-                            Roast My Roadmap
-                        </h1>
-                        <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-                            Get your product roadmap reviewed by an AI Chief Product Officer.
-                            <br className="hidden md:block" />
-                            Brutal, honest, and constructive feedback in 30 seconds.
+
+                        <div className="flex justify-center">
+                            <Button
+                                size="lg"
+                                className="text-lg px-8 py-6 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-lg transform transition hover:scale-105"
+                                onClick={handleRoast}
+                                disabled={!inputValue}
+                            >
+                                🔥 Roast My Roadmap
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {status !== 'idle' && status !== 'completed' && (
+                    <div className="py-12">
+                        <RoastProgress step={status} />
+                        <p className="text-center text-gray-500 text-sm mt-4 animate-pulse">
+                            This usually takes about 20-30 seconds...
                         </p>
                     </div>
+                )}
 
-                    {status === 'idle' && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <RoadmapInput onInputChange={handleInputChange} />
+                {status === 'completed' && roastResult && (
+                    <RoastResults roast={roastResult} shareToken={shareToken} />
+                )}
 
-                            <div>
-                                <div className="px-1 mb-2">
-                                    <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Optional Context</h3>
-                                </div>
-                                <ContextForm data={context} onChange={setContext} />
-                            </div>
-
-                            <div className="flex justify-center">
-                                <Button
-                                    size="lg"
-                                    className="text-lg px-8 py-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white shadow-lg shadow-orange-500/25 transform transition hover:scale-105 rounded-xl"
-                                    onClick={handleRoast}
-                                    disabled={!inputValue}
-                                >
-                                    🔥 Roast My Roadmap
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-
-                    {status !== 'idle' && status !== 'completed' && (
-                        <div className="py-12">
-                            <RoastProgress step={status} />
-                            <p className="text-center text-slate-500 text-sm mt-4 animate-pulse">
-                                This usually takes about 20-30 seconds...
-                            </p>
-                        </div>
-                    )}
-
-                    {status === 'completed' && roastResult && (
-                        <RoastResults roast={roastResult} shareToken={shareToken} />
-                    )}
-
-                </div>
             </div>
         </div>
     );
