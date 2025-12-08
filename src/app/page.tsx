@@ -195,67 +195,70 @@ export default function Homepage() {
               <Link href="/demo/board" className="text-cyan-500 hover:text-cyan-500 font-semibold transition-colors flex items-center gap-1 min-touch-target whitespace-nowrap">
                 <span className="font-body text-base">✨</span> Demo
               </Link>
-              <Link href="/demo/competitive-intel" className="hover:text-cyan-500 transition-colors min-touch-target font-medium">
-                Competitive Intel
-              </Link>
-              <span className="hidden xl:inline-block h-4 w-px bg-gray-200"></span>
-              <span className="flex items-center gap-1.5 text-gray-500 text-xs">
-                <span className="text-emerald-500">🔒</span>
-                <span>SSL Encrypted</span>
-              </span>
-              <span className="flex items-center gap-1.5 text-gray-500 text-xs">
-                <span className="text-cyan-400">⚡</span>
-                <span>5 AI Features</span>
-              </span>
-            </nav>
+              Competitive Intel
+            </Link>
+            <Link href="/demo/roast" className="hover:text-cyan-500 transition-colors min-touch-target font-medium flex items-center gap-1">
+              Roast My Roadmap <Flame className="w-4 h-4 text-orange-500" />
+            </Link>
+            <span className="hidden xl:inline-block h-4 w-px bg-gray-200"></span>
+            <span className="flex items-center gap-1.5 text-gray-500 text-xs">
+              <span className="text-emerald-500">🔒</span>
+              <span>SSL Encrypted</span>
+            </span>
+            <span className="flex items-center gap-1.5 text-gray-500 text-xs">
+              <span className="text-cyan-400">⚡</span>
+              <span>5 AI Features</span>
+            </span>
+          </nav>
 
-            <div className="flex items-center gap-3">
-              <Link href="/demo/board" className="lg:hidden">
-                <Button
-                  variant="outline"
-                  className="font-body text-sm md:text-base min-touch-target px-4 md:px-5 tap-highlight-transparent rounded-full border-2 border-cyan-400 text-cyan-600 hover:bg-cyan-50 hover-bounce"
-                >
-                  Demo
-                </Button>
-              </Link>
-              <Link href="/login" className="hidden sm:block">
-                <Button variant="ghost" className="font-body text-sm md:text-base min-touch-target px-4 md:px-5 tap-highlight-transparent hover:text-cyan-500 rounded-full">
-                  Sign In
-                </Button>
-              </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/demo/board" className="lg:hidden">
               <Button
-                onClick={handleProCheckout}
-                className="gradient-cyan-purple text-white font-body font-semibold rounded-3xl hover:scale-105 active:scale-95 transition-all duration-200 shadow-multi hover:shadow-cyan px-4 sm:px-7 md:px-9 text-xs sm:text-sm md:text-base min-touch-target tap-highlight-transparent whitespace-nowrap"
+                variant="outline"
+                className="font-body text-sm md:text-base min-touch-target px-4 md:px-5 tap-highlight-transparent rounded-full border-2 border-cyan-400 text-cyan-600 hover:bg-cyan-50 hover-bounce"
               >
-                Start Free
+                Demo
               </Button>
-            </div>
+            </Link>
+            <Link href="/login" className="hidden sm:block">
+              <Button variant="ghost" className="font-body text-sm md:text-base min-touch-target px-4 md:px-5 tap-highlight-transparent hover:text-cyan-500 rounded-full">
+                Sign In
+              </Button>
+            </Link>
+            <Button
+              onClick={handleProCheckout}
+              className="gradient-cyan-purple text-white font-body font-semibold rounded-3xl hover:scale-105 active:scale-95 transition-all duration-200 shadow-multi hover:shadow-cyan px-4 sm:px-7 md:px-9 text-xs sm:text-sm md:text-base min-touch-target tap-highlight-transparent whitespace-nowrap"
+            >
+              Start Free
+            </Button>
           </div>
         </div>
-      </header>
+    </div>
+      </header >
 
-      {/* Hero Section */}
-      <section className="py-24 md:py-32 lg:py-40 px-4 relative overflow-hidden bg-gradient-to-b from-white via-cyan-50/30 to-white">
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 gradient-shift-bg opacity-40" style={{
-          background: 'linear-gradient(135deg, rgba(0, 217, 255, 0.15) 0%, rgba(14, 165, 233, 0.1) 25%, rgba(147, 51, 234, 0.08) 50%, rgba(0, 217, 255, 0.12) 75%, rgba(14, 165, 233, 0.15) 100%)'
-        }}></div>
+    {/* Hero Section */ }
+    < section className = "py-24 md:py-32 lg:py-40 px-4 relative overflow-hidden bg-gradient-to-b from-white via-cyan-50/30 to-white" >
+      {/* Animated gradient background */ }
+      < div className = "absolute inset-0 gradient-shift-bg opacity-40" style = {{
+    background: 'linear-gradient(135deg, rgba(0, 217, 255, 0.15) 0%, rgba(14, 165, 233, 0.1) 25%, rgba(147, 51, 234, 0.08) 50%, rgba(0, 217, 255, 0.12) 75%, rgba(14, 165, 233, 0.15) 100%)'
+  }
+}></div >
 
-        {/* Grid pattern background */}
-        <div className="absolute inset-0 opacity-[0.05]" style={{
-          backgroundImage: `linear-gradient(rgba(0, 217, 255, 0.5) 1px, transparent 1px),
+  {/* Grid pattern background */ }
+  < div className = "absolute inset-0 opacity-[0.05]" style = {{
+  backgroundImage: `linear-gradient(rgba(0, 217, 255, 0.5) 1px, transparent 1px),
                            linear-gradient(90deg, rgba(0, 217, 255, 0.5) 1px, transparent 1px)`,
-          backgroundSize: '50px 50px'
-        }}></div>
+    backgroundSize: '50px 50px'
+}}></div >
 
-        {/* DRAMATIC Gradient orbs - Balanced on both sides */}
-        <div className="absolute top-[15%] -left-[5%] w-[600px] h-[600px] bg-gradient-to-br from-cyan-400/30 to-purple-500/20 rounded-full blur-3xl animate-float pulse-glow-vibrant"></div>
+  {/* DRAMATIC Gradient orbs - Balanced on both sides */ }
+  < div className = "absolute top-[15%] -left-[5%] w-[600px] h-[600px] bg-gradient-to-br from-cyan-400/30 to-purple-500/20 rounded-full blur-3xl animate-float pulse-glow-vibrant" ></div >
         <div className="absolute top-[20%] -right-[5%] w-[650px] h-[650px] bg-gradient-to-br from-sky-400/28 to-cyan-500/22 rounded-full blur-3xl animate-float pulse-glow-vibrant" style={{ animationDelay: '2s' }}></div>
         <div className="absolute bottom-[10%] -left-[5%] w-[700px] h-[700px] bg-gradient-to-br from-purple-400/25 to-pink-500/18 rounded-full blur-3xl animate-float scale-pulse" style={{ animationDelay: '3s' }}></div>
         <div className="absolute bottom-[15%] -right-[5%] w-[600px] h-[600px] bg-gradient-to-br from-cyan-500/26 to-blue-500/20 rounded-full blur-3xl animate-float pulse-glow-vibrant" style={{ animationDelay: '5s' }}></div>
         <div className="absolute top-[50%] left-[50%] w-[500px] h-[500px] bg-gradient-to-br from-purple-400/15 to-pink-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '6s' }}></div>
 
-        {/* Particle System - Subtle glowing particles */}
+{/* Particle System - Subtle glowing particles */ }
         <div className="absolute top-[20%] left-[15%] w-3 h-3 bg-cyan-400 rounded-full blur-sm particle-float opacity-40"></div>
         <div className="absolute top-[30%] right-[20%] w-2 h-2 bg-sky-400 rounded-full blur-sm particle-float opacity-30" style={{ animationDelay: '1s' }}></div>
         <div className="absolute bottom-[25%] left-[25%] w-2.5 h-2.5 bg-purple-400 rounded-full blur-sm particle-float opacity-25" style={{ animationDelay: '2s' }}></div>
@@ -263,7 +266,7 @@ export default function Homepage() {
         <div className="absolute bottom-[40%] left-[40%] w-3 h-3 bg-sky-300 rounded-full blur-sm particle-float opacity-28" style={{ animationDelay: '4s' }}></div>
         <div className="absolute top-[45%] left-[10%] w-2 h-2 bg-cyan-400 rounded-full blur-sm particle-float opacity-35" style={{ animationDelay: '5s' }}></div>
 
-        {/* Spinning accent rings - subtle */}
+{/* Spinning accent rings - subtle */ }
         <div className="absolute top-[25%] left-[20%] w-32 h-32 border-2 border-cyan-300/20 rounded-full spin-slow hidden lg:block"></div>
         <div className="absolute bottom-[30%] right-[18%] w-40 h-40 border-2 border-purple-300/15 rounded-full spin-slow hidden lg:block" style={{ animationDelay: '5s', animationDuration: '25s' }}></div>
 
@@ -502,17 +505,17 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* Solo Founders & Indie Makers Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
+  {/* Solo Founders & Indie Makers Section */ }
+  < section className = "py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
+    <div className="absolute inset-0" style={{
+      backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
                            radial-gradient(circle at 40% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 50%)`
-        }}></div>
+    }}></div>
 
-        {/* Floating decorative elements */}
+{/* Floating decorative elements */ }
         <div className="absolute top-20 right-10 w-16 h-16 border-2 border-cyan-300/30 rounded-full geometric-float"></div>
         <div className="absolute bottom-20 left-10 w-20 h-20 border-2 border-sky-300/25 rotate-45 geometric-float-reverse"></div>
         <div className="absolute top-1/2 right-1/4 w-12 h-12 bg-cyan-400/10 rounded-lg geometric-float" style={{ animationDelay: '2s' }}></div>
@@ -645,10 +648,10 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* Emotional Story Arc - PM Pain Point */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* Emotional Story Arc - PM Pain Point */ }
+  < section className = "py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -761,10 +764,10 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* Before/After Comparison Section */}
-      <section className="py-16 md:py-20 lg:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* Before/After Comparison Section */ }
+  < section className = "py-16 md:py-20 lg:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -895,10 +898,10 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* AI Features Highlight Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* AI Features Highlight Section */ }
+  < section className = "py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -968,10 +971,10 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* Team Collaboration Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* Team Collaboration Section */ }
+  < section className = "py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -1032,10 +1035,10 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* NEW SECTION: Urgency-Based Voting */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* NEW SECTION: Urgency-Based Voting */ }
+  < section className = "py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -1116,10 +1119,10 @@ export default function Homepage() {
             </p>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* Results PMs Care About */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* Results PMs Care About */ }
+  < section className = "py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -1207,10 +1210,10 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* Problem Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* Problem Section */ }
+  < section className = "py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -1242,10 +1245,10 @@ export default function Homepage() {
             Meanwhile, your team wastes hours manually sorting through it all.
           </p>
         </div>
-      </section>
+      </section >
 
-      {/* Solution Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* Solution Section */ }
+  < section className = "py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -1259,10 +1262,10 @@ export default function Homepage() {
             and automatically organizes it into actionable categories like Bug Reports, Feature Requests, UI Improvements, and more.
           </p>
         </div>
-      </section>
+      </section >
 
-      {/* AI Categorization Showcase */}
-      <section className="py-16 md:py-20 lg:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* AI Categorization Showcase */ }
+  < section className = "py-16 md:py-20 lg:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -1368,10 +1371,10 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* Developer & Integration Hub Section */}
-      <section id="features" className="py-20 md:py-24 px-4 bg-slate-50 relative">
+  {/* Developer & Integration Hub Section */ }
+  < section id = "features" className = "py-20 md:py-24 px-4 bg-slate-50 relative" >
         <div className="absolute inset-0 bg-slate-100/20"></div>
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-12">
@@ -1443,10 +1446,10 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* Team Collaboration Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* Team Collaboration Section */ }
+  < section className = "py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -1523,10 +1526,10 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* Widget Demo Section */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* Widget Demo Section */ }
+  < section className = "py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -1692,10 +1695,10 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* NEW SECTION: Public Roadmap & Changelog */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* NEW SECTION: Public Roadmap & Changelog */ }
+  < section className = "py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -1862,12 +1865,12 @@ export default function Homepage() {
             </Link>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 md:py-28 lg:py-36 px-4 bg-white grain-overlay dot-pattern relative overflow-hidden">
-        {/* Subtle background gradients */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-400/3 rounded-full blur-3xl"></div>
+  {/* Pricing Section */ }
+  < section id = "pricing" className = "py-20 md:py-28 lg:py-36 px-4 bg-white grain-overlay dot-pattern relative overflow-hidden" >
+    {/* Subtle background gradients */ }
+    < div className = "absolute top-0 right-0 w-96 h-96 bg-cyan-400/3 rounded-full blur-3xl" ></div >
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-sky-400/3 rounded-full blur-3xl"></div>
 
         <div className="container mx-auto relative z-10">
@@ -2051,10 +2054,10 @@ export default function Homepage() {
             </Card>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* Competitive Comparison */}
-      <section className="py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+  {/* Competitive Comparison */ }
+  < section className = "py-20 md:py-24 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -2373,54 +2376,54 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* CTA Section */}
-      <section className="py-16 md:py-24 lg:py-32 px-4 gradient-cyan-purple text-white">
-        <div className="container mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-4">
-            Ready to effortlessly organize feedback with AI?
-          </h2>
-          <p className="font-body text-lg sm:text-xl mb-6 opacity-90 px-4">
-            Join 100+ teams already saving 15+ hours per week with AI-powered feedback organization
-          </p>
+  {/* CTA Section */ }
+  < section className = "py-16 md:py-24 lg:py-32 px-4 gradient-cyan-purple text-white" >
+    <div className="container mx-auto text-center">
+      <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-4">
+        Ready to effortlessly organize feedback with AI?
+      </h2>
+      <p className="font-body text-lg sm:text-xl mb-6 opacity-90 px-4">
+        Join 100+ teams already saving 15+ hours per week with AI-powered feedback organization
+      </p>
 
-          {/* Enhanced Trust/Urgency Combo */}
-          <div className="mb-8">
-            <Badge className="bg-white text-cyan-500 text-base md:text-lg px-4 py-2 mb-4">
-              ✨ Free AI categorization for early adopters
-            </Badge>
+      {/* Enhanced Trust/Urgency Combo */}
+      <div className="mb-8">
+        <Badge className="bg-white text-cyan-500 text-base md:text-lg px-4 py-2 mb-4">
+          ✨ Free AI categorization for early adopters
+        </Badge>
 
-            {/* Trust indicators under badge */}
-            <div className="flex flex-wrap justify-center gap-4 text-sm opacity-90">
-              <div className="flex items-center gap-2">
-                <span className="text-green-300">✓</span>
-                <span>Free forever plan</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-blue-300">✓</span>
-                <span>No setup fees</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-cyan-300">✓</span>
-                <span>Cancel anytime</span>
-              </div>
-            </div>
+        {/* Trust indicators under badge */}
+        <div className="flex flex-wrap justify-center gap-4 text-sm opacity-90">
+          <div className="flex items-center gap-2">
+            <span className="text-green-300">✓</span>
+            <span>Free forever plan</span>
           </div>
-
-          <Button
-            onClick={handleProCheckout}
-            size="lg"
-            className="bg-white text-cyan-500 hover:bg-gray-100 text-base md:text-lg px-6 md:px-10 py-3 md:py-4 font-bold rounded-3xl hover:scale-110 hover-lift transition-all duration-200 shadow-lg hover:shadow-xl min-h-[44px]"
-          >
-            🚀 Get Started in 2 Minutes
-            <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-blue-300">✓</span>
+            <span>No setup fees</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-cyan-300">✓</span>
+            <span>Cancel anytime</span>
+          </div>
         </div>
-      </section>
+      </div>
 
-      {/* Credibility Section */}
-      <section className="py-16 md:py-20 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden">
+      <Button
+        onClick={handleProCheckout}
+        size="lg"
+        className="bg-white text-cyan-500 hover:bg-gray-100 text-base md:text-lg px-6 md:px-10 py-3 md:py-4 font-bold rounded-3xl hover:scale-110 hover-lift transition-all duration-200 shadow-lg hover:shadow-xl min-h-[44px]"
+      >
+        🚀 Get Started in 2 Minutes
+        <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
+      </Button>
+    </div>
+      </section >
+
+  {/* Credibility Section */ }
+  < section className = "py-16 md:py-20 px-4 bg-gradient-to-b from-white to-cyan-50/20 relative overflow-hidden" >
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
                            radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.10) 0%, transparent 50%),
@@ -2484,48 +2487,48 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 md:py-12 px-4">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 gradient-cyan-purple rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">S</span>
-                </div>
-                <span className="font-body text-xl font-bold">SignalsLoop</span>
-              </div>
+  {/* Footer */ }
+  < footer className = "bg-gray-900 text-white py-8 md:py-12 px-4" >
+    <div className="container mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+        <div>
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="w-8 h-8 gradient-cyan-purple rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-sm">S</span>
             </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="#features" className="hover:text-white transition-colors">Features</Link></li>
-                <li><Link href="#pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="/demo/board" className="hover:text-white transition-colors">Demo</Link></li>
-                <li><Link href="/docs/api" className="hover:text-white transition-colors">API Documentation</Link></li>
-                <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
-              </ul>
-            </div>
-
-
-            <div>
-              <h3 className="font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link></li>
-                <li><Link href="/terms" className="hover:text-white transition-colors">Terms</Link></li>
-                <li><Link href="/support" className="hover:text-white transition-colors">Support</Link></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 SignalsLoop. All rights reserved.</p>
+            <span className="font-body text-xl font-bold">SignalsLoop</span>
           </div>
         </div>
-      </footer>
+
+        <div>
+          <h3 className="font-semibold mb-4">Product</h3>
+          <ul className="space-y-2 text-gray-400">
+            <li><Link href="#features" className="hover:text-white transition-colors">Features</Link></li>
+            <li><Link href="#pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+            <li><Link href="/demo/board" className="hover:text-white transition-colors">Demo</Link></li>
+            <li><Link href="/docs/api" className="hover:text-white transition-colors">API Documentation</Link></li>
+            <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
+          </ul>
+        </div>
+
+
+        <div>
+          <h3 className="font-semibold mb-4">Legal</h3>
+          <ul className="space-y-2 text-gray-400">
+            <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link></li>
+            <li><Link href="/terms" className="hover:text-white transition-colors">Terms</Link></li>
+            <li><Link href="/support" className="hover:text-white transition-colors">Support</Link></li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+        <p>&copy; 2024 SignalsLoop. All rights reserved.</p>
+      </div>
     </div>
+      </footer >
+    </div >
   );
 }
