@@ -14,6 +14,17 @@ export async function scrapeAppStore(appName: string): Promise<Review[]> {
 
         // Get reviews for best matching app
         const app = searchResults[0];
+
+        // Basic validation: Check if app name roughly matches the query
+        // This prevents searching for "Space X" and getting "X" (Twitter)
+        const normalizedQuery = appName.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normalizedTitle = app.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        if (!normalizedTitle.includes(normalizedQuery)) {
+            console.log(`Skipping App Store result: "${app.title}" does not match query "${appName}"`);
+            return [];
+        }
+
         const reviews = await store.reviews({
             id: app.id,
             country: 'us',

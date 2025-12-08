@@ -13,6 +13,16 @@ export async function scrapePlayStore(appName: string): Promise<Review[]> {
 
         // Get reviews
         const app = searchResults[0];
+
+        // Basic validation: Check if app name roughly matches the query
+        const normalizedQuery = appName.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normalizedTitle = app.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        if (!normalizedTitle.includes(normalizedQuery)) {
+            console.log(`Skipping Play Store result: "${app.title}" does not match query "${appName}"`);
+            return [];
+        }
+
         const reviewData = await gplay.reviews({
             appId: app.appId,
             sort: gplay.sort.NEWEST,
