@@ -199,6 +199,9 @@ export default function Homepage() {
               <Link href="/demo/competitive-intel" className="hover:text-cyan-500 transition-colors min-touch-target font-medium">
                 Competitive Intel
               </Link>
+              <Link href="/demo/feedback" className="hover:text-cyan-500 transition-colors min-touch-target font-medium">
+                Feedback Analysis
+              </Link>
               <Link href="/demo/roast" className="hover:text-cyan-500 transition-colors min-touch-target font-medium flex items-center gap-1">
                 Roast My Roadmap <Flame className="w-4 h-4 text-orange-500" />
               </Link>
