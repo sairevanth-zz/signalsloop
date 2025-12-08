@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalsLoop - The AI Product Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #FFFFFF;
+            --bg-secondary: #F8FAFC;
+            --primary: #4F46E5;
+            /* Indigo 600 */
+            --primary-dark: #4338CA;
+            --text-main: #0F172A;
+            /* Slate 900 */
+            --text-muted: #64748B;
+            /* Slate 500 */
+            --border: #E2E8F0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            width: 12px;
+            height: 12px;
+            border: 2px solid white;
+            border-radius: 50%;
+            border-top-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .btn {
+            padding: 0.7rem 1.4rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--text-muted);
+            background: var(--bg-secondary);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 10rem 5% 6rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-content {
+            max-width: 600px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background: #EEF2FF;
+            color: var(--primary);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
+            letter-spacing: -0.03em;
+        }
+
+        .hero-sub {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .trust-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .trust-logos {
+            display: flex;
+            gap: 1.5rem;
+            opacity: 0.6;
+            filter: grayscale(100%);
+        }
+
+        .trust-logo-box {
+            height: 30px;
+            width: 80px;
+            background: #E2E8F0;
+            border-radius: 4px;
+        }
+
+        /* Hero Visual - Split Screen Concept */
+        .hero-visual {
+            position: relative;
+            height: 600px;
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        .split-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+        }
+
+        .split-left {
+            width: 50%;
+            background: #F1F5F9;
+            padding: 2rem;
+            border-right: 1px dashed var(--border);
+            position: relative;
+        }
+
+        .split-right {
+            width: 50%;
+            background: #fff;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .label-badge {
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 10;
+        }
+
+        .label-old {
+            background: #CBD5E1;
+            color: #64748B;
+        }
+
+        .label-new {
+            background: #EEF2FF;
+            color: var(--primary);
+        }
+
+        /* Mock UI Elements */
+        .messy-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+            opacity: 0.7;
+        }
+
+        .messy-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transform: rotate(-2deg);
+            border: 1px solid #E2E8F0;
+        }
+
+        .messy-card:nth-child(2) {
+            transform: rotate(1deg);
+            margin-left: 10px;
+        }
+
+        .messy-card:nth-child(3) {
+            transform: rotate(-1deg);
+            margin-left: -5px;
+        }
+
+        .clean-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .clean-card {
+            background: white;
+            padding: 1.2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #F1F5F9;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .check-circle {
+            width: 24px;
+            height: 24px;
+            background: #DCFCE7;
+            color: #16A34A;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .skeleton-line {
+            height: 8px;
+            background: #F1F5F9;
+            border-radius: 4px;
+            width: 100%;
+            margin-bottom: 6px;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 6rem 5%;
+            background: var(--bg-secondary);
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 4rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-box {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            transition: transform 0.3s;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: #EEF2FF;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-box h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-box p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">
+            <div class="logo-icon"></div>
+            SignalsLoop
+        </div>
+        <div class="nav-links">
+            <a href="#">Product</a>
+            <a href="#">Solutions</a>
+            <a href="#">Pricing</a>
+            <a href="#">Resources</a>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <a href="#"
+                style="color: var(--text-main); text-decoration: none; font-weight: 600; font-size: 0.95rem;">Log in</a>
+            <a href="#" class="btn btn-primary">Start Free Trial</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="badge">
+                <div class="badge-dot"></div>
+                New: AI Spec Writer 2.0
+            </div>
+            <h1>One Platform.<br>Eight Data Sources.<br>Zero Manual Work.</h1>
+            <p class="hero-sub">SignalsLoop is the only product tool that discovers feedback, analyzes sentiment, writes
+                specs, and closes the loop—autonomously.</p>
+
+            <div class="cta-group">
+                <a href="#" class="btn btn-primary">Start Free Trial</a>
+                <a href="#" class="btn btn-outline">View Demo</a>
+            </div>
+
+            <div class="trust-label">TRUSTED BY PRODUCT TEAMS AT</div>
+            <div class="trust-logos">
+                <div class="trust-logo-box"></div>
+                <div class="trust-logo-box"></div>
+                <div class="trust-logo-box"></div>
+                <div class="trust-logo-box"></div>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="split-container">
+                <!-- Left: Old Way -->
+                <div class="split-left">
+                    <div class="label-badge label-old">The Old Way</div>
+                    <div class="messy-stack">
+                        <div class="messy-card">
+                            <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 5px;">Jira Ticket #492</div>
+                            <div class="skeleton-line" style="width: 80%"></div>
+                            <div class="skeleton-line" style="width: 60%"></div>
+                        </div>
+                        <div class="messy-card">
+                            <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 5px;">Slack Thread</div>
+                            <div class="skeleton-line" style="width: 90%"></div>
+                        </div>
+                        <div class="messy-card">
+                            <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 5px;">Notion Doc</div>
+                            <div class="skeleton-line" style="width: 70%"></div>
+                        </div>
+                        <div style="text-align: center; margin-top: 2rem; font-size: 3rem;">😫</div>
+                    </div>
+                </div>
+
+                <!-- Right: SignalsLoop -->
+                <div class="split-right">
+                    <div class="label-badge label-new">SignalsLoop</div>
+                    <div class="clean-stack">
+                        <div class="clean-card">
+                            <div class="check-circle">✓</div>
+                            <div style="flex: 1">
+                                <div style="font-weight: 700; font-size: 0.9rem;">Feedback Discovered</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">From Reddit, Twitter, G2</div>
+                            </div>
+                        </div>
+                        <div class="clean-card">
+                            <div class="check-circle">✓</div>
+                            <div style="flex: 1">
+                                <div style="font-weight: 700; font-size: 0.9rem;">Spec Generated</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">PRD-102 created in 30s</div>
+                            </div>
+                        </div>
+                        <div class="clean-card">
+                            <div class="check-circle">✓</div>
+                            <div style="flex: 1">
+                                <div style="font-weight: 700; font-size: 0.9rem;">Roadmap Prioritized</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Ranked #3 by Impact Score
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features-section">
+        <div class="section-header">
+            <h2>Everything you need to ship faster</h2>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Stop drowning in busywork. Let AI handle the
+                discovery and planning so you can focus on building.</p>
+        </div>
+
+        <div class="grid-3">
+            <div class="feature-box">
+                <div class="feature-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </div>
+                <h3>Feedback Discovery</h3>
+                <p>We scan 8 platforms every 30 minutes. No manual import required. Catch issues before they become
+                    churn.</p>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                </div>
+                <h3>Automated Specs</h3>
+                <p>Stop writing PRDs from scratch. Our RAG-powered AI drafts comprehensive specs in seconds.</p>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon
+                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                        </polygon>
+                    </svg>
+                </div>
+                <h3>Competitive Intel</h3>
+                <p>Know exactly what users are saying about your competitors. Spot gaps and opportunities instantly.</p>
+            </div>
+        </div>
+    </section>
+
+</body>
+
+</html>

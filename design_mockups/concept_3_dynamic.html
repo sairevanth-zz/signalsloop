@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalsLoop - The AI Product Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0F0518;
+            --text-main: #FFFFFF;
+            --text-muted: #E2E8F0;
+            --gradient-1: linear-gradient(135deg, #FF0080, #7928CA);
+            --gradient-2: linear-gradient(135deg, #7928CA, #FF0080);
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --card-border: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Animated Background */
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background:
+                radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+                radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: float 10s infinite alternate;
+        }
+
+        .orb-1 {
+            top: 20%;
+            left: 20%;
+            width: 300px;
+            height: 300px;
+            background: #FF0080;
+        }
+
+        .orb-2 {
+            bottom: 20%;
+            right: 20%;
+            width: 400px;
+            height: 400px;
+            background: #7928CA;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(30px, -30px);
+            }
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 5%;
+            position: relative;
+            z-index: 100;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.8rem;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, #ffccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn {
+            padding: 0.8rem 1.6rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            border: none;
+        }
+
+        .btn-gradient {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: 0 10px 20px rgba(121, 40, 202, 0.3);
+        }
+
+        .btn-gradient:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(121, 40, 202, 0.5);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 8rem 5% 5rem;
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 5rem;
+            line-height: 1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.04em;
+            background: linear-gradient(to bottom, #ffffff, #ffccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero-sub {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            font-weight: 300;
+            animation: fadeInUp 1s ease-out 0.2s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 3D Loop Visualization */
+        .loop-container {
+            position: relative;
+            height: 500px;
+            margin-top: 4rem;
+            perspective: 1000px;
+        }
+
+        .loop-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotateX(60deg);
+            width: 600px;
+            height: 600px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: spin 20s infinite linear;
+        }
+
+        .loop-ring::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            width: 100px;
+            height: 4px;
+            background: #FF0080;
+            box-shadow: 0 0 20px #FF0080;
+            border-radius: 2px;
+        }
+
+        @keyframes spin {
+            from {
+                transform: translate(-50%, -50%) rotateX(60deg) rotateZ(0deg);
+            }
+
+            to {
+                transform: translate(-50%, -50%) rotateX(60deg) rotateZ(360deg);
+            }
+        }
+
+        .card-float {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1.5rem;
+            border-radius: 16px;
+            width: 220px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: floatCard 6s infinite ease-in-out;
+        }
+
+        .card-1 {
+            top: 10%;
+            left: 20%;
+            animation-delay: 0s;
+        }
+
+        .card-2 {
+            top: 40%;
+            right: 15%;
+            animation-delay: -2s;
+        }
+
+        .card-3 {
+            bottom: 10%;
+            left: 30%;
+            animation-delay: -4s;
+        }
+
+        @keyframes floatCard {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #FF0080, #7928CA);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .card-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Features Scroll */
+        .features-scroll {
+            display: flex;
+            gap: 2rem;
+            overflow-x: auto;
+            padding: 2rem 5%;
+            margin-top: -50px;
+            position: relative;
+            z-index: 10;
+            scrollbar-width: none;
+        }
+
+        .features-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .feature-item {
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .feature-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-10px);
+            border-color: #FF0080;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-mesh">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <nav>
+        <div class="logo">SignalsLoop</div>
+        <a href="#" class="btn btn-gradient">Get Started</a>
+    </nav>
+
+    <section class="hero">
+        <h1>The AI Product Manager<br>That Never Sleeps</h1>
+        <p class="hero-sub">Discover feedback. Write specs. Prioritize roadmap. Ship faster.<br>All on autopilot.</p>
+
+        <a href="#" class="btn btn-gradient" style="font-size: 1.2rem; padding: 1rem 2.5rem;">Start Free Trial</a>
+
+        <div class="loop-container">
+            <div class="loop-ring"></div>
+
+            <!-- Floating Cards representing the loop -->
+            <div class="card-float card-1">
+                <div class="card-icon">🔍</div>
+                <div class="card-title">Discovery</div>
+                <div class="card-desc">Scanning 8 platforms for user feedback...</div>
+            </div>
+
+            <div class="card-float card-2">
+                <div class="card-icon">🧠</div>
+                <div class="card-title">Analysis</div>
+                <div class="card-desc">Generating PRD and prioritizing roadmap...</div>
+            </div>
+
+            <div class="card-float card-3">
+                <div class="card-icon">🚀</div>
+                <div class="card-title">Execution</div>
+                <div class="card-desc">Jira issue created. Changelog ready.</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="features-scroll">
+        <div class="feature-item">
+            <h3>Autonomous Discovery</h3>
+            <p style="margin-top: 0.5rem; color: var(--text-muted);">We find feedback you didn't know existed from
+                Reddit, Twitter, and more.</p>
+        </div>
+        <div class="feature-item">
+            <h3>30-Second Specs</h3>
+            <p style="margin-top: 0.5rem; color: var(--text-muted);">Stop writing documents. Let AI generate
+                comprehensive PRDs instantly.</p>
+        </div>
+        <div class="feature-item">
+            <h3>Competitive Intel</h3>
+            <p style="margin-top: 0.5rem; color: var(--text-muted);">Track every move your competitors make and how
+                users react.</p>
+        </div>
+        <div class="feature-item">
+            <h3>Roadmap Logic</h3>
+            <p style="margin-top: 0.5rem; color: var(--text-muted);">AI prioritizes features based on impact, effort,
+                and sentiment.</p>
+        </div>
+    </div>
+
+</body>
+
+</html>

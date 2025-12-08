@@ -10,6 +10,7 @@
 
 import { DomainEvent } from '@/lib/events/types';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
+import { checkAndNotifyStakeholders } from '@/lib/stakeholders/interest-tracking';
 
 /**
  * Handle spec.auto_drafted event
@@ -331,4 +332,27 @@ export async function sendEmailNotification(to: string, subject: string, body: s
   console.log('[NOTIFICATION AGENT] 📧 Email notification:', { to, subject });
   // TODO: Integrate with email service (SendGrid, Resend, etc.)
   // await emailService.send({ to, subject, html: body });
+}
+
+/**
+ * Handle generic event for stakeholder notifications
+ * Checks if any stakeholders are interested in this event and notifies them
+ */
+export async function handleStakeholderNotification(event: DomainEvent): Promise<void> {
+  const startTime = Date.now();
+  console.log(`[NOTIFICATION AGENT] 👥 Checking stakeholder interests for: ${event.type}`);
+
+  try {
+    await checkAndNotifyStakeholders(
+      event.metadata.project_id,
+      event.type,
+      event.payload
+    );
+
+    const duration = Date.now() - startTime;
+    console.log(`[NOTIFICATION AGENT] ✅ Stakeholder check complete in ${duration}ms`);
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error(`[NOTIFICATION AGENT] ❌ Error checking stakeholders after ${duration}ms:`, error);
+  }
 }

@@ -17,6 +17,7 @@ import {
   handleSpecAutoDrafted,
   handleThemeThresholdReached as handleThemeNotification,
   handleHighVoteFeedback,
+  handleStakeholderNotification,
 } from './notification-agent';
 import { handleUrgentFeedback } from './urgent-feedback-agent';
 import { handleCompetitorExtraction } from './competitive-intel-agent';
@@ -48,7 +49,7 @@ export const AGENT_REGISTRY: AgentRegistry = {
   [EventType.FEEDBACK_CREATED]: [
     // ✅ Phase 1: Triager Agent (runs first to categorize, prioritize, assign PM, detect duplicates)
     async (event) => {
-      await triageAgent(event.payload.postId, event.projectId);
+      await triageAgent(event.payload.postId, event.metadata.project_id);
     },
 
     // ✅ Phase 2: Sentiment Analysis Agent
@@ -94,6 +95,9 @@ export const AGENT_REGISTRY: AgentRegistry = {
 
     // ✅ Phase 3: Theme Notification Agent
     handleThemeNotification,
+
+    // ✅ Phase 3: Stakeholder Notification Agent
+    handleStakeholderNotification,
   ],
 
   // ============================================================================
@@ -106,6 +110,9 @@ export const AGENT_REGISTRY: AgentRegistry = {
 
     // ✅ Phase 3: Notification Agent (alerts PM to review spec)
     handleSpecAutoDrafted,
+
+    // ✅ Phase 3: Stakeholder Notification Agent
+    handleStakeholderNotification,
   ],
 
   [EventType.SPEC_APPROVED]: [
@@ -119,6 +126,7 @@ export const AGENT_REGISTRY: AgentRegistry = {
 
   [EventType.COMPETITOR_MENTIONED]: [
     // Future: Competitive tracking and alerting
+    handleStakeholderNotification,
   ],
 
   // ============================================================================
@@ -128,6 +136,9 @@ export const AGENT_REGISTRY: AgentRegistry = {
   [EventType.FEATURE_LAUNCHED]: [
     // ✅ Release Planning Agent - draft release notes when features ship
     handleFeatureLaunched,
+
+    // ✅ Phase 3: Stakeholder Notification Agent
+    handleStakeholderNotification,
   ],
 
   [EventType.FEATURE_METRICS_COLLECTED]: [

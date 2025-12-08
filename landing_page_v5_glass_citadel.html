@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalsLoop - Glass Citadel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e2e',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-panel-heavy {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .text-shimmer {
+            background: linear-gradient(to right, #94a3b8 20%, #f8fafc 40%, #f8fafc 60%, #94a3b8 80%);
+            background-size: 200% auto;
+            color: #000;
+            background-clip: text;
+            text-fill-color: transparent;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            to {
+                background-position: 200% center;
+            }
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 top-0 left-0 border-b border-white/5 bg-slate-900/50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="text-xl font-bold tracking-tight text-white">SignalsLoop</div>
+            <div class="hidden md:flex gap-8">
+                <a href="#" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Product</a>
+                <a href="#"
+                    class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Methodology</a>
+                <a href="#" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Customers</a>
+            </div>
+            <a href="#"
+                class="px-5 py-2.5 rounded-lg bg-white text-slate-900 font-semibold text-sm hover:bg-slate-200 transition-colors">
+                Get Access
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="relative pt-40 pb-32 overflow-hidden">
+        <!-- Decorative Orbs -->
+        <div class="absolute top-20 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px] -z-10 animate-pulse">
+        </div>
+        <div class="absolute bottom-20 right-1/4 w-96 h-96 bg-sky-500/20 rounded-full blur-[100px] -z-10"></div>
+
+        <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-panel mb-8 border border-white/10">
+                <span class="text-xs font-semibold text-indigo-300 tracking-wide uppercase">New: Prediction Engine
+                    2.0</span>
+            </div>
+
+            <h1 class="text-6xl md:text-8xl font-bold tracking-tight mb-8 leading-tight">
+                Build with a <br>
+                <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-sky-400 to-indigo-400 animate-gradient">Second
+                    Brain.</span>
+            </h1>
+
+            <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-12 font-light leading-relaxed">
+                The first AI-Native Product OS. SignalsLoop hunts for signals, predicts outcomes, and red-teams your
+                strategy.
+            </p>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4 mb-20">
+                <button
+                    class="px-8 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-lg transition-all shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] hover:shadow-[0_0_60px_-10px_rgba(79,70,229,0.6)]">
+                    Start Predicting
+                </button>
+                <button
+                    class="px-8 py-4 rounded-xl glass-panel hover:bg-white/5 text-white font-semibold text-lg transition-all">
+                    View Demo
+                </button>
+            </div>
+
+            <!-- Glass Dashboard Mockup -->
+            <div class="relative max-w-5xl mx-auto perspective-1000">
+                <div
+                    class="glass-panel-heavy rounded-2xl p-2 shadow-2xl transform rotate-x-12 transition-transform hover:rotate-x-0 duration-700 ease-out">
+                    <div class="bg-slate-900/80 rounded-xl overflow-hidden aspect-[16/10] relative">
+                        <!-- Header -->
+                        <div class="h-12 border-b border-white/5 flex items-center px-4 gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+                        </div>
+                        <!-- Content -->
+                        <div class="p-8 grid grid-cols-12 gap-6 h-full">
+                            <!-- Sidebar -->
+                            <div class="col-span-3 border-r border-white/5 pr-6 space-y-6">
+                                <div class="h-8 w-full bg-white/5 rounded-lg animate-pulse"></div>
+                                <div class="space-y-3">
+                                    <div class="h-4 w-3/4 bg-white/5 rounded"></div>
+                                    <div class="h-4 w-1/2 bg-white/5 rounded"></div>
+                                    <div class="h-4 w-2/3 bg-white/5 rounded"></div>
+                                </div>
+                            </div>
+                            <!-- Main -->
+                            <div class="col-span-9">
+                                <div class="flex justify-between items-start mb-8">
+                                    <div>
+                                        <div class="text-sm text-indigo-400 font-bold mb-1">PREDICTION REPORT</div>
+                                        <div class="text-3xl font-bold text-white">Dark Mode Implementation</div>
+                                    </div>
+                                    <div class="glass-panel px-4 py-2 rounded-lg text-center">
+                                        <div class="text-xs text-slate-400 uppercase">Confidence</div>
+                                        <div class="text-xl font-bold text-green-400">94%</div>
+                                    </div>
+                                </div>
+                                <!-- Floating Cards -->
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div class="glass-panel p-6 rounded-xl hover:bg-white/5 transition-colors">
+                                        <div class="text-sm text-slate-400 mb-2">Revenue Influence</div>
+                                        <div class="text-2xl font-bold text-white">$1.2M</div>
+                                        <div class="h-1 w-full bg-white/5 mt-4 rounded-full overflow-hidden">
+                                            <div class="h-full bg-indigo-500 w-[75%]"></div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="glass-panel p-6 rounded-xl border-red-500/20 hover:bg-red-500/5 transition-colors">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                                            <div class="text-sm text-red-300">Devil's Advocate</div>
+                                        </div>
+                                        <div class="text-sm text-slate-300">Competitor X just launched this for free.
+                                            Consider bundling.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-32 relative">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-20 items-center mb-32">
+                <div>
+                    <div class="text-indigo-400 font-bold tracking-widest text-sm mb-4">THE ORACLE</div>
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">Know the outcome before you build.</h2>
+                    <p class="text-xl text-slate-400 leading-relaxed mb-8">
+                        Why guess? SignalsLoop analyzes your historical shipping data to predict the future impact of
+                        your PRDs.
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex items-center gap-4 text-lg text-slate-300">
+                            <div
+                                class="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                ✓</div>
+                            Adoption Probability Scoring
+                        </li>
+                        <li class="flex items-center gap-4 text-lg text-slate-300">
+                            <div
+                                class="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                ✓</div>
+                            Revenue Influence Analysis
+                        </li>
+                    </ul>
+                </div>
+                <div class="relative">
+                    <div class="absolute inset-0 bg-indigo-500/20 blur-[80px] rounded-full"></div>
+                    <div class="glass-panel-heavy rounded-2xl p-8 relative z-10 border border-white/10">
+                        <div class="flex items-center justify-between mb-8">
+                            <div class="text-slate-400">Prediction Accuracy</div>
+                            <div class="text-white font-bold">Last 30 Days</div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="h-32 flex items-end gap-2">
+                                <div
+                                    class="w-full bg-indigo-500/30 h-[40%] rounded-t hover:bg-indigo-500/50 transition-colors">
+                                </div>
+                                <div
+                                    class="w-full bg-indigo-500/30 h-[60%] rounded-t hover:bg-indigo-500/50 transition-colors">
+                                </div>
+                                <div
+                                    class="w-full bg-indigo-500/30 h-[30%] rounded-t hover:bg-indigo-500/50 transition-colors">
+                                </div>
+                                <div
+                                    class="w-full bg-indigo-500 h-[80%] rounded-t shadow-[0_0_20px_rgba(99,102,241,0.5)]">
+                                </div>
+                                <div
+                                    class="w-full bg-indigo-500/30 h-[50%] rounded-t hover:bg-indigo-500/50 transition-colors">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-20 items-center">
+                <div class="order-2 md:order-1 relative">
+                    <div class="absolute inset-0 bg-red-500/10 blur-[80px] rounded-full"></div>
+                    <div class="glass-panel-heavy rounded-2xl p-8 relative z-10 border border-red-500/20">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+                            <div class="text-red-400 font-bold">LIVE THREAT DETECTED</div>
+                        </div>
+                        <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-6">
+                            <p class="text-red-200 font-medium mb-2">Strategic Risk Alert</p>
+                            <p class="text-slate-400 text-sm">Your competitor just updated their pricing page. The
+                                "Enterprise" tier now includes your key differentiator.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="order-1 md:order-2">
+                    <div class="text-red-400 font-bold tracking-widest text-sm mb-4">DEVIL'S ADVOCATE</div>
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">The teammate that fights back.</h2>
+                    <p class="text-xl text-slate-400 leading-relaxed mb-8">
+                        Confirmation bias is the enemy. Meet the first AI agent dedicated to proving you wrong. It
+                        monitors competitors and market shifts to attack your PRDs 24/7.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-20 border-t border-white/5 text-center">
+        <h2 class="text-4xl font-bold mb-8">Build with a Brain.</h2>
+        <button class="px-8 py-4 rounded-xl bg-white text-slate-900 font-bold hover:scale-105 transition-transform">
+            Request Access
+        </button>
+    </footer>
+
+</body>
+
+</html>

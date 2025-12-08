@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalsLoop - PREDICT OUTCOMES</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            yellow: '#ccff00', // Neon Lime/Yellow
+                            black: '#0a0a0a',
+                            grey: '#1a1a1a',
+                        }
+                    },
+                    boxShadow: {
+                        'brutal': '5px 5px 0px 0px #ccff00',
+                        'brutal-white': '5px 5px 0px 0px #ffffff',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+        }
+
+        .text-stroke {
+            -webkit-text-stroke: 1px #ffffff;
+            color: transparent;
+        }
+
+        .text-stroke-hover:hover {
+            -webkit-text-stroke: 0px;
+            color: #ccff00;
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+
+    <!-- Nav -->
+    <nav class="fixed w-full z-50 bg-brand-black border-b border-white/20">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-20">
+                <a href="#" class="text-3xl font-bold tracking-tighter text-brand-yellow uppercase">SignalsLoop</a>
+                <div class="hidden md:flex gap-8">
+                    <a href="#"
+                        class="text-white hover:text-brand-yellow uppercase font-bold tracking-widest text-sm">Features</a>
+                    <a href="#"
+                        class="text-white hover:text-brand-yellow uppercase font-bold tracking-widest text-sm">Manifesto</a>
+                    <a href="#"
+                        class="bg-brand-yellow text-black px-6 py-2 font-bold uppercase hover:bg-white transition-colors">Get
+                        Access</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="pt-40 pb-20 border-b border-white/20">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="max-w-5xl">
+                <div
+                    class="inline-block border border-brand-yellow text-brand-yellow px-4 py-1 mb-8 font-mono text-sm uppercase tracking-widest">
+                    System Status: Predicting
+                </div>
+                <h1 class="text-6xl md:text-9xl font-bold leading-none mb-8 uppercase">
+                    Stop <span class="text-stroke">Guessing</span>.<br>
+                    Start <span class="text-brand-yellow">Knowing</span>.
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-400 max-w-2xl mb-12 font-light">
+                    The first AI-Native Product OS. We hunt signals, predict success, and red-team your roadmap.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <a href="#"
+                        class="bg-brand-yellow text-black text-xl font-bold px-10 py-5 uppercase tracking-wider hover:translate-x-1 hover:translate-y-1 hover:shadow-none shadow-brutal-white transition-all border border-transparent">
+                        Get Early Access
+                    </a>
+                    <a href="#"
+                        class="bg-transparent text-white border border-white text-xl font-bold px-10 py-5 uppercase tracking-wider hover:bg-white hover:text-black transition-all">
+                        View Simulation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Marquee -->
+    <div class="border-b border-white/20 py-6 overflow-hidden bg-brand-yellow text-black">
+        <div class="whitespace-nowrap animate-marquee font-bold text-2xl uppercase tracking-widest">
+            Predict Outcomes • Hunt Signals • Kill Flops • Red Team Strategy • Predict Outcomes • Hunt Signals • Kill
+            Flops • Red Team Strategy
+        </div>
+    </div>
+
+    <!-- The Villain -->
+    <section class="py-32 border-b border-white/20">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-4xl md:text-6xl font-bold mb-20 uppercase">You Are Building <span
+                    class="text-red-500">Blind</span></h2>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="border border-white/20 p-8 hover:bg-white/5 transition-colors">
+                    <h3 class="text-2xl font-bold text-brand-yellow mb-4 uppercase">The Echo Chamber</h3>
+                    <p class="text-gray-400 text-lg">You only hear from the loudest users. The silent majority churns
+                        without a sound.</p>
+                </div>
+                <div class="border border-white/20 p-8 hover:bg-white/5 transition-colors">
+                    <h3 class="text-2xl font-bold text-brand-yellow mb-4 uppercase">The Flop Risk</h3>
+                    <p class="text-gray-400 text-lg">Spending $50k on a feature nobody wants is not a "learning". It's a
+                        waste.</p>
+                </div>
+                <div class="border border-white/20 p-8 hover:bg-white/5 transition-colors">
+                    <h3 class="text-2xl font-bold text-brand-yellow mb-4 uppercase">The Yes-Men</h3>
+                    <p class="text-gray-400 text-lg">Your roadmap is safe. Boring. Nobody challenges it until the market
+                        kills it.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features (Grid) -->
+    <section class="grid md:grid-cols-2 border-b border-white/20">
+        <!-- Item 1 -->
+        <div
+            class="border-r border-white/20 p-12 md:p-24 flex flex-col justify-between min-h-[600px] hover:bg-white/5 transition-colors group">
+            <div>
+                <span class="text-brand-yellow font-mono text-sm mb-4 block">01 / THE ORACLE</span>
+                <h3 class="text-5xl font-bold mb-6 uppercase">Predict Success</h3>
+                <p class="text-xl text-gray-400">Why guess? We simulate adoption probability based on your historical
+                    data.</p>
+            </div>
+            <div class="mt-12 border border-white/20 p-6 bg-black">
+                <div class="flex justify-between items-end mb-2">
+                    <span class="text-gray-500 uppercase text-sm">Prediction Score</span>
+                    <span class="text-4xl font-bold text-brand-yellow">82%</span>
+                </div>
+                <div class="w-full bg-gray-800 h-4">
+                    <div class="bg-brand-yellow h-full w-[82%]"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="p-12 md:p-24 flex flex-col justify-between min-h-[600px] hover:bg-white/5 transition-colors">
+            <div>
+                <span class="text-red-500 font-mono text-sm mb-4 block">02 / THE DEVIL'S ADVOCATE</span>
+                <h3 class="text-5xl font-bold mb-6 uppercase">We Fight Back</h3>
+                <p class="text-xl text-gray-400">An AI agent dedicated to proving you wrong. It red-teams your PRDs
+                    24/7.</p>
+            </div>
+            <div class="mt-12 border border-red-500 p-6 bg-red-900/10">
+                <div class="text-red-500 font-mono text-sm mb-2">⚠️ RISK ALERT</div>
+                <p class="text-lg font-bold">Competitor X just launched this for free.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-40 text-center">
+        <h2 class="text-5xl md:text-8xl font-bold mb-12 uppercase">Build With A <span
+                class="text-brand-yellow">Brain</span></h2>
+        <a href="#"
+            class="inline-block bg-white text-black text-2xl font-bold px-12 py-6 uppercase tracking-wider hover:bg-brand-yellow transition-colors">
+            Request Access ->
+        </a>
+    </section>
+
+    <footer class="border-t border-white/20 py-12 text-center">
+        <p class="font-mono text-gray-500 uppercase">SignalsLoop © 2025 // All Systems Operational</p>
+    </footer>
+
+</body>
+
+</html>

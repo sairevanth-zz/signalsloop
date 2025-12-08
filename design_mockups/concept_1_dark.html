@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalsLoop - The AI Product Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050507;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary: #3B82F6;
+            --accent-cyan: #00F0FF;
+            --accent-purple: #7000FF;
+            --text-main: #FFFFFF;
+            --text-muted: #94A3B8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Background Effects */
+        .glow-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .glow-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.4;
+            animation: float 20s infinite alternate;
+        }
+
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, var(--accent-purple), transparent);
+        }
+
+        .blob-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, var(--primary), transparent);
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #fff, #94A3B8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo span {
+            width: 12px;
+            height: 12px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-cyan);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+            color: white;
+            border: none;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--text-muted);
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 10rem 5% 5rem;
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 20px;
+            color: var(--accent-cyan);
+            font-size: 0.8rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to bottom, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-sub {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 5rem;
+        }
+
+        /* Dashboard Visualization */
+        .dashboard-container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            perspective: 1000px;
+        }
+
+        .dashboard-interface {
+            background: rgba(10, 10, 15, 0.8);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: rotateX(10deg);
+            transition: transform 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-interface:hover {
+            transform: rotateX(0deg);
+        }
+
+        /* Dashboard Grid */
+        .dash-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 1.5rem;
+            height: 500px;
+        }
+
+        .dash-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .dash-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Animated Data Streams */
+        .data-stream {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, var(--accent-cyan), transparent);
+            opacity: 0.5;
+            animation: stream 2s infinite linear;
+        }
+
+        @keyframes stream {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        /* Feature Cards */
+        .features {
+            padding: 5rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Trust Bar */
+        .trust-bar {
+            text-align: center;
+            padding: 3rem 0;
+            border-top: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--card-border);
+            background: rgba(0,0,0,0.2);
+            margin-top: 5rem;
+        }
+
+        .trust-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .logos {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            opacity: 0.5;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        /* Mock UI Elements */
+        .mock-list-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .mock-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #333;
+        }
+
+        .mock-text {
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            width: 60%;
+        }
+
+        .mock-tag {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--accent-cyan);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="glow-bg">
+        <div class="glow-blob blob-1"></div>
+        <div class="glow-blob blob-2"></div>
+    </div>
+
+    <nav>
+        <div class="logo"><span></span>SignalsLoop</div>
+        <div class="nav-links">
+            <a href="#">Features</a>
+            <a href="#">How it Works</a>
+            <a href="#">Pricing</a>
+            <a href="#">Login</a>
+        </div>
+        <a href="#" class="btn btn-primary">Start Free Trial</a>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-badge">AI-NATIVE PRODUCT OS</div>
+        <h1>The AI Product Manager<br>That Never Sleeps</h1>
+        <p class="hero-sub">While you build, SignalsLoop discovers feedback from 8 platforms, writes specs, tracks competitors, and prioritizes your roadmap—automatically.</p>
+        
+        <div class="cta-group">
+            <a href="#" class="btn btn-primary">Start Free Trial →</a>
+            <a href="#" class="btn btn-ghost">See How It Works</a>
+        </div>
+
+        <div class="dashboard-container">
+            <div class="dashboard-interface">
+                <div class="data-stream"></div>
+                <div class="dash-grid">
+                    <!-- Left Col: Sources -->
+                    <div class="dash-col">
+                        <div class="dash-card">
+                            <div class="dash-header">Active Sources</div>
+                            <div class="mock-list-item">
+                                <div class="mock-avatar" style="background: #FF4500"></div>
+                                <div>Reddit</div>
+                                <div class="mock-tag" style="margin-left: auto">12 new</div>
+                            </div>
+                            <div class="mock-list-item">
+                                <div class="mock-avatar" style="background: #1DA1F2"></div>
+                                <div>Twitter</div>
+                                <div class="mock-tag" style="margin-left: auto">8 new</div>
+                            </div>
+                            <div class="mock-list-item">
+                                <div class="mock-avatar" style="background: #FF6600"></div>
+                                <div>Hacker News</div>
+                                <div class="mock-tag" style="margin-left: auto">3 new</div>
+                            </div>
+                        </div>
+                        <div class="dash-card" style="flex:1">
+                            <div class="dash-header">Sentiment Pulse</div>
+                            <div style="height: 100px; background: linear-gradient(to right, #ef4444, #eab308, #22c55e); border-radius: 8px; opacity: 0.2; margin-top: 1rem;"></div>
+                            <div style="text-align: center; font-size: 2rem; font-weight: 700; margin-top: -70px;">+84</div>
+                        </div>
+                    </div>
+
+                    <!-- Middle Col: AI Core / Specs -->
+                    <div class="dash-col">
+                        <div class="dash-card" style="height: 100%; position: relative; overflow: hidden;">
+                            <div class="dash-header">AI Processing Core</div>
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150px; height: 150px; border-radius: 50%; border: 2px solid var(--accent-cyan); box-shadow: 0 0 30px var(--accent-cyan); display: flex; align-items: center; justify-content: center;">
+                                <div style="width: 100px; height: 100px; border-radius: 50%; background: var(--accent-cyan); opacity: 0.2; animation: float 2s infinite;"></div>
+                            </div>
+                            <div style="position: absolute; bottom: 20px; width: 90%; text-align: center; font-family: monospace; color: var(--accent-cyan);">
+                                > Analyzing feedback clusters...<br>
+                                > Generating PRD-294...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Col: Output -->
+                    <div class="dash-col">
+                        <div class="dash-card">
+                            <div class="dash-header">Generated Specs</div>
+                            <div class="mock-list-item">
+                                <div style="width: 100%">
+                                    <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 4px;">Dark Mode Toggle</div>
+                                    <div class="mock-tag">Ready for Review</div>
+                                </div>
+                            </div>
+                            <div class="mock-list-item">
+                                <div style="width: 100%">
+                                    <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 4px;">API Rate Limiting</div>
+                                    <div class="mock-tag" style="background: rgba(255, 255, 0, 0.1); color: yellow;">Drafting</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dash-card" style="flex:1">
+                            <div class="dash-header">Roadmap Impact</div>
+                            <div style="display: flex; gap: 5px; align-items: flex-end; height: 100px; padding-top: 20px;">
+                                <div style="width: 20%; height: 40%; background: #333; border-radius: 4px;"></div>
+                                <div style="width: 20%; height: 70%; background: #333; border-radius: 4px;"></div>
+                                <div style="width: 20%; height: 50%; background: #333; border-radius: 4px;"></div>
+                                <div style="width: 20%; height: 90%; background: var(--primary); border-radius: 4px; box-shadow: 0 0 10px var(--primary);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="trust-bar">
+        <p class="trust-text">TRUSTED BY PRODUCT TEAMS AT FAST-MOVING STARTUPS</p>
+        <div class="logos">
+            <div>ACME CORP</div>
+            <div>NEXUS</div>
+            <div>HYPERLOOP</div>
+            <div>ORBITAL</div>
+            <div>SYNTHWAVE</div>
+        </div>
+    </div>
+
+    <section class="features">
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="icon-box">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                </div>
+                <h3 class="feature-title">Autonomous Discovery</h3>
+                <p class="feature-desc">Scans 8 platforms every 30 minutes. No manual import. No Chrome extensions.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon-box">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <h3 class="feature-title">AI Spec Writer</h3>
+                <p class="feature-desc">From one-line idea to full PRD in 30 seconds. Learns from your past specs.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon-box">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                </div>
+                <h3 class="feature-title">Competitive Intel</h3>
+                <p class="feature-desc">Track competitors without paying $50K/year. Auto-extracts mentions and sentiment.</p>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>

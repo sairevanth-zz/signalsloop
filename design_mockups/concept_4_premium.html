@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalsLoop - Premium</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030014;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-highlight: rgba(255, 255, 255, 0.15);
+            --accent-primary: #7000FF;
+            --accent-secondary: #00C2FF;
+            --text-main: #FFFFFF;
+            --text-muted: #94A3B8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+            /* Custom cursor */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Custom Cursor */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: white;
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body:hover .cursor-outline {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: transparent;
+            backdrop-filter: blur(2px);
+        }
+
+        /* Background Noise & Grid */
+        .bg-noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%);
+            z-index: -2;
+            transform: perspective(500px) rotateX(20deg) scale(1.5);
+            opacity: 0.5;
+        }
+
+        /* Spotlights */
+        .spotlight {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.4;
+            z-index: -3;
+            animation: float 10s infinite alternate;
+        }
+
+        .spot-1 {
+            top: -20%;
+            left: -10%;
+            background: var(--accent-primary);
+        }
+
+        .spot-2 {
+            bottom: -20%;
+            right: -10%;
+            background: var(--accent-secondary);
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 5%;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            top: 0;
+        }
+
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-mark {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+            transform: rotate(45deg);
+            box-shadow: 0 0 15px var(--accent-primary);
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            background: var(--glass);
+            color: white;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--glass-highlight);
+            box-shadow: 0 0 20px rgba(112, 0, 255, 0.2);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 12rem 5% 8rem;
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(112, 0, 255, 0.1);
+            border: 1px solid rgba(112, 0, 255, 0.3);
+            border-radius: 30px;
+            font-size: 0.8rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 20px rgba(112, 0, 255, 0.2);
+        }
+
+        .hero-badge span {
+            width: 6px;
+            height: 6px;
+            background: #00ff88;
+            border-radius: 50%;
+            box-shadow: 0 0 5px #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 5.5rem;
+            line-height: 1;
+            margin-bottom: 2rem;
+            letter-spacing: -0.04em;
+            background: linear-gradient(to bottom, #fff, #a5a5a5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Shimmer Text Effect */
+        .shimmer-text {
+            background: linear-gradient(to right, #4d4d4d 0%, #fff 50%, #4d4d4d 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        .hero-sub {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+        }
+
+        .hero-cta {
+            position: relative;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(90deg, var(--accent-primary), #A020F0);
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .hero-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: 0.5s;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(112, 0, 255, 0.4);
+        }
+
+        .hero-cta:hover::before {
+            left: 100%;
+        }
+
+        /* 3D Glass Stack Visualization */
+        .visual-container {
+            margin-top: 6rem;
+            height: 600px;
+            position: relative;
+            perspective: 2000px;
+            transform-style: preserve-3d;
+        }
+
+        .glass-stack {
+            position: relative;
+            width: 900px;
+            height: 500px;
+            margin: 0 auto;
+            transform: rotateX(20deg) rotateY(0deg);
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease-out;
+        }
+
+        .glass-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 15, 20, 0.7);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            overflow: hidden;
+            transition: all 0.5s;
+        }
+
+        .layer-1 {
+            transform: translateZ(0px);
+            z-index: 1;
+            opacity: 0.5;
+            scale: 0.9;
+            top: 40px;
+        }
+
+        .layer-2 {
+            transform: translateZ(40px);
+            z-index: 2;
+            opacity: 0.7;
+            scale: 0.95;
+            top: 20px;
+        }
+
+        .layer-3 {
+            transform: translateZ(80px);
+            z-index: 3;
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-stack:hover .layer-1 {
+            transform: translateZ(0px) translateY(20px);
+        }
+
+        .glass-stack:hover .layer-2 {
+            transform: translateZ(60px) translateY(10px);
+        }
+
+        .glass-stack:hover .layer-3 {
+            transform: translateZ(120px);
+            box-shadow: 0 0 50px rgba(112, 0, 255, 0.2);
+        }
+
+        /* UI Mockup inside Layer 3 */
+        .mock-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem;
+        }
+
+        .mock-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            height: 100%;
+        }
+
+        .mock-sidebar {
+            border-right: 1px solid var(--glass-border);
+            padding-right: 1rem;
+        }
+
+        .mock-item {
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .mock-item.active {
+            background: rgba(112, 0, 255, 0.2);
+            border: 1px solid rgba(112, 0, 255, 0.3);
+        }
+
+        .mock-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .mock-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        /* Bento Grid Features */
+        .bento-section {
+            padding: 5rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 300px);
+            gap: 1.5rem;
+        }
+
+        .bento-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .bento-card:hover {
+            border-color: var(--glass-highlight);
+            transform: translateY(-5px);
+        }
+
+        /* Spotlight Effect on Cards */
+        .bento-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.06), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .bento-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-large {
+            grid-column: span 2;
+        }
+
+        .card-tall {
+            grid-row: span 2;
+        }
+
+        .bento-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            z-index: 1;
+        }
+
+        .bento-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            z-index: 1;
+        }
+
+        .bento-visual {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        }
+
+        .bento-card:hover .bento-visual {
+            opacity: 0.5;
+        }
+
+        /* Visuals for Bento Cards */
+        .visual-discovery {
+            background: radial-gradient(circle at 80% 20%, var(--accent-primary), transparent 50%);
+        }
+
+        .visual-specs {
+            background: radial-gradient(circle at 20% 80%, var(--accent-secondary), transparent 50%);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 5rem 0;
+            border-top: 1px solid var(--glass-border);
+            margin-top: 5rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot" id="cursor-dot"></div>
+    <div class="cursor-outline" id="cursor-outline"></div>
+
+    <!-- Backgrounds -->
+    <div class="bg-noise"></div>
+    <div class="bg-grid"></div>
+    <div class="spotlight spot-1"></div>
+    <div class="spotlight spot-2"></div>
+
+    <nav>
+        <div class="logo">
+            <div class="logo-mark"></div>
+            SignalsLoop
+        </div>
+        <a href="#" class="nav-btn">Start Free Trial</a>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-badge"><span></span> AI-Native Product OS</div>
+        <h1>The <span class="shimmer-text">AI Product Manager</span><br>That Never Sleeps</h1>
+        <p class="hero-sub">While you build, SignalsLoop discovers feedback, writes specs, tracks competitors, and
+            prioritizes your roadmap—automatically.</p>
+
+        <a href="#" class="hero-cta">Start Free Trial →</a>
+
+        <div class="visual-container" id="visual-container">
+            <div class="glass-stack" id="glass-stack">
+                <div class="glass-layer layer-1"></div>
+                <div class="glass-layer layer-2"></div>
+                <div class="glass-layer layer-3">
+                    <div class="mock-header">
+                        <div style="font-weight: 700;">Mission Control</div>
+                        <div style="color: #00ff88;">● Live</div>
+                    </div>
+                    <div class="mock-grid">
+                        <div class="mock-sidebar">
+                            <div class="mock-item active">
+                                <span style="font-size: 1.2rem;">🔍</span> Discovery
+                            </div>
+                            <div class="mock-item">
+                                <span style="font-size: 1.2rem;">🧠</span> Specs
+                            </div>
+                            <div class="mock-item">
+                                <span style="font-size: 1.2rem;">🎯</span> Roadmap
+                            </div>
+                        </div>
+                        <div class="mock-content">
+                            <div class="mock-card">
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">NEW
+                                    INSIGHT</div>
+                                <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">Churn Risk
+                                    Detected</div>
+                                <div style="font-size: 0.9rem; color: var(--text-muted);">Found in Reddit thread
+                                    "Alternatives to..."</div>
+                            </div>
+                            <div class="mock-card">
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                    AUTO-GENERATED</div>
+                                <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">PRD-104: Dark
+                                    Mode</div>
+                                <div style="font-size: 0.9rem; color: var(--text-muted);">Spec complete. Ready for
+                                    review.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bento-section">
+        <div class="bento-grid">
+            <div class="bento-card card-large">
+                <div class="bento-visual visual-discovery"></div>
+                <h3 class="bento-title">Autonomous Discovery</h3>
+                <p class="bento-desc">We scan 8 platforms every 30 minutes. Reddit, Twitter, G2, and more. No manual
+                    work.</p>
+            </div>
+            <div class="bento-card">
+                <div class="bento-visual"
+                    style="background: linear-gradient(to top, rgba(112,0,255,0.3), transparent);"></div>
+                <h3 class="bento-title">30s Specs</h3>
+                <p class="bento-desc">AI writes full PRDs instantly.</p>
+            </div>
+            <div class="bento-card">
+                <div class="bento-visual"
+                    style="background: linear-gradient(to top, rgba(0,194,255,0.3), transparent);"></div>
+                <h3 class="bento-title">Comp Intel</h3>
+                <p class="bento-desc">Track every competitor move.</p>
+            </div>
+            <div class="bento-card card-tall">
+                <div class="bento-visual"
+                    style="background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1), transparent);">
+                    <div
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; animation: pulse 2s infinite;">
+                    </div>
+                </div>
+                <h3 class="bento-title">Roadmap Logic</h3>
+                <p class="bento-desc">Multi-factor scoring algorithm prioritizes your features based on impact, effort,
+                    and sentiment.</p>
+            </div>
+            <div class="bento-card card-large">
+                <div class="bento-visual visual-specs"></div>
+                <h3 class="bento-title">One-Click Jira</h3>
+                <p class="bento-desc">Push specs to Jira with a single click. Bi-directional sync keeps everything
+                    updated.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2024 SignalsLoop. The AI Product Manager.</p>
+    </footer>
+
+    <script>
+        // Custom Cursor Logic
+        const cursorDot = document.getElementById("cursor-dot");
+        const cursorOutline = document.getElementById("cursor-outline");
+
+        window.addEventListener("mousemove", function (e) {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        // 3D Tilt Effect for Glass Stack
+        const container = document.getElementById('visual-container');
+        const stack = document.getElementById('glass-stack');
+
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            const rotateX = ((y - centerY) / centerY) * -10 + 20; // Base 20deg tilt
+            const rotateY = ((x - centerX) / centerX) * 10;
+
+            stack.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        container.addEventListener('mouseleave', () => {
+            stack.style.transform = `rotateX(20deg) rotateY(0deg)`;
+        });
+
+        // Spotlight Effect for Bento Cards
+        document.querySelectorAll('.bento-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body>
+
+</html>
