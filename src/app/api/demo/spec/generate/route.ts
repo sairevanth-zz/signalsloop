@@ -1,5 +1,4 @@
 import OpenAI from 'openai';
-import { OpenAIStream, StreamingTextResponse } from 'ai';
 import { Redis } from '@upstash/redis';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -84,11 +83,34 @@ export async function POST(req: NextRequest) {
             temperature: 0.7,
         });
 
-        const stream = OpenAIStream(response);
-        return new StreamingTextResponse(stream);
+        // Stream the response using native OpenAI streaming
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+            async start(controller) {
+                try {
+                    for await (const chunk of response) {
+                        const text = chunk.choices[0]?.delta?.content || '';
+                        if (text) {
+                            controller.enqueue(encoder.encode(text));
+                        }
+                    }
+                    controller.close();
+                } catch (error) {
+                    controller.error(error);
+                }
+            },
+        });
+
+        return new Response(stream, {
+            headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Cache-Control': 'no-cache',
+            },
+        });
 
     } catch (error) {
         console.error("Error generating spec:", error);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }
+
