@@ -30,6 +30,7 @@ export default function SpecDemoPage() {
         complete
     } = useCompletion({
         api: '/api/demo/spec/generate',
+        streamProtocol: 'text', // Use plain text streaming for native OpenAI response
         onError: (error: Error) => {
             console.error('Generation error:', error);
             toast.error(error.message || 'Failed to generate spec');

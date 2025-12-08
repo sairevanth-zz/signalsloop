@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
             temperature: 0.7,
         });
 
-        // Stream the response using native OpenAI streaming
+        // Stream using AI SDK compatible format (text stream)
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             async start(controller) {
@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
                     for await (const chunk of response) {
                         const text = chunk.choices[0]?.delta?.content || '';
                         if (text) {
+                            // Send as plain text - useCompletion with streamProtocol: 'text' expects this
                             controller.enqueue(encoder.encode(text));
                         }
                     }
@@ -104,7 +105,6 @@ export async function POST(req: NextRequest) {
         return new Response(stream, {
             headers: {
                 'Content-Type': 'text/plain; charset=utf-8',
-                'Cache-Control': 'no-cache',
             },
         });
 
@@ -113,4 +113,5 @@ export async function POST(req: NextRequest) {
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }
+
 
