@@ -1,9 +1,5 @@
 import { Review } from '../types';
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+import { getOpenAI } from '@/lib/openai-client';
 
 interface ParseResponse {
     reviews: {
@@ -21,7 +17,7 @@ export async function parsePastedText(text: string, productName?: string): Promi
     try {
         if (!text || text.trim().length < 10) return [];
 
-        const completion = await openai.chat.completions.create({
+        const completion = await getOpenAI().chat.completions.create({
             model: "gpt-4o",
             messages: [
                 {

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE!
-);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE!
+  );
+}
 
 // Rate limiting map (in production, use Redis or database)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -12,16 +15,16 @@ const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 function checkRateLimit(domain: string): boolean {
   const now = Date.now();
   const limit = rateLimitMap.get(domain);
-  
+
   if (!limit || now > limit.resetTime) {
     rateLimitMap.set(domain, { count: 1, resetTime: now + 60000 }); // 1 minute window
     return true;
   }
-  
+
   if (limit.count >= 100) { // 100 requests per minute per domain
     return false;
   }
-  
+
   limit.count++;
   return true;
 }
@@ -34,7 +37,7 @@ export async function GET(
     const { key } = params;
     const url = new URL(request.url);
     const domain = request.headers.get('referer') || request.headers.get('origin') || 'unknown';
-    
+
     // Rate limiting
     if (!checkRateLimit(domain)) {
       return new NextResponse('Rate limit exceeded', { status: 429 });
@@ -42,7 +45,8 @@ export async function GET(
 
     // Validate API key - check both API keys table and project slugs
     let project = null;
-    
+    const supabase = getSupabase();
+
     // First, try to find by API key in api_keys table
     const { data: apiKeyData, error: apiKeyError } = await supabase
       .from('api_keys')
@@ -59,7 +63,7 @@ export async function GET(
     if (apiKeyData && apiKeyData.projects) {
       // Valid API key found
       project = apiKeyData.projects;
-      
+
       // Update usage count and last used
       await supabase
         .from('api_keys')
@@ -68,7 +72,7 @@ export async function GET(
           last_used_at: new Date().toISOString()
         })
         .eq('id', apiKeyData.id);
-        
+
       console.log('Valid API key found:', key, 'for project:', project.name);
     } else {
       // Fallback: try to find project by slug (for demo purposes)
@@ -99,12 +103,12 @@ export async function GET(
 
     // Generate widget ID for this instance
     const widgetId = `signalsloop-${project.slug}-${Date.now()}`;
-    
+
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://signalsloop.com').replace(/\/+$/, '');
     // Construct the widget URL - use the new frame endpoint
     const widgetUrl = `${appUrl}/embed/${key}/frame?theme=${theme}&color=${encodeURIComponent(color)}&hide_branding=${hideBranding}`;
     const boardUrl = `${appUrl}/${project.slug}/board`;
-    
+
     // Generate the JavaScript code
     const jsCode = `
 (function() {

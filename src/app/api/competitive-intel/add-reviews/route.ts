@@ -4,9 +4,12 @@ import { parsePastedText } from '@/lib/competitive-intel/parsers/text-parser';
 import { parseCSV } from '@/lib/competitive-intel/parsers/csv-parser';
 import { ReviewSource } from '@/lib/competitive-intel/types';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase() {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    return createClient(supabaseUrl, supabaseKey);
+}
 
 export async function POST(req: Request) {
     try {
@@ -33,6 +36,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'No reviews found in content' }, { status: 400 });
         }
 
+        const supabase = getSupabase();
         const { error } = await supabase
             .from('collected_reviews')
             .insert(reviews.map(r => ({
