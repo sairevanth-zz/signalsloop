@@ -5,9 +5,10 @@ import { motion } from "framer-motion";
 import { ConfidenceGauge } from "./ConfidenceGauge";
 import { RoastSection } from "./RoastSection";
 import { ShareButton } from "./ShareButton";
+import { RoastSignupCTA } from "./RoastSignupCTA";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+
 
 // Interface matching the backend result
 export interface RoastResult {
@@ -153,6 +154,11 @@ export function RoastResults({ roast, shareToken, isPublicView = false }: RoastR
                         </ul>
                     </RoastSection>
                 </div>
+            </div>
+
+            {/* CTA */}
+            <div className="pt-8">
+                <RoastSignupCTA />
             </div>
         </div>
     );
