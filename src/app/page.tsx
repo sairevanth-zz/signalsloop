@@ -37,6 +37,14 @@ import {
   Flame
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Homepage() {
@@ -186,61 +194,108 @@ export default function Homepage() {
               <span className="font-body text-lg md:text-2xl font-display font-bold text-gray-900 hidden xs:inline">SignalsLoop</span>
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-body text-sm text-gray-700 whitespace-nowrap">
-              <Link href="#features" className="hover:text-cyan-500 transition-colors min-touch-target font-medium">
+            <nav className="hidden lg:flex items-center gap-8 font-body text-sm text-gray-700">
+              <Link href="#features" className="hover:text-cyan-500 transition-colors font-medium">
                 Features
               </Link>
-              <Link href="#pricing" className="hover:text-cyan-500 transition-colors min-touch-target font-medium">
+              <Link href="#pricing" className="hover:text-cyan-500 transition-colors font-medium">
                 Pricing
               </Link>
-              <Link href="/demo/board" className="text-cyan-500 hover:text-cyan-500 font-semibold transition-colors flex items-center gap-1 min-touch-target whitespace-nowrap">
-                <span className="font-body text-base">✨</span> Demo
-              </Link>
-              <Link href="/demo/competitive-intel" className="hover:text-cyan-500 transition-colors min-touch-target font-medium">
-                Competitive Intel
-              </Link>
-              <Link href="/demo/feedback" className="hover:text-cyan-500 transition-colors min-touch-target font-medium">
-                Feedback Analysis
-              </Link>
-              <Link href="/demo/roast" className="hover:text-cyan-500 transition-colors min-touch-target font-medium flex items-center gap-1">
-                Roast My Roadmap <Flame className="w-4 h-4 text-orange-500" />
-              </Link>
-              <Link href="/demo/spec" className="hover:text-cyan-500 transition-colors min-touch-target font-medium flex items-center gap-1">
-                Spec Gen ⚡
-              </Link>
-              <Link href="/demo/health-score" className="hover:text-cyan-500 transition-colors min-touch-target font-medium flex items-center gap-1">
-                Health Score 💚
-              </Link>
-              <span className="hidden xl:inline-block h-4 w-px bg-gray-200"></span>
-              <span className="flex items-center gap-1.5 text-gray-500 text-xs">
-                <span className="text-emerald-500">🔒</span>
-                <span>SSL Encrypted</span>
-              </span>
-              <span className="flex items-center gap-1.5 text-gray-500 text-xs">
-                <span className="text-cyan-400">⚡</span>
-                <span>5 AI Features</span>
-              </span>
+
+              {/* Try It Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1.5 font-medium hover:text-cyan-500 transition-colors outline-none">
+                  <Sparkles className="w-4 h-4 text-cyan-500" />
+                  Try It
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-56 p-2 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-xl rounded-xl">
+                  <DropdownMenuLabel className="text-xs text-gray-400 uppercase tracking-wider px-2 py-1">
+                    Interactive Demos
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="my-1" />
+
+                  <Link href="/demo/board">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-cyan-50 focus:bg-cyan-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-sm">✨</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">Demo Board</div>
+                        <div className="text-xs text-gray-500">Full product experience</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+
+                  <Link href="/demo/roast">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-orange-50 focus:bg-orange-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+                        <Flame className="w-4 h-4 text-white" />
+                      </span>
+                      <div>
+                        <div className="font-semibold text-gray-900">Roast My Roadmap</div>
+                        <div className="text-xs text-gray-500">AI critique your roadmap</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+
+                  <Link href="/demo/feedback">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-purple-50 focus:bg-purple-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white text-sm">📊</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">Feedback Analysis</div>
+                        <div className="text-xs text-gray-500">Cluster user feedback</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+
+                  <Link href="/demo/competitive-intel">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-blue-50 focus:bg-blue-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-sm">🎯</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">Competitive Intel</div>
+                        <div className="text-xs text-gray-500">Track your competitors</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+
+                  <Link href="/demo/spec">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-yellow-50 focus:bg-yellow-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center text-white text-sm">⚡</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">Spec Generator</div>
+                        <div className="text-xs text-gray-500">AI-powered PRDs</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+
+                  <Link href="/demo/health-score">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-green-50 focus:bg-green-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white text-sm">💚</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">Health Score</div>
+                        <div className="text-xs text-gray-500">Gamified product health</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </nav>
 
+            {/* Single CTA */}
             <div className="flex items-center gap-3">
               <Link href="/demo/board" className="lg:hidden">
                 <Button
                   variant="outline"
-                  className="font-body text-sm md:text-base min-touch-target px-4 md:px-5 tap-highlight-transparent rounded-full border-2 border-cyan-400 text-cyan-600 hover:bg-cyan-50 hover-bounce"
+                  className="font-body text-sm min-touch-target px-4 tap-highlight-transparent rounded-full border-2 border-cyan-400 text-cyan-600 hover:bg-cyan-50"
                 >
-                  Demo
-                </Button>
-              </Link>
-              <Link href="/login" className="hidden sm:block">
-                <Button variant="ghost" className="font-body text-sm md:text-base min-touch-target px-4 md:px-5 tap-highlight-transparent hover:text-cyan-500 rounded-full">
-                  Sign In
+                  <Sparkles className="w-4 h-4 mr-1" />
+                  Try It
                 </Button>
               </Link>
               <Button
                 onClick={() => handleProCheckout()}
-                className="gradient-cyan-purple text-white font-body font-semibold rounded-3xl hover:scale-105 active:scale-95 transition-all duration-200 shadow-multi hover:shadow-cyan px-4 sm:px-7 md:px-9 text-xs sm:text-sm md:text-base min-touch-target tap-highlight-transparent whitespace-nowrap"
+                className="gradient-cyan-purple text-white font-body font-semibold rounded-3xl hover:scale-105 active:scale-95 transition-all duration-200 shadow-multi hover:shadow-cyan px-6 sm:px-8 text-sm md:text-base min-touch-target tap-highlight-transparent"
               >
-                Start Free
+                Start Free →
               </Button>
             </div>
           </div>
