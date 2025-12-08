@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '2mb',
+      bodySizeLimit: '50mb',
     },
   },
   // Explicitly enable edge runtime for API routes if needed

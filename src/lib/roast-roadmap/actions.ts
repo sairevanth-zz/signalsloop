@@ -61,7 +61,7 @@ export async function parseRoadmapAction(formData: FormData) {
 
     } catch (error) {
         console.error('Parse error:', error);
-        return { success: false, error: 'Failed to parse roadmap' }; // Return error string
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to parse roadmap' };
     }
 }
 
@@ -121,6 +121,6 @@ export async function generateRoastAction(sessionToken: string, context: RoastCo
 
     } catch (error) {
         console.error('Roast error:', error);
-        return { success: false, error: 'Failed to generate roast' };
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to generate roast' };
     }
 }
