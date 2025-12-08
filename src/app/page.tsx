@@ -195,6 +195,9 @@ export default function Homepage() {
               <Link href="/demo/board" className="text-cyan-500 hover:text-cyan-500 font-semibold transition-colors flex items-center gap-1 min-touch-target whitespace-nowrap">
                 <span className="font-body text-base">✨</span> Demo
               </Link>
+              <Link href="/demo/competitive-intel" className="hover:text-cyan-500 transition-colors min-touch-target font-medium">
+                Competitive Intel
+              </Link>
               <span className="hidden xl:inline-block h-4 w-px bg-gray-200"></span>
               <span className="flex items-center gap-1.5 text-gray-500 text-xs">
                 <span className="text-emerald-500">🔒</span>
