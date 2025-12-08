@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 interface Learning {
   learning_type: 'insight' | 'recommendation' | 'mistake' | 'success';
@@ -19,7 +23,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = getSupabase();
     const experimentId = params.id;
 
     // Fetch experiment with results
@@ -50,7 +54,7 @@ export async function POST(
 
     // Generate embeddings for semantic search
     const embeddingPromises = learnings.map(async (learning) => {
-      const embeddingResponse = await openai.embeddings.create({
+      const embeddingResponse = await getOpenAI().embeddings.create({
         model: 'text-embedding-ada-002',
         input: `${learning.title} ${learning.description}`,
       });
@@ -135,7 +139,7 @@ Focus on:
 
 Return ONLY a JSON array of learnings, no other text.`;
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4',
     messages: [
       {
@@ -164,7 +168,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = getSupabase();
     const experimentId = params.id;
 
     const { data, error } = await supabase
