@@ -34,7 +34,9 @@ import {
   Shield,
   Mail,
   UserPlus,
-  Flame
+  Flame,
+  Menu,
+  X
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -50,6 +52,7 @@ import { useAuth } from '@/hooks/useAuth';
 export default function Homepage() {
   const router = useRouter();
   const [isAnnual, setIsAnnual] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, loading } = useAuth();
 
   useEffect(() => {
@@ -280,17 +283,15 @@ export default function Homepage() {
               </DropdownMenu>
             </nav>
 
-            {/* Single CTA */}
+            {/* Mobile Menu Button + CTA */}
             <div className="flex items-center gap-3">
-              <Link href="/demo/board" className="lg:hidden">
-                <Button
-                  variant="outline"
-                  className="font-body text-sm min-touch-target px-4 tap-highlight-transparent rounded-full border-2 border-cyan-400 text-cyan-600 hover:bg-cyan-50"
-                >
-                  <Sparkles className="w-4 h-4 mr-1" />
-                  Try It
-                </Button>
-              </Link>
+              <button
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
               <Button
                 onClick={() => handleProCheckout()}
                 className="gradient-cyan-purple text-white font-body font-semibold rounded-3xl hover:scale-105 active:scale-95 transition-all duration-200 shadow-multi hover:shadow-cyan px-6 sm:px-8 text-sm md:text-base min-touch-target tap-highlight-transparent"
@@ -299,8 +300,62 @@ export default function Homepage() {
               </Button>
             </div>
           </div>
+
+          {/* Mobile Menu Dropdown */}
+          {mobileMenuOpen && (
+            <div className="lg:hidden border-t border-gray-100 mt-4 pt-4 pb-2">
+              <nav className="space-y-1">
+                <Link
+                  href="#features"
+                  className="block px-4 py-3 rounded-lg hover:bg-gray-50 font-medium text-gray-700"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Features
+                </Link>
+                <Link
+                  href="#pricing"
+                  className="block px-4 py-3 rounded-lg hover:bg-gray-50 font-medium text-gray-700"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Pricing
+                </Link>
+
+                <div className="px-4 py-2">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-2">Interactive Demos</div>
+                  <div className="space-y-1 ml-2">
+                    <Link href="/demo/board" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-cyan-50" onClick={() => setMobileMenuOpen(false)}>
+                      <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-xs">✨</span>
+                      <span className="font-medium text-gray-900">Demo Board</span>
+                    </Link>
+                    <Link href="/demo/roast" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-orange-50" onClick={() => setMobileMenuOpen(false)}>
+                      <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+                        <Flame className="w-3.5 h-3.5 text-white" />
+                      </span>
+                      <span className="font-medium text-gray-900">Roast My Roadmap</span>
+                    </Link>
+                    <Link href="/demo/feedback" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-purple-50" onClick={() => setMobileMenuOpen(false)}>
+                      <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white text-xs">📊</span>
+                      <span className="font-medium text-gray-900">Feedback Analysis</span>
+                    </Link>
+                    <Link href="/demo/competitive-intel" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-50" onClick={() => setMobileMenuOpen(false)}>
+                      <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-xs">🎯</span>
+                      <span className="font-medium text-gray-900">Competitive Intel</span>
+                    </Link>
+                    <Link href="/demo/spec" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-yellow-50" onClick={() => setMobileMenuOpen(false)}>
+                      <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center text-white text-xs">⚡</span>
+                      <span className="font-medium text-gray-900">Spec Generator</span>
+                    </Link>
+                    <Link href="/demo/health-score" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-50" onClick={() => setMobileMenuOpen(false)}>
+                      <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white text-xs">💚</span>
+                      <span className="font-medium text-gray-900">Health Score</span>
+                    </Link>
+                  </div>
+                </div>
+              </nav>
+            </div>
+          )}
         </div>
-      </header >
+      </header>
 
       {/* Hero Section */}
       < section className="py-24 md:py-32 lg:py-40 px-4 relative overflow-hidden bg-gradient-to-b from-white via-cyan-50/30 to-white" >
