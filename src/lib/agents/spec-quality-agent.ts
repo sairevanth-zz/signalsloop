@@ -12,9 +12,16 @@ import { DomainEvent } from '@/lib/events/types';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let openaiInstance: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+  if (!openaiInstance) {
+    openaiInstance = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openaiInstance;
+}
 
 // Quality criteria for specs
 const QUALITY_CRITERIA = {
@@ -62,8 +69,8 @@ export async function handleSpecQualityReview(event: DomainEvent): Promise<void>
 
     // Determine quality level
     const qualityLevel = overallScore >= 0.8 ? 'excellent' :
-                        overallScore >= 0.6 ? 'good' :
-                        overallScore >= 0.4 ? 'fair' : 'needs_improvement';
+      overallScore >= 0.6 ? 'good' :
+        overallScore >= 0.4 ? 'fair' : 'needs_improvement';
 
     console.log(`[SPEC QUALITY AGENT] 📊 Quality score: ${(overallScore * 100).toFixed(0)}% (${qualityLevel})`);
 
@@ -160,7 +167,7 @@ Return ONLY a JSON object (no markdown, no extra text):
 }`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {

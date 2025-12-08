@@ -65,10 +65,10 @@ export interface ExecutiveBriefData {
   periodStart: Date;
   periodEnd: Date;
   briefType: 'daily' | 'weekly' | 'monthly';
-  
+
   // Summary
   summary: string;
-  
+
   // Metrics
   metrics: {
     sentimentScore: number;
@@ -80,18 +80,18 @@ export interface ExecutiveBriefData {
     competitorAlerts: number;
     healthScore: number;
   };
-  
+
   // Core sections
   topInsights: TopInsight[];
   actionItems: ActionItem[];
-  
+
   // Revenue impact
   revenueAtRisk: number;
   accountsAtRisk: AccountAtRisk[];
-  
+
   // Competitive
   competitorMoves: CompetitorMove[];
-  
+
   // Top themes
   topThemes: {
     name: string;
@@ -99,14 +99,14 @@ export interface ExecutiveBriefData {
     sentiment: number;
     trend: 'up' | 'down' | 'stable';
   }[];
-  
+
   // Top requests
   topRequests: {
     title: string;
     votes: number;
     revenue: number;
   }[];
-  
+
   // Raw data for custom rendering
   rawData: any;
 }
@@ -124,7 +124,7 @@ export interface GeneratedBrief {
 export class ExecutiveBriefService {
   private supabase: SupabaseClient;
   private openai: OpenAI;
-  
+
   constructor() {
     this.supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -134,7 +134,7 @@ export class ExecutiveBriefService {
       apiKey: process.env.OPENAI_API_KEY,
     });
   }
-  
+
   /**
    * Generate a new executive brief
    */
@@ -145,23 +145,23 @@ export class ExecutiveBriefService {
   ): Promise<GeneratedBrief> {
     // Calculate period based on brief type
     const { periodStart, periodEnd } = this.calculatePeriod(briefType);
-    
+
     // Fetch all required data
     const data = await this.aggregateData(projectId, periodStart, periodEnd);
-    
+
     // Generate AI analysis
     const analysis = await this.generateAIAnalysis(data, config);
-    
+
     // Build brief content
     const briefData = this.buildBriefData(data, analysis, projectId, periodStart, periodEnd, briefType);
-    
+
     // Generate markdown content
     const contentMarkdown = this.generateMarkdown(briefData, config);
     const contentHtml = this.markdownToHtml(contentMarkdown);
-    
+
     // Create brief record
     const title = `${briefType.charAt(0).toUpperCase() + briefType.slice(1)} Brief: ${format(periodStart, 'MMM d')} - ${format(periodEnd, 'MMM d, yyyy')}`;
-    
+
     const { data: brief, error } = await this.supabase
       .from('executive_briefs')
       .insert({
@@ -185,12 +185,12 @@ export class ExecutiveBriefService {
       })
       .select()
       .single();
-    
+
     if (error) {
       console.error('[ExecutiveBriefService] Error creating brief:', error);
       throw error;
     }
-    
+
     return {
       id: brief.id,
       title,
@@ -201,7 +201,7 @@ export class ExecutiveBriefService {
       status: 'ready',
     };
   }
-  
+
   /**
    * Calculate period based on brief type
    */
@@ -210,7 +210,7 @@ export class ExecutiveBriefService {
     periodEnd: Date;
   } {
     const now = new Date();
-    
+
     switch (briefType) {
       case 'daily':
         return {
@@ -229,7 +229,7 @@ export class ExecutiveBriefService {
         };
     }
   }
-  
+
   /**
    * Aggregate all data needed for the brief
    */
@@ -253,7 +253,7 @@ export class ExecutiveBriefService {
         .select('name, settings')
         .eq('id', projectId)
         .single(),
-      
+
       // Feedback in period
       this.supabase
         .from('posts')
@@ -261,7 +261,7 @@ export class ExecutiveBriefService {
         .eq('project_id', projectId)
         .gte('created_at', periodStart.toISOString())
         .lte('created_at', periodEnd.toISOString()),
-      
+
       // Themes
       this.supabase
         .from('themes')
@@ -270,7 +270,7 @@ export class ExecutiveBriefService {
         .eq('status', 'active')
         .order('post_count', { ascending: false })
         .limit(10),
-      
+
       // Top voted posts
       this.supabase
         .from('posts')
@@ -279,7 +279,7 @@ export class ExecutiveBriefService {
         .eq('status', 'open')
         .order('vote_count', { ascending: false })
         .limit(10),
-      
+
       // Competitor insights
       this.supabase
         .from('competitor_insights')
@@ -288,7 +288,7 @@ export class ExecutiveBriefService {
         .gte('created_at', periodStart.toISOString())
         .order('priority', { ascending: false })
         .limit(10),
-      
+
       // At-risk customers from inbox
       this.supabase
         .from('customers')
@@ -296,7 +296,7 @@ export class ExecutiveBriefService {
         .eq('project_id', projectId)
         .in('churn_risk', ['high', 'critical'])
         .limit(10),
-      
+
       // Previous period for comparison
       this.supabase
         .from('posts')
@@ -305,7 +305,7 @@ export class ExecutiveBriefService {
         .gte('created_at', subDays(periodStart, 7).toISOString())
         .lt('created_at', periodStart.toISOString()),
     ]);
-    
+
     return {
       project: project.data,
       feedback: feedback.data || [],
@@ -316,7 +316,7 @@ export class ExecutiveBriefService {
       previousPeriodFeedback: previousPeriodFeedback.data || [],
     };
   }
-  
+
   /**
    * Generate AI analysis from aggregated data
    */
@@ -393,7 +393,7 @@ Generate a JSON response with:
       };
     }
   }
-  
+
   /**
    * Build structured brief data
    */
@@ -409,22 +409,22 @@ Generate a JSON response with:
     const currentSentiment = this.calculateAverageSentiment(data.feedback);
     const previousSentiment = this.calculateAverageSentiment(data.previousPeriodFeedback);
     const sentimentChange = currentSentiment - previousSentiment;
-    
+
     // Calculate revenue at risk from at-risk customers
     const revenueAtRisk = data.customers.reduce(
       (sum: number, c: any) => sum + (c.mrr || 0),
       0
     );
-    
+
     return {
       projectId,
       projectName: data.project?.name || 'Project',
       periodStart,
       periodEnd,
       briefType,
-      
+
       summary: analysis.summary || 'Executive brief generated.',
-      
+
       metrics: {
         sentimentScore: Math.round(currentSentiment * 100),
         sentimentTrend: sentimentChange > 0.05 ? 'up' : sentimentChange < -0.05 ? 'down' : 'stable',
@@ -435,10 +435,10 @@ Generate a JSON response with:
         competitorAlerts: data.competitors.length,
         healthScore: 75, // TODO: Calculate actual health score
       },
-      
+
       topInsights: analysis.topInsights || [],
       actionItems: analysis.actionItems || [],
-      
+
       revenueAtRisk,
       accountsAtRisk: data.customers.map((c: any) => ({
         name: c.name || 'Unknown',
@@ -449,45 +449,45 @@ Generate a JSON response with:
         reason: c.churn_risk === 'critical' ? 'Critical churn risk' : 'High churn risk',
         lastFeedback: c.last_feedback_at,
       })),
-      
+
       competitorMoves: (analysis.competitorAnalysis || []).map((c: any) => ({
         competitor: c.competitor,
         move: c.move,
         impact: c.impact,
         recommendedResponse: c.recommendedResponse,
       })),
-      
+
       topThemes: data.themes.slice(0, 5).map((t: any) => ({
         name: t.name,
         feedbackCount: t.post_count || 0,
         sentiment: t.avg_sentiment || 0,
         trend: 'stable' as const,
       })),
-      
+
       topRequests: data.posts.slice(0, 5).map((p: any) => ({
         title: p.title,
         votes: p.vote_count || 0,
         revenue: p.revenue_impact || 0,
       })),
-      
+
       rawData: data,
     };
   }
-  
+
   /**
    * Generate markdown content
    */
   private generateMarkdown(data: ExecutiveBriefData, config: BriefConfig): string {
     let md = '';
-    
+
     // Header
     md += `# ${data.projectName} - ${data.briefType.charAt(0).toUpperCase() + data.briefType.slice(1)} Brief\n\n`;
     md += `**Period:** ${format(data.periodStart, 'MMM d')} - ${format(data.periodEnd, 'MMM d, yyyy')}\n\n`;
-    
+
     // Executive Summary
     md += `## Executive Summary\n\n`;
     md += `${data.summary}\n\n`;
-    
+
     // Key Metrics
     md += `## Key Metrics\n\n`;
     md += `| Metric | Value | Trend |\n`;
@@ -497,12 +497,12 @@ Generate a JSON response with:
     md += `| Active Themes | ${data.metrics.themesIdentified} | - |\n`;
     md += `| Competitor Alerts | ${data.metrics.competitorAlerts} | - |\n`;
     md += `| Health Score | ${data.metrics.healthScore} | - |\n\n`;
-    
+
     // Revenue at Risk
     if (data.revenueAtRisk > 0) {
       md += `## ⚠️ Revenue at Risk\n\n`;
       md += `**$${data.revenueAtRisk.toLocaleString()} ARR** from ${data.accountsAtRisk.length} accounts\n\n`;
-      
+
       if (data.accountsAtRisk.length > 0) {
         md += `| Account | MRR | Health | Risk Reason |\n`;
         md += `|---------|-----|--------|-------------|\n`;
@@ -512,7 +512,7 @@ Generate a JSON response with:
         md += `\n`;
       }
     }
-    
+
     // Top Insights
     if (data.topInsights.length > 0) {
       md += `## Top Insights\n\n`;
@@ -527,7 +527,7 @@ Generate a JSON response with:
         }
       });
     }
-    
+
     // Action Items
     if (data.actionItems.length > 0) {
       md += `## Recommended Actions\n\n`;
@@ -542,7 +542,7 @@ Generate a JSON response with:
         md += `   ${action.description}\n\n`;
       });
     }
-    
+
     // Competitor Moves
     if (data.competitorMoves.length > 0) {
       md += `## Competitive Intelligence\n\n`;
@@ -555,7 +555,7 @@ Generate a JSON response with:
         }
       });
     }
-    
+
     // Top Themes
     if (data.topThemes.length > 0) {
       md += `## Top Themes\n\n`;
@@ -566,7 +566,7 @@ Generate a JSON response with:
       });
       md += `\n`;
     }
-    
+
     // Top Feature Requests
     if (data.topRequests.length > 0) {
       md += `## Top Feature Requests\n\n`;
@@ -577,14 +577,14 @@ Generate a JSON response with:
       });
       md += `\n`;
     }
-    
+
     // Footer
     md += `---\n\n`;
     md += `*Generated by SignalsLoop on ${format(new Date(), 'PPpp')}*\n`;
-    
+
     return md;
   }
-  
+
   /**
    * Convert markdown to HTML
    */
@@ -605,10 +605,10 @@ Generate a JSON response with:
       .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br>');
-    
+
     return `<div class="executive-brief">${html}</div>`;
   }
-  
+
   /**
    * Calculate average sentiment
    */
@@ -617,17 +617,17 @@ Generate a JSON response with:
     const total = feedback.reduce((sum, f) => sum + (f.sentiment_score || 0), 0);
     return total / feedback.length;
   }
-  
+
   private trendEmoji(trend: string): string {
     return { up: '📈', down: '📉', stable: '➡️' }[trend] || '➡️';
   }
-  
+
   private sentimentLabel(score: number): string {
     if (score > 0.3) return '😊 Positive';
     if (score < -0.3) return '😟 Negative';
     return '😐 Neutral';
   }
-  
+
   /**
    * Get brief by ID
    */
@@ -637,9 +637,9 @@ Generate a JSON response with:
       .select('*')
       .eq('id', briefId)
       .single();
-    
+
     if (error || !data) return null;
-    
+
     return {
       id: data.id,
       title: data.title,
@@ -650,7 +650,7 @@ Generate a JSON response with:
       status: data.status,
     };
   }
-  
+
   /**
    * List briefs for a project
    */
@@ -661,15 +661,15 @@ Generate a JSON response with:
       .eq('project_id', projectId)
       .order('created_at', { ascending: false })
       .limit(limit);
-    
+
     if (error) {
       console.error('[ExecutiveBriefService] Error listing briefs:', error);
       return [];
     }
-    
+
     return data || [];
   }
-  
+
   /**
    * Send brief via email
    */
@@ -687,17 +687,36 @@ Generate a JSON response with:
         sent_via: 'email',
       })
       .eq('id', briefId);
-    
+
     if (error) {
       console.error('[ExecutiveBriefService] Error updating sent status:', error);
       return false;
     }
-    
+
     // TODO: Implement actual email sending with your email service
     // For now, just return true to indicate status was updated
     return true;
   }
 }
 
-// Export singleton
-export const executiveBriefService = new ExecutiveBriefService();
+// Lazy singleton pattern to avoid build-time initialization errors
+let _executiveBriefServiceInstance: ExecutiveBriefService | null = null;
+
+export function getExecutiveBriefService(): ExecutiveBriefService {
+  if (!_executiveBriefServiceInstance) {
+    _executiveBriefServiceInstance = new ExecutiveBriefService();
+  }
+  return _executiveBriefServiceInstance;
+}
+
+// For backwards compatibility - proxy object that delays instantiation
+export const executiveBriefService = {
+  generateBrief: (...args: Parameters<ExecutiveBriefService['generateBrief']>) =>
+    getExecutiveBriefService().generateBrief(...args),
+  getBrief: (...args: Parameters<ExecutiveBriefService['getBrief']>) =>
+    getExecutiveBriefService().getBrief(...args),
+  listBriefs: (...args: Parameters<ExecutiveBriefService['listBriefs']>) =>
+    getExecutiveBriefService().listBriefs(...args),
+  sendBrief: (...args: Parameters<ExecutiveBriefService['sendBrief']>) =>
+    getExecutiveBriefService().sendBrief(...args),
+};

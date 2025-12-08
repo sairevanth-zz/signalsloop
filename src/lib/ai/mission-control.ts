@@ -3,13 +3,9 @@
  * Generates daily briefings and intelligence summaries for the dashboard
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '../openai-client';
 import { getSupabaseServerClient } from '../supabase-client';
 import { calculateProductHealthScore, type ProductHealthScore } from './product-health-score';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export interface BriefingItem {
   severity: 'critical' | 'warning' | 'info' | 'success';
@@ -342,7 +338,7 @@ Key focus areas:
 5. Provide roadmap health assessment`;
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },

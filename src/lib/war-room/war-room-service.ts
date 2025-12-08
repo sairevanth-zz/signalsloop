@@ -446,5 +446,30 @@ Return JSON: { "department": string, "strategic_signals": string[], "ai_interpre
   }
 }
 
-// Export singleton instance
-export const warRoomService = new WarRoomService();
+// Lazy singleton pattern to avoid build-time initialization errors
+let _warRoomServiceInstance: WarRoomService | null = null;
+
+export function getWarRoomService(): WarRoomService {
+  if (!_warRoomServiceInstance) {
+    _warRoomServiceInstance = new WarRoomService();
+  }
+  return _warRoomServiceInstance;
+}
+
+// For backwards compatibility - but using getter is preferred
+export const warRoomService = {
+  getSummary: (...args: Parameters<WarRoomService['getSummary']>) => getWarRoomService().getSummary(...args),
+  listAlerts: (...args: Parameters<WarRoomService['listAlerts']>) => getWarRoomService().listAlerts(...args),
+  getAlert: (...args: Parameters<WarRoomService['getAlert']>) => getWarRoomService().getAlert(...args),
+  createAlert: (...args: Parameters<WarRoomService['createAlert']>) => getWarRoomService().createAlert(...args),
+  updateAlertStatus: (...args: Parameters<WarRoomService['updateAlertStatus']>) => getWarRoomService().updateAlertStatus(...args),
+  listJobPostings: (...args: Parameters<WarRoomService['listJobPostings']>) => getWarRoomService().listJobPostings(...args),
+  getHiringTrends: (...args: Parameters<WarRoomService['getHiringTrends']>) => getWarRoomService().getHiringTrends(...args),
+  analyzeJobPosting: (...args: Parameters<WarRoomService['analyzeJobPosting']>) => getWarRoomService().analyzeJobPosting(...args),
+  listMonitoringConfigs: (...args: Parameters<WarRoomService['listMonitoringConfigs']>) => getWarRoomService().listMonitoringConfigs(...args),
+  upsertMonitoringConfig: (...args: Parameters<WarRoomService['upsertMonitoringConfig']>) => getWarRoomService().upsertMonitoringConfig(...args),
+  deleteMonitoringConfig: (...args: Parameters<WarRoomService['deleteMonitoringConfig']>) => getWarRoomService().deleteMonitoringConfig(...args),
+  getWeightPreferences: (...args: Parameters<WarRoomService['getWeightPreferences']>) => getWarRoomService().getWeightPreferences(...args),
+  saveWeightPreferences: (...args: Parameters<WarRoomService['saveWeightPreferences']>) => getWarRoomService().saveWeightPreferences(...args),
+  applyWeightPreset: (preset: WeightPreset) => getWarRoomService().applyWeightPreset(preset),
+};

@@ -15,9 +15,16 @@ import { publishEvent } from '@/lib/events/publisher';
 import { EventType, AggregateType } from '@/lib/events/types';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let openaiInstance: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+  if (!openaiInstance) {
+    openaiInstance = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openaiInstance;
+}
 
 // Common competitor keywords to quickly filter
 const COMPETITOR_KEYWORDS = [
@@ -192,7 +199,7 @@ Return ONLY a JSON object with this structure (no markdown, no extra text):
 If no competitors are mentioned, return: {"competitors": []}`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {

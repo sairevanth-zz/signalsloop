@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useCompletion } from 'ai/react';
+import { useCompletion } from '@ai-sdk/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { VoiceMicButton } from '@/components/demo/spec/VoiceMicButton';
@@ -30,11 +30,11 @@ export default function SpecDemoPage() {
         complete
     } = useCompletion({
         api: '/api/demo/spec/generate',
-        onError: (error) => {
+        onError: (error: Error) => {
             console.error('Generation error:', error);
             toast.error(error.message || 'Failed to generate spec');
         },
-        onFinish: (prompt, result) => {
+        onFinish: (prompt: string, result: string) => {
             // Analytics or other finish logic could go here
         }
     });
