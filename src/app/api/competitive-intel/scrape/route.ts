@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { collectReviews } from '@/lib/competitive-intel/collect-reviews';
 import { analyzeCompetitors } from '@/lib/competitive-intel/analyze-competitors';
 import { Review, ReviewSource } from '@/lib/competitive-intel/types';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase(): SupabaseClient {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    return createClient(supabaseUrl, supabaseKey);
+}
 
 export const maxDuration = 300; // 5 minutes max for scraping
 

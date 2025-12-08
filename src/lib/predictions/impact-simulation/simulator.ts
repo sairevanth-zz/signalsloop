@@ -11,12 +11,9 @@
  */
 
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { estimateFeatureEffort } from '@/lib/predictions/effort-estimation';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // =====================================================
 // TYPES
@@ -291,7 +288,7 @@ async function findSimilarFeaturesWithEmbeddings(
 
   try {
     // Generate embedding for the theme name
-    const response = await openai.embeddings.create({
+    const response = await getOpenAI().embeddings.create({
       model: 'text-embedding-3-small',
       input: themeName,
       encoding_format: 'float',
@@ -304,7 +301,7 @@ async function findSimilarFeaturesWithEmbeddings(
       features.map(async (feature) => {
         try {
           // Generate embedding for feature name
-          const featureResponse = await openai.embeddings.create({
+          const featureResponse = await getOpenAI().embeddings.create({
             model: 'text-embedding-3-small',
             input: feature.feature_name,
             encoding_format: 'float',
@@ -813,7 +810,7 @@ Format as JSON:
 }`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
@@ -864,7 +861,7 @@ ${i + 1}. ${p.scenario.themeName} (${p.scenario.action})
 Recommendation:`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,

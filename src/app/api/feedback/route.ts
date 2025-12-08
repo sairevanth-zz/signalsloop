@@ -8,10 +8,13 @@ import {
 } from '@/lib/email';
 import { checkRateLimit, getRateLimitHeaders, RATE_LIMITS } from '@/lib/rate-limit';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE!
-);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE!
+  );
+}
 
 export async function POST(request: NextRequest) {
   // Apply rate limiting based on IP address
@@ -37,6 +40,7 @@ export async function POST(request: NextRequest) {
     );
   }
   try {
+    const supabase = getSupabase();
     const body = await request.json();
     console.log('[FEEDBACK] Received submission:', body);
 

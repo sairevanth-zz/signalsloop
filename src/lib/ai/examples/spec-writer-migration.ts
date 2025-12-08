@@ -14,11 +14,8 @@
 // ============================================================================
 // BEFORE: Direct OpenAI call with context limits
 // ============================================================================
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 async function generateSpecBefore(
   ideaText: string,
@@ -36,7 +33,7 @@ async function generateSpecBefore(
     customContext,
   });
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',  // Max 128K tokens
     messages: [
       { role: 'system', content: SPEC_GENERATION_SYSTEM_PROMPT },

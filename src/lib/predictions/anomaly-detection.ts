@@ -10,12 +10,9 @@
  * Hybrid approach: Statistical detection + AI analysis
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
 
 const MODEL = 'gpt-4o'; // Using GPT-4o for anomaly analysis
 
@@ -179,7 +176,7 @@ ${anomalyData.relatedPosts.slice(0, 5).map((p: any, i: number) =>
 Provide your analysis as JSON.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: MODEL,
       messages: [
         { role: 'system', content: ANOMALY_ANALYSIS_PROMPT },

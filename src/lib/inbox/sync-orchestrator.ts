@@ -28,13 +28,13 @@ import { ProductHuntSyncer } from './syncers/producthunt-syncer';
 export class SyncOrchestrator {
   private supabase: SupabaseClient;
   private syncers: Map<IntegrationType, BaseSyncer>;
-  
+
   constructor() {
     this.supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
-    
+
     // Initialize all available syncers
     this.syncers = new Map();
     this.syncers.set('intercom', new IntercomSyncer());
@@ -49,30 +49,30 @@ export class SyncOrchestrator {
     this.syncers.set('hackernews', new HackerNewsSyncer());
     this.syncers.set('producthunt', new ProductHuntSyncer());
   }
-  
+
   /**
    * Sync all active integrations for a project
    */
   async syncProject(projectId: string): Promise<SyncResult[]> {
     const integrations = await this.getActiveIntegrations(projectId);
     const results: SyncResult[] = [];
-    
+
     console.log(`[SyncOrchestrator] Syncing ${integrations.length} integrations for project ${projectId}`);
-    
+
     for (const integration of integrations) {
       const result = await this.syncIntegration(integration);
       results.push(result);
     }
-    
+
     return results;
   }
-  
+
   /**
    * Sync a single integration
    */
   async syncIntegration(integration: FeedbackIntegration): Promise<SyncResult> {
     const syncer = this.syncers.get(integration.integrationType);
-    
+
     if (!syncer) {
       console.warn(`[SyncOrchestrator] No syncer available for ${integration.integrationType}`);
       return {
@@ -87,23 +87,23 @@ export class SyncOrchestrator {
         durationMs: 0,
       };
     }
-    
+
     try {
       console.log(`[SyncOrchestrator] Starting sync for ${integration.integrationType} (${integration.id})`);
       const result = await syncer.sync(integration);
-      
+
       // Log completed sync
       await this.logSyncComplete(integration, result);
-      
+
       console.log(`[SyncOrchestrator] Sync complete: ${result.itemsImported} imported, ${result.itemsDuplicates} duplicates`);
       return result;
-      
+
     } catch (error) {
       console.error(`[SyncOrchestrator] Sync error:`, error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       await this.logSyncError(integration, errorMessage);
-      
+
       return {
         integrationId: integration.id,
         integrationType: integration.integrationType,
@@ -117,13 +117,13 @@ export class SyncOrchestrator {
       };
     }
   }
-  
+
   /**
    * Sync all integrations due for scheduled sync
    */
   async syncDueIntegrations(): Promise<Map<string, SyncResult[]>> {
     const results = new Map<string, SyncResult[]>();
-    
+
     // Get all integrations that are due for sync
     const { data: integrations, error } = await this.supabase
       .from('feedback_integrations')
@@ -131,12 +131,12 @@ export class SyncOrchestrator {
       .eq('is_active', true)
       .eq('sync_enabled', true)
       .or(`last_sync_at.is.null,last_sync_at.lt.${this.getMinSyncTime()}`);
-    
+
     if (error || !integrations) {
       console.error('[SyncOrchestrator] Error fetching due integrations:', error);
       return results;
     }
-    
+
     // Group by project
     const byProject = new Map<string, FeedbackIntegration[]>();
     for (const raw of integrations) {
@@ -145,25 +145,25 @@ export class SyncOrchestrator {
       projectIntegrations.push(integration);
       byProject.set(integration.projectId, projectIntegrations);
     }
-    
+
     // Sync each project's integrations
     for (const [projectId, projectIntegrations] of byProject) {
       const projectResults: SyncResult[] = [];
-      
+
       for (const integration of projectIntegrations) {
         const result = await this.syncIntegration(integration);
         projectResults.push(result);
-        
+
         // Small delay between integrations to avoid rate limiting
         await this.delay(500);
       }
-      
+
       results.set(projectId, projectResults);
     }
-    
+
     return results;
   }
-  
+
   /**
    * Get active integrations for a project
    */
@@ -173,15 +173,15 @@ export class SyncOrchestrator {
       .select('*')
       .eq('project_id', projectId)
       .eq('is_active', true);
-    
+
     if (error || !data) {
       console.error('[SyncOrchestrator] Error fetching integrations:', error);
       return [];
     }
-    
+
     return data.map(this.mapIntegration);
   }
-  
+
   /**
    * Get all integrations for a project
    */
@@ -191,15 +191,15 @@ export class SyncOrchestrator {
       .select('*')
       .eq('project_id', projectId)
       .order('created_at', { ascending: false });
-    
+
     if (error || !data) {
       console.error('[SyncOrchestrator] Error fetching integrations:', error);
       return [];
     }
-    
+
     return data.map(this.mapIntegration);
   }
-  
+
   /**
    * Create a new integration
    */
@@ -224,15 +224,15 @@ export class SyncOrchestrator {
       })
       .select()
       .single();
-    
+
     if (error || !data) {
       console.error('[SyncOrchestrator] Error creating integration:', error);
       return null;
     }
-    
+
     return this.mapIntegration(data);
   }
-  
+
   /**
    * Update integration credentials
    */
@@ -249,10 +249,10 @@ export class SyncOrchestrator {
         updated_at: new Date().toISOString(),
       })
       .eq('id', integrationId);
-    
+
     return !error;
   }
-  
+
   /**
    * Update integration config
    */
@@ -267,10 +267,10 @@ export class SyncOrchestrator {
         updated_at: new Date().toISOString(),
       })
       .eq('id', integrationId);
-    
+
     return !error;
   }
-  
+
   /**
    * Deactivate integration
    */
@@ -282,10 +282,10 @@ export class SyncOrchestrator {
         updated_at: new Date().toISOString(),
       })
       .eq('id', integrationId);
-    
+
     return !error;
   }
-  
+
   /**
    * Delete integration
    */
@@ -294,27 +294,27 @@ export class SyncOrchestrator {
       .from('feedback_integrations')
       .delete()
       .eq('id', integrationId);
-    
+
     return !error;
   }
-  
+
   /**
    * Test integration connection
    */
   async testConnection(integration: FeedbackIntegration): Promise<{ success: boolean; error?: string }> {
     const syncer = this.syncers.get(integration.integrationType);
-    
+
     if (!syncer) {
       return { success: false, error: `No syncer available for ${integration.integrationType}` };
     }
-    
+
     try {
       // Try to fetch with a small limit to test connection
       await syncer.fetchFeedback({
         ...integration,
         config: { ...integration.config, limit: 1 },
       } as FeedbackIntegration);
-      
+
       // Update connection status
       await this.supabase
         .from('feedback_integrations')
@@ -323,12 +323,12 @@ export class SyncOrchestrator {
           connection_verified_at: new Date().toISOString(),
         })
         .eq('id', integration.id);
-      
+
       return { success: true };
-      
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Connection test failed';
-      
+
       await this.supabase
         .from('feedback_integrations')
         .update({
@@ -336,11 +336,11 @@ export class SyncOrchestrator {
           last_sync_error: errorMessage,
         })
         .eq('id', integration.id);
-      
+
       return { success: false, error: errorMessage };
     }
   }
-  
+
   /**
    * Get sync logs for an integration
    */
@@ -351,11 +351,11 @@ export class SyncOrchestrator {
       .eq('integration_id', integrationId)
       .order('started_at', { ascending: false })
       .limit(limit);
-    
+
     if (error || !data) {
       return [];
     }
-    
+
     return data.map(log => ({
       id: log.id,
       projectId: log.project_id,
@@ -374,7 +374,7 @@ export class SyncOrchestrator {
       metadata: log.metadata,
     }));
   }
-  
+
   /**
    * Log completed sync
    */
@@ -392,7 +392,7 @@ export class SyncOrchestrator {
       error_message: result.errorMessage,
     });
   }
-  
+
   /**
    * Log sync error
    */
@@ -405,7 +405,7 @@ export class SyncOrchestrator {
       error_message: errorMessage,
     });
   }
-  
+
   /**
    * Get minimum sync time (now - default sync frequency)
    */
@@ -413,7 +413,7 @@ export class SyncOrchestrator {
     const minTime = new Date(Date.now() - 15 * 60 * 1000); // 15 minutes ago
     return minTime.toISOString();
   }
-  
+
   /**
    * Map raw database row to FeedbackIntegration
    */
@@ -441,11 +441,46 @@ export class SyncOrchestrator {
       updatedAt: new Date(row.updated_at),
     };
   }
-  
+
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 
-// Export singleton instance
-export const syncOrchestrator = new SyncOrchestrator();
+// Lazy singleton pattern to avoid build-time initialization
+let _syncOrchestratorInstance: SyncOrchestrator | null = null;
+
+function getSyncOrchestrator(): SyncOrchestrator {
+  if (!_syncOrchestratorInstance) {
+    _syncOrchestratorInstance = new SyncOrchestrator();
+  }
+  return _syncOrchestratorInstance;
+}
+
+// For backwards compatibility - proxy object that delays instantiation
+export const syncOrchestrator = {
+  syncProject: (...args: Parameters<SyncOrchestrator['syncProject']>) =>
+    getSyncOrchestrator().syncProject(...args),
+  syncIntegration: (...args: Parameters<SyncOrchestrator['syncIntegration']>) =>
+    getSyncOrchestrator().syncIntegration(...args),
+  syncDueIntegrations: () =>
+    getSyncOrchestrator().syncDueIntegrations(),
+  getActiveIntegrations: (...args: Parameters<SyncOrchestrator['getActiveIntegrations']>) =>
+    getSyncOrchestrator().getActiveIntegrations(...args),
+  getAllIntegrations: (...args: Parameters<SyncOrchestrator['getAllIntegrations']>) =>
+    getSyncOrchestrator().getAllIntegrations(...args),
+  createIntegration: (...args: Parameters<SyncOrchestrator['createIntegration']>) =>
+    getSyncOrchestrator().createIntegration(...args),
+  updateCredentials: (...args: Parameters<SyncOrchestrator['updateCredentials']>) =>
+    getSyncOrchestrator().updateCredentials(...args),
+  updateConfig: (...args: Parameters<SyncOrchestrator['updateConfig']>) =>
+    getSyncOrchestrator().updateConfig(...args),
+  deactivateIntegration: (...args: Parameters<SyncOrchestrator['deactivateIntegration']>) =>
+    getSyncOrchestrator().deactivateIntegration(...args),
+  deleteIntegration: (...args: Parameters<SyncOrchestrator['deleteIntegration']>) =>
+    getSyncOrchestrator().deleteIntegration(...args),
+  testConnection: (...args: Parameters<SyncOrchestrator['testConnection']>) =>
+    getSyncOrchestrator().testConnection(...args),
+  getSyncLogs: (...args: Parameters<SyncOrchestrator['getSyncLogs']>) =>
+    getSyncOrchestrator().getSyncLogs(...args),
+};

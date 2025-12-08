@@ -4,11 +4,8 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 /**
  * Trigger sentiment analysis for discovered feedback items
@@ -44,7 +41,7 @@ export async function analyzeSentimentForHunterFeedback(
         batch.map(async (item) => {
           try {
             // Use OpenAI to analyze sentiment
-            const response = await openai.chat.completions.create({
+            const response = await getOpenAI().chat.completions.create({
               model: 'gpt-4o-mini',
               messages: [
                 {

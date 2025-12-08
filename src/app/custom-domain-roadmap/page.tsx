@@ -1,13 +1,16 @@
 import React, { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import PublicRoadmap from '@/components/PublicRoadmap';
 import Link from 'next/link';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE!
-);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase(): SupabaseClient {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE!
+  );
+}
 
 interface CustomDomainRoadmapPageProps {
   searchParams: Promise<{
@@ -17,7 +20,7 @@ interface CustomDomainRoadmapPageProps {
 
 async function CustomDomainRoadmapContent({ searchParams }: CustomDomainRoadmapPageProps) {
   const { domain } = await searchParams;
-  
+
   if (!domain) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -53,7 +56,7 @@ async function CustomDomainRoadmapContent({ searchParams }: CustomDomainRoadmapP
     }
 
     const project = domainMapping.projects;
-    
+
     // Check if board is private
     if (project.is_private) {
       return (
@@ -83,7 +86,7 @@ async function CustomDomainRoadmapContent({ searchParams }: CustomDomainRoadmapP
     }
 
     return (
-      <PublicRoadmap 
+      <PublicRoadmap
         project={project}
       />
     );

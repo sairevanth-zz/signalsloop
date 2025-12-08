@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { resolveBillingContext, upsertAccountBillingProfile } from '@/lib/billing';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-});
+function getStripe(): Stripe {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2024-06-20',
+  });
+}
 
 const getYearlyPriceId = (): string | null => {
   return (
@@ -58,7 +60,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Retrieving subscription:', context.profile.subscription_id);
 
     // Get the current subscription
-    const subscription = await stripe.subscriptions.retrieve(context.profile.subscription_id);
+    const subscription = await getStripe().subscriptions.retrieve(context.profile.subscription_id);
 
     if (subscription.status !== 'active') {
       console.error('❌ Subscription is not active:', subscription.status);
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
     console.log('🚀 Updating subscription to yearly...');
 
     // Update the subscription to yearly pricing
-    const updatedSubscription = await stripe.subscriptions.update(
+    const updatedSubscription = await getStripe().subscriptions.update(
       context.profile.subscription_id,
       {
         items: [

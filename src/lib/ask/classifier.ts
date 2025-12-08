@@ -3,12 +3,9 @@
  * Classifies user queries using GPT-4o-mini to determine intent and extract entities
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { ClassificationResult, QueryType, ExtractedEntities } from '@/types/ask';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 /**
  * System prompt for query classification
@@ -104,7 +101,7 @@ export async function classifyQuery(query: string): Promise<ClassificationResult
     }
 
     // Call OpenAI with JSON mode for structured output
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: CLASSIFICATION_SYSTEM_PROMPT },

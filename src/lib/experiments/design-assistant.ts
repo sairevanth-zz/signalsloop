@@ -4,13 +4,10 @@
  * Part of Phase 3: Stakeholder Management & Experimentation Intelligence
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
 // Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // Types
 export interface ExperimentDesign {
@@ -122,7 +119,7 @@ Return ONLY a valid JSON object with these exact keys (camelCase):
 }`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [
         {
@@ -419,7 +416,7 @@ Return JSON with standard fields PLUS:
 }`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [
         {

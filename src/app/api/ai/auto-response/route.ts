@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
 import { checkDemoRateLimit, incrementDemoUsage, getClientIP, getTimeUntilReset } from '@/lib/demo-rate-limit';
 import { getSupabaseServerClient } from '@/lib/supabase-client';
@@ -7,9 +7,6 @@ import { getSupabaseServerClient } from '@/lib/supabase-client';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
 
 const AUTO_RESPONSE_MODEL = process.env.AUTO_RESPONSE_MODEL || 'gpt-4o-mini';
 
@@ -122,7 +119,7 @@ Generate a professional, empathetic response that:
 
 Keep the response concise (2-3 paragraphs), personal, and actionable. Address the user by name if provided, otherwise use "Hi there".`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: AUTO_RESPONSE_MODEL,
       messages: [
         {

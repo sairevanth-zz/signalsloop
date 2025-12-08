@@ -1,13 +1,16 @@
 import React, { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import PublicPostDetails from '@/components/PublicPostDetails';
 import Link from 'next/link';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE!
-);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase(): SupabaseClient {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE!
+  );
+}
 
 interface CustomDomainPostPageProps {
   searchParams: Promise<{
@@ -18,7 +21,7 @@ interface CustomDomainPostPageProps {
 
 async function CustomDomainPostContent({ searchParams }: CustomDomainPostPageProps) {
   const { domain, id } = await searchParams;
-  
+
   if (!domain || !id) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -54,7 +57,7 @@ async function CustomDomainPostContent({ searchParams }: CustomDomainPostPagePro
     }
 
     const project = domainMapping.projects;
-    
+
     // Check if board is private
     if (project.is_private) {
       return (
@@ -125,7 +128,7 @@ async function CustomDomainPostContent({ searchParams }: CustomDomainPostPagePro
       .limit(5);
 
     return (
-      <PublicPostDetails 
+      <PublicPostDetails
         project={project}
         post={post}
         relatedPosts={relatedPosts || []}

@@ -1,13 +1,16 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import PublicBoardHomepage from '@/components/PublicBoardHomepage';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE!
-);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase(): SupabaseClient {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE!
+  );
+}
 
 interface PublicBoardPageProps {
   params: Promise<{
@@ -17,7 +20,7 @@ interface PublicBoardPageProps {
 
 export async function generateMetadata({ params }: PublicBoardPageProps): Promise<Metadata> {
   const { slug } = await params;
-  
+
   try {
     // Get project details for SEO
     const { data: project, error } = await supabase
@@ -36,7 +39,7 @@ export async function generateMetadata({ params }: PublicBoardPageProps): Promis
     const siteName = 'SignalsLoop';
     const title = `${project.name} - Feedback Board`;
     const description = project.description || `Share your feedback and suggestions for ${project.name}. Help us improve by voting on existing ideas or submitting your own.`;
-    
+
     return {
       title,
       description,
@@ -79,7 +82,7 @@ export async function generateMetadata({ params }: PublicBoardPageProps): Promis
 
 export default async function PublicBoardPage({ params }: PublicBoardPageProps) {
   const { slug } = await params;
-  
+
   try {
     // Get project details
     const { data: project, error } = await supabase
@@ -210,7 +213,7 @@ export default async function PublicBoardPage({ params }: PublicBoardPageProps) 
     const resolvedBoardId = board?.id ?? processedPosts?.[0]?.board_id ?? null;
 
     return (
-      <PublicBoardHomepage 
+      <PublicBoardHomepage
         project={project}
         posts={processedPosts}
         boardId={resolvedBoardId}

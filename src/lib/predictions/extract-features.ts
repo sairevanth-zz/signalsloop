@@ -10,8 +10,6 @@ import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import type { PredictionInput } from '@/types/prediction';
 import { z } from 'zod';
 
-const supabase = getServiceRoleClient();
-
 // Zod schema for validation
 const ExtractedFeaturesSchema = z.object({
   feature_category: z.enum(['core', 'enhancement', 'integration', 'infrastructure', 'experimental']),
@@ -39,6 +37,7 @@ export async function extractFeaturesFromSpec(
   specId: string,
   projectId: string
 ): Promise<PredictionInput> {
+  const supabase = getServiceRoleClient();
   // 1. Fetch spec content
   const { data: spec, error: specError } = await supabase
     .from('specs')
@@ -66,6 +65,7 @@ export async function extractFeaturesFromSpec(
  * Get related feedback data for context
  */
 async function getRelatedFeedbackData(projectId: string, spec: any) {
+  const supabase = getServiceRoleClient();
   // Extract themes or keywords from spec title/description
   const specText = `${spec.title} ${spec.description || ''}`.toLowerCase();
 
@@ -115,6 +115,7 @@ async function getRelatedFeedbackData(projectId: string, spec: any) {
  * Get competitor context
  */
 async function getCompetitorContext(projectId: string, spec: any) {
+  const supabase = getServiceRoleClient();
   // Check if competitors have similar features
   const { data: competitors, error } = await supabase
     .from('competitor_events')

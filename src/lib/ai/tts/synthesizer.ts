@@ -3,14 +3,11 @@
  * Core service for generating audio from text using OpenAI TTS API
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { R2Client, getR2Client } from '@/lib/r2-client';
 import type { Voice, TTSModel, AudioFormat, TTSOptions, TTSGenerationResult } from './types';
 import { getDefaultVoice } from './types';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // Estimated words per minute for duration calculation
 const WORDS_PER_MINUTE = 150;
@@ -73,7 +70,7 @@ export async function generateAudioBriefing(
   const cleanText = cleanTextForTTS(briefingText);
 
   // Generate audio using OpenAI TTS
-  const mp3Response = await openai.audio.speech.create({
+  const mp3Response = await getOpenAI().audio.speech.create({
     model,
     voice,
     input: cleanText,
@@ -209,7 +206,7 @@ export async function generateQuickAudio(
 
   const cleanText = cleanTextForTTS(text);
 
-  const response = await openai.audio.speech.create({
+  const response = await getOpenAI().audio.speech.create({
     model,
     voice,
     input: cleanText,

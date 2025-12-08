@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE
-);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE
+  );
+}
 
 // Rate limiting map (in production, use Redis or database)
 const rateLimitMap = new Map();
@@ -59,12 +62,12 @@ export async function GET(
     // Validate API key and get project info
     let project = null;
     let projectSlug = key;
-    
+
     // First, try to find by API key in api_keys table
     const keyHashBase64 = Buffer.from(key, 'utf8').toString('base64');
     const sha256Hash = crypto.createHash('sha256').update(key).digest('hex');
 
-    const { data: apiKeyData, error: apiKeyError } = await supabase
+    const { data: apiKeyData, error: apiKeyError } = await getSupabase()
       .from('api_keys')
       .select(`
         id,
@@ -80,20 +83,20 @@ export async function GET(
       // Valid API key found
       project = apiKeyData.projects;
       projectSlug = project.slug;
-      
+
       // Update usage count and last used
-      await supabase
+      await getSupabase()
         .from('api_keys')
         .update({
           usage_count: apiKeyData.usage_count + 1,
           last_used_at: new Date().toISOString()
         })
         .eq('id', apiKeyData.id);
-        
+
       console.log('Valid API key found:', key, 'for project:', project.name);
     } else {
       // Fallback to legacy hashed key (sha256 hex)
-      const { data: hashedKeyData } = await supabase
+      const { data: hashedKeyData } = await getSupabase()
         .from('api_keys')
         .select(`
           id,
@@ -109,7 +112,7 @@ export async function GET(
         project = hashedKeyData.projects;
         projectSlug = project.slug;
 
-        await supabase
+        await getSupabase()
           .from('api_keys')
           .update({
             usage_count: (hashedKeyData.usage_count || 0) + 1,
@@ -119,21 +122,21 @@ export async function GET(
 
         console.log('Valid (legacy) API key found:', key, 'for project:', project.name);
       } else {
-      // Fallback: try to find project by slug (for demo purposes)
-      const { data: projectData, error: projectError } = await supabase
-        .from('projects')
-        .select('id, name, slug, plan')
-        .eq('slug', key)
-        .single();
+        // Fallback: try to find project by slug (for demo purposes)
+        const { data: projectData, error: projectError } = await getSupabase()
+          .from('projects')
+          .select('id, name, slug, plan')
+          .eq('slug', key)
+          .single();
 
-      if (projectData) {
-        project = projectData;
-        projectSlug = project.slug;
-        console.log('Project found by slug:', key, 'project:', project.name);
-      } else {
-        // If no valid API key or project found, return error
-        return new NextResponse('Invalid API key', { status: 401 });
-      }
+        if (projectData) {
+          project = projectData;
+          projectSlug = project.slug;
+          console.log('Project found by slug:', key, 'project:', project.name);
+        } else {
+          // If no valid API key or project found, return error
+          return new NextResponse('Invalid API key', { status: 401 });
+        }
       }
     }
 
@@ -170,7 +173,7 @@ export async function GET(
 
   } catch (error) {
     console.error('Error generating widget script:', error);
-    
+
     return new NextResponse(
       `console.error('SignalsLoop: Widget failed to load - ${error.message}');`,
       {

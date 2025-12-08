@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import * as XLSX from 'xlsx';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE!
-);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE!
+  );
+}
 
 export async function GET(request: NextRequest) {
+  const supabase = getSupabase();
   try {
     const { searchParams } = new URL(request.url);
     const projectSlug = searchParams.get('project_slug');
@@ -108,7 +112,7 @@ export async function GET(request: NextRequest) {
       // Generate CSV
       const csvContent = generateCSV(exportData);
       const filename = `${project.name}_feedback_${new Date().toISOString().split('T')[0]}.csv`;
-      
+
       return new NextResponse(csvContent, {
         headers: {
           'Content-Type': 'text/csv',
@@ -119,7 +123,7 @@ export async function GET(request: NextRequest) {
       // Generate Excel
       const workbook = XLSX.utils.book_new();
       const worksheet = XLSX.utils.json_to_sheet(exportData);
-      
+
       // Set column widths
       const columnWidths = [
         { wch: 10 }, // ID
@@ -135,12 +139,12 @@ export async function GET(request: NextRequest) {
         { wch: 20 }  // Updated At
       ];
       worksheet['!cols'] = columnWidths;
-      
+
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Feedback');
-      
+
       const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
       const filename = `${project.name}_feedback_${new Date().toISOString().split('T')[0]}.xlsx`;
-      
+
       return new NextResponse(excelBuffer, {
         headers: {
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -160,10 +164,10 @@ export async function GET(request: NextRequest) {
 
 function generateCSV(data: any[]): string {
   if (data.length === 0) return '';
-  
+
   const headers = Object.keys(data[0]);
   const csvRows = [headers.join(',')];
-  
+
   for (const row of data) {
     const values = headers.map(header => {
       const value = row[header];
@@ -175,6 +179,6 @@ function generateCSV(data: any[]): string {
     });
     csvRows.push(values.join(','));
   }
-  
+
   return csvRows.join('\n');
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, type PostgrestError } from '@supabase/supabase-js';
+import { createClient, type PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { triggerWebhooks } from '@/lib/webhooks';
 import { triggerSlackNotification } from '@/lib/slack';
 import { triggerDiscordNotification } from '@/lib/discord';
@@ -13,10 +13,13 @@ const isValidPriority = (value: unknown): value is VotePriority =>
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE!
-);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase(): SupabaseClient {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE!
+  );
+}
 
 // Helper to get client IP address
 function getClientIp(request: NextRequest): string {
@@ -106,7 +109,7 @@ export async function POST(
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
     }
 
-    const { data: postRecord, error: postError } = await supabase
+    const { data: postRecord, error: postError } = await getSupabase()
       .from('posts')
       .select('id, title, project_id, duplicate_of')
       .eq('id', postId)
@@ -124,7 +127,7 @@ export async function POST(
     }
 
     // Check if user has already voted (using IP + anonymous ID for better tracking)
-    const { data: existingVote, error: voteError } = await supabase
+    const { data: existingVote, error: voteError } = await getSupabase()
       .from('votes')
       .select('id')
       .eq('post_id', postId)
@@ -143,7 +146,7 @@ export async function POST(
     // Insert new vote
     let priorityColumnAvailable = true;
 
-    const { data: insertedVote, error: insertError } = await supabase
+    const { data: insertedVote, error: insertError } = await getSupabase()
       .from('votes')
       .insert({
         post_id: postId,
@@ -163,7 +166,7 @@ export async function POST(
         );
         priorityColumnAvailable = false;
 
-        const { data: legacyVote, error: legacyInsertError } = await supabase
+        const { data: legacyVote, error: legacyInsertError } = await getSupabase()
           .from('votes')
           .insert({
             post_id: postId,
@@ -195,7 +198,7 @@ export async function POST(
     }
 
     // Increment vote_count in posts table
-    const { error: updateError } = await supabase
+    const { error: updateError } = await getSupabase()
       .rpc('increment_vote_count', { post_id_param: postId });
 
     if (updateError) {
@@ -205,13 +208,13 @@ export async function POST(
 
     if (priorityColumnAvailable) {
       try {
-        await supabase.rpc('update_post_priority_counts', { p_post_id: postId });
+        await getSupabase().rpc('update_post_priority_counts', { p_post_id: postId });
       } catch (priorityError) {
         console.error('Error updating priority counts:', priorityError);
       }
     }
 
-    const { count: totalVotes, error: countError } = await supabase
+    const { count: totalVotes, error: countError } = await getSupabase()
       .from('votes')
       .select('*', { count: 'exact', head: true })
       .eq('post_id', postId);
@@ -353,9 +356,9 @@ export async function DELETE(
       console.error('Error counting votes after removal:', countError);
     }
 
-    return NextResponse.json({ 
-      message: 'Vote removed successfully', 
-      new_vote_count: totalVotes ?? updatedPost ?? 0 
+    return NextResponse.json({
+      message: 'Vote removed successfully',
+      new_vote_count: totalVotes ?? updatedPost ?? 0
     }, { status: 200 });
 
   } catch (error) {

@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { checkAIUsageLimit } from '@/lib/ai-rate-limit';
 import { generateEmbedding, prepareSpecForEmbedding, generateContentHash } from '@/lib/specs/embeddings';
@@ -21,10 +21,6 @@ import type {
   ContextSourceMetadata,
   FeedbackSynthesis,
 } from '@/types/specs';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // ============================================================================
 // POST /api/specs/generate - Generate spec with streaming
@@ -136,7 +132,7 @@ export async function POST(request: NextRequest) {
                 feedback.map((f) => ({ id: f.id, content: f.content, votes: f.upvotes || 0 }))
               );
 
-              const synthesisResponse = await openai.chat.completions.create({
+              const synthesisResponse = await getOpenAI().chat.completions.create({
                 model: 'gpt-4o',
                 messages: [{ role: 'user', content: synthesisPrompt }],
                 response_format: { type: 'json_object' },
@@ -232,7 +228,7 @@ export async function POST(request: NextRequest) {
           let totalTokens = 0;
           let generatedContent = '';
 
-          const completion = await openai.chat.completions.create({
+          const completion = await getOpenAI().chat.completions.create({
             model: 'gpt-4o',
             messages: [
               { role: 'system', content: SPEC_GENERATION_SYSTEM_PROMPT },

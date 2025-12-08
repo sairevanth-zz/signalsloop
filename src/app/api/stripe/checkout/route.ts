@@ -2,9 +2,12 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { resolveBillingContext } from '@/lib/billing';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-});
+// Lazy getter for Stripe client to avoid build-time initialization
+function getStripe(): Stripe {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2024-06-20',
+  });
+}
 
 type BillingCycle = 'monthly' | 'yearly';
 
@@ -90,8 +93,8 @@ export async function createCheckoutSession(body: CheckoutBody, request: Request
     if (!priceId) {
       console.error(
         `[stripe/checkout] Missing price for ${billingCycle}. ` +
-          `STRIPE_MONTHLY_PRICE_ID=${process.env.STRIPE_MONTHLY_PRICE_ID}, ` +
-          `STRIPE_YEARLY_PRICE_ID=${process.env.STRIPE_YEARLY_PRICE_ID}`
+        `STRIPE_MONTHLY_PRICE_ID=${process.env.STRIPE_MONTHLY_PRICE_ID}, ` +
+        `STRIPE_YEARLY_PRICE_ID=${process.env.STRIPE_YEARLY_PRICE_ID}`
       );
     }
 
@@ -114,7 +117,7 @@ export async function createCheckoutSession(body: CheckoutBody, request: Request
 
       // Check if the subscription exists in Stripe
       try {
-        const existingSubscription = await stripe.subscriptions.retrieve(context.profile.subscription_id);
+        const existingSubscription = await getStripe().subscriptions.retrieve(context.profile.subscription_id);
 
         // Only block if subscription is active AND not set to cancel
         if (existingSubscription.status === 'active' && !existingSubscription.cancel_at_period_end) {
@@ -152,12 +155,12 @@ export async function createCheckoutSession(body: CheckoutBody, request: Request
       automatic_tax: { enabled: true },
       ...(hasCustomer
         ? {
-            customer: context.profile!.stripe_customer_id!,
-            customer_update: {
-              address: 'auto' as const,
-              name: 'auto' as const,
-            },
-          }
+          customer: context.profile!.stripe_customer_id!,
+          customer_update: {
+            address: 'auto' as const,
+            name: 'auto' as const,
+          },
+        }
         : {}),
       metadata: {
         account_user_id: context.userId,
@@ -180,7 +183,7 @@ export async function createCheckoutSession(body: CheckoutBody, request: Request
     };
 
     console.log('🚀 Creating Stripe checkout session...');
-    const session = await stripe.checkout.sessions.create(sessionConfig);
+    const session = await getStripe().checkout.sessions.create(sessionConfig);
     console.log('✅ Checkout session created:', session.id);
 
     return NextResponse.json({

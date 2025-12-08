@@ -5,16 +5,16 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
-
-const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-    ? new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
-    : null;
+// Lazy getter for Redis - only initialize if credentials exist
+function getRedis(): Redis | null {
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+        return new Redis({
+            url: process.env.UPSTASH_REDIS_REST_URL,
+            token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        });
+    }
+    return null;
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Rate Limiting
+        const redis = getRedis();
         if (redis) {
             const ip = req.headers.get('x-forwarded-for') ?? '127.0.0.1';
             const key = `ratelimit:spec_demo:${ip}`;
@@ -38,6 +39,11 @@ export async function POST(req: NextRequest) {
                 return new NextResponse("Rate limit exceeded. You can generate 5 specs per day.", { status: 429 });
             }
         }
+
+        // Initialize OpenAI inside handler to avoid build-time issues
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        });
 
         const response = await openai.chat.completions.create({
             model: 'gpt-4o',

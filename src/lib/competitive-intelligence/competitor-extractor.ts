@@ -4,13 +4,10 @@
  * Uses GPT-4o-mini for cost-effective extraction (~$0.002 per feedback item)
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { getSupabaseServiceRoleClient } from '../supabase-client';
 import { withCache } from '../ai-cache-manager';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
 
 const MODELS = {
   EXTRACTION: process.env.COMPETITOR_EXTRACTION_MODEL || 'gpt-4o-mini',
@@ -157,7 +154,7 @@ ${feedbackText}
 Extract ALL competitor mentions from this feedback.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: MODELS.EXTRACTION,
       messages: [
         { role: 'system', content: COMPETITOR_EXTRACTION_PROMPT },

@@ -15,8 +15,6 @@ import { createReasoningTrace } from '@/lib/reasoning/capture-reasoning';
 import type { GeneratePredictionRequest, GeneratePredictionResponse } from '@/types/prediction';
 import { z } from 'zod';
 
-const supabaseService = getServiceRoleClient();
-
 // Validation schema
 const PredictionRequestSchema = z.object({
   project_id: z.string().uuid(),
@@ -31,6 +29,7 @@ const PredictionRequestSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerClient();
+    const supabaseService = getServiceRoleClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -100,6 +99,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerClient();
+    const supabaseService = getServiceRoleClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -281,7 +281,7 @@ export async function POST(request: NextRequest) {
         alternatives: [
           {
             alternative: 'Heuristic-only scoring',
-            why_rejected: prediction.prediction_strategy !== 'heuristic' 
+            why_rejected: prediction.prediction_strategy !== 'heuristic'
               ? 'Hybrid strategy provided better confidence with historical data'
               : 'Used as primary strategy due to limited historical data',
           },

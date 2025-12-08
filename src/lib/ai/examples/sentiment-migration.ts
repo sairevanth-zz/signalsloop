@@ -12,14 +12,11 @@
 // ============================================================================
 // BEFORE: Direct OpenAI call
 // ============================================================================
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
 
 async function analyzeSentimentBefore(text: string) {
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
       { role: 'system', content: SENTIMENT_SYSTEM_PROMPT },

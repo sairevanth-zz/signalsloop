@@ -1,10 +1,6 @@
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import * as XLSX from 'xlsx';
-
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
 
 export interface ParsedRoadmap {
     features: {
@@ -62,7 +58,7 @@ PARSING RULES:
 - Look for status indicators (Done, In Progress, Planned, etc.)
 `;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4o',
         messages: [
             { role: 'system', content: 'You are an expert roadmap parser. Return ONLY valid JSON.' },
@@ -131,7 +127,7 @@ Respond with JSON structure:
 }
 `;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4o', // Use gpt-4o which has vision capabilities
         messages: [
             {
@@ -207,7 +203,7 @@ Respond with JSON:
 }
 `;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4o',
         messages: [
             { role: 'system', content: 'You are an expert roadmap parser. Return ONLY valid JSON.' },

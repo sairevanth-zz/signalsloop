@@ -1,8 +1,15 @@
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
-});
+// Lazy getter for Stripe client to avoid build-time initialization
+let _stripeClient: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripeClient) {
+    _stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2024-11-20.acacia',
+    });
+  }
+  return _stripeClient;
+}
 
 interface CreateStripePromotionCodeParams {
   code: string;
@@ -63,10 +70,10 @@ export async function createStripePromotionCode({
       products: [] // Empty means all products
     };
 
-    const coupon = await stripe.coupons.create(couponParams);
+    const coupon = await getStripe().coupons.create(couponParams);
 
     // Then, create a promotion code using the coupon
-    const promotionCode = await stripe.promotionCodes.create({
+    const promotionCode = await getStripe().promotionCodes.create({
       coupon: coupon.id,
       code: code.toUpperCase(),
       active: true,
@@ -85,11 +92,11 @@ export async function createStripePromotionCode({
     };
   } catch (error) {
     console.error('Error creating Stripe promotion code:', error);
-    
+
     // If promotion code already exists, try to retrieve it
     if (error instanceof Stripe.errors.StripeError && error.code === 'resource_already_exists') {
       try {
-        const existingPromotionCodes = await stripe.promotionCodes.list({
+        const existingPromotionCodes = await getStripe().promotionCodes.list({
           code: code.toUpperCase(),
           limit: 1
         });
@@ -118,7 +125,7 @@ export async function updateStripePromotionCode(
   active: boolean
 ) {
   try {
-    const promotionCode = await stripe.promotionCodes.update(promotionCodeId, {
+    const promotionCode = await getStripe().promotionCodes.update(promotionCodeId, {
       active
     });
 
@@ -136,7 +143,7 @@ export async function updateStripePromotionCode(
 export async function deleteStripePromotionCode(couponId: string) {
   try {
     // Delete the coupon (this also invalidates all promotion codes using it)
-    await stripe.coupons.del(couponId);
+    await getStripe().coupons.del(couponId);
 
     return {
       success: true,
@@ -150,7 +157,7 @@ export async function deleteStripePromotionCode(couponId: string) {
 
 export async function getStripeCouponUsage(couponId: string) {
   try {
-    const coupon = await stripe.coupons.retrieve(couponId);
+    const coupon = await getStripe().coupons.retrieve(couponId);
 
     return {
       success: true,

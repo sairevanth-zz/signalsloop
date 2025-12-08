@@ -8,9 +8,12 @@ import {
 } from '@/lib/billing';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
-});
+// Lazy getter for Stripe client to avoid build-time initialization
+function getStripe(): Stripe {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2024-06-20',
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'sessionId is required' }, { status: 400 });
     }
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await getStripe().checkout.sessions.retrieve(sessionId);
 
     if (!session || session.mode !== 'subscription') {
       return NextResponse.json({ error: 'Invalid checkout session' }, { status: 400 });
@@ -46,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     if (!context && customerId) {
       try {
-        const customer = await stripe.customers.retrieve(customerId);
+        const customer = await getStripe().customers.retrieve(customerId);
         const customerEmail = (customer as Stripe.Customer).email;
 
         if (customerEmail) {
@@ -78,12 +81,12 @@ export async function POST(request: NextRequest) {
       metadata.upgrade_type === 'yearly'
         ? 'yearly'
         : metadata.upgrade_type === 'monthly'
-        ? 'monthly'
-        : metadata.interval === 'yearly'
-        ? 'yearly'
-        : metadata.interval === 'monthly'
-        ? 'monthly'
-        : null;
+          ? 'monthly'
+          : metadata.interval === 'yearly'
+            ? 'yearly'
+            : metadata.interval === 'monthly'
+              ? 'monthly'
+              : null;
 
     const updatedProfile =
       (await upsertAccountBillingProfile(

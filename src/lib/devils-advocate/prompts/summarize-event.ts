@@ -2,13 +2,10 @@
  * GPT-4o Prompt for Competitor Event Summarization
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import type { CompetitorEventSchema } from '@/types/devils-advocate';
 import { z } from 'zod';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 const SUMMARIZATION_SYSTEM_PROMPT = `You are a competitive intelligence analyst extracting structured information from competitor updates.
 
@@ -61,7 +58,7 @@ export async function summarizeCompetitorEvent(
   rawContent: string
 ): Promise<z.infer<typeof CompetitorEventSchema>> {
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: SUMMARIZATION_SYSTEM_PROMPT },

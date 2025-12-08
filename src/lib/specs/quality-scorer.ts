@@ -3,7 +3,7 @@
  * AI-powered quality evaluation and improvement suggestions for specs
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { TEMPLATES, validateSpecContent } from './templates';
 import type { SpecTemplate } from '@/types/specs';
 
@@ -57,14 +57,8 @@ const QUALITY_DIMENSIONS = [
 ];
 
 export class SpecQualityScorer {
-  private openai: OpenAI;
-  
-  constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-  }
-  
+  // Using lazy initialization via getOpenAI()
+
   /**
    * Evaluate spec quality
    */
@@ -75,16 +69,16 @@ export class SpecQualityScorer {
   ): Promise<SpecQualityResult> {
     // First, do basic validation
     const basicValidation = validateSpecContent(specContent, template);
-    
+
     // Then, do AI-powered deep analysis
     const aiAnalysis = await this.aiAnalyzeSpec(specContent, template, specTitle);
-    
+
     // Combine results
     const dimensions = this.calculateDimensions(aiAnalysis, basicValidation);
     const overallScore = this.calculateOverallScore(dimensions);
     const grade = this.scoreToGrade(overallScore);
     const issues = this.extractIssues(aiAnalysis, basicValidation);
-    
+
     return {
       overallScore,
       grade,
@@ -98,7 +92,7 @@ export class SpecQualityScorer {
       autoFixableIssues: issues.filter(i => i.autoFixAvailable).length,
     };
   }
-  
+
   /**
    * AI-powered spec analysis
    */
@@ -111,7 +105,7 @@ export class SpecQualityScorer {
     const requiredSections = templateDef.sections
       .filter(s => s.required)
       .map(s => s.title);
-    
+
     const systemPrompt = `You are an expert product manager and technical writer. Your job is to evaluate the quality of product specifications (PRDs) and provide actionable feedback.
 
 Evaluate the spec based on these criteria:
@@ -172,7 +166,7 @@ Return a JSON object with:
 ${content}`;
 
     try {
-      const response = await this.openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
@@ -205,7 +199,7 @@ ${content}`;
       };
     }
   }
-  
+
   /**
    * Calculate dimension scores
    */
@@ -217,14 +211,14 @@ ${content}`;
       const score = aiAnalysis.scores?.[dim.key] || 50;
       const feedback = aiAnalysis.feedback?.[dim.key] || '';
       const improvements = aiAnalysis.improvements?.[dim.key] || [];
-      
+
       // Penalize for missing required sections
       let adjustedScore = score;
       if (dim.key === 'completeness' && basicValidation.missingRequiredSections.length > 0) {
         const penalty = basicValidation.missingRequiredSections.length * 10;
         adjustedScore = Math.max(0, score - penalty);
       }
-      
+
       return {
         name: dim.name,
         score: adjustedScore,
@@ -234,7 +228,7 @@ ${content}`;
       };
     });
   }
-  
+
   /**
    * Calculate overall score
    */
@@ -245,7 +239,7 @@ ${content}`;
     );
     return Math.round(weightedSum);
   }
-  
+
   /**
    * Convert score to letter grade
    */
@@ -256,13 +250,13 @@ ${content}`;
     if (score >= 60) return 'D';
     return 'F';
   }
-  
+
   /**
    * Extract and format issues
    */
   private extractIssues(aiAnalysis: any, basicValidation: any): QualityIssue[] {
     const issues: QualityIssue[] = [];
-    
+
     // Add issues from AI analysis
     if (aiAnalysis.issues) {
       aiAnalysis.issues.forEach((issue: any, idx: number) => {
@@ -278,7 +272,7 @@ ${content}`;
         });
       });
     }
-    
+
     // Add issues from basic validation
     basicValidation.missingRequiredSections.forEach((section: string, idx: number) => {
       issues.push({
@@ -291,7 +285,7 @@ ${content}`;
         suggestedFix: `Add a "${section}" section with appropriate content.`,
       });
     });
-    
+
     basicValidation.warnings.forEach((warning: string, idx: number) => {
       issues.push({
         id: `warning-${idx}`,
@@ -302,14 +296,14 @@ ${content}`;
         autoFixAvailable: false,
       });
     });
-    
+
     // Sort by severity
     const severityOrder = { critical: 0, major: 1, minor: 2, suggestion: 3 };
     issues.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
-    
+
     return issues;
   }
-  
+
   /**
    * Calculate rework risk
    */
@@ -319,12 +313,12 @@ ${content}`;
   ): 'low' | 'medium' | 'high' {
     const criticalCount = issues.filter(i => i.severity === 'critical').length;
     const majorCount = issues.filter(i => i.severity === 'major').length;
-    
+
     if (criticalCount > 0 || score < 60) return 'high';
     if (majorCount > 2 || score < 75) return 'medium';
     return 'low';
   }
-  
+
   /**
    * Auto-fix an issue in the spec
    */
@@ -361,7 +355,7 @@ If the fix requires adding a new section, return:
 ${specContent}`;
 
     try {
-      const response = await this.openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
@@ -372,9 +366,9 @@ ${specContent}`;
       });
 
       const result = JSON.parse(response.choices[0].message.content || '{}');
-      
+
       let fixedContent = specContent;
-      
+
       if (result.originalSection) {
         // Replace existing section
         fixedContent = specContent.replace(result.originalSection, result.fixedSection);
@@ -386,7 +380,7 @@ ${specContent}`;
         // Append to end
         fixedContent = specContent + '\n\n' + result.fixedSection;
       }
-      
+
       return {
         issueId: issue.id,
         originalContent: specContent,
@@ -403,7 +397,7 @@ ${specContent}`;
       };
     }
   }
-  
+
   /**
    * Generate improvement suggestions
    */
@@ -423,7 +417,7 @@ Maintain the same structure but:
 Return only the improved spec content, no explanations.`;
 
     try {
-      const response = await this.openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
@@ -440,5 +434,22 @@ Return only the improved spec content, no explanations.`;
   }
 }
 
-// Export singleton instance
-export const specQualityScorer = new SpecQualityScorer();
+// Lazy singleton pattern to avoid build-time initialization
+let _specQualityScorerInstance: SpecQualityScorer | null = null;
+
+function getSpecQualityScorer(): SpecQualityScorer {
+  if (!_specQualityScorerInstance) {
+    _specQualityScorerInstance = new SpecQualityScorer();
+  }
+  return _specQualityScorerInstance;
+}
+
+// For backwards compatibility - proxy object that delays instantiation
+export const specQualityScorer = {
+  evaluateSpec: (...args: Parameters<SpecQualityScorer['evaluateSpec']>) =>
+    getSpecQualityScorer().evaluateSpec(...args),
+  autoFix: (...args: Parameters<SpecQualityScorer['autoFix']>) =>
+    getSpecQualityScorer().autoFix(...args),
+  generateImprovements: (...args: Parameters<SpecQualityScorer['generateImprovements']>) =>
+    getSpecQualityScorer().generateImprovements(...args),
+};

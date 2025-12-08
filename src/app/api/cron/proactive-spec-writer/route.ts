@@ -10,14 +10,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { generateEmbedding, prepareSpecForEmbedding, generateContentHash } from '@/lib/specs/embeddings';
 import { SPEC_GENERATION_SYSTEM_PROMPT, getSpecGenerationPrompt, getFeedbackSynthesisPrompt } from '@/lib/specs/prompts';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // Threshold for auto-spec generation
 const FEEDBACK_CLUSTER_THRESHOLD = 20;
@@ -126,7 +122,7 @@ async function autoGenerateSpec(cluster: FeedbackCluster): Promise<string | null
       }))
     );
 
-    const synthesisResponse = await openai.chat.completions.create({
+    const synthesisResponse = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'user', content: synthesisPrompt }],
       response_format: { type: 'json_object' },
@@ -153,7 +149,7 @@ async function autoGenerateSpec(cluster: FeedbackCluster): Promise<string | null
       customContext: `This spec was auto-generated based on ${cluster.feedback_count} user requests (${cluster.total_votes} votes). High-demand feature cluster detected.`,
     });
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: SPEC_GENERATION_SYSTEM_PROMPT },

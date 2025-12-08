@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE
-);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase(): SupabaseClient {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE!
+  );
+}
 
 export async function GET(
   request,
@@ -26,7 +29,7 @@ export async function GET(
     const keyHashBase64 = Buffer.from(key, 'utf8').toString('base64');
     const sha256Hash = crypto.createHash('sha256').update(key).digest('hex');
 
-    const { data: apiKeyData } = await supabase
+    const { data: apiKeyData } = await getSupabase()
       .from('api_keys')
       .select(`
         id,
@@ -42,7 +45,7 @@ export async function GET(
       project = apiKeyData.projects;
       console.log('Valid API key found in frame:', key, 'for project:', project.name);
     } else {
-      const { data: hashedKeyData } = await supabase
+      const { data: hashedKeyData } = await getSupabase()
         .from('api_keys')
         .select(`
           id,
@@ -58,7 +61,7 @@ export async function GET(
         project = hashedKeyData.projects;
         console.log('Valid (legacy) API key found in frame:', key, 'for project:', project.name);
       } else {
-        const { data: projectData } = await supabase
+        const { data: projectData } = await getSupabase()
           .from('projects')
           .select('id, name, slug, plan')
           .eq('slug', key)
@@ -74,7 +77,7 @@ export async function GET(
     }
 
     // Get recent posts with vote counts
-    const { data: posts, error: postsError } = await supabase
+    const { data: posts, error: postsError } = await getSupabase()
       .from('posts')
       .select(`
         id,
@@ -124,7 +127,7 @@ export async function GET(
 
 function generateFrameHTML(config) {
   const { project, posts, theme, customColor, hideBranding, boardUrl } = config;
-  
+
   // Use custom color if provided, otherwise default to blue
   const primaryColor = customColor || '#6366f1';
   const primaryColorHover = adjustBrightness(primaryColor, -10);
@@ -132,7 +135,7 @@ function generateFrameHTML(config) {
   const integrationDescription = hideBranding
     ? 'Connect with other tools or APIs'
     : 'Connect SignalsLoop with other tools or APIs';
-  
+
   return `
 <!DOCTYPE html>
 <html lang="en" class="${theme}">
@@ -904,7 +907,7 @@ function generatePostsHTML(posts) {
       </div>
     `;
   }
-  
+
   return posts.map(post => {
     const authorName = post.author_name || 'Anonymous';
     return `
@@ -945,7 +948,7 @@ function formatDate(dateString) {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
+
   if (diffDays === 0) {
     return 'Today';
   } else if (diffDays === 1) {

@@ -1,10 +1,7 @@
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { ParsedRoadmap } from './parse-roadmap';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export interface RoastResult {
   confidence_score: number;
@@ -145,7 +142,7 @@ Respond with JSON:
 }
 `;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
     messages: [
       { role: 'system', content: 'You are a critical CPO. Output ONLY valid JSON.' },

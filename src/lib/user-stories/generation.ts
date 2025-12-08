@@ -3,7 +3,7 @@
  * AI-powered conversion of themes into sprint-ready user stories with GPT-4
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { withCache } from '../ai-cache-manager';
 import {
   GenerateStoryInput,
@@ -18,9 +18,6 @@ import {
 } from '@/types/user-stories';
 import { Theme } from '@/types/themes';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
 
 const MODELS = {
   STORY_GENERATION: process.env.STORY_GENERATION_MODEL || GENERATION_MODELS.GPT4O,
@@ -261,7 +258,7 @@ async function generateUserStoryInternal(
       `[USER-STORIES] Generating story for theme: ${theme.theme_name} (${feedbackItems.length} feedback items)...`
     );
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: MODELS.STORY_GENERATION,
       messages: [
         { role: 'system', content: STORY_GENERATION_SYSTEM_PROMPT },

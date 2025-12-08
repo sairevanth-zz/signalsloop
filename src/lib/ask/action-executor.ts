@@ -4,16 +4,13 @@
  */
 
 import { createServerClient } from '@/lib/supabase-client';
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import type {
   ActionType,
   ActionResult,
   ActionExecution,
 } from '@/types/ask';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // ============================================================================
 // Main Executor Function
@@ -175,7 +172,7 @@ Generate a comprehensive product spec with the following sections:
 
 Format as markdown.`;
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
     messages: [
       {
@@ -307,7 +304,7 @@ The report should include:
 
 Format as markdown with clear sections and bullet points.`;
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
     messages: [
       {

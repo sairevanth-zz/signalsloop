@@ -18,8 +18,6 @@ import type {
   StrategyMetadata,
 } from '@/types/prediction';
 
-const supabase = getServiceRoleClient();
-
 // Thresholds for strategy selection
 const COLD_START_THRESHOLD = 10;
 const WARM_THRESHOLD = 50;
@@ -205,8 +203,8 @@ async function predictWithHeuristics(features: PredictionInput): Promise<Predict
   const predicted_sentiment_impact = features.addresses_churn_theme
     ? 0.15
     : features.feedback_intensity > 0.6
-    ? 0.10
-    : 0.05;
+      ? 0.10
+      : 0.05;
 
   // Confidence is lower for heuristics
   const confidence_score = 0.6;
@@ -397,6 +395,7 @@ function findSimilarFeatures(
  * Get historical outcomes for a project
  */
 async function getHistoricalOutcomes(projectId: string) {
+  const supabase = getServiceRoleClient();
   const { data, error } = await supabase
     .from('feature_predictions')
     .select('*')
@@ -468,9 +467,8 @@ Write the explanation:`;
 
     // Fallback explanation
     return {
-      text: `This feature is predicted to achieve ${(prediction.predicted_adoption_rate! * 100).toFixed(0)}% adoption based on ${
-        prediction.prediction_strategy === 'heuristic' ? 'heuristic analysis' : `${prediction.strategy_metadata.historical_outcomes_count} historical features`
-      }. The prediction confidence is ${(prediction.confidence_score * 100).toFixed(0)}%.`,
+      text: `This feature is predicted to achieve ${(prediction.predicted_adoption_rate! * 100).toFixed(0)}% adoption based on ${prediction.prediction_strategy === 'heuristic' ? 'heuristic analysis' : `${prediction.strategy_metadata.historical_outcomes_count} historical features`
+        }. The prediction confidence is ${(prediction.confidence_score * 100).toFixed(0)}%.`,
       factors: prediction.explanation_factors,
     };
   }

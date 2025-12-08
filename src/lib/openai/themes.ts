@@ -3,7 +3,7 @@
  * Provides AI-powered theme and pattern detection using OpenAI GPT-4
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { withCache } from '../ai-cache-manager';
 import {
   FeedbackItem,
@@ -14,9 +14,6 @@ import {
   THEME_DETECTION_CONFIG,
 } from '@/types/themes';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
 
 const MODELS = {
   THEME_DETECTION: process.env.THEME_DETECTION_MODEL || 'gpt-4o',
@@ -145,7 +142,7 @@ Identify the themes and return them in the JSON format specified.`;
       `[THEMES] Analyzing ${feedbackItems.length} items for theme detection...`,
     );
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: MODELS.THEME_DETECTION,
       messages: [
         { role: 'system', content: THEME_DETECTION_SYSTEM_PROMPT },

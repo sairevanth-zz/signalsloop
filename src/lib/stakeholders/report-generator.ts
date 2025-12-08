@@ -4,14 +4,11 @@
  * Part of Phase 3: Stakeholder Management & Experimentation Intelligence
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { sendEmail } from '@/lib/email';
 
 // Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // Types
 export type StakeholderRole = 'ceo' | 'sales' | 'engineering' | 'marketing' | 'customer_success';
@@ -315,7 +312,7 @@ Use proper HTML tags: <h2>, <p>, <ul>, <li>, <strong>, etc.
 Include inline CSS for styling.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4',
       messages: [
         {

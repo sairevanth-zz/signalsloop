@@ -5,7 +5,7 @@
  */
 
 import { createServerClient } from '@/lib/supabase-client';
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import type {
   CompetitorEvent,
   CompetitorScrapeResult,
@@ -13,9 +13,6 @@ import type {
 import { CompetitorEventSchema } from '@/types/devils-advocate';
 import { summarizeCompetitorEvent } from './prompts/summarize-event';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 /**
  * Ingests competitor data for a project
@@ -191,7 +188,7 @@ export async function createCompetitorEvent(
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
-    const response = await openai.embeddings.create({
+    const response = await getOpenAI().embeddings.create({
       model: 'text-embedding-3-small',
       input: text,
       encoding_format: 'float',

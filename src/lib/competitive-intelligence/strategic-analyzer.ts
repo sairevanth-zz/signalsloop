@@ -4,12 +4,9 @@
  * Uses GPT-4 for high-quality strategic analysis
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { getSupabaseServiceRoleClient } from '../supabase-client';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
 
 const MODELS = {
   STRATEGIC: process.env.STRATEGIC_ANALYSIS_MODEL || 'gpt-4o',
@@ -259,7 +256,7 @@ ${JSON.stringify(intelligence.recent_mentions.slice(0, 30), null, 2)}
 
 Generate 3-7 prioritized strategic recommendations.`;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: MODELS.STRATEGIC,
       messages: [
         { role: 'system', content: STRATEGIC_ANALYSIS_PROMPT },

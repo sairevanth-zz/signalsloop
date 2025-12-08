@@ -4,14 +4,11 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { scrapeG2Reviews } from './scrapers/g2-scraper';
 import { scrapeCapterraReviews } from './scrapers/capterra-scraper';
 import { scrapeTrustRadiusReviews } from './scrapers/trustradius-scraper';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -239,7 +236,7 @@ Return as JSON:
   "use_cases": ["use case1", "use case2"]
 }`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {
@@ -447,7 +444,7 @@ Return as JSON array:
   }
 ]`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4',
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },

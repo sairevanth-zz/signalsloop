@@ -6,8 +6,8 @@
  * Provides transparency into "Why?" for any AI recommendation
  */
 
-import { createClient } from '@supabase/supabase-js';
-import OpenAI from 'openai';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getOpenAI } from '@/lib/openai-client';
 import {
   ReasoningTrace,
   ReasoningStep,
@@ -22,14 +22,17 @@ import {
   DataSource,
 } from '@/types/reasoning';
 
-// Initialize clients
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy getter for Supabase client to avoid build-time initialization
+let _supabaseClient: SupabaseClient | null = null;
+function getSupabase(): SupabaseClient {
+  if (!_supabaseClient) {
+    _supabaseClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+  }
+  return _supabaseClient;
+}
 
 /**
  * GPT-4o prompt for extracting structured reasoning from raw AI output
@@ -79,14 +82,14 @@ export async function extractReasoningFromOutput(
   rawReasoning: string
 ): Promise<ReasoningExtractionResult> {
   const startTime = Date.now();
-  
+
   try {
     const prompt = REASONING_EXTRACTION_PROMPT
       .replace('{decision_type}', decisionType)
       .replace('{raw_output}', rawOutput)
       .replace('{raw_reasoning}', rawReasoning);
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
@@ -100,7 +103,7 @@ export async function extractReasoningFromOutput(
     }
 
     const result = JSON.parse(content) as ReasoningExtractionResult;
-    
+
     // Validate the structure
     if (!result.decision_summary || !result.reasoning_steps || !result.alternatives_considered) {
       throw new Error('Invalid reasoning structure');
@@ -109,7 +112,7 @@ export async function extractReasoningFromOutput(
     return result;
   } catch (error) {
     console.error('[ReasoningCapture] Failed to extract reasoning:', error);
-    
+
     // Return a fallback structure
     return {
       decision_summary: rawOutput.slice(0, 100),
@@ -141,12 +144,12 @@ export async function captureReasoning<T>(
   try {
     // Execute the AI function
     const { result, reasoning: rawReasoning } = await executeFn();
-    
+
     const executionTime = Date.now() - startTime;
-    
+
     // Convert result to string for extraction
-    const rawOutput = typeof result === 'string' 
-      ? result 
+    const rawOutput = typeof result === 'string'
+      ? result
       : JSON.stringify(result, null, 2);
 
     // Extract structured reasoning
@@ -216,7 +219,7 @@ export async function storeReasoningTrace(trace: {
   entity_id?: string;
   triggered_by?: string;
 }): Promise<ReasoningTrace> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('reasoning_traces')
     .insert({
       project_id: trace.project_id,
@@ -249,7 +252,7 @@ export async function getReasoningForEntity(
   entityType: string,
   entityId: string
 ): Promise<ReasoningTrace[]> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('reasoning_traces')
     .select('*')
     .eq('entity_type', entityType)
@@ -273,7 +276,7 @@ export async function getProjectReasoningTraces(
   feature?: ReasoningFeature,
   limit: number = 50
 ): Promise<ReasoningTrace[]> {
-  let query = supabase
+  let query = getSupabase()
     .from('reasoning_traces')
     .select('*')
     .eq('project_id', projectId)
@@ -298,7 +301,7 @@ export async function getProjectReasoningTraces(
  * Get a single reasoning trace by ID
  */
 export async function getReasoningTraceById(traceId: string): Promise<ReasoningTrace | null> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('reasoning_traces')
     .select('*')
     .eq('id', traceId)
@@ -373,7 +376,7 @@ export async function cleanupOldTraces(daysOld: number = 90): Promise<number> {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('reasoning_traces')
     .delete()
     .lt('created_at', cutoffDate.toISOString())

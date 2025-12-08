@@ -4,12 +4,9 @@
  * Uses GPT-4 for higher quality clustering and analysis
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { getSupabaseServiceRoleClient } from '../supabase-client';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
 
 const MODELS = {
   FEATURE_GAPS: process.env.FEATURE_GAP_MODEL || 'gpt-4o',
@@ -169,7 +166,7 @@ ${JSON.stringify(formattedMentions, null, 2)}
 
 Identify and prioritize feature gaps our product should address.`;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: MODELS.FEATURE_GAPS,
       messages: [
         { role: 'system', content: FEATURE_GAP_ANALYSIS_PROMPT },

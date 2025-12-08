@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE!
-);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase(): SupabaseClient {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE!
+  );
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,22 +34,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Get client IP and user agent
-    const clientIp = request.headers.get('x-forwarded-for') || 
-                    request.headers.get('x-real-ip') || 
-                    'unknown';
+    const clientIp = request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
     const referer = request.headers.get('referer') || 'direct';
 
     // Try to find the project associated with this API key
     let projectId = null;
-    
+
     try {
-      const { data: apiKeyData } = await supabase
+      const { data: apiKeyData } = await getSupabase()
         .from('api_keys')
         .select('project_id')
         .eq('key_hash', btoa(apiKey))
         .single();
-      
+
       if (apiKeyData) {
         projectId = apiKeyData.project_id;
       }
@@ -56,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Store the analytics event in the database
-    const { error: insertError } = await supabase
+    const { error: insertError } = await getSupabase()
       .from('analytics_events')
       .insert({
         event_name: event,

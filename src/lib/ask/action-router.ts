@@ -3,12 +3,9 @@
  * Detects action intent from user queries and routes to appropriate executors
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import type { ActionIntent, ActionType, Message } from '@/types/ask';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // ============================================================================
 // Action Detection System Prompt
@@ -128,7 +125,7 @@ export async function detectActionIntent(
     }
 
     // Call GPT-4o to detect intent
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: ACTION_DETECTION_PROMPT },

@@ -1,14 +1,16 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { CollectionResult, Review, ReviewSource, ScraperResult } from './types';
 import { scrapeReddit } from './scrapers/reddit-scraper';
 import { scrapeAppStore } from './scrapers/app-store-scraper';
 import { scrapePlayStore } from './scrapers/play-store-scraper';
 import { scrapeHackerNews } from './scrapers/hackernews-scraper';
 
-// Initialize Supabase client for server-side usage (assuming env vars are present)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Lazy getter for Supabase client to avoid build-time initialization
+function getSupabase(): SupabaseClient {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    return createClient(supabaseUrl, supabaseKey);
+}
 
 const scrapers: Record<string, (name: string) => Promise<Review[]>> = {
     reddit: scrapeReddit,
@@ -26,7 +28,7 @@ export async function collectReviews(
     const failedSources: string[] = [];
 
     // 1. Check Cache
-    const { data: cachedData } = await supabase
+    const { data: cachedData } = await getSupabase()
         .from('scrape_cache')
         .select('*')
         .eq('product_name_normalized', normalizedProductName)
@@ -63,7 +65,7 @@ export async function collectReviews(
 
             // Cache results
             if (newReviews.length > 0) {
-                await supabase.from('scrape_cache').upsert({
+                await getSupabase().from('scrape_cache').upsert({
                     product_name_normalized: normalizedProductName,
                     source: source,
                     reviews: newReviews, // Automatic JSON stringify

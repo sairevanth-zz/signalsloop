@@ -5,13 +5,10 @@
  * Automatically creates titles, descriptions, acceptance criteria, and suggests priorities.
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { markdownToADF, ADF } from './api';
 import { withCache } from '../ai-cache-manager';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!
-});
 
 const MODEL = process.env.JIRA_ISSUE_MODEL || 'gpt-4o';
 
@@ -154,7 +151,7 @@ export async function generateIssueFromFeedback(
 
   const generate = async () => {
     try {
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: MODEL,
         messages: [
           {
@@ -227,7 +224,7 @@ The epic should:
 - The issue type should be "Epic"`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: MODEL,
       messages: [
         {

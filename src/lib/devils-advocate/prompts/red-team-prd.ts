@@ -5,12 +5,9 @@
  * It ruthlessly challenges PRDs to find flaws before engineering resources are spent.
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import type { PRDRiskAlertInput } from '@/types/devils-advocate';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 const RED_TEAM_SYSTEM_PROMPT = `You are a ruthless Venture Capitalist and Competitive Analyst with 20 years of experience destroying weak product strategies.
 
@@ -101,7 +98,7 @@ export async function analyzePRDWithRedTeam(
   feedbackData: any
 ): Promise<PRDRiskAlertInput[]> {
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: RED_TEAM_SYSTEM_PROMPT },

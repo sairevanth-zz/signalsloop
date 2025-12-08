@@ -9,14 +9,10 @@ import {
   GenerateRecommendationsRequest,
   GenerateRecommendationsResponse,
 } from '@/types/hunter';
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 /**
  * GET /api/hunter/actions?projectId=xxx
@@ -216,7 +212,7 @@ Generate an action recommendation with:
 Return JSON only.`;
 
       try {
-        const response = await openai.chat.completions.create({
+        const response = await getOpenAI().chat.completions.create({
           model: 'gpt-4o',
           messages: [
             {

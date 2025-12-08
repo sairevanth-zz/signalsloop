@@ -1,9 +1,5 @@
-import OpenAI from 'openai';
+import { getOpenAI } from '@/lib/openai-client';
 import { FeedbackItem, ClusteringResult } from './types';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
 
 export async function clusterFeedback(
   productName: string,
@@ -129,7 +125,7 @@ RULES:
 - "What users love" is just as important as complaints
 `;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
     messages: [
       { role: 'system', content: 'You are a Product Feedback Analysis Engine.' },
