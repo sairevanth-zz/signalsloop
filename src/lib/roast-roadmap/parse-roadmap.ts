@@ -90,22 +90,45 @@ export async function parseRoadmapFromImage(base64Image: string): Promise<Parsed
 
     const prompt = `
 Analyze this roadmap screenshot and extract all features/initiatives.
+Pay special attention to VISUAL CUES, LEGENDS, and METRICS (votes, hearts, comments).
 
 For each item visible, extract:
 - name: Feature/initiative name
 - description: Any description visible (null if none)
-- priority: Priority if visible (P0/P1/P2/High/Medium/Low/Must/Should/Could or null)
-- timeline: Quarter/date if visible (Q1 2025, March, H1, etc. or null)
-- status: Status if visible (planned/in-progress/done/backlog or null)
-- category: Category/theme/epic if visible (null if none)
-- owner: Owner/team if visible (null if none)
+- priority: Priority if visible (P0/P1 or visual indicators like 'High', 'Urgent').
+- timeline: Quarter/date if visible.
+- status: Status if visible (column name like 'In Progress', 'Done', etc.).
+- category: Category/theme if visible (look for COLOR TAGS or LEGEND explanations, e.g., 'Blue = Platform').
+- owner: Owner/team (look for avatars or names).
+- metrics: { "votes": number | null, "comments": number | null, "hearts": number | null } (Extract any numbers next to icons like thumbs up, heart, chat bubbles).
 
-Also identify:
-- roadmap_type: kanban/timeline/list/gantt/table/unknown
-- tool_detected: Notion/Jira/Linear/Asana/Trello/ProductBoard/spreadsheet/unknown
-- time_horizon: How far out does this roadmap go?
+Also identify GLOBAL METADATA:
+- roadmap_type: kanban/timeline/list/gantt/table.
+- tool_detected: Trello/Jira/Asana/etc.
+- legend_definitions: If there is a "Key" or "Legend" or card explaining colors (e.g., "Green is for publishing"), extract it here.
 
-Respond with JSON structure as previously defined.
+Respond with JSON structure:
+{
+  "features": [
+    {
+      "name": "Feature Name",
+      "description": "...",
+      "priority": "...",
+      "timeline": "...",
+      "status": "...",
+      "category": "...",
+      "owner": "...",
+      "metrics": { "votes": 12, "comments": 5 }
+    }
+  ],
+  "metadata": {
+    "roadmap_type": "...",
+    "tool_detected": "...",
+    "time_horizon": "...",
+    "total_items": 10,
+    "legend_definitions": "Blue=Platform, Green=Publishing..."
+  }
+}
 `;
 
     const response = await openai.chat.completions.create({
