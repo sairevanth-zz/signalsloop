@@ -43,11 +43,19 @@ export async function parseRoadmapAction(formData: FormData) {
 
         // Create session
         const sessionToken = uuidv4();
+        // Map input type to DB allowed values
+        let dbInputType = inputType;
+        if (inputType === 'image') dbInputType = 'screenshot';
+        if (inputType === 'file' && documentFile) {
+            if (documentFile.name.toLowerCase().endsWith('.json')) dbInputType = 'json';
+            else dbInputType = 'csv';
+        }
+
         const { data: session, error } = await supabase
             .from('roadmap_roast_sessions')
             .insert({
                 session_token: sessionToken,
-                input_type: inputType,
+                input_type: dbInputType,
                 raw_input: rawInputForDb.substring(0, 5000), // Truncate for DB
                 parsed_features: parsedFeatures,
                 status: 'parsed'
