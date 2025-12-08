@@ -208,6 +208,9 @@ export default function Homepage() {
               <Link href="/demo/spec" className="hover:text-cyan-500 transition-colors min-touch-target font-medium flex items-center gap-1">
                 Spec Gen ⚡
               </Link>
+              <Link href="/demo/health-score" className="hover:text-cyan-500 transition-colors min-touch-target font-medium flex items-center gap-1">
+                Health Score 💚
+              </Link>
               <span className="hidden xl:inline-block h-4 w-px bg-gray-200"></span>
               <span className="flex items-center gap-1.5 text-gray-500 text-xs">
                 <span className="text-emerald-500">🔒</span>
