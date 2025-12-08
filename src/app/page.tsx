@@ -205,6 +205,9 @@ export default function Homepage() {
               <Link href="/demo/roast" className="hover:text-cyan-500 transition-colors min-touch-target font-medium flex items-center gap-1">
                 Roast My Roadmap <Flame className="w-4 h-4 text-orange-500" />
               </Link>
+              <Link href="/demo/spec" className="hover:text-cyan-500 transition-colors min-touch-target font-medium flex items-center gap-1">
+                Spec Gen ⚡
+              </Link>
               <span className="hidden xl:inline-block h-4 w-px bg-gray-200"></span>
               <span className="flex items-center gap-1.5 text-gray-500 text-xs">
                 <span className="text-emerald-500">🔒</span>
@@ -231,7 +234,7 @@ export default function Homepage() {
                 </Button>
               </Link>
               <Button
-                onClick={handleProCheckout}
+                onClick={() => handleProCheckout()}
                 className="gradient-cyan-purple text-white font-body font-semibold rounded-3xl hover:scale-105 active:scale-95 transition-all duration-200 shadow-multi hover:shadow-cyan px-4 sm:px-7 md:px-9 text-xs sm:text-sm md:text-base min-touch-target tap-highlight-transparent whitespace-nowrap"
               >
                 Start Free
@@ -324,7 +327,7 @@ export default function Homepage() {
                 }}></div>
                 <div className="absolute -inset-2 bg-gradient-to-r from-cyan-400 to-sky-400 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
                 <Button
-                  onClick={handleProCheckout}
+                  onClick={() => handleProCheckout()}
                   size="lg"
                   className="relative btn-primary-glow font-body text-lg px-12 py-6 text-white font-bold rounded-2xl min-h-[64px] w-full sm:w-auto hover:scale-105 transition-all duration-300"
                 >
@@ -2051,7 +2054,7 @@ export default function Homepage() {
                 </ul>
                 <Button
                   className="w-full mt-8 gradient-cyan-purple hover:bg-blue-700 text-white font-semibold rounded-3xl hover:scale-110 hover-lift transition-all duration-200 shadow-lg hover:shadow-xl py-4"
-                  onClick={handleProCheckout}
+                  onClick={() => handleProCheckout()}
                 >
                   🚀 Start Free - Upgrade Anytime
                 </Button>
