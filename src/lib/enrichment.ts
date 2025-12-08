@@ -9,11 +9,7 @@
  * Uses LLM to synthesize all data sources with confidence scoring
  */
 
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { getOpenAI } from './openai-client';
 
 // ============================================================================
 // Types
@@ -446,7 +442,7 @@ Return JSON with these exact fields:
 IMPORTANT: Return ONLY valid JSON, no markdown formatting or code blocks.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {

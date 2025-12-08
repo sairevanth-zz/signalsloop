@@ -13,28 +13,28 @@ export interface CustomerHealth {
   email?: string;
   name?: string;
   company?: string;
-  
+
   healthScore: number;
   previousHealthScore?: number;
   healthGrade: string;
   churnRisk: 'low' | 'medium' | 'high' | 'critical';
   churnProbability: number;
-  
+
   engagementScore: number;
   sentimentScore: number;
   supportScore: number;
   productUsageScore: number;
   paymentScore: number;
-  
+
   mrr?: number;
   arr?: number;
   planName?: string;
-  
+
   riskFactors: Array<{ factor: string; severity: string; weight: number }>;
   positiveSignals: Array<{ signal: string; strength: string }>;
   healthSummary: string;
   recommendedActions: string[];
-  
+
   calculatedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -70,7 +70,7 @@ export interface ChurnRadarSummary {
 export class ChurnRadarService {
   private supabase: SupabaseClient;
   private calculator: HealthCalculator;
-  
+
   constructor() {
     this.supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -78,14 +78,14 @@ export class ChurnRadarService {
     );
     this.calculator = new HealthCalculator();
   }
-  
+
   /**
    * Get churn radar summary for a project
    */
   async getSummary(projectId: string): Promise<ChurnRadarSummary> {
     const { data, error } = await this.supabase
       .rpc('get_churn_radar_summary', { p_project_id: projectId });
-    
+
     if (error || !data || data.length === 0) {
       return {
         totalCustomers: 0,
@@ -98,7 +98,7 @@ export class ChurnRadarService {
         criticalAlerts: 0,
       };
     }
-    
+
     const row = data[0];
     return {
       totalCustomers: row.total_customers || 0,
@@ -111,7 +111,7 @@ export class ChurnRadarService {
       criticalAlerts: row.critical_alerts || 0,
     };
   }
-  
+
   /**
    * List customers by health status
    */
@@ -132,16 +132,16 @@ export class ChurnRadarService {
       page = 1,
       limit = 20,
     } = options;
-    
+
     let query = this.supabase
       .from('customer_health')
       .select('*', { count: 'exact' })
       .eq('project_id', projectId);
-    
+
     if (riskLevel !== 'all') {
       query = query.eq('churn_risk', riskLevel);
     }
-    
+
     // Sorting
     const sortColumn = {
       healthScore: 'health_score',
@@ -149,26 +149,26 @@ export class ChurnRadarService {
       name: 'name',
       updatedAt: 'updated_at',
     }[sortBy];
-    
+
     query = query.order(sortColumn, { ascending: sortOrder === 'asc' });
-    
+
     // Pagination
     const start = (page - 1) * limit;
     query = query.range(start, start + limit - 1);
-    
+
     const { data, error, count } = await query;
-    
+
     if (error) {
       console.error('[ChurnRadarService] Error listing customers:', error);
       return { customers: [], total: 0 };
     }
-    
+
     return {
       customers: (data || []).map(this.mapCustomerHealth),
       total: count || 0,
     };
   }
-  
+
   /**
    * Get a single customer's health details
    */
@@ -178,14 +178,14 @@ export class ChurnRadarService {
       .select('*')
       .eq('id', customerHealthId)
       .single();
-    
+
     if (error || !data) {
       return null;
     }
-    
+
     return this.mapCustomerHealth(data);
   }
-  
+
   /**
    * Get customer health by email
    */
@@ -196,14 +196,14 @@ export class ChurnRadarService {
       .eq('project_id', projectId)
       .eq('email', email)
       .single();
-    
+
     if (error || !data) {
       return null;
     }
-    
+
     return this.mapCustomerHealth(data);
   }
-  
+
   /**
    * Calculate and update health for a customer
    */
@@ -213,7 +213,7 @@ export class ChurnRadarService {
   ): Promise<CustomerHealth> {
     // Calculate health score
     const result = this.calculator.calculate(customerData);
-    
+
     // Prepare data for upsert
     const healthData = {
       project_id: projectId,
@@ -252,7 +252,7 @@ export class ChurnRadarService {
       recommended_actions: result.recommendedActions,
       calculated_at: new Date().toISOString(),
     };
-    
+
     // Upsert customer health
     const { data, error } = await this.supabase
       .from('customer_health')
@@ -261,18 +261,18 @@ export class ChurnRadarService {
       })
       .select()
       .single();
-    
+
     if (error) {
       console.error('[ChurnRadarService] Error upserting health:', error);
       throw error;
     }
-    
+
     // Check if we need to create alerts
     await this.checkAndCreateAlerts(data.id, projectId, result);
-    
+
     return this.mapCustomerHealth(data);
   }
-  
+
   /**
    * Batch calculate health for all customers
    */
@@ -282,14 +282,14 @@ export class ChurnRadarService {
       .from('customers')
       .select('*')
       .eq('project_id', projectId);
-    
+
     if (error || !customers) {
       return { processed: 0, errors: 1 };
     }
-    
+
     let processed = 0;
     let errors = 0;
-    
+
     for (const customer of customers) {
       try {
         const customerData: CustomerData = {
@@ -301,7 +301,7 @@ export class ChurnRadarService {
           avgSentiment30d: customer.average_sentiment,
           feedbackCount30d: customer.total_feedback_count,
         };
-        
+
         await this.calculateAndUpdateHealth(projectId, customerData);
         processed++;
       } catch (err) {
@@ -309,10 +309,10 @@ export class ChurnRadarService {
         errors++;
       }
     }
-    
+
     return { processed, errors };
   }
-  
+
   /**
    * Check and create alerts based on health result
    */
@@ -322,7 +322,7 @@ export class ChurnRadarService {
     result: HealthCalculationResult
   ): Promise<void> {
     const alerts: any[] = [];
-    
+
     // Critical health score alert
     if (result.churnRisk === 'critical') {
       alerts.push({
@@ -336,7 +336,7 @@ export class ChurnRadarService {
         recommended_action: result.recommendedActions[0],
       });
     }
-    
+
     // Payment issue alert
     if (result.signals.payment.score < 50) {
       alerts.push({
@@ -350,7 +350,7 @@ export class ChurnRadarService {
         recommended_action: 'Contact customer to resolve payment issues',
       });
     }
-    
+
     // Engagement drop alert
     if (result.signals.engagement.score < 30) {
       alerts.push({
@@ -364,7 +364,7 @@ export class ChurnRadarService {
         recommended_action: 'Send re-engagement campaign or schedule check-in',
       });
     }
-    
+
     // Insert alerts (avoid duplicates by checking existing)
     for (const alert of alerts) {
       // Check if similar alert exists
@@ -375,13 +375,13 @@ export class ChurnRadarService {
         .eq('alert_type', alert.alert_type)
         .eq('status', 'new')
         .single();
-      
+
       if (!existing) {
         await this.supabase.from('churn_alerts').insert(alert);
       }
     }
   }
-  
+
   /**
    * List alerts for a project
    */
@@ -395,7 +395,7 @@ export class ChurnRadarService {
     } = {}
   ): Promise<{ alerts: ChurnAlert[]; total: number }> {
     const { status, severity, page = 1, limit = 20 } = options;
-    
+
     let query = this.supabase
       .from('churn_alerts')
       .select(`
@@ -403,35 +403,35 @@ export class ChurnRadarService {
         customer:customer_health(id, name, email, company, health_score, mrr, churn_risk)
       `, { count: 'exact' })
       .eq('project_id', projectId);
-    
+
     if (status) {
       query = query.eq('status', status);
     } else {
       query = query.not('status', 'in', '("resolved","dismissed")');
     }
-    
+
     if (severity) {
       query = query.eq('severity', severity);
     }
-    
+
     query = query.order('created_at', { ascending: false });
-    
+
     const start = (page - 1) * limit;
     query = query.range(start, start + limit - 1);
-    
+
     const { data, error, count } = await query;
-    
+
     if (error) {
       console.error('[ChurnRadarService] Error listing alerts:', error);
       return { alerts: [], total: 0 };
     }
-    
+
     return {
       alerts: (data || []).map(this.mapAlert),
       total: count || 0,
     };
   }
-  
+
   /**
    * Update alert status
    */
@@ -445,7 +445,7 @@ export class ChurnRadarService {
       status,
       updated_at: new Date().toISOString(),
     };
-    
+
     if (status === 'acknowledged') {
       updates.acknowledged_at = new Date().toISOString();
       updates.acknowledged_by = userId;
@@ -456,15 +456,15 @@ export class ChurnRadarService {
         updates.resolution_notes = notes;
       }
     }
-    
+
     const { error } = await this.supabase
       .from('churn_alerts')
       .update(updates)
       .eq('id', alertId);
-    
+
     return !error;
   }
-  
+
   /**
    * Get customer health history
    */
@@ -478,18 +478,18 @@ export class ChurnRadarService {
       .eq('customer_health_id', customerHealthId)
       .order('recorded_at', { ascending: false })
       .limit(limit);
-    
+
     if (error || !data) {
       return [];
     }
-    
+
     return data.map(row => ({
       date: new Date(row.recorded_at),
       score: row.health_score,
       risk: row.churn_risk,
     }));
   }
-  
+
   /**
    * Map database row to CustomerHealth object
    */
@@ -523,7 +523,7 @@ export class ChurnRadarService {
       updatedAt: new Date(row.updated_at),
     };
   }
-  
+
   /**
    * Map database row to ChurnAlert object
    */
@@ -554,5 +554,34 @@ export class ChurnRadarService {
   }
 }
 
-// Export singleton
-export const churnRadarService = new ChurnRadarService();
+// Lazy singleton pattern to avoid build-time initialization
+let _churnRadarServiceInstance: ChurnRadarService | null = null;
+
+function getChurnRadarService(): ChurnRadarService {
+  if (!_churnRadarServiceInstance) {
+    _churnRadarServiceInstance = new ChurnRadarService();
+  }
+  return _churnRadarServiceInstance;
+}
+
+// For backwards compatibility - proxy object that delays instantiation
+export const churnRadarService = {
+  getSummary: (...args: Parameters<ChurnRadarService['getSummary']>) =>
+    getChurnRadarService().getSummary(...args),
+  listCustomers: (...args: Parameters<ChurnRadarService['listCustomers']>) =>
+    getChurnRadarService().listCustomers(...args),
+  getCustomerHealth: (...args: Parameters<ChurnRadarService['getCustomerHealth']>) =>
+    getChurnRadarService().getCustomerHealth(...args),
+  getCustomerHealthByEmail: (...args: Parameters<ChurnRadarService['getCustomerHealthByEmail']>) =>
+    getChurnRadarService().getCustomerHealthByEmail(...args),
+  calculateAndUpdateHealth: (...args: Parameters<ChurnRadarService['calculateAndUpdateHealth']>) =>
+    getChurnRadarService().calculateAndUpdateHealth(...args),
+  batchCalculateHealth: (...args: Parameters<ChurnRadarService['batchCalculateHealth']>) =>
+    getChurnRadarService().batchCalculateHealth(...args),
+  listAlerts: (...args: Parameters<ChurnRadarService['listAlerts']>) =>
+    getChurnRadarService().listAlerts(...args),
+  updateAlertStatus: (...args: Parameters<ChurnRadarService['updateAlertStatus']>) =>
+    getChurnRadarService().updateAlertStatus(...args),
+  getHealthHistory: (...args: Parameters<ChurnRadarService['getHealthHistory']>) =>
+    getChurnRadarService().getHealthHistory(...args),
+};

@@ -1,8 +1,17 @@
 import { Resend } from 'resend';
 import { getSupabaseServiceRoleClient } from './supabase-client';
 
-const resendApiKey = process.env.RESEND_API_KEY;
-const resend = new Resend(resendApiKey);
+// Lazy initialization to avoid build-time errors when RESEND_API_KEY is not set
+let _resendInstance: Resend | null = null;
+
+function getResend(): Resend {
+  if (!_resendInstance) {
+    const resendApiKey = process.env.RESEND_API_KEY;
+    _resendInstance = new Resend(resendApiKey);
+  }
+  return _resendInstance;
+}
+
 const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.signalsloop.com';
 const FROM_ADDRESS =
   process.env.RESEND_FROM_ADDRESS ||
@@ -51,10 +60,10 @@ function buildEmailHtml({
     bullets.length > 0
       ? `<ul style="margin: 0 0 24px; padding-left: 20px; color: #374151;">
           ${bullets
-            .map(
-              (item) => `<li style="margin-bottom: 12px; font-size: 15px; line-height: 1.6;">${item}</li>`
-            )
-            .join('')}
+        .map(
+          (item) => `<li style="margin-bottom: 12px; font-size: 15px; line-height: 1.6;">${item}</li>`
+        )
+        .join('')}
         </ul>`
       : '';
 
@@ -125,13 +134,13 @@ function escapeHtml(text: string): string {
 }
 
 export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
-  if (!resendApiKey) {
+  if (!process.env.RESEND_API_KEY) {
     const message = 'RESEND_API_KEY is not configured';
     console.error(message);
     throw new Error(message);
   }
 
-  const { data, error } = await resend.emails.send({
+  const { data, error } = await getResend().emails.send({
     from: FROM_ADDRESS,
     to: [to],
     subject,
@@ -582,7 +591,7 @@ async function getOrCreateUnsubscribeToken(email: string, userId: string | null)
   try {
     // Try to get existing token
     let query = supabase.from('email_preferences').select('unsubscribe_token');
-    
+
     if (userId) {
       query = query.eq('user_id', userId);
     } else {
@@ -908,7 +917,7 @@ export async function sendStatusChangeEmail(params: SendStatusChangeEmailParams)
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: 'SignalsLoop <noreply@signalsloop.com>',
       to: [toEmail],
       subject: `Update on your feedback: ${postTitle}`,
@@ -1095,7 +1104,7 @@ export async function sendCommentEmail(params: SendCommentEmailParams) {
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: 'SignalsLoop <noreply@signalsloop.com>',
       to: [toEmail],
       subject: `${commenterName} ${isAdmin ? 'replied to' : 'commented on'} your feedback`,
@@ -1284,7 +1293,7 @@ export async function sendPostConfirmationEmail(params: SendPostConfirmationEmai
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: 'SignalsLoop <noreply@signalsloop.com>',
       to: [toEmail],
       subject: `✅ We received your feedback: ${postTitle}`,
@@ -1387,11 +1396,10 @@ export async function sendFeedbackOnBehalfEmail(params: SendFeedbackOnBehalfEmai
           <p style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #111827;">
             ${feedbackTitle}
           </p>
-          ${
-            safeDescription
-              ? `<p style="margin: 0; font-size: 14px; line-height: 1.7; color: #4b5563;">${safeDescription}</p>`
-              : ''
-          }
+          ${safeDescription
+      ? `<p style="margin: 0; font-size: 14px; line-height: 1.7; color: #4b5563;">${safeDescription}</p>`
+      : ''
+    }
         </div>
 
         <p style="margin: 0 0 20px; font-size: 15px; line-height: 1.6; color: #374151;">
@@ -1429,7 +1437,7 @@ export async function sendFeedbackOnBehalfEmail(params: SendFeedbackOnBehalfEmai
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: 'SignalsLoop <noreply@signalsloop.com>',
       to: [toEmail],
       subject: `Your feedback has been submitted to ${projectName}`,
@@ -1572,7 +1580,7 @@ export async function sendVoteOnBehalfEmail(params: SendVoteOnBehalfEmailParams)
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: 'SignalsLoop <noreply@signalsloop.com>',
       to: [customerEmail],
       subject: `Your team submitted a feature request: ${postTitle}`,
@@ -1716,7 +1724,7 @@ export async function sendMentionNotificationEmail(params: SendMentionNotificati
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: 'SignalsLoop <noreply@signalsloop.com>',
       to: [toEmail],
       subject: `${commenterName} mentioned you in ${projectName}`,
@@ -1817,9 +1825,8 @@ export async function sendTeamFeedbackAlertEmail(
     submissionType === 'on_behalf' ? '#0ea5e9 0%, #6366f1 100%' : '#22c55e 0%, #16a34a 100%';
   const introLine =
     submissionType === 'on_behalf'
-      ? `${submittedByAdminName || 'A teammate'} captured feedback on behalf of ${
-          submitterName || submitterEmail || 'a customer'
-        }.`
+      ? `${submittedByAdminName || 'A teammate'} captured feedback on behalf of ${submitterName || submitterEmail || 'a customer'
+      }.`
       : `${submitterName || submitterEmail || 'A customer'} just submitted new feedback via your widget.`;
 
   const postUrl = `${APP_URL}/${projectSlug}/post/${postId}`;
@@ -1837,11 +1844,11 @@ export async function sendTeamFeedbackAlertEmail(
   const formatTitleCase = (value?: string | null) =>
     value
       ? escapeHtml(
-          value
-            .split(/[_\s]+/)
-            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-            .join(' ')
-        )
+        value
+          .split(/[_\s]+/)
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(' ')
+      )
       : null;
 
   const detailRows: string[] = [];
@@ -1959,7 +1966,7 @@ export async function sendTeamFeedbackAlertEmail(
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: 'SignalsLoop <noreply@signalsloop.com>',
       to: [toEmail],
       subject: `New feedback captured: ${feedbackTitle}`,
@@ -2218,14 +2225,14 @@ export async function sendWeeklyDigestEmail(
             <h3 style="margin: 0 0 12px; font-size: 16px; color: #111827;">Latest Posts</h3>
             <ul style="list-style: none; padding: 0; margin: 0;">
               ${project.newPosts
-                .map((post) => {
-                  const postUrl = `${APP_URL}/${project.projectSlug}/post/${post.postId}`;
-                  const statusBadge = getStatusBadge(post.status || 'open');
-                  const details = detailsLine([
-                    post.createdAt ? `Submitted ${formatDateLabel(post.createdAt)}` : null,
-                    post.totalVotes !== undefined ? `${post.totalVotes ?? 0} total votes` : null,
-                  ]);
-                  return `
+          .map((post) => {
+            const postUrl = `${APP_URL}/${project.projectSlug}/post/${post.postId}`;
+            const statusBadge = getStatusBadge(post.status || 'open');
+            const details = detailsLine([
+              post.createdAt ? `Submitted ${formatDateLabel(post.createdAt)}` : null,
+              post.totalVotes !== undefined ? `${post.totalVotes ?? 0} total votes` : null,
+            ]);
+            return `
                     <li style="margin-bottom: 16px;">
                       <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
                         <a href="${postUrl}" style="flex: 1; font-weight: 600; color: #1f2937; text-decoration: none;">
@@ -2233,15 +2240,14 @@ export async function sendWeeklyDigestEmail(
                         </a>
                         ${statusBadge}
                       </div>
-                      ${
-                        details
-                          ? `<div style="margin-top: 6px; font-size: 13px; color: #6b7280;">${details}</div>`
-                          : ''
-                      }
+                      ${details
+                ? `<div style="margin-top: 6px; font-size: 13px; color: #6b7280;">${details}</div>`
+                : ''
+              }
                     </li>
                   `;
-                })
-                .join('')}
+          })
+          .join('')}
             </ul>
           </div>
         `
@@ -2253,26 +2259,25 @@ export async function sendWeeklyDigestEmail(
             <h3 style="margin: 0 0 12px; font-size: 16px; color: #111827;">Most Voted This Week</h3>
             <ul style="list-style: none; padding: 0; margin: 0;">
               ${project.topVotedPosts
-                .map((post) => {
-                  const postUrl = `${APP_URL}/${project.projectSlug}/post/${post.postId}`;
-                  const voteDetails = detailsLine([
-                    post.newVotes !== undefined ? `+${post.newVotes ?? 0} new votes` : null,
-                    post.totalVotes !== undefined ? `${post.totalVotes ?? 0} total votes` : null,
-                  ]);
-                  return `
+          .map((post) => {
+            const postUrl = `${APP_URL}/${project.projectSlug}/post/${post.postId}`;
+            const voteDetails = detailsLine([
+              post.newVotes !== undefined ? `+${post.newVotes ?? 0} new votes` : null,
+              post.totalVotes !== undefined ? `${post.totalVotes ?? 0} total votes` : null,
+            ]);
+            return `
                     <li style="margin-bottom: 14px;">
                       <a href="${postUrl}" style="font-weight: 600; color: #1f2937; text-decoration: none;">
                         ${escapeHtml(post.title)}
                       </a>
-                      ${
-                        voteDetails
-                          ? `<div style="margin-top: 6px; font-size: 13px; color: #6b7280;">${voteDetails}</div>`
-                          : ''
-                      }
+                      ${voteDetails
+                ? `<div style="margin-top: 6px; font-size: 13px; color: #6b7280;">${voteDetails}</div>`
+                : ''
+              }
                     </li>
                   `;
-                })
-                .join('')}
+          })
+          .join('')}
             </ul>
           </div>
         `
@@ -2284,26 +2289,25 @@ export async function sendWeeklyDigestEmail(
             <h3 style="margin: 0 0 12px; font-size: 16px; color: #111827;">Most Discussed</h3>
             <ul style="list-style: none; padding: 0; margin: 0;">
               ${project.topCommentedPosts
-                .map((post) => {
-                  const postUrl = `${APP_URL}/${project.projectSlug}/post/${post.postId}`;
-                  const commentDetails =
-                    post.newComments !== undefined
-                      ? `+${post.newComments ?? 0} new comments`
-                      : null;
-                  return `
+          .map((post) => {
+            const postUrl = `${APP_URL}/${project.projectSlug}/post/${post.postId}`;
+            const commentDetails =
+              post.newComments !== undefined
+                ? `+${post.newComments ?? 0} new comments`
+                : null;
+            return `
                     <li style="margin-bottom: 14px;">
                       <a href="${postUrl}" style="font-weight: 600; color: #1f2937; text-decoration: none;">
                         ${escapeHtml(post.title)}
                       </a>
-                      ${
-                        commentDetails
-                          ? `<div style="margin-top: 6px; font-size: 13px; color: #6b7280;">${commentDetails}</div>`
-                          : ''
-                      }
+                      ${commentDetails
+                ? `<div style="margin-top: 6px; font-size: 13px; color: #6b7280;">${commentDetails}</div>`
+                : ''
+              }
                     </li>
                   `;
-                })
-                .join('')}
+          })
+          .join('')}
             </ul>
           </div>
         `
@@ -2317,8 +2321,8 @@ export async function sendWeeklyDigestEmail(
             </h2>
             <p style="margin: 0; color: #6b7280; font-size: 14px;">
               ${escapeHtml(
-                `New posts: ${project.totalNewPosts} · New comments: ${project.totalNewComments} · New votes: ${project.totalNewVotes}`
-              )}
+        `New posts: ${project.totalNewPosts} · New comments: ${project.totalNewComments} · New votes: ${project.totalNewVotes}`
+      )}
             </p>
             <p style="margin: 8px 0 0; font-size: 13px;">
               <a href="${projectUrl}" style="color: #4f46e5; text-decoration: none;">Open board</a>
@@ -2328,11 +2332,10 @@ export async function sendWeeklyDigestEmail(
             ${newPostsHtml}
             ${topVotesHtml}
             ${topCommentsHtml}
-            ${
-              !newPostsHtml && !topVotesHtml && !topCommentsHtml
-                ? `<p style="margin: 0; font-size: 14px; color: #6b7280;">No detailed highlights this week, but we recorded activity on this project.</p>`
-                : ''
-            }
+            ${!newPostsHtml && !topVotesHtml && !topCommentsHtml
+          ? `<p style="margin: 0; font-size: 14px; color: #6b7280;">No detailed highlights this week, but we recorded activity on this project.</p>`
+          : ''
+        }
           </div>
         </div>
       `;
@@ -2393,7 +2396,7 @@ export async function sendWeeklyDigestEmail(
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: 'SignalsLoop <noreply@signalsloop.com>',
       to: [toEmail],
       subject: `Your weekly SignalsLoop digest (${startLabel} – ${endLabel})`,
@@ -2560,17 +2563,16 @@ export async function sendDailyIntelligenceDigest(params: {
       </td>
     </tr>
 
-    ${
-      stats.topCompanies.length > 0
-        ? `
+    ${stats.topCompanies.length > 0
+      ? `
     <!-- Top Companies -->
     <tr>
       <td style="padding: 0 40px 30px;">
         <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #111827;">🏢 Top Companies</h3>
         <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f9fafb; border-radius: 6px; padding: 12px;">
           ${stats.topCompanies
-            .map(
-              (company, index) => `
+        .map(
+          (company, index) => `
           <tr>
             <td style="padding: 8px 12px; font-size: 14px; color: #111827; font-weight: 500;">
               ${index + 1}. ${company.name}
@@ -2580,25 +2582,24 @@ export async function sendDailyIntelligenceDigest(params: {
             </td>
           </tr>
           `
-            )
-            .join('')}
+        )
+        .join('')}
         </table>
       </td>
     </tr>
     `
-        : ''
+      : ''
     }
 
-    ${
-      allSignups.length > 0
-        ? `
+    ${allSignups.length > 0
+      ? `
     <!-- All New Signups -->
     <tr>
       <td style="padding: 0 40px 30px;">
         <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #111827;">👥 All New Signups</h3>
         ${allSignups
-          .map(
-            (signup) => `
+        .map(
+          (signup) => `
         <div style="margin-bottom: 12px; padding: 14px; background-color: #f9fafb; border-radius: 8px; ${signup.hasEnrichment ? `border-left: 3px solid ${getConfidenceColor(signup.confidence)};` : 'border-left: 3px solid #d1d5db;'}">
           <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
             <div style="flex: 1;">
@@ -2613,8 +2614,7 @@ export async function sendDailyIntelligenceDigest(params: {
               ${getPlanEmoji(signup.plan)}
             </div>
           </div>
-          ${
-            signup.company || signup.role
+          ${signup.company || signup.role
               ? `
           <div style="margin-top: 6px; font-size: 12px; color: #374151;">
             ${signup.company ? `<span style="margin-right: 10px;"><strong>Company:</strong> ${signup.company}</span>` : ''}
@@ -2622,9 +2622,8 @@ export async function sendDailyIntelligenceDigest(params: {
           </div>
           `
               : ''
-          }
-          ${
-            signup.hasEnrichment
+            }
+          ${signup.hasEnrichment
               ? `<div style="margin-top: 6px; font-size: 11px;">
             <span style="padding: 2px 6px; background-color: ${getConfidenceColor(signup.confidence)}; color: white; border-radius: 3px; font-weight: 500;">
               ${Math.round(signup.confidence * 100)}% confidence
@@ -2635,28 +2634,27 @@ export async function sendDailyIntelligenceDigest(params: {
               Enrichment pending
             </span>
           </div>`
-          }
+            }
         </div>
         `
-          )
-          .join('')}
+        )
+        .join('')}
       </td>
     </tr>
     `
-        : ''
+      : ''
     }
 
-    ${
-      notableSignups.length > 0
-        ? `
+    ${notableSignups.length > 0
+      ? `
     <!-- Notable Signups -->
     <tr>
       <td style="padding: 0 40px 30px;">
         <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #111827;">⭐ Notable Signups (Highlights)</h3>
         <p style="margin: 0 0 12px; font-size: 13px; color: #6b7280;">High-value signups with strong enrichment data:</p>
         ${notableSignups
-          .map(
-            (signup) => `
+        .map(
+          (signup) => `
         <div style="margin-bottom: 16px; padding: 16px; background-color: #f0fdf4; border-radius: 8px; border-left: 4px solid ${getConfidenceColor(signup.confidence)};">
           <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
             <div>
@@ -2671,8 +2669,7 @@ export async function sendDailyIntelligenceDigest(params: {
               ${getPlanEmoji(signup.plan)}
             </div>
           </div>
-          ${
-            signup.company || signup.role
+          ${signup.company || signup.role
               ? `
           <div style="margin-top: 8px;">
             ${signup.company ? `<div style="font-size: 13px; color: #374151; margin-bottom: 4px;"><strong>Company:</strong> ${signup.company}</div>` : ''}
@@ -2680,7 +2677,7 @@ export async function sendDailyIntelligenceDigest(params: {
           </div>
           `
               : ''
-          }
+            }
           <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
             <span style="padding: 2px 8px; background-color: ${getConfidenceColor(signup.confidence)}; color: white; border-radius: 4px; font-weight: 500;">
               ${Math.round(signup.confidence * 100)}% confidence - ${getConfidenceLabel(signup.confidence)}
@@ -2688,12 +2685,12 @@ export async function sendDailyIntelligenceDigest(params: {
           </div>
         </div>
         `
-          )
-          .join('')}
+        )
+        .join('')}
       </td>
     </tr>
     `
-        : ''
+      : ''
     }
 
     <!-- CTA Button -->
@@ -2726,7 +2723,7 @@ export async function sendDailyIntelligenceDigest(params: {
   );
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: FROM_ADDRESS,
       to: [toEmail],
       subject: `📊 Daily User Intelligence - ${stats.totalSignups} new ${stats.totalSignups === 1 ? 'signup' : 'signups'} (${dateLabel})`,

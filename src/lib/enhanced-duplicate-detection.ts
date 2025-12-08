@@ -3,12 +3,8 @@
  * Multi-stage analysis for identifying similar feedback
  */
 
-import OpenAI from 'openai';
 import { withCache } from './ai-cache-manager';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+import { getOpenAI } from './openai-client';
 
 const MODELS = {
   DUPLICATE_DETECTION: process.env.DUPLICATE_MODEL || 'gpt-4o-mini',
@@ -62,7 +58,7 @@ const THRESHOLDS = {
  */
 async function generateEmbedding(text: string): Promise<number[]> {
   try {
-    const response = await openai.embeddings.create({
+    const response = await getOpenAI().embeddings.create({
       model: MODELS.DUPLICATE_EMBEDDING,
       input: text.slice(0, 8000), // Limit input size
     });
@@ -145,7 +141,7 @@ Return JSON with this structure:
 }`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: MODELS.DUPLICATE_DETECTION,
       messages: [
         { role: 'system', content: systemPrompt },
@@ -342,7 +338,7 @@ async function extractClusterTheme(posts: DuplicateCandidate[]): Promise<string>
   const titles = posts.map(p => p.title).join(', ');
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: MODELS.DUPLICATE_DETECTION,
       messages: [
         {

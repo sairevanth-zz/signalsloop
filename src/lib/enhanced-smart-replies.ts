@@ -3,12 +3,8 @@
  * Provides intelligent, context-aware follow-up questions for feedback posts
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from './openai-client';
 import { withCache } from './ai-cache-manager';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
 
 const MODELS = {
   SMART_REPLIES: process.env.REPLIES_MODEL || 'gpt-4o-mini',
@@ -133,7 +129,7 @@ Description: ${description || 'No description provided'}
 The questions should help us understand the impact, urgency, and implementation requirements.`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: MODELS.SMART_REPLIES,
       messages: [
         { role: 'system', content: systemPrompt },

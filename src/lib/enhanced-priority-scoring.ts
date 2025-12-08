@@ -9,12 +9,8 @@
  * - Multi-dimensional priority calculation
  */
 
-import OpenAI from 'openai';
 import { withCache } from './ai-cache-manager';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+import { getOpenAI } from './openai-client';
 
 const MODELS = {
   PRIORITY_SCORING: process.env.PRIORITY_MODEL || 'gpt-4o-mini',
@@ -286,7 +282,7 @@ Provide JSON:
 }`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: MODELS.PRIORITY_SCORING,
       messages: [
         { role: 'system', content: systemPrompt },
@@ -343,8 +339,8 @@ Provide JSON:
         Math.min(
           8.8,
           (user.tier === 'enterprise' ? 6.8 : user.tier === 'pro' ? 6.3 : 5.8) +
-            intensity * 2.2 +
-            voteWeight * 0.4
+          intensity * 2.2 +
+          voteWeight * 0.4
         )
       );
     }

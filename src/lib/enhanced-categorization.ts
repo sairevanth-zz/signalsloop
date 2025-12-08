@@ -3,12 +3,8 @@
  * Provides intelligent categorization with business context
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from './openai-client';
 import { withCache } from './ai-cache-manager';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
 
 const MODELS = {
   CATEGORIZATION: process.env.CATEGORIZATION_MODEL || 'gpt-4o-mini',
@@ -114,8 +110,8 @@ async function categorizePostInternal(
 
 Categories and their definitions:
 ${Object.entries(SAAS_CATEGORIES).map(([cat, info]) =>
-  `- ${cat}: ${info.description} (Keywords: ${info.keywords.join(', ')})`
-).join('\n')}
+    `- ${cat}: ${info.description} (Keywords: ${info.keywords.join(', ')})`
+  ).join('\n')}
 
 Analyze the feedback considering:
 1. Technical implications and development effort
@@ -148,7 +144,7 @@ Description: ${description}
 ${additionalContext?.authorEmail ? `From: ${additionalContext.authorEmail}` : ''}`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: MODELS.CATEGORIZATION,
       messages: [
         { role: 'system', content: systemPrompt },

@@ -2,12 +2,8 @@
  * Embedding Generation for Spec RAG
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '../openai-client';
 import crypto from 'crypto';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // ============================================================================
 // Embedding Generation
@@ -22,7 +18,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   }
 
   try {
-    const response = await openai.embeddings.create({
+    const response = await getOpenAI().embeddings.create({
       model: 'text-embedding-3-small',
       input: text,
       encoding_format: 'float',
@@ -120,7 +116,7 @@ export async function generateEmbeddingsBatch(texts: string[]): Promise<number[]
 
   for (const batch of batches) {
     try {
-      const response = await openai.embeddings.create({
+      const response = await getOpenAI().embeddings.create({
         model: 'text-embedding-3-small',
         input: batch,
         encoding_format: 'float',
