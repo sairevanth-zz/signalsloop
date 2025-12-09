@@ -52,7 +52,7 @@ export function CommandBar({ projectSlug, isAdmin = false }: CommandBarProps) {
             {/* Core Navigation */}
             <div className="flex items-center gap-2">
                 <CommandItem
-                    href={`/${projectSlug}/feedback`}
+                    href={`/${projectSlug}/board`}
                     icon={MessageSquare}
                     label="Feedback Board"
                     iconColor="text-green-400"
@@ -70,7 +70,7 @@ export function CommandBar({ projectSlug, isAdmin = false }: CommandBarProps) {
             {/* Premium Features */}
             <div className="flex items-center gap-2">
                 <CommandItem
-                    href={`/${projectSlug}/stakeholders`}
+                    href={`/${projectSlug}/settings/stakeholders`}
                     icon={Users}
                     label="Stakeholder Intel"
                     badge="NEW"
@@ -78,7 +78,7 @@ export function CommandBar({ projectSlug, isAdmin = false }: CommandBarProps) {
                     iconColor="text-purple-400"
                 />
                 <CommandItem
-                    href={`/${projectSlug}/predictions`}
+                    href={`/${projectSlug}/outcomes`}
                     icon={Sparkles}
                     label="Predictions"
                     iconColor="text-pink-400"
@@ -146,10 +146,10 @@ export function CommandBar({ projectSlug, isAdmin = false }: CommandBarProps) {
 // Compact version for smaller screens
 export function CommandBarCompact({ projectSlug, isAdmin = false }: CommandBarProps) {
     const items = [
-        { href: `/${projectSlug}/feedback`, icon: MessageSquare, color: 'text-green-400' },
+        { href: `/${projectSlug}/board`, icon: MessageSquare, color: 'text-green-400' },
         { href: `/${projectSlug}/roadmap`, icon: Map, color: 'text-blue-400' },
-        { href: `/${projectSlug}/stakeholders`, icon: Users, color: 'text-purple-400', badge: true },
-        { href: `/${projectSlug}/predictions`, icon: Sparkles, color: 'text-pink-400' },
+        { href: `/${projectSlug}/settings/stakeholders`, icon: Users, color: 'text-purple-400', badge: true },
+        { href: `/${projectSlug}/outcomes`, icon: Sparkles, color: 'text-pink-400' },
         { href: `/${projectSlug}/inbox`, icon: Inbox, color: 'text-green-400' },
         { href: `/${projectSlug}/churn-radar`, icon: AlertTriangle, color: 'text-red-400' },
         { href: `/${projectSlug}/competitive`, icon: Shield, color: 'text-purple-400' },

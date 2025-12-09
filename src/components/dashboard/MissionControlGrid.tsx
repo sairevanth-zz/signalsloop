@@ -18,16 +18,11 @@
 import React, { useState, useEffect } from 'react';
 import { BriefingCard } from './BriefingCard';
 import { RealtimeToasts } from './RealtimeToasts';
-import { AgentActivityCard } from './AgentActivityCard';
-import { EventActivityWidget } from './EventActivityWidget';
-import { ActionQueueCard } from './ActionQueueCard';
-import { ProductHealthScoreCard } from './ProductHealthScoreCard';
 import { MetricStrip, MetricStripSkeleton } from './MetricStrip';
 import { AttentionStack, AttentionStackSkeleton } from './AttentionStack';
 import { CommandBar, CommandBarCompact } from './CommandBar';
 import { FloatingAskAI } from './FloatingAskAI';
 import { DashboardTabs } from './DashboardTabs';
-import { Loader2 } from 'lucide-react';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
 
@@ -151,26 +146,6 @@ export function MissionControlGrid({
               anomalyCount={anomalyCount}
             />
           </div>
-        </div>
-
-        {/* Row 4: Secondary Metrics - Product Health + Action Queue */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Product Health Score */}
-          {liveMetrics.health_score && (
-            <ProductHealthScoreCard healthScore={liveMetrics.health_score} />
-          )}
-
-          {/* Action Queue */}
-          <ActionQueueCard projectId={projectId} />
-        </div>
-
-        {/* Row 5: Activity Widgets */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Event Activity */}
-          <EventActivityWidget projectId={projectId} projectSlug={projectSlug} />
-
-          {/* Agent Activity */}
-          <AgentActivityCard projectId={projectId} projectSlug={projectSlug} />
         </div>
 
         {/* Row 6: Deep-Dive Tabs */}
