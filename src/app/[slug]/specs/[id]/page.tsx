@@ -3,6 +3,7 @@
 /**
  * Individual Spec View Page
  * View and edit a spec, with export functionality
+ * Now includes Pre-Mortem Analysis and Lovable Prototype buttons
  */
 
 import React, { useState } from 'react';
@@ -25,6 +26,9 @@ import {
   MessageSquare,
   Clock,
   Check,
+  AlertTriangle,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -32,6 +36,8 @@ import ReactMarkdown from 'react-markdown';
 import type { SpecStatus } from '@/types/specs';
 import { getStatusColorScheme, SPEC_STATUS_LABELS } from '@/types/specs';
 import { downloadMarkdown } from '@/lib/specs/export';
+import { PreMortemCard } from '@/components/analysis/PreMortemCard';
+import type { PreMortemAnalysis } from '@/types/pre-mortem';
 
 export default function SpecViewPage() {
   const params = useParams();
@@ -49,6 +55,12 @@ export default function SpecViewPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedContent, setEditedContent] = useState('');
+
+  // AI Feature States
+  const [preMortemAnalysis, setPreMortemAnalysis] = useState<PreMortemAnalysis | null>(null);
+  const [runningPreMortem, setRunningPreMortem] = useState(false);
+  const [generatingPrototype, setGeneratingPrototype] = useState(false);
+  const [showPreMortem, setShowPreMortem] = useState(false);
 
   // Load project data
   React.useEffect(() => {
@@ -156,6 +168,70 @@ export default function SpecViewPage() {
     }
   };
 
+  // Run Pre-Mortem Analysis
+  const handleRunPreMortem = async () => {
+    if (!spec || !project) return;
+
+    setRunningPreMortem(true);
+    try {
+      const response = await fetch('/api/analysis/pre-mortem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: project.id,
+          featureName: spec.title,
+          featureDescription: spec.content.slice(0, 500),
+          specContent: spec.content
+        })
+      });
+
+      if (!response.ok) throw new Error('Pre-mortem analysis failed');
+
+      const data = await response.json();
+      setPreMortemAnalysis(data.analysis);
+      setShowPreMortem(true);
+      toast.success('Pre-Mortem analysis complete!');
+    } catch (error) {
+      console.error('Pre-mortem error:', error);
+      toast.error('Failed to run pre-mortem analysis');
+    } finally {
+      setRunningPreMortem(false);
+    }
+  };
+
+  // Generate Lovable Prototype
+  const handleGeneratePrototype = async () => {
+    if (!spec || !project) return;
+
+    setGeneratingPrototype(true);
+    try {
+      const response = await fetch('/api/integrations/lovable/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: project.id,
+          specId: spec.id,
+          title: spec.title,
+          prompt: spec.content
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.lovableUrl) {
+        toast.success('Prototype generated! Opening Lovable...');
+        window.open(data.lovableUrl, '_blank');
+      } else {
+        toast.error(data.error || 'Failed to generate prototype');
+      }
+    } catch (error) {
+      console.error('Lovable error:', error);
+      toast.error('Failed to generate prototype');
+    } finally {
+      setGeneratingPrototype(false);
+    }
+  };
+
   if (projectLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -212,6 +288,34 @@ export default function SpecViewPage() {
             <div className="flex items-center space-x-3">
               {!isEditing ? (
                 <>
+                  {/* AI Action Buttons */}
+                  <Button
+                    variant="outline"
+                    onClick={handleRunPreMortem}
+                    disabled={runningPreMortem}
+                    className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10"
+                  >
+                    {runningPreMortem ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 mr-2" />
+                    )}
+                    Pre-Mortem
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleGeneratePrototype}
+                    disabled={generatingPrototype}
+                    className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
+                  >
+                    {generatingPrototype ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4 mr-2" />
+                    )}
+                    Prototype
+                  </Button>
+
                   <Button variant="outline" onClick={handleExport}>
                     <Download className="h-4 w-4 mr-2" />
                     Export
@@ -252,9 +356,8 @@ export default function SpecViewPage() {
 
           <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
             <Badge
-              className={`${getStatusColorScheme(spec.status).bg} ${
-                getStatusColorScheme(spec.status).text
-              }`}
+              className={`${getStatusColorScheme(spec.status).bg} ${getStatusColorScheme(spec.status).text
+                }`}
             >
               {SPEC_STATUS_LABELS[spec.status]}
             </Badge>
@@ -339,6 +442,23 @@ export default function SpecViewPage() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Pre-Mortem Analysis Results */}
+        {showPreMortem && preMortemAnalysis && (
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold dark:text-white">Pre-Mortem Analysis</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPreMortem(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <PreMortemCard analysis={preMortemAnalysis} />
+          </div>
         )}
       </div>
     </div>
