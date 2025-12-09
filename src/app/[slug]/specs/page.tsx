@@ -23,6 +23,7 @@ import {
   Trash2,
   MoreVertical,
   Sparkles,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -318,8 +319,32 @@ export default function SpecsPage() {
                     </div>
                   </div>
 
-                  <Link href={`/${params.slug}/specs/${spec.id}`}>
-                    <Button variant="outline" className="w-full mt-4">
+                  {/* Quick Actions */}
+                  <div className="flex gap-2 mt-4">
+                    <Link href={`/${params?.slug}/specs/${spec.id}?action=premortem`} className="flex-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-orange-600 border-orange-300 hover:bg-orange-50 dark:text-orange-400 dark:border-orange-600 dark:hover:bg-orange-950"
+                      >
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        Pre-Mortem
+                      </Button>
+                    </Link>
+                    <Link href={`/${params?.slug}/specs/${spec.id}?action=prototype`} className="flex-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-purple-600 border-purple-300 hover:bg-purple-50 dark:text-purple-400 dark:border-purple-600 dark:hover:bg-purple-950"
+                      >
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        Prototype
+                      </Button>
+                    </Link>
+                  </div>
+
+                  <Link href={`/${params?.slug}/specs/${spec.id}`}>
+                    <Button variant="outline" className="w-full mt-2">
                       View Spec
                     </Button>
                   </Link>

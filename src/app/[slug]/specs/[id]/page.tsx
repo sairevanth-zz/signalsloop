@@ -102,12 +102,21 @@ export default function SpecViewPage() {
     }
   }, [spec]);
 
-  // Check if user wants to export
+  // Check if user wants to perform a quick action
   React.useEffect(() => {
-    if (searchParams.get('action') === 'export' && spec) {
+    const action = searchParams?.get('action');
+    if (!action || !spec || !project) return;
+
+    if (action === 'export') {
       handleExport();
+    } else if (action === 'premortem' && !preMortemAnalysis && !runningPreMortem) {
+      // Auto-trigger pre-mortem
+      handleRunPreMortem();
+    } else if (action === 'prototype' && !generatingPrototype) {
+      // Auto-trigger prototype
+      handleGeneratePrototype();
     }
-  }, [searchParams, spec]);
+  }, [searchParams, spec, project]);
 
   const handleEdit = () => {
     setIsEditing(true);
