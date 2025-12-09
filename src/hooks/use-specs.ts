@@ -45,6 +45,11 @@ export function useSpecs(projectId: string, filter?: SpecFilter, sort?: SpecSort
   const [total, setTotal] = useState(0);
 
   const fetchSpecs = async () => {
+    if (!projectId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -83,6 +88,9 @@ export function useSpecs(projectId: string, filter?: SpecFilter, sort?: SpecSort
   useEffect(() => {
     if (projectId) {
       fetchSpecs();
+    } else {
+      // Handle empty projectId - don't leave in loading state
+      setLoading(false);
     }
   }, [projectId, filter, sort]);
 
