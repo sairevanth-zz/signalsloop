@@ -39,6 +39,14 @@
     {
       "path": "/api/cron/outcome-classify",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/detect-adjustments",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/close-prediction-loops",
+      "schedule": "0 */12 * * *"
     }
   ],
   "functions": {
