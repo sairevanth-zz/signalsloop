@@ -65,7 +65,7 @@ export default function SettingsPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [supabase, setSupabase] = useState<any>(null);
   const [authUser, setAuthUser] = useState<User | null | undefined>(undefined);
-  
+
   const params = useParams();
   const router = useRouter();
   const projectSlug = params.slug as string;
@@ -306,8 +306,7 @@ export default function SettingsPage() {
         currentUrl.searchParams.set('tab', 'integrations');
       }
       router.replace(
-        `${currentUrl.pathname}${
-          currentUrl.searchParams.size > 0 ? `?${currentUrl.searchParams.toString()}` : ''
+        `${currentUrl.pathname}${currentUrl.searchParams.size > 0 ? `?${currentUrl.searchParams.toString()}` : ''
         }`,
         { scroll: false }
       );
@@ -341,8 +340,7 @@ export default function SettingsPage() {
         currentUrl.searchParams.set('tab', 'integrations');
       }
       router.replace(
-        `${currentUrl.pathname}${
-          currentUrl.searchParams.size > 0 ? `?${currentUrl.searchParams.toString()}` : ''
+        `${currentUrl.pathname}${currentUrl.searchParams.size > 0 ? `?${currentUrl.searchParams.toString()}` : ''
         }`,
         { scroll: false }
       );
@@ -442,22 +440,22 @@ export default function SettingsPage() {
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg mb-6 overflow-hidden">
             <div className="overflow-x-auto hide-scrollbar">
               <TabsList className="inline-flex min-w-full w-max items-center gap-1 bg-transparent p-1 sm:gap-0.5">
-                <TabsTrigger 
-                  value="api-keys" 
+                <TabsTrigger
+                  value="api-keys"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Key className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">API</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="board" 
+                <TabsTrigger
+                  value="board"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Settings className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Board</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="domain" 
+                <TabsTrigger
+                  value="domain"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
@@ -513,14 +511,14 @@ export default function SettingsPage() {
                   <span className="hidden sm:inline">Agents</span>
                 </TabsTrigger>
                 <TabsTrigger
-                  value="import" 
+                  value="import"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Upload className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Import</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="export" 
+                <TabsTrigger
+                  value="export"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
                 >
                   <Download className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
@@ -561,8 +559,8 @@ export default function SettingsPage() {
                   </p>
                 </div>
               </div>
-              
-              <ApiKeySettings 
+
+              <ApiKeySettings
                 projectId={project.id}
                 projectSlug={project.slug}
                 userPlan={project.plan}
@@ -573,7 +571,7 @@ export default function SettingsPage() {
 
           <TabsContent value="board" className="mt-6">
             <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <BoardSettings 
+              <BoardSettings
                 projectSlug={project.slug}
                 userPlan={project.plan}
                 onShowNotification={handleShowNotification}
@@ -582,7 +580,7 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="domain" className="mt-6">
-            <CustomDomainSettings 
+            <CustomDomainSettings
               projectId={project.id}
               projectSlug={project.slug}
               userPlan={project.plan}
@@ -670,6 +668,38 @@ export default function SettingsPage() {
               userPlan={project.plan}
               onShowNotification={handleShowNotification}
             />
+
+            {/* AI Prototyping - Lovable */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                    <span className="text-pink-500">✨</span>
+                    AI Prototyping
+                  </h3>
+                  <p className="text-gray-600 mt-1">
+                    Generate working prototypes from specs using Lovable AI (BYOK)
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                    <span className="text-pink-600 text-lg">💎</span>
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900">Lovable Prototype Generation</div>
+                    <div className="text-sm text-gray-600">Add your own API key to enable prototype generation</div>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => router.push(`/${projectSlug}/settings/integrations?section=ai`)}
+                  className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                >
+                  Configure
+                </Button>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="votes" className="mt-6">
@@ -740,12 +770,12 @@ export default function SettingsPage() {
                   </p>
                 </div>
               </div>
-              
+
               {/* Enable Push Notifications */}
               <div className="mb-8">
-                <PushNotificationPrompt 
-                  projectId={project.id} 
-                  variant="card" 
+                <PushNotificationPrompt
+                  projectId={project.id}
+                  variant="card"
                 />
               </div>
 
@@ -772,7 +802,7 @@ export default function SettingsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">CSV Import</h3>
                   <p className="text-gray-600">
-                    {project?.plan === 'pro' 
+                    {project?.plan === 'pro'
                       ? 'Import posts and votes from CSV files into your project'
                       : 'CSV import is available for Pro users'
                     }
@@ -784,7 +814,7 @@ export default function SettingsPage() {
                   </div>
                 )}
               </div>
-              
+
               {project?.plan === 'pro' ? (
                 <CSVImport projectSlug={project.slug} />
               ) : (
@@ -799,7 +829,7 @@ export default function SettingsPage() {
                     Import posts and votes from CSV files into your project. Perfect for migrating data from other feedback systems.
                   </p>
                   <div className="space-y-3">
-                    <Button 
+                    <Button
                       onClick={() => window.open('/app/billing', '_blank')}
                       className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
                     >
@@ -820,7 +850,7 @@ export default function SettingsPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">Data Export</h3>
                   <p className="text-gray-600">
-                    {project?.plan === 'pro' 
+                    {project?.plan === 'pro'
                       ? 'Export feedback data to CSV or Excel for analysis'
                       : 'Data export is available for Pro users'
                     }
@@ -832,7 +862,7 @@ export default function SettingsPage() {
                   </div>
                 )}
               </div>
-              
+
               {project?.plan === 'pro' ? (
                 <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg p-6">
                   <h4 className="font-medium text-emerald-900 mb-3 flex items-center">
@@ -862,7 +892,7 @@ export default function SettingsPage() {
                     Export feedback data to CSV or Excel for analysis in external tools. Perfect for reporting and data analysis.
                   </p>
                   <div className="space-y-3">
-                    <Button 
+                    <Button
                       onClick={() => window.open('/app/billing', '_blank')}
                       className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
                     >
@@ -888,9 +918,9 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-            {project ? (
-              <SimpleChangelogManager projectId={project.id} projectSlug={project.slug} />
-            ) : (
+              {project ? (
+                <SimpleChangelogManager projectId={project.id} projectSlug={project.slug} />
+              ) : (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <FileText className="h-8 w-8 text-blue-600" />
