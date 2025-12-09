@@ -72,7 +72,7 @@ export function CommandBar({ projectSlug, isAdmin = false }: CommandBarProps) {
                 <CommandItem
                     href={`/${projectSlug}/settings/stakeholders`}
                     icon={Users}
-                    label="Stakeholder Intel"
+                    label="Stakeholder Intelligence"
                     badge="NEW"
                     badgeColor="bg-purple-500"
                     iconColor="text-purple-400"
@@ -92,13 +92,13 @@ export function CommandBar({ projectSlug, isAdmin = false }: CommandBarProps) {
                 <CommandItem
                     href={`/${projectSlug}/inbox`}
                     icon={Inbox}
-                    label="Inbox"
+                    label="Universal Inbox"
                     iconColor="text-green-400"
                 />
                 <CommandItem
                     href={`/${projectSlug}/briefs`}
                     icon={FileBarChart}
-                    label="Briefs"
+                    label="Executive Briefs"
                     iconColor="text-blue-400"
                 />
                 <CommandItem
@@ -122,7 +122,7 @@ export function CommandBar({ projectSlug, isAdmin = false }: CommandBarProps) {
                 <CommandItem
                     href={`/${projectSlug}/competitive`}
                     icon={Shield}
-                    label="Competitive"
+                    label="Competitive Intel"
                     iconColor="text-purple-400"
                 />
             </div>

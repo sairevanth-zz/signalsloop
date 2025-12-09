@@ -109,15 +109,15 @@ export function SignalCorrelationView({ projectId }: { projectId: string }) {
   }
 
   return (
-    <Card className="col-span-2">
+    <Card className="col-span-2 border-slate-700 bg-slate-900">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <Network className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Network className="w-5 h-5 text-blue-400" />
               Signal Correlations
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-slate-400">
               Connections between feedback, competitors, and roadmap
             </CardDescription>
           </div>
@@ -127,6 +127,7 @@ export function SignalCorrelationView({ projectId }: { projectId: string }) {
               size="sm"
               onClick={fetchNetwork}
               disabled={detecting}
+              className="border-slate-600 hover:bg-slate-800"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${detecting ? 'animate-spin' : ''}`} />
               Refresh
@@ -135,6 +136,7 @@ export function SignalCorrelationView({ projectId }: { projectId: string }) {
               size="sm"
               onClick={detectCorrelations}
               disabled={detecting}
+              className="bg-blue-600 hover:bg-blue-700"
             >
               {detecting ? 'Detecting...' : 'Detect Correlations'}
             </Button>
@@ -144,12 +146,12 @@ export function SignalCorrelationView({ projectId }: { projectId: string }) {
       <CardContent>
         {network.edges.length === 0 ? (
           <div className="text-center py-12">
-            <Network className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <h3 className="text-lg font-medium mb-2">No correlations detected yet</h3>
-            <p className="text-muted-foreground mb-4">
+            <Network className="w-16 h-16 mx-auto mb-4 text-slate-600" />
+            <h3 className="text-lg font-medium mb-2 text-white">No correlations detected yet</h3>
+            <p className="text-slate-400 mb-4">
               Run correlation detection to discover relationships between signals
             </p>
-            <Button onClick={detectCorrelations} disabled={detecting}>
+            <Button onClick={detectCorrelations} disabled={detecting} className="bg-blue-600 hover:bg-blue-700">
               {detecting ? 'Detecting...' : 'Run Detection'}
             </Button>
           </div>
@@ -157,25 +159,25 @@ export function SignalCorrelationView({ projectId }: { projectId: string }) {
           <div className="space-y-6">
             {/* Stats */}
             <div className="grid grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <p className="text-2xl font-bold">{network.nodes.length}</p>
-                <p className="text-xs text-muted-foreground">Signals</p>
+              <div className="text-center p-4 bg-slate-800 rounded-lg border border-slate-700">
+                <p className="text-2xl font-bold text-white">{network.nodes.length}</p>
+                <p className="text-xs text-slate-400">Signals</p>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <p className="text-2xl font-bold">{network.edges.length}</p>
-                <p className="text-xs text-muted-foreground">Correlations</p>
+              <div className="text-center p-4 bg-slate-800 rounded-lg border border-slate-700">
+                <p className="text-2xl font-bold text-white">{network.edges.length}</p>
+                <p className="text-xs text-slate-400">Correlations</p>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <p className="text-2xl font-bold">
+              <div className="text-center p-4 bg-slate-800 rounded-lg border border-slate-700">
+                <p className="text-2xl font-bold text-white">
                   {network.edges.filter(e => e.confidence === 'high').length}
                 </p>
-                <p className="text-xs text-muted-foreground">High Confidence</p>
+                <p className="text-xs text-slate-400">High Confidence</p>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <p className="text-2xl font-bold">
+              <div className="text-center p-4 bg-slate-800 rounded-lg border border-slate-700">
+                <p className="text-2xl font-bold text-white">
                   {(network.edges.reduce((sum, e) => sum + e.score, 0) / network.edges.length * 100).toFixed(0)}%
                 </p>
-                <p className="text-xs text-muted-foreground">Avg. Strength</p>
+                <p className="text-xs text-slate-400">Avg. Strength</p>
               </div>
             </div>
 
@@ -189,8 +191,8 @@ export function SignalCorrelationView({ projectId }: { projectId: string }) {
                   <div key={type}>
                     <div className="flex items-center gap-2 mb-2">
                       <div className={`w-3 h-3 rounded-full ${color}`} />
-                      <h4 className="font-medium capitalize">{type}</h4>
-                      <Badge variant="outline">{nodes.length}</Badge>
+                      <h4 className="font-medium capitalize text-white">{type}</h4>
+                      <Badge variant="outline" className="border-slate-600 text-slate-300">{nodes.length}</Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {nodes.map(node => {
@@ -199,18 +201,17 @@ export function SignalCorrelationView({ projectId }: { projectId: string }) {
                           <button
                             key={node.id}
                             onClick={() => setSelectedNode(node)}
-                            className={`p-3 border rounded-lg text-left hover:bg-muted transition-colors ${
-                              selectedNode?.id === node.id ? 'border-primary bg-muted' : ''
-                            }`}
+                            className={`p-3 border border-slate-700 rounded-lg text-left hover:bg-slate-800 transition-colors ${selectedNode?.id === node.id ? 'border-blue-500 bg-slate-800' : ''
+                              }`}
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <p className="text-sm font-medium truncate">{node.description}</p>
-                                <p className="text-xs text-muted-foreground mt-1">
+                                <p className="text-sm font-medium truncate text-white">{node.description}</p>
+                                <p className="text-xs text-slate-400 mt-1">
                                   {connections.length} connection{connections.length !== 1 ? 's' : ''}
                                 </p>
                               </div>
-                              <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0 ml-2" />
+                              <Icon className="w-4 h-4 text-slate-400 flex-shrink-0 ml-2" />
                             </div>
                           </button>
                         )
@@ -223,8 +224,8 @@ export function SignalCorrelationView({ projectId }: { projectId: string }) {
 
             {/* Selected Node Details */}
             {selectedNode && (
-              <div className="border-t pt-4">
-                <h4 className="font-medium mb-3">Connections for: {selectedNode.description}</h4>
+              <div className="border-t border-slate-700 pt-4">
+                <h4 className="font-medium mb-3 text-white">Connections for: {selectedNode.description}</h4>
                 <div className="space-y-2">
                   {getNodeConnections(selectedNode.id).map(edge => {
                     const isSource = edge.source === selectedNode.id
@@ -236,17 +237,17 @@ export function SignalCorrelationView({ projectId }: { projectId: string }) {
                     return (
                       <div
                         key={edge.id}
-                        className="p-3 bg-muted rounded-lg"
+                        className="p-3 bg-slate-800 rounded-lg border border-slate-700"
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm">
+                            <span className="text-sm text-slate-300">
                               {isSource ? '→' : '←'}
                             </span>
-                            <span className="text-sm font-medium">{connectedNode.description}</span>
+                            <span className="text-sm font-medium text-white">{connectedNode.description}</span>
                           </div>
                           <div className="flex gap-2">
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
                               {(edge.score * 100).toFixed(0)}% match
                             </Badge>
                             <Badge
@@ -254,8 +255,8 @@ export function SignalCorrelationView({ projectId }: { projectId: string }) {
                                 edge.confidence === 'high'
                                   ? 'default'
                                   : edge.confidence === 'medium'
-                                  ? 'secondary'
-                                  : 'outline'
+                                    ? 'secondary'
+                                    : 'outline'
                               }
                               className="text-xs"
                             >
@@ -263,7 +264,7 @@ export function SignalCorrelationView({ projectId }: { projectId: string }) {
                             </Badge>
                           </div>
                         </div>
-                        <p className="text-xs text-muted-foreground capitalize">
+                        <p className="text-xs text-slate-400 capitalize">
                           {edge.correlation_type.replace(/_/g, ' ')}
                         </p>
                       </div>
