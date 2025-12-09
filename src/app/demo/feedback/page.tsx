@@ -83,18 +83,19 @@ export default function FeedbackDemoPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-black p-6 md:p-12 font-sans">
+        <div className="min-h-screen bg-slate-50 p-6 md:p-12">
             <div className="max-w-6xl mx-auto space-y-12">
 
                 {/* Header */}
                 <div className="text-center space-y-4 max-w-2xl mx-auto">
-                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider mb-2">
-                        New Feature Demo
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 text-indigo-600 text-xs font-medium mb-2">
+                        <Sparkles className="w-3 h-3" />
+                        <span>AI-Powered Feedback Analysis</span>
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white">
-                        What Do Your Users <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Actually Want?</span>
+                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-slate-900 pb-2">
+                        What Do Your Users<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Actually Want?</span>
                     </h1>
-                    <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed">
+                    <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                         Stop guessing. We'll aggregate your scattered feedback and organize it into actionable strategy in 60 seconds.
                     </p>
                 </div>

@@ -78,18 +78,19 @@ export default function RoastPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 py-12 px-4">
+        <div className="min-h-screen bg-slate-50 py-12 px-4">
             <div className="max-w-4xl mx-auto space-y-8">
 
                 {/* Header */}
                 <div className="text-center space-y-4">
-                    <div className="inline-flex items-center justify-center p-3 bg-red-100 dark:bg-red-900/30 rounded-full mb-2">
-                        <Flame className="w-8 h-8 text-red-600 dark:text-red-500" />
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20 text-orange-600 text-xs font-medium mb-2">
+                        <Flame className="w-3 h-3" />
+                        <span>AI-Powered Roadmap Review</span>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
-                        Roast My Roadmap
+                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-slate-900 pb-2">
+                        Roast My <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600">Roadmap</span>
                     </h1>
-                    <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                    <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                         Get your product roadmap reviewed by an AI Chief Product Officer.
                         Brutal, honest, and constructive feedback in 30 seconds.
                     </p>

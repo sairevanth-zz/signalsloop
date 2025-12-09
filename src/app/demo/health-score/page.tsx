@@ -82,25 +82,25 @@ export default function HealthScoreDemoPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-black p-6 md:p-12 font-sans">
+        <div className="min-h-screen bg-slate-50 p-6 md:p-12">
             <div className="max-w-6xl mx-auto space-y-8">
 
                 {/* Back Link */}
-                <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors">
+                <Link href="/" className="inline-flex items-center text-slate-600 hover:text-slate-900 transition-colors">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Home
                 </Link>
 
                 {/* Header */}
                 <div className="text-center space-y-4 max-w-2xl mx-auto">
-                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-pink-100 to-red-100 dark:from-pink-900/30 dark:to-red-900/30 text-pink-600 dark:text-pink-400 text-xs font-bold uppercase tracking-wider mb-2">
-                        <Heart className="w-3 h-3 mr-1" />
-                        Product Health Score
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-pink-500/10 to-red-500/10 border border-pink-500/20 text-pink-600 text-xs font-medium mb-2">
+                        <Heart className="w-3 h-3" />
+                        <span>Product Health Score</span>
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white">
+                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-slate-900 pb-2">
                         My Score is <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-red-600">{results?.score ?? '78'}</span>—What's Yours?
                     </h1>
-                    <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed">
+                    <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                         Calculate your product's health score based on feedback analysis. Share your badge and challenge other PMs!
                     </p>
                 </div>
