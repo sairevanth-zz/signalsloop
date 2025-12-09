@@ -100,9 +100,9 @@ export function SignalCorrelationView({ projectId }: { projectId: string }) {
 
   if (loading) {
     return (
-      <Card className="col-span-2">
+      <Card className="col-span-2 border-slate-700 bg-slate-900">
         <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">Loading correlations...</p>
+          <p className="text-slate-400">Loading correlations...</p>
         </CardContent>
       </Card>
     )

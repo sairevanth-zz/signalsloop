@@ -180,17 +180,17 @@ export function InsightReportCard({ projectId }: Props) {
 
   if (isLoading) {
     return (
-      <Card className="col-span-4">
+      <Card className="col-span-4 border-slate-700 bg-slate-900">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Brain className="h-5 w-5 text-purple-400" />
             Weekly Strategic Insights
           </CardTitle>
-          <CardDescription>AI-powered analysis by Claude Sonnet 4</CardDescription>
+          <CardDescription className="text-slate-400">AI-powered analysis by Claude Sonnet 4</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-40">
-            <RefreshCw className="h-6 w-6 animate-spin text-gray-400" />
+            <RefreshCw className="h-6 w-6 animate-spin text-slate-400" />
           </div>
         </CardContent>
       </Card>
@@ -202,15 +202,15 @@ export function InsightReportCard({ projectId }: Props) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-purple-600" />
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Brain className="h-5 w-5 text-purple-400" />
               Weekly Strategic Insights
-              <Badge variant="secondary" className="ml-2 bg-purple-100 text-purple-800">
+              <Badge variant="secondary" className="ml-2 bg-purple-500/20 text-purple-300">
                 <Sparkles className="h-3 w-3 mr-1" />
                 Claude Sonnet 4
               </Badge>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-slate-400">
               {report
                 ? `${formatDate(report.periodStart)} - ${formatDate(report.periodEnd)} • ${report.totalFeedbackAnalyzed} feedback items analyzed`
                 : 'AI-powered strategic analysis of your weekly feedback'}

@@ -198,17 +198,17 @@ export function AnomalyAlertCard({ projectId }: Props) {
 
   if (isLoading) {
     return (
-      <Card className="col-span-2">
+      <Card className="col-span-2 border-slate-700 bg-slate-900">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <AlertTriangle className="h-5 w-5 text-orange-400" />
             Anomaly Alerts
           </CardTitle>
-          <CardDescription>AI-detected unusual patterns</CardDescription>
+          <CardDescription className="text-slate-400">AI-detected unusual patterns</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-32">
-            <RefreshCw className="h-6 w-6 animate-spin text-gray-400" />
+            <RefreshCw className="h-6 w-6 animate-spin text-slate-400" />
           </div>
         </CardContent>
       </Card>
