@@ -11,7 +11,8 @@
 
 'use client';
 
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
     FileBarChart, BarChart3, Shield, Target, Beaker,
     Loader2, TrendingUp
@@ -54,7 +55,17 @@ function TabLoader() {
 }
 
 export function DashboardTabs({ projectId, projectSlug, briefing, metrics }: DashboardTabsProps) {
-    const [activeTab, setActiveTab] = useState('insights');
+    const searchParams = useSearchParams();
+    const initialTab = searchParams?.get('tab') || 'insights';
+    const [activeTab, setActiveTab] = useState(initialTab);
+
+    // Sync with URL changes
+    useEffect(() => {
+        const urlTab = searchParams?.get('tab');
+        if (urlTab && tabs.some(t => t.id === urlTab)) {
+            setActiveTab(urlTab);
+        }
+    }, [searchParams]);
 
     return (
         <div className="mt-6">

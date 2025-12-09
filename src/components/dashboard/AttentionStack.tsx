@@ -168,7 +168,7 @@ export function AttentionStack({
                 title: 'Weekly Insight Report',
                 description: 'New patterns detected in user behavior',
                 timestamp: 'Generated today',
-                link: `/${projectSlug}/insights`,
+                link: `/${projectSlug}/dashboard?tab=insights`,
             });
         }
 
