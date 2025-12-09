@@ -40,7 +40,7 @@ interface Tab {
 const tabs: Tab[] = [
     { id: 'insights', label: 'Insights', icon: FileBarChart },
     { id: 'roadmap', label: 'Roadmap', icon: BarChart3 },
-    { id: 'predictions', label: 'Predictions', icon: TrendingUp },
+    { id: 'analytics', label: 'AI Analytics', icon: TrendingUp },
     { id: 'threats', label: 'Threats', icon: Shield },
     { id: 'competitive', label: 'Competitive', icon: Target },
 ];
@@ -89,7 +89,7 @@ export function DashboardTabs({ projectId, projectSlug, briefing, metrics }: Das
                     {activeTab === 'roadmap' && (
                         <RoadmapTab projectId={projectId} projectSlug={projectSlug} briefing={briefing} metrics={metrics} />
                     )}
-                    {activeTab === 'predictions' && (
+                    {activeTab === 'analytics' && (
                         <PredictionsTab projectId={projectId} projectSlug={projectSlug} />
                     )}
                     {activeTab === 'threats' && (
