@@ -6,11 +6,12 @@
  * - Design 2 (AI-First): Conversational briefing, warm greeting
  * 
  * Layout:
- * 1. MetricStrip - Horizontal metrics bar at top
- * 2. CommandBar - Feature navigation 
- * 3. Hero Zone - AI Briefing (60%) + Attention Stack (40%)
- * 4. DashboardTabs - Deep-dive sections
- * 5. FloatingAskAI - Persistent AI button
+ * 1. RoadmapAdjustmentBanner - Self-correcting roadmap proposals
+ * 2. MetricStrip - Horizontal metrics bar at top
+ * 3. CommandBar - Feature navigation 
+ * 4. Hero Zone - AI Briefing (60%) + Attention Stack (40%)
+ * 5. DashboardTabs - Deep-dive sections
+ * 6. FloatingAskAI - Persistent AI button
  */
 
 'use client';
@@ -23,6 +24,7 @@ import { AttentionStack, AttentionStackSkeleton } from './AttentionStack';
 import { CommandBar, CommandBarCompact } from './CommandBar';
 import { FloatingAskAI } from './FloatingAskAI';
 import { DashboardTabs } from './DashboardTabs';
+import { RoadmapAdjustmentBanner } from '@/components/roadmap/RoadmapAdjustmentBanner';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
 
@@ -110,6 +112,9 @@ export function MissionControlGrid({
       <RealtimeToasts projectId={projectId} enabled={true} />
 
       <div data-tour="mission-control" className="space-y-6">
+        {/* Row 0: Self-Correcting Roadmap Banner */}
+        <RoadmapAdjustmentBanner projectId={projectId} />
+
         {/* Row 1: Metric Strip */}
         <MetricStrip metrics={liveMetrics} isConnected={isConnected} />
 

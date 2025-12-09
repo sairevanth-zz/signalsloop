@@ -4,6 +4,7 @@
  * Organizes detailed analytics into tabs:
  * - Insights: Weekly Report, Correlations, Forecasts
  * - Roadmap: Opportunities, Experiments
+ * - Predictions: Accuracy, Calibration, Explainability
  * - Threats: Alerts, Anomalies
  * - Competitive: War Room, Intel
  */
@@ -13,12 +14,13 @@
 import React, { useState, Suspense, lazy } from 'react';
 import {
     FileBarChart, BarChart3, Shield, Target, Beaker,
-    Loader2
+    Loader2, TrendingUp
 } from 'lucide-react';
 
 // Lazy load tab content for performance
 const InsightsTab = lazy(() => import('./tabs/InsightsTab'));
 const RoadmapTab = lazy(() => import('./tabs/RoadmapTab'));
+const PredictionsTab = lazy(() => import('./tabs/PredictionsTab'));
 const ThreatsTab = lazy(() => import('./tabs/ThreatsTab'));
 const CompetitiveTab = lazy(() => import('./tabs/CompetitiveTab'));
 
@@ -38,6 +40,7 @@ interface Tab {
 const tabs: Tab[] = [
     { id: 'insights', label: 'Insights', icon: FileBarChart },
     { id: 'roadmap', label: 'Roadmap', icon: BarChart3 },
+    { id: 'predictions', label: 'Predictions', icon: TrendingUp },
     { id: 'threats', label: 'Threats', icon: Shield },
     { id: 'competitive', label: 'Competitive', icon: Target },
 ];
@@ -63,8 +66,8 @@ export function DashboardTabs({ projectId, projectSlug, briefing, metrics }: Das
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-5 py-3 text-sm font-medium transition-all relative ${activeTab === tab.id
-                                    ? 'text-white'
-                                    : 'text-slate-500 hover:text-slate-300'
+                                ? 'text-white'
+                                : 'text-slate-500 hover:text-slate-300'
                                 }`}
                         >
                             <tab.icon className="w-4 h-4" />
@@ -85,6 +88,9 @@ export function DashboardTabs({ projectId, projectSlug, briefing, metrics }: Das
                     )}
                     {activeTab === 'roadmap' && (
                         <RoadmapTab projectId={projectId} projectSlug={projectSlug} briefing={briefing} metrics={metrics} />
+                    )}
+                    {activeTab === 'predictions' && (
+                        <PredictionsTab projectId={projectId} projectSlug={projectSlug} />
                     )}
                     {activeTab === 'threats' && (
                         <ThreatsTab projectId={projectId} projectSlug={projectSlug} briefing={briefing} />
