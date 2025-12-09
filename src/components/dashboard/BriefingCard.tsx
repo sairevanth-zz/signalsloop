@@ -22,6 +22,7 @@ interface BriefingCardProps {
   userName?: string;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  className?: string;
 }
 
 const SEVERITY_CONFIG = {
@@ -101,7 +102,7 @@ function BriefingItemComponent({ item }: { item: BriefingItem }) {
   );
 }
 
-export function BriefingCard({ briefing, briefingId, projectId, userName, onRefresh, isRefreshing }: BriefingCardProps) {
+export function BriefingCard({ briefing, briefingId, projectId, userName, onRefresh, isRefreshing, className }: BriefingCardProps) {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioDuration, setAudioDuration] = useState<number>(0);
   const [selectedVoice, setSelectedVoice] = useState<Voice>('nova');
@@ -116,7 +117,7 @@ export function BriefingCard({ briefing, briefingId, projectId, userName, onRefr
 
   const handleGenerateAudio = useCallback(async (voice: Voice) => {
     if (!projectId || !briefingId) return;
-    
+
     setIsGeneratingAudio(true);
     try {
       const response = await fetch('/api/dashboard/briefing/audio', {
@@ -155,7 +156,7 @@ export function BriefingCard({ briefing, briefingId, projectId, userName, onRefr
   const hasNewFormat = hasCritical || hasWarning || hasInfo || hasSuccess;
 
   return (
-    <BentoCard colSpan={2} rowSpan={2} className="flex flex-col gap-6" data-tour="briefing-card">
+    <BentoCard colSpan={2} rowSpan={2} className={cn("flex flex-col gap-6", className)} data-tour="briefing-card">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
@@ -323,8 +324,8 @@ export function BriefingCard({ briefing, briefingId, projectId, userName, onRefr
                       action.priority === 'high'
                         ? 'border-green-800 bg-green-950/30'
                         : action.priority === 'medium'
-                        ? 'border-blue-800 bg-blue-950/30'
-                        : 'border-slate-800 bg-slate-900/30'
+                          ? 'border-blue-800 bg-blue-950/30'
+                          : 'border-slate-800 bg-slate-900/30'
                     )}
                   >
                     <div className="flex items-center gap-3 flex-1">

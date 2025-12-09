@@ -1,27 +1,33 @@
 /**
- * MissionControlGrid - Main dashboard layout with Bento Grid
- * Displays AI briefing, metrics, opportunities, and threats
+ * MissionControlGrid - Redesigned Mission Control Dashboard
+ * 
+ * Hybrid design combining:
+ * - Design 1 (Command Center): Structured layout with metrics strip, tabs
+ * - Design 2 (AI-First): Conversational briefing, warm greeting
+ * 
+ * Layout:
+ * 1. MetricStrip - Horizontal metrics bar at top
+ * 2. CommandBar - Feature navigation 
+ * 3. Hero Zone - AI Briefing (60%) + Attention Stack (40%)
+ * 4. DashboardTabs - Deep-dive sections
+ * 5. FloatingAskAI - Persistent AI button
  */
 
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { BriefingCard } from './BriefingCard';
-import { MetricCard } from './MetricCard';
-import { BentoCard } from './BentoCard';
 import { RealtimeToasts } from './RealtimeToasts';
 import { AgentActivityCard } from './AgentActivityCard';
-import { CrossToolPanel } from './CrossToolPanel';
 import { EventActivityWidget } from './EventActivityWidget';
 import { ActionQueueCard } from './ActionQueueCard';
-import { SignalCorrelationView } from './SignalCorrelationView';
-import { InsightReportCard } from './InsightReportCard';
-import { SentimentForecastCard } from './SentimentForecastCard';
-import { AnomalyAlertCard } from './AnomalyAlertCard';
 import { ProductHealthScoreCard } from './ProductHealthScoreCard';
-import { LiveExperimentsCard } from './LiveExperimentsCard';
-import { Heart, Zap, Shield, TrendingUp, Loader2, BarChart3, Radio, Activity, Users, Inbox, FileBarChart, AlertTriangle, ChevronRight, Swords, Sliders, Brain } from 'lucide-react';
-import Link from 'next/link';
+import { MetricStrip, MetricStripSkeleton } from './MetricStrip';
+import { AttentionStack, AttentionStackSkeleton } from './AttentionStack';
+import { CommandBar, CommandBarCompact } from './CommandBar';
+import { FloatingAskAI } from './FloatingAskAI';
+import { DashboardTabs } from './DashboardTabs';
+import { Loader2 } from 'lucide-react';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
 
@@ -32,11 +38,21 @@ interface MissionControlGridProps {
   userName?: string;
   projectId: string;
   projectSlug: string;
+  isAdmin?: boolean;
 }
 
-export function MissionControlGrid({ briefing, briefingId, metrics: initialMetrics, userName, projectId, projectSlug }: MissionControlGridProps) {
+export function MissionControlGrid({
+  briefing,
+  briefingId,
+  metrics: initialMetrics,
+  userName,
+  projectId,
+  projectSlug,
+  isAdmin = false
+}: MissionControlGridProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [liveMetrics, setLiveMetrics] = useState<DashboardMetrics>(initialMetrics);
+  const [actionQueueCount, setActionQueueCount] = useState(0);
 
   // Real-time dashboard hook
   const { isConnected, metrics: realtimeMetrics, events } = useRealtimeDashboard({
@@ -53,6 +69,22 @@ export function MissionControlGrid({ briefing, briefingId, metrics: initialMetri
       }));
     }
   }, [realtimeMetrics]);
+
+  // Fetch action queue count for attention stack
+  useEffect(() => {
+    async function fetchActionQueueCount() {
+      try {
+        const res = await fetch(`/api/actions/queue?projectId=${projectId}&count=true`);
+        if (res.ok) {
+          const data = await res.json();
+          setActionQueueCount(data.count || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching action queue count:', error);
+      }
+    }
+    fetchActionQueueCount();
+  }, [projectId]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -74,371 +106,84 @@ export function MissionControlGrid({ briefing, briefingId, metrics: initialMetri
     }
   };
 
+  // Calculate anomaly count from metrics (safely access property that may not exist)
+  const anomalyCount = (liveMetrics as any).anomalies?.count || 0;
+
   return (
     <>
       {/* Real-time toast notifications */}
       <RealtimeToasts projectId={projectId} enabled={true} />
 
-      <div data-tour="mission-control" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-fr">
-        {/* Row 1: Hero Briefing Card (takes 2 columns, 2 rows) + Metrics */}
-        <BriefingCard
-          briefing={briefing}
-          briefingId={briefingId}
+      <div data-tour="mission-control" className="space-y-6">
+        {/* Row 1: Metric Strip */}
+        <MetricStrip metrics={liveMetrics} isConnected={isConnected} />
+
+        {/* Row 2: Command Bar */}
+        <div className="hidden lg:block">
+          <CommandBar projectSlug={projectSlug} isAdmin={isAdmin} />
+        </div>
+        <div className="lg:hidden">
+          <CommandBarCompact projectSlug={projectSlug} isAdmin={isAdmin} />
+        </div>
+
+        {/* Row 3: Hero Zone - Briefing + Attention Stack */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* AI Briefing - 3 columns (60%) */}
+          <div className="lg:col-span-3">
+            <BriefingCard
+              briefing={briefing}
+              briefingId={briefingId}
+              projectId={projectId}
+              userName={userName}
+              onRefresh={handleRefresh}
+              isRefreshing={isRefreshing}
+              className="h-full"
+            />
+          </div>
+
+          {/* Attention Stack - 2 columns (40%) */}
+          <div className="lg:col-span-2">
+            <AttentionStack
+              projectSlug={projectSlug}
+              threats={briefing.threats}
+              actionQueueCount={actionQueueCount}
+              hasWeeklyInsight={true}
+              anomalyCount={anomalyCount}
+            />
+          </div>
+        </div>
+
+        {/* Row 4: Secondary Metrics - Product Health + Action Queue */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Product Health Score */}
+          {liveMetrics.health_score && (
+            <ProductHealthScoreCard healthScore={liveMetrics.health_score} />
+          )}
+
+          {/* Action Queue */}
+          <ActionQueueCard projectId={projectId} />
+        </div>
+
+        {/* Row 5: Activity Widgets */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Event Activity */}
+          <EventActivityWidget projectId={projectId} projectSlug={projectSlug} />
+
+          {/* Agent Activity */}
+          <AgentActivityCard projectId={projectId} projectSlug={projectSlug} />
+        </div>
+
+        {/* Row 6: Deep-Dive Tabs */}
+        <DashboardTabs
           projectId={projectId}
-          userName={userName}
-          onRefresh={handleRefresh}
-          isRefreshing={isRefreshing}
+          projectSlug={projectSlug}
+          briefing={briefing}
+          metrics={liveMetrics}
         />
-
-        {/* Sentiment Metric - LIVE UPDATES */}
-        <MetricCard
-          label="Sentiment Score"
-          value={`${Math.round(liveMetrics.sentiment?.current_nps || 0)}`}
-          trend={liveMetrics.sentiment?.trend || 'stable'}
-          trendValue={`${liveMetrics.sentiment?.change_percent > 0 ? '+' : ''}${liveMetrics.sentiment?.change_percent || 0}% vs last week`}
-          icon={Heart}
-          iconColor="text-pink-400"
-          badge={isConnected ? <Radio className="h-3 w-3 text-green-500 animate-pulse" /> : undefined}
-        />
-
-        {/* Velocity Metric - LIVE UPDATES */}
-        <MetricCard
-          label="Feedback Velocity"
-          value={`${liveMetrics.feedback?.total_this_week || 0}`}
-          trend={liveMetrics.feedback?.trend || 'stable'}
-          trendValue={`${Math.round(liveMetrics.feedback?.issues_per_week || 0)} issues/week`}
-          icon={Zap}
-          iconColor="text-yellow-400"
-          badge={isConnected ? <Radio className="h-3 w-3 text-green-500 animate-pulse" /> : undefined}
-        />
-
-        {/* Execution Velocity (Jira) */}
-        <MetricCard
-          label="Execution Velocity"
-          value={`${liveMetrics.execution?.last_sprint_points ?? 0} pts`}
-          trend={liveMetrics.execution?.trend || 'stable'}
-          trendValue={`Avg ${liveMetrics.execution?.avg_velocity_points ?? 0} pts`}
-          icon={Activity}
-          iconColor="text-emerald-400"
-        />
-
-        {/* Usage Engagement */}
-        <MetricCard
-          label="Product Usage"
-          value={`${liveMetrics.usage?.weekly_active ?? 0} WAU`}
-          trend={liveMetrics.usage?.trend || 'stable'}
-          trendValue={`${liveMetrics.usage?.events_7d ?? 0} events · ${liveMetrics.usage?.events_per_user ?? 0}/user`}
-          icon={Users}
-          iconColor="text-blue-300"
-        />
-
-      {/* Row 2: Threats Card (below sentiment) */}
-      <BentoCard>
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-red-400" />
-              <h3 className="font-semibold text-white">Threats</h3>
-            </div>
-            {briefing.threats.length > 0 && (
-              <span className="rounded-full bg-red-950/50 px-2 py-1 text-xs font-medium text-red-300">
-                {briefing.threats.length} Active
-              </span>
-            )}
-          </div>
-
-          {briefing.threats.length > 0 ? (
-            <ul className="space-y-2">
-              {briefing.threats.slice(0, 3).map((threat, index) => (
-                <li key={index} className="flex items-start gap-2 text-sm">
-                  <span
-                    className={
-                      threat.severity === 'high'
-                        ? 'text-red-400'
-                        : threat.severity === 'medium'
-                        ? 'text-orange-400'
-                        : 'text-yellow-400'
-                    }
-                  >
-                    {threat.severity === 'high' ? '🔴' : threat.severity === 'medium' ? '🟡' : '🟢'}
-                  </span>
-                  <div>
-                    <div className="text-slate-200">{threat.title}</div>
-                    <div className="text-xs text-slate-500 capitalize">{threat.severity} priority</div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="flex items-center justify-center py-6 text-sm text-slate-500">
-              No active threats detected
-            </div>
-          )}
-        </div>
-      </BentoCard>
-
-      {/* Roadmap Pulse (below velocity) */}
-      <BentoCard>
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-blue-400" />
-            <h3 className="font-semibold text-white">Roadmap Pulse</h3>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-400">In Progress</span>
-              <span className="text-lg font-bold text-white">{liveMetrics.roadmap?.in_progress || 0}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-400">Planned</span>
-              <span className="text-lg font-bold text-white">{liveMetrics.roadmap?.planned || 0}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-400">Completed This Week</span>
-              <span className="text-lg font-bold text-green-400">{liveMetrics.roadmap?.completed_this_week || 0}</span>
-            </div>
-          </div>
-        </div>
-      </BentoCard>
-
-      {/* System Events Widget */}
-      <EventActivityWidget projectId={projectId} projectSlug={projectSlug} />
-
-      {/* Cross-Tool Intelligence */}
-      <CrossToolPanel projectId={projectId} />
-
-      {/* Row 3: Opportunities (spans 2 columns) */}
-      <BentoCard colSpan={2}>
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-400" />
-              <h3 className="font-semibold text-white">Top Opportunities</h3>
-            </div>
-            <span className="text-xs text-slate-500">AI-ranked by impact</span>
-          </div>
-
-          {briefing.opportunities.length > 0 ? (
-            <div className="space-y-2">
-              {briefing.opportunities.slice(0, 4).map((opportunity, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-3 transition-colors hover:bg-slate-800/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl font-bold text-slate-600">#{index + 1}</span>
-                    <div>
-                      <div className="font-medium text-white">{opportunity.title}</div>
-                      <div className="text-xs text-slate-500">{opportunity.votes} votes</div>
-                    </div>
-                  </div>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      opportunity.impact === 'high'
-                        ? 'bg-green-950/50 text-green-300'
-                        : opportunity.impact === 'medium'
-                        ? 'bg-blue-950/50 text-blue-300'
-                        : 'bg-slate-800 text-slate-300'
-                    }`}
-                  >
-                    {opportunity.impact} impact
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center py-8 text-sm text-slate-500">
-              No opportunities identified yet
-            </div>
-          )}
-        </div>
-      </BentoCard>
-
-      {/* Product Health Score (spans 2 columns) */}
-      {liveMetrics.health_score && (
-        <ProductHealthScoreCard healthScore={liveMetrics.health_score} />
-      )}
-
-      {/* Action Queue - AI Recommendations (spans 2 columns) */}
-      <ActionQueueCard projectId={projectId} />
-
-      {/* Signal Correlation Network (spans 2 columns) */}
-      <SignalCorrelationView projectId={projectId} />
-
-      {/* Phase 2: Weekly Insights powered by Claude Sonnet 4 (spans 4 columns) */}
-      <InsightReportCard projectId={projectId} />
-
-      {/* Phase 2: Sentiment Forecast powered by GPT-4o (spans 2 columns) */}
-      <SentimentForecastCard projectId={projectId} />
-
-      {/* Phase 2: Anomaly Alerts powered by GPT-4o (spans 2 columns) */}
-      <AnomalyAlertCard projectId={projectId} />
-
-      {/* Live Experiments powered by LaunchDarkly/Optimizely (spans 2 columns) */}
-      <LiveExperimentsCard projectId={projectId} projectSlug={projectSlug} />
-
-      {/* Competitive Intelligence (if available) - LIVE UPDATES */}
-      {(liveMetrics.competitors?.new_insights_count || 0) > 0 && (
-        <BentoCard colSpan={2}>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-white">Competitive Intelligence</h3>
-              <span className="rounded-full bg-purple-950/50 px-2 py-1 text-xs font-medium text-purple-300">
-                {liveMetrics.competitors?.new_insights_count || 0} New
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-                <div className="text-2xl font-bold text-white">{liveMetrics.competitors?.new_insights_count || 0}</div>
-                <div className="text-sm text-slate-400">New Insights (7d)</div>
-              </div>
-              <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-                <div className="text-2xl font-bold text-red-400">{liveMetrics.competitors?.high_priority_count || 0}</div>
-                <div className="text-sm text-slate-400">High Priority</div>
-              </div>
-            </div>
-          </div>
-        </BentoCard>
-      )}
-
-      {/* Agent Activity Card */}
-      <AgentActivityCard projectId={projectId} projectSlug={projectSlug} />
-
-      {/* Quick Links to New Features (spans 4 columns) */}
-      <BentoCard colSpan={4} className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <Zap className="h-5 w-5 text-yellow-400" />
-              Customer Intelligence Suite
-            </h3>
-            <span className="rounded-full bg-green-500/20 px-2 py-1 text-xs font-medium text-green-400">
-              NEW
-            </span>
-          </div>
-          <p className="text-sm text-slate-400">
-            Advanced tools for understanding your customers and preventing churn
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Universal Inbox */}
-            <Link href={`/${projectSlug}/inbox`} className="group">
-              <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-green-500 hover:bg-slate-800">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="p-2 rounded-lg bg-green-500/20">
-                    <Inbox className="h-5 w-5 text-green-400" />
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-green-400 transition-colors" />
-                </div>
-                <h4 className="font-medium text-white mb-1">Universal Inbox</h4>
-                <p className="text-xs text-slate-400">
-                  All feedback from Slack, Intercom, G2, and more in one AI-powered inbox
-                </p>
-              </div>
-            </Link>
-
-            {/* Executive Briefs */}
-            <Link href={`/${projectSlug}/briefs`} className="group">
-              <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-blue-500 hover:bg-slate-800">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="p-2 rounded-lg bg-blue-500/20">
-                    <FileBarChart className="h-5 w-5 text-blue-400" />
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-blue-400 transition-colors" />
-                </div>
-                <h4 className="font-medium text-white mb-1">Executive Briefs</h4>
-                <p className="text-xs text-slate-400">
-                  Auto-generated weekly reports with insights, action items & risks
-                </p>
-              </div>
-            </Link>
-
-            {/* Churn Radar */}
-            <Link href={`/${projectSlug}/churn-radar`} className="group">
-              <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-red-500 hover:bg-slate-800">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="p-2 rounded-lg bg-red-500/20">
-                    <AlertTriangle className="h-5 w-5 text-red-400" />
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-red-400 transition-colors" />
-                </div>
-                <h4 className="font-medium text-white mb-1">Churn Radar</h4>
-                <p className="text-xs text-slate-400">
-                  Predict and prevent churn with health scores and smart alerts
-                </p>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </BentoCard>
-
-      {/* Premium Competitive & AI Tools (spans 4 columns) */}
-      <BentoCard colSpan={4} className="bg-gradient-to-r from-orange-950 via-slate-900 to-purple-950">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <Shield className="h-5 w-5 text-orange-400" />
-              Premium Intelligence Tools
-            </h3>
-            <span className="rounded-full bg-orange-500/20 px-2 py-1 text-xs font-medium text-orange-400">
-              PREMIUM
-            </span>
-          </div>
-          <p className="text-sm text-slate-400">
-            Enterprise-grade competitive intelligence and AI customization
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* War Room */}
-            <Link href={`/${projectSlug}/war-room`} className="group">
-              <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-orange-500 hover:bg-slate-800">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="p-2 rounded-lg bg-orange-500/20">
-                    <Swords className="h-5 w-5 text-orange-400" />
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-orange-400 transition-colors" />
-                </div>
-                <h4 className="font-medium text-white mb-1">Competitor War Room</h4>
-                <p className="text-xs text-slate-400">
-                  Real-time alerts, job posting intel, and hiring trends
-                </p>
-              </div>
-            </Link>
-
-            {/* Competitive Intelligence */}
-            <Link href={`/${projectSlug}/competitive`} className="group">
-              <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-purple-500 hover:bg-slate-800">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="p-2 rounded-lg bg-purple-500/20">
-                    <Shield className="h-5 w-5 text-purple-400" />
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
-                </div>
-                <h4 className="font-medium text-white mb-1">Competitive Intel</h4>
-                <p className="text-xs text-slate-400">
-                  Feature gaps, strengths/weaknesses, strategic recommendations
-                </p>
-              </div>
-            </Link>
-
-            {/* AI Reasoning */}
-            <Link href={`/app/reasoning`} className="group">
-              <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-indigo-500 hover:bg-slate-800">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="p-2 rounded-lg bg-indigo-500/20">
-                    <Brain className="h-5 w-5 text-indigo-400" />
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
-                </div>
-                <h4 className="font-medium text-white mb-1">AI Reasoning</h4>
-                <p className="text-xs text-slate-400">
-                  Understand why AI makes decisions with full transparency
-                </p>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </BentoCard>
       </div>
+
+      {/* Floating Ask AI Button */}
+      <FloatingAskAI projectId={projectId} projectSlug={projectSlug} />
     </>
   );
 }
@@ -448,42 +193,30 @@ export function MissionControlGrid({ briefing, briefingId, metrics: initialMetri
  */
 export function MissionControlGridSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-fr">
-      {/* Hero card skeleton */}
-      <div className="col-span-2 row-span-2 rounded-xl border border-slate-800 bg-slate-900/50 p-6">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 animate-pulse rounded-lg bg-slate-800" />
-            <div className="flex-1 space-y-2">
-              <div className="h-6 w-48 animate-pulse rounded bg-slate-800" />
-              <div className="h-4 w-32 animate-pulse rounded bg-slate-800" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="h-4 w-full animate-pulse rounded bg-slate-800" />
-            <div className="h-4 w-3/4 animate-pulse rounded bg-slate-800" />
-          </div>
+    <div className="space-y-6">
+      {/* Metric Strip Skeleton */}
+      <MetricStripSkeleton />
+
+      {/* Command Bar Skeleton */}
+      <div className="h-12 bg-slate-900/50 rounded-xl animate-pulse" />
+
+      {/* Hero Zone Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3 h-80 rounded-2xl border border-slate-800 bg-slate-900/50 animate-pulse" />
+        <div className="lg:col-span-2">
+          <AttentionStackSkeleton />
         </div>
       </div>
 
-      {/* Metric cards skeleton */}
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
-          <div className="flex items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin text-slate-600" />
-          </div>
-        </div>
-      ))}
-
-      {/* Opportunities skeleton */}
-      <div className="col-span-2 rounded-xl border border-slate-800 bg-slate-900/50 p-6">
-        <div className="space-y-4">
-          <div className="h-6 w-48 animate-pulse rounded bg-slate-800" />
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 animate-pulse rounded bg-slate-800" />
-          ))}
-        </div>
+      {/* Secondary Metrics Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {[1, 2].map((i) => (
+          <div key={i} className="h-48 rounded-2xl border border-slate-800 bg-slate-900/50 animate-pulse" />
+        ))}
       </div>
+
+      {/* Tabs Skeleton */}
+      <div className="h-96 rounded-2xl border border-slate-800 bg-slate-900/50 animate-pulse" />
     </div>
   );
 }
