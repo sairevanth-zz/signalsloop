@@ -139,11 +139,11 @@ export function InsightReportCard({ projectId }: Props) {
   function getImpactColor(impact: string): string {
     switch (impact) {
       case 'high':
-        return 'bg-red-100 text-red-800 border-red-300';
+        return 'bg-red-500/20 text-red-300 border-red-500/30';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
       default:
-        return 'bg-blue-100 text-blue-800 border-blue-300';
+        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
     }
   }
 
@@ -154,20 +154,20 @@ export function InsightReportCard({ projectId }: Props) {
       case 'high':
         return 'bg-orange-500 text-white';
       case 'medium':
-        return 'bg-yellow-500 text-white';
+        return 'bg-yellow-500 text-black';
       default:
-        return 'bg-gray-500 text-white';
+        return 'bg-slate-600 text-white';
     }
   }
 
   function getTrendIcon(trend: string) {
     switch (trend) {
       case 'improving':
-        return <TrendingUp className="h-4 w-4 text-green-600" />;
+        return <TrendingUp className="h-4 w-4 text-green-400" />;
       case 'declining':
-        return <TrendingDown className="h-4 w-4 text-red-600" />;
+        return <TrendingDown className="h-4 w-4 text-red-400" />;
       default:
-        return <span className="h-4 w-4 text-gray-600">→</span>;
+        return <span className="h-4 w-4 text-slate-400">→</span>;
     }
   }
 
@@ -198,7 +198,7 @@ export function InsightReportCard({ projectId }: Props) {
   }
 
   return (
-    <Card className="col-span-4 border-purple-200 bg-gradient-to-br from-white to-purple-50">
+    <Card className="col-span-4 border-purple-500/30 bg-gradient-to-br from-slate-900 to-purple-950/30">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -245,11 +245,11 @@ export function InsightReportCard({ projectId }: Props) {
 
         {!report && !error && (
           <div className="text-center py-12">
-            <Brain className="h-16 w-16 text-purple-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <Brain className="h-16 w-16 text-purple-400/50 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-white mb-2">
               No weekly insights yet
             </h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            <p className="text-slate-400 mb-6 max-w-md mx-auto">
               Generate your first weekly insights report to get strategic analysis,
               actionable recommendations, and trend forecasts powered by Claude Sonnet 4.
             </p>
@@ -263,16 +263,16 @@ export function InsightReportCard({ projectId }: Props) {
         {report && (
           <div className="space-y-6">
             {/* Executive Summary */}
-            <div className="p-5 bg-white rounded-lg border-2 border-purple-200 shadow-sm">
+            <div className="p-5 bg-slate-800/50 rounded-lg border border-purple-500/30 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
-                <Target className="h-5 w-5 text-purple-600" />
-                <h3 className="font-semibold text-lg">Executive Summary</h3>
+                <Target className="h-5 w-5 text-purple-400" />
+                <h3 className="font-semibold text-lg text-white">Executive Summary</h3>
                 <div className="ml-auto flex items-center gap-2">
                   {getTrendIcon(report.sentimentTrend)}
-                  <span className="text-sm text-gray-600 capitalize">{report.sentimentTrend}</span>
+                  <span className="text-sm text-slate-400 capitalize">{report.sentimentTrend}</span>
                 </div>
               </div>
-              <p className="text-gray-700 leading-relaxed">{report.executiveSummary}</p>
+              <p className="text-slate-300 leading-relaxed">{report.executiveSummary}</p>
             </div>
 
             {/* Tabs for detailed sections */}
@@ -307,23 +307,23 @@ export function InsightReportCard({ projectId }: Props) {
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs border-slate-600">
                               {insight.category}
                             </Badge>
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="text-xs bg-slate-700 text-slate-300">
                               {insight.impact} impact
                             </Badge>
                           </div>
-                          <p className="font-medium text-gray-900">{insight.insight}</p>
+                          <p className="font-medium text-white">{insight.insight}</p>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-700 mt-2">
-                        <span className="font-medium">Recommendation:</span> {insight.recommendation}
+                      <p className="text-sm text-slate-300 mt-2">
+                        <span className="font-medium text-slate-200">Recommendation:</span> {insight.recommendation}
                       </p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-center py-8">No key insights available</p>
+                  <p className="text-slate-500 text-center py-8">No key insights available</p>
                 )}
               </TabsContent>
 
@@ -331,7 +331,7 @@ export function InsightReportCard({ projectId }: Props) {
               <TabsContent value="wins" className="mt-4 space-y-4">
                 {/* Biggest Wins */}
                 <div>
-                  <h4 className="flex items-center gap-2 font-semibold mb-3 text-green-700">
+                  <h4 className="flex items-center gap-2 font-semibold mb-3 text-green-400">
                     <Award className="h-4 w-4" />
                     Biggest Wins
                   </h4>
@@ -340,21 +340,21 @@ export function InsightReportCard({ projectId }: Props) {
                       {report.biggestWins.map((win, idx) => (
                         <li
                           key={idx}
-                          className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded"
+                          className="flex items-start gap-2 p-3 bg-green-500/10 border border-green-500/30 rounded"
                         >
-                          <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm text-gray-700">{win}</span>
+                          <CheckCircle2 className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-slate-300">{win}</span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-gray-500 text-sm">No wins identified this week</p>
+                    <p className="text-slate-500 text-sm">No wins identified this week</p>
                   )}
                 </div>
 
                 {/* Critical Issues */}
                 <div>
-                  <h4 className="flex items-center gap-2 font-semibold mb-3 text-red-700">
+                  <h4 className="flex items-center gap-2 font-semibold mb-3 text-red-400">
                     <AlertTriangle className="h-4 w-4" />
                     Critical Issues
                   </h4>
@@ -363,15 +363,15 @@ export function InsightReportCard({ projectId }: Props) {
                       {report.criticalIssues.map((issue, idx) => (
                         <li
                           key={idx}
-                          className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded"
+                          className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded"
                         >
-                          <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm text-gray-700">{issue}</span>
+                          <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-slate-300">{issue}</span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-gray-500 text-sm">No critical issues identified</p>
+                    <p className="text-slate-500 text-sm">No critical issues identified</p>
                   )}
                 </div>
               </TabsContent>
@@ -383,15 +383,15 @@ export function InsightReportCard({ projectId }: Props) {
                     {report.emergingTrends.map((trend, idx) => (
                       <li
                         key={idx}
-                        className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        className="flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg"
                       >
-                        <Lightbulb className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">{trend}</span>
+                        <Lightbulb className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-slate-300">{trend}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-500 text-center py-8">No emerging trends detected</p>
+                  <p className="text-slate-500 text-center py-8">No emerging trends detected</p>
                 )}
               </TabsContent>
 
@@ -407,20 +407,20 @@ export function InsightReportCard({ projectId }: Props) {
                       .map((action, idx) => (
                         <div
                           key={idx}
-                          className="flex items-start gap-3 p-4 bg-white border rounded-lg hover:shadow-md transition-shadow"
+                          className="flex items-start gap-3 p-4 bg-slate-800/50 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors"
                         >
                           <Badge className={getPriorityColor(action.priority)}>
                             {action.priority}
                           </Badge>
                           <div className="flex-1">
-                            <p className="text-gray-900 font-medium">{action.action}</p>
-                            <div className="flex gap-3 mt-2 text-xs text-gray-600">
+                            <p className="text-white font-medium">{action.action}</p>
+                            <div className="flex gap-3 mt-2 text-xs text-slate-400">
                               <span>
-                                <span className="font-medium">Effort:</span> {action.effort}
+                                <span className="font-medium text-slate-300">Effort:</span> {action.effort}
                               </span>
                               <span>•</span>
                               <span>
-                                <span className="font-medium">Impact:</span> {action.impact}
+                                <span className="font-medium text-slate-300">Impact:</span> {action.impact}
                               </span>
                             </div>
                           </div>
@@ -428,13 +428,13 @@ export function InsightReportCard({ projectId }: Props) {
                       ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-8">No actions recommended</p>
+                  <p className="text-slate-500 text-center py-8">No actions recommended</p>
                 )}
               </TabsContent>
             </Tabs>
 
             {/* Footer metadata */}
-            <div className="flex items-center justify-between pt-4 border-t text-xs text-gray-500">
+            <div className="flex items-center justify-between pt-4 border-t border-slate-700 text-xs text-slate-500">
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />

@@ -146,37 +146,37 @@ export function AnomalyAlertCard({ projectId }: Props) {
   function getSeverityColor(severity: string): string {
     switch (severity) {
       case 'critical':
-        return 'bg-red-100 text-red-800 border-red-300';
+        return 'bg-red-500/20 text-red-300 border-red-500/30';
       case 'high':
-        return 'bg-orange-100 text-orange-800 border-orange-300';
+        return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
       default:
-        return 'bg-blue-100 text-blue-800 border-blue-300';
+        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
     }
   }
 
   function getLikelihoodColor(likelihood: string): string {
     switch (likelihood) {
       case 'high':
-        return 'text-red-600';
+        return 'text-red-400';
       case 'medium':
-        return 'text-yellow-600';
+        return 'text-yellow-400';
       default:
-        return 'text-gray-600';
+        return 'text-slate-400';
     }
   }
 
   function getPriorityColor(priority: string): string {
     switch (priority) {
       case 'critical':
-        return 'text-red-600 font-semibold';
+        return 'text-red-400 font-semibold';
       case 'high':
-        return 'text-orange-600 font-medium';
+        return 'text-orange-400 font-medium';
       case 'medium':
-        return 'text-yellow-600';
+        return 'text-yellow-400';
       default:
-        return 'text-gray-600';
+        return 'text-slate-400';
     }
   }
 
@@ -216,12 +216,12 @@ export function AnomalyAlertCard({ projectId }: Props) {
   }
 
   return (
-    <Card className="col-span-2" data-tour="anomaly-card">
+    <Card className="col-span-2 border-slate-700 bg-slate-900" data-tour="anomaly-card">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-600" />
+            <CardTitle className="flex items-center gap-2 text-white">
+              <AlertTriangle className="h-5 w-5 text-orange-400" />
               Anomaly Alerts
               {anomalies.length > 0 && (
                 <Badge variant="destructive" className="ml-2">
@@ -229,13 +229,14 @@ export function AnomalyAlertCard({ projectId }: Props) {
                 </Badge>
               )}
             </CardTitle>
-            <CardDescription>AI-detected unusual patterns using GPT-4o</CardDescription>
+            <CardDescription className="text-slate-400">AI-detected unusual patterns using GPT-4o</CardDescription>
           </div>
           <Button
             onClick={runDetection}
             disabled={isDetecting}
             size="sm"
             variant="outline"
+            className="border-slate-600 hover:bg-slate-800"
           >
             {isDetecting ? (
               <>
@@ -260,9 +261,9 @@ export function AnomalyAlertCard({ projectId }: Props) {
 
         {anomalies.length === 0 ? (
           <div className="text-center py-8">
-            <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-            <p className="text-gray-600 mb-2 font-medium">No anomalies detected</p>
-            <p className="text-sm text-gray-500">
+            <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-3" />
+            <p className="text-slate-300 mb-2 font-medium">No anomalies detected</p>
+            <p className="text-sm text-slate-500">
               Everything looks normal. Anomaly detection runs automatically daily.
             </p>
           </div>
@@ -298,7 +299,7 @@ export function AnomalyAlertCard({ projectId }: Props) {
                 <p className="text-sm mb-3">{anomaly.summary}</p>
 
                 {/* Metric Details */}
-                <div className="grid grid-cols-2 gap-2 text-xs mb-3 p-2 bg-white/50 rounded">
+                <div className="grid grid-cols-2 gap-2 text-xs mb-3 p-2 bg-slate-900/50 rounded">
                   <div>
                     <span className="opacity-75">Expected:</span>{' '}
                     <span className="font-medium">{anomaly.expectedValue.toFixed(2)}</span>

@@ -129,7 +129,7 @@ async function DashboardContent({ slug }: { slug: string }) {
 
     // Check if it's a missing OpenAI API key error
     const isOpenAIError = errorMessage.toLowerCase().includes('openai') ||
-                          errorMessage.toLowerCase().includes('api key');
+      errorMessage.toLowerCase().includes('api key');
 
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4">
@@ -207,53 +207,9 @@ async function DashboardContent({ slug }: { slug: string }) {
     <div className="min-h-screen bg-slate-950 p-4 md:p-8">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white">Mission Control</h1>
-              <p className="text-slate-400">{project.name}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <a
-                href={`/dashboard/ask?projectId=${project.id}`}
-                data-tour="ask-button"
-                className="rounded-lg border border-purple-600/50 bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-purple-700 hover:to-blue-700 hover:shadow-lg hover:shadow-purple-500/20"
-              >
-                💬 Ask AI
-              </a>
-              <a
-                href={`/dashboard/${project.id}/stakeholder`}
-                className="rounded-lg border border-purple-600/50 bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-purple-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-purple-500/20 flex items-center gap-2"
-              >
-                ✨ Stakeholder Intelligence
-                <span className="rounded bg-green-500/20 px-1.5 py-0.5 text-xs font-bold text-green-300">NEW</span>
-              </a>
-              <a
-                href={`/app/predictions`}
-                className="rounded-lg border border-purple-600/50 bg-gradient-to-r from-purple-500 to-pink-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-purple-600 hover:to-pink-700 hover:shadow-lg hover:shadow-purple-500/20 flex items-center gap-2"
-              >
-                🔮 Predictions
-              </a>
-              <a
-                href={`/${slug}/events`}
-                className="rounded-lg border border-blue-600/50 bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-blue-700 hover:to-cyan-700 hover:shadow-lg hover:shadow-blue-500/20"
-              >
-                🔍 Events & Debug
-              </a>
-              <a
-                href={`/${slug}/board`}
-                className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700"
-              >
-                View Feedback Board
-              </a>
-              <a
-                href={`/${slug}/roadmap`}
-                className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-700"
-              >
-                View Roadmap
-              </a>
-            </div>
-          </div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white">Mission Control</h1>
+          <p className="text-slate-400">{project.name}</p>
         </div>
 
         {/* Dashboard Grid */}

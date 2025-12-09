@@ -119,9 +119,9 @@ export function SentimentForecastCard({ projectId }: Props) {
   }
 
   function getSentimentColor(score: number): string {
-    if (score >= 0.3) return 'text-green-600';
-    if (score <= -0.3) return 'text-red-600';
-    return 'text-gray-600';
+    if (score >= 0.3) return 'text-green-400';
+    if (score <= -0.3) return 'text-red-400';
+    return 'text-slate-400';
   }
 
   function getSentimentLabel(score: number): string {
@@ -135,22 +135,22 @@ export function SentimentForecastCard({ projectId }: Props) {
   function getTrendIcon(direction: string) {
     switch (direction) {
       case 'improving':
-        return <TrendingUp className="h-4 w-4 text-green-600" />;
+        return <TrendingUp className="h-4 w-4 text-green-400" />;
       case 'declining':
-        return <TrendingDown className="h-4 w-4 text-red-600" />;
+        return <TrendingDown className="h-4 w-4 text-red-400" />;
       default:
-        return <Minus className="h-4 w-4 text-gray-600" />;
+        return <Minus className="h-4 w-4 text-slate-400" />;
     }
   }
 
   function getTrendBadgeColor(direction: string): string {
     switch (direction) {
       case 'improving':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-500/20 text-green-300';
       case 'declining':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-500/20 text-red-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-700 text-slate-300';
     }
   }
 
@@ -190,7 +190,7 @@ export function SentimentForecastCard({ projectId }: Props) {
   const hasAnyForecast = Object.values(forecasts).some((f) => f !== null);
 
   return (
-    <Card className="col-span-2">
+    <Card className="col-span-2 border-slate-700 bg-slate-900">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -222,18 +222,18 @@ export function SentimentForecastCard({ projectId }: Props) {
       </CardHeader>
       <CardContent>
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md text-sm text-red-300">
             {error}
           </div>
         )}
 
         {!hasAnyForecast && !error && (
           <div className="text-center py-8">
-            <Sparkles className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-600 mb-4">
+            <Sparkles className="h-12 w-12 text-slate-600 mx-auto mb-3" />
+            <p className="text-slate-400 mb-4">
               No forecasts available yet. Generate forecasts to see predicted sentiment trends.
             </p>
-            <Button onClick={generateAllForecasts} disabled={isGenerating}>
+            <Button onClick={generateAllForecasts} disabled={isGenerating} className="bg-purple-600 hover:bg-purple-700">
               <Sparkles className="h-4 w-4 mr-2" />
               Generate Forecasts
             </Button>
@@ -253,18 +253,18 @@ export function SentimentForecastCard({ projectId }: Props) {
                 {forecasts[horizon] ? (
                   <div className="space-y-4">
                     {/* Main Prediction */}
-                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-500/30">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <Target className="h-4 w-4 text-purple-600" />
-                          <span className="text-sm font-medium text-gray-700">
+                          <Target className="h-4 w-4 text-purple-400" />
+                          <span className="text-sm font-medium text-slate-300">
                             Predicted for {formatDate(forecasts[horizon]!.targetDate)}
                           </span>
                         </div>
                         <div className={`text-3xl font-bold ${getSentimentColor(forecasts[horizon]!.predictedSentiment)}`}>
                           {getSentimentLabel(forecasts[horizon]!.predictedSentiment)}
                         </div>
-                        <div className="text-sm text-gray-600 mt-1">
+                        <div className="text-sm text-slate-400 mt-1">
                           Score: {forecasts[horizon]!.predictedSentiment.toFixed(2)} (±{getConfidenceWidth(forecasts[horizon]!).toFixed(0)}%)
                         </div>
                       </div>
@@ -276,20 +276,20 @@ export function SentimentForecastCard({ projectId }: Props) {
                             {forecasts[horizon]!.trendDirection}
                           </span>
                         </Badge>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-slate-500">
                           {forecasts[horizon]!.dataPoints} data points
                         </span>
                       </div>
                     </div>
 
                     {/* Confidence Interval Visualization */}
-                    <div className="p-4 border rounded-lg">
-                      <div className="text-sm font-medium text-gray-700 mb-3">
+                    <div className="p-4 border border-slate-700 rounded-lg">
+                      <div className="text-sm font-medium text-slate-300 mb-3">
                         Confidence Interval (95%)
                       </div>
-                      <div className="relative h-12 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="relative h-12 bg-slate-800 rounded-full overflow-hidden">
                         {/* Scale markers */}
-                        <div className="absolute inset-0 flex justify-between px-2 items-center text-xs text-gray-400">
+                        <div className="absolute inset-0 flex justify-between px-2 items-center text-xs text-slate-500">
                           <span>-1.0</span>
                           <span>0</span>
                           <span>+1.0</span>
@@ -297,7 +297,7 @@ export function SentimentForecastCard({ projectId }: Props) {
 
                         {/* Confidence band */}
                         <div
-                          className="absolute h-full bg-purple-200 opacity-50"
+                          className="absolute h-full bg-purple-500/30 opacity-50"
                           style={{
                             left: `${((forecasts[horizon]!.confidenceLower + 1) / 2) * 100}%`,
                             width: `${((forecasts[horizon]!.confidenceUpper - forecasts[horizon]!.confidenceLower) / 2) * 100}%`,
@@ -306,38 +306,38 @@ export function SentimentForecastCard({ projectId }: Props) {
 
                         {/* Predicted value marker */}
                         <div
-                          className="absolute h-full w-1 bg-purple-600"
+                          className="absolute h-full w-1 bg-purple-500"
                           style={{
                             left: `${((forecasts[horizon]!.predictedSentiment + 1) / 2) * 100}%`,
                           }}
                         />
                       </div>
 
-                      <div className="flex justify-between text-xs text-gray-600 mt-2">
+                      <div className="flex justify-between text-xs text-slate-400 mt-2">
                         <span>Lower: {forecasts[horizon]!.confidenceLower.toFixed(2)}</span>
-                        <span className="font-medium">Predicted: {forecasts[horizon]!.predictedSentiment.toFixed(2)}</span>
+                        <span className="font-medium text-slate-300">Predicted: {forecasts[horizon]!.predictedSentiment.toFixed(2)}</span>
                         <span>Upper: {forecasts[horizon]!.confidenceUpper.toFixed(2)}</span>
                       </div>
                     </div>
 
                     {/* Metadata */}
                     <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="p-3 bg-gray-50 rounded border">
-                        <div className="text-gray-500 mb-1">Historical Average</div>
+                      <div className="p-3 bg-slate-800 rounded border border-slate-700">
+                        <div className="text-slate-500 mb-1">Historical Average</div>
                         <div className={`font-semibold ${getSentimentColor(forecasts[horizon]!.avgSentiment)}`}>
                           {forecasts[horizon]!.avgSentiment.toFixed(2)}
                         </div>
                       </div>
-                      <div className="p-3 bg-gray-50 rounded border">
-                        <div className="text-gray-500 mb-1">Volatility</div>
-                        <div className="font-semibold">
+                      <div className="p-3 bg-slate-800 rounded border border-slate-700">
+                        <div className="text-slate-500 mb-1">Volatility</div>
+                        <div className="font-semibold text-white">
                           {(forecasts[horizon]!.volatility * 100).toFixed(1)}%
                         </div>
                       </div>
                     </div>
 
                     {/* Forecast metadata */}
-                    <div className="flex items-center gap-2 text-xs text-gray-500 pt-2 border-t">
+                    <div className="flex items-center gap-2 text-xs text-slate-500 pt-2 border-t border-slate-700">
                       <Calendar className="h-3 w-3" />
                       <span>Generated: {formatDate(forecasts[horizon]!.forecastDate)}</span>
                       <span>•</span>
@@ -347,14 +347,14 @@ export function SentimentForecastCard({ projectId }: Props) {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-slate-500">
                     <p>No {horizon}-day forecast available.</p>
                     <Button
                       onClick={generateAllForecasts}
                       disabled={isGenerating}
                       size="sm"
                       variant="outline"
-                      className="mt-3"
+                      className="mt-3 border-slate-600 hover:bg-slate-800"
                     >
                       Generate Forecast
                     </Button>
