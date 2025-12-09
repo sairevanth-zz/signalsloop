@@ -667,10 +667,10 @@ export default function IntegrationsSettingsPage({ params }: { params: { slug: s
       {showAI && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <Sparkles className="h-6 w-6 text-pink-400" />
+            <Sparkles className="h-6 w-6 text-pink-500" />
             <div>
-              <h2 className="text-xl font-semibold text-white">AI Prototyping</h2>
-              <p className="text-sm text-slate-400">
+              <h2 className="text-xl font-semibold text-gray-900">AI Prototyping</h2>
+              <p className="text-sm text-gray-600">
                 Generate working prototypes from specs using Lovable AI (BYOK - you control your own usage)
               </p>
             </div>
@@ -682,18 +682,18 @@ export default function IntegrationsSettingsPage({ params }: { params: { slug: s
               {aiIntegrations.map((integration) => (
                 <div
                   key={integration.id}
-                  className="rounded-lg border border-slate-800 bg-slate-900/50 p-6"
+                  className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <Sparkles className="h-8 w-8 text-pink-400" />
+                      <Sparkles className="h-8 w-8 text-pink-500" />
                       <div>
-                        <h3 className="font-medium text-white capitalize">
+                        <h3 className="font-medium text-gray-900 capitalize">
                           Lovable AI
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
                           {integration.is_active && (
-                            <span className="flex items-center gap-1 text-xs text-green-400">
+                            <span className="flex items-center gap-1 text-xs text-green-600">
                               <CheckCircle className="h-3 w-3" />
                               API Key Configured
                             </span>
@@ -705,7 +705,7 @@ export default function IntegrationsSettingsPage({ params }: { params: { slug: s
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleDelete(integration.id)}
-                        className="p-1.5 rounded hover:bg-red-950/50 transition-colors text-slate-400 hover:text-red-400"
+                        className="p-1.5 rounded hover:bg-red-50 transition-colors text-gray-400 hover:text-red-500"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -717,21 +717,21 @@ export default function IntegrationsSettingsPage({ params }: { params: { slug: s
           )}
 
           {/* Add/Update Lovable API Key */}
-          <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-6">
-            <h3 className="text-md font-semibold text-white mb-4">
+          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <h3 className="text-md font-semibold text-gray-900 mb-4">
               {aiIntegrations.length > 0 ? 'Update Lovable API Key' : 'Add Lovable API Key'}
             </h3>
 
             <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-pink-500/10 border border-pink-500/20">
-                <p className="text-sm text-pink-300">
+              <div className="p-4 rounded-lg bg-pink-50 border border-pink-200">
+                <p className="text-sm text-pink-700">
                   <strong>BYOK (Bring Your Own Key):</strong> You pay for your own Lovable usage directly.
-                  Get your API key from <a href="https://lovable.dev/settings/api" target="_blank" rel="noopener noreferrer" className="underline">lovable.dev/settings/api</a>.
+                  Get your API key from <a href="https://lovable.dev/settings/api" target="_blank" rel="noopener noreferrer" className="underline text-pink-600 hover:text-pink-800">lovable.dev/settings/api</a>.
                 </p>
               </div>
 
               <div>
-                <label htmlFor="lovableApiKey" className="block text-sm font-medium text-slate-300 mb-2">
+                <label htmlFor="lovableApiKey" className="block text-sm font-medium text-gray-700 mb-2">
                   Lovable API Key
                 </label>
                 <input
@@ -740,14 +740,14 @@ export default function IntegrationsSettingsPage({ params }: { params: { slug: s
                   value={lovableApiKey}
                   onChange={(e) => setLovableApiKey(e.target.value)}
                   placeholder="Enter your Lovable API key"
-                  className="w-full px-3 py-2 rounded bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-pink-500"
+                  className="w-full px-3 py-2 rounded border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
                 />
               </div>
 
               <button
                 onClick={handleSaveLovable}
                 disabled={savingLovable || !lovableApiKey}
-                className="w-full px-4 py-2 bg-pink-600 hover:bg-pink-700 disabled:bg-slate-800 disabled:text-slate-600 text-white font-medium rounded transition-colors"
+                className="w-full px-4 py-2 bg-pink-600 hover:bg-pink-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-medium rounded transition-colors"
               >
                 {savingLovable ? 'Saving...' : 'Save API Key'}
               </button>
