@@ -4,6 +4,9 @@
  * Integrates with Lovable AI to generate working prototypes
  * from SignalsLoop specs and PRDs.
  * 
+ * BYOK (Bring Your Own Key): Users configure their own Lovable API key
+ * in project settings → integrations. Falls back to env var if not set.
+ * 
  * Lovable API: https://docs.lovable.dev/api
  */
 
@@ -17,18 +20,44 @@ import type {
 const LOVABLE_API_BASE = 'https://api.lovable.dev/v1';
 
 /**
+ * Get Lovable API key for a project (BYOK)
+ * Priority: 1) Project integration setting, 2) Environment variable
+ */
+async function getLovableApiKey(projectId: string): Promise<string | null> {
+    const supabase = getServiceRoleClient();
+
+    if (supabase) {
+        // Check project integrations for user-provided API key
+        const { data: integration } = await supabase
+            .from('project_integrations')
+            .select('api_key')
+            .eq('project_id', projectId)
+            .eq('provider', 'lovable')
+            .eq('is_active', true)
+            .single();
+
+        if (integration?.api_key) {
+            return integration.api_key;
+        }
+    }
+
+    // Fallback to environment variable
+    return process.env.LOVABLE_API_KEY || null;
+}
+
+/**
  * Generate a prototype from a spec using Lovable
  */
 export async function generatePrototype(
     request: LovableGenerationRequest
 ): Promise<LovableGenerationResult> {
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = await getLovableApiKey(request.projectId);
 
     if (!apiKey) {
-        console.warn('[Lovable] API key not configured');
+        console.warn('[Lovable] API key not configured for project:', request.projectId);
         return {
             success: false,
-            error: 'Lovable API key not configured. Set LOVABLE_API_KEY environment variable.',
+            error: 'Lovable API key not configured. Go to Settings → Integrations to add your Lovable API key.',
             generatedAt: new Date(),
             specId: request.specId
         };
