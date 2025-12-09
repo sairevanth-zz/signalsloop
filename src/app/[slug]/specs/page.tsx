@@ -77,7 +77,9 @@ export default function SpecsPage() {
     loadProject();
   }, [params.slug, router]);
 
-  const { specs, loading, error, refetch } = useSpecs(project?.id || '', {
+  // Only fetch specs when we have a valid project ID
+  const hasProject = !!project?.id;
+  const { specs, loading, error, refetch } = useSpecs(hasProject ? project.id : '', {
     search,
     status: statusFilter !== 'all' ? [statusFilter] : undefined,
   });
@@ -115,6 +117,7 @@ export default function SpecsPage() {
     router.push(`/${params.slug}/specs/${spec.id}?action=export`);
   };
 
+  // Show loading while project is loading OR specs are loading (but only if we have a project)
   if (projectLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -270,9 +273,8 @@ export default function SpecsPage() {
                         {spec.title}
                       </h3>
                       <Badge
-                        className={`${getStatusColorScheme(spec.status).bg} ${
-                          getStatusColorScheme(spec.status).text
-                        }`}
+                        className={`${getStatusColorScheme(spec.status).bg} ${getStatusColorScheme(spec.status).text
+                          }`}
                       >
                         {SPEC_STATUS_LABELS[spec.status]}
                       </Badge>
