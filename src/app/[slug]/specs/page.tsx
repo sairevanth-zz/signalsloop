@@ -5,7 +5,7 @@
  * Shows all specs for a project with filtering and search
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useSpecs, useDeleteSpec, useChangeSpecStatus } from '@/hooks/use-specs';
@@ -77,12 +77,15 @@ export default function SpecsPage() {
     loadProject();
   }, [params.slug, router]);
 
-  // Only fetch specs when we have a valid project ID
-  const hasProject = !!project?.id;
-  const { specs, loading, error, refetch } = useSpecs(hasProject ? project.id : '', {
+  // Memoize filter to prevent infinite re-renders
+  const filter = useMemo(() => ({
     search,
     status: statusFilter !== 'all' ? [statusFilter] : undefined,
-  });
+  }), [search, statusFilter]);
+
+  // Only fetch specs when we have a valid project ID
+  const hasProject = !!project?.id;
+  const { specs, loading, error, refetch } = useSpecs(hasProject ? project.id : '', filter);
 
   const { deleteSpec, deleting } = useDeleteSpec();
   const { changeStatus } = useChangeSpecStatus();
