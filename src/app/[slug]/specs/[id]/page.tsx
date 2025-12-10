@@ -29,6 +29,7 @@ import {
   AlertTriangle,
   Sparkles,
   Loader2,
+  Rocket,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -37,6 +38,7 @@ import type { SpecStatus } from '@/types/specs';
 import { getStatusColorScheme, SPEC_STATUS_LABELS } from '@/types/specs';
 import { downloadMarkdown } from '@/lib/specs/export';
 import { PreMortemCard } from '@/components/analysis/PreMortemCard';
+import { MakeItRealModal } from '@/components/specs/MakeItRealModal';
 import type { PreMortemAnalysis } from '@/types/pre-mortem';
 
 export default function SpecViewPage() {
@@ -61,6 +63,7 @@ export default function SpecViewPage() {
   const [runningPreMortem, setRunningPreMortem] = useState(false);
   const [generatingPrototype, setGeneratingPrototype] = useState(false);
   const [showPreMortem, setShowPreMortem] = useState(false);
+  const [showMakeItReal, setShowMakeItReal] = useState(false);
 
   // Load project data
   React.useEffect(() => {
@@ -325,6 +328,16 @@ export default function SpecViewPage() {
                     Prototype
                   </Button>
 
+                  {/* Make It Real Button */}
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowMakeItReal(true)}
+                    className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+                  >
+                    <Rocket className="h-4 w-4 mr-2" />
+                    Make It Real
+                  </Button>
+
                   <Button variant="outline" onClick={handleExport}>
                     <Download className="h-4 w-4 mr-2" />
                     Export
@@ -470,6 +483,18 @@ export default function SpecViewPage() {
           </div>
         )}
       </div>
+
+      {/* Make It Real Modal */}
+      {spec && project && (
+        <MakeItRealModal
+          open={showMakeItReal}
+          onOpenChange={setShowMakeItReal}
+          specId={spec.id}
+          specTitle={spec.title}
+          projectId={project.id}
+        />
+      )}
     </div>
   );
 }
+

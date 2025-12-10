@@ -25,6 +25,7 @@ import { CommandBar, CommandBarCompact } from './CommandBar';
 import { FloatingAskAI } from './FloatingAskAI';
 import { DashboardTabs } from './DashboardTabs';
 import { RoadmapAdjustmentBanner } from '@/components/roadmap/RoadmapAdjustmentBanner';
+import { StrategyShiftsCard } from './StrategyShiftsCard';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import type { DailyBriefingContent, DashboardMetrics } from '@/lib/ai/mission-control';
 
@@ -151,6 +152,14 @@ export function MissionControlGrid({
               anomalyCount={anomalyCount}
             />
           </div>
+        </div>
+
+        {/* Row 4: Strategy Shifts - Live Strategy Co-Pilot */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <StrategyShiftsCard
+            projectId={projectId}
+            projectSlug={projectSlug}
+          />
         </div>
 
         {/* Row 6: Deep-Dive Tabs */}
