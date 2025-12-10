@@ -44,7 +44,7 @@ export default function NewSpecPage() {
   const [template, setTemplate] = useState<SpecTemplate>('standard');
   const [feedbackIds, setFeedbackIds] = useState<string[]>([]);
   const [intentMode, setIntentMode] = useState(false);
-  const [evidenceContext, setEvidenceContext] = useState<{ ids: string[], summary: string }>({ ids: [], summary: '' });
+  const [evidenceContext, setEvidenceContext] = useState<{ titles: string[], summary: string }>({ titles: [], summary: '' });
 
   // Load project data
   React.useEffect(() => {
@@ -103,10 +103,11 @@ export default function NewSpecPage() {
       setIntentMode(true);
 
       if (evidenceParam) {
-        const ids = evidenceParam.split(',').filter(id => id.trim());
+        // Evidence is now passed as titles separated by |||
+        const titles = decodeURIComponent(evidenceParam).split('|||').filter(t => t.trim());
         setEvidenceContext({
-          ids,
-          summary: `Found ${ids.length} related evidence items`
+          titles,
+          summary: `Found ${titles.length} related evidence items`
         });
       }
     }
@@ -137,8 +138,8 @@ export default function NewSpecPage() {
         includePersonas: [],
         includeCompetitors: [],
         // Pass evidence context for intent-based generation via customContext
-        customContext: intentMode && evidenceContext.ids.length > 0
-          ? `[INTENT-DRIVEN SPEC] This spec is based on user intent with ${evidenceContext.ids.length} supporting evidence items. Evidence IDs: ${evidenceContext.ids.join(', ')}. Please incorporate insights from this evidence into the PRD, citing specific user feedback where relevant.`
+        customContext: intentMode && evidenceContext.titles.length > 0
+          ? `[INTENT-DRIVEN SPEC] This spec is based on user intent with supporting evidence from user feedback. The following user requests inspired this spec:\n${evidenceContext.titles.map((t, i) => `${i + 1}. "${t}"`).join('\n')}\n\nPlease incorporate insights from this user feedback into the PRD. Reference specific requests where relevant in the Problem Statement and User Stories sections.`
           : undefined,
       },
     };
@@ -269,9 +270,9 @@ export default function NewSpecPage() {
                       </h4>
                       <p className="text-sm text-purple-700 dark:text-purple-300">
                         Your intent has been captured. The AI will use this context to generate a targeted spec.
-                        {evidenceContext.ids.length > 0 && (
+                        {evidenceContext.titles.length > 0 && (
                           <span className="block mt-1">
-                            📎 {evidenceContext.ids.length} related evidence items will be included.
+                            📎 {evidenceContext.titles.length} related evidence items will be included.
                           </span>
                         )}
                       </p>

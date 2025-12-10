@@ -127,9 +127,9 @@ export default function SpecsPage() {
 
   // Handle spec generation from intent
   const handleGenerateFromIntent = async (intent: string, evidence: EvidenceThread[]) => {
-    // Navigate to new spec page with intent and evidence as query params
-    const evidenceIds = evidence.map(e => e.sourceId).join(',');
-    router.push(`/${params?.slug}/specs/new?intent=${encodeURIComponent(intent)}&evidence=${evidenceIds}`);
+    // Pass evidence titles (not IDs) so the AI can reference them meaningfully
+    const evidenceTitles = evidence.map(e => e.title).join('|||');
+    router.push(`/${params?.slug}/specs/new?intent=${encodeURIComponent(intent)}&evidence=${encodeURIComponent(evidenceTitles)}`);
   };
 
   // Show loading while project is loading OR specs are loading (but only if we have a project)
