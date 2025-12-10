@@ -36,6 +36,8 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import type { Spec, SpecStatus } from '@/types/specs';
 import { getStatusColorScheme, SPEC_STATUS_LABELS } from '@/types/specs';
+import { IntentCaptureModal } from '@/components/specs/IntentCaptureModal';
+import type { EvidenceThread } from '@/lib/specs/evidence-thread-service';
 
 export default function SpecsPage() {
   const params = useParams();
@@ -46,6 +48,7 @@ export default function SpecsPage() {
   const [projectLoading, setProjectLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<SpecStatus | 'all'>('all');
+  const [showIntentModal, setShowIntentModal] = useState(false);
 
   // Load project data
   React.useEffect(() => {
@@ -122,6 +125,13 @@ export default function SpecsPage() {
     router.push(`/${params.slug}/specs/${spec.id}?action=export`);
   };
 
+  // Handle spec generation from intent
+  const handleGenerateFromIntent = async (intent: string, evidence: EvidenceThread[]) => {
+    // Navigate to new spec page with intent and evidence as query params
+    const evidenceIds = evidence.map(e => e.sourceId).join(',');
+    router.push(`/${params?.slug}/specs/new?intent=${encodeURIComponent(intent)}&evidence=${evidenceIds}`);
+  };
+
   // Show loading while project is loading OR specs are loading (but only if we have a project)
   if (projectLoading) {
     return (
@@ -173,12 +183,22 @@ export default function SpecsPage() {
                 Transform ideas into comprehensive PRDs in minutes, not hours.
               </p>
             </div>
-            <Link href={`/${params.slug}/specs/new`}>
-              <Button className="bg-purple-600 hover:bg-purple-700">
-                <Plus className="h-4 w-4 mr-2" />
-                New Spec
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowIntentModal(true)}
+                className="border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:hover:bg-purple-950"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Start from Intent
               </Button>
-            </Link>
+              <Link href={`/${params?.slug}/specs/new`}>
+                <Button className="bg-purple-600 hover:bg-purple-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Spec
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Stats */}
@@ -367,6 +387,17 @@ export default function SpecsPage() {
           </div>
         )}
       </div>
+
+      {/* Intent Capture Modal */}
+      {project && (
+        <IntentCaptureModal
+          open={showIntentModal}
+          onOpenChange={setShowIntentModal}
+          projectId={project.id}
+          projectSlug={project.slug}
+          onGenerateSpec={handleGenerateFromIntent}
+        />
+      )}
     </div>
   );
 }
