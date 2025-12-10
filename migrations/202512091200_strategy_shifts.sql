@@ -1,8 +1,11 @@
 -- Strategy Shifts for Autonomous Product OS
 -- Stores strategy recommendations and their status
 
+-- Drop existing table if it exists (for clean migration)
+DROP TABLE IF EXISTS strategy_shifts CASCADE;
+
 -- Strategy Shifts table
-CREATE TABLE IF NOT EXISTS strategy_shifts (
+CREATE TABLE strategy_shifts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   
@@ -36,15 +39,21 @@ CREATE TABLE IF NOT EXISTS strategy_shifts (
 );
 
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_strategy_shifts_project_status 
+CREATE INDEX idx_strategy_shifts_project_status 
   ON strategy_shifts(project_id, status);
-CREATE INDEX IF NOT EXISTS idx_strategy_shifts_created 
+CREATE INDEX idx_strategy_shifts_created 
   ON strategy_shifts(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_strategy_shifts_expires 
+CREATE INDEX idx_strategy_shifts_expires 
   ON strategy_shifts(expires_at) WHERE status = 'proposed';
 
 -- RLS
 ALTER TABLE strategy_shifts ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view their project shifts" ON strategy_shifts;
+DROP POLICY IF EXISTS "Users can create shifts for their projects" ON strategy_shifts;
+DROP POLICY IF EXISTS "Users can update their project shifts" ON strategy_shifts;
+DROP POLICY IF EXISTS "Service role full access to strategy_shifts" ON strategy_shifts;
 
 -- Policy: Users can view shifts for projects they own
 CREATE POLICY "Users can view their project shifts"
@@ -78,8 +87,12 @@ CREATE POLICY "Service role full access to strategy_shifts"
   ON strategy_shifts FOR ALL
   USING (auth.jwt() ->> 'role' = 'service_role');
 
+-- Drop existing trigger and function if they exist
+DROP TRIGGER IF EXISTS trigger_strategy_shifts_updated_at ON strategy_shifts;
+DROP FUNCTION IF EXISTS update_strategy_shifts_updated_at();
+
 -- Updated_at trigger
-CREATE OR REPLACE FUNCTION update_strategy_shifts_updated_at()
+CREATE FUNCTION update_strategy_shifts_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -91,3 +104,4 @@ CREATE TRIGGER trigger_strategy_shifts_updated_at
   BEFORE UPDATE ON strategy_shifts
   FOR EACH ROW
   EXECUTE FUNCTION update_strategy_shifts_updated_at();
+
