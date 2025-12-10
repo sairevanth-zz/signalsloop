@@ -6,11 +6,9 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { OpenAI } from 'openai';
 
 // Lazy initialization
 let _supabase: SupabaseClient | null = null;
-let _openai: OpenAI | null = null;
 
 function getSupabase(): SupabaseClient {
     if (!_supabase) {
@@ -20,13 +18,6 @@ function getSupabase(): SupabaseClient {
         );
     }
     return _supabase;
-}
-
-function getOpenAI(): OpenAI {
-    if (!_openai) {
-        _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    }
-    return _openai;
 }
 
 export type EvidenceType = 'feedback' | 'competitor' | 'metric' | 'churn_signal' | 'theme';
@@ -57,18 +48,6 @@ export interface GatherEvidenceResponse {
 }
 
 /**
- * Generate embedding for intent text
- */
-async function generateEmbedding(text: string): Promise<number[]> {
-    const openai = getOpenAI();
-    const response = await openai.embeddings.create({
-        model: 'text-embedding-3-small',
-        input: text,
-    });
-    return response.data[0].embedding;
-}
-
-/**
  * Gather evidence related to the user's intent
  */
 export async function gatherEvidence(
@@ -78,41 +57,107 @@ export async function gatherEvidence(
     const supabase = getSupabase();
     const evidence: EvidenceThread[] = [];
 
-    // Extract key search terms from intent
-    const searchTerms = intent
-        .toLowerCase()
-        .replace(/[^\w\s]/g, '')
-        .split(/\s+/)
-        .filter(word => word.length > 3)
-        .slice(0, 5);
+    console.log('[EvidenceService] Gathering evidence for:', { projectId, intent });
 
     try {
-        // 1. Search feedback themes by name/keywords matching
+        // 1. Get ALL recent posts and filter client-side (most reliable approach)
         try {
-            // Build OR conditions for theme name matching
-            let themeQuery = supabase
-                .from('feedback_themes')
-                .select('id, name, feedback_count, sentiment_score, keywords, created_at')
-                .eq('project_id', projectId);
+            console.log('[EvidenceService] Fetching posts for project:', projectId);
 
-            // Search with ILIKE for each term
-            if (searchTerms.length > 0) {
-                const orConditions = searchTerms.map(term => `name.ilike.%${term}%`).join(',');
-                themeQuery = themeQuery.or(orConditions);
+            const { data: allPosts, error: postsError } = await supabase
+                .from('posts')
+                .select('id, title, content, vote_count, status, created_at')
+                .eq('project_id', projectId)
+                .order('vote_count', { ascending: false })
+                .limit(50);
+
+            if (postsError) {
+                console.error('[EvidenceService] Error fetching posts:', postsError);
             }
 
-            const { data: themes, error: themeError } = await themeQuery
-                .order('feedback_count', { ascending: false })
-                .limit(5);
+            console.log('[EvidenceService] Found posts:', allPosts?.length || 0);
 
-            if (themes && themes.length > 0) {
-                themes.forEach((theme: any) => {
+            if (allPosts && allPosts.length > 0) {
+                // Client-side filtering by intent keywords
+                const intentLower = intent.toLowerCase();
+                const keywords = intentLower
+                    .replace(/[^\w\s]/g, '')
+                    .split(/\s+/)
+                    .filter(word => word.length > 2);
+
+                console.log('[EvidenceService] Search keywords:', keywords);
+
+                const matchingPosts = allPosts.filter(post => {
+                    const titleLower = (post.title || '').toLowerCase();
+                    const contentLower = (post.content || '').toLowerCase();
+
+                    // Check if any keyword matches title or content
+                    return keywords.some(keyword =>
+                        titleLower.includes(keyword) || contentLower.includes(keyword)
+                    );
+                });
+
+                console.log('[EvidenceService] Matching posts:', matchingPosts.length);
+
+                matchingPosts.slice(0, 5).forEach((post: any) => {
+                    evidence.push({
+                        id: `feedback-${post.id}`,
+                        type: 'feedback',
+                        title: post.title || 'User Feedback',
+                        summary: (post.content || '').substring(0, 150) + '...',
+                        relevance: 0.8,
+                        sourceId: post.id,
+                        details: {
+                            votes: post.vote_count,
+                            status: post.status,
+                            fullContent: post.content,
+                        },
+                        createdAt: new Date(post.created_at),
+                    });
+                });
+            }
+        } catch (e) {
+            console.error('[EvidenceService] Error in posts search:', e);
+        }
+
+        // 2. Get feedback themes (if table exists)
+        try {
+            console.log('[EvidenceService] Fetching themes for project:', projectId);
+
+            const { data: allThemes, error: themesError } = await supabase
+                .from('feedback_themes')
+                .select('id, name, feedback_count, sentiment_score, keywords, created_at')
+                .eq('project_id', projectId)
+                .order('feedback_count', { ascending: false })
+                .limit(20);
+
+            if (themesError) {
+                console.error('[EvidenceService] Error fetching themes:', themesError);
+            }
+
+            console.log('[EvidenceService] Found themes:', allThemes?.length || 0);
+
+            if (allThemes && allThemes.length > 0) {
+                const intentLower = intent.toLowerCase();
+                const keywords = intentLower
+                    .replace(/[^\w\s]/g, '')
+                    .split(/\s+/)
+                    .filter(word => word.length > 2);
+
+                const matchingThemes = allThemes.filter(theme => {
+                    const nameLower = (theme.name || '').toLowerCase();
+                    return keywords.some(keyword => nameLower.includes(keyword));
+                });
+
+                console.log('[EvidenceService] Matching themes:', matchingThemes.length);
+
+                matchingThemes.slice(0, 3).forEach((theme: any) => {
                     evidence.push({
                         id: `theme-${theme.id}`,
                         type: 'theme',
                         title: theme.name || 'Unnamed Theme',
                         summary: `${theme.feedback_count || 0} mentions, sentiment: ${(theme.sentiment_score || 0).toFixed(2)}`,
-                        relevance: 0.8,
+                        relevance: 0.75,
                         sourceId: theme.id,
                         details: {
                             feedbackCount: theme.feedback_count,
@@ -124,76 +169,7 @@ export async function gatherEvidence(
                 });
             }
         } catch (e) {
-            console.error('Error searching themes:', e);
-        }
-
-        // 2. Get relevant feedback posts using ILIKE search
-        try {
-            // Try each search term and collect results
-            for (const term of searchTerms.slice(0, 3)) {
-                const { data: posts, error } = await supabase
-                    .from('posts')
-                    .select('id, title, content, votes, status, created_at')
-                    .eq('project_id', projectId)
-                    .or(`title.ilike.%${term}%,content.ilike.%${term}%`)
-                    .order('votes', { ascending: false })
-                    .limit(3);
-
-                if (posts && posts.length > 0) {
-                    posts.forEach((post: any) => {
-                        // Avoid duplicates
-                        if (!evidence.find(e => e.id === `feedback-${post.id}`)) {
-                            evidence.push({
-                                id: `feedback-${post.id}`,
-                                type: 'feedback',
-                                title: post.title || 'User Feedback',
-                                summary: (post.content || '').substring(0, 150) + '...',
-                                relevance: 0.75,
-                                sourceId: post.id,
-                                details: {
-                                    votes: post.votes,
-                                    status: post.status,
-                                    fullContent: post.content,
-                                },
-                                createdAt: new Date(post.created_at),
-                            });
-                        }
-                    });
-                }
-            }
-
-            // Also try full intent as a phrase (first 50 chars)
-            const phraseSearch = intent.substring(0, 50).replace(/'/g, "''");
-            const { data: phrasePosts } = await supabase
-                .from('posts')
-                .select('id, title, content, votes, status, created_at')
-                .eq('project_id', projectId)
-                .or(`title.ilike.%${phraseSearch}%,content.ilike.%${phraseSearch}%`)
-                .order('votes', { ascending: false })
-                .limit(3);
-
-            if (phrasePosts && phrasePosts.length > 0) {
-                phrasePosts.forEach((post: any) => {
-                    if (!evidence.find(e => e.id === `feedback-${post.id}`)) {
-                        evidence.push({
-                            id: `feedback-${post.id}`,
-                            type: 'feedback',
-                            title: post.title || 'User Feedback',
-                            summary: (post.content || '').substring(0, 150) + '...',
-                            relevance: 0.85,
-                            sourceId: post.id,
-                            details: {
-                                votes: post.votes,
-                                status: post.status,
-                                fullContent: post.content,
-                            },
-                            createdAt: new Date(post.created_at),
-                        });
-                    }
-                });
-            }
-        } catch (e) {
-            console.error('Error searching feedback:', e);
+            console.error('[EvidenceService] Error searching themes:', e);
         }
 
         // 3. Get competitor intel (keep existing logic)
@@ -222,7 +198,7 @@ export async function gatherEvidence(
                 });
             }
         } catch (e) {
-            console.error('Error fetching competitor intel:', e);
+            console.error('[EvidenceService] Error fetching competitor intel:', e);
         }
 
         // 4. Get churn signals (keep existing logic)
@@ -250,12 +226,14 @@ export async function gatherEvidence(
                 });
             }
         } catch (e) {
-            console.error('Error fetching churn signals:', e);
+            console.error('[EvidenceService] Error fetching churn signals:', e);
         }
 
         // Sort by relevance and limit
         evidence.sort((a, b) => b.relevance - a.relevance);
         const limitedEvidence = evidence.slice(0, limit);
+
+        console.log('[EvidenceService] Total evidence found:', evidence.length);
 
         return {
             success: true,
@@ -263,7 +241,7 @@ export async function gatherEvidence(
             totalFound: evidence.length,
         };
     } catch (error) {
-        console.error('Error gathering evidence:', error);
+        console.error('[EvidenceService] Error gathering evidence:', error);
         return {
             success: false,
             evidence: [],
@@ -303,3 +281,4 @@ export async function refreshEvidenceForSpec(
 
     return gatherEvidence({ projectId, intent });
 }
+
