@@ -80,32 +80,55 @@ export async function gatherEvidence(
             if (allPosts && allPosts.length > 0) {
                 // Client-side filtering by intent keywords
                 const intentLower = intent.toLowerCase();
+                // Use longer keywords (>3 chars) for better precision
                 const keywords = intentLower
                     .replace(/[^\w\s]/g, '')
                     .split(/\s+/)
-                    .filter(word => word.length > 2);
+                    .filter(word => word.length > 3);
 
                 console.log('[EvidenceService] Search keywords:', keywords);
 
-                const matchingPosts = allPosts.filter(post => {
+                // Score posts by how many keywords they match
+                const scoredPosts = allPosts.map(post => {
                     const titleLower = (post.title || '').toLowerCase();
                     const contentLower = (post.content || '').toLowerCase();
+                    const combined = titleLower + ' ' + contentLower;
 
-                    // Check if any keyword matches title or content
-                    return keywords.some(keyword =>
-                        titleLower.includes(keyword) || contentLower.includes(keyword)
-                    );
+                    // Count matching keywords
+                    let matchCount = 0;
+                    let titleMatches = 0;
+                    for (const keyword of keywords) {
+                        if (combined.includes(keyword)) {
+                            matchCount++;
+                            if (titleLower.includes(keyword)) {
+                                titleMatches++; // Title matches are more valuable
+                            }
+                        }
+                    }
+
+                    // Calculate relevance score (0-1)
+                    // Higher if more keywords match, bonus for title matches
+                    const baseScore = keywords.length > 0 ? matchCount / keywords.length : 0;
+                    const titleBonus = titleMatches * 0.1;
+                    const relevance = Math.min(0.95, baseScore * 0.7 + titleBonus + 0.2);
+
+                    return { post, matchCount, relevance };
                 });
+
+                // Filter to posts with at least 1 match and sort by match count
+                const matchingPosts = scoredPosts
+                    .filter(p => p.matchCount > 0)
+                    .sort((a, b) => b.matchCount - a.matchCount || b.relevance - a.relevance);
 
                 console.log('[EvidenceService] Matching posts:', matchingPosts.length);
 
-                matchingPosts.slice(0, 5).forEach((post: any) => {
+                matchingPosts.slice(0, 5).forEach(({ post, relevance }) => {
                     evidence.push({
                         id: `feedback-${post.id}`,
                         type: 'feedback',
                         title: post.title || 'User Feedback',
                         summary: (post.content || '').substring(0, 150) + '...',
-                        relevance: 0.8,
+                        relevance: Math.round(relevance * 100) / 100, // Clean up decimal
                         sourceId: post.id,
                         details: {
                             votes: post.vote_count,

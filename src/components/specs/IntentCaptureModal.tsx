@@ -175,28 +175,43 @@ export function IntentCaptureModal({
                                     No matching evidence found. You can still generate a spec.
                                 </p>
                             ) : (
-                                <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto p-2 bg-slate-800/50 rounded-lg">
-                                    {evidence.map((item) => (
-                                        <div
-                                            key={item.id}
-                                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${EVIDENCE_COLORS[item.type]}`}
-                                        >
-                                            {EVIDENCE_ICONS[item.type]}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium truncate">{item.title}</p>
-                                                <p className="text-xs opacity-70 truncate">{item.summary}</p>
-                                            </div>
-                                            <Badge variant="outline" className="text-xs border-slate-600">
-                                                {(item.relevance * 100).toFixed(0)}%
-                                            </Badge>
-                                            <button
-                                                onClick={() => removeEvidence(item.id)}
-                                                className="p-1 hover:bg-slate-700 rounded"
+                                <div className="space-y-2 max-h-[200px] overflow-y-auto p-2 bg-slate-800/50 rounded-lg">
+                                    {evidence.map((item) => {
+                                        // Color badge based on relevance
+                                        const relevancePercent = Math.round(item.relevance * 100);
+                                        let badgeClass = 'bg-slate-600 text-white';
+                                        if (relevancePercent >= 80) {
+                                            badgeClass = 'bg-green-600 text-white';
+                                        } else if (relevancePercent >= 60) {
+                                            badgeClass = 'bg-blue-600 text-white';
+                                        } else if (relevancePercent >= 40) {
+                                            badgeClass = 'bg-amber-600 text-white';
+                                        }
+
+                                        return (
+                                            <div
+                                                key={item.id}
+                                                className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-700/50 border border-slate-600"
                                             >
-                                                <X className="w-3 h-3" />
-                                            </button>
-                                        </div>
-                                    ))}
+                                                <div className="flex-shrink-0 text-blue-400">
+                                                    {EVIDENCE_ICONS[item.type]}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-white truncate">{item.title}</p>
+                                                    <p className="text-xs text-slate-400 truncate">{item.summary}</p>
+                                                </div>
+                                                <Badge className={`text-xs ${badgeClass}`}>
+                                                    {relevancePercent}%
+                                                </Badge>
+                                                <button
+                                                    onClick={() => removeEvidence(item.id)}
+                                                    className="flex-shrink-0 p-1 hover:bg-slate-600 rounded text-slate-400 hover:text-white"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
