@@ -43,6 +43,8 @@ export default function NewSpecPage() {
   const [idea, setIdea] = useState('');
   const [template, setTemplate] = useState<SpecTemplate>('standard');
   const [feedbackIds, setFeedbackIds] = useState<string[]>([]);
+  const [intentMode, setIntentMode] = useState(false);
+  const [evidenceContext, setEvidenceContext] = useState<{ ids: string[], summary: string }>({ ids: [], summary: '' });
 
   // Load project data
   React.useEffect(() => {
@@ -91,6 +93,23 @@ export default function NewSpecPage() {
         }
       }
     }
+
+    // Check if coming from Intent Capture Modal
+    const intentParam = searchParams.get('intent');
+    const evidenceParam = searchParams.get('evidence');
+
+    if (intentParam) {
+      setIdea(decodeURIComponent(intentParam));
+      setIntentMode(true);
+
+      if (evidenceParam) {
+        const ids = evidenceParam.split(',').filter(id => id.trim());
+        setEvidenceContext({
+          ids,
+          summary: `Found ${ids.length} related evidence items`
+        });
+      }
+    }
   }, [searchParams]);
 
   // Generation hook
@@ -117,6 +136,10 @@ export default function NewSpecPage() {
         includePatterns: [],
         includePersonas: [],
         includeCompetitors: [],
+        // Pass evidence context for intent-based generation via customContext
+        customContext: intentMode && evidenceContext.ids.length > 0
+          ? `[INTENT-DRIVEN SPEC] This spec is based on user intent with ${evidenceContext.ids.length} supporting evidence items. Evidence IDs: ${evidenceContext.ids.join(', ')}. Please incorporate insights from this evidence into the PRD, citing specific user feedback where relevant.`
+          : undefined,
       },
     };
 
@@ -184,11 +207,10 @@ export default function NewSpecPage() {
           <div className="flex items-center justify-center space-x-4 mt-6">
             <div className="flex items-center">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  step === 'input'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-green-500 text-white'
-                }`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'input'
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-green-500 text-white'
+                  }`}
               >
                 {step !== 'input' ? <Check className="h-5 w-5" /> : '1'}
               </div>
@@ -199,13 +221,12 @@ export default function NewSpecPage() {
 
             <div className="flex items-center">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  step === 'generating'
-                    ? 'bg-purple-600 text-white'
-                    : step === 'complete'
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'generating'
+                  ? 'bg-purple-600 text-white'
+                  : step === 'complete'
                     ? 'bg-green-500 text-white'
                     : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
-                }`}
+                  }`}
               >
                 {step === 'complete' ? <Check className="h-5 w-5" /> : '2'}
               </div>
@@ -216,11 +237,10 @@ export default function NewSpecPage() {
 
             <div className="flex items-center">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  step === 'complete'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
-                }`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'complete'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+                  }`}
               >
                 {step === 'complete' ? <Check className="h-5 w-5" /> : '3'}
               </div>
@@ -238,6 +258,28 @@ export default function NewSpecPage() {
               <CardTitle>What do you want to build?</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Intent Mode Notice */}
+              {intentMode && (
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <div className="flex items-start space-x-3">
+                    <Sparkles className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-purple-900 dark:text-purple-100 mb-1">
+                        🎯 Intent-Driven Spec Generation
+                      </h4>
+                      <p className="text-sm text-purple-700 dark:text-purple-300">
+                        Your intent has been captured. The AI will use this context to generate a targeted spec.
+                        {evidenceContext.ids.length > 0 && (
+                          <span className="block mt-1">
+                            📎 {evidenceContext.ids.length} related evidence items will be included.
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Feedback Mode Notice */}
               {feedbackIds.length > 0 && (
                 <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
@@ -282,11 +324,10 @@ export default function NewSpecPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     onClick={() => setTemplate('standard')}
-                    className={`p-4 border-2 rounded-lg text-left transition-colors ${
-                      template === 'standard'
-                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                    }`}
+                    className={`p-4 border-2 rounded-lg text-left transition-colors ${template === 'standard'
+                      ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                      }`}
                   >
                     <div className="font-medium mb-1">📄 Standard PRD</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -296,11 +337,10 @@ export default function NewSpecPage() {
 
                   <button
                     onClick={() => setTemplate('feature-launch')}
-                    className={`p-4 border-2 rounded-lg text-left transition-colors ${
-                      template === 'feature-launch'
-                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                    }`}
+                    className={`p-4 border-2 rounded-lg text-left transition-colors ${template === 'feature-launch'
+                      ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                      }`}
                   >
                     <div className="font-medium mb-1">🚀 Feature Launch</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -310,11 +350,10 @@ export default function NewSpecPage() {
 
                   <button
                     onClick={() => setTemplate('bug-fix')}
-                    className={`p-4 border-2 rounded-lg text-left transition-colors ${
-                      template === 'bug-fix'
-                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                    }`}
+                    className={`p-4 border-2 rounded-lg text-left transition-colors ${template === 'bug-fix'
+                      ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                      }`}
                   >
                     <div className="font-medium mb-1">🐛 Bug Fix</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -324,11 +363,10 @@ export default function NewSpecPage() {
 
                   <button
                     onClick={() => setTemplate('api-spec')}
-                    className={`p-4 border-2 rounded-lg text-left transition-colors ${
-                      template === 'api-spec'
-                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                    }`}
+                    className={`p-4 border-2 rounded-lg text-left transition-colors ${template === 'api-spec'
+                      ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                      }`}
                   >
                     <div className="font-medium mb-1">🔌 API Spec</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
