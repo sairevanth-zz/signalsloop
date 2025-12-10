@@ -118,6 +118,9 @@ export default function SpecViewPage() {
     } else if (action === 'prototype' && !generatingPrototype) {
       // Auto-trigger prototype
       handleGeneratePrototype();
+    } else if (action === 'makeitreal' && !showMakeItReal) {
+      // Auto-open Make It Real modal
+      setShowMakeItReal(true);
     }
   }, [searchParams, spec, project]);
 

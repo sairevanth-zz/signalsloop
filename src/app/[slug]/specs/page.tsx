@@ -24,6 +24,7 @@ import {
   MoreVertical,
   Sparkles,
   AlertTriangle,
+  Rocket,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -342,6 +343,18 @@ export default function SpecsPage() {
                       </Button>
                     </Link>
                   </div>
+
+                  {/* Make It Real */}
+                  <Link href={`/${params?.slug}/specs/${spec.id}?action=makeitreal`} className="block mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-green-600 border-green-300 hover:bg-green-50 dark:text-green-400 dark:border-green-600 dark:hover:bg-green-950"
+                    >
+                      <Rocket className="h-3 w-3 mr-1" />
+                      Make It Real
+                    </Button>
+                  </Link>
 
                   <Link href={`/${params?.slug}/specs/${spec.id}`}>
                     <Button variant="outline" className="w-full mt-2">
