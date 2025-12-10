@@ -78,18 +78,32 @@ export async function gatherEvidence(
     const supabase = getSupabase();
     const evidence: EvidenceThread[] = [];
 
-    try {
-        // Generate embedding for intent
-        const intentEmbedding = await generateEmbedding(intent);
+    // Extract key search terms from intent
+    const searchTerms = intent
+        .toLowerCase()
+        .replace(/[^\w\s]/g, '')
+        .split(/\s+/)
+        .filter(word => word.length > 3)
+        .slice(0, 5);
 
-        // 1. Search feedback themes by embedding similarity
+    try {
+        // 1. Search feedback themes by name/keywords matching
         try {
-            const { data: themes } = await supabase.rpc('match_feedback_themes', {
-                query_embedding: intentEmbedding,
-                match_threshold: 0.5,
-                match_count: 5,
-                p_project_id: projectId,
-            });
+            // Build OR conditions for theme name matching
+            let themeQuery = supabase
+                .from('feedback_themes')
+                .select('id, name, feedback_count, sentiment_score, keywords, created_at')
+                .eq('project_id', projectId);
+
+            // Search with ILIKE for each term
+            if (searchTerms.length > 0) {
+                const orConditions = searchTerms.map(term => `name.ilike.%${term}%`).join(',');
+                themeQuery = themeQuery.or(orConditions);
+            }
+
+            const { data: themes, error: themeError } = await themeQuery
+                .order('feedback_count', { ascending: false })
+                .limit(5);
 
             if (themes && themes.length > 0) {
                 themes.forEach((theme: any) => {
@@ -98,7 +112,7 @@ export async function gatherEvidence(
                         type: 'theme',
                         title: theme.name || 'Unnamed Theme',
                         summary: `${theme.feedback_count || 0} mentions, sentiment: ${(theme.sentiment_score || 0).toFixed(2)}`,
-                        relevance: theme.similarity || 0.5,
+                        relevance: 0.8,
                         sourceId: theme.id,
                         details: {
                             feedbackCount: theme.feedback_count,
@@ -110,69 +124,79 @@ export async function gatherEvidence(
                 });
             }
         } catch (e) {
-            console.log('Theme search not available, falling back to text search');
-
-            // Fallback: text search on themes
-            const { data: themes } = await supabase
-                .from('feedback_themes')
-                .select('id, name, feedback_count, sentiment_score, keywords, created_at')
-                .eq('project_id', projectId)
-                .order('feedback_count', { ascending: false })
-                .limit(5);
-
-            if (themes) {
-                themes.forEach((theme: any) => {
-                    evidence.push({
-                        id: `theme-${theme.id}`,
-                        type: 'theme',
-                        title: theme.name || 'Unnamed Theme',
-                        summary: `${theme.feedback_count || 0} mentions, sentiment: ${(theme.sentiment_score || 0).toFixed(2)}`,
-                        relevance: 0.6,
-                        sourceId: theme.id,
-                        details: {
-                            feedbackCount: theme.feedback_count,
-                            sentimentScore: theme.sentiment_score,
-                            keywords: theme.keywords,
-                        },
-                        createdAt: new Date(theme.created_at),
-                    });
-                });
-            }
+            console.error('Error searching themes:', e);
         }
 
-        // 2. Get relevant feedback posts
+        // 2. Get relevant feedback posts using ILIKE search
         try {
-            const { data: posts } = await supabase
+            // Try each search term and collect results
+            for (const term of searchTerms.slice(0, 3)) {
+                const { data: posts, error } = await supabase
+                    .from('posts')
+                    .select('id, title, content, votes, status, created_at')
+                    .eq('project_id', projectId)
+                    .or(`title.ilike.%${term}%,content.ilike.%${term}%`)
+                    .order('votes', { ascending: false })
+                    .limit(3);
+
+                if (posts && posts.length > 0) {
+                    posts.forEach((post: any) => {
+                        // Avoid duplicates
+                        if (!evidence.find(e => e.id === `feedback-${post.id}`)) {
+                            evidence.push({
+                                id: `feedback-${post.id}`,
+                                type: 'feedback',
+                                title: post.title || 'User Feedback',
+                                summary: (post.content || '').substring(0, 150) + '...',
+                                relevance: 0.75,
+                                sourceId: post.id,
+                                details: {
+                                    votes: post.votes,
+                                    status: post.status,
+                                    fullContent: post.content,
+                                },
+                                createdAt: new Date(post.created_at),
+                            });
+                        }
+                    });
+                }
+            }
+
+            // Also try full intent as a phrase (first 50 chars)
+            const phraseSearch = intent.substring(0, 50).replace(/'/g, "''");
+            const { data: phrasePosts } = await supabase
                 .from('posts')
                 .select('id, title, content, votes, status, created_at')
                 .eq('project_id', projectId)
-                .textSearch('content', intent.split(' ').slice(0, 5).join(' | '))
+                .or(`title.ilike.%${phraseSearch}%,content.ilike.%${phraseSearch}%`)
                 .order('votes', { ascending: false })
-                .limit(5);
+                .limit(3);
 
-            if (posts && posts.length > 0) {
-                posts.forEach((post: any) => {
-                    evidence.push({
-                        id: `feedback-${post.id}`,
-                        type: 'feedback',
-                        title: post.title || 'User Feedback',
-                        summary: (post.content || '').substring(0, 150) + '...',
-                        relevance: 0.7,
-                        sourceId: post.id,
-                        details: {
-                            votes: post.votes,
-                            status: post.status,
-                            fullContent: post.content,
-                        },
-                        createdAt: new Date(post.created_at),
-                    });
+            if (phrasePosts && phrasePosts.length > 0) {
+                phrasePosts.forEach((post: any) => {
+                    if (!evidence.find(e => e.id === `feedback-${post.id}`)) {
+                        evidence.push({
+                            id: `feedback-${post.id}`,
+                            type: 'feedback',
+                            title: post.title || 'User Feedback',
+                            summary: (post.content || '').substring(0, 150) + '...',
+                            relevance: 0.85,
+                            sourceId: post.id,
+                            details: {
+                                votes: post.votes,
+                                status: post.status,
+                                fullContent: post.content,
+                            },
+                            createdAt: new Date(post.created_at),
+                        });
+                    }
                 });
             }
         } catch (e) {
             console.error('Error searching feedback:', e);
         }
 
-        // 3. Get competitor intel
+        // 3. Get competitor intel (keep existing logic)
         try {
             const { data: competitors } = await supabase
                 .from('competitor_updates')
@@ -201,7 +225,7 @@ export async function gatherEvidence(
             console.error('Error fetching competitor intel:', e);
         }
 
-        // 4. Get churn signals related to intent
+        // 4. Get churn signals (keep existing logic)
         try {
             const { data: churnData } = await supabase
                 .from('customer_health')
