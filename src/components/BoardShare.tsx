@@ -7,13 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Share2, 
-  Copy, 
-  QrCode, 
-  Link, 
-  Users, 
-  MessageSquare, 
+import {
+  Share2,
+  Copy,
+  QrCode,
+  Link,
+  Users,
+  MessageSquare,
   Smartphone,
   Mail,
   MessageCircle,
@@ -30,11 +30,11 @@ interface BoardShareProps {
   isPublic?: boolean;
 }
 
-export default function BoardShare({ 
-  projectSlug, 
-  projectName, 
+export default function BoardShare({
+  projectSlug,
+  projectName,
   boardUrl,
-  isPublic = true 
+  isPublic = true
 }: BoardShareProps) {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
@@ -74,7 +74,7 @@ export default function BoardShare({
   };
 
   const shareText = `Check out our ${projectName} feedback board! Share your ideas and vote on features: ${boardUrl}`;
-  
+
   const emailSubject = `Feedback Request: ${projectName}`;
   const emailBody = `Hi there!
 
@@ -119,7 +119,7 @@ Best regards`;
         <TabsList className="w-full flex gap-1 overflow-x-auto bg-transparent hide-scrollbar sm:inline-grid sm:grid-cols-3 sm:gap-2 pb-2">
           <TabsTrigger
             value="link"
-            className="flex flex-1 min-w-[110px] items-center gap-1.5 justify-center whitespace-nowrap text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg px-3 py-2"
+            className="flex flex-1 min-w-[110px] items-center gap-1.5 justify-center whitespace-nowrap text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg px-3 py-2"
           >
             <Link className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="hidden xs:inline">Direct Link</span>
@@ -127,14 +127,14 @@ Best regards`;
           </TabsTrigger>
           <TabsTrigger
             value="qr"
-            className="flex flex-1 min-w-[110px] items-center gap-1.5 justify-center whitespace-nowrap text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg px-3 py-2"
+            className="flex flex-1 min-w-[110px] items-center gap-1.5 justify-center whitespace-nowrap text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg px-3 py-2"
           >
             <QrCode className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             QR Code
           </TabsTrigger>
           <TabsTrigger
             value="instructions"
-            className="flex flex-1 min-w-[110px] items-center gap-1.5 justify-center whitespace-nowrap text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg px-3 py-2"
+            className="flex flex-1 min-w-[110px] items-center gap-1.5 justify-center whitespace-nowrap text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg px-3 py-2"
           >
             <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="hidden xs:inline">Instructions</span>
@@ -286,14 +286,14 @@ Best regards`;
               </Card>
             </div>
 
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4 sm:p-6">
-              <h4 className="font-medium text-purple-900 mb-3 sm:mb-4 flex items-center text-sm sm:text-base">
+            <div className="bg-gradient-to-r from-teal-50 to-amber-50 border border-teal-200 rounded-lg p-4 sm:p-6">
+              <h4 className="font-medium text-teal-900 mb-3 sm:mb-4 flex items-center text-sm sm:text-base">
                 <Mail className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 Email Template
               </h4>
               <div className="space-y-3">
                 <div>
-                  <Label className="text-xs sm:text-sm font-medium text-purple-800">Subject:</Label>
+                  <Label className="text-xs sm:text-sm font-medium text-teal-800">Subject:</Label>
                   <Input
                     value={emailSubject}
                     readOnly
@@ -301,18 +301,18 @@ Best regards`;
                   />
                 </div>
                 <div>
-                  <Label className="text-xs sm:text-sm font-medium text-purple-800">Body:</Label>
+                  <Label className="text-xs sm:text-sm font-medium text-teal-800">Body:</Label>
                   <textarea
                     value={emailBody}
                     readOnly
                     rows={10}
-                    className="w-full mt-1 p-2 sm:p-3 text-xs sm:text-sm font-mono bg-white/50 border border-purple-200 rounded-md resize-none"
+                    className="w-full mt-1 p-2 sm:p-3 text-xs sm:text-sm font-mono bg-white/50 border border-teal-200 rounded-md resize-none"
                   />
                 </div>
                 <Button
                   onClick={() => copyToClipboard(emailBody, 'Email template')}
                   variant="outline"
-                  className="border-purple-300 text-purple-700 hover:bg-purple-100 w-full text-xs sm:text-sm"
+                  className="border-teal-300 text-teal-700 hover:bg-teal-100 w-full text-xs sm:text-sm"
                 >
                   <Copy className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                   Copy Email Template

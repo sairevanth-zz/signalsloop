@@ -257,9 +257,9 @@ export function ActionExecutor({ actions, projectId, context }: ActionExecutorPr
 
   return (
     <>
-      <Card className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 border-purple-200 dark:border-purple-800">
+      <Card className="p-6 bg-gradient-to-br from-teal-50 to-amber-50 dark:from-teal-950/20 dark:to-amber-950/20 border-teal-200 dark:border-teal-800">
         <div className="flex items-center gap-2 mb-4">
-          <Zap className="w-5 h-5 text-purple-600" />
+          <Zap className="w-5 h-5 text-teal-600" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Suggested Actions
           </h3>
@@ -275,7 +275,7 @@ export function ActionExecutor({ actions, projectId, context }: ActionExecutorPr
                 className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
               >
                 <div className="flex items-start gap-3 flex-1">
-                  <div className="text-purple-600 dark:text-purple-400 mt-1">
+                  <div className="text-teal-600 dark:text-teal-400 mt-1">
                     {getIcon(action.icon)}
                   </div>
                   <div className="flex-1 min-w-0">

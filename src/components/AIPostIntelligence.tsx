@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Brain, 
-  Loader2, 
+import {
+  Brain,
+  Loader2,
   TrendingUp,
   Zap,
   AlertCircle,
@@ -58,7 +58,7 @@ export default function AIPostIntelligence({ title, description, postType, proje
         setIsAnalyzing(false);
         return;
       }
-      
+
       const response = await fetch('/api/ai/post-intelligence', {
         method: 'POST',
         headers: {
@@ -78,7 +78,7 @@ export default function AIPostIntelligence({ title, description, postType, proje
           setUsageInfo({ ...errorPayload, allowed: false });
           toast.error(
             errorPayload.message ||
-              'Free tier limit reached. Upgrade to Pro for unlimited analyses!'
+            'Free tier limit reached. Upgrade to Pro for unlimited analyses!'
           );
           setIsAnalyzing(false);
           return;
@@ -147,7 +147,7 @@ export default function AIPostIntelligence({ title, description, postType, proje
           disabled={isAnalyzing || !title.trim() || isFreeLimitReached}
           variant="outline"
           size="sm"
-          className="w-full border-purple-200 text-purple-600 hover:bg-purple-50"
+          className="w-full border-teal-200 text-teal-600 hover:bg-teal-50"
         >
           {isAnalyzing ? (
             <>
@@ -168,7 +168,7 @@ export default function AIPostIntelligence({ title, description, postType, proje
         </Button>
       )}
       {usageInfo && !usageInfo.isPro && (
-        <p className="mt-2 text-center text-xs text-purple-700">
+        <p className="mt-2 text-center text-xs text-teal-700">
           Used {Math.max(usageInfo.limit - usageInfo.remaining, 0)}/{usageInfo.limit} • {usageInfo.remaining} left this month
         </p>
       )}
@@ -180,11 +180,11 @@ export default function AIPostIntelligence({ title, description, postType, proje
 
       {/* Intelligence Display */}
       {isVisible && intelligence && (
-        <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
+        <Card className="border-teal-200 bg-gradient-to-br from-teal-50 to-amber-50">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-purple-600" />
+                <Sparkles className="h-5 w-5 text-teal-600" />
                 <CardTitle className="text-base">AI Post Intelligence</CardTitle>
                 <Badge variant="outline" className="text-xs">Pro</Badge>
               </div>
@@ -198,7 +198,7 @@ export default function AIPostIntelligence({ title, description, postType, proje
               </Button>
             </div>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             {/* Sentiment */}
             <div className={`flex items-center justify-between p-3 rounded-lg border ${getSentimentColor(intelligence.sentiment)}`}>
@@ -215,10 +215,10 @@ export default function AIPostIntelligence({ title, description, postType, proje
             </div>
 
             {/* Impact Score */}
-            <div className="bg-white rounded-lg border border-purple-200 p-3">
+            <div className="bg-white rounded-lg border border-teal-200 p-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-purple-600" />
+                  <TrendingUp className="h-4 w-4 text-teal-600" />
                   <span className="text-sm font-medium">Impact Score</span>
                 </div>
                 <Badge className={`text-xs ${getImpactLevel(intelligence.impactScore).color}`}>
@@ -227,8 +227,8 @@ export default function AIPostIntelligence({ title, description, postType, proje
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-purple-600 h-2 rounded-full transition-all"
+                  <div
+                    className="bg-teal-500 h-2 rounded-full transition-all"
                     style={{ width: `${intelligence.impactScore}%` }}
                   />
                 </div>
@@ -240,7 +240,7 @@ export default function AIPostIntelligence({ title, description, postType, proje
 
             {/* Breakdown */}
             <div className="grid grid-cols-3 gap-2">
-              <div className="bg-white rounded-lg border border-purple-100 p-2">
+              <div className="bg-white rounded-lg border border-teal-100 p-2">
                 <div className="flex items-center gap-1 mb-1">
                   <Zap className="h-3 w-3 text-orange-600" />
                   <p className="text-xs text-gray-600">Urgency</p>
@@ -249,8 +249,8 @@ export default function AIPostIntelligence({ title, description, postType, proje
                   {intelligence.urgency}
                 </p>
               </div>
-              
-              <div className="bg-white rounded-lg border border-purple-100 p-2">
+
+              <div className="bg-white rounded-lg border border-teal-100 p-2">
                 <div className="flex items-center gap-1 mb-1">
                   <TrendingUp className="h-3 w-3 text-blue-600" />
                   <p className="text-xs text-gray-600">Value</p>
@@ -259,8 +259,8 @@ export default function AIPostIntelligence({ title, description, postType, proje
                   {intelligence.businessValue}
                 </p>
               </div>
-              
-              <div className="bg-white rounded-lg border border-purple-100 p-2">
+
+              <div className="bg-white rounded-lg border border-teal-100 p-2">
                 <div className="flex items-center gap-1 mb-1">
                   <AlertCircle className="h-3 w-3 text-red-600" />
                   <p className="text-xs text-gray-600">Pain</p>
@@ -272,8 +272,8 @@ export default function AIPostIntelligence({ title, description, postType, proje
             </div>
 
             {/* AI Summary */}
-            <div className="bg-white rounded-lg border border-purple-200 p-3">
-              <p className="text-xs font-medium text-purple-700 mb-1">💡 AI Recommendation</p>
+            <div className="bg-white rounded-lg border border-teal-200 p-3">
+              <p className="text-xs font-medium text-teal-700 mb-1">💡 AI Recommendation</p>
               <p className="text-sm text-gray-700 leading-relaxed">{intelligence.summary}</p>
             </div>
 

@@ -256,20 +256,20 @@ export function OutcomesDashboard({ projectId, projectSlug }: OutcomesDashboardP
         <div className="space-y-6">
           {/* Hero Section */}
           <Card className="relative overflow-hidden border-2 border-dashed">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 opacity-50" />
+            <div className="absolute inset-0 bg-gradient-to-br from-teal-50 via-amber-50 to-teal-50 opacity-50" />
             <CardContent className="relative p-12">
               <div className="text-center max-w-2xl mx-auto">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 mb-4">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 mb-4">
                   <Target className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-teal-600 to-teal-700 bg-clip-text text-transparent">
                   Track What Happens After You Ship
                 </h3>
                 <p className="text-muted-foreground text-lg mb-6">
                   Stop guessing if your features worked. Get AI-powered insights on every launch.
                 </p>
                 <div className="flex items-center justify-center gap-3">
-                  <Button asChild size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                  <Button asChild size="lg" className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700">
                     <Link href={`/app/roadmap?projectId=${projectId}`}>
                       <Rocket className="w-4 h-4 mr-2" />
                       Go to Roadmap
@@ -290,7 +290,7 @@ export function OutcomesDashboard({ projectId, projectSlug }: OutcomesDashboardP
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-600" />
+                <Sparkles className="w-5 h-5 text-teal-600" />
                 How Outcome Attribution Works
               </CardTitle>
               <CardDescription>
@@ -334,8 +334,8 @@ export function OutcomesDashboard({ projectId, projectSlug }: OutcomesDashboardP
                 {/* Step 3 */}
                 <div className="relative">
                   <div className="flex flex-col items-center text-center">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center mb-3 ring-4 ring-purple-50">
-                      <Sparkles className="w-6 h-6 text-purple-600" />
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center mb-3 ring-4 ring-teal-50">
+                      <Sparkles className="w-6 h-6 text-teal-600" />
                     </div>
                     <h4 className="font-semibold mb-2">3. AI Classification</h4>
                     <p className="text-sm text-muted-foreground">
@@ -434,17 +434,17 @@ export function OutcomesDashboard({ projectId, projectSlug }: OutcomesDashboardP
           </Card>
 
           {/* Info Banner */}
-          <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+          <Card className="bg-gradient-to-r from-teal-50 to-amber-50 border-teal-200">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5">
-                  <Info className="w-5 h-5 text-purple-600" />
+                  <Info className="w-5 h-5 text-teal-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-purple-900 font-medium mb-1">
+                  <p className="text-sm text-teal-900 font-medium mb-1">
                     Success Rate starts at 0%
                   </p>
-                  <p className="text-sm text-purple-700">
+                  <p className="text-sm text-teal-700">
                     This is completely normal when you're starting out. As you ship features and collect
                     outcomes, you'll build a track record of what works and what doesn't. The system learns
                     from each launch to help you make better decisions.

@@ -8,11 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Globe, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
+import {
+  Globe,
+  CheckCircle,
+  XCircle,
+  Clock,
   ExternalLink,
   Copy,
   AlertCircle,
@@ -191,7 +191,7 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
       <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Globe className="w-5 h-5 text-purple-600" />
+            <Globe className="w-5 h-5 text-teal-600" />
             Custom Domain
           </CardTitle>
           <CardDescription>
@@ -200,8 +200,8 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Globe className="w-8 h-8 text-purple-600" />
+            <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Globe className="w-8 h-8 text-teal-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Custom Domain</h3>
             <p className="text-gray-600 mb-4">
@@ -216,9 +216,9 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
                 Custom domains are available for Pro users only.
               </p>
             </div>
-            <Button 
+            <Button
               asChild
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
             >
               <Link href="/app/billing">Upgrade to Pro</Link>
             </Button>
@@ -260,7 +260,7 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
                   asChild
                   className="text-green-600 border-green-200 hover:bg-green-50"
                 >
-                  <a 
+                  <a
                     href={`https://${domainStatus.custom_domain}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -342,7 +342,7 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-1">DNS Propagation</p>
                   <p>
-                    DNS changes can take up to 24 hours to propagate. 
+                    DNS changes can take up to 24 hours to propagate.
                     Click "Verify Domain" after adding the records above.
                   </p>
                 </div>

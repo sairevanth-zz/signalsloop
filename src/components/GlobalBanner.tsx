@@ -13,8 +13,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Menu, CreditCard, LogOut, X, Crown } from 'lucide-react';
+import { Menu, CreditCard, LogOut, X, Crown, User as UserIcon, Settings } from 'lucide-react';
 import { toast } from 'sonner';
+import { ThemeToggle } from './theme-toggle';
+import { Avatar, AvatarFallback } from './ui/avatar';
 
 export default function GlobalBanner({
   projectSlug,
@@ -198,62 +200,63 @@ export default function GlobalBanner({
 
           {/* Desktop Actions */}
           <div className="hidden sm:flex items-center gap-2">
+            <ThemeToggle />
             {user ? (
-              <>
-                {showBilling && billingInfo && (
-                  <>
-                    <Badge
-                      variant={billingInfo.plan === 'pro' ? 'default' : 'secondary'}
-                      className={`text-xs ${billingInfo.plan === 'pro' ? 'bg-blue-600' : ''}`}
-                    >
-                      {billingInfo.is_trial ? 'Pro (Trial)' : `${billingInfo.plan.charAt(0).toUpperCase() + billingInfo.plan.slice(1)}`}
-                    </Badge>
-
-                    {billingInfo.is_trial ? (
-                      <Button
-                        onClick={handleCancelTrial}
-                        variant="outline"
-                        size="sm"
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2 h-9 px-2">
+                    <Avatar className="h-7 w-7">
+                      <AvatarFallback className="bg-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-medium">
+                        {user.email?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    {showBilling && billingInfo && (
+                      <Badge
+                        variant={billingInfo.plan === 'pro' ? 'default' : 'secondary'}
+                        className={`text-xs ${billingInfo.plan === 'pro' ? 'bg-teal-600' : ''}`}
                       >
-                        Cancel Trial
-                      </Button>
-                    ) : billingInfo.plan === 'pro' && billingInfo.stripe_customer_id ? (
-                      <Button
-                        onClick={handleManageBilling}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Manage Billing
-                      </Button>
-                    ) : billingInfo.plan === 'pro' && !billingInfo.stripe_customer_id ? (
-                      <Button
-                        onClick={() => router.push('/app/billing')}
-                        variant="outline"
-                        size="sm"
-                      >
-                        View Billing
-                      </Button>
-                    ) : billingInfo.plan === 'free' ? (
-                      <Button
-                        onClick={() => router.push('/app/billing')}
-                        variant="default"
-                        size="sm"
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        Upgrade to Pro
-                      </Button>
-                    ) : null}
-                  </>
-                )}
-
-                <Button
-                  onClick={handleSignOut}
-                  variant="ghost"
-                  size="sm"
-                >
-                  Sign Out
-                </Button>
-              </>
+                        {billingInfo.is_trial ? 'Trial' : billingInfo.plan.charAt(0).toUpperCase() + billingInfo.plan.slice(1)}
+                      </Badge>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5 text-sm text-muted-foreground truncate">
+                    {user.email}
+                  </div>
+                  <DropdownMenuSeparator />
+                  {showBilling && billingInfo && (
+                    <>
+                      {billingInfo.is_trial ? (
+                        <DropdownMenuItem onClick={handleCancelTrial}>
+                          <X className="mr-2 h-4 w-4" />
+                          Cancel Trial
+                        </DropdownMenuItem>
+                      ) : billingInfo.plan === 'pro' && billingInfo.stripe_customer_id ? (
+                        <DropdownMenuItem onClick={handleManageBilling}>
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Manage Billing
+                        </DropdownMenuItem>
+                      ) : billingInfo.plan === 'pro' && !billingInfo.stripe_customer_id ? (
+                        <DropdownMenuItem onClick={() => router.push('/app/billing')}>
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          View Billing
+                        </DropdownMenuItem>
+                      ) : billingInfo.plan === 'free' ? (
+                        <DropdownMenuItem onClick={() => router.push('/app/billing')} className="text-teal-600 dark:text-teal-400">
+                          <Crown className="mr-2 h-4 w-4" />
+                          Upgrade to Pro
+                        </DropdownMenuItem>
+                      ) : null}
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Button
                 onClick={() => router.push('/login')}
@@ -266,7 +269,8 @@ export default function GlobalBanner({
           </div>
 
           {/* Mobile Menu Dropdown */}
-          <div className="sm:hidden">
+          <div className="sm:hidden flex items-center gap-1">
+            <ThemeToggle />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -275,7 +279,11 @@ export default function GlobalBanner({
                     size="sm"
                     className="h-9 w-9 p-0"
                   >
-                    <Menu className="h-5 w-5" />
+                    <Avatar className="h-7 w-7">
+                      <AvatarFallback className="bg-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-medium">
+                        {user.email?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -284,7 +292,7 @@ export default function GlobalBanner({
                       <div className="px-2 py-1.5">
                         <Badge
                           variant={billingInfo.plan === 'pro' ? 'default' : 'secondary'}
-                          className={`text-xs w-full justify-center ${billingInfo.plan === 'pro' ? 'bg-blue-600' : ''}`}
+                          className={`text-xs w-full justify-center ${billingInfo.plan === 'pro' ? 'bg-teal-600' : ''}`}
                         >
                           {billingInfo.plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
                         </Badge>
@@ -306,7 +314,7 @@ export default function GlobalBanner({
                           View Billing
                         </DropdownMenuItem>
                       ) : billingInfo.plan === 'free' ? (
-                        <DropdownMenuItem onClick={() => router.push('/app/billing')}>
+                        <DropdownMenuItem onClick={() => router.push('/app/billing')} className="text-teal-600 dark:text-teal-400">
                           <Crown className="mr-2 h-4 w-4" />
                           Upgrade to Pro
                         </DropdownMenuItem>

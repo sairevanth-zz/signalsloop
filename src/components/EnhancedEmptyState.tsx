@@ -4,13 +4,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  CheckCircle, 
-  Circle, 
-  Play, 
-  Plus, 
-  Sparkles, 
-  Target, 
+import {
+  CheckCircle,
+  Circle,
+  Play,
+  Plus,
+  Sparkles,
+  Target,
   TrendingUp,
   Users,
   MessageSquare,
@@ -109,16 +109,16 @@ const videoTutorials = [
   }
 ];
 
-export default function EnhancedEmptyState({ 
-  onCreateProject, 
-  onLoadSampleData, 
-  userPlan 
+export default function EnhancedEmptyState({
+  onCreateProject,
+  onLoadSampleData,
+  userPlan
 }: EnhancedEmptyStateProps) {
   const [steps, setSteps] = useState(onboardingSteps);
   const [showTutorials, setShowTutorials] = useState(false);
 
   const handleStepComplete = (stepId: string) => {
-    setSteps(prev => prev.map(step => 
+    setSteps(prev => prev.map(step =>
       step.id === stepId ? { ...step, completed: true } : step
     ));
     toast.success('Step completed! 🎉');
@@ -131,7 +131,7 @@ export default function EnhancedEmptyState({
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Welcome Header */}
       <div className="text-center space-y-4">
-        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto">
+        <div className="w-16 h-16 bg-gradient-to-r from-teal-500 to-amber-500 rounded-full flex items-center justify-center mx-auto">
           <Sparkles className="w-8 h-8 text-white" />
         </div>
         <h1 className="text-3xl font-bold text-gray-900">Welcome to SignalsLoop!</h1>
@@ -141,7 +141,7 @@ export default function EnhancedEmptyState({
       </div>
 
       {/* Progress Overview */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+      <Card className="bg-gradient-to-r from-teal-50 to-amber-50 border-teal-200">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -153,8 +153,8 @@ export default function EnhancedEmptyState({
             </Badge>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-            <div 
-              className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
+            <div
+              className="bg-gradient-to-r from-teal-500 to-teal-600 h-2 rounded-full transition-all duration-500"
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>
@@ -172,13 +172,12 @@ export default function EnhancedEmptyState({
           </CardHeader>
           <CardContent className="space-y-4">
             {steps.map((step, index) => (
-              <div 
-                key={step.id} 
-                className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
-                  step.completed 
-                    ? 'bg-green-50 border-green-200' 
+              <div
+                key={step.id}
+                className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${step.completed
+                    ? 'bg-green-50 border-green-200'
                     : 'bg-gray-50 border-gray-200'
-                }`}
+                  }`}
               >
                 <button
                   onClick={() => handleStepComplete(step.id)}
@@ -194,8 +193,8 @@ export default function EnhancedEmptyState({
                   <h4 className="font-medium text-gray-900">{step.title}</h4>
                   <p className="text-sm text-gray-600 mt-1">{step.description}</p>
                   {step.id === 'create-project' && (
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="mt-2"
                       onClick={onCreateProject}
                     >
@@ -253,15 +252,15 @@ export default function EnhancedEmptyState({
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
           <CardContent className="p-6 text-center">
-            <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Play className="w-6 h-6 text-purple-600" />
+            <div className="w-12 h-12 bg-amber-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Play className="w-6 h-6 text-amber-600" />
             </div>
             <h3 className="font-semibold text-gray-900 mb-2">Watch Tutorials</h3>
             <p className="text-sm text-gray-600 mb-4">Learn from video guides</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowTutorials(true)}
               className="w-full"
             >
@@ -278,8 +277,8 @@ export default function EnhancedEmptyState({
             </div>
             <h3 className="font-semibold text-gray-900 mb-2">Try Sample Data</h3>
             <p className="text-sm text-gray-600 mb-4">Explore with demo content</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={onLoadSampleData}
               className="w-full"
             >

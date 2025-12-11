@@ -11,10 +11,10 @@ interface AIInsightsSlideoutProps {
   onClose: () => void;
 }
 
-export function AIInsightsSlideout({ 
-  projectSlug, 
-  isOpen, 
-  onClose 
+export function AIInsightsSlideout({
+  projectSlug,
+  isOpen,
+  onClose
 }: AIInsightsSlideoutProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -39,13 +39,13 @@ export function AIInsightsSlideout({
   const slideoutContent = (
     <div className="fixed inset-0 z-[9999] flex">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      
+
       {/* Slideout Panel */}
-      <div 
+      <div
         className={`
           relative ml-auto w-full md:w-[800px] lg:w-[900px] h-screen bg-white shadow-2xl 
           flex flex-col transform transition-transform duration-300 ease-out overflow-hidden
@@ -53,11 +53,11 @@ export function AIInsightsSlideout({
         `}
       >
         {/* Header */}
-        <div className="flex-shrink-0 p-6 border-b bg-gradient-to-r from-purple-50 to-blue-50">
+        <div className="flex-shrink-0 p-6 border-b bg-gradient-to-r from-teal-50 to-amber-50">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="flex items-center gap-2 text-xl font-bold text-gray-800">
-                <Sparkles className="h-5 w-5 text-purple-600" />
+                <Sparkles className="h-5 w-5 text-teal-600" />
                 AI Insights for {projectSlug}
               </h2>
               <p className="text-sm text-gray-600 mt-1">
@@ -75,7 +75,7 @@ export function AIInsightsSlideout({
             </button>
           </div>
         </div>
-        
+
         {/* Content - with explicit height and overflow */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden bg-gradient-to-br from-slate-50 to-blue-50" style={{ maxHeight: 'calc(100vh - 140px)' }}>
           <div className="p-6 pb-12">

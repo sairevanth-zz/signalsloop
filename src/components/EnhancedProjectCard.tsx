@@ -237,7 +237,7 @@ export default function EnhancedProjectCard({
                 <Link href={`/${project.slug}/briefs`}>
                   <FileBarChart className="mr-2 h-4 w-4" />
                   Executive Briefs
-                  <Badge className="ml-auto text-xs bg-purple-500 text-white">NEW</Badge>
+                  <Badge className="ml-auto text-xs bg-teal-500 text-white">NEW</Badge>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -264,7 +264,7 @@ export default function EnhancedProjectCard({
                 <Link href={`/app/outcomes?projectId=${project.id}`}>
                   <Target className="mr-2 h-4 w-4" />
                   Feature Outcomes
-                  <Badge className="ml-auto text-xs bg-purple-500 text-white">NEW</Badge>
+                  <Badge className="ml-auto text-xs bg-teal-500 text-white">NEW</Badge>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -336,7 +336,7 @@ export default function EnhancedProjectCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="relative bg-gradient-to-r from-blue-50 to-purple-50 backdrop-blur-sm border-blue-200 hover:from-blue-100 hover:to-purple-100 transition-all duration-200 hover:scale-105"
+                className="relative bg-gradient-to-r from-teal-50 to-amber-50 backdrop-blur-sm border-teal-200 hover:from-teal-100 hover:to-amber-100 transition-all duration-200 hover:scale-105"
                 title="Mission Control Dashboard"
               >
                 <Sparkles className="w-4 h-4 text-blue-600 transition-transform duration-200 group-hover:scale-110" />
@@ -348,7 +348,7 @@ export default function EnhancedProjectCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="relative bg-gradient-to-r from-purple-50 to-blue-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-blue-100 transition-all duration-200 hover:scale-105"
+                className="relative bg-gradient-to-r from-teal-50 to-teal-100 backdrop-blur-sm border-teal-200 hover:from-teal-100 hover:to-teal-200 transition-all duration-200 hover:scale-105"
                 title="Call Intelligence"
               >
                 <Phone className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
@@ -369,11 +369,11 @@ export default function EnhancedProjectCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="relative bg-gradient-to-r from-purple-50 to-indigo-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-indigo-100 transition-all duration-200 hover:scale-105"
+                className="relative bg-gradient-to-r from-teal-50 to-amber-50 backdrop-blur-sm border-teal-200 hover:from-teal-100 hover:to-amber-100 transition-all duration-200 hover:scale-105"
                 title="Feature Outcomes - Track what happens after you ship"
               >
-                <Target className="w-4 h-4 text-purple-600 transition-transform duration-200 group-hover:scale-110" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+                <Target className="w-4 h-4 text-teal-600 transition-transform duration-200 group-hover:scale-110" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-teal-500 rounded-full animate-pulse" />
               </Button>
             </Link>
             <Link href={`/${project.slug}/competitive`}>
@@ -391,7 +391,7 @@ export default function EnhancedProjectCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-gradient-to-r from-blue-500/10 to-purple-600/10 border-blue-200 hover:from-blue-500/20 hover:to-purple-600/20 transition-all duration-200 hover:scale-105"
+                className="bg-gradient-to-r from-teal-500/10 to-teal-600/10 border-teal-200 hover:from-teal-500/20 hover:to-teal-600/20 transition-all duration-200 hover:scale-105"
                 title="AI Feedback Hunter"
               >
                 <Brain className="w-4 h-4 text-blue-600 transition-transform duration-200 group-hover:scale-110" />
@@ -402,11 +402,11 @@ export default function EnhancedProjectCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="relative bg-gradient-to-r from-purple-50 to-pink-50 backdrop-blur-sm border-purple-200 hover:from-purple-100 hover:to-pink-100 transition-all duration-200 hover:scale-105"
+                className="relative bg-gradient-to-r from-teal-50 to-amber-50 backdrop-blur-sm border-teal-200 hover:from-teal-100 hover:to-amber-100 transition-all duration-200 hover:scale-105"
                 title="AI Roadmap - Priority Intelligence & Impact Simulation"
               >
-                <Sparkles className="w-4 h-4 text-purple-600 transition-transform duration-200 group-hover:scale-110" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+                <Sparkles className="w-4 h-4 text-teal-600 transition-transform duration-200 group-hover:scale-110" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-teal-500 rounded-full animate-pulse" />
               </Button>
             </Link>
 

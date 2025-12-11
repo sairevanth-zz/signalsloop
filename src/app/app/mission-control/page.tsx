@@ -29,6 +29,21 @@ function ProjectSelector() {
   const [loading, setLoading] = useState(true);
   const supabase = getSupabaseClient();
 
+  // Get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  // Get user's first name
+  const getUserName = () => {
+    if (!user?.email) return '';
+    const name = user.user_metadata?.full_name || user.email.split('@')[0];
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  };
+
   useEffect(() => {
     async function loadProjects() {
       if (!supabase || !user) return;
@@ -53,63 +68,72 @@ function ProjectSelector() {
   }, [supabase, user]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-950">
       <GlobalBanner />
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="mb-6">
-              <Brain className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+          {/* AI Greeting Section */}
+          <div className="mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 mb-6">
+              <div className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+              </div>
+              <span className="text-sm text-teal-400 font-medium">AI Ready</span>
             </div>
-            <h1 className="text-4xl font-bold mb-4">Mission Control</h1>
-            <p className="text-lg text-gray-600 mb-8">
-              AI-powered executive dashboard with real-time insights and sentiment tracking
+            <h1 className="text-4xl font-bold text-white mb-3">
+              {getGreeting()}, {getUserName()}!
+            </h1>
+            <p className="text-lg text-slate-400">
+              Which project would you like to check on today?
             </p>
           </div>
 
+          {/* Feature Cards */}
           <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <Sparkles className="w-8 h-8 text-blue-600 mb-3" />
-              <h3 className="font-semibold mb-2">AI-Powered Briefings</h3>
-              <p className="text-sm text-gray-600">
+            <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 backdrop-blur">
+              <Sparkles className="w-8 h-8 text-teal-400 mb-3" />
+              <h3 className="font-semibold text-white mb-2">AI-Powered Briefings</h3>
+              <p className="text-sm text-slate-400">
                 Get executive summaries and actionable insights powered by GPT-4
               </p>
             </div>
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <TrendingUp className="w-8 h-8 text-green-600 mb-3" />
-              <h3 className="font-semibold mb-2">Real-Time Sentiment</h3>
-              <p className="text-sm text-gray-600">
+            <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 backdrop-blur">
+              <TrendingUp className="w-8 h-8 text-emerald-400 mb-3" />
+              <h3 className="font-semibold text-white mb-2">Real-Time Sentiment</h3>
+              <p className="text-sm text-slate-400">
                 Track customer sentiment and feedback velocity in real-time
               </p>
             </div>
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <Target className="w-8 h-8 text-purple-600 mb-3" />
-              <h3 className="font-semibold mb-2">Priority Insights</h3>
-              <p className="text-sm text-gray-600">
+            <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 backdrop-blur">
+              <Target className="w-8 h-8 text-amber-400 mb-3" />
+              <h3 className="font-semibold text-white mb-2">Priority Insights</h3>
+              <p className="text-sm text-slate-400">
                 Understand what matters most to your customers right now
               </p>
             </div>
           </div>
 
-          <Card>
+          {/* Project Selection Card */}
+          <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Brain className="w-5 h-5 text-teal-400" />
                 Select a Project
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-slate-400">
                 Choose a project to view its Mission Control dashboard
               </CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600">Loading projects...</p>
+                  <p className="text-slate-400">Loading projects...</p>
                 </div>
               ) : projects.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600 mb-4">No projects found</p>
-                  <Button asChild>
+                  <p className="text-slate-400 mb-4">No projects found</p>
+                  <Button asChild className="bg-teal-600 hover:bg-teal-700">
                     <Link href="/app/create">Create Your First Project</Link>
                   </Button>
                 </div>
@@ -119,25 +143,30 @@ function ProjectSelector() {
                     <button
                       key={project.id}
                       onClick={() => router.push(`/${project.slug}/dashboard`)}
-                      className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all text-left group"
+                      className="flex items-center justify-between p-4 rounded-lg border border-slate-700 hover:border-teal-500 hover:bg-teal-500/10 transition-all text-left group"
                     >
                       <div>
-                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600">
+                        <h3 className="font-semibold text-white group-hover:text-teal-400">
                           {project.name}
                         </h3>
-                        <p className="text-sm text-gray-500">/{project.slug}</p>
+                        <p className="text-sm text-slate-500">/{project.slug}</p>
                       </div>
-                      <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-blue-600 rotate-180" />
+                      <ArrowLeft className="w-5 h-5 text-slate-500 group-hover:text-teal-400 rotate-180" />
                     </button>
                   ))}
                 </div>
               )}
               <div className="mt-6 text-center">
-                <Button asChild variant="outline">
-                  <Link href="/app">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Dashboard
-                  </Link>
+                <Button
+                  variant="outline"
+                  className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
+                  onClick={() => {
+                    sessionStorage.setItem('skipMissionControlRedirect', 'true');
+                    router.push('/app');
+                  }}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  View All Projects
                 </Button>
               </div>
             </CardContent>
@@ -153,11 +182,11 @@ function MissionControlContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-slate-950">
         <GlobalBanner />
         <div className="container mx-auto px-4 py-12">
           <div className="text-center">
-            <p className="text-gray-600">Loading...</p>
+            <p className="text-slate-400">Loading...</p>
           </div>
         </div>
       </div>
@@ -166,18 +195,18 @@ function MissionControlContent() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-slate-950">
         <GlobalBanner />
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-2xl mx-auto text-center">
             <div className="mb-6">
-              <Brain className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+              <Brain className="w-16 h-16 text-teal-400 mx-auto mb-4" />
             </div>
-            <h1 className="text-4xl font-bold mb-4">Mission Control</h1>
-            <p className="text-lg text-gray-600 mb-8">
+            <h1 className="text-4xl font-bold text-white mb-4">Mission Control</h1>
+            <p className="text-lg text-slate-400 mb-8">
               AI-powered executive dashboard with real-time insights
             </p>
-            <Button asChild size="lg">
+            <Button asChild size="lg" className="bg-teal-600 hover:bg-teal-700">
               <Link href="/login">Sign In to Get Started</Link>
             </Button>
           </div>
@@ -193,11 +222,11 @@ export default function MissionControlPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-slate-950">
           <GlobalBanner />
           <div className="container mx-auto px-4 py-12">
             <div className="text-center">
-              <p className="text-gray-600">Loading...</p>
+              <p className="text-slate-400">Loading...</p>
             </div>
           </div>
         </div>

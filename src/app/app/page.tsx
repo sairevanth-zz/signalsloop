@@ -11,7 +11,7 @@ import GlobalBanner from '@/components/GlobalBanner';
 import BoardShare from '@/components/BoardShare';
 import EnhancedProjectCard from '@/components/EnhancedProjectCard';
 import DashboardAnalytics from '@/components/DashboardAnalytics';
-import QuickActionsSidebar from '@/components/QuickActionsSidebar';
+import WorkflowSidebar from '@/components/WorkflowSidebar';
 import DashboardSearchFilters from '@/components/DashboardSearchFilters';
 import {
   Plus,
@@ -62,7 +62,7 @@ export default function EnhancedDashboardPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [userPlan, setUserPlan] = useState<'free' | 'pro'>('free');
-  
+
   // Enhanced dashboard state
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('created_at');
@@ -72,12 +72,22 @@ export default function EnhancedDashboardPage() {
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
   const [analytics, setAnalytics] = useState<any>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
-  
+
   const supabase = getSupabaseClient();
   const router = useRouter();
 
   useEffect(() => {
     if (user && supabase) {
+      // Check if we should redirect to Mission Control
+      // Skip if user explicitly navigated here via "View All Projects" or similar
+      const skipRedirect = sessionStorage.getItem('skipMissionControlRedirect');
+      if (!skipRedirect) {
+        router.push('/app/mission-control');
+        return;
+      }
+      // Clear the flag after first use
+      sessionStorage.removeItem('skipMissionControlRedirect');
+
       loadProjects();
       loadUserPlan();
 
@@ -101,7 +111,7 @@ export default function EnhancedDashboardPage() {
   const loadProjects = async () => {
     if (!user || !supabase) return;
 
-      setProjectsLoading(true);
+    setProjectsLoading(true);
     try {
       // Get projects owned by the user
       const { data: ownedProjects, error: ownedError } = await supabase
@@ -222,7 +232,7 @@ export default function EnhancedDashboardPage() {
         weekly_posts_trend: Math.floor(Math.random() * 10) - 5, // TODO: Add real trend data
         widget_installed: project.plan === 'pro' // TODO: Add real widget status
       }));
-      
+
       setProjects(projectsWithCounts);
 
     } catch (error) {
@@ -235,7 +245,7 @@ export default function EnhancedDashboardPage() {
 
   const loadUserPlan = async () => {
     if (!user || !supabase) return;
-    
+
     try {
       const { data: userData, error } = await supabase
         .from('users')
@@ -406,8 +416,8 @@ export default function EnhancedDashboardPage() {
           <div className="space-y-4 sm:space-y-6">
             <Skeleton className="h-32 w-full rounded-xl" />
             <Skeleton className="h-24 w-full rounded-xl" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {[1, 2, 3].map((i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-64 w-full rounded-xl" />
               ))}
             </div>
@@ -471,7 +481,7 @@ export default function EnhancedDashboardPage() {
               )}
 
               {/* New Feature Banner - Predictions */}
-              <div data-predictions-banner className="bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl p-6 shadow-lg">
+              <div data-predictions-banner className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl p-6 shadow-lg">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -486,7 +496,7 @@ export default function EnhancedDashboardPage() {
                     </p>
                     <Button
                       onClick={() => router.push('/app/predictions')}
-                      className="bg-white text-purple-600 hover:bg-white/90"
+                      className="bg-white text-teal-600 hover:bg-white/90"
                     >
                       <TrendingUp className="size-4 mr-2" />
                       Try Feature Predictions
@@ -522,8 +532,8 @@ export default function EnhancedDashboardPage() {
               />
 
               {/* Projects Grid/List */}
-              <div className={viewMode === 'grid' 
-                ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6" 
+              <div className={viewMode === 'grid'
+                ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"
                 : "space-y-3 sm:space-y-4"
               }>
                 {projects
@@ -545,7 +555,7 @@ export default function EnhancedDashboardPage() {
                   .sort((a, b) => {
                     let aValue, bValue;
                     switch (sortBy) {
-                      case 'name': 
+                      case 'name':
                         aValue = a.name.toLowerCase();
                         bValue = b.name.toLowerCase();
                         break;
@@ -565,7 +575,7 @@ export default function EnhancedDashboardPage() {
                         aValue = new Date(a.created_at).getTime();
                         bValue = new Date(b.created_at).getTime();
                     }
-                    
+
                     if (sortOrder === 'asc') {
                       return aValue > bValue ? 1 : -1;
                     } else {
@@ -574,7 +584,7 @@ export default function EnhancedDashboardPage() {
                   })
                   .map((project, index) => (
                     <EnhancedProjectCard
-                key={project.id} 
+                      key={project.id}
                       project={project}
                       index={index}
                       isSelected={selectedProjects.has(project.id)}
@@ -582,30 +592,29 @@ export default function EnhancedDashboardPage() {
                       onArchive={(id) => handleBulkAction('archive')}
                       onDuplicate={(id) => handleBulkAction('duplicate')}
                       onShare={(project) => {
-                          setSelectedProject(project);
-                          setShareModalOpen(true);
-                        }}
+                        setSelectedProject(project);
+                        setShareModalOpen(true);
+                      }}
                       aiAvailable={true}
                     />
                   ))}
               </div>
-                    </div>
+            </div>
 
-            {/* Quick Actions Sidebar - Hidden on mobile */}
+            {/* Workflow Sidebar - Hidden on mobile */}
             <div className="hidden lg:block">
-              <QuickActionsSidebar
+              <WorkflowSidebar
                 onCreateProject={() => router.push('/app/create')}
-                onCreateFromTemplate={handleCreateFromTemplate}
                 userPlan={userPlan}
               />
             </div>
-            
+
             {/* Mobile Quick Action Button */}
             <div className="lg:hidden fixed bottom-6 right-6 z-50 safe-bottom">
               <Button
                 onClick={() => router.push('/app/create')}
                 size="lg"
-                className="rounded-full w-14 h-14 shadow-xl bg-blue-600 hover:bg-blue-700 active:scale-90 transition-transform min-touch-target tap-highlight-transparent"
+                className="rounded-full w-14 h-14 shadow-xl bg-teal-500 hover:bg-teal-600 active:scale-90 transition-transform min-touch-target tap-highlight-transparent"
               >
                 <Plus className="h-6 w-6" />
               </Button>
@@ -614,20 +623,20 @@ export default function EnhancedDashboardPage() {
         )}
       </main>
 
-        {/* Share Modal */}
-        <Dialog open={shareModalOpen} onOpenChange={setShareModalOpen}>
+      {/* Share Modal */}
+      <Dialog open={shareModalOpen} onOpenChange={setShareModalOpen}>
         <DialogContent>
-            <DialogHeader>
+          <DialogHeader>
             <DialogTitle>Share {selectedProject?.name}</DialogTitle>
-            </DialogHeader>
-            {selectedProject && (
-              <BoardShare
+          </DialogHeader>
+          {selectedProject && (
+            <BoardShare
               project={selectedProject}
               onClose={() => setShareModalOpen(false)}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

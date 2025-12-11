@@ -4,8 +4,8 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Sparkles, 
+import {
+  Sparkles,
   Zap,
   Crown,
   TrendingUp,
@@ -20,11 +20,11 @@ interface AIUpgradePromptProps {
   remaining: number;
 }
 
-export default function AIUpgradePrompt({ 
-  featureName, 
-  current, 
-  limit, 
-  remaining 
+export default function AIUpgradePrompt({
+  featureName,
+  current,
+  limit,
+  remaining
 }: AIUpgradePromptProps) {
   const isLimitReached = remaining === 0;
   const isNearLimit = remaining <= 3 && remaining > 0;
@@ -45,13 +45,13 @@ export default function AIUpgradePrompt({
                 </Badge>
               </div>
               <p className="text-sm text-gray-700 mb-4">
-                You've used all <strong>{limit}</strong> {featureName} this month. 
+                You've used all <strong>{limit}</strong> {featureName} this month.
                 Upgrade to Pro for <strong>unlimited AI features</strong> and unlock the full power of your feedback board!
               </p>
-              
+
               <div className="flex flex-wrap gap-2 mb-4">
                 <div className="flex items-center gap-1 text-xs text-gray-600">
-                  <Sparkles className="h-3 w-3 text-purple-600" />
+                  <Sparkles className="h-3 w-3 text-teal-600" />
                   <span>Unlimited AI</span>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-gray-600">
@@ -65,7 +65,7 @@ export default function AIUpgradePrompt({
               </div>
 
               <Link href="/pricing">
-                <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
+                <Button className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white">
                   <Crown className="h-4 w-4 mr-2" />
                   Upgrade to Pro
                   <ArrowRight className="h-4 w-4 ml-2" />

@@ -36,11 +36,11 @@ export function FloatingAskAI({ projectId, projectSlug }: FloatingAskAIProps) {
         <>
             {/* Chat Panel */}
             {isOpen && (
-                <div className="fixed bottom-24 right-6 w-96 max-h-[500px] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-purple-500/10 z-50 flex flex-col overflow-hidden">
+                <div className="fixed bottom-24 right-6 w-96 max-h-[500px] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-teal-500/10 z-50 flex flex-col overflow-hidden">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-gradient-to-r from-purple-600/20 to-blue-600/20">
+                    <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-gradient-to-r from-teal-600/20 to-teal-700/20">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
                                 <Brain className="w-5 h-5 text-white" />
                             </div>
                             <div>
@@ -95,12 +95,12 @@ export function FloatingAskAI({ projectId, projectSlug }: FloatingAskAIProps) {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Ask a question..."
-                                className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
+                                className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
                             />
                             <button
                                 type="submit"
                                 disabled={isLoading || !input.trim()}
-                                className="p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                                className="p-3 bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
                             >
                                 {isLoading ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -121,10 +121,10 @@ export function FloatingAskAI({ projectId, projectSlug }: FloatingAskAIProps) {
             >
                 <div className="relative">
                     {/* Glow effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full blur-lg opacity-60 group-hover:opacity-80 transition-opacity" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full blur-lg opacity-60 group-hover:opacity-80 transition-opacity" />
 
                     {/* Button */}
-                    <div className="relative w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+                    <div className="relative w-14 h-14 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
                         {isOpen ? (
                             <X className="w-6 h-6 text-white" />
                         ) : (
@@ -134,7 +134,7 @@ export function FloatingAskAI({ projectId, projectSlug }: FloatingAskAIProps) {
 
                     {/* Pulse animation when closed */}
                     {!isOpen && (
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 animate-ping opacity-30" />
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-teal-500 to-teal-600 animate-ping opacity-30" />
                     )}
                 </div>
             </button>

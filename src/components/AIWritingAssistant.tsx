@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Sparkles, 
-  Loader2, 
+import {
+  Sparkles,
+  Loader2,
   Wand2,
   ListOrdered,
   ArrowRight,
@@ -26,9 +26,9 @@ interface AIWritingAssistantProps {
   onUsage?: (action: 'improve' | 'expand' | 'clarify' | 'professional') => void;
 }
 
-export default function AIWritingAssistant({ 
-  currentText, 
-  context, 
+export default function AIWritingAssistant({
+  currentText,
+  context,
   onTextImprove,
   placeholder = "Start typing your thoughts...",
   usage,
@@ -50,7 +50,7 @@ export default function AIWritingAssistant({
 
     try {
       setIsImproving(true);
-      
+
       const response = await fetch('/api/ai/writing-assistant', {
         method: 'POST',
         headers: {
@@ -68,7 +68,7 @@ export default function AIWritingAssistant({
       }
 
       const data = await response.json();
-      
+
       if (data.suggestions && data.suggestions.length > 0) {
         setSuggestions(data.suggestions);
       } else if (data.improved) {
@@ -96,9 +96,9 @@ export default function AIWritingAssistant({
     <div className="space-y-2">
       {/* AI Badge - Always Visible */}
       <div className="flex items-center gap-2 mb-2">
-        <div className="flex items-center gap-1.5 px-2 py-1 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-md">
-          <Sparkles className="h-3 w-3 text-purple-600" />
-          <span className="text-xs font-medium text-purple-700">AI Writing Assistant</span>
+        <div className="flex items-center gap-1.5 px-2 py-1 bg-gradient-to-r from-teal-50 to-amber-50 border border-teal-200 rounded-md">
+          <Sparkles className="h-3 w-3 text-teal-600" />
+          <span className="text-xs font-medium text-teal-700">AI Writing Assistant</span>
         </div>
         {usage && (
           <span className={`text-xs ${usage.used >= usage.limit ? 'text-red-500' : 'text-gray-500'}`}>
@@ -118,7 +118,7 @@ export default function AIWritingAssistant({
             disabled={isImproving || (usage ? usage.used >= usage.limit : false)}
             size="sm"
             variant="outline"
-            className="text-purple-600 border-purple-200 hover:bg-purple-50"
+            className="text-teal-600 border-teal-200 hover:bg-teal-50"
           >
             {isImproving ? (
               <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -127,7 +127,7 @@ export default function AIWritingAssistant({
             )}
             Improve Writing
           </Button>
-          
+
           <Button
             onClick={() => improveText('expand')}
             disabled={isImproving || (usage ? usage.used >= usage.limit : false)}
@@ -138,7 +138,7 @@ export default function AIWritingAssistant({
             <ArrowRight className="h-3 w-3 mr-1" />
             Expand Ideas
           </Button>
-          
+
           <Button
             onClick={() => improveText('clarify')}
             disabled={isImproving || (usage ? usage.used >= usage.limit : false)}
@@ -149,7 +149,7 @@ export default function AIWritingAssistant({
             <ListOrdered className="h-3 w-3 mr-1" />
             Make Clearer
           </Button>
-          
+
           <Button
             onClick={() => improveText('professional')}
             disabled={isImproving || (usage ? usage.used >= usage.limit : false)}
@@ -165,18 +165,18 @@ export default function AIWritingAssistant({
 
       {/* Suggestions */}
       {suggestions.length > 0 && (
-        <Card className="border-purple-200 bg-purple-50">
+        <Card className="border-teal-200 bg-teal-50">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="h-4 w-4 text-purple-600" />
+              <Sparkles className="h-4 w-4 text-teal-600" />
               <h4 className="font-medium text-sm text-gray-900">AI Suggestions</h4>
             </div>
-            
+
             <div className="space-y-2">
               {suggestions.map((suggestion, index) => (
-                <div 
+                <div
                   key={index}
-                  className="p-3 bg-white rounded-lg border border-purple-100 hover:border-purple-300 transition-colors cursor-pointer group"
+                  className="p-3 bg-white rounded-lg border border-teal-100 hover:border-teal-300 transition-colors cursor-pointer group"
                   onClick={() => applySuggestion(suggestion)}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -196,7 +196,7 @@ export default function AIWritingAssistant({
                 </div>
               ))}
             </div>
-            
+
             <Button
               onClick={() => setSuggestions([])}
               size="sm"

@@ -195,7 +195,7 @@ export function SentimentForecastCard({ projectId }: Props) {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2 text-white">
-              <Sparkles className="h-5 w-5 text-purple-400" />
+              <Sparkles className="h-5 w-5 text-teal-400" />
               Sentiment Forecast
             </CardTitle>
             <CardDescription className="text-slate-400">AI-predicted sentiment trends using GPT-4o</CardDescription>
@@ -233,7 +233,7 @@ export function SentimentForecastCard({ projectId }: Props) {
             <p className="text-slate-400 mb-4">
               No forecasts available yet. Generate forecasts to see predicted sentiment trends.
             </p>
-            <Button onClick={generateAllForecasts} disabled={isGenerating} className="bg-purple-600 hover:bg-purple-700">
+            <Button onClick={generateAllForecasts} disabled={isGenerating} className="bg-teal-600 hover:bg-teal-700">
               <Sparkles className="h-4 w-4 mr-2" />
               Generate Forecasts
             </Button>
@@ -253,10 +253,10 @@ export function SentimentForecastCard({ projectId }: Props) {
                 {forecasts[horizon] ? (
                   <div className="space-y-4">
                     {/* Main Prediction */}
-                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-500/30">
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-teal-500/10 to-teal-600/10 rounded-lg border border-teal-500/30">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <Target className="h-4 w-4 text-purple-400" />
+                          <Target className="h-4 w-4 text-teal-400" />
                           <span className="text-sm font-medium text-slate-300">
                             Predicted for {formatDate(forecasts[horizon]!.targetDate)}
                           </span>
@@ -297,7 +297,7 @@ export function SentimentForecastCard({ projectId }: Props) {
 
                         {/* Confidence band */}
                         <div
-                          className="absolute h-full bg-purple-500/30 opacity-50"
+                          className="absolute h-full bg-teal-500/30 opacity-50"
                           style={{
                             left: `${((forecasts[horizon]!.confidenceLower + 1) / 2) * 100}%`,
                             width: `${((forecasts[horizon]!.confidenceUpper - forecasts[horizon]!.confidenceLower) / 2) * 100}%`,
@@ -306,7 +306,7 @@ export function SentimentForecastCard({ projectId }: Props) {
 
                         {/* Predicted value marker */}
                         <div
-                          className="absolute h-full w-1 bg-purple-500"
+                          className="absolute h-full w-1 bg-teal-500"
                           style={{
                             left: `${((forecasts[horizon]!.predictedSentiment + 1) / 2) * 100}%`,
                           }}

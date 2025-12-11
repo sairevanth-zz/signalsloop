@@ -3,10 +3,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Activity, 
-  TrendingUp, 
-  Users, 
+import {
+  Activity,
+  TrendingUp,
+  Users,
   MessageSquare,
   ExternalLink,
   Clock,
@@ -44,7 +44,7 @@ export default function DashboardAnalytics({ analytics, loading = false }: Dashb
     const date = new Date(timestamp);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
@@ -108,16 +108,16 @@ export default function DashboardAnalytics({ analytics, loading = false }: Dashb
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+        <Card className="bg-gradient-to-br from-teal-50 to-teal-100 border-teal-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-purple-700 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-teal-700 flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               Total Votes
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-900">{analytics.totalVotes}</div>
-            <p className="text-xs text-purple-600 mt-1">User engagement</p>
+            <div className="text-2xl font-bold text-teal-900">{analytics.totalVotes}</div>
+            <p className="text-xs text-teal-600 mt-1">User engagement</p>
           </CardContent>
         </Card>
 

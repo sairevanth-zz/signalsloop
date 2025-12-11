@@ -99,10 +99,10 @@ export function ReasoningDrawer({
         entityType,
         entityId,
       });
-      
+
       const response = await fetch(`/api/reasoning/entity?${params}`);
       const data = await response.json();
-      
+
       if (data.traces && data.traces.length > 0) {
         setTraces(data.traces);
         setSelectedTrace(data.traces[0]);
@@ -152,7 +152,7 @@ export function ReasoningDrawer({
             className="fixed inset-0 bg-black/50 z-40"
             onClick={onClose}
           />
-          
+
           {/* Drawer */}
           <motion.div
             initial={{ x: '100%' }}
@@ -164,8 +164,8 @@ export function ReasoningDrawer({
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b dark:border-slate-700">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-                  <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/30">
+                  <Brain className="w-5 h-5 text-teal-600 dark:text-teal-400" />
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold">AI Reasoning</h2>
@@ -200,7 +200,7 @@ export function ReasoningDrawer({
               ) : (
                 <div className="p-6 space-y-6">
                   {/* Decision Summary */}
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-200 dark:border-purple-800">
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-teal-500/10 to-teal-600/10 border border-teal-200 dark:border-teal-800">
                     <div className="flex items-start gap-3">
                       <div className="p-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm">
                         {selectedTrace.feature && FEATURE_ICONS[selectedTrace.feature]}
@@ -219,7 +219,7 @@ export function ReasoningDrawer({
                         </p>
                       </div>
                     </div>
-                    
+
                     {/* Confidence Score */}
                     <div className="mt-4 flex items-center gap-4">
                       <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${getConfidenceBg(selectedTrace.outputs.confidence)}`}>
@@ -234,14 +234,14 @@ export function ReasoningDrawer({
                   {/* Reasoning Steps Timeline */}
                   <div>
                     <h3 className="font-semibold mb-4 flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-purple-500" />
+                      <Zap className="w-4 h-4 text-teal-500" />
                       Reasoning Process
                     </h3>
                     <div className="space-y-3">
                       {selectedTrace.reasoning_steps.map((step, index) => {
                         const stepId = `${selectedTrace.id}-${step.step_number}`;
                         const isExpanded = expandedSteps.has(stepId);
-                        
+
                         return (
                           <div
                             key={stepId}
@@ -251,20 +251,19 @@ export function ReasoningDrawer({
                             {index < selectedTrace.reasoning_steps.length - 1 && (
                               <div className="absolute left-[11px] top-6 bottom-0 w-0.5 bg-slate-200 dark:bg-slate-700" />
                             )}
-                            
+
                             {/* Step indicator */}
-                            <div className={`absolute left-0 top-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                              step.confidence >= 0.8
+                            <div className={`absolute left-0 top-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${step.confidence >= 0.8
                                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                                 : step.confidence >= 0.6
-                                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                            }`}>
+                                  ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                  : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                              }`}>
                               {step.step_number}
                             </div>
-                            
+
                             {/* Step content */}
-                            <div 
+                            <div
                               className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                               onClick={() => toggleStepExpansion(stepId)}
                             >
@@ -288,7 +287,7 @@ export function ReasoningDrawer({
                                   )}
                                 </div>
                               </div>
-                              
+
                               {/* Expanded evidence */}
                               <AnimatePresence>
                                 {isExpanded && step.evidence.length > 0 && (
@@ -397,11 +396,10 @@ export function ReasoningDrawer({
                           <button
                             key={trace.id}
                             onClick={() => setSelectedTrace(trace)}
-                            className={`w-full text-left p-2 rounded-lg transition-colors ${
-                              selectedTrace?.id === trace.id
-                                ? 'bg-purple-100 dark:bg-purple-900/30 border border-purple-300 dark:border-purple-700'
+                            className={`w-full text-left p-2 rounded-lg transition-colors ${selectedTrace?.id === trace.id
+                                ? 'bg-teal-100 dark:bg-teal-900/30 border border-teal-300 dark:border-teal-700'
                                 : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700'
-                            }`}
+                              }`}
                           >
                             <p className="text-sm font-medium truncate">
                               {trace.decision_summary}

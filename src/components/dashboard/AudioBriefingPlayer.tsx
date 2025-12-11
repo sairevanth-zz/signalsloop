@@ -35,7 +35,7 @@ export function AudioBriefingPlayer({
 }: AudioBriefingPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
-  
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [actualDuration, setActualDuration] = useState(duration);
@@ -104,7 +104,7 @@ export function AudioBriefingPlayer({
     const rect = progressRef.current.getBoundingClientRect();
     const clickPosition = (e.clientX - rect.left) / rect.width;
     const newTime = clickPosition * actualDuration;
-    
+
     audioRef.current.currentTime = newTime;
     setCurrentTime(newTime);
   }, [actualDuration]);
@@ -152,13 +152,13 @@ export function AudioBriefingPlayer({
   if (!audioUrl && onGenerate) {
     return (
       <div className={cn(
-        'flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20',
+        'flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-teal-500/10 to-teal-600/10 border border-teal-500/20',
         className
       )}>
         <button
           onClick={() => onGenerate(voice)}
           disabled={isLoading}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium"
+          className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium"
         >
           {isLoading ? (
             <>
@@ -172,7 +172,7 @@ export function AudioBriefingPlayer({
             </>
           )}
         </button>
-        
+
         {onVoiceChange && (
           <VoiceSelector
             value={voice}
@@ -180,7 +180,7 @@ export function AudioBriefingPlayer({
             compact
           />
         )}
-        
+
         <span className="text-xs text-slate-400 ml-auto">
           ~2-3 min to generate
         </span>
@@ -190,7 +190,7 @@ export function AudioBriefingPlayer({
 
   return (
     <div className={cn(
-      'flex flex-col gap-3 p-4 rounded-lg bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20',
+      'flex flex-col gap-3 p-4 rounded-lg bg-gradient-to-r from-teal-500/10 to-teal-600/10 border border-teal-500/20',
       className
     )} data-tour="audio-player">
       {/* Main Controls */}
@@ -201,7 +201,7 @@ export function AudioBriefingPlayer({
           whileTap={{ scale: 0.95 }}
           onClick={togglePlay}
           disabled={!audioUrl || isLoading}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
         >
           {isLoading ? (
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -217,14 +217,14 @@ export function AudioBriefingPlayer({
           <span className="text-xs text-slate-400 w-10 text-right font-mono">
             {formatTime(currentTime)}
           </span>
-          
+
           <div
             ref={progressRef}
             onClick={handleProgressClick}
             className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden cursor-pointer group"
           >
             <motion.div
-              className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full relative"
+              className="h-full bg-gradient-to-r from-teal-500 to-teal-600 rounded-full relative"
               style={{ width: `${progress}%` }}
               transition={{ duration: 0.1 }}
             >
@@ -275,7 +275,7 @@ export function AudioBriefingPlayer({
               setVolume(parseFloat(e.target.value));
               setIsMuted(false);
             }}
-            className="w-16 h-1 bg-slate-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-purple-500 [&::-webkit-slider-thumb]:rounded-full"
+            className="w-16 h-1 bg-slate-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-teal-500 [&::-webkit-slider-thumb]:rounded-full"
           />
 
           {/* Speed Control */}

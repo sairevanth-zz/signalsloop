@@ -29,7 +29,7 @@ export default function CompetitiveTab({ projectId, projectSlug, metrics }: Comp
                     <div className="text-sm text-slate-400">Competitors Tracked</div>
                 </div>
                 <div className="rounded-2xl bg-slate-900/80 border border-slate-800/50 p-6 text-center">
-                    <div className="text-3xl font-bold text-purple-400 mb-1">{competitors.new_insights_count || 0}</div>
+                    <div className="text-3xl font-bold text-teal-400 mb-1">{competitors.new_insights_count || 0}</div>
                     <div className="text-sm text-slate-400">New Insights (7d)</div>
                 </div>
                 <div className="rounded-2xl bg-slate-900/80 border border-slate-800/50 p-6 text-center">
@@ -72,12 +72,12 @@ export default function CompetitiveTab({ projectId, projectSlug, metrics }: Comp
 
                 {/* Competitive Intelligence */}
                 <Link href={`/${projectSlug}/competitive`} className="group">
-                    <div className="rounded-2xl bg-gradient-to-br from-purple-950/30 to-slate-900 border border-purple-500/20 p-6 hover:border-purple-500/40 transition-all">
+                    <div className="rounded-2xl bg-gradient-to-br from-teal-950/30 to-slate-900 border border-teal-500/20 p-6 hover:border-teal-500/40 transition-all">
                         <div className="flex items-start justify-between mb-4">
-                            <div className="p-3 rounded-xl bg-purple-500/20">
-                                <Shield className="w-6 h-6 text-purple-400" />
+                            <div className="p-3 rounded-xl bg-teal-500/20">
+                                <Shield className="w-6 h-6 text-teal-400" />
                             </div>
-                            <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                            <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-teal-400 transition-colors" />
                         </div>
                         <h3 className="text-xl font-semibold text-white mb-2">Competitive Intelligence</h3>
                         <p className="text-slate-400 text-sm mb-4">
@@ -100,8 +100,8 @@ export default function CompetitiveTab({ projectId, projectSlug, metrics }: Comp
             {/* No Data State */}
             {!hasInsights && (
                 <div className="rounded-2xl bg-slate-900/50 border border-slate-800/50 p-8 text-center">
-                    <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-4">
-                        <Target className="w-8 h-8 text-purple-400" />
+                    <div className="w-16 h-16 rounded-full bg-teal-500/20 flex items-center justify-center mx-auto mb-4">
+                        <Target className="w-8 h-8 text-teal-400" />
                     </div>
                     <h3 className="text-lg font-semibold text-white mb-2">Set Up Competitive Tracking</h3>
                     <p className="text-slate-400 text-sm mb-4 max-w-md mx-auto">
@@ -109,7 +109,7 @@ export default function CompetitiveTab({ projectId, projectSlug, metrics }: Comp
                     </p>
                     <Link
                         href={`/${projectSlug}/settings/competitors`}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-500 transition-colors"
                     >
                         Add Competitors
                         <ChevronRight className="w-4 h-4" />

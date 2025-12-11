@@ -46,7 +46,7 @@ export default async function MissionControlHelpPage() {
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="mb-4 flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-teal-600">
               <Sparkles className="h-8 w-8 text-white" />
             </div>
           </div>
@@ -57,15 +57,15 @@ export default async function MissionControlHelpPage() {
         </div>
 
         {/* System Health Check */}
-        <div className="mb-8 rounded-xl border border-blue-800 bg-blue-900/20 p-6">
-          <h2 className="mb-4 text-xl font-semibold text-blue-400">System Health Check</h2>
+        <div className="mb-8 rounded-xl border border-teal-800 bg-teal-900/20 p-6">
+          <h2 className="mb-4 text-xl font-semibold text-teal-400">System Health Check</h2>
           <p className="mb-4 text-sm text-slate-300">
             If you're experiencing issues, check the system health to diagnose problems:
           </p>
           <Link
             href="/api/dashboard/health"
             target="_blank"
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
           >
             <ExternalLink className="h-4 w-4" />
             Run Health Check
@@ -82,7 +82,7 @@ export default async function MissionControlHelpPage() {
             <ol className="list-decimal space-y-2 pl-5">
               <li>
                 <strong>From Project Cards:</strong> Go to{' '}
-                <Link href="/app" className="text-blue-400 hover:underline">
+                <Link href="/app" className="text-teal-400 hover:underline">
                   /app
                 </Link>
                 , then click the sparkles (✨) button on any project card
@@ -145,10 +145,10 @@ export default async function MissionControlHelpPage() {
                 <Link
                   key={project.id}
                   href={`/${project.slug}/dashboard`}
-                  className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-blue-500 hover:bg-slate-800"
+                  className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-all hover:border-teal-500 hover:bg-slate-800"
                 >
                   <div className="flex items-center gap-3">
-                    <Sparkles className="h-5 w-5 text-blue-400" />
+                    <Sparkles className="h-5 w-5 text-teal-400" />
                     <div>
                       <div className="font-medium text-white">{project.name}</div>
                       <div className="text-sm text-slate-400">/{project.slug}/dashboard</div>
@@ -164,7 +164,7 @@ export default async function MissionControlHelpPage() {
             <p className="text-slate-400">You don't have any projects yet.</p>
             <Link
               href="/app/create"
-              className="mt-4 inline-block rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
+              className="mt-4 inline-block rounded-lg bg-teal-600 px-6 py-2 text-white hover:bg-teal-700"
             >
               Create Your First Project
             </Link>

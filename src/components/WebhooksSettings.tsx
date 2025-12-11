@@ -309,7 +309,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-purple-600" />
+            <Zap className="w-5 h-5 text-teal-600" />
             Webhooks
           </h3>
           <p className="text-gray-600 mt-1">
@@ -328,7 +328,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
         )}
         <Button
           onClick={() => setShowCreateForm(!showCreateForm)}
-          className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+          className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
         >
           <Plus className="w-4 h-4 mr-2" />
           Create Webhook
@@ -443,7 +443,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
           </p>
           <Button
             onClick={() => setShowCreateForm(true)}
-            className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+            className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create Webhook
