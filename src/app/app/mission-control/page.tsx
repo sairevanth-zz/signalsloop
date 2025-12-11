@@ -3,12 +3,13 @@
 /**
  * Mission Control Page
  * 
- * Styled to match the new dashboard design with dark theme and glows
+ * Theme-aware with support for light and dark modes
  */
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/components/theme-provider';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import GlobalBanner from '@/components/GlobalBanner';
 import { Button } from '@/components/ui/button';
@@ -24,9 +25,20 @@ interface Project {
 function ProjectSelector() {
   const router = useRouter();
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = getSupabaseClient();
+
+  // Theme-aware color palette
+  const colors = {
+    bg: isDark ? '#0d1117' : '#f8fafc',
+    cardBg: isDark ? '#1e2530' : '#ffffff',
+    textPrimary: isDark ? '#e6edf3' : '#1e293b',
+    textSecondary: isDark ? '#8b949e' : '#64748b',
+    border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -65,7 +77,7 @@ function ProjectSelector() {
   }, [supabase, user]);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0d1117' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: colors.bg, transition: 'background-color 0.3s ease' }}>
       <GlobalBanner />
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '48px 24px' }}>
         {/* AI Greeting Section */}
@@ -92,13 +104,13 @@ function ProjectSelector() {
           <h1 style={{
             fontSize: '40px',
             fontWeight: 300,
-            color: '#e6edf3',
+            color: colors.textPrimary,
             margin: '0 0 12px 0',
             letterSpacing: '-0.02em'
           }}>
             {getGreeting()}, {getUserName()}!
           </h1>
-          <p style={{ fontSize: '18px', color: '#8b949e', margin: 0 }}>
+          <p style={{ fontSize: '18px', color: colors.textSecondary, margin: 0 }}>
             Which project would you like to check on today?
           </p>
         </div>
@@ -107,45 +119,48 @@ function ProjectSelector() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '48px' }}>
           {/* AI-Powered Briefings */}
           <div style={{
-            backgroundColor: '#1e2530',
+            backgroundColor: colors.cardBg,
             padding: '24px',
             borderRadius: '16px',
             border: '2px solid rgba(20, 184, 166, 0.5)',
-            boxShadow: '0 0 60px rgba(20, 184, 166, 0.25), inset 0 0 40px rgba(20, 184, 166, 0.08)'
+            boxShadow: isDark ? '0 0 60px rgba(20, 184, 166, 0.25), inset 0 0 40px rgba(20, 184, 166, 0.08)' : '0 0 30px rgba(20, 184, 166, 0.15)',
+            transition: 'all 0.3s ease'
           }}>
             <Sparkles style={{ width: '32px', height: '32px', color: '#14b8a6', marginBottom: '12px' }} />
-            <h3 style={{ fontWeight: 600, color: '#ffffff', marginBottom: '8px', fontSize: '16px' }}>AI-Powered Briefings</h3>
-            <p style={{ fontSize: '14px', color: '#8b949e', margin: 0, lineHeight: 1.5 }}>
+            <h3 style={{ fontWeight: 600, color: colors.textPrimary, marginBottom: '8px', fontSize: '16px' }}>AI-Powered Briefings</h3>
+            <p style={{ fontSize: '14px', color: colors.textSecondary, margin: 0, lineHeight: 1.5 }}>
               Get executive summaries and actionable insights powered by GPT-4
             </p>
           </div>
 
           {/* Real-Time Sentiment */}
           <div style={{
-            backgroundColor: '#1e2530',
+            backgroundColor: colors.cardBg,
             padding: '24px',
             borderRadius: '16px',
             border: '2px solid rgba(16, 185, 129, 0.5)',
-            boxShadow: '0 0 60px rgba(16, 185, 129, 0.25), inset 0 0 40px rgba(16, 185, 129, 0.08)'
+            boxShadow: isDark ? '0 0 60px rgba(16, 185, 129, 0.25), inset 0 0 40px rgba(16, 185, 129, 0.08)' : '0 0 30px rgba(16, 185, 129, 0.15)',
+            transition: 'all 0.3s ease'
           }}>
             <TrendingUp style={{ width: '32px', height: '32px', color: '#10b981', marginBottom: '12px' }} />
-            <h3 style={{ fontWeight: 600, color: '#ffffff', marginBottom: '8px', fontSize: '16px' }}>Real-Time Sentiment</h3>
-            <p style={{ fontSize: '14px', color: '#8b949e', margin: 0, lineHeight: 1.5 }}>
+            <h3 style={{ fontWeight: 600, color: colors.textPrimary, marginBottom: '8px', fontSize: '16px' }}>Real-Time Sentiment</h3>
+            <p style={{ fontSize: '14px', color: colors.textSecondary, margin: 0, lineHeight: 1.5 }}>
               Track customer sentiment and feedback velocity in real-time
             </p>
           </div>
 
           {/* Priority Insights */}
           <div style={{
-            backgroundColor: '#1e2530',
+            backgroundColor: colors.cardBg,
             padding: '24px',
             borderRadius: '16px',
             border: '2px solid rgba(251, 191, 36, 0.5)',
-            boxShadow: '0 0 60px rgba(251, 191, 36, 0.25), inset 0 0 40px rgba(251, 191, 36, 0.08)'
+            boxShadow: isDark ? '0 0 60px rgba(251, 191, 36, 0.25), inset 0 0 40px rgba(251, 191, 36, 0.08)' : '0 0 30px rgba(251, 191, 36, 0.15)',
+            transition: 'all 0.3s ease'
           }}>
             <Target style={{ width: '32px', height: '32px', color: '#fbbf24', marginBottom: '12px' }} />
-            <h3 style={{ fontWeight: 600, color: '#ffffff', marginBottom: '8px', fontSize: '16px' }}>Priority Insights</h3>
-            <p style={{ fontSize: '14px', color: '#8b949e', margin: 0, lineHeight: 1.5 }}>
+            <h3 style={{ fontWeight: 600, color: colors.textPrimary, marginBottom: '8px', fontSize: '16px' }}>Priority Insights</h3>
+            <p style={{ fontSize: '14px', color: colors.textSecondary, margin: 0, lineHeight: 1.5 }}>
               Understand what matters most to your customers right now
             </p>
           </div>
@@ -153,10 +168,11 @@ function ProjectSelector() {
 
         {/* Project Selection Card */}
         <div style={{
-          backgroundColor: '#1e2530',
+          backgroundColor: colors.cardBg,
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '24px'
+          border: `1px solid ${colors.border}`,
+          padding: '24px',
+          transition: 'all 0.3s ease'
         }}>
           <div style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>

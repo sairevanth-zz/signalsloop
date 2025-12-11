@@ -1,18 +1,14 @@
 'use client';
 
 /**
- * MissionControlDashboard - EXACT match to reference mockup
+ * MissionControlDashboard - Theme-aware dashboard
  * 
- * Key elements from reference:
- * 1. Very dark charcoal background (~#0d1117)
- * 2. Vibrant card glows with colored borders
- * 3. Cute robot with teal glow
- * 4. Smooth line chart in Dynamic Context
- * 5. Clean typography with proper weights
+ * Supports both light and dark modes via the theme toggle.
  */
 
 import React from 'react';
 import Link from 'next/link';
+import { useTheme } from '@/components/theme-provider';
 import {
     AlertTriangle,
     Lightbulb,
@@ -33,6 +29,21 @@ export function MissionControlDashboard({
     userName = 'Revanth',
     projectSlug,
 }: MissionControlDashboardProps) {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
+    // Theme-aware color palette
+    const colors = {
+        bg: isDark ? '#0d1117' : '#f8fafc',
+        cardBg: isDark ? '#1e2530' : '#ffffff',
+        panelBg: isDark ? '#161b22' : '#f1f5f9',
+        textPrimary: isDark ? '#e6edf3' : '#1e293b',
+        textSecondary: isDark ? '#8b949e' : '#64748b',
+        textMuted: isDark ? '#6e7681' : '#94a3b8',
+        border: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+        glowOpacity: isDark ? 0.25 : 0.15,
+        insetGlowOpacity: isDark ? 0.08 : 0.04,
+    };
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -46,8 +57,9 @@ export function MissionControlDashboard({
             style={{
                 minHeight: '100vh',
                 padding: '24px',
-                backgroundColor: '#0d1117',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                backgroundColor: colors.bg,
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                transition: 'background-color 0.3s ease'
             }}
         >
             <div style={{ display: 'flex', gap: '24px' }}>
@@ -75,7 +87,7 @@ export function MissionControlDashboard({
                             <h1 style={{
                                 fontSize: '36px',
                                 fontWeight: 300,
-                                color: '#e6edf3',
+                                color: colors.textPrimary,
                                 margin: 0,
                                 lineHeight: 1.3,
                                 letterSpacing: '-0.02em'
@@ -149,10 +161,11 @@ export function MissionControlDashboard({
                 {/* Right Panel - Dynamic Context */}
                 <div style={{ width: '320px', flexShrink: 0 }}>
                     <div style={{
-                        backgroundColor: '#161b22',
+                        backgroundColor: colors.panelBg,
                         borderRadius: '16px',
                         padding: '20px',
-                        border: '1px solid rgba(255,255,255,0.08)'
+                        border: `1px solid ${colors.border}`,
+                        transition: 'all 0.3s ease'
                     }}>
                         {/* Header */}
                         <div style={{
@@ -169,7 +182,7 @@ export function MissionControlDashboard({
                             }}>
                                 Dynamic Context
                             </h3>
-                            <ChevronRight style={{ width: '16px', height: '16px', color: '#6e7681' }} />
+                            <ChevronRight style={{ width: '16px', height: '16px', color: colors.textMuted }} />
                         </div>
 
                         {/* Chat Input */}
@@ -178,14 +191,14 @@ export function MissionControlDashboard({
                             alignItems: 'center',
                             gap: '8px',
                             padding: '12px',
-                            backgroundColor: '#21262d',
+                            backgroundColor: isDark ? '#21262d' : '#e2e8f0',
                             borderRadius: '8px',
                             marginBottom: '20px'
                         }}>
                             <span style={{
                                 flex: 1,
                                 fontSize: '13px',
-                                color: '#6e7681'
+                                color: colors.textMuted
                             }}>
                                 Chat with the Page
                             </span>
@@ -331,7 +344,7 @@ function RobotIllustration() {
     );
 }
 
-// Action Card - with vibrant glow and dark background
+// Action Card - theme-aware with vibrant glow
 function ActionCard({
     icon,
     title,
@@ -347,15 +360,28 @@ function ActionCard({
     href: string;
     accentColor: string;
 }) {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
+    const cardBg = isDark ? '#1e2530' : '#ffffff';
+    const textPrimary = isDark ? '#ffffff' : '#1e293b';
+    const textSecondary = isDark ? '#9ca3af' : '#64748b';
+    const buttonText = isDark ? '#0d1117' : '#ffffff';
+    const glowIntensity = isDark ? '60' : '40';
+    const insetGlow = isDark ? '15' : '08';
+
     return (
         <div style={{
             position: 'relative',
             borderRadius: '16px',
             padding: '20px',
-            backgroundColor: '#1e2530',
+            backgroundColor: cardBg,
             border: `2px solid ${accentColor}`,
-            boxShadow: `0 0 80px ${accentColor}60, 0 0 40px ${accentColor}50, inset 0 0 40px ${accentColor}15`,
+            boxShadow: isDark
+                ? `0 0 80px ${accentColor}${glowIntensity}, 0 0 40px ${accentColor}50, inset 0 0 40px ${accentColor}${insetGlow}`
+                : `0 0 40px ${accentColor}30, 0 4px 12px rgba(0,0,0,0.1)`,
             overflow: 'hidden',
+            transition: 'all 0.3s ease',
         }}>
             {/* Inner glow effect - gradient from borders */}
             <div style={{
@@ -364,7 +390,9 @@ function ActionCard({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: `radial-gradient(ellipse at top, ${accentColor}20 0%, transparent 50%), radial-gradient(ellipse at bottom, ${accentColor}15 0%, transparent 40%)`,
+                background: isDark
+                    ? `radial-gradient(ellipse at top, ${accentColor}20 0%, transparent 50%), radial-gradient(ellipse at bottom, ${accentColor}15 0%, transparent 40%)`
+                    : `radial-gradient(ellipse at top, ${accentColor}10 0%, transparent 50%)`,
                 pointerEvents: 'none'
             }} />
 
@@ -375,12 +403,12 @@ function ActionCard({
                     width: '44px',
                     height: '44px',
                     borderRadius: '50%',
-                    backgroundColor: `${accentColor}30`,
+                    backgroundColor: `${accentColor}${isDark ? '30' : '20'}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: '16px',
-                    boxShadow: `0 0 20px ${accentColor}40`
+                    boxShadow: isDark ? `0 0 20px ${accentColor}40` : 'none'
                 }}>
                     {icon}
                 </div>
@@ -389,7 +417,7 @@ function ActionCard({
                 <h3 style={{
                     fontSize: '16px',
                     fontWeight: 600,
-                    color: '#ffffff',
+                    color: textPrimary,
                     margin: '0 0 8px 0',
                     letterSpacing: '-0.01em'
                 }}>
@@ -399,7 +427,7 @@ function ActionCard({
                 {/* Description */}
                 <p style={{
                     fontSize: '13px',
-                    color: '#9ca3af',
+                    color: textSecondary,
                     margin: '0 0 16px 0',
                     lineHeight: 1.5
                 }}>
@@ -413,14 +441,16 @@ function ActionCard({
                         display: 'block',
                         width: '100%',
                         textAlign: 'center',
-                        color: '#0d1117',
+                        color: buttonText,
                         fontWeight: 700,
                         fontSize: '14px',
                         padding: '12px 16px',
                         borderRadius: '8px',
                         backgroundColor: accentColor,
                         textDecoration: 'none',
-                        boxShadow: `0 8px 30px ${accentColor}70, 0 0 50px ${accentColor}50, 0 0 80px ${accentColor}30`
+                        boxShadow: isDark
+                            ? `0 8px 30px ${accentColor}70, 0 0 50px ${accentColor}50, 0 0 80px ${accentColor}30`
+                            : `0 4px 16px ${accentColor}40`
                     }}
                 >
                     {buttonLabel}
