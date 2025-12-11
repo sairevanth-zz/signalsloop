@@ -263,8 +263,10 @@ function ActionCard({
 }) {
     return (
         <div
-            className="dark-card-forced rounded-2xl p-5 relative overflow-hidden bg-[#2a2f38]"
+            className="dark-card-forced rounded-2xl p-5 relative overflow-hidden"
+            data-dark-card="true"
             style={{
+                backgroundColor: '#2a2f38',
                 border: `2px solid ${borderColor}`,
                 boxShadow: `0 0 30px ${borderColor}40`,
             }}

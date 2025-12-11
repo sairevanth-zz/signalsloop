@@ -32,10 +32,25 @@
   --sl-border: rgba(0, 0, 0, 0.1);
 }
 
-/* FORCE dark backgrounds for Mission Control cards */
+/* FORCE dark backgrounds for Mission Control cards - multiple approaches */
 .dark-card-forced {
   background-color: #2a2f38 !important;
   background: #2a2f38 !important;
+}
+
+/* Data attribute selector (higher specificity) */
+[data-dark-card="true"] {
+  background-color: #2a2f38 !important;
+  background: #2a2f38 !important;
+}
+
+/* Super specific selector targeting the component */
+div.dark-card-forced,
+.dark-card-forced[class],
+div[data-dark-card] {
+  background-color: #2a2f38 !important;
+  background: #2a2f38 !important;
+  background-image: none !important;
 }
 
 /* Ensure custom animations are loaded */
