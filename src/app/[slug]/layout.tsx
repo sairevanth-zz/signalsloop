@@ -69,7 +69,7 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
     <TooltipProvider>
       <ShortcutsProvider projectSlug={projectSlug}>
         <TourProvider autoStart={true}>
-          <div className="min-h-screen" style={{ backgroundColor: '#1a1d23' }}>
+          <div className="min-h-screen" style={{ backgroundColor: '#0d1117' }}>
             {/* Global Header */}
             <GlobalBanner />
 

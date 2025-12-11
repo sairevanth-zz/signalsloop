@@ -155,7 +155,7 @@ export function WorkflowSidebar({ projectSlug }: WorkflowSidebarProps) {
     }, [pathname]);
 
     return (
-        <div className="w-64 h-full flex flex-col" style={{ backgroundColor: '#1a1d23' }}>
+        <div className="w-64 h-full flex flex-col" style={{ backgroundColor: '#0d1117' }}>
             {/* Logo */}
             <div className="p-4 border-b border-white/10">
                 <Link href="/app" className="flex items-center gap-2">
@@ -177,8 +177,8 @@ export function WorkflowSidebar({ projectSlug }: WorkflowSidebarProps) {
                             : "text-white/80 hover:text-white"
                     )}
                     style={{
-                        background: isMissionControlActive ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'rgba(245, 158, 11, 0.15)',
-                        boxShadow: isMissionControlActive ? '0 4px 14px rgba(245, 158, 11, 0.3)' : 'none'
+                        background: isMissionControlActive ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%)',
+                        boxShadow: isMissionControlActive ? '0 8px 32px rgba(245, 158, 11, 0.5), 0 0 20px rgba(245, 158, 11, 0.3)' : '0 4px 14px rgba(245, 158, 11, 0.2)'
                     }}
                 >
                     <Sparkles className="w-5 h-5" />

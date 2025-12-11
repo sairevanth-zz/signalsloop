@@ -340,7 +340,7 @@ function ActionCard({
             padding: '20px',
             backgroundColor: '#161b22',
             border: `2px solid ${accentColor}`,
-            boxShadow: `0 0 40px ${accentColor}33, 0 0 20px ${accentColor}22`,
+            boxShadow: `0 0 60px ${accentColor}50, 0 0 30px ${accentColor}40, 0 8px 32px rgba(0,0,0,0.4)`,
         }}>
             {/* Icon circle */}
             <div style={{
@@ -391,7 +391,7 @@ function ActionCard({
                     borderRadius: '8px',
                     backgroundColor: accentColor,
                     textDecoration: 'none',
-                    boxShadow: `0 4px 12px ${accentColor}40`
+                    boxShadow: `0 6px 20px ${accentColor}50, 0 0 30px ${accentColor}40`
                 }}
             >
                 {buttonLabel}
