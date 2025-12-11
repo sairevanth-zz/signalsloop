@@ -108,22 +108,22 @@ export default async function PublicBoardPage({ params }: PublicBoardPageProps) 
     // Check if board is private
     if (project.is_private) {
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6 text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Private Board</h1>
-            <p className="text-gray-600 mb-6">
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-slate-900 rounded-lg border border-slate-800 p-6 text-center">
+            <h1 className="text-2xl font-bold text-white mb-4">Private Board</h1>
+            <p className="text-slate-400 mb-6">
               This feedback board is private and requires authentication to access.
             </p>
             <div className="space-y-3">
               <Link
                 href={`/login?redirect=${encodeURIComponent(`/${slug}`)}`}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
+                className="w-full bg-teal-500 text-white px-4 py-2 rounded-md hover:bg-teal-600 transition-colors inline-block"
               >
                 Sign In
               </Link>
               <Link
                 href="/"
-                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors inline-block"
+                className="w-full bg-slate-800 text-slate-300 px-4 py-2 rounded-md hover:bg-slate-700 transition-colors inline-block"
               >
                 Create Your Own Board
               </Link>

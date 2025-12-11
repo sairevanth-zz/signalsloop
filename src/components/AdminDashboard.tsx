@@ -33,11 +33,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { 
-  Settings, 
-  Search, 
-  ThumbsUp, 
-  MessageSquare, 
+import {
+  Settings,
+  Search,
+  ThumbsUp,
+  MessageSquare,
   Calendar,
   User,
   Edit,
@@ -99,28 +99,28 @@ const getSupabaseClient = () => {
 };
 
 const statusConfig = {
-  open: { 
-    label: 'Open', 
+  open: {
+    label: 'Open',
     color: 'bg-blue-100 text-blue-800 border-blue-200',
     description: 'New feedback that needs review'
   },
-  planned: { 
-    label: 'Planned', 
+  planned: {
+    label: 'Planned',
     color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     description: 'Approved for future development'
   },
-  in_progress: { 
-    label: 'In Progress', 
+  in_progress: {
+    label: 'In Progress',
     color: 'bg-orange-100 text-orange-800 border-orange-200',
     description: 'Currently being worked on'
   },
-  done: { 
-    label: 'Done', 
+  done: {
+    label: 'Done',
     color: 'bg-green-100 text-green-800 border-green-200',
     description: 'Completed and shipped'
   },
-  declined: { 
-    label: 'Declined', 
+  declined: {
+    label: 'Declined',
     color: 'bg-red-100 text-red-800 border-red-200',
     description: 'Will not be implemented'
   }
@@ -146,7 +146,7 @@ const getCategoryColor = (category: string): string => {
 const trackEvent = (eventName: string, properties?: Record<string, unknown>) => {
   // TODO: Replace with PostHog tracking
   console.log('Analytics Event:', eventName, properties);
-  
+
   // For now, just log to console
   // In production, this would send to PostHog:
   // posthog.capture(eventName, properties);
@@ -161,7 +161,7 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState('newest');
   const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
-  
+
   // Stats
   const [stats, setStats] = useState({
     totalPosts: 0,
@@ -241,7 +241,7 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
   // Moderation state
   const [editingPost, setEditingPost] = useState<AdminPost | null>(null);
   const [bulkAction, setBulkAction] = useState<string>('');
-  
+
   const supabase = getSupabaseClient();
 
   useEffect(() => {
@@ -370,7 +370,7 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
       // Calculate AI analytics
       const aiCategorizedPosts = processedPosts.filter(p => p.ai_categorized);
       const totalAiCategorized = aiCategorizedPosts.length;
-      
+
       // Category breakdown
       const categoryBreakdown: Record<string, number> = {};
       aiCategorizedPosts.forEach(post => {
@@ -381,7 +381,7 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
 
       // Most common category
       const mostCommonCategory = Object.entries(categoryBreakdown)
-        .sort(([,a], [,b]) => b - a)[0]?.[0] || 'None';
+        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'None';
 
       // Time saved (2 minutes per categorized post)
       const timeSavedMinutes = totalAiCategorized * 2;
@@ -420,7 +420,7 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
     } catch (error) {
       console.error('Error loading dashboard:', error);
       onShowNotification?.('Something went wrong', 'error');
-      
+
       // Track AI categorization failure
       trackEvent('ai_categorization_failed', {
         error_message: error instanceof Error ? error.message : 'Unknown error',
@@ -487,7 +487,7 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
       }
 
       // Update local state
-      setPosts(prev => prev.map(post => 
+      setPosts(prev => prev.map(post =>
         post.id === postId ? { ...post, status: newStatus as 'done' | 'open' | 'planned' | 'in_progress' | 'declined' } : post
       ));
 
@@ -522,14 +522,14 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
       }
 
       // Update local state
-      setPosts(prev => prev.map(post => 
+      setPosts(prev => prev.map(post =>
         selectedPosts.includes(post.id) ? { ...post, status: bulkAction as 'done' | 'open' | 'planned' | 'in_progress' | 'declined' } : post
       ));
 
       setSelectedPosts([]);
       setBulkAction('');
       onShowNotification?.(
-        `Updated ${selectedPosts.length} posts to ${bulkAction}`, 
+        `Updated ${selectedPosts.length} posts to ${bulkAction}`,
         'success'
       );
 
@@ -583,8 +583,8 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
   };
 
   const togglePostSelection = (postId: string) => {
-    setSelectedPosts(prev => 
-      prev.includes(postId) 
+    setSelectedPosts(prev =>
+      prev.includes(postId)
         ? prev.filter(id => id !== postId)
         : [...prev, postId]
     );
@@ -600,18 +600,18 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-slate-950">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
+            <div className="h-8 bg-slate-800 rounded w-1/3 mb-6"></div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              {[1,2,3,4].map(i => (
-                <div key={i} className="h-24 bg-gray-200 rounded"></div>
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-24 bg-slate-800 rounded"></div>
               ))}
             </div>
             <div className="space-y-4">
-              {[1,2,3].map(i => (
-                <div key={i} className="h-32 bg-gray-200 rounded"></div>
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-32 bg-slate-800 rounded"></div>
               ))}
             </div>
           </div>
@@ -621,20 +621,20 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-white">
                 Admin Dashboard
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-slate-400 mt-1">
                 Manage feedback for {project?.name}
               </p>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <Button variant="outline" onClick={loadDashboardData}>
                 <Settings className="w-4 h-4 mr-2" />
@@ -988,7 +988,7 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
                   No posts found
                 </h3>
                 <p className="text-gray-600">
-                  {searchTerm || statusFilter !== 'all' 
+                  {searchTerm || statusFilter !== 'all'
                     ? 'Try adjusting your filters to see more posts.'
                     : 'No feedback has been submitted yet.'
                   }
@@ -1015,7 +1015,7 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
                           <h3 className="text-lg font-semibold text-gray-900 mb-2">
                             {post.title}
                           </h3>
-                          
+
                           {post.description && (
                             <p className="text-gray-600 line-clamp-2 mb-3">
                               {post.description}
@@ -1025,8 +1025,8 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
                           {/* AI Category Badge */}
                           {post.category && (
                             <div className="mb-3">
-                              <CategoryBadge 
-                                category={post.category} 
+                              <CategoryBadge
+                                category={post.category}
                                 aiCategorized={post.ai_categorized}
                                 confidence={post.ai_confidence}
                                 size="sm"
@@ -1038,13 +1038,13 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
                             <div className="flex items-center gap-1">
                               <User className="w-4 h-4" />
                               <span>
-                                {post.author_email 
-                                  ? post.author_email.split('@')[0] 
+                                {post.author_email
+                                  ? post.author_email.split('@')[0]
                                   : 'Anonymous'
                                 }
                               </span>
                             </div>
-                            
+
                             <div className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
                               <span>
@@ -1065,8 +1065,8 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Badge 
-                            variant="outline" 
+                          <Badge
+                            variant="outline"
                             className={statusConfig[post.status].color}
                           >
                             {statusConfig[post.status].label}
@@ -1155,29 +1155,29 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
                 Make changes to the post details.
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Title</label>
                 <Input
                   value={editingPost.title}
-                  onChange={(e) => setEditingPost(prev => 
+                  onChange={(e) => setEditingPost(prev =>
                     prev ? { ...prev, title: e.target.value } : null
                   )}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium mb-2">Description</label>
                 <Textarea
                   value={editingPost.description || ''}
-                  onChange={(e) => setEditingPost(prev => 
+                  onChange={(e) => setEditingPost(prev =>
                     prev ? { ...prev, description: e.target.value } : null
                   )}
                   rows={4}
                 />
               </div>
-              
+
               <div className="flex justify-end gap-3">
                 <Button
                   variant="outline"

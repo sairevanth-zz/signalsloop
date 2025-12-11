@@ -105,7 +105,7 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(post => 
+      filtered = filtered.filter(post =>
         post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         post.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -134,7 +134,7 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
 
   const handleVote = async (postId: string) => {
     const isVoted = votedPosts.has(postId);
-    
+
     try {
       const response = await fetch(`/api/posts/${postId}/vote`, {
         method: isVoted ? 'DELETE' : 'POST',
@@ -164,18 +164,18 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
       const newVoteCount = typeof data.new_vote_count === 'number' ? data.new_vote_count : undefined;
 
       // Update local state with authoritative count when available
-      setPosts(prevPosts => 
-        prevPosts.map(post => 
-          post.id === postId 
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === postId
             ? {
-                ...post,
-                vote_count:
-                  typeof newVoteCount === 'number'
-                    ? newVoteCount
-                    : isVoted
-                      ? Math.max(0, post.vote_count - 1)
-                      : post.vote_count + 1,
-              }
+              ...post,
+              vote_count:
+                typeof newVoteCount === 'number'
+                  ? newVoteCount
+                  : isVoted
+                    ? Math.max(0, post.vote_count - 1)
+                    : post.vote_count + 1,
+            }
             : post
         )
       );
@@ -188,7 +188,7 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
         newVotedPosts.add(postId);
       }
       setVotedPosts(newVotedPosts);
-      
+
       if (typeof window !== 'undefined') {
         localStorage.setItem(`voted_posts_${project.id}`, JSON.stringify([...newVotedPosts]));
       }
@@ -260,7 +260,7 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 0) {
       return 'Today';
     } else if (diffDays === 1) {
@@ -278,22 +278,22 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-950">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-slate-900 shadow-sm border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
                   <MessageSquare className="h-5 w-5 text-white" />
                 </div>
-                <span className="font-bold text-xl text-gray-900">SignalsLoop</span>
+                <span className="font-bold text-xl text-white">SignalsLoop</span>
               </Link>
-              <div className="hidden md:block w-px h-6 bg-gray-300"></div>
-              <h1 className="text-xl font-semibold text-gray-900">{project.name}</h1>
+              <div className="hidden md:block w-px h-6 bg-slate-700"></div>
+              <h1 className="text-xl font-semibold text-white">{project.name}</h1>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <Button
                 variant="outline"
@@ -308,9 +308,9 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 hover:from-blue-100 hover:to-purple-100"
+                  className="bg-gradient-to-r from-teal-900/50 to-cyan-900/50 border-teal-600 text-teal-300 hover:from-teal-800/50 hover:to-cyan-800/50"
                 >
-                  <Sparkles className="h-4 w-4 mr-2 text-blue-600" />
+                  <Sparkles className="h-4 w-4 mr-2 text-teal-400" />
                   Mission Control
                 </Button>
               </Link>
@@ -337,25 +337,25 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-white mb-4">
             {project.name} Feedback Board
           </h1>
           {project.description && (
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-slate-400 mb-8 max-w-3xl mx-auto">
               {project.description}
             </p>
           )}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-blue-600 hover:bg-blue-700"
+            <Button
+              size="lg"
+              className="bg-teal-500 hover:bg-teal-600"
               onClick={handleOpenPostForm}
               disabled={!activeBoardId}
             >
               <Plus className="h-5 w-5 mr-2" />
               Submit Feedback
             </Button>
-            
+
             <Link href="/">
               <Button variant="outline" size="lg">
                 <ExternalLink className="h-5 w-5 mr-2" />
@@ -367,36 +367,36 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
+          <Card className="bg-slate-900 border-slate-800">
             <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">
+              <div className="text-3xl font-bold text-teal-400 mb-2">
                 {posts.length}
               </div>
-              <div className="text-gray-600">Total Feedback</div>
+              <div className="text-slate-400">Total Feedback</div>
             </CardContent>
           </Card>
-          
-          <Card>
+
+          <Card className="bg-slate-900 border-slate-800">
             <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">
+              <div className="text-3xl font-bold text-amber-400 mb-2">
                 {posts.reduce((sum, post) => sum + post.vote_count, 0)}
               </div>
-              <div className="text-gray-600">Total Votes</div>
+              <div className="text-slate-400">Total Votes</div>
             </CardContent>
           </Card>
-          
-          <Card>
+
+          <Card className="bg-slate-900 border-slate-800">
             <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">
+              <div className="text-3xl font-bold text-cyan-400 mb-2">
                 {getCategories().length}
               </div>
-              <div className="text-gray-600">Categories</div>
+              <div className="text-slate-400">Categories</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div className="bg-slate-900 rounded-lg border border-slate-800 p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -405,11 +405,11 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
                   placeholder="Search feedback..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
                 />
               </div>
             </div>
-            
+
             <div className="flex gap-4">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-40">
@@ -424,7 +424,7 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
                   ))}
                 </SelectContent>
               </Select>
-              
+
               <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Sort by" />
@@ -442,19 +442,19 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
         {/* Posts Grid */}
         <div className="grid gap-6">
           {filteredPosts.length === 0 ? (
-            <Card>
+            <Card className="bg-slate-900 border-slate-800">
               <CardContent className="p-12 text-center">
-                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <MessageSquare className="h-12 w-12 text-slate-600 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-white mb-2">
                   {searchTerm || selectedCategory !== 'all' ? 'No matching feedback found' : 'No feedback yet'}
                 </h3>
-                <p className="text-gray-600 mb-6">
-                  {searchTerm || selectedCategory !== 'all' 
+                <p className="text-slate-400 mb-6">
+                  {searchTerm || selectedCategory !== 'all'
                     ? 'Try adjusting your search or filters.'
                     : 'Be the first to share your feedback!'
                   }
                 </p>
-                <Button onClick={handleOpenPostForm} disabled={!activeBoardId}>
+                <Button onClick={handleOpenPostForm} disabled={!activeBoardId} className="bg-teal-500 hover:bg-teal-600">
                   <Plus className="h-4 w-4 mr-2" />
                   Submit Feedback
                 </Button>
@@ -462,32 +462,32 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
             </Card>
           ) : (
             filteredPosts.map((post) => (
-              <Card key={post.id} className="hover:shadow-md transition-shadow">
+              <Card key={post.id} className="bg-slate-900 border-slate-800 hover:border-slate-700 transition-all">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        <Link 
+                      <h3 className="text-lg font-semibold text-white mb-2">
+                        <Link
                           href={`/${project.slug}/post/${post.id}`}
-                          className="hover:text-blue-600 transition-colors"
+                          className="hover:text-teal-400 transition-colors"
                         >
                           {post.title}
                         </Link>
                       </h3>
-                      <p className="text-gray-600 mb-4 line-clamp-3">
+                      <p className="text-slate-400 mb-4 line-clamp-3">
                         {post.description}
                       </p>
                     </div>
-                    
+
                     <div className="ml-4 flex min-w-[72px] flex-col items-end gap-1">
                       <Button
                         variant={votedPosts.has(post.id) ? "default" : "outline"}
                         size="sm"
                         onClick={() => handleVote(post.id)}
                         className={
-                          votedPosts.has(post.id) 
-                            ? 'bg-blue-600 hover:bg-blue-700'
-                            : 'hover:bg-blue-50'
+                          votedPosts.has(post.id)
+                            ? 'bg-teal-500 hover:bg-teal-600'
+                            : 'border-slate-600 text-slate-300 hover:bg-slate-800'
                         }
                       >
                         <ChevronUp className="h-4 w-4 mr-1" />
@@ -501,30 +501,30 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
                       />
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <CategoryBadge category={post.category} />
-                      
-                      <div className="flex items-center text-sm text-gray-500">
+
+                      <div className="flex items-center text-sm text-slate-500">
                         <Calendar className="h-4 w-4 mr-1" />
                         {formatDate(post.created_at)}
                       </div>
-                      
+
                       {post.author_email && (
-                        <div className="flex items-center text-sm text-gray-500">
+                        <div className="flex items-center text-sm text-slate-500">
                           <User className="h-4 w-4 mr-1" />
                           {post.author_email}
                         </div>
                       )}
 
-                      <div className="flex items-center text-sm text-gray-500">
+                      <div className="flex items-center text-sm text-slate-500">
                         <MessageSquare className="h-4 w-4 mr-1" />
                         <span>{post.comment_count ?? 0}</span>
                         <span className="hidden sm:inline">comments</span>
                       </div>
                     </div>
-                    
+
                     <Link href={`/${project.slug}/post/${post.id}`}>
                       <Button
                         variant="ghost"
@@ -553,16 +553,16 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
         </div>
 
         {/* Footer */}
-        <div className="mt-16 pt-8 border-t border-gray-200 text-center">
-          <div className="flex items-center justify-center space-x-2 text-gray-500 mb-4">
+        <div className="mt-16 pt-8 border-t border-slate-800 text-center">
+          <div className="flex items-center justify-center space-x-2 text-slate-500 mb-4">
             <span>Powered by</span>
-            <Link href="/" className="font-semibold text-blue-600 hover:text-blue-700">
+            <Link href="/" className="font-semibold text-teal-400 hover:text-teal-300">
               SignalsLoop
             </Link>
           </div>
-          <p className="text-sm text-gray-500">
-            Create your own feedback board in minutes. 
-            <Link href="/" className="text-blue-600 hover:text-blue-700 ml-1">
+          <p className="text-sm text-slate-500">
+            Create your own feedback board in minutes.
+            <Link href="/" className="text-teal-400 hover:text-teal-300 ml-1">
               Get started free →
             </Link>
           </p>
