@@ -271,32 +271,35 @@ function ActionCard({
                 boxShadow: `0 0 30px ${borderColor}40`,
             }}
         >
-            {/* Icon */}
-            <div
-                className="w-10 h-10 rounded-full flex items-center justify-center mb-4"
-                style={{ backgroundColor: `${borderColor}20` }}
-            >
-                {icon}
+            {/* Content wrapper with z-index to appear above ::before */}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+                {/* Icon */}
+                <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center mb-4"
+                    style={{ backgroundColor: `${borderColor}20` }}
+                >
+                    {icon}
+                </div>
+
+                {/* Title */}
+                <h3 className="text-lg font-semibold text-white mb-2">
+                    {title}
+                </h3>
+
+                {/* Description */}
+                <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+                    {description}
+                </p>
+
+                {/* Button */}
+                <Link
+                    href={href}
+                    className="block w-full text-center text-white font-medium py-2.5 px-4 rounded-lg transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: buttonColor }}
+                >
+                    {buttonLabel}
+                </Link>
             </div>
-
-            {/* Title */}
-            <h3 className="text-lg font-semibold text-white mb-2">
-                {title}
-            </h3>
-
-            {/* Description */}
-            <p className="text-sm text-gray-400 mb-4 leading-relaxed">
-                {description}
-            </p>
-
-            {/* Button */}
-            <Link
-                href={href}
-                className="block w-full text-center text-white font-medium py-2.5 px-4 rounded-lg transition-opacity hover:opacity-90"
-                style={{ backgroundColor: buttonColor }}
-            >
-                {buttonLabel}
-            </Link>
         </div>
     );
 }

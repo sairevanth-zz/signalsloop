@@ -36,6 +36,8 @@
 .dark-card-forced {
   background-color: #2a2f38 !important;
   background: #2a2f38 !important;
+  position: relative !important;
+  isolation: isolate !important;
 }
 
 /* Data attribute selector (higher specificity) */
@@ -51,6 +53,17 @@ div[data-dark-card] {
   background-color: #2a2f38 !important;
   background: #2a2f38 !important;
   background-image: none !important;
+}
+
+/* Use ::before pseudo-element as absolute layer to guarantee dark background */
+.dark-card-forced::before,
+[data-dark-card="true"]::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  background-color: #2a2f38 !important;
+  border-radius: inherit !important;
 }
 
 /* Ensure custom animations are loaded */
