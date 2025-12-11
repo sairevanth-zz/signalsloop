@@ -264,6 +264,8 @@ function ActionCard({
     // Pure inline styles - NO Tailwind classes to ensure nothing can override
     const cardStyles: React.CSSProperties = {
         backgroundColor: '#2a2f38',
+        background: '#2a2f38',
+        backgroundImage: 'none',
         borderRadius: '16px',
         padding: '20px',
         position: 'relative',
