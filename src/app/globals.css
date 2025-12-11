@@ -1,6 +1,37 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* SignalsLoop Design System - Option A+C Hybrid */
+:root {
+  /* Core Colors from implementation plan */
+  --sl-bg-primary: #1a1d23;
+  --sl-bg-card: #2d3139;
+  --sl-accent-teal: #14b8a6;
+  --sl-accent-gold: #f59e0b;
+  --sl-accent-green: #10b981;
+
+  /* Text Colors */
+  --sl-text-primary: #ffffff;
+  --sl-text-secondary: #94a3b8;
+  --sl-text-muted: #64748b;
+
+  /* Border Colors */
+  --sl-border: rgba(255, 255, 255, 0.1);
+  --sl-border-teal: rgba(20, 184, 166, 0.3);
+}
+
+/* Light mode overrides */
+.light {
+  --sl-bg-primary: #fafafa;
+  --sl-bg-card: #ffffff;
+  --sl-accent-teal: #0d9488;
+  --sl-accent-gold: #d97706;
+  --sl-text-primary: #0f172a;
+  --sl-text-secondary: #475569;
+  --sl-text-muted: #94a3b8;
+  --sl-border: rgba(0, 0, 0, 0.1);
+}
+
 /* Ensure custom animations are loaded */
 @layer base {
 

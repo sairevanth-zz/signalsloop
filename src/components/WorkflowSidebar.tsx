@@ -1,23 +1,29 @@
 'use client';
 
 /**
- * WorkflowSidebar - Redesigned to match approved mockup
+ * WorkflowSidebar - Option A+C Hybrid
  * 
- * Structure:
- * - SignalsLoop logo
- * - Mission Control (prominent teal button)
- * - 4 collapsible zones: Collect, Understand, Plan, Track
- * - Bottom: Settings, Help, Plan info
+ * Structure from implementation_plan.md:
+ * - 🎯 Mission Control (highlighted, default landing)
+ * - 📥 Collect (expandable)
+ * - 🧠 Understand (expandable)
+ * - 🗺️ Plan (expandable)
+ * - 📊 Track (expandable)
+ * 
+ * Colors:
+ * - Background: #1a1d23 (deep slate)
+ * - Cards: #2d3139
+ * - Primary: #14b8a6 (teal)
+ * - Accent: #f59e0b (warm gold)
  */
 
 import React, { useState, useEffect } from 'react';
 import { usePathname, useParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
     ChevronDown,
-    ChevronUp,
-    Sparkles,
+    ChevronRight,
+    Target,
     Inbox,
     Lightbulb,
     Map,
@@ -28,19 +34,23 @@ import {
     Search,
     FileText,
     TrendingUp,
-    Target,
     FileBarChart,
-    Activity,
     HelpCircle,
-    Crown,
+    Sparkles,
+    Mail,
+    Brain,
+    Scale,
+    Beaker,
+    AlertTriangle,
+    Swords,
+    Activity,
+    Zap,
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 interface WorkflowSidebarProps {
     projectSlug?: string;
-    onCreateProject?: () => void;
-    userPlan?: 'free' | 'pro';
 }
 
 interface NavItem {
@@ -57,34 +67,30 @@ interface NavZone {
     items: NavItem[];
 }
 
-export function WorkflowSidebar({
-    projectSlug,
-    onCreateProject,
-    userPlan = 'free'
-}: WorkflowSidebarProps) {
+export function WorkflowSidebar({ projectSlug }: WorkflowSidebarProps) {
     const pathname = usePathname();
     const params = useParams();
     const currentSlug = projectSlug || (params?.slug as string) || '';
 
-    // Track which zones are expanded - default Collect to expanded
+    // Track which zones are expanded
     const [expandedZones, setExpandedZones] = useState<Record<string, boolean>>({
         'collect': true,
-        'understand': true,
-        'plan': true,
-        'track': true,
+        'understand': false,
+        'plan': false,
+        'track': false,
     });
 
-    // Define 4 workflow zones matching mockup
+    // Define 4 workflow zones matching implementation plan EXACTLY
     const navZones: NavZone[] = [
         {
             id: 'collect',
             label: 'Collect',
             icon: Inbox,
             items: [
-                { label: 'Feedback', href: currentSlug ? `/${currentSlug}/board` : '#', icon: MessageSquare, requiresProject: true },
-                { label: 'Inbox', href: currentSlug ? `/${currentSlug}/inbox` : '#', icon: Inbox, requiresProject: true },
-                { label: 'Calls', href: '/app/calls', icon: Phone },
-                { label: 'Hunter', href: currentSlug ? `/${currentSlug}/hunter` : '#', icon: Search, requiresProject: true },
+                { label: 'Feedback Board', href: currentSlug ? `/${currentSlug}/board` : '#', icon: MessageSquare, requiresProject: true },
+                { label: 'Universal Inbox', href: currentSlug ? `/${currentSlug}/inbox` : '#', icon: Mail, requiresProject: true },
+                { label: 'Call Intelligence', href: '/app/calls', icon: Phone },
+                { label: 'AI Feedback Hunter', href: currentSlug ? `/${currentSlug}/hunter` : '#', icon: Search, requiresProject: true },
             ]
         },
         {
@@ -92,9 +98,11 @@ export function WorkflowSidebar({
             label: 'Understand',
             icon: Lightbulb,
             items: [
-                { label: 'AI Insights', href: currentSlug ? `/${currentSlug}/ai-insights` : '#', icon: Lightbulb, requiresProject: true },
-                { label: 'Themes', href: currentSlug ? `/${currentSlug}/ai-insights` : '#', icon: Activity, requiresProject: true },
-                { label: 'Predictions', href: '/app/predictions', icon: TrendingUp },
+                { label: 'AI Insights & Themes', href: currentSlug ? `/${currentSlug}/ai-insights` : '#', icon: Lightbulb, requiresProject: true },
+                { label: 'Sentiment Analysis', href: currentSlug ? `/${currentSlug}/ai-insights` : '#', icon: Activity, requiresProject: true },
+                { label: 'Feature Predictions', href: '/app/predictions', icon: TrendingUp },
+                { label: "Devil's Advocate", href: '/app/devils-advocate', icon: Scale },
+                { label: 'AI Reasoning', href: '/app/reasoning', icon: Brain },
             ]
         },
         {
@@ -103,8 +111,9 @@ export function WorkflowSidebar({
             icon: Map,
             items: [
                 { label: 'Roadmap', href: currentSlug ? `/${currentSlug}/roadmap` : '/app/roadmap', icon: Map },
-                { label: 'Specs', href: currentSlug ? `/${currentSlug}/specs` : '#', icon: FileText, requiresProject: true },
-                { label: 'Stories', href: '/app/user-stories', icon: FileText },
+                { label: 'Specs / PRDs', href: currentSlug ? `/${currentSlug}/specs` : '#', icon: FileText, requiresProject: true },
+                { label: 'User Stories', href: '/app/user-stories', icon: FileText },
+                { label: 'Experiments', href: currentSlug ? `/${currentSlug}/experiments` : '#', icon: Beaker, requiresProject: true },
             ]
         },
         {
@@ -112,9 +121,11 @@ export function WorkflowSidebar({
             label: 'Track',
             icon: BarChart3,
             items: [
-                { label: 'Outcomes', href: currentSlug ? `/${currentSlug}/outcomes` : '/app/outcomes', icon: Target },
-                { label: 'Analytics', href: '/app/analytics', icon: BarChart3 },
-                { label: 'Briefs', href: currentSlug ? `/${currentSlug}/briefs` : '#', icon: FileBarChart, requiresProject: true },
+                { label: 'Feature Outcomes', href: currentSlug ? `/${currentSlug}/outcomes` : '/app/outcomes', icon: Target },
+                { label: 'Analytics Dashboard', href: '/app/analytics', icon: BarChart3 },
+                { label: 'Executive Briefs', href: currentSlug ? `/${currentSlug}/briefs` : '#', icon: FileBarChart, requiresProject: true },
+                { label: 'Churn Radar', href: currentSlug ? `/${currentSlug}/churn-radar` : '#', icon: AlertTriangle, requiresProject: true },
+                { label: 'War Room', href: currentSlug ? `/${currentSlug}/war-room` : '#', icon: Swords, requiresProject: true },
             ]
         },
     ];
@@ -133,25 +144,42 @@ export function WorkflowSidebar({
 
     const isMissionControlActive = pathname?.includes('/dashboard') || pathname?.includes('/mission-control');
 
+    // Auto-expand zone if current page is in it
+    useEffect(() => {
+        navZones.forEach(zone => {
+            const hasActiveItem = zone.items.some(item => isActiveItem(item.href));
+            if (hasActiveItem && !expandedZones[zone.id]) {
+                setExpandedZones(prev => ({ ...prev, [zone.id]: true }));
+            }
+        });
+    }, [pathname]);
+
     return (
-        <div className="w-64 h-full bg-[#1a1d23] text-white flex flex-col">
+        <div className="w-64 h-full flex flex-col" style={{ backgroundColor: '#1a1d23' }}>
             {/* Logo */}
-            <div className="p-4">
-                <Link href="/app" className="text-xl font-semibold text-white">
-                    Signals<span className="text-teal-400">Loop</span>
+            <div className="p-4 border-b border-white/10">
+                <Link href="/app" className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#14b8a6' }}>
+                        <Zap className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-lg font-semibold text-white">SignalsLoop</span>
                 </Link>
             </div>
 
-            {/* Mission Control Button - Prominent teal button */}
-            <div className="px-3 mb-4">
+            {/* Mission Control - Prominent highlighted button */}
+            <div className="p-3">
                 <Link
                     href={currentSlug ? `/${currentSlug}/dashboard` : '/app/mission-control'}
                     className={cn(
-                        "flex items-center gap-3 w-full px-4 py-3 rounded-lg font-medium transition-all",
+                        "flex items-center gap-3 w-full px-4 py-3 rounded-xl font-medium transition-all",
                         isMissionControlActive
-                            ? "bg-teal-500 text-white shadow-lg shadow-teal-500/20"
-                            : "bg-teal-500/10 text-teal-400 hover:bg-teal-500/20"
+                            ? "text-white shadow-lg"
+                            : "text-white/80 hover:text-white"
                     )}
+                    style={{
+                        backgroundColor: isMissionControlActive ? '#14b8a6' : 'rgba(20, 184, 166, 0.15)',
+                        boxShadow: isMissionControlActive ? '0 4px 14px rgba(20, 184, 166, 0.3)' : 'none'
+                    }}
                 >
                     <Sparkles className="w-5 h-5" />
                     <span>Mission Control</span>
@@ -159,29 +187,42 @@ export function WorkflowSidebar({
             </div>
 
             {/* Navigation Zones */}
-            <nav className="flex-1 overflow-y-auto px-3 space-y-2">
+            <nav className="flex-1 overflow-y-auto px-3 space-y-1">
                 {navZones.map((zone) => {
                     const ZoneIcon = zone.icon;
                     const isExpanded = expandedZones[zone.id];
+                    const hasActiveItem = zone.items.some(item => isActiveItem(item.href));
 
                     return (
-                        <div key={zone.id}>
+                        <div key={zone.id} className="mb-1">
                             {/* Zone Header */}
                             <button
                                 onClick={() => toggleZone(zone.id)}
-                                className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                                className={cn(
+                                    "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                                    hasActiveItem
+                                        ? "text-white"
+                                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                                )}
+                                style={hasActiveItem ? { backgroundColor: 'rgba(20, 184, 166, 0.1)' } : {}}
                             >
-                                <span>{zone.label}</span>
+                                <div className="flex items-center gap-3">
+                                    <ZoneIcon
+                                        className="w-5 h-5"
+                                        style={{ color: hasActiveItem ? '#14b8a6' : undefined }}
+                                    />
+                                    <span>{zone.label}</span>
+                                </div>
                                 {isExpanded ? (
-                                    <ChevronUp className="w-4 h-4 text-slate-500" />
+                                    <ChevronDown className="w-4 h-4 text-gray-500" />
                                 ) : (
-                                    <ChevronDown className="w-4 h-4 text-slate-500" />
+                                    <ChevronRight className="w-4 h-4 text-gray-500" />
                                 )}
                             </button>
 
                             {/* Zone Items */}
                             {isExpanded && (
-                                <div className="ml-2 space-y-0.5">
+                                <div className="mt-1 ml-4 pl-3 border-l border-white/10 space-y-0.5">
                                     {zone.items.map((item) => {
                                         const ItemIcon = item.icon;
                                         const isActive = isActiveItem(item.href);
@@ -191,7 +232,7 @@ export function WorkflowSidebar({
                                             return (
                                                 <div
                                                     key={item.label}
-                                                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 cursor-not-allowed"
+                                                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 cursor-not-allowed"
                                                     title="Select a project first"
                                                 >
                                                     <ItemIcon className="w-4 h-4" />
@@ -205,13 +246,20 @@ export function WorkflowSidebar({
                                                 key={item.label}
                                                 href={item.href}
                                                 className={cn(
-                                                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                                                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
                                                     isActive
-                                                        ? "bg-slate-800 text-white"
-                                                        : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                                                        ? "text-white font-medium"
+                                                        : "text-gray-400 hover:text-white hover:bg-white/5"
                                                 )}
+                                                style={isActive ? {
+                                                    backgroundColor: 'rgba(20, 184, 166, 0.15)',
+                                                    color: '#5eead4' // teal-300
+                                                } : {}}
                                             >
-                                                <ItemIcon className="w-4 h-4" />
+                                                <ItemIcon
+                                                    className="w-4 h-4"
+                                                    style={isActive ? { color: '#14b8a6' } : {}}
+                                                />
                                                 <span>{item.label}</span>
                                             </Link>
                                         );
@@ -224,18 +272,22 @@ export function WorkflowSidebar({
             </nav>
 
             {/* Bottom Section */}
-            <div className="p-3 border-t border-slate-800 space-y-1">
+            <div className="p-3 border-t border-white/10 space-y-1">
                 {currentSlug && (
                     <Link
                         href={`/${currentSlug}/settings`}
                         className={cn(
-                            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
                             pathname?.includes('/settings')
-                                ? "bg-slate-800 text-white"
-                                : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                                ? "text-white font-medium"
+                                : "text-gray-400 hover:text-white hover:bg-white/5"
                         )}
+                        style={pathname?.includes('/settings') ? {
+                            backgroundColor: 'rgba(20, 184, 166, 0.15)',
+                            color: '#5eead4'
+                        } : {}}
                     >
-                        <Settings className="w-4 h-4" />
+                        <Settings className="w-4 h-4" style={pathname?.includes('/settings') ? { color: '#14b8a6' } : {}} />
                         <span>Project Settings</span>
                     </Link>
                 )}
@@ -243,32 +295,19 @@ export function WorkflowSidebar({
                 <Link
                     href="/app/help"
                     className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
                         pathname === '/app/help'
-                            ? "bg-slate-800 text-white"
-                            : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                            ? "text-white font-medium"
+                            : "text-gray-400 hover:text-white hover:bg-white/5"
                     )}
+                    style={pathname === '/app/help' ? {
+                        backgroundColor: 'rgba(20, 184, 166, 0.15)',
+                        color: '#5eead4'
+                    } : {}}
                 >
-                    <HelpCircle className="w-4 h-4" />
-                    <span>Help Center</span>
+                    <HelpCircle className="w-4 h-4" style={pathname === '/app/help' ? { color: '#14b8a6' } : {}} />
+                    <span>Help & Docs</span>
                 </Link>
-
-                {/* Plan Badge */}
-                <div className="flex items-center gap-2 px-3 py-2">
-                    <Crown className={cn("w-4 h-4", userPlan === 'pro' ? "text-amber-400" : "text-slate-500")} />
-                    <span className="text-sm text-slate-400">Plan</span>
-                    <Badge
-                        variant="outline"
-                        className={cn(
-                            "ml-auto text-xs",
-                            userPlan === 'pro'
-                                ? "border-amber-500/50 text-amber-400"
-                                : "border-slate-600 text-slate-400"
-                        )}
-                    >
-                        {userPlan === 'pro' ? 'Pro' : 'Free'}
-                    </Badge>
-                </div>
             </div>
         </div>
     );

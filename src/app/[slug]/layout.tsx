@@ -69,7 +69,7 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
     <TooltipProvider>
       <ShortcutsProvider projectSlug={projectSlug}>
         <TourProvider autoStart={true}>
-          <div className="min-h-screen bg-slate-950">
+          <div className="min-h-screen" style={{ backgroundColor: '#1a1d23' }}>
             {/* Global Header */}
             <GlobalBanner />
 
@@ -84,7 +84,10 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
             {/* Main Layout with Sidebar */}
             <div className="flex">
               {/* Workflow Sidebar */}
-              <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto border-r border-slate-800">
+              <aside
+                className="hidden lg:block w-64 flex-shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto"
+                style={{ borderRight: '1px solid rgba(255,255,255,0.1)' }}
+              >
                 <WorkflowSidebar projectSlug={projectSlug} />
               </aside>
 
