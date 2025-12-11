@@ -1,14 +1,14 @@
 /**
  * Mission Control Dashboard Page
  * AI-powered daily briefing and product health overview
+ * Redesigned to match approved mockup
  */
 
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
-import { getTodayBriefing, getDashboardMetrics } from '@/lib/ai/mission-control';
-import { MissionControlGrid, MissionControlGridSkeleton } from '@/components/dashboard/MissionControlGrid';
+import MissionControlRedesign from '@/components/dashboard/MissionControlRedesign';
 
 export const dynamic = 'force-dynamic';
 
@@ -111,117 +111,22 @@ async function DashboardContent({ slug }: { slug: string }) {
     }
   }
 
-  // Fetch briefing and metrics
-  let briefing;
-  let metrics;
-  let hasError = false;
-  let errorMessage = '';
-
-  try {
-    [briefing, metrics] = await Promise.all([
-      getTodayBriefing(project.id),
-      getDashboardMetrics(project.id),
-    ]);
-  } catch (error) {
-    hasError = true;
-    console.error('Error fetching dashboard data:', error);
-    errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-    // Check if it's a missing OpenAI API key error
-    const isOpenAIError = errorMessage.toLowerCase().includes('openai') ||
-      errorMessage.toLowerCase().includes('api key');
-
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4">
-        <div className="max-w-2xl w-full space-y-6">
-          <div className="text-center">
-            <div className="mb-4 flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
-                <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-            </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Error Loading Dashboard</h1>
-            <p className="text-slate-400 mb-4">We encountered an issue loading your Mission Control dashboard</p>
-          </div>
-
-          {/* Error details */}
-          <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-6">
-            <h2 className="text-lg font-semibold text-red-400 mb-2">Error Details</h2>
-            <p className="text-sm text-slate-300 font-mono">{errorMessage}</p>
-
-            {isOpenAIError && (
-              <div className="mt-4 rounded-lg bg-amber-500/10 border border-amber-500/20 p-4">
-                <p className="text-sm text-amber-400">
-                  <strong>Missing OpenAI API Key:</strong> The Mission Control dashboard requires an OpenAI API key to generate AI briefings.
-                  Please configure the <code className="bg-slate-800 px-2 py-1 rounded">OPENAI_API_KEY</code> environment variable.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href={`/${slug}/board`}
-              className="rounded-lg border border-slate-700 bg-slate-800 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-slate-700 text-center"
-            >
-              View Feedback Board Instead
-            </a>
-            <a
-              href="/app/mission-control-help"
-              className="rounded-lg border border-blue-600 bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 text-center"
-            >
-              Get Help & Troubleshooting
-            </a>
-          </div>
-
-          {/* Debug info for developers */}
-          <details className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-            <summary className="text-sm text-slate-400 cursor-pointer hover:text-slate-300">
-              Technical Details (for developers)
-            </summary>
-            <div className="mt-4 space-y-2 text-xs text-slate-500 font-mono">
-              <div>Project ID: {project.id}</div>
-              <div>Project Slug: {slug}</div>
-              <div>Timestamp: {new Date().toISOString()}</div>
-              <div>Environment: {process.env.NODE_ENV}</div>
-            </div>
-          </details>
-        </div>
-      </div>
-    );
-  }
-
-  // Get project owner's name for greeting
+  // Get user's name for greeting
   const { data: userData } = await supabase
     .from('users')
     .select('name, email')
     .eq('id', project.owner_id)
     .single();
 
-  const userName = userData?.name || userData?.email?.split('@')[0] || undefined;
+  const userName = userData?.name || userData?.email?.split('@')[0] || 'there';
 
   return (
-    <div className="min-h-screen bg-slate-950 p-4 md:p-8">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white">Mission Control</h1>
-          <p className="text-slate-400">{project.name}</p>
-        </div>
-
-        {/* Dashboard Grid */}
-        <MissionControlGrid
-          briefing={briefing.content}
-          briefingId={briefing.id}
-          metrics={metrics}
-          userName={userName}
-          projectId={project.id}
-          projectSlug={project.slug}
-        />
-      </div>
+    <div className="min-h-screen bg-slate-950">
+      <MissionControlRedesign
+        userName={userName}
+        projectSlug={project.slug}
+        projectId={project.id}
+      />
     </div>
   );
 }
@@ -238,24 +143,28 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
 
 function DashboardLoadingState() {
   return (
-    <div className="min-h-screen bg-slate-950 p-4 md:p-8">
-      <div className="mx-auto max-w-7xl">
-        {/* Header skeleton */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="h-8 w-64 animate-pulse rounded bg-slate-800" />
-              <div className="h-4 w-32 animate-pulse rounded bg-slate-800" />
-            </div>
-            <div className="flex gap-4">
-              <div className="h-10 w-40 animate-pulse rounded-lg bg-slate-800" />
-              <div className="h-10 w-32 animate-pulse rounded-lg bg-slate-800" />
-            </div>
+    <div className="min-h-screen bg-slate-950 p-6">
+      <div className="flex gap-6">
+        {/* Main content skeleton */}
+        <div className="flex-1">
+          <div className="mb-8">
+            <div className="h-4 w-32 animate-pulse rounded bg-slate-800 mb-4" />
+            <div className="h-10 w-96 animate-pulse rounded bg-slate-800 mb-2" />
+            <div className="h-10 w-80 animate-pulse rounded bg-slate-800" />
+          </div>
+
+          {/* Action cards skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-48 rounded-xl border border-slate-800 bg-slate-900/50 animate-pulse" />
+            ))}
           </div>
         </div>
 
-        {/* Grid skeleton */}
-        <MissionControlGridSkeleton />
+        {/* Right panel skeleton */}
+        <div className="w-80 flex-shrink-0">
+          <div className="h-96 rounded-xl border border-slate-800 bg-slate-900/50 animate-pulse" />
+        </div>
       </div>
     </div>
   );
