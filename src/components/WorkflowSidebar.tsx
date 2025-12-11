@@ -177,8 +177,8 @@ export function WorkflowSidebar({ projectSlug }: WorkflowSidebarProps) {
                             : "text-white/80 hover:text-white"
                     )}
                     style={{
-                        backgroundColor: isMissionControlActive ? '#14b8a6' : 'rgba(20, 184, 166, 0.15)',
-                        boxShadow: isMissionControlActive ? '0 4px 14px rgba(20, 184, 166, 0.3)' : 'none'
+                        background: isMissionControlActive ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'rgba(245, 158, 11, 0.15)',
+                        boxShadow: isMissionControlActive ? '0 4px 14px rgba(245, 158, 11, 0.3)' : 'none'
                     }}
                 >
                     <Sparkles className="w-5 h-5" />

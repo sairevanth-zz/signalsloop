@@ -8,7 +8,7 @@ import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
-import MissionControlRedesign from '@/components/dashboard/MissionControlRedesign';
+import MissionControlDashboard from '@/components/dashboard/MissionControlDashboard';
 
 export const dynamic = 'force-dynamic';
 
@@ -121,8 +121,8 @@ async function DashboardContent({ slug }: { slug: string }) {
   const userName = userData?.name || userData?.email?.split('@')[0] || 'there';
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <MissionControlRedesign
+    <div className="min-h-screen" style={{ backgroundColor: '#1e2228' }}>
+      <MissionControlDashboard
         userName={userName}
         projectSlug={project.slug}
         projectId={project.id}
