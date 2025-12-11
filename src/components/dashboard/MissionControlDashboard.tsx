@@ -261,41 +261,71 @@ function ActionCard({
     borderColor: string;
     buttonColor: string;
 }) {
+    // Pure inline styles - NO Tailwind classes to ensure nothing can override
+    const cardStyles: React.CSSProperties = {
+        backgroundColor: '#2a2f38',
+        borderRadius: '16px',
+        padding: '20px',
+        position: 'relative',
+        overflow: 'hidden',
+        border: `2px solid ${borderColor}`,
+        boxShadow: `0 0 30px ${borderColor}40`,
+    };
+
     return (
-        <div
-            className="dark-card-forced rounded-2xl p-5 relative overflow-hidden"
-            data-dark-card="true"
-            style={{
-                backgroundColor: '#2a2f38',
-                border: `2px solid ${borderColor}`,
-                boxShadow: `0 0 30px ${borderColor}40`,
-            }}
-        >
-            {/* Content wrapper with z-index to appear above ::before */}
+        <div style={cardStyles}>
+            {/* Content wrapper */}
             <div style={{ position: 'relative', zIndex: 1 }}>
                 {/* Icon */}
                 <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center mb-4"
-                    style={{ backgroundColor: `${borderColor}20` }}
+                    style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '16px',
+                        backgroundColor: `${borderColor}20`
+                    }}
                 >
                     {icon}
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: 600,
+                    color: '#ffffff',
+                    marginBottom: '8px'
+                }}>
                     {title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+                <p style={{
+                    fontSize: '14px',
+                    color: '#9ca3af',
+                    marginBottom: '16px',
+                    lineHeight: 1.5
+                }}>
                     {description}
                 </p>
 
                 {/* Button */}
                 <Link
                     href={href}
-                    className="block w-full text-center text-white font-medium py-2.5 px-4 rounded-lg transition-opacity hover:opacity-90"
-                    style={{ backgroundColor: buttonColor }}
+                    style={{
+                        display: 'block',
+                        width: '100%',
+                        textAlign: 'center',
+                        color: 'white',
+                        fontWeight: 500,
+                        padding: '10px 16px',
+                        borderRadius: '8px',
+                        backgroundColor: buttonColor,
+                        textDecoration: 'none'
+                    }}
                 >
                     {buttonLabel}
                 </Link>
