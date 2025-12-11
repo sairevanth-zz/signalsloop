@@ -167,14 +167,14 @@ export function WorkflowSidebar({
     }, [pathname]);
 
     return (
-        <div className="w-72 h-full bg-[var(--sl-dark-bg)] dark:bg-[var(--sl-dark-bg)] text-white flex flex-col border-r border-white/10">
+        <div className="w-72 h-full bg-slate-900 text-white flex flex-col">
             {/* Logo / Header */}
             <div className="p-4 border-b border-white/10">
                 <Link href="/app" className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center">
                         <Zap className="w-5 h-5 text-white" />
                     </div>
-                    <span className="font-semibold text-lg">SignalsLoop</span>
+                    <span className="font-semibold text-lg text-white">SignalsLoop</span>
                 </Link>
             </div>
 
@@ -211,8 +211,13 @@ export function WorkflowSidebar({
                                 )}
                             >
                                 <div className="flex items-center gap-3">
-                                    <ZoneIcon className={cn("w-5 h-5", zone.iconColor)} />
-                                    <span>{zone.label}</span>
+                                    <ZoneIcon className={cn(
+                                        "w-5 h-5",
+                                        isZoneActive ? "text-teal-400" : zone.iconColor
+                                    )} />
+                                    <span className={cn(
+                                        isZoneActive ? "text-teal-300" : "text-gray-200"
+                                    )}>{zone.label}</span>
                                 </div>
                                 {isExpanded ? (
                                     <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -249,11 +254,14 @@ export function WorkflowSidebar({
                                                 className={cn(
                                                     "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
                                                     isActive
-                                                        ? "bg-teal-500/30 text-teal-200 font-medium"
-                                                        : "text-gray-400 hover:bg-white/5 hover:text-white"
+                                                        ? "bg-teal-500/30 text-teal-300 font-medium"
+                                                        : "text-gray-300 hover:bg-teal-500/10 hover:text-teal-300"
                                                 )}
                                             >
-                                                <ItemIcon className="w-4 h-4" />
+                                                <ItemIcon className={cn(
+                                                    "w-4 h-4",
+                                                    isActive ? "text-teal-400" : "text-gray-400"
+                                                )} />
                                                 <span className="flex-1">{item.label}</span>
                                                 {item.badge && (
                                                     <Badge
