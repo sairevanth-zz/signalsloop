@@ -97,7 +97,7 @@ export function MissionControlDashboard({
                             <p style={{
                                 fontSize: '36px',
                                 fontWeight: 300,
-                                color: '#e6edf3',
+                                color: colors.textPrimary,
                                 margin: 0,
                                 lineHeight: 1.3,
                                 letterSpacing: '-0.02em'
@@ -107,7 +107,7 @@ export function MissionControlDashboard({
                             <p style={{
                                 fontSize: '36px',
                                 fontWeight: 300,
-                                color: '#e6edf3',
+                                color: colors.textPrimary,
                                 margin: 0,
                                 lineHeight: 1.3,
                                 letterSpacing: '-0.02em'
@@ -240,7 +240,7 @@ export function MissionControlDashboard({
 
                         <div style={{
                             height: '1px',
-                            backgroundColor: 'rgba(255,255,255,0.08)',
+                            backgroundColor: colors.border,
                             margin: '16px 0'
                         }} />
 
@@ -249,7 +249,7 @@ export function MissionControlDashboard({
                             <h4 style={{
                                 fontSize: '13px',
                                 fontWeight: 600,
-                                color: '#e6edf3',
+                                color: colors.textPrimary,
                                 margin: '0 0 16px 0'
                             }}>
                                 Recent Activity & Insights
@@ -497,7 +497,7 @@ function SentimentLineChart() {
     );
 }
 
-// Activity Item
+// Activity Item - theme-aware
 function ActivityItem({
     icon,
     title,
@@ -507,6 +507,11 @@ function ActivityItem({
     title: string;
     time: string;
 }) {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+    const textColor = isDark ? '#c9d1d9' : '#475569';
+    const timeColor = isDark ? '#6e7681' : '#94a3b8';
+
     return (
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
             <div style={{ marginTop: '2px', flexShrink: 0 }}>
@@ -515,7 +520,7 @@ function ActivityItem({
             <div style={{ flex: 1 }}>
                 <p style={{
                     fontSize: '13px',
-                    color: '#c9d1d9',
+                    color: textColor,
                     margin: 0,
                     lineHeight: 1.4
                 }}>
@@ -523,7 +528,7 @@ function ActivityItem({
                 </p>
                 <p style={{
                     fontSize: '11px',
-                    color: '#6e7681',
+                    color: timeColor,
                     margin: '4px 0 0 0'
                 }}>
                     {time}
