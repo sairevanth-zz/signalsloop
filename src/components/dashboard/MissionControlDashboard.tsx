@@ -242,7 +242,7 @@ function RobotIllustration() {
     );
 }
 
-// Action Card Component with glowing border - using inline styles for specificity
+// Action Card Component - Using Tailwind class for guaranteed dark background
 function ActionCard({
     icon,
     title,
@@ -261,90 +261,40 @@ function ActionCard({
     borderColor: string;
     buttonColor: string;
 }) {
-    // Card styles
-    const cardStyle: React.CSSProperties = {
-        backgroundColor: '#2a2f38',
-        border: `2px solid ${borderColor}40`,
-        boxShadow: `0 0 20px ${borderColor}20, inset 0 1px 0 rgba(255,255,255,0.05)`,
-        borderRadius: '16px',
-        padding: '20px',
-        position: 'relative',
-        overflow: 'hidden',
-        transition: 'transform 0.2s ease',
-    };
-
-    // Glow effect styles
-    const glowStyle: React.CSSProperties = {
-        position: 'absolute',
-        inset: 0,
-        opacity: 0.1,
-        background: `radial-gradient(ellipse at top left, ${borderColor} 0%, transparent 50%)`,
-        pointerEvents: 'none',
-    };
-
-    // Icon container styles
-    const iconContainerStyle: React.CSSProperties = {
-        width: '40px',
-        height: '40px',
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: '16px',
-        backgroundColor: `${borderColor}15`,
-    };
-
-    // Button styles
-    const buttonStyle: React.CSSProperties = {
-        width: '100%',
-        backgroundColor: buttonColor,
-        color: 'white',
-        fontWeight: 500,
-        padding: '10px 16px',
-        borderRadius: '8px',
-        border: 'none',
-        cursor: 'pointer',
-        display: 'block',
-        textAlign: 'center',
-        textDecoration: 'none',
-    };
-
     return (
-        <div style={cardStyle}>
-            {/* Glow effect */}
-            <div style={glowStyle} />
-
-            <div style={{ position: 'relative', zIndex: 10 }}>
-                {/* Icon */}
-                <div style={iconContainerStyle}>
-                    {icon}
-                </div>
-
-                {/* Title */}
-                <h3 style={{
-                    fontSize: '18px',
-                    fontWeight: 600,
-                    color: '#ffffff',
-                    marginBottom: '8px'
-                }}>
-                    {title}
-                </h3>
-
-                {/* Description */}
-                <p style={{
-                    fontSize: '14px',
-                    color: '#9ca3af',
-                    marginBottom: '16px',
-                    lineHeight: 1.5
-                }}>
-                    {description}
-                </p>
-
-                {/* Button */}
-                <Link href={href} style={buttonStyle}>
-                    {buttonLabel}
-                </Link>
+        <div
+            className="rounded-2xl p-5 relative overflow-hidden bg-[#2a2f38]"
+            style={{
+                border: `2px solid ${borderColor}`,
+                boxShadow: `0 0 30px ${borderColor}40`,
+            }}
+        >
+            {/* Icon */}
+            <div
+                className="w-10 h-10 rounded-full flex items-center justify-center mb-4"
+                style={{ backgroundColor: `${borderColor}20` }}
+            >
+                {icon}
             </div>
+
+            {/* Title */}
+            <h3 className="text-lg font-semibold text-white mb-2">
+                {title}
+            </h3>
+
+            {/* Description */}
+            <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+                {description}
+            </p>
+
+            {/* Button */}
+            <Link
+                href={href}
+                className="block w-full text-center text-white font-medium py-2.5 px-4 rounded-lg transition-opacity hover:opacity-90"
+                style={{ backgroundColor: buttonColor }}
+            >
+                {buttonLabel}
+            </Link>
         </div>
     );
 }
