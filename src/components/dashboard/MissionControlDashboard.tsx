@@ -266,52 +266,66 @@ export function MissionControlDashboard({
     );
 }
 
-// Robot Illustration - Vibrant with glow effect
+// Robot Illustration - Cute rounded robot matching reference
 function RobotIllustration() {
     return (
         <div style={{ position: 'relative', flexShrink: 0 }}>
-            {/* Teal glow behind robot */}
+            {/* Strong teal glow behind robot */}
             <div style={{
                 position: 'absolute',
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: '120px',
-                height: '120px',
-                background: 'radial-gradient(circle, rgba(20, 184, 166, 0.4) 0%, transparent 70%)',
-                filter: 'blur(20px)'
+                width: '140px',
+                height: '140px',
+                background: 'radial-gradient(circle, rgba(20, 184, 166, 0.5) 0%, rgba(20, 184, 166, 0.2) 40%, transparent 70%)',
+                filter: 'blur(15px)'
             }} />
 
-            <svg width="90" height="90" viewBox="0 0 100 100" fill="none" style={{ position: 'relative', zIndex: 1 }}>
+            <svg width="100" height="100" viewBox="0 0 100 100" fill="none" style={{ position: 'relative', zIndex: 1 }}>
+                <defs>
+                    {/* Eye glow gradient */}
+                    <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#5eead4" />
+                        <stop offset="60%" stopColor="#14b8a6" />
+                        <stop offset="100%" stopColor="#0d9488" />
+                    </radialGradient>
+                    {/* Antenna glow */}
+                    <radialGradient id="antennaGlow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#fde047" />
+                        <stop offset="70%" stopColor="#fbbf24" />
+                        <stop offset="100%" stopColor="#f59e0b" />
+                    </radialGradient>
+                </defs>
+
                 {/* Antenna stem */}
-                <line x1="50" y1="28" x2="50" y2="12" stroke="#4a5568" strokeWidth="4" strokeLinecap="round" />
+                <line x1="50" y1="25" x2="50" y2="8" stroke="#64748b" strokeWidth="5" strokeLinecap="round" />
 
-                {/* Antenna ball - glowing gold */}
-                <circle cx="50" cy="8" r="6" fill="#fbbf24" />
-                <circle cx="50" cy="8" r="4" fill="#f59e0b" />
-                <circle cx="50" cy="6" r="1.5" fill="#fef3c7" />
+                {/* Antenna ball - bright glowing gold */}
+                <circle cx="50" cy="6" r="8" fill="url(#antennaGlow)" />
+                <circle cx="50" cy="5" r="3" fill="#fef3c7" opacity="0.8" />
 
-                {/* Robot head - main body */}
-                <rect x="18" y="28" width="64" height="54" rx="14" fill="#374151" />
-                <rect x="20" y="30" width="60" height="50" rx="12" fill="#1f2937" />
+                {/* Robot head - rounder, cuter */}
+                <rect x="15" y="25" width="70" height="60" rx="20" fill="#475569" />
+                <rect x="18" y="28" width="64" height="54" rx="17" fill="#334155" />
 
-                {/* Face screen */}
-                <rect x="25" y="35" width="50" height="40" rx="10" fill="#0f1419" />
+                {/* Face screen - rounded */}
+                <rect x="22" y="32" width="56" height="46" rx="14" fill="#1e293b" />
 
-                {/* Left eye - glowing teal */}
-                <ellipse cx="38" cy="52" rx="7" ry="8" fill="#14b8a6" />
-                <ellipse cx="40" cy="50" rx="2.5" ry="3" fill="#5eead4" />
+                {/* Left eye - big glowing */}
+                <circle cx="36" cy="52" r="10" fill="url(#eyeGlow)" />
+                <circle cx="38" cy="49" r="4" fill="#fff" opacity="0.6" />
 
-                {/* Right eye - glowing teal */}
-                <ellipse cx="62" cy="52" rx="7" ry="8" fill="#14b8a6" />
-                <ellipse cx="64" cy="50" rx="2.5" ry="3" fill="#5eead4" />
+                {/* Right eye - big glowing */}
+                <circle cx="64" cy="52" r="10" fill="url(#eyeGlow)" />
+                <circle cx="66" cy="49" r="4" fill="#fff" opacity="0.6" />
 
-                {/* Smile */}
-                <path d="M40 66 Q50 74 60 66" stroke="#14b8a6" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                {/* Happy smile - prominent */}
+                <path d="M38 68 Q50 78 62 68" stroke="#14b8a6" strokeWidth="3" strokeLinecap="round" fill="none" />
 
-                {/* Side ears */}
-                <rect x="8" y="45" width="8" height="18" rx="4" fill="#4a5568" />
-                <rect x="84" y="45" width="8" height="18" rx="4" fill="#4a5568" />
+                {/* Side ears/speakers - rounded */}
+                <rect x="5" y="42" width="10" height="22" rx="5" fill="#64748b" />
+                <rect x="85" y="42" width="10" height="22" rx="5" fill="#64748b" />
             </svg>
         </div>
     );
@@ -338,64 +352,80 @@ function ActionCard({
             position: 'relative',
             borderRadius: '16px',
             padding: '20px',
-            backgroundColor: '#161b22',
+            backgroundColor: '#1e2530',
             border: `2px solid ${accentColor}`,
-            boxShadow: `0 0 60px ${accentColor}50, 0 0 30px ${accentColor}40, 0 8px 32px rgba(0,0,0,0.4)`,
+            boxShadow: `0 0 80px ${accentColor}60, 0 0 40px ${accentColor}50, inset 0 0 40px ${accentColor}15`,
+            overflow: 'hidden',
         }}>
-            {/* Icon circle */}
+            {/* Inner glow effect - gradient from borders */}
             <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '50%',
-                backgroundColor: `${accentColor}20`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '16px'
-            }}>
-                {icon}
-            </div>
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: `radial-gradient(ellipse at top, ${accentColor}20 0%, transparent 50%), radial-gradient(ellipse at bottom, ${accentColor}15 0%, transparent 40%)`,
+                pointerEvents: 'none'
+            }} />
 
-            {/* Title */}
-            <h3 style={{
-                fontSize: '16px',
-                fontWeight: 600,
-                color: '#e6edf3',
-                margin: '0 0 8px 0',
-                letterSpacing: '-0.01em'
-            }}>
-                {title}
-            </h3>
+            {/* Content */}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+                {/* Icon circle */}
+                <div style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '50%',
+                    backgroundColor: `${accentColor}30`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '16px',
+                    boxShadow: `0 0 20px ${accentColor}40`
+                }}>
+                    {icon}
+                </div>
 
-            {/* Description */}
-            <p style={{
-                fontSize: '13px',
-                color: '#8b949e',
-                margin: '0 0 16px 0',
-                lineHeight: 1.5
-            }}>
-                {description}
-            </p>
-
-            {/* Button */}
-            <Link
-                href={href}
-                style={{
-                    display: 'block',
-                    width: '100%',
-                    textAlign: 'center',
-                    color: '#0d1117',
+                {/* Title */}
+                <h3 style={{
+                    fontSize: '16px',
                     fontWeight: 600,
-                    fontSize: '14px',
-                    padding: '12px 16px',
-                    borderRadius: '8px',
-                    backgroundColor: accentColor,
-                    textDecoration: 'none',
-                    boxShadow: `0 6px 20px ${accentColor}50, 0 0 30px ${accentColor}40`
-                }}
-            >
-                {buttonLabel}
-            </Link>
+                    color: '#ffffff',
+                    margin: '0 0 8px 0',
+                    letterSpacing: '-0.01em'
+                }}>
+                    {title}
+                </h3>
+
+                {/* Description */}
+                <p style={{
+                    fontSize: '13px',
+                    color: '#9ca3af',
+                    margin: '0 0 16px 0',
+                    lineHeight: 1.5
+                }}>
+                    {description}
+                </p>
+
+                {/* Button - with strong glow */}
+                <Link
+                    href={href}
+                    style={{
+                        display: 'block',
+                        width: '100%',
+                        textAlign: 'center',
+                        color: '#0d1117',
+                        fontWeight: 700,
+                        fontSize: '14px',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        backgroundColor: accentColor,
+                        textDecoration: 'none',
+                        boxShadow: `0 8px 30px ${accentColor}70, 0 0 50px ${accentColor}50, 0 0 80px ${accentColor}30`
+                    }}
+                >
+                    {buttonLabel}
+                </Link>
+            </div>
         </div>
     );
 }

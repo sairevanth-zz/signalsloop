@@ -155,7 +155,7 @@ export function WorkflowSidebar({ projectSlug }: WorkflowSidebarProps) {
     }, [pathname]);
 
     return (
-        <div className="w-64 h-full flex flex-col" style={{ backgroundColor: '#0d1117' }}>
+        <div className="w-64 h-full flex flex-col" style={{ backgroundColor: '#1e2228' }}>
             {/* Logo */}
             <div className="p-4 border-b border-white/10">
                 <Link href="/app" className="flex items-center gap-2">
