@@ -32,6 +32,12 @@
   --sl-border: rgba(0, 0, 0, 0.1);
 }
 
+/* FORCE dark backgrounds for Mission Control cards */
+.dark-card-forced {
+  background-color: #2a2f38 !important;
+  background: #2a2f38 !important;
+}
+
 /* Ensure custom animations are loaded */
 @layer base {
 
