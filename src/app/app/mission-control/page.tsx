@@ -110,8 +110,8 @@ function ProjectSelector() {
             backgroundColor: '#1e2530',
             padding: '24px',
             borderRadius: '16px',
-            border: '1px solid rgba(20, 184, 166, 0.3)',
-            boxShadow: '0 0 40px rgba(20, 184, 166, 0.15), inset 0 0 30px rgba(20, 184, 166, 0.05)'
+            border: '2px solid rgba(20, 184, 166, 0.5)',
+            boxShadow: '0 0 60px rgba(20, 184, 166, 0.25), inset 0 0 40px rgba(20, 184, 166, 0.08)'
           }}>
             <Sparkles style={{ width: '32px', height: '32px', color: '#14b8a6', marginBottom: '12px' }} />
             <h3 style={{ fontWeight: 600, color: '#ffffff', marginBottom: '8px', fontSize: '16px' }}>AI-Powered Briefings</h3>
@@ -125,8 +125,8 @@ function ProjectSelector() {
             backgroundColor: '#1e2530',
             padding: '24px',
             borderRadius: '16px',
-            border: '1px solid rgba(16, 185, 129, 0.3)',
-            boxShadow: '0 0 40px rgba(16, 185, 129, 0.15), inset 0 0 30px rgba(16, 185, 129, 0.05)'
+            border: '2px solid rgba(16, 185, 129, 0.5)',
+            boxShadow: '0 0 60px rgba(16, 185, 129, 0.25), inset 0 0 40px rgba(16, 185, 129, 0.08)'
           }}>
             <TrendingUp style={{ width: '32px', height: '32px', color: '#10b981', marginBottom: '12px' }} />
             <h3 style={{ fontWeight: 600, color: '#ffffff', marginBottom: '8px', fontSize: '16px' }}>Real-Time Sentiment</h3>
@@ -140,8 +140,8 @@ function ProjectSelector() {
             backgroundColor: '#1e2530',
             padding: '24px',
             borderRadius: '16px',
-            border: '1px solid rgba(251, 191, 36, 0.3)',
-            boxShadow: '0 0 40px rgba(251, 191, 36, 0.15), inset 0 0 30px rgba(251, 191, 36, 0.05)'
+            border: '2px solid rgba(251, 191, 36, 0.5)',
+            boxShadow: '0 0 60px rgba(251, 191, 36, 0.25), inset 0 0 40px rgba(251, 191, 36, 0.08)'
           }}>
             <Target style={{ width: '32px', height: '32px', color: '#fbbf24', marginBottom: '12px' }} />
             <h3 style={{ fontWeight: 600, color: '#ffffff', marginBottom: '8px', fontSize: '16px' }}>Priority Insights</h3>
