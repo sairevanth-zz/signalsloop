@@ -1,17 +1,17 @@
 'use client';
 
 /**
- * MissionControlDashboard - Pixel-perfect match to approved mockup
+ * MissionControlDashboard - EXACT match to reference mockup
  * 
- * Features:
- * - AI Greeting with robot illustration
- * - 3 Contextual Action Cards with glowing borders
- * - Dynamic Context panel with sentiment line chart
- * - Activity feed
+ * Key elements from reference:
+ * 1. Very dark charcoal background (~#0d1117)
+ * 2. Vibrant card glows with colored borders
+ * 3. Cute robot with teal glow
+ * 4. Smooth line chart in Dynamic Context
+ * 5. Clean typography with proper weights
  */
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
     AlertTriangle,
@@ -43,164 +43,217 @@ export function MissionControlDashboard({
 
     return (
         <div
-            className="min-h-screen p-6"
-            style={{ backgroundColor: '#0f1419' }}
+            style={{
+                minHeight: '100vh',
+                padding: '24px',
+                backgroundColor: '#0d1117',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            }}
         >
-            <div className="flex gap-6">
+            <div style={{ display: 'flex', gap: '24px' }}>
                 {/* Main Content */}
-                <div className="flex-1">
+                <div style={{ flex: 1 }}>
                     {/* Header Label */}
-                    <p
-                        className="text-sm font-medium mb-4"
-                        style={{ color: '#14b8a6' }}
-                    >
+                    <p style={{
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        color: '#14b8a6',
+                        marginBottom: '16px',
+                        letterSpacing: '0.02em'
+                    }}>
                         AI Agent Mission Control
                     </p>
 
                     {/* Greeting Section */}
-                    <div className="flex items-start justify-between mb-10">
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        justifyContent: 'space-between',
+                        marginBottom: '40px'
+                    }}>
                         <div>
-                            <h1
-                                className="text-4xl font-light mb-2"
-                                style={{
-                                    color: '#e5e7eb',
-                                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                                    letterSpacing: '-0.02em'
-                                }}
-                            >
+                            <h1 style={{
+                                fontSize: '36px',
+                                fontWeight: 300,
+                                color: '#e6edf3',
+                                margin: 0,
+                                lineHeight: 1.3,
+                                letterSpacing: '-0.02em'
+                            }}>
                                 {getGreeting()}, {userName}.
                             </h1>
-                            <p
-                                className="text-4xl font-light"
-                                style={{
-                                    color: '#e5e7eb',
-                                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                                    letterSpacing: '-0.02em'
-                                }}
-                            >
+                            <p style={{
+                                fontSize: '36px',
+                                fontWeight: 300,
+                                color: '#e6edf3',
+                                margin: 0,
+                                lineHeight: 1.3,
+                                letterSpacing: '-0.02em'
+                            }}>
                                 Here's what needs your
                             </p>
-                            <p
-                                className="text-4xl font-light"
-                                style={{
-                                    color: '#e5e7eb',
-                                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                                    letterSpacing: '-0.02em'
-                                }}
-                            >
+                            <p style={{
+                                fontSize: '36px',
+                                fontWeight: 300,
+                                color: '#e6edf3',
+                                margin: 0,
+                                lineHeight: 1.3,
+                                letterSpacing: '-0.02em'
+                            }}>
                                 attention.
                             </p>
                         </div>
 
                         {/* Robot Illustration */}
-                        <div className="flex-shrink-0">
-                            <RobotIllustration />
-                        </div>
+                        <RobotIllustration />
                     </div>
 
-                    {/* Action Cards */}
-                    <div className="grid grid-cols-3 gap-5">
-                        {/* Churn Risk Alert - Gold border */}
+                    {/* Action Cards Grid */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '20px'
+                    }}>
+                        {/* Churn Risk Alert - Gold/Amber */}
                         <ActionCard
-                            type="churn"
-                            icon={<AlertTriangle className="w-6 h-6" style={{ color: '#fbbf24' }} />}
+                            icon={<AlertTriangle style={{ width: '24px', height: '24px', color: '#fbbf24' }} />}
                             title="Churn Risk Alert"
                             description="High churn probability detected for 'Acme Corp' based on usage patterns. View details and take action."
                             buttonLabel="Review & Act"
                             href={`/${projectSlug}/churn-radar`}
-                            borderColor="#fbbf24"
-                            buttonColor="#fbbf24"
+                            accentColor="#fbbf24"
                         />
 
-                        {/* New Theme Detected - Teal border */}
+                        {/* New Theme Detected - Teal */}
                         <ActionCard
-                            type="theme"
-                            icon={<Lightbulb className="w-6 h-6" style={{ color: '#14b8a6' }} />}
+                            icon={<Lightbulb style={{ width: '24px', height: '24px', color: '#14b8a6' }} />}
                             title="New Theme Detected"
                             description="AI has identified a burgeoning theme in user feedback related to 'Performance Issues'. Explore insights."
                             buttonLabel="Explore Theme"
                             href={`/${projectSlug}/ai-insights`}
-                            borderColor="#14b8a6"
-                            buttonColor="#14b8a6"
+                            accentColor="#14b8a6"
                         />
 
-                        {/* Roadmap Outcome - Teal/Green border */}
+                        {/* Roadmap Outcome - Emerald */}
                         <ActionCard
-                            type="outcome"
-                            icon={<CheckCircle className="w-6 h-6" style={{ color: '#10b981' }} />}
+                            icon={<CheckCircle style={{ width: '24px', height: '24px', color: '#10b981' }} />}
                             title="Roadmap Item Outcome Ready"
                             description="'Q3 Feature Launch' outcome analysis is complete. See the impact on user engagement."
                             buttonLabel="View Outcomes"
                             href={`/${projectSlug}/outcomes`}
-                            borderColor="#10b981"
-                            buttonColor="#10b981"
+                            accentColor="#10b981"
                         />
                     </div>
                 </div>
 
                 {/* Right Panel - Dynamic Context */}
-                <div className="w-80 flex-shrink-0">
-                    <div
-                        className="rounded-2xl p-5"
-                        style={{
-                            backgroundColor: '#1a1f2e',
-                            border: '1px solid rgba(255,255,255,0.08)'
-                        }}
-                    >
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-white">
+                <div style={{ width: '320px', flexShrink: 0 }}>
+                    <div style={{
+                        backgroundColor: '#161b22',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        border: '1px solid rgba(255,255,255,0.08)'
+                    }}>
+                        {/* Header */}
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginBottom: '16px'
+                        }}>
+                            <h3 style={{
+                                fontSize: '16px',
+                                fontWeight: 600,
+                                color: '#e6edf3',
+                                margin: 0
+                            }}>
                                 Dynamic Context
                             </h3>
-                            <ChevronRight className="w-4 h-4 text-gray-500" />
+                            <ChevronRight style={{ width: '16px', height: '16px', color: '#6e7681' }} />
                         </div>
 
                         {/* Chat Input */}
-                        <div
-                            className="flex items-center gap-2 p-3 rounded-lg mb-5"
-                            style={{ backgroundColor: '#252b38' }}
-                        >
-                            <input
-                                type="text"
-                                placeholder="Chat with the Page"
-                                className="flex-1 bg-transparent text-sm text-gray-400 outline-none placeholder:text-gray-500"
-                            />
-                            <MessageSquare className="w-4 h-4 text-teal-500" />
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '12px',
+                            backgroundColor: '#21262d',
+                            borderRadius: '8px',
+                            marginBottom: '20px'
+                        }}>
+                            <span style={{
+                                flex: 1,
+                                fontSize: '13px',
+                                color: '#6e7681'
+                            }}>
+                                Chat with the Page
+                            </span>
+                            <MessageSquare style={{ width: '16px', height: '16px', color: '#14b8a6' }} />
                         </div>
 
                         {/* User Sentiment Pulse */}
-                        <div className="mb-6">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-gray-300">User Sentiment Pulse</span>
-                                <ChevronRight className="w-4 h-4 text-gray-500" />
+                        <div style={{ marginBottom: '20px' }}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginBottom: '8px'
+                            }}>
+                                <span style={{ fontSize: '13px', fontWeight: 500, color: '#8b949e' }}>
+                                    User Sentiment Pulse
+                                </span>
+                                <ChevronRight style={{ width: '14px', height: '14px', color: '#6e7681' }} />
                             </div>
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10b981' }} />
-                                <span className="text-sm" style={{ color: '#10b981' }}>Generally Positive</span>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                marginBottom: '12px'
+                            }}>
+                                <div style={{
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#10b981'
+                                }} />
+                                <span style={{ fontSize: '13px', color: '#10b981' }}>
+                                    Generally Positive
+                                </span>
                             </div>
                             {/* Sentiment Chart */}
-                            <SentimentChart />
+                            <SentimentLineChart />
                         </div>
 
-                        <div className="border-t border-white/10 my-4" />
+                        <div style={{
+                            height: '1px',
+                            backgroundColor: 'rgba(255,255,255,0.08)',
+                            margin: '16px 0'
+                        }} />
 
                         {/* Recent Activity */}
                         <div>
-                            <h4 className="text-sm font-semibold text-white mb-4">
+                            <h4 style={{
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                color: '#e6edf3',
+                                margin: '0 0 16px 0'
+                            }}>
                                 Recent Activity & Insights
                             </h4>
-                            <div className="space-y-4">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 <ActivityItem
-                                    icon={<MessageSquare className="w-4 h-4" style={{ color: '#14b8a6' }} />}
+                                    icon={<MessageSquare style={{ width: '14px', height: '14px', color: '#14b8a6' }} />}
                                     title="User 'Sarah L.' submitted feedback regarding 'Integration API'"
                                     time="5 mins ago"
                                 />
                                 <ActivityItem
-                                    icon={<TrendingUp className="w-4 h-4" style={{ color: '#fbbf24' }} />}
+                                    icon={<TrendingUp style={{ width: '14px', height: '14px', color: '#fbbf24' }} />}
                                     title="New theme 'Data Export' is gaining traction"
                                     time="20 mins ago"
                                 />
                                 <ActivityItem
-                                    icon={<Activity className="w-4 h-4" style={{ color: '#14b8a6' }} />}
+                                    icon={<Activity style={{ width: '14px', height: '14px', color: '#14b8a6' }} />}
                                     title="System performance is stable - All systems go"
                                     time="1 hour ago"
                                 />
@@ -213,222 +266,208 @@ export function MissionControlDashboard({
     );
 }
 
-// Robot Illustration Component - Vibrant 3D-style matching reference
+// Robot Illustration - Vibrant with glow effect
 function RobotIllustration() {
     return (
-        <div className="relative">
-            {/* Glow effect behind robot */}
-            <div
-                className="absolute inset-0 rounded-full blur-xl"
-                style={{
-                    background: 'radial-gradient(circle, rgba(20, 184, 166, 0.3) 0%, transparent 70%)',
-                    transform: 'scale(1.3)'
-                }}
-            />
-            <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="relative z-10">
-                {/* Antenna */}
-                <line x1="50" y1="30" x2="50" y2="15" stroke="#3d4a5c" strokeWidth="4" strokeLinecap="round" />
-                <circle cx="50" cy="10" r="7" fill="url(#antennaGlow)" />
-                <circle cx="50" cy="10" r="5" fill="#fbbf24" />
-                <circle cx="50" cy="10" r="3" fill="#f59e0b" />
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+            {/* Teal glow behind robot */}
+            <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '120px',
+                height: '120px',
+                background: 'radial-gradient(circle, rgba(20, 184, 166, 0.4) 0%, transparent 70%)',
+                filter: 'blur(20px)'
+            }} />
 
-                {/* Main Head - Rounded Rectangle with 3D effect */}
-                <rect x="17" y="30" width="66" height="55" rx="14" fill="url(#headGradient)" />
-                <rect x="19" y="32" width="62" height="51" rx="12" fill="#2d3640" />
+            <svg width="90" height="90" viewBox="0 0 100 100" fill="none" style={{ position: 'relative', zIndex: 1 }}>
+                {/* Antenna stem */}
+                <line x1="50" y1="28" x2="50" y2="12" stroke="#4a5568" strokeWidth="4" strokeLinecap="round" />
 
-                {/* Face Screen */}
-                <rect x="24" y="37" width="52" height="40" rx="10" fill="#1a1f2a" />
+                {/* Antenna ball - glowing gold */}
+                <circle cx="50" cy="8" r="6" fill="#fbbf24" />
+                <circle cx="50" cy="8" r="4" fill="#f59e0b" />
+                <circle cx="50" cy="6" r="1.5" fill="#fef3c7" />
 
-                {/* Eyes - Glowing Teal */}
-                <ellipse cx="38" cy="55" rx="8" ry="9" fill="url(#eyeGlow)" />
-                <ellipse cx="38" cy="55" rx="6" ry="7" fill="#14b8a6" />
-                <ellipse cx="40" cy="53" rx="2" ry="2.5" fill="#5eead4" />
+                {/* Robot head - main body */}
+                <rect x="18" y="28" width="64" height="54" rx="14" fill="#374151" />
+                <rect x="20" y="30" width="60" height="50" rx="12" fill="#1f2937" />
 
-                <ellipse cx="62" cy="55" rx="8" ry="9" fill="url(#eyeGlow)" />
-                <ellipse cx="62" cy="55" rx="6" ry="7" fill="#14b8a6" />
-                <ellipse cx="64" cy="53" rx="2" ry="2.5" fill="#5eead4" />
+                {/* Face screen */}
+                <rect x="25" y="35" width="50" height="40" rx="10" fill="#0f1419" />
 
-                {/* Smile/Mouth */}
-                <path d="M40 68 Q50 75 60 68" stroke="#14b8a6" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                {/* Left eye - glowing teal */}
+                <ellipse cx="38" cy="52" rx="7" ry="8" fill="#14b8a6" />
+                <ellipse cx="40" cy="50" rx="2.5" ry="3" fill="#5eead4" />
 
-                {/* Side Ears/Speakers */}
-                <rect x="8" y="48" width="8" height="18" rx="4" fill="#3d4a5c" />
-                <rect x="84" y="48" width="8" height="18" rx="4" fill="#3d4a5c" />
+                {/* Right eye - glowing teal */}
+                <ellipse cx="62" cy="52" rx="7" ry="8" fill="#14b8a6" />
+                <ellipse cx="64" cy="50" rx="2.5" ry="3" fill="#5eead4" />
 
-                <defs>
-                    <linearGradient id="headGradient" x1="50" y1="30" x2="50" y2="85" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stopColor="#4a5568" />
-                        <stop offset="100%" stopColor="#2d3748" />
-                    </linearGradient>
-                    <radialGradient id="eyeGlow" cx="0.5" cy="0.5" r="0.5">
-                        <stop offset="0%" stopColor="#14b8a6" />
-                        <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
-                    </radialGradient>
-                    <radialGradient id="antennaGlow" cx="0.5" cy="0.5" r="0.5">
-                        <stop offset="0%" stopColor="#fcd34d" />
-                        <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.3" />
-                    </radialGradient>
-                </defs>
+                {/* Smile */}
+                <path d="M40 66 Q50 74 60 66" stroke="#14b8a6" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+
+                {/* Side ears */}
+                <rect x="8" y="45" width="8" height="18" rx="4" fill="#4a5568" />
+                <rect x="84" y="45" width="8" height="18" rx="4" fill="#4a5568" />
             </svg>
         </div>
     );
 }
 
-// Action Card Component - With explicit dark background layer
+// Action Card - with vibrant glow and dark background
 function ActionCard({
     icon,
     title,
     description,
     buttonLabel,
     href,
-    borderColor,
-    buttonColor,
+    accentColor,
 }: {
-    type: string;
     icon: React.ReactNode;
     title: string;
     description: string;
     buttonLabel: string;
     href: string;
-    borderColor: string;
-    buttonColor: string;
+    accentColor: string;
 }) {
     return (
-        <div
-            style={{
-                borderRadius: '16px',
-                padding: '20px',
-                position: 'relative',
-                overflow: 'hidden',
-                border: `2px solid ${borderColor}`,
-                boxShadow: `0 0 25px ${borderColor}30`,
-            }}
-        >
-            {/* FORCED Dark Background Layer - Absolute positioned */}
-            <div
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: '#1e2530',
-                    zIndex: 0,
-                }}
-            />
-
-            {/* Content - positioned above background */}
-            <div style={{ position: 'relative', zIndex: 1 }}>
-                {/* Icon in colored circle */}
-                <div
-                    style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: '16px',
-                        backgroundColor: `${borderColor}25`
-                    }}
-                >
-                    {icon}
-                </div>
-
-                {/* Title */}
-                <h3 style={{
-                    fontSize: '17px',
-                    fontWeight: 600,
-                    color: '#ffffff',
-                    marginBottom: '10px',
-                    letterSpacing: '-0.01em'
-                }}>
-                    {title}
-                </h3>
-
-                {/* Description */}
-                <p style={{
-                    fontSize: '13px',
-                    color: '#9ca3af',
-                    marginBottom: '16px',
-                    lineHeight: 1.5
-                }}>
-                    {description}
-                </p>
-
-                {/* Button */}
-                <Link
-                    href={href}
-                    style={{
-                        display: 'block',
-                        width: '100%',
-                        textAlign: 'center',
-                        color: '#000000',
-                        fontWeight: 600,
-                        fontSize: '14px',
-                        padding: '12px 16px',
-                        borderRadius: '8px',
-                        backgroundColor: buttonColor,
-                        textDecoration: 'none'
-                    }}
-                >
-                    {buttonLabel}
-                </Link>
+        <div style={{
+            position: 'relative',
+            borderRadius: '16px',
+            padding: '20px',
+            backgroundColor: '#161b22',
+            border: `2px solid ${accentColor}`,
+            boxShadow: `0 0 40px ${accentColor}33, 0 0 20px ${accentColor}22`,
+        }}>
+            {/* Icon circle */}
+            <div style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                backgroundColor: `${accentColor}20`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px'
+            }}>
+                {icon}
             </div>
+
+            {/* Title */}
+            <h3 style={{
+                fontSize: '16px',
+                fontWeight: 600,
+                color: '#e6edf3',
+                margin: '0 0 8px 0',
+                letterSpacing: '-0.01em'
+            }}>
+                {title}
+            </h3>
+
+            {/* Description */}
+            <p style={{
+                fontSize: '13px',
+                color: '#8b949e',
+                margin: '0 0 16px 0',
+                lineHeight: 1.5
+            }}>
+                {description}
+            </p>
+
+            {/* Button */}
+            <Link
+                href={href}
+                style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'center',
+                    color: '#0d1117',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    backgroundColor: accentColor,
+                    textDecoration: 'none',
+                    boxShadow: `0 4px 12px ${accentColor}40`
+                }}
+            >
+                {buttonLabel}
+            </Link>
         </div>
     );
 }
 
-// Sentiment Chart Component
-function SentimentChart() {
+// Sentiment Line Chart - smooth gradient area
+function SentimentLineChart() {
     return (
-        <div
-            className="h-20 rounded-lg overflow-hidden relative"
-            style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}
-        >
+        <div style={{
+            height: '80px',
+            backgroundColor: '#21262d',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            position: 'relative'
+        }}>
             <svg width="100%" height="100%" viewBox="0 0 280 80" preserveAspectRatio="none">
-                {/* Gradient fill under line */}
                 <defs>
-                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.3" />
+                    <linearGradient id="sentimentGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.4" />
                         <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
                     </linearGradient>
                 </defs>
 
                 {/* Area fill */}
                 <path
-                    d="M0,60 Q40,50 70,55 T140,40 T210,45 T280,30 L280,80 L0,80 Z"
-                    fill="url(#chartGradient)"
+                    d="M0,55 C30,50 60,45 90,48 C120,51 150,35 180,38 C210,41 240,28 280,22 L280,80 L0,80 Z"
+                    fill="url(#sentimentGradient)"
                 />
 
                 {/* Line */}
                 <path
-                    d="M0,60 Q40,50 70,55 T140,40 T210,45 T280,30"
+                    d="M0,55 C30,50 60,45 90,48 C120,51 150,35 180,38 C210,41 240,28 280,22"
                     fill="none"
                     stroke="#14b8a6"
                     strokeWidth="2"
+                    strokeLinecap="round"
                 />
             </svg>
         </div>
     );
 }
 
-// Activity Item Component
+// Activity Item
 function ActivityItem({
     icon,
     title,
-    time,
+    time
 }: {
     icon: React.ReactNode;
     title: string;
     time: string;
 }) {
     return (
-        <div className="flex items-start gap-3">
-            <div className="mt-0.5">{icon}</div>
-            <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-300 leading-snug">{title}</p>
-                <p className="text-xs text-gray-500 mt-1">{time}</p>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+            <div style={{ marginTop: '2px', flexShrink: 0 }}>
+                {icon}
+            </div>
+            <div style={{ flex: 1 }}>
+                <p style={{
+                    fontSize: '13px',
+                    color: '#c9d1d9',
+                    margin: 0,
+                    lineHeight: 1.4
+                }}>
+                    {title}
+                </p>
+                <p style={{
+                    fontSize: '11px',
+                    color: '#6e7681',
+                    margin: '4px 0 0 0'
+                }}>
+                    {time}
+                </p>
             </div>
         </div>
     );
