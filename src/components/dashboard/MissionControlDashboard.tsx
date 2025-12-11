@@ -274,7 +274,7 @@ function RobotIllustration() {
     );
 }
 
-// Action Card Component - Using Tailwind class for guaranteed dark background
+// Action Card Component - With explicit dark background layer
 function ActionCard({
     icon,
     title,
@@ -293,24 +293,33 @@ function ActionCard({
     borderColor: string;
     buttonColor: string;
 }) {
-    // Pure inline styles - NO Tailwind classes to ensure nothing can override
-    const cardStyles: React.CSSProperties = {
-        backgroundColor: '#2a2f38',
-        background: '#2a2f38',
-        backgroundImage: 'none',
-        borderRadius: '16px',
-        padding: '20px',
-        position: 'relative',
-        overflow: 'hidden',
-        border: `2px solid ${borderColor}`,
-        boxShadow: `0 0 30px ${borderColor}40`,
-    };
-
     return (
-        <div style={cardStyles}>
-            {/* Content wrapper */}
+        <div
+            style={{
+                borderRadius: '16px',
+                padding: '20px',
+                position: 'relative',
+                overflow: 'hidden',
+                border: `2px solid ${borderColor}`,
+                boxShadow: `0 0 25px ${borderColor}30`,
+            }}
+        >
+            {/* FORCED Dark Background Layer - Absolute positioned */}
+            <div
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: '#1e2530',
+                    zIndex: 0,
+                }}
+            />
+
+            {/* Content - positioned above background */}
             <div style={{ position: 'relative', zIndex: 1 }}>
-                {/* Icon */}
+                {/* Icon in colored circle */}
                 <div
                     style={{
                         width: '40px',
@@ -320,7 +329,7 @@ function ActionCard({
                         alignItems: 'center',
                         justifyContent: 'center',
                         marginBottom: '16px',
-                        backgroundColor: `${borderColor}20`
+                        backgroundColor: `${borderColor}25`
                     }}
                 >
                     {icon}
@@ -328,17 +337,18 @@ function ActionCard({
 
                 {/* Title */}
                 <h3 style={{
-                    fontSize: '18px',
+                    fontSize: '17px',
                     fontWeight: 600,
                     color: '#ffffff',
-                    marginBottom: '8px'
+                    marginBottom: '10px',
+                    letterSpacing: '-0.01em'
                 }}>
                     {title}
                 </h3>
 
                 {/* Description */}
                 <p style={{
-                    fontSize: '14px',
+                    fontSize: '13px',
                     color: '#9ca3af',
                     marginBottom: '16px',
                     lineHeight: 1.5
@@ -353,9 +363,10 @@ function ActionCard({
                         display: 'block',
                         width: '100%',
                         textAlign: 'center',
-                        color: 'white',
-                        fontWeight: 500,
-                        padding: '10px 16px',
+                        color: '#000000',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        padding: '12px 16px',
                         borderRadius: '8px',
                         backgroundColor: buttonColor,
                         textDecoration: 'none'
