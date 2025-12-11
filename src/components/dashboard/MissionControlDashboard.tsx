@@ -46,7 +46,7 @@ export function MissionControlDashboard({
     return (
         <div
             className="min-h-screen p-6"
-            style={{ backgroundColor: '#1e2228' }}
+            style={{ backgroundColor: '#0f1419' }}
         >
             <div className="flex gap-6">
                 {/* Main Content */}
@@ -145,13 +145,29 @@ export function MissionControlDashboard({
                     <div
                         className="rounded-2xl p-5"
                         style={{
-                            backgroundColor: 'rgba(45, 50, 58, 0.6)',
-                            backdropFilter: 'blur(10px)'
+                            backgroundColor: '#1a1f2e',
+                            border: '1px solid rgba(255,255,255,0.08)'
                         }}
                     >
-                        <h3 className="text-lg font-semibold text-white mb-5">
-                            Dynamic Context
-                        </h3>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-white">
+                                Dynamic Context
+                            </h3>
+                            <ChevronRight className="w-4 h-4 text-gray-500" />
+                        </div>
+
+                        {/* Chat Input */}
+                        <div
+                            className="flex items-center gap-2 p-3 rounded-lg mb-5"
+                            style={{ backgroundColor: '#252b38' }}
+                        >
+                            <input
+                                type="text"
+                                placeholder="Chat with the Page"
+                                className="flex-1 bg-transparent text-sm text-gray-400 outline-none placeholder:text-gray-500"
+                            />
+                            <MessageSquare className="w-4 h-4 text-teal-500" />
+                        </div>
 
                         {/* User Sentiment Pulse */}
                         <div className="mb-6">
@@ -199,49 +215,64 @@ export function MissionControlDashboard({
     );
 }
 
-// Robot Illustration Component
+// Robot Illustration Component - Vibrant 3D-style matching reference
 function RobotIllustration() {
     return (
-        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Robot Head Background */}
-            <ellipse cx="60" cy="65" rx="45" ry="40" fill="url(#robotGradient)" opacity="0.3" />
+        <div className="relative">
+            {/* Glow effect behind robot */}
+            <div
+                className="absolute inset-0 rounded-full blur-xl"
+                style={{
+                    background: 'radial-gradient(circle, rgba(20, 184, 166, 0.3) 0%, transparent 70%)',
+                    transform: 'scale(1.3)'
+                }}
+            />
+            <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="relative z-10">
+                {/* Antenna */}
+                <line x1="50" y1="30" x2="50" y2="15" stroke="#3d4a5c" strokeWidth="4" strokeLinecap="round" />
+                <circle cx="50" cy="10" r="7" fill="url(#antennaGlow)" />
+                <circle cx="50" cy="10" r="5" fill="#fbbf24" />
+                <circle cx="50" cy="10" r="3" fill="#f59e0b" />
 
-            {/* Robot Body */}
-            <rect x="30" y="45" width="60" height="50" rx="12" fill="#2d3748" />
-            <rect x="30" y="45" width="60" height="50" rx="12" fill="url(#bodyGradient)" />
+                {/* Main Head - Rounded Rectangle with 3D effect */}
+                <rect x="17" y="30" width="66" height="55" rx="14" fill="url(#headGradient)" />
+                <rect x="19" y="32" width="62" height="51" rx="12" fill="#2d3640" />
 
-            {/* Robot Face */}
-            <rect x="35" y="50" width="50" height="35" rx="8" fill="#1a202c" />
+                {/* Face Screen */}
+                <rect x="24" y="37" width="52" height="40" rx="10" fill="#1a1f2a" />
 
-            {/* Eyes */}
-            <circle cx="48" cy="65" r="6" fill="#14b8a6" />
-            <circle cx="72" cy="65" r="6" fill="#14b8a6" />
-            <circle cx="50" cy="63" r="2" fill="white" />
-            <circle cx="74" cy="63" r="2" fill="white" />
+                {/* Eyes - Glowing Teal */}
+                <ellipse cx="38" cy="55" rx="8" ry="9" fill="url(#eyeGlow)" />
+                <ellipse cx="38" cy="55" rx="6" ry="7" fill="#14b8a6" />
+                <ellipse cx="40" cy="53" rx="2" ry="2.5" fill="#5eead4" />
 
-            {/* Smile */}
-            <path d="M50 75 Q60 82 70 75" stroke="#14b8a6" strokeWidth="2" strokeLinecap="round" fill="none" />
+                <ellipse cx="62" cy="55" rx="8" ry="9" fill="url(#eyeGlow)" />
+                <ellipse cx="62" cy="55" rx="6" ry="7" fill="#14b8a6" />
+                <ellipse cx="64" cy="53" rx="2" ry="2.5" fill="#5eead4" />
 
-            {/* Antenna */}
-            <line x1="60" y1="45" x2="60" y2="30" stroke="#4a5568" strokeWidth="3" />
-            <circle cx="60" cy="25" r="6" fill="#fbbf24" />
-            <circle cx="60" cy="25" r="4" fill="#f59e0b" />
+                {/* Smile/Mouth */}
+                <path d="M40 68 Q50 75 60 68" stroke="#14b8a6" strokeWidth="2.5" strokeLinecap="round" fill="none" />
 
-            {/* Ears */}
-            <rect x="20" y="55" width="8" height="20" rx="3" fill="#4a5568" />
-            <rect x="92" y="55" width="8" height="20" rx="3" fill="#4a5568" />
+                {/* Side Ears/Speakers */}
+                <rect x="8" y="48" width="8" height="18" rx="4" fill="#3d4a5c" />
+                <rect x="84" y="48" width="8" height="18" rx="4" fill="#3d4a5c" />
 
-            <defs>
-                <radialGradient id="robotGradient" cx="0.5" cy="0.5" r="0.5">
-                    <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.4" />
-                    <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
-                </radialGradient>
-                <linearGradient id="bodyGradient" x1="30" y1="45" x2="30" y2="95">
-                    <stop offset="0%" stopColor="#3d4852" />
-                    <stop offset="100%" stopColor="#2d3748" />
-                </linearGradient>
-            </defs>
-        </svg>
+                <defs>
+                    <linearGradient id="headGradient" x1="50" y1="30" x2="50" y2="85" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stopColor="#4a5568" />
+                        <stop offset="100%" stopColor="#2d3748" />
+                    </linearGradient>
+                    <radialGradient id="eyeGlow" cx="0.5" cy="0.5" r="0.5">
+                        <stop offset="0%" stopColor="#14b8a6" />
+                        <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
+                    </radialGradient>
+                    <radialGradient id="antennaGlow" cx="0.5" cy="0.5" r="0.5">
+                        <stop offset="0%" stopColor="#fcd34d" />
+                        <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.3" />
+                    </radialGradient>
+                </defs>
+            </svg>
+        </div>
     );
 }
 
