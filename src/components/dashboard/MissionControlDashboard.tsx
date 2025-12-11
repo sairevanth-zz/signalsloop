@@ -33,8 +33,6 @@ export function MissionControlDashboard({
     userName = 'Revanth',
     projectSlug,
 }: MissionControlDashboardProps) {
-    // DEBUG: Verify this component is rendering
-    console.log('[MissionControlDashboard] Rendering with dark bg styles v2');
 
     const getGreeting = () => {
         const hour = new Date().getHours();
