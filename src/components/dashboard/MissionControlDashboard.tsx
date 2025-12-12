@@ -9,7 +9,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTheme } from '@/components/theme-provider';
-import { FloatingAskAI } from './FloatingAskAI';
 import {
     AlertTriangle,
     Lightbulb,
@@ -18,8 +17,7 @@ import {
     TrendingUp,
     Activity,
     ChevronRight,
-    Inbox,
-    Bot
+    Inbox
 } from 'lucide-react';
 
 // Dashboard data types
@@ -235,32 +233,12 @@ export function MissionControlDashboard({
                             <h3 style={{
                                 fontSize: '16px',
                                 fontWeight: 600,
-                                color: '#e6edf3',
+                                color: colors.textPrimary,
                                 margin: 0
                             }}>
                                 Dynamic Context
                             </h3>
                             <ChevronRight style={{ width: '16px', height: '16px', color: colors.textMuted }} />
-                        </div>
-
-                        {/* AI Chat Hint */}
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '12px',
-                            backgroundColor: isDark ? '#21262d' : '#e2e8f0',
-                            borderRadius: '8px',
-                            marginBottom: '20px'
-                        }}>
-                            <Bot style={{ width: '16px', height: '16px', color: '#14b8a6' }} />
-                            <span style={{
-                                flex: 1,
-                                fontSize: '13px',
-                                color: colors.textMuted
-                            }}>
-                                Click the 🧠 button to ask AI
-                            </span>
                         </div>
 
                         {/* User Sentiment Pulse */}
@@ -271,10 +249,10 @@ export function MissionControlDashboard({
                                 justifyContent: 'space-between',
                                 marginBottom: '8px'
                             }}>
-                                <span style={{ fontSize: '13px', fontWeight: 500, color: '#8b949e' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 500, color: colors.textSecondary }}>
                                     User Sentiment Pulse
                                 </span>
-                                <ChevronRight style={{ width: '14px', height: '14px', color: '#6e7681' }} />
+                                <ChevronRight style={{ width: '14px', height: '14px', color: colors.textMuted }} />
                             </div>
                             <div style={{
                                 display: 'flex',
@@ -338,9 +316,6 @@ export function MissionControlDashboard({
                     </div>
                 </div>
             </div>
-
-            {/* Floating AI Chat Button */}
-            <FloatingAskAI projectId={projectId} projectSlug={projectSlug} />
         </div>
     );
 }
