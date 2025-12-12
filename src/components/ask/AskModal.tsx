@@ -99,18 +99,8 @@ export function AskModal({ projectId: providedProjectId }: AskModalProps) {
     fetchDefaultProject();
   }, [providedProjectId, currentProjectId, setCurrentProjectId]);
 
-  // Handle keyboard shortcut (Cmd+K or Ctrl+K)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsOpen((prev) => !prev);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  // NOTE: Cmd+K keyboard shortcut is now handled by CommandPalette
+  // This modal opens via the floating button only
 
   // Handle form submission
   const handleSubmit = async (question: string) => {
@@ -257,16 +247,11 @@ export function AskModal({ projectId: providedProjectId }: AskModalProps) {
             </div>
           </div>
 
-          {/* Footer with Keyboard Hint */}
+          {/* Footer */}
           <div className="px-6 py-4 border-t bg-muted/30">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <kbd className="px-2 py-1 font-mono bg-background border border-border rounded">
-                {modifierKey}
-              </kbd>
-              <kbd className="px-2 py-1 font-mono bg-background border border-border rounded">
-                K
-              </kbd>
-              <span>Press {modifierKey}+K anytime to open</span>
+              <Sparkles className="size-3" />
+              <span>AI-powered insights from your feedback data</span>
             </div>
           </div>
         </DialogContent>
