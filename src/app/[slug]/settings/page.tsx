@@ -450,593 +450,581 @@ export default function SettingsPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {/* Mobile: Ultra-compact tabs */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg mb-6 overflow-hidden">
-            <div className="overflow-x-auto hide-scrollbar">
-              <TabsList className="inline-flex min-w-full w-max items-center gap-1 bg-transparent p-1 sm:gap-0.5">
-                <TabsTrigger
-                  value="api-keys"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <Key className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">API</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="board"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <Settings className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Board</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="domain"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Domain</span>
-                </TabsTrigger>
-                {/* Divider: Board & Widget | Notifications */}
-                <div className="h-6 w-px bg-gray-300/50 mx-1 hidden sm:block" />
-                <TabsTrigger
-                  value="integrations"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <Plug className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Integrations</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="votes"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <UserPlus className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Votes</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="feedback"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Feedback</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="notifications"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <Mail className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Emails</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="push"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <Bell className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Push</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="webhooks"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <Zap className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Webhooks</span>
-                </TabsTrigger>
-                {/* Divider: Notifications | Integrations */}
-                <div className="h-6 w-px bg-gray-300/50 mx-1 hidden sm:block" />
-                <TabsTrigger
-                  value="agents"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <Activity className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Agents</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="import"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <Upload className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Import</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="export"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <Download className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Export</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="changelog"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <FileText className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Changelog</span>
-                </TabsTrigger>
-                {/* Divider: Integrations | Access & Team */}
-                <div className="h-6 w-px bg-gray-300/50 mx-1 hidden sm:block" />
-                <TabsTrigger
-                  value="teammates"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <Users className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Team</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="stakeholders"
-                  className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
-                >
-                  <Briefcase className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Stakeholders</span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
-          </div>
+          {/* 2-Column Layout: Sidebar + Content */}
+          <div className="flex gap-8">
+            {/* Left Sidebar - Grouped Navigation */}
+            <div className="w-72 flex-shrink-0">
+              <div className="bg-white rounded-xl border border-gray-200 shadow-lg sticky top-4 overflow-hidden">
+                {/* Group 1: Board & Widget */}
+                <div className="border-b border-gray-100">
+                  <div className="px-4 py-3 bg-gray-50">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Board & Widget</h3>
+                  </div>
+                  <div className="p-2 space-y-1">
+                    <button onClick={() => setActiveTab('api-keys')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'api-keys' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <Key className="w-4 h-4" />
+                      API Keys
+                    </button>
+                    <button onClick={() => setActiveTab('board')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'board' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <Settings className="w-4 h-4" />
+                      Board Settings
+                    </button>
+                    <button onClick={() => setActiveTab('domain')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'domain' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <Globe className="w-4 h-4" />
+                      Custom Domain
+                    </button>
+                  </div>
+                </div>
 
-          <TabsContent value="api-keys" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
+                {/* Group 2: Notifications */}
+                <div className="border-b border-gray-100">
+                  <div className="px-4 py-3 bg-gray-50">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notifications</h3>
+                  </div>
+                  <div className="p-2 space-y-1">
+                    <button onClick={() => setActiveTab('notifications')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'notifications' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <Mail className="w-4 h-4" />
+                      Email Alerts
+                    </button>
+                    <button onClick={() => setActiveTab('push')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'push' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <Bell className="w-4 h-4" />
+                      Push Notifications
+                    </button>
+                    <button onClick={() => setActiveTab('webhooks')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'webhooks' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <Zap className="w-4 h-4" />
+                      Webhooks
+                    </button>
+                  </div>
+                </div>
+
+                {/* Group 3: Integrations */}
+                <div className="border-b border-gray-100">
+                  <div className="px-4 py-3 bg-gray-50">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Integrations</h3>
+                  </div>
+                  <div className="p-2 space-y-1">
+                    <button onClick={() => setActiveTab('integrations')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'integrations' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <Plug className="w-4 h-4" />
+                      Connected Apps
+                    </button>
+                    <button onClick={() => setActiveTab('agents')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'agents' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <Activity className="w-4 h-4" />
+                      AI Agents
+                    </button>
+                    <button onClick={() => setActiveTab('import')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'import' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <Upload className="w-4 h-4" />
+                      Import Data
+                    </button>
+                    <button onClick={() => setActiveTab('export')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'export' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <Download className="w-4 h-4" />
+                      Export Data
+                    </button>
+                  </div>
+                </div>
+
+                {/* Group 4: Access & Team */}
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">API Keys</h3>
-                  <p className="text-gray-600">
-                    Manage API keys for embedding widgets
-                  </p>
-                </div>
-              </div>
-
-              <ApiKeySettings
-                projectId={project.id}
-                projectSlug={project.slug}
-                userPlan={project.plan}
-                onShowNotification={handleShowNotification}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="board" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <BoardSettings
-                projectSlug={project.slug}
-                userPlan={project.plan}
-                onShowNotification={handleShowNotification}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="domain" className="mt-6">
-            <CustomDomainSettings
-              projectId={project.id}
-              projectSlug={project.slug}
-              userPlan={project.plan}
-            />
-          </TabsContent>
-
-          <TabsContent value="integrations" className="mt-6 space-y-6">
-            {/* CRM Systems - Salesforce & HubSpot */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-green-500" />
-                    CRM Systems
-                  </h3>
-                  <p className="text-gray-600 mt-1">
-                    Connect Salesforce or HubSpot to prioritize feedback by customer revenue
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <DollarSign className="w-5 h-5 text-green-600" />
+                  <div className="px-4 py-3 bg-gray-50">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Access & Team</h3>
                   </div>
-                  <div>
-                    <div className="font-medium text-gray-900">Revenue-Based Prioritization</div>
-                    <div className="text-sm text-gray-600">Configure Salesforce & HubSpot integrations</div>
+                  <div className="p-2 space-y-1">
+                    <button onClick={() => setActiveTab('teammates')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'teammates' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <Users className="w-4 h-4" />
+                      Team Members
+                    </button>
+                    <button onClick={() => setActiveTab('stakeholders')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'stakeholders' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <Briefcase className="w-4 h-4" />
+                      Stakeholders
+                    </button>
+                    <button onClick={() => setActiveTab('votes')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'votes' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <UserPlus className="w-4 h-4" />
+                      Votes Dashboard
+                    </button>
+                    <button onClick={() => setActiveTab('feedback')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'feedback' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <MessageSquare className="w-4 h-4" />
+                      Feedback Dashboard
+                    </button>
+                    <button onClick={() => setActiveTab('changelog')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'changelog' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                      <FileText className="w-4 h-4" />
+                      Changelog
+                    </button>
                   </div>
                 </div>
-                <Button
-                  onClick={() => router.push(`/${projectSlug}/settings/integrations?section=crm`)}
-                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
-                >
-                  Configure
-                </Button>
               </div>
             </div>
 
-            {/* Experiment Platforms - LaunchDarkly & Optimizely */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                    <Briefcase className="w-5 h-5" />
-                    Experiment Platforms
-                  </h3>
-                  <p className="text-gray-600 mt-1">
-                    Connect LaunchDarkly or Optimizely for live experiment tracking
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between bg-gradient-to-r from-teal-50 to-amber-50 border border-teal-200 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
-                    <Briefcase className="w-5 h-5 text-teal-600" />
+            {/* Right Content Area */}
+            <div className="flex-1 min-w-0">
+
+              <TabsContent value="api-keys" className="mt-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">API Keys</h3>
+                      <p className="text-gray-600">
+                        Manage API keys for embedding widgets
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-medium text-gray-900">Live Experiment Tracking</div>
-                    <div className="text-sm text-gray-600">Configure LaunchDarkly & Optimizely integrations</div>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => router.push(`/${projectSlug}/settings/integrations?section=experiments`)}
-                  className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
-                >
-                  Configure
-                </Button>
-              </div>
-            </div>
 
-            <JiraSettingsPanel
-              projectId={project.id}
-              onUpdate={() => {
-                toast.success('Jira integration updated');
-              }}
-            />
-            {/* Enhanced Slack Integration with OAuth 2.0 & Block Kit */}
-            <SlackSettings projectId={project.id} />
-
-            {/* Discord Integration */}
-            <DiscordIntegrationSettings
-              projectId={project.id}
-              projectSlug={project.slug}
-              userPlan={project.plan}
-              onShowNotification={handleShowNotification}
-            />
-
-            {/* AI Prototyping - Lovable */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                    <span className="text-pink-500">✨</span>
-                    AI Prototyping
-                  </h3>
-                  <p className="text-gray-600 mt-1">
-                    Generate working prototypes from specs using Lovable AI (BYOK)
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                    <span className="text-pink-600 text-lg">💎</span>
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">Lovable Prototype Generation</div>
-                    <div className="text-sm text-gray-600">Add your own API key to enable prototype generation</div>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => router.push(`/${projectSlug}/settings/integrations?section=ai`)}
-                  className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
-                >
-                  Configure
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="votes" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Votes on Behalf</h3>
-                  <p className="text-gray-600">
-                    View and manage votes submitted on behalf of customers
-                  </p>
-                </div>
-              </div>
-              <div className="text-center py-8">
-                <p className="text-gray-600 mb-4">
-                  View detailed vote information at:
-                </p>
-                <Button
-                  onClick={() => router.push(`/${projectSlug}/settings/votes`)}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                >
-                  Open Votes Dashboard
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="feedback" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Feedback on Behalf</h3>
-                  <p className="text-gray-600">
-                    View and manage feedback submitted on behalf of customers
-                  </p>
-                </div>
-              </div>
-              <div className="text-center py-8">
-                <p className="text-gray-600 mb-4">
-                  View detailed feedback information at:
-                </p>
-                <Button
-                  onClick={() => router.push(`/${projectSlug}/settings/feedback`)}
-                  className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600"
-                >
-                  Open Feedback Dashboard
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="notifications" className="mt-6">
-            <NotificationRecipientsManager
-              projectSlug={project.slug}
-              currentUserId={authUser?.id}
-            />
-          </TabsContent>
-
-          <TabsContent value="push" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                    <Bell className="w-5 h-5 text-purple-500" />
-                    Push Notifications
-                  </h3>
-                  <p className="text-gray-600 mt-1">
-                    Get real-time alerts for anomalies, competitive intel, and important updates
-                  </p>
-                </div>
-              </div>
-
-              {/* Enable Push Notifications */}
-              <div className="mb-8">
-                <PushNotificationPrompt
-                  projectId={project.id}
-                  variant="card"
-                />
-              </div>
-
-              {/* Notification Preferences */}
-              <div className="border-t pt-6">
-                <h4 className="text-lg font-medium text-gray-900 mb-4">Notification Preferences</h4>
-                <NotificationSettings projectId={project.id} />
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="webhooks" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <WebhooksSettingsWrapper
-                projectId={project.id}
-                onShowNotification={handleShowNotification}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="import" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">CSV Import</h3>
-                  <p className="text-gray-600">
-                    {project?.plan === 'pro'
-                      ? 'Import posts and votes from CSV files into your project'
-                      : 'CSV import is available for Pro users'
-                    }
-                  </p>
-                </div>
-                {project?.plan === 'free' && (
-                  <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-lg px-3 py-1">
-                    <span className="text-sm font-medium text-yellow-800">Pro Feature</span>
-                  </div>
-                )}
-              </div>
-
-              {project?.plan === 'pro' ? (
-                <CSVImport projectSlug={project.slug} />
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Upload className="h-8 w-8 text-yellow-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    CSV Import Tool
-                  </h3>
-                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    Import posts and votes from CSV files into your project. Perfect for migrating data from other feedback systems.
-                  </p>
-                  <div className="space-y-3">
-                    <Button
-                      onClick={() => window.open('/app/billing', '_blank')}
-                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
-                    >
-                      Upgrade to Pro
-                    </Button>
-                    <p className="text-sm text-gray-500">
-                      Try the <Button variant="link" className="p-0 h-auto text-blue-600" onClick={() => window.open('/csv-import-demo', '_blank')}>demo</Button> to see how it works
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="export" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Data Export</h3>
-                  <p className="text-gray-600">
-                    {project?.plan === 'pro'
-                      ? 'Export feedback data to CSV or Excel for analysis'
-                      : 'Data export is available for Pro users'
-                    }
-                  </p>
-                </div>
-                {project?.plan === 'free' && (
-                  <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-lg px-3 py-1">
-                    <span className="text-sm font-medium text-yellow-800">Pro Feature</span>
-                  </div>
-                )}
-              </div>
-
-              {project?.plan === 'pro' ? (
-                <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg p-6">
-                  <h4 className="font-medium text-emerald-900 mb-3 flex items-center">
-                    <Download className="w-5 h-5 mr-2" />
-                    Export Feedback Data
-                  </h4>
-                  <p className="text-sm text-emerald-700 mb-4">
-                    Export feedback data from <strong>{project.name}</strong> to CSV or Excel for analysis in external tools.
-                  </p>
-                  <FeedbackExport
+                  <ApiKeySettings
+                    projectId={project.id}
                     projectSlug={project.slug}
-                    projectName={project.name}
-                    totalPosts={0} // We don't have this data in settings context
-                    totalComments={0}
-                    totalVotes={0}
+                    userPlan={project.plan}
+                    onShowNotification={handleShowNotification}
                   />
                 </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Download className="h-8 w-8 text-yellow-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Data Export
-                  </h3>
-                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    Export feedback data to CSV or Excel for analysis in external tools. Perfect for reporting and data analysis.
-                  </p>
-                  <div className="space-y-3">
-                    <Button
-                      onClick={() => window.open('/app/billing', '_blank')}
-                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
-                    >
-                      Upgrade to Pro
-                    </Button>
-                    <p className="text-sm text-gray-500">
-                      Try the <Button variant="link" className="p-0 h-auto text-blue-600" onClick={() => window.open('/demo/data-export', '_blank')}>demo</Button> to see how it works
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="changelog" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Changelog Management</h3>
-                  <p className="text-gray-600">
-                    Create and manage product changelog releases for your users
-                  </p>
+              <TabsContent value="board" className="mt-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <BoardSettings
+                    projectSlug={project.slug}
+                    userPlan={project.plan}
+                    onShowNotification={handleShowNotification}
+                  />
                 </div>
-              </div>
+              </TabsContent>
 
-              {project ? (
-                <SimpleChangelogManager projectId={project.id} projectSlug={project.slug} />
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <FileText className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Loading...
-                  </h3>
-                  <p className="text-gray-600">
-                    Loading changelog settings...
-                  </p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="agents" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              {project ? (
-                <Tabs defaultValue="status" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="status">Agent Status</TabsTrigger>
-                    <TabsTrigger value="triager">Triager Settings</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="status">
-                    <AgentDashboard projectId={project.id} />
-                  </TabsContent>
-                  <TabsContent value="triager">
-                    <TriagerSettingsPanel projectId={project.id} />
-                  </TabsContent>
-                </Tabs>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Activity className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Loading...
-                  </h3>
-                  <p className="text-gray-600">
-                    Loading agent settings...
-                  </p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="teammates" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              {project && authUser ? (
-                <TeammatesSettings
+              <TabsContent value="domain" className="mt-6">
+                <CustomDomainSettings
                   projectId={project.id}
                   projectSlug={project.slug}
-                  currentUserId={authUser.id}
+                  userPlan={project.plan}
+                />
+              </TabsContent>
+
+              <TabsContent value="integrations" className="mt-6 space-y-6">
+                {/* CRM Systems - Salesforce & HubSpot */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <DollarSign className="w-5 h-5 text-green-500" />
+                        CRM Systems
+                      </h3>
+                      <p className="text-gray-600 mt-1">
+                        Connect Salesforce or HubSpot to prioritize feedback by customer revenue
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <DollarSign className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">Revenue-Based Prioritization</div>
+                        <div className="text-sm text-gray-600">Configure Salesforce & HubSpot integrations</div>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => router.push(`/${projectSlug}/settings/integrations?section=crm`)}
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                    >
+                      Configure
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Experiment Platforms - LaunchDarkly & Optimizely */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <Briefcase className="w-5 h-5" />
+                        Experiment Platforms
+                      </h3>
+                      <p className="text-gray-600 mt-1">
+                        Connect LaunchDarkly or Optimizely for live experiment tracking
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between bg-gradient-to-r from-teal-50 to-amber-50 border border-teal-200 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
+                        <Briefcase className="w-5 h-5 text-teal-600" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">Live Experiment Tracking</div>
+                        <div className="text-sm text-gray-600">Configure LaunchDarkly & Optimizely integrations</div>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => router.push(`/${projectSlug}/settings/integrations?section=experiments`)}
+                      className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
+                    >
+                      Configure
+                    </Button>
+                  </div>
+                </div>
+
+                <JiraSettingsPanel
+                  projectId={project.id}
+                  onUpdate={() => {
+                    toast.success('Jira integration updated');
+                  }}
+                />
+                {/* Enhanced Slack Integration with OAuth 2.0 & Block Kit */}
+                <SlackSettings projectId={project.id} />
+
+                {/* Discord Integration */}
+                <DiscordIntegrationSettings
+                  projectId={project.id}
+                  projectSlug={project.slug}
+                  userPlan={project.plan}
                   onShowNotification={handleShowNotification}
                 />
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Users className="h-8 w-8 text-blue-600" />
+
+                {/* AI Prototyping - Lovable */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <span className="text-pink-500">✨</span>
+                        AI Prototyping
+                      </h3>
+                      <p className="text-gray-600 mt-1">
+                        Generate working prototypes from specs using Lovable AI (BYOK)
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Loading...
-                  </h3>
-                  <p className="text-gray-600">
-                    Loading team settings...
-                  </p>
+                  <div className="flex items-center justify-between bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                        <span className="text-pink-600 text-lg">💎</span>
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">Lovable Prototype Generation</div>
+                        <div className="text-sm text-gray-600">Add your own API key to enable prototype generation</div>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => router.push(`/${projectSlug}/settings/integrations?section=ai`)}
+                      className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                    >
+                      Configure
+                    </Button>
+                  </div>
                 </div>
-              )}
-            </div>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="stakeholders" className="mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Stakeholder Management</h3>
-                  <p className="text-gray-600">
-                    Manage stakeholders and automated status reports
-                  </p>
+              <TabsContent value="votes" className="mt-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">Votes on Behalf</h3>
+                      <p className="text-gray-600">
+                        View and manage votes submitted on behalf of customers
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 mb-4">
+                      View detailed vote information at:
+                    </p>
+                    <Button
+                      onClick={() => router.push(`/${projectSlug}/settings/votes`)}
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                    >
+                      Open Votes Dashboard
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              <div className="text-center py-8">
-                <p className="text-gray-600 mb-4">
-                  Configure stakeholders and automated reporting:
-                </p>
-                <Button
-                  onClick={() => router.push(`/${projectSlug}/settings/stakeholders`)}
-                  className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-                >
-                  <Briefcase className="h-4 w-4 mr-2" />
-                  Open Stakeholder Dashboard
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
+              </TabsContent>
 
+              <TabsContent value="feedback" className="mt-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">Feedback on Behalf</h3>
+                      <p className="text-gray-600">
+                        View and manage feedback submitted on behalf of customers
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 mb-4">
+                      View detailed feedback information at:
+                    </p>
+                    <Button
+                      onClick={() => router.push(`/${projectSlug}/settings/feedback`)}
+                      className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600"
+                    >
+                      Open Feedback Dashboard
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="notifications" className="mt-6">
+                <NotificationRecipientsManager
+                  projectSlug={project.slug}
+                  currentUserId={authUser?.id}
+                />
+              </TabsContent>
+
+              <TabsContent value="push" className="mt-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <Bell className="w-5 h-5 text-purple-500" />
+                        Push Notifications
+                      </h3>
+                      <p className="text-gray-600 mt-1">
+                        Get real-time alerts for anomalies, competitive intel, and important updates
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Enable Push Notifications */}
+                  <div className="mb-8">
+                    <PushNotificationPrompt
+                      projectId={project.id}
+                      variant="card"
+                    />
+                  </div>
+
+                  {/* Notification Preferences */}
+                  <div className="border-t pt-6">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">Notification Preferences</h4>
+                    <NotificationSettings projectId={project.id} />
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="webhooks" className="mt-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <WebhooksSettingsWrapper
+                    projectId={project.id}
+                    onShowNotification={handleShowNotification}
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="import" className="mt-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">CSV Import</h3>
+                      <p className="text-gray-600">
+                        {project?.plan === 'pro'
+                          ? 'Import posts and votes from CSV files into your project'
+                          : 'CSV import is available for Pro users'
+                        }
+                      </p>
+                    </div>
+                    {project?.plan === 'free' && (
+                      <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-lg px-3 py-1">
+                        <span className="text-sm font-medium text-yellow-800">Pro Feature</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {project?.plan === 'pro' ? (
+                    <CSVImport projectSlug={project.slug} />
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Upload className="h-8 w-8 text-yellow-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        CSV Import Tool
+                      </h3>
+                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                        Import posts and votes from CSV files into your project. Perfect for migrating data from other feedback systems.
+                      </p>
+                      <div className="space-y-3">
+                        <Button
+                          onClick={() => window.open('/app/billing', '_blank')}
+                          className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                        >
+                          Upgrade to Pro
+                        </Button>
+                        <p className="text-sm text-gray-500">
+                          Try the <Button variant="link" className="p-0 h-auto text-blue-600" onClick={() => window.open('/csv-import-demo', '_blank')}>demo</Button> to see how it works
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="export" className="mt-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">Data Export</h3>
+                      <p className="text-gray-600">
+                        {project?.plan === 'pro'
+                          ? 'Export feedback data to CSV or Excel for analysis'
+                          : 'Data export is available for Pro users'
+                        }
+                      </p>
+                    </div>
+                    {project?.plan === 'free' && (
+                      <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-lg px-3 py-1">
+                        <span className="text-sm font-medium text-yellow-800">Pro Feature</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {project?.plan === 'pro' ? (
+                    <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg p-6">
+                      <h4 className="font-medium text-emerald-900 mb-3 flex items-center">
+                        <Download className="w-5 h-5 mr-2" />
+                        Export Feedback Data
+                      </h4>
+                      <p className="text-sm text-emerald-700 mb-4">
+                        Export feedback data from <strong>{project.name}</strong> to CSV or Excel for analysis in external tools.
+                      </p>
+                      <FeedbackExport
+                        projectSlug={project.slug}
+                        projectName={project.name}
+                        totalPosts={0} // We don't have this data in settings context
+                        totalComments={0}
+                        totalVotes={0}
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Download className="h-8 w-8 text-yellow-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Data Export
+                      </h3>
+                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                        Export feedback data to CSV or Excel for analysis in external tools. Perfect for reporting and data analysis.
+                      </p>
+                      <div className="space-y-3">
+                        <Button
+                          onClick={() => window.open('/app/billing', '_blank')}
+                          className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                        >
+                          Upgrade to Pro
+                        </Button>
+                        <p className="text-sm text-gray-500">
+                          Try the <Button variant="link" className="p-0 h-auto text-blue-600" onClick={() => window.open('/demo/data-export', '_blank')}>demo</Button> to see how it works
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="changelog" className="mt-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">Changelog Management</h3>
+                      <p className="text-gray-600">
+                        Create and manage product changelog releases for your users
+                      </p>
+                    </div>
+                  </div>
+
+                  {project ? (
+                    <SimpleChangelogManager projectId={project.id} projectSlug={project.slug} />
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <FileText className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Loading...
+                      </h3>
+                      <p className="text-gray-600">
+                        Loading changelog settings...
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="agents" className="mt-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  {project ? (
+                    <Tabs defaultValue="status" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2 mb-6">
+                        <TabsTrigger value="status">Agent Status</TabsTrigger>
+                        <TabsTrigger value="triager">Triager Settings</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="status">
+                        <AgentDashboard projectId={project.id} />
+                      </TabsContent>
+                      <TabsContent value="triager">
+                        <TriagerSettingsPanel projectId={project.id} />
+                      </TabsContent>
+                    </Tabs>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Activity className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Loading...
+                      </h3>
+                      <p className="text-gray-600">
+                        Loading agent settings...
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="teammates" className="mt-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  {project && authUser ? (
+                    <TeammatesSettings
+                      projectId={project.id}
+                      projectSlug={project.slug}
+                      currentUserId={authUser.id}
+                      onShowNotification={handleShowNotification}
+                    />
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Users className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Loading...
+                      </h3>
+                      <p className="text-gray-600">
+                        Loading team settings...
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="stakeholders" className="mt-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">Stakeholder Management</h3>
+                      <p className="text-gray-600">
+                        Manage stakeholders and automated status reports
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 mb-4">
+                      Configure stakeholders and automated reporting:
+                    </p>
+                    <Button
+                      onClick={() => router.push(`/${projectSlug}/settings/stakeholders`)}
+                      className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+                    >
+                      <Briefcase className="h-4 w-4 mr-2" />
+                      Open Stakeholder Dashboard
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            </div>{/* End flex-1 content area */}
+          </div>{/* End flex container */}
         </Tabs>
       </div>
     </div>
