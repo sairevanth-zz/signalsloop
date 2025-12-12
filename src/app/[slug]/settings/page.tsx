@@ -475,6 +475,8 @@ export default function SettingsPage() {
                   <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Domain</span>
                 </TabsTrigger>
+                {/* Divider: Board & Widget | Notifications */}
+                <div className="h-6 w-px bg-gray-300/50 mx-1 hidden sm:block" />
                 <TabsTrigger
                   value="integrations"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
@@ -517,6 +519,8 @@ export default function SettingsPage() {
                   <Zap className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Webhooks</span>
                 </TabsTrigger>
+                {/* Divider: Notifications | Integrations */}
+                <div className="h-6 w-px bg-gray-300/50 mx-1 hidden sm:block" />
                 <TabsTrigger
                   value="agents"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
@@ -545,6 +549,8 @@ export default function SettingsPage() {
                   <FileText className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Changelog</span>
                 </TabsTrigger>
+                {/* Divider: Integrations | Access & Team */}
+                <div className="h-6 w-px bg-gray-300/50 mx-1 hidden sm:block" />
                 <TabsTrigger
                   value="teammates"
                   className="flex items-center gap-0.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-teal-600 data-[state=active]:text-white rounded-lg whitespace-nowrap px-2 py-1.5 text-[10px] sm:text-xs min-touch-target tap-highlight-transparent flex-none"
