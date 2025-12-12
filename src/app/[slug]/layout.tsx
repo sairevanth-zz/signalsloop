@@ -15,6 +15,7 @@ import { PushNotificationPrompt } from '@/components/notifications/PushNotificat
 import { WorkflowSidebar } from '@/components/WorkflowSidebar';
 import GlobalBanner from '@/components/GlobalBanner';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import { CommandPalette } from '@/components/CommandPalette';
 
 interface ProjectLayoutProps {
   children: React.ReactNode;
@@ -59,6 +60,7 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
           <TourProvider autoStart={true}>
             {children}
             <AskModal />
+            <CommandPalette />
           </TourProvider>
         </ShortcutsProvider>
       </TooltipProvider>
@@ -98,6 +100,7 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
             </div>
 
             <AskModal />
+            <CommandPalette />
           </div>
         </TourProvider>
       </ShortcutsProvider>
