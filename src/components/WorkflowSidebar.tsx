@@ -52,6 +52,7 @@ import { cn } from '@/lib/utils';
 
 interface WorkflowSidebarProps {
     projectSlug?: string;
+    onNavigate?: () => void; // Called when a navigation item is clicked (for mobile sidebar close)
 }
 
 interface NavItem {
@@ -68,7 +69,7 @@ interface NavZone {
     items: NavItem[];
 }
 
-export function WorkflowSidebar({ projectSlug }: WorkflowSidebarProps) {
+export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProps) {
     const pathname = usePathname();
     const params = useParams();
     const currentSlug = projectSlug || (params?.slug as string) || '';
@@ -183,6 +184,7 @@ export function WorkflowSidebar({ projectSlug }: WorkflowSidebarProps) {
             <div className="p-3">
                 <Link
                     href={currentSlug ? `/${currentSlug}/dashboard` : '/app/mission-control'}
+                    onClick={onNavigate}
                     className={cn(
                         "flex items-center gap-3 w-full px-4 py-3 rounded-xl font-medium transition-all",
                         isMissionControlActive
@@ -258,6 +260,7 @@ export function WorkflowSidebar({ projectSlug }: WorkflowSidebarProps) {
                                             <Link
                                                 key={item.label}
                                                 href={item.href}
+                                                onClick={onNavigate}
                                                 className={cn(
                                                     "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
                                                     isActive

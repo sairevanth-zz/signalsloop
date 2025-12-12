@@ -102,17 +102,17 @@ export function MissionControlDashboard({
 
     return (
         <div
+            className="min-h-screen p-4 md:p-6"
             style={{
-                minHeight: '100vh',
-                padding: '24px',
                 backgroundColor: colors.bg,
                 fontFamily: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 transition: 'background-color 0.3s ease'
             }}
         >
-            <div style={{ display: 'flex', gap: '24px' }}>
+            {/* Responsive flex container - column on mobile, row on desktop */}
+            <div className="flex flex-col lg:flex-row gap-4 md:gap-6">
                 {/* Main Content */}
-                <div style={{ flex: 1 }}>
+                <div className="flex-1 min-w-0">
                     {/* Header Label */}
                     <p style={{
                         fontSize: '13px',
@@ -125,39 +125,32 @@ export function MissionControlDashboard({
                     </p>
 
                     {/* Greeting Section */}
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        justifyContent: 'space-between',
-                        marginBottom: '40px'
-                    }}>
-                        <div style={{ flex: 1 }}>
-                            <h1 style={{
-                                fontSize: '38px',
-                                fontWeight: 300,
-                                color: colors.textPrimary,
-                                margin: 0,
-                                lineHeight: 1.3,
-                                letterSpacing: '-0.02em'
-                            }}>
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-8 md:mb-10">
+                        <div className="flex-1">
+                            <h1
+                                className="text-2xl sm:text-3xl md:text-4xl"
+                                style={{
+                                    fontWeight: 300,
+                                    color: colors.textPrimary,
+                                    margin: 0,
+                                    lineHeight: 1.3,
+                                    letterSpacing: '-0.02em'
+                                }}
+                            >
                                 {getGreeting()}, {userName}.
                                 <br />
                                 Here's what needs your attention.
                             </h1>
                         </div>
 
-                        {/* Robot Illustration */}
-                        <RobotIllustration />
+                        {/* Robot Illustration - hidden on small screens */}
+                        <div className="hidden md:block">
+                            <RobotIllustration />
+                        </div>
                     </div>
 
-                    {/* Action Cards Grid */}
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                        gridAutoRows: 'minmax(280px, auto)',
-                        gap: '24px',
-                        alignItems: 'stretch',
-                    }}>
+                    {/* Action Cards Grid - responsive columns */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                         {/* Churn Risk Alert - Gold/Amber */}
                         <ActionCard
                             icon={<AlertTriangle style={{ width: '24px', height: '24px', color: '#fbbf24' }} />}
@@ -199,16 +192,18 @@ export function MissionControlDashboard({
                     </div>
                 </div>
 
-                {/* Right Panel - Dynamic Context - MUCH BIGGER */}
-                <div style={{ width: '600px', flexShrink: 0 }}>
-                    <div style={{
-                        backgroundColor: colors.panelBg,
-                        borderRadius: '24px',
-                        padding: '36px',
-                        border: `1px solid ${colors.border}`,
-                        transition: 'all 0.3s ease',
-                        minHeight: '600px',
-                    }}>
+                {/* Right Panel - Dynamic Context - responsive width */}
+                <div className="w-full lg:w-[400px] xl:w-[500px] flex-shrink-0">
+                    <div
+                        className="p-4 md:p-6 lg:p-8"
+                        style={{
+                            backgroundColor: colors.panelBg,
+                            borderRadius: '20px',
+                            border: `1px solid ${colors.border}`,
+                            transition: 'all 0.3s ease',
+                            minHeight: '400px',
+                        }}
+                    >
                         {/* Header */}
                         <div style={{
                             display: 'flex',

@@ -13,6 +13,7 @@ import { TourProvider } from '@/components/tours/TourProvider';
 import { ShortcutsProvider } from '@/components/shortcuts/ShortcutsProvider';
 import { PushNotificationPrompt } from '@/components/notifications/PushNotificationPrompt';
 import { WorkflowSidebar } from '@/components/WorkflowSidebar';
+import { MobileSidebar } from '@/components/MobileSidebar';
 import GlobalBanner from '@/components/GlobalBanner';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -72,8 +73,15 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
       <ShortcutsProvider projectSlug={projectSlug}>
         <TourProvider autoStart={true}>
           <div className="min-h-screen" style={{ backgroundColor: '#0d1117' }}>
-            {/* Global Header */}
-            <GlobalBanner />
+            {/* Global Header with Mobile Menu */}
+            <div className="sticky top-0 z-50 flex items-center" style={{ backgroundColor: '#0d1117', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="lg:hidden pl-3">
+                <MobileSidebar projectSlug={projectSlug} />
+              </div>
+              <div className="flex-1">
+                <GlobalBanner />
+              </div>
+            </div>
 
             {/* Push Notification Prompt - only on dashboard */}
             {showNotificationPrompt && projectId && (
