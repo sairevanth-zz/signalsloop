@@ -8,8 +8,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Brain, X, Send, Loader2 } from 'lucide-react';
-import { useCompletion } from '@ai-sdk/react';
+import { Brain, X, Send, Loader2, AlertCircle } from 'lucide-react';
 
 interface FloatingAskAIProps {
     projectId: string;
@@ -19,17 +18,50 @@ interface FloatingAskAIProps {
 export function FloatingAskAI({ projectId, projectSlug }: FloatingAskAIProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [input, setInput] = useState('');
+    const [completion, setCompletion] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const { complete, completion, isLoading } = useCompletion({
-        api: '/api/ask/stream',
-        body: { projectId },
-    });
-
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
-        complete(input);
+
+        const query = input.trim();
         setInput('');
+        setCompletion('');
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const response = await fetch('/api/ask/stream', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query, projectId }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `Error: ${response.status}`);
+            }
+
+            const reader = response.body?.getReader();
+            if (!reader) throw new Error('No response body');
+
+            const decoder = new TextDecoder();
+            let result = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value);
+                result += chunk;
+                setCompletion(result);
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to get response');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -58,7 +90,19 @@ export function FloatingAskAI({ projectId, projectSlug }: FloatingAskAIProps) {
 
                     {/* Chat Content */}
                     <div className="flex-1 p-4 overflow-y-auto min-h-[200px]">
-                        {completion ? (
+                        {error ? (
+                            <div className="text-center py-8">
+                                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+                                <p className="text-red-400 text-sm mb-2">Error getting response</p>
+                                <p className="text-slate-500 text-xs">{error}</p>
+                                <button
+                                    onClick={() => setError(null)}
+                                    className="mt-4 px-4 py-2 bg-slate-800 rounded-lg text-slate-300 text-sm hover:bg-slate-700"
+                                >
+                                    Try Again
+                                </button>
+                            </div>
+                        ) : completion ? (
                             <div className="prose prose-invert prose-sm max-w-none">
                                 <p className="text-slate-300 whitespace-pre-wrap">{completion}</p>
                             </div>

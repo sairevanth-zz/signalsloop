@@ -243,7 +243,7 @@ export function MissionControlDashboard({
                         </div>
 
                         {/* User Sentiment Pulse - Clickable */}
-                        <Link href={`/${projectSlug}/sentiment`} style={{ display: 'block', marginBottom: '20px', textDecoration: 'none' }}>
+                        <Link href={`/${projectSlug}/ai-insights`} style={{ display: 'block', marginBottom: '20px', textDecoration: 'none' }}>
                             <div style={{
                                 padding: '12px',
                                 borderRadius: '10px',
@@ -293,7 +293,7 @@ export function MissionControlDashboard({
                         }} />
 
                         {/* Recent Activity - Clickable */}
-                        <Link href={`/${projectSlug}/feedback`} style={{ display: 'block', textDecoration: 'none' }}>
+                        <Link href={`/${projectSlug}/inbox`} style={{ display: 'block', textDecoration: 'none' }}>
                             <div style={{
                                 padding: '12px',
                                 borderRadius: '10px',
