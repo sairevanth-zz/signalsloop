@@ -293,7 +293,7 @@ export function MissionControlDashboard({
                         }} />
 
                         {/* Recent Activity - Clickable */}
-                        <Link href={`/${projectSlug}/inbox`} style={{ display: 'block', textDecoration: 'none' }}>
+                        <Link href={`/${projectSlug}/board`} style={{ display: 'block', textDecoration: 'none' }}>
                             <div style={{
                                 padding: '12px',
                                 borderRadius: '10px',
@@ -539,39 +539,110 @@ function ActionCard({
     );
 }
 
-// Sentiment Line Chart - smooth gradient area
+// Sentiment Line Chart - enhanced with data points and labels
 function SentimentLineChart() {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
+    const bgColor = isDark ? '#21262d' : '#e2e8f0';
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+    const textColor = isDark ? '#6e7681' : '#94a3b8';
+
+    // Simulated data points for the sparkline
+    const dataPoints = [
+        { x: 0, y: 55, label: '7d' },
+        { x: 47, y: 50, label: '6d' },
+        { x: 93, y: 45, label: '5d' },
+        { x: 140, y: 48, label: '4d' },
+        { x: 187, y: 35, label: '3d' },
+        { x: 233, y: 38, label: '2d' },
+        { x: 280, y: 22, label: '1d' },
+    ];
+
     return (
         <div style={{
-            height: '80px',
-            backgroundColor: '#21262d',
-            borderRadius: '8px',
+            height: '100px',
+            backgroundColor: bgColor,
+            borderRadius: '10px',
             overflow: 'hidden',
-            position: 'relative'
+            position: 'relative',
+            padding: '8px 12px'
         }}>
-            <svg width="100%" height="100%" viewBox="0 0 280 80" preserveAspectRatio="none">
-                <defs>
-                    <linearGradient id="sentimentGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.4" />
-                        <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
-                    </linearGradient>
-                </defs>
+            {/* Y-axis labels */}
+            <div style={{
+                position: 'absolute',
+                left: '8px',
+                top: '8px',
+                bottom: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                fontSize: '8px',
+                color: textColor,
+            }}>
+                <span>😊</span>
+                <span>😐</span>
+            </div>
 
-                {/* Area fill */}
-                <path
-                    d="M0,55 C30,50 60,45 90,48 C120,51 150,35 180,38 C210,41 240,28 280,22 L280,80 L0,80 Z"
-                    fill="url(#sentimentGradient)"
-                />
+            {/* Chart area */}
+            <div style={{ marginLeft: '20px', height: '70px' }}>
+                <svg width="100%" height="100%" viewBox="0 0 280 70" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="sentimentGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.5" />
+                            <stop offset="50%" stopColor="#14b8a6" stopOpacity="0.2" />
+                            <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
+                        </linearGradient>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                            <feMerge>
+                                <feMergeNode in="coloredBlur" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
+                    </defs>
 
-                {/* Line */}
-                <path
-                    d="M0,55 C30,50 60,45 90,48 C120,51 150,35 180,38 C210,41 240,28 280,22"
-                    fill="none"
-                    stroke="#14b8a6"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                />
-            </svg>
+                    {/* Grid lines */}
+                    <line x1="0" y1="35" x2="280" y2="35" stroke={gridColor} strokeWidth="1" strokeDasharray="4,4" />
+
+                    {/* Area fill */}
+                    <path
+                        d="M0,55 C30,50 60,45 90,48 C120,51 150,35 180,38 C210,41 240,28 280,22 L280,70 L0,70 Z"
+                        fill="url(#sentimentGradient)"
+                    />
+
+                    {/* Main line with glow */}
+                    <path
+                        d="M0,55 C30,50 60,45 90,48 C120,51 150,35 180,38 C210,41 240,28 280,22"
+                        fill="none"
+                        stroke="#14b8a6"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        filter="url(#glow)"
+                    />
+
+                    {/* Data points */}
+                    {dataPoints.map((point, i) => (
+                        <g key={i}>
+                            <circle cx={point.x} cy={point.y} r="4" fill="#14b8a6" />
+                            <circle cx={point.x} cy={point.y} r="2" fill="#ffffff" />
+                        </g>
+                    ))}
+                </svg>
+            </div>
+
+            {/* X-axis labels */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginLeft: '20px',
+                marginTop: '2px',
+                fontSize: '8px',
+                color: textColor,
+            }}>
+                <span>7d ago</span>
+                <span>Today</span>
+            </div>
         </div>
     );
 }
