@@ -106,7 +106,7 @@ export function MissionControlDashboard({
                 minHeight: '100vh',
                 padding: '24px',
                 backgroundColor: colors.bg,
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontFamily: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 transition: 'background-color 0.3s ease'
             }}
         >
@@ -131,37 +131,27 @@ export function MissionControlDashboard({
                         justifyContent: 'space-between',
                         marginBottom: '40px'
                     }}>
-                        <div>
+                        <div style={{ maxWidth: '500px' }}>
                             <h1 style={{
-                                fontSize: '36px',
-                                fontWeight: 300,
+                                fontSize: '42px',
+                                fontWeight: 400,
                                 color: colors.textPrimary,
                                 margin: 0,
-                                lineHeight: 1.3,
-                                letterSpacing: '-0.02em'
+                                lineHeight: 1.2,
+                                letterSpacing: '-0.03em'
                             }}>
                                 {getGreeting()}, {userName}.
                             </h1>
-                            <p style={{
-                                fontSize: '36px',
-                                fontWeight: 300,
+                            <h2 style={{
+                                fontSize: '42px',
+                                fontWeight: 400,
                                 color: colors.textPrimary,
-                                margin: 0,
-                                lineHeight: 1.3,
-                                letterSpacing: '-0.02em'
+                                margin: '8px 0 0 0',
+                                lineHeight: 1.2,
+                                letterSpacing: '-0.03em'
                             }}>
-                                Here's what needs your
-                            </p>
-                            <p style={{
-                                fontSize: '36px',
-                                fontWeight: 300,
-                                color: colors.textPrimary,
-                                margin: 0,
-                                lineHeight: 1.3,
-                                letterSpacing: '-0.02em'
-                            }}>
-                                attention.
-                            </p>
+                                Here's what needs your attention.
+                            </h2>
                         </div>
 
                         {/* Robot Illustration */}
@@ -217,15 +207,15 @@ export function MissionControlDashboard({
                     </div>
                 </div>
 
-                {/* Right Panel - Dynamic Context */}
-                <div style={{ width: '550px', flexShrink: 0 }}>
+                {/* Right Panel - Dynamic Context - MUCH BIGGER */}
+                <div style={{ width: '600px', flexShrink: 0 }}>
                     <div style={{
                         backgroundColor: colors.panelBg,
-                        borderRadius: '20px',
-                        padding: '32px',
+                        borderRadius: '24px',
+                        padding: '36px',
                         border: `1px solid ${colors.border}`,
                         transition: 'all 0.3s ease',
-                        minHeight: '500px',
+                        minHeight: '600px',
                     }}>
                         {/* Header */}
                         <div style={{
