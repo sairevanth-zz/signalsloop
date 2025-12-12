@@ -79,6 +79,7 @@ export function WorkflowSidebar({ projectSlug }: WorkflowSidebarProps) {
         'understand': false,
         'plan': false,
         'track': false,
+        'ai-tools': false,
     });
 
     // Define 4 workflow zones matching implementation plan EXACTLY
@@ -127,6 +128,17 @@ export function WorkflowSidebar({ projectSlug }: WorkflowSidebarProps) {
                 { label: 'Executive Briefs', href: currentSlug ? `/${currentSlug}/briefs` : '#', icon: FileBarChart, requiresProject: true },
                 { label: 'Churn Radar', href: currentSlug ? `/${currentSlug}/churn-radar` : '#', icon: AlertTriangle, requiresProject: true },
                 { label: 'War Room', href: currentSlug ? `/${currentSlug}/war-room` : '#', icon: Swords, requiresProject: true },
+            ]
+        },
+        {
+            id: 'ai-tools',
+            label: 'AI Tools',
+            icon: Zap,
+            items: [
+                { label: 'Auto-Prioritize', href: currentSlug ? `/${currentSlug}/ai-tools?action=prioritize` : '#', icon: Target, requiresProject: true },
+                { label: 'Smart Categorize', href: currentSlug ? `/${currentSlug}/ai-tools?action=categorize` : '#', icon: Sparkles, requiresProject: true },
+                { label: 'Find Duplicates', href: currentSlug ? `/${currentSlug}/ai-tools?action=duplicates` : '#', icon: Search, requiresProject: true },
+                { label: 'Analyze Sentiment', href: currentSlug ? `/${currentSlug}/ai-tools?action=sentiment` : '#', icon: Activity, requiresProject: true },
             ]
         },
     ];
