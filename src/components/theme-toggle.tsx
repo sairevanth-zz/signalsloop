@@ -2,26 +2,34 @@
 
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from './theme-provider';
-import { Button } from './ui/button';
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
+    <button
       onClick={toggleTheme}
-      className="w-9 h-9 px-0 cursor-pointer"
-      style={{ cursor: 'pointer' }}
-      aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-      title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+      style={{
+        width: '36px',
+        height: '36px',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        border: isDark ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(0,0,0,0.15)',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+        transition: 'all 0.2s ease',
+      }}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      {theme === 'light' ? (
-        <Moon className="h-5 w-5 text-slate-700 transition-all" />
+      {isDark ? (
+        <Sun style={{ width: '18px', height: '18px', color: '#fbbf24' }} />
       ) : (
-        <Sun className="h-5 w-5 text-yellow-400 transition-all" />
+        <Moon style={{ width: '18px', height: '18px', color: '#1e293b' }} />
       )}
-    </Button>
+    </button>
   );
 }
