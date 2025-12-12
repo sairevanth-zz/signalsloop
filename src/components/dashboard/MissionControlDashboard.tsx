@@ -172,7 +172,9 @@ export function MissionControlDashboard({
                     <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '20px'
+                        gridAutoRows: 'minmax(280px, auto)',
+                        gap: '24px',
+                        alignItems: 'stretch',
                     }}>
                         {/* Churn Risk Alert - Gold/Amber */}
                         <ActionCard
