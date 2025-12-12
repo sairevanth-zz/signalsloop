@@ -120,12 +120,100 @@ async function DashboardContent({ slug }: { slug: string }) {
 
   const userName = userData?.name || userData?.email?.split('@')[0] || 'there';
 
+  // Fetch real data for dashboard
+
+  // 1. Churn alerts - get top critical/high alert
+  const { data: churnAlert } = await supabase
+    .from('churn_alerts')
+    .select('id, title, description, severity, customer_health:customer_health_id(name, company)')
+    .eq('project_id', project.id)
+    .in('severity', ['critical', 'high'])
+    .eq('status', 'new')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  // 2. Recent themes - get most recent emerging/high-frequency theme
+  const { data: recentTheme } = await supabase
+    .from('themes')
+    .select('id, name, description, frequency, is_emerging')
+    .eq('project_id', project.id)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  // 3. Recent feedback - get last 5 posts
+  const { data: recentFeedback } = await supabase
+    .from('posts')
+    .select('id, content, author_email, created_at, sentiment')
+    .eq('project_id', project.id)
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  // 4. Get overall sentiment from recent posts
+  const { data: sentimentData } = await supabase
+    .from('posts')
+    .select('sentiment')
+    .eq('project_id', project.id)
+    .not('sentiment', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  // Calculate average sentiment (sentiment is 0-1, where > 0.5 is positive)
+  let avgSentiment = 0.5; // neutral default
+  if (sentimentData && sentimentData.length > 0) {
+    const sum = sentimentData.reduce((acc, p) => acc + (p.sentiment || 0.5), 0);
+    avgSentiment = sum / sentimentData.length;
+  }
+
+  // 5. Outcome monitors - get most recent completed
+  const { data: recentOutcome } = await supabase
+    .from('outcome_monitors')
+    .select('id, title, status, feature_name')
+    .eq('project_id', project.id)
+    .eq('status', 'completed')
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  // Prepare dashboard data
+  const dashboardData = {
+    churnAlert: churnAlert ? {
+      title: churnAlert.title,
+      description: churnAlert.description,
+      customerName: (churnAlert.customer_health as any)?.company || (churnAlert.customer_health as any)?.name || 'Unknown',
+      severity: churnAlert.severity as 'critical' | 'high',
+    } : null,
+
+    theme: recentTheme ? {
+      name: recentTheme.name,
+      description: recentTheme.description || 'New pattern detected in user feedback',
+      isEmerging: recentTheme.is_emerging,
+    } : null,
+
+    outcome: recentOutcome ? {
+      title: recentOutcome.title,
+      featureName: recentOutcome.feature_name,
+    } : null,
+
+    recentActivity: recentFeedback?.map(f => ({
+      id: f.id,
+      content: f.content?.substring(0, 80) + (f.content && f.content.length > 80 ? '...' : ''),
+      authorEmail: f.author_email,
+      createdAt: f.created_at,
+      sentiment: f.sentiment,
+    })) || [],
+
+    sentimentScore: avgSentiment,
+  };
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#1e2228' }}>
       <MissionControlDashboard
         userName={userName}
         projectSlug={project.slug}
         projectId={project.id}
+        dashboardData={dashboardData}
       />
     </div>
   );

@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * MissionControlDashboard - Theme-aware dashboard
+ * MissionControlDashboard - Theme-aware dashboard with real data
  * 
- * Supports both light and dark modes via the theme toggle.
+ * Displays real project data with "no data" empty states.
  */
 
 import React from 'react';
@@ -16,18 +16,64 @@ import {
     MessageSquare,
     TrendingUp,
     Activity,
-    ChevronRight
+    ChevronRight,
+    Inbox
 } from 'lucide-react';
+
+// Dashboard data types
+interface DashboardData {
+    churnAlert: {
+        title: string;
+        description: string;
+        customerName: string;
+        severity: 'critical' | 'high';
+    } | null;
+    theme: {
+        name: string;
+        description: string;
+        isEmerging: boolean;
+    } | null;
+    outcome: {
+        title: string;
+        featureName: string;
+    } | null;
+    recentActivity: Array<{
+        id: string;
+        content: string;
+        authorEmail: string;
+        createdAt: string;
+        sentiment: number | null;
+    }>;
+    sentimentScore: number;
+}
 
 interface MissionControlDashboardProps {
     userName?: string;
     projectSlug: string;
     projectId: string;
+    dashboardData?: DashboardData;
+}
+
+// Helper function to format time ago
+function formatTimeAgo(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
 }
 
 export function MissionControlDashboard({
-    userName = 'Revanth',
+    userName = 'there',
     projectSlug,
+    dashboardData,
 }: MissionControlDashboardProps) {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
@@ -129,31 +175,40 @@ export function MissionControlDashboard({
                         {/* Churn Risk Alert - Gold/Amber */}
                         <ActionCard
                             icon={<AlertTriangle style={{ width: '24px', height: '24px', color: '#fbbf24' }} />}
-                            title="Churn Risk Alert"
-                            description="High churn probability detected for 'Acme Corp' based on usage patterns. View details and take action."
-                            buttonLabel="Review & Act"
+                            title={dashboardData?.churnAlert ? "Churn Risk Alert" : "No Churn Risks"}
+                            description={dashboardData?.churnAlert
+                                ? `${dashboardData.churnAlert.severity === 'critical' ? 'Critical' : 'High'} churn probability for '${dashboardData.churnAlert.customerName}'. ${dashboardData.churnAlert.description}`
+                                : "No active churn alerts detected. Your customers are healthy!"}
+                            buttonLabel={dashboardData?.churnAlert ? "Review & Act" : "View All"}
                             href={`/${projectSlug}/churn-radar`}
                             accentColor="#fbbf24"
+                            isEmpty={!dashboardData?.churnAlert}
                         />
 
                         {/* New Theme Detected - Teal */}
                         <ActionCard
                             icon={<Lightbulb style={{ width: '24px', height: '24px', color: '#14b8a6' }} />}
-                            title="New Theme Detected"
-                            description="AI has identified a burgeoning theme in user feedback related to 'Performance Issues'. Explore insights."
-                            buttonLabel="Explore Theme"
+                            title={dashboardData?.theme ? (dashboardData.theme.isEmerging ? "Emerging Theme" : "New Theme Detected") : "No New Themes"}
+                            description={dashboardData?.theme
+                                ? `AI identified a theme: '${dashboardData.theme.name}'. ${dashboardData.theme.description}`
+                                : "No new themes detected recently. Check back for new insights."}
+                            buttonLabel={dashboardData?.theme ? "Explore Theme" : "View Insights"}
                             href={`/${projectSlug}/ai-insights`}
                             accentColor="#14b8a6"
+                            isEmpty={!dashboardData?.theme}
                         />
 
                         {/* Roadmap Outcome - Emerald */}
                         <ActionCard
                             icon={<CheckCircle style={{ width: '24px', height: '24px', color: '#10b981' }} />}
-                            title="Roadmap Item Outcome Ready"
-                            description="'Q3 Feature Launch' outcome analysis is complete. See the impact on user engagement."
-                            buttonLabel="View Outcomes"
+                            title={dashboardData?.outcome ? "Outcome Ready" : "No Completed Outcomes"}
+                            description={dashboardData?.outcome
+                                ? `'${dashboardData.outcome.featureName}' outcome analysis is complete. See the impact.`
+                                : "No outcome reports completed yet. Set up outcome tracking for your features."}
+                            buttonLabel={dashboardData?.outcome ? "View Outcomes" : "Set Up Tracking"}
                             href={`/${projectSlug}/outcomes`}
                             accentColor="#10b981"
+                            isEmpty={!dashboardData?.outcome}
                         />
                     </div>
                 </div>
@@ -228,10 +283,10 @@ export function MissionControlDashboard({
                                     width: '8px',
                                     height: '8px',
                                     borderRadius: '50%',
-                                    backgroundColor: '#10b981'
+                                    backgroundColor: (dashboardData?.sentimentScore || 0.5) >= 0.6 ? '#10b981' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? '#fbbf24' : '#ef4444'
                                 }} />
-                                <span style={{ fontSize: '13px', color: '#10b981' }}>
-                                    Generally Positive
+                                <span style={{ fontSize: '13px', color: (dashboardData?.sentimentScore || 0.5) >= 0.6 ? '#10b981' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? '#fbbf24' : '#ef4444' }}>
+                                    {(dashboardData?.sentimentScore || 0.5) >= 0.6 ? 'Generally Positive' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? 'Mixed Sentiment' : 'Concerning Trend'}
                                 </span>
                             </div>
                             {/* Sentiment Chart */}
@@ -255,21 +310,26 @@ export function MissionControlDashboard({
                                 Recent Activity & Insights
                             </h4>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                <ActivityItem
-                                    icon={<MessageSquare style={{ width: '14px', height: '14px', color: '#14b8a6' }} />}
-                                    title="User 'Sarah L.' submitted feedback regarding 'Integration API'"
-                                    time="5 mins ago"
-                                />
-                                <ActivityItem
-                                    icon={<TrendingUp style={{ width: '14px', height: '14px', color: '#fbbf24' }} />}
-                                    title="New theme 'Data Export' is gaining traction"
-                                    time="20 mins ago"
-                                />
-                                <ActivityItem
-                                    icon={<Activity style={{ width: '14px', height: '14px', color: '#14b8a6' }} />}
-                                    title="System performance is stable - All systems go"
-                                    time="1 hour ago"
-                                />
+                                {dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 ? (
+                                    dashboardData.recentActivity.slice(0, 3).map((activity, index) => (
+                                        <ActivityItem
+                                            key={activity.id || index}
+                                            icon={<MessageSquare style={{ width: '14px', height: '14px', color: activity.sentiment && activity.sentiment > 0.5 ? '#14b8a6' : '#fbbf24' }} />}
+                                            title={`${activity.authorEmail?.split('@')[0] || 'User'}: "${activity.content}"`}
+                                            time={formatTimeAgo(activity.createdAt)}
+                                        />
+                                    ))
+                                ) : (
+                                    <div style={{
+                                        textAlign: 'center',
+                                        padding: '20px',
+                                        color: colors.textSecondary,
+                                        fontSize: '13px'
+                                    }}>
+                                        <Inbox style={{ width: '24px', height: '24px', margin: '0 auto 8px', opacity: 0.5 }} />
+                                        No recent activity yet
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -352,6 +412,7 @@ function ActionCard({
     buttonLabel,
     href,
     accentColor,
+    isEmpty = false,
 }: {
     icon: React.ReactNode;
     title: string;
@@ -359,6 +420,7 @@ function ActionCard({
     buttonLabel: string;
     href: string;
     accentColor: string;
+    isEmpty?: boolean;
 }) {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
@@ -367,8 +429,10 @@ function ActionCard({
     const textPrimary = isDark ? '#ffffff' : '#1e293b';
     const textSecondary = isDark ? '#9ca3af' : '#64748b';
     const buttonText = isDark ? '#0d1117' : '#ffffff';
-    const glowIntensity = isDark ? '60' : '40';
-    const insetGlow = isDark ? '15' : '08';
+
+    // Reduce glow for empty states
+    const glowIntensity = isEmpty ? (isDark ? '30' : '20') : (isDark ? '60' : '40');
+    const insetGlow = isEmpty ? (isDark ? '08' : '04') : (isDark ? '15' : '08');
 
     return (
         <div style={{
