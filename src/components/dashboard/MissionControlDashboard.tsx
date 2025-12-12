@@ -216,11 +216,11 @@ export function MissionControlDashboard({
                 </div>
 
                 {/* Right Panel - Dynamic Context */}
-                <div style={{ width: '320px', flexShrink: 0 }}>
+                <div style={{ width: '400px', flexShrink: 0 }}>
                     <div style={{
                         backgroundColor: colors.panelBg,
                         borderRadius: '16px',
-                        padding: '20px',
+                        padding: '24px',
                         border: `1px solid ${colors.border}`,
                         transition: 'all 0.3s ease'
                     }}>
@@ -453,7 +453,7 @@ function ActionCard({
         <div style={{
             position: 'relative',
             borderRadius: '16px',
-            padding: '20px',
+            padding: '28px',
             backgroundColor: cardBg,
             border: `2px solid ${accentColor}`,
             boxShadow: isDark
@@ -461,6 +461,9 @@ function ActionCard({
                 : `0 0 40px ${accentColor}30, 0 4px 12px rgba(0,0,0,0.1)`,
             overflow: 'hidden',
             transition: 'all 0.3s ease',
+            minHeight: '220px',
+            display: 'flex',
+            flexDirection: 'column',
         }}>
             {/* Inner glow effect - gradient from borders */}
             <div style={{
@@ -476,17 +479,17 @@ function ActionCard({
             }} />
 
             {/* Content */}
-            <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
                 {/* Icon circle */}
                 <div style={{
-                    width: '44px',
-                    height: '44px',
+                    width: '52px',
+                    height: '52px',
                     borderRadius: '50%',
                     backgroundColor: `${accentColor}${isDark ? '30' : '20'}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: '16px',
+                    marginBottom: '20px',
                     boxShadow: isDark ? `0 0 20px ${accentColor}40` : 'none'
                 }}>
                     {icon}
@@ -494,10 +497,10 @@ function ActionCard({
 
                 {/* Title */}
                 <h3 style={{
-                    fontSize: '16px',
+                    fontSize: '18px',
                     fontWeight: 600,
                     color: textPrimary,
-                    margin: '0 0 8px 0',
+                    margin: '0 0 12px 0',
                     letterSpacing: '-0.01em'
                 }}>
                     {title}
@@ -505,10 +508,11 @@ function ActionCard({
 
                 {/* Description */}
                 <p style={{
-                    fontSize: '13px',
+                    fontSize: '14px',
                     color: textSecondary,
-                    margin: '0 0 16px 0',
-                    lineHeight: 1.5
+                    margin: '0 0 20px 0',
+                    lineHeight: 1.6,
+                    flex: 1,
                 }}>
                     {description}
                 </p>
