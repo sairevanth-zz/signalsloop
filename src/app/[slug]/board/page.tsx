@@ -62,6 +62,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -988,12 +989,14 @@ export default function BoardPage() {
                         <ChevronDown className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-72">
+                    <DropdownMenuContent align="end" className="w-72 max-h-[70vh] overflow-y-auto">
+                      {/* Quick Actions Group */}
+                      <DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Quick Actions</DropdownMenuLabel>
                       <DropdownMenuItem
                         onSelect={() => {
                           setShowShareModal(true);
                         }}
-                        className="flex items-start gap-3 py-3"
+                        className="flex items-start gap-3 py-2"
                       >
                         <Share2 className="h-4 w-4 text-green-600" />
                         <div className="flex flex-col">
@@ -1007,7 +1010,7 @@ export default function BoardPage() {
                         onSelect={() => {
                           setShowPostForm(true);
                         }}
-                        className="flex items-start gap-3 py-3"
+                        className="flex items-start gap-3 py-2"
                       >
                         <Plus className="h-4 w-4 text-blue-600" />
                         <div className="flex flex-col">
@@ -1017,105 +1020,12 @@ export default function BoardPage() {
                           </span>
                         </div>
                       </DropdownMenuItem>
-                      {user && posts.length > 0 && (
-                        <Link href={`/${project?.slug}/ai-insights`}>
-                          <DropdownMenuItem className="flex items-start gap-3 py-3">
-                            <Sparkles className="h-4 w-4 text-purple-600" />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">AI Insights & Themes</span>
-                              <span className="text-xs text-gray-500">
-                                Discover themes, patterns, and sentiment
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        </Link>
-                      )}
-                      {user && (
-                        <Link href={`/${project?.slug}/competitive`}>
-                          <DropdownMenuItem className="flex items-start gap-3 py-3">
-                            <Target className="h-4 w-4 text-blue-600" />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">Competitive Intelligence</span>
-                              <span className="text-xs text-gray-500">
-                                Track competitors, feature gaps, and strategic insights
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        </Link>
-                      )}
-                      {user && (
-                        <Link href={`/app/roadmap?projectId=${project?.id}`}>
-                          <DropdownMenuItem className="flex items-start gap-3 py-3">
-                            <Map className="h-4 w-4 text-indigo-600" />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">AI Roadmap Suggestions</span>
-                              <span className="text-xs text-gray-500">
-                                AI-powered roadmap based on feedback themes
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        </Link>
-                      )}
-                      {user && (
-                        <Link href={`/${project?.slug}/hunter`}>
-                          <DropdownMenuItem className="flex items-start gap-3 py-3">
-                            <Brain className="h-4 w-4 text-blue-600" />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">AI Feedback Hunter</span>
-                              <span className="text-xs text-gray-500">
-                                Auto-discover feedback across Reddit, Twitter, HN, G2
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        </Link>
-                      )}
-                      {user && (
-                        <Link href={`/app/user-stories?projectId=${project?.id}`}>
-                          <DropdownMenuItem className="flex items-start gap-3 py-3">
-                            <FileText className="h-4 w-4 text-blue-600" />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">User Stories</span>
-                              <span className="text-xs text-gray-500">
-                                AI-generated sprint-ready stories from themes
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        </Link>
-                      )}
-                      {user && project?.slug && (
-                        <Link href={`/${project.slug}/experiments`} prefetch={false}>
-                          <DropdownMenuItem className="flex items-start gap-3 py-3">
-                            <FlaskConical className="h-4 w-4 text-green-600" />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">Experiments</span>
-                              <span className="text-xs text-gray-500">
-                                AI-powered A/B test design and results analysis
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        </Link>
-                      )}
-                      {user && (
-                        <Link href={`/${project?.slug}/specs`}>
-                          <DropdownMenuItem className="flex items-start gap-3 py-3">
-                            <Sparkles className="h-4 w-4 text-purple-600" />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">Spec Writer ✨</span>
-                              <span className="text-xs text-gray-500">
-                                Transform ideas into PRDs in 60 seconds
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        </Link>
-                      )}
-
-                      {isOwnerOrAdmin && <DropdownMenuSeparator />}
                       {isOwnerOrAdmin && project && (
                         <DropdownMenuItem
                           onSelect={() => {
                             setShowFeedbackOnBehalfModal(true);
                           }}
-                          className="flex items-start gap-3 py-3"
+                          className="flex items-start gap-3 py-2"
                         >
                           <FileText className="h-4 w-4 text-green-700" />
                           <div className="flex flex-col">
@@ -1126,111 +1036,201 @@ export default function BoardPage() {
                           </div>
                         </DropdownMenuItem>
                       )}
-                      {isOwnerOrAdmin && (
-                        <DropdownMenuItem
-                          disabled={autoPrioritizing}
-                          onSelect={(event) => {
-                            event.preventDefault();
-                            if (!autoPrioritizing) {
-                              handleAutoPrioritize();
-                            }
-                          }}
-                          className="flex items-start gap-3 py-3"
-                        >
-                          {autoPrioritizing ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                          ) : (
-                            <Target className="h-4 w-4 text-blue-600" />
+
+                      {/* Navigate Group */}
+                      {user && posts.length > 0 && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Navigate</DropdownMenuLabel>
+                          <Link href={`/${project?.slug}/ai-insights`}>
+                            <DropdownMenuItem className="flex items-start gap-3 py-2">
+                              <Sparkles className="h-4 w-4 text-purple-600" />
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-gray-900">AI Insights & Themes</span>
+                                <span className="text-xs text-gray-500">
+                                  Discover themes, patterns, and sentiment
+                                </span>
+                              </div>
+                            </DropdownMenuItem>
+                          </Link>
+                          <Link href={`/${project?.slug}/competitive`}>
+                            <DropdownMenuItem className="flex items-start gap-3 py-2">
+                              <Target className="h-4 w-4 text-blue-600" />
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-gray-900">Competitive Intelligence</span>
+                                <span className="text-xs text-gray-500">
+                                  Track competitors and feature gaps
+                                </span>
+                              </div>
+                            </DropdownMenuItem>
+                          </Link>
+                          <Link href={`/app/roadmap?projectId=${project?.id}`}>
+                            <DropdownMenuItem className="flex items-start gap-3 py-2">
+                              <Map className="h-4 w-4 text-indigo-600" />
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-gray-900">AI Roadmap</span>
+                                <span className="text-xs text-gray-500">
+                                  AI-powered roadmap from feedback themes
+                                </span>
+                              </div>
+                            </DropdownMenuItem>
+                          </Link>
+                          <Link href={`/${project?.slug}/hunter`}>
+                            <DropdownMenuItem className="flex items-start gap-3 py-2">
+                              <Brain className="h-4 w-4 text-blue-600" />
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-gray-900">AI Feedback Hunter</span>
+                                <span className="text-xs text-gray-500">
+                                  Auto-discover feedback across platforms
+                                </span>
+                              </div>
+                            </DropdownMenuItem>
+                          </Link>
+                          <Link href={`/app/user-stories?projectId=${project?.id}`}>
+                            <DropdownMenuItem className="flex items-start gap-3 py-2">
+                              <FileText className="h-4 w-4 text-blue-600" />
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-gray-900">User Stories</span>
+                                <span className="text-xs text-gray-500">
+                                  AI-generated sprint-ready stories
+                                </span>
+                              </div>
+                            </DropdownMenuItem>
+                          </Link>
+                          {project?.slug && (
+                            <Link href={`/${project.slug}/experiments`} prefetch={false}>
+                              <DropdownMenuItem className="flex items-start gap-3 py-2">
+                                <FlaskConical className="h-4 w-4 text-green-600" />
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium text-gray-900">Experiments</span>
+                                  <span className="text-xs text-gray-500">
+                                    AI-powered A/B test design
+                                  </span>
+                                </div>
+                              </DropdownMenuItem>
+                            </Link>
                           )}
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900">Auto-prioritize</span>
-                            <span className="text-xs text-gray-500">
-                              Generate AI priority scores for the newest posts
-                            </span>
-                          </div>
-                        </DropdownMenuItem>
+                          <Link href={`/${project?.slug}/specs`}>
+                            <DropdownMenuItem className="flex items-start gap-3 py-2">
+                              <Sparkles className="h-4 w-4 text-purple-600" />
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-gray-900">Spec Writer ✨</span>
+                                <span className="text-xs text-gray-500">
+                                  Transform ideas into PRDs
+                                </span>
+                              </div>
+                            </DropdownMenuItem>
+                          </Link>
+                        </>
                       )}
-                      {isOwnerOrAdmin && (
-                        <DropdownMenuItem
-                          disabled={autoCategorizing}
-                          onSelect={(event) => {
-                            event.preventDefault();
-                            if (!autoCategorizing) {
-                              handleAutoCategorize();
-                            }
-                          }}
-                          className="flex items-start gap-3 py-3"
-                        >
-                          {autoCategorizing ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
-                          ) : (
-                            <Wand2 className="h-4 w-4 text-indigo-600" />
-                          )}
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900">Smart Categorize</span>
-                            <span className="text-xs text-gray-500">
-                              Let AI organize feedback by category
-                            </span>
-                          </div>
-                        </DropdownMenuItem>
-                      )}
-                      {isOwnerOrAdmin && (
-                        <DropdownMenuItem
-                          disabled={findingDuplicates}
-                          onSelect={(event) => {
-                            event.preventDefault();
-                            if (!findingDuplicates) {
-                              handleFindDuplicates();
-                            }
-                          }}
-                          className="flex items-start gap-3 py-3"
-                        >
-                          {findingDuplicates ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-orange-600" />
-                          ) : (
-                            <GitMerge className="h-4 w-4 text-orange-600" />
-                          )}
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900">Find Duplicates</span>
-                            <span className="text-xs text-gray-500">
-                              AI scans for duplicate feedback and merges them
-                            </span>
-                          </div>
-                        </DropdownMenuItem>
-                      )}
-                      {isOwnerOrAdmin && (
-                        <DropdownMenuItem
-                          disabled={analyzingSentiment}
-                          onSelect={(event) => {
-                            event.preventDefault();
-                            if (!analyzingSentiment) {
-                              handleAnalyzeSentiment();
-                            }
-                          }}
-                          className="flex items-start gap-3 py-3"
-                        >
-                          {analyzingSentiment ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
-                          ) : (
-                            <Sparkles className="h-4 w-4 text-purple-600" />
-                          )}
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900">Analyze Sentiment</span>
-                            <span className="text-xs text-gray-500">
-                              AI analyzes emotional tone of recent feedback
-                            </span>
-                          </div>
-                        </DropdownMenuItem>
-                      )}
+
+                      {/* AI Actions Group (Admin Only) */}
                       {isOwnerOrAdmin && (
                         <>
                           <DropdownMenuSeparator />
+                          <DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider">AI Actions</DropdownMenuLabel>
+                          <DropdownMenuItem
+                            disabled={autoPrioritizing}
+                            onSelect={(event) => {
+                              event.preventDefault();
+                              if (!autoPrioritizing) {
+                                handleAutoPrioritize();
+                              }
+                            }}
+                            className="flex items-start gap-3 py-2"
+                          >
+                            {autoPrioritizing ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                            ) : (
+                              <Target className="h-4 w-4 text-blue-600" />
+                            )}
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">Auto-prioritize</span>
+                              <span className="text-xs text-gray-500">
+                                Generate AI priority scores
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={autoCategorizing}
+                            onSelect={(event) => {
+                              event.preventDefault();
+                              if (!autoCategorizing) {
+                                handleAutoCategorize();
+                              }
+                            }}
+                            className="flex items-start gap-3 py-2"
+                          >
+                            {autoCategorizing ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                            ) : (
+                              <Wand2 className="h-4 w-4 text-indigo-600" />
+                            )}
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">Smart Categorize</span>
+                              <span className="text-xs text-gray-500">
+                                AI organizes feedback by category
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={findingDuplicates}
+                            onSelect={(event) => {
+                              event.preventDefault();
+                              if (!findingDuplicates) {
+                                handleFindDuplicates();
+                              }
+                            }}
+                            className="flex items-start gap-3 py-2"
+                          >
+                            {findingDuplicates ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-orange-600" />
+                            ) : (
+                              <GitMerge className="h-4 w-4 text-orange-600" />
+                            )}
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">Find Duplicates</span>
+                              <span className="text-xs text-gray-500">
+                                AI merges duplicate feedback
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={analyzingSentiment}
+                            onSelect={(event) => {
+                              event.preventDefault();
+                              if (!analyzingSentiment) {
+                                handleAnalyzeSentiment();
+                              }
+                            }}
+                            className="flex items-start gap-3 py-2"
+                          >
+                            {analyzingSentiment ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
+                            ) : (
+                              <Sparkles className="h-4 w-4 text-purple-600" />
+                            )}
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">Analyze Sentiment</span>
+                              <span className="text-xs text-gray-500">
+                                AI analyzes emotional tone
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+
+                      {/* Export Group (Admin Only) */}
+                      {isOwnerOrAdmin && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Export</DropdownMenuLabel>
                           <DropdownMenuItem
                             onSelect={(event) => {
                               event.preventDefault();
                               handleAdminExport();
                             }}
-                            className="flex items-start gap-3 py-3"
+                            className="flex items-start gap-3 py-2"
                           >
                             <Download className="h-4 w-4 text-blue-600" />
                             <div className="flex flex-col">
