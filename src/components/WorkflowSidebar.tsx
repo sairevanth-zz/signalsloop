@@ -45,6 +45,7 @@ import {
     Swords,
     Activity,
     Zap,
+    Command,
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -273,6 +274,28 @@ export function WorkflowSidebar({ projectSlug }: WorkflowSidebarProps) {
 
             {/* Bottom Section */}
             <div className="p-3 border-t border-white/10 space-y-1">
+                {/* Quick Search Hint */}
+                <button
+                    onClick={() => {
+                        // Trigger Cmd+K by dispatching keyboard event
+                        const event = new KeyboardEvent('keydown', {
+                            key: 'k',
+                            metaKey: true,
+                            bubbles: true
+                        });
+                        document.dispatchEvent(event);
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all group"
+                >
+                    <div className="flex items-center gap-3">
+                        <Search className="w-4 h-4" />
+                        <span>Quick Search</span>
+                    </div>
+                    <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] bg-white/10 rounded border border-white/20 text-gray-500 group-hover:text-gray-300 group-hover:border-white/30">
+                        <Command className="w-2.5 h-2.5" />K
+                    </kbd>
+                </button>
+
                 {currentSlug && (
                     <Link
                         href={`/${currentSlug}/settings`}
