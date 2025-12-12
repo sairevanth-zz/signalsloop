@@ -10,6 +10,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useTheme } from '@/components/theme-provider';
 import { FloatingAskAI } from './FloatingAskAI';
+import { AIToolsCard } from './AIToolsCard';
 import {
     AlertTriangle,
     Lightbulb,
@@ -150,10 +151,10 @@ export function MissionControlDashboard({
                         <RobotIllustration />
                     </div>
 
-                    {/* Action Cards Grid */}
+                    {/* Action Cards Grid - 2x2 layout */}
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
                         gridAutoRows: 'minmax(280px, auto)',
                         gap: '24px',
                         alignItems: 'stretch',
@@ -196,6 +197,9 @@ export function MissionControlDashboard({
                             accentColor="#10b981"
                             isEmpty={!dashboardData?.outcome}
                         />
+
+                        {/* AI Tools Card */}
+                        <AIToolsCard projectSlug={projectSlug} projectId={projectId} />
                     </div>
                 </div>
 

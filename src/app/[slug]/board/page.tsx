@@ -1037,92 +1037,7 @@ export default function BoardPage() {
                         </DropdownMenuItem>
                       )}
 
-                      {/* Navigate Group */}
-                      {user && posts.length > 0 && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Navigate</DropdownMenuLabel>
-                          <Link href={`/${project?.slug}/ai-insights`}>
-                            <DropdownMenuItem className="flex items-start gap-3 py-2">
-                              <Sparkles className="h-4 w-4 text-purple-600" />
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium text-gray-900">AI Insights & Themes</span>
-                                <span className="text-xs text-gray-500">
-                                  Discover themes, patterns, and sentiment
-                                </span>
-                              </div>
-                            </DropdownMenuItem>
-                          </Link>
-                          <Link href={`/${project?.slug}/competitive`}>
-                            <DropdownMenuItem className="flex items-start gap-3 py-2">
-                              <Target className="h-4 w-4 text-blue-600" />
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium text-gray-900">Competitive Intelligence</span>
-                                <span className="text-xs text-gray-500">
-                                  Track competitors and feature gaps
-                                </span>
-                              </div>
-                            </DropdownMenuItem>
-                          </Link>
-                          <Link href={`/app/roadmap?projectId=${project?.id}`}>
-                            <DropdownMenuItem className="flex items-start gap-3 py-2">
-                              <Map className="h-4 w-4 text-indigo-600" />
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium text-gray-900">AI Roadmap</span>
-                                <span className="text-xs text-gray-500">
-                                  AI-powered roadmap from feedback themes
-                                </span>
-                              </div>
-                            </DropdownMenuItem>
-                          </Link>
-                          <Link href={`/${project?.slug}/hunter`}>
-                            <DropdownMenuItem className="flex items-start gap-3 py-2">
-                              <Brain className="h-4 w-4 text-blue-600" />
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium text-gray-900">AI Feedback Hunter</span>
-                                <span className="text-xs text-gray-500">
-                                  Auto-discover feedback across platforms
-                                </span>
-                              </div>
-                            </DropdownMenuItem>
-                          </Link>
-                          <Link href={`/app/user-stories?projectId=${project?.id}`}>
-                            <DropdownMenuItem className="flex items-start gap-3 py-2">
-                              <FileText className="h-4 w-4 text-blue-600" />
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium text-gray-900">User Stories</span>
-                                <span className="text-xs text-gray-500">
-                                  AI-generated sprint-ready stories
-                                </span>
-                              </div>
-                            </DropdownMenuItem>
-                          </Link>
-                          {project?.slug && (
-                            <Link href={`/${project.slug}/experiments`} prefetch={false}>
-                              <DropdownMenuItem className="flex items-start gap-3 py-2">
-                                <FlaskConical className="h-4 w-4 text-green-600" />
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-medium text-gray-900">Experiments</span>
-                                  <span className="text-xs text-gray-500">
-                                    AI-powered A/B test design
-                                  </span>
-                                </div>
-                              </DropdownMenuItem>
-                            </Link>
-                          )}
-                          <Link href={`/${project?.slug}/specs`}>
-                            <DropdownMenuItem className="flex items-start gap-3 py-2">
-                              <Sparkles className="h-4 w-4 text-purple-600" />
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium text-gray-900">Spec Writer ✨</span>
-                                <span className="text-xs text-gray-500">
-                                  Transform ideas into PRDs
-                                </span>
-                              </div>
-                            </DropdownMenuItem>
-                          </Link>
-                        </>
-                      )}
+                      {/* Note: Navigate section removed - links already available in sidebar */}
 
                       {/* AI Actions Group (Admin Only) */}
                       {isOwnerOrAdmin && (
@@ -1219,29 +1134,7 @@ export default function BoardPage() {
                           </DropdownMenuItem>
                         </>
                       )}
-
-                      {/* Export Group (Admin Only) */}
-                      {isOwnerOrAdmin && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Export</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            onSelect={(event) => {
-                              event.preventDefault();
-                              handleAdminExport();
-                            }}
-                            className="flex items-start gap-3 py-2"
-                          >
-                            <Download className="h-4 w-4 text-blue-600" />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">Export data</span>
-                              <span className="text-xs text-gray-500">
-                                Download feedback to Excel or CSV
-                              </span>
-                            </div>
-                          </DropdownMenuItem>
-                        </>
-                      )}
+                      {/* Note: Export removed - available in Settings → Export tab */}
                     </DropdownMenuContent>
                   </DropdownMenu>
 
