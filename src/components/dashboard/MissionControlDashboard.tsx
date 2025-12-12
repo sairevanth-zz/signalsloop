@@ -216,7 +216,7 @@ export function MissionControlDashboard({
                 </div>
 
                 {/* Right Panel - Dynamic Context */}
-                <div style={{ width: '400px', flexShrink: 0 }}>
+                <div style={{ width: '450px', flexShrink: 0 }}>
                     <div style={{
                         backgroundColor: colors.panelBg,
                         borderRadius: '16px',
@@ -453,7 +453,7 @@ function ActionCard({
         <div style={{
             position: 'relative',
             borderRadius: '16px',
-            padding: '28px',
+            padding: '32px',
             backgroundColor: cardBg,
             border: `2px solid ${accentColor}`,
             boxShadow: isDark
@@ -461,7 +461,7 @@ function ActionCard({
                 : `0 0 40px ${accentColor}30, 0 4px 12px rgba(0,0,0,0.1)`,
             overflow: 'hidden',
             transition: 'all 0.3s ease',
-            minHeight: '220px',
+            minHeight: '280px',
             display: 'flex',
             flexDirection: 'column',
         }}>
