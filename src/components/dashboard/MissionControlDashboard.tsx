@@ -457,13 +457,13 @@ function ActionCard({
             borderRadius: '16px',
             padding: '32px',
             backgroundColor: cardBg,
-            border: `2px solid ${accentColor}`,
+            border: `3px solid ${accentColor}`,
             boxShadow: isDark
                 ? `0 0 80px ${accentColor}${glowIntensity}, 0 0 40px ${accentColor}50, inset 0 0 40px ${accentColor}${insetGlow}`
                 : `0 0 40px ${accentColor}30, 0 4px 12px rgba(0,0,0,0.1)`,
             overflow: 'hidden',
             transition: 'all 0.3s ease',
-            minHeight: '280px',
+            height: '300px',
             display: 'flex',
             flexDirection: 'column',
         }}>
