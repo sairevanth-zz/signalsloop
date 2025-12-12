@@ -109,6 +109,7 @@ const TASK_SCHEDULE = {
     { path: '/api/cron/calls-analyze', timeout: 180000 }, // 3 min - process call recordings
     { path: '/api/cron/sync-experiments', timeout: 180000 }, // 3 min - sync experiment results
     { path: '/api/cron/sync-customers', timeout: 300000 }, // 5 min - sync customer data from CRM
+    { path: '/api/cron/redis-keepalive', timeout: 10000 }, // 10s - keep Upstash Redis active
   ],
   evening: [
     // Run at 9 PM daily - Maintenance and cleanup tasks
