@@ -9,6 +9,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTheme } from '@/components/theme-provider';
+import { FloatingAskAI } from './FloatingAskAI';
 import {
     AlertTriangle,
     Lightbulb,
@@ -241,38 +242,49 @@ export function MissionControlDashboard({
                             <ChevronRight style={{ width: '16px', height: '16px', color: colors.textMuted }} />
                         </div>
 
-                        {/* User Sentiment Pulse */}
-                        <div style={{ marginBottom: '20px' }}>
+                        {/* User Sentiment Pulse - Clickable */}
+                        <Link href={`/${projectSlug}/sentiment`} style={{ display: 'block', marginBottom: '20px', textDecoration: 'none' }}>
                             <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                marginBottom: '8px'
-                            }}>
-                                <span style={{ fontSize: '13px', fontWeight: 500, color: colors.textSecondary }}>
-                                    User Sentiment Pulse
-                                </span>
-                                <ChevronRight style={{ width: '14px', height: '14px', color: colors.textMuted }} />
-                            </div>
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                marginBottom: '12px'
-                            }}>
+                                padding: '12px',
+                                borderRadius: '10px',
+                                backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                            }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'}
+                            >
                                 <div style={{
-                                    width: '8px',
-                                    height: '8px',
-                                    borderRadius: '50%',
-                                    backgroundColor: (dashboardData?.sentimentScore || 0.5) >= 0.6 ? '#10b981' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? '#fbbf24' : '#ef4444'
-                                }} />
-                                <span style={{ fontSize: '13px', color: (dashboardData?.sentimentScore || 0.5) >= 0.6 ? '#10b981' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? '#fbbf24' : '#ef4444' }}>
-                                    {(dashboardData?.sentimentScore || 0.5) >= 0.6 ? 'Generally Positive' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? 'Mixed Sentiment' : 'Concerning Trend'}
-                                </span>
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    marginBottom: '8px'
+                                }}>
+                                    <span style={{ fontSize: '13px', fontWeight: 500, color: colors.textSecondary }}>
+                                        User Sentiment Pulse
+                                    </span>
+                                    <ChevronRight style={{ width: '14px', height: '14px', color: colors.textMuted }} />
+                                </div>
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    marginBottom: '12px'
+                                }}>
+                                    <div style={{
+                                        width: '8px',
+                                        height: '8px',
+                                        borderRadius: '50%',
+                                        backgroundColor: (dashboardData?.sentimentScore || 0.5) >= 0.6 ? '#10b981' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? '#fbbf24' : '#ef4444'
+                                    }} />
+                                    <span style={{ fontSize: '13px', color: (dashboardData?.sentimentScore || 0.5) >= 0.6 ? '#10b981' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? '#fbbf24' : '#ef4444' }}>
+                                        {(dashboardData?.sentimentScore || 0.5) >= 0.6 ? 'Generally Positive' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? 'Mixed Sentiment' : 'Concerning Trend'}
+                                    </span>
+                                </div>
+                                {/* Sentiment Chart */}
+                                <SentimentLineChart />
                             </div>
-                            {/* Sentiment Chart */}
-                            <SentimentLineChart />
-                        </div>
+                        </Link>
 
                         <div style={{
                             height: '1px',
@@ -280,42 +292,64 @@ export function MissionControlDashboard({
                             margin: '16px 0'
                         }} />
 
-                        {/* Recent Activity */}
-                        <div>
-                            <h4 style={{
-                                fontSize: '13px',
-                                fontWeight: 600,
-                                color: colors.textPrimary,
-                                margin: '0 0 16px 0'
-                            }}>
-                                Recent Activity & Insights
-                            </h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                {dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 ? (
-                                    dashboardData.recentActivity.slice(0, 3).map((activity, index) => (
-                                        <ActivityItem
-                                            key={activity.id || index}
-                                            icon={<MessageSquare style={{ width: '14px', height: '14px', color: activity.sentiment && activity.sentiment > 0.5 ? '#14b8a6' : '#fbbf24' }} />}
-                                            title={`${activity.authorEmail?.split('@')[0] || 'User'}: "${activity.content}"`}
-                                            time={formatTimeAgo(activity.createdAt)}
-                                        />
-                                    ))
-                                ) : (
-                                    <div style={{
-                                        textAlign: 'center',
-                                        padding: '20px',
-                                        color: colors.textSecondary,
-                                        fontSize: '13px'
+                        {/* Recent Activity - Clickable */}
+                        <Link href={`/${projectSlug}/feedback`} style={{ display: 'block', textDecoration: 'none' }}>
+                            <div style={{
+                                padding: '12px',
+                                borderRadius: '10px',
+                                backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                            }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'}
+                            >
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    marginBottom: '16px'
+                                }}>
+                                    <h4 style={{
+                                        fontSize: '13px',
+                                        fontWeight: 600,
+                                        color: colors.textPrimary,
+                                        margin: 0
                                     }}>
-                                        <Inbox style={{ width: '24px', height: '24px', margin: '0 auto 8px', opacity: 0.5 }} />
-                                        No recent activity yet
-                                    </div>
-                                )}
+                                        Recent Activity & Insights
+                                    </h4>
+                                    <ChevronRight style={{ width: '14px', height: '14px', color: colors.textMuted }} />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    {dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 ? (
+                                        dashboardData.recentActivity.slice(0, 3).map((activity, index) => (
+                                            <ActivityItem
+                                                key={activity.id || index}
+                                                icon={<MessageSquare style={{ width: '14px', height: '14px', color: activity.sentiment && activity.sentiment > 0.5 ? '#14b8a6' : '#fbbf24' }} />}
+                                                title={`${activity.authorEmail?.split('@')[0] || 'User'}: "${activity.content}"`}
+                                                time={formatTimeAgo(activity.createdAt)}
+                                            />
+                                        ))
+                                    ) : (
+                                        <div style={{
+                                            textAlign: 'center',
+                                            padding: '20px',
+                                            color: colors.textSecondary,
+                                            fontSize: '13px'
+                                        }}>
+                                            <Inbox style={{ width: '24px', height: '24px', margin: '0 auto 8px', opacity: 0.5 }} />
+                                            No recent activity yet
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        </Link>
                     </div>
                 </div>
             </div>
+
+            {/* Floating AI Chat Button */}
+            <FloatingAskAI projectId={projectId} projectSlug={projectSlug} />
         </div>
     );
 }

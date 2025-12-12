@@ -21,7 +21,7 @@ export function FloatingAskAI({ projectId, projectSlug }: FloatingAskAIProps) {
     const [input, setInput] = useState('');
 
     const { complete, completion, isLoading } = useCompletion({
-        api: '/api/ai/ask',
+        api: '/api/ask/stream',
         body: { projectId },
     });
 
