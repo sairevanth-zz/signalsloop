@@ -9,6 +9,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTheme } from '@/components/theme-provider';
+import { FloatingAskAI } from './FloatingAskAI';
 import {
     AlertTriangle,
     Lightbulb,
@@ -17,7 +18,8 @@ import {
     TrendingUp,
     Activity,
     ChevronRight,
-    Inbox
+    Inbox,
+    Bot
 } from 'lucide-react';
 
 // Dashboard data types
@@ -73,6 +75,7 @@ function formatTimeAgo(dateString: string): string {
 export function MissionControlDashboard({
     userName = 'there',
     projectSlug,
+    projectId,
     dashboardData,
 }: MissionControlDashboardProps) {
     const { theme } = useTheme();
@@ -240,7 +243,7 @@ export function MissionControlDashboard({
                             <ChevronRight style={{ width: '16px', height: '16px', color: colors.textMuted }} />
                         </div>
 
-                        {/* Chat Input */}
+                        {/* AI Chat Hint */}
                         <div style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -250,14 +253,14 @@ export function MissionControlDashboard({
                             borderRadius: '8px',
                             marginBottom: '20px'
                         }}>
+                            <Bot style={{ width: '16px', height: '16px', color: '#14b8a6' }} />
                             <span style={{
                                 flex: 1,
                                 fontSize: '13px',
                                 color: colors.textMuted
                             }}>
-                                Chat with the Page
+                                Click the 🧠 button to ask AI
                             </span>
-                            <MessageSquare style={{ width: '16px', height: '16px', color: '#14b8a6' }} />
                         </div>
 
                         {/* User Sentiment Pulse */}
@@ -335,6 +338,9 @@ export function MissionControlDashboard({
                     </div>
                 </div>
             </div>
+
+            {/* Floating AI Chat Button */}
+            <FloatingAskAI projectId={projectId} projectSlug={projectSlug} />
         </div>
     );
 }
