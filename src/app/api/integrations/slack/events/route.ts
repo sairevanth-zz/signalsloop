@@ -192,9 +192,13 @@ export async function POST(request: NextRequest) {
             }
 
             // Handle direct messages to the bot (only if NOT an app_mention)
-            // In channels, app_mention fires - skip message event to avoid duplicates
-            if (innerEvent.type === 'message' && innerEvent.channel_type === 'im' && !innerEvent.subtype) {
-                console.log('[Slack] Processing DM');
+            // Covers: im (1:1 DMs), mpim (multi-party DMs), and messages where bot is added
+            const isDM = innerEvent.type === 'message' &&
+                (innerEvent.channel_type === 'im' || innerEvent.channel_type === 'mpim') &&
+                !innerEvent.subtype;
+
+            if (isDM) {
+                console.log('[Slack] Processing DM, channel_type:', innerEvent.channel_type);
                 await processDirectMessage(event, innerEvent);
             }
         }
