@@ -16,9 +16,13 @@ const REQUIRED_SCOPES = [
   'chat:write',           // Post messages
   'chat:write.public',    // Post to channels without joining
   'channels:read',        // List public channels
+  'channels:join',        // Auto-join public channels
   'groups:read',          // List private channels
   'users:read',           // Get user info for mentions
+  'im:read',              // Read DMs (for DM events)
   'im:write',             // Send DMs
+  'im:history',           // Access DM history (for message.im events)
+  'app_mentions:read',    // Required for app_mention events
   'incoming-webhook'      // Optional: webhook support
 ].join(',');
 
@@ -244,7 +248,7 @@ export async function disconnectSlack(connectionId: string) {
  */
 export function generateStateToken(): string {
   return Math.random().toString(36).substring(2, 15) +
-         Math.random().toString(36).substring(2, 15);
+    Math.random().toString(36).substring(2, 15);
 }
 
 /**
@@ -277,5 +281,63 @@ export function extractProjectIdFromState(state: string): string | null {
     return parsed.projectId || null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Auto-join bot to public channels after OAuth
+ * This ensures the bot can receive app_mention events
+ */
+export async function autoJoinChannels(botToken: string): Promise<void> {
+  try {
+    // List public channels
+    const listResponse = await fetch('https://slack.com/api/conversations.list', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${botToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const listData = await listResponse.json();
+
+    if (!listData.ok) {
+      console.error('[Slack] Failed to list channels:', listData.error);
+      return;
+    }
+
+    const channels = listData.channels || [];
+    console.log(`[Slack] Found ${channels.length} public channels`);
+
+    // Join each channel (limit to first 10 to avoid rate limits)
+    const channelsToJoin = channels
+      .filter((ch: { is_member: boolean; is_archived: boolean }) => !ch.is_member && !ch.is_archived)
+      .slice(0, 10);
+
+    for (const channel of channelsToJoin) {
+      try {
+        const joinResponse = await fetch('https://slack.com/api/conversations.join', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${botToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ channel: channel.id }),
+        });
+
+        const joinData = await joinResponse.json();
+        if (joinData.ok) {
+          console.log(`[Slack] Joined channel: ${channel.name}`);
+        } else {
+          console.error(`[Slack] Failed to join ${channel.name}:`, joinData.error);
+        }
+      } catch (err) {
+        console.error(`[Slack] Error joining channel ${channel.name}:`, err);
+      }
+    }
+
+    console.log('[Slack] Auto-join completed');
+  } catch (error) {
+    console.error('[Slack] Auto-join error:', error);
   }
 }

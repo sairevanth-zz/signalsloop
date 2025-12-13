@@ -99,6 +99,11 @@ export async function GET(request: NextRequest) {
     // Store connection with encrypted token (use user_id from state)
     await storeConnection(userId, projectId, tokenData);
 
+    // Auto-join public channels so bot can receive app_mention events
+    console.log('[Slack OAuth] Auto-joining channels...');
+    const { autoJoinChannels } = await import('@/lib/slack/oauth');
+    await autoJoinChannels(tokenData.bot_token);
+
     // Delete used state token
     await supabase
       .from('slack_integration_states')
