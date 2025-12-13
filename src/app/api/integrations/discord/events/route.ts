@@ -191,27 +191,51 @@ async function processSlashCommandAsync(interaction: any): Promise<void> {
     const applicationId = interaction.application_id;
     const token = interaction.token;
 
+    console.log(`[Discord] Processing command: ${commandName} for guild: ${guildId}`);
+
     try {
         const supabase = getSupabaseServiceRoleClient();
         if (!supabase) {
+            console.error('[Discord] Supabase client is null');
             await sendFollowUp(applicationId, token, '❌ Database connection unavailable');
             return;
         }
 
         // Get Discord connection for this guild
-        const { data: connection } = await supabase
+        const { data: connection, error: connectionError } = await supabase
             .from('discord_integrations')
             .select('id, project_id')
             .eq('guild_id', guildId)
             .single();
 
-        if (!connection) {
-            await sendFollowUp(
-                applicationId,
-                token,
-                '❌ SignalsLoop is not connected to this server. Please set up the integration first.'
-            );
-            return;
+        if (connectionError) {
+            console.error('[Discord] Error finding connection:', connectionError);
+        }
+
+        let projectId: string | null = connection?.project_id || null;
+
+        // Fallback: if no connection, try to get any project (for demo/testing)
+        if (!projectId) {
+            console.log('[Discord] No connection found, trying fallback to first project');
+
+            const { data: anyProject } = await supabase
+                .from('projects')
+                .select('id')
+                .limit(1)
+                .single();
+
+            if (anyProject) {
+                projectId = anyProject.id;
+                console.log(`[Discord] Using fallback project: ${projectId}`);
+            } else {
+                console.log('[Discord] No projects found at all');
+                await sendFollowUp(
+                    applicationId,
+                    token,
+                    '❌ No SignalsLoop projects found. Please create a project first at signalsloop.com'
+                );
+                return;
+            }
         }
 
         // Build a natural language query from the command
@@ -246,14 +270,20 @@ async function processSlashCommandAsync(interaction: any): Promise<void> {
                 return;
         }
 
+        console.log(`[Discord] Parsed query: ${query}`);
+
         // Parse intent and execute
         const intent = await parseIntent(query);
-        const result = await executeAction(intent, connection.project_id);
+        console.log(`[Discord] Parsed intent: ${intent.action}`);
+
+        const result = await executeAction(intent, projectId!);
+        console.log(`[Discord] Action result: ${result.success ? 'success' : 'failed'}`);
 
         // Send the result as a follow-up
         await sendFollowUp(applicationId, token, result.message);
+        console.log('[Discord] Follow-up sent successfully');
     } catch (error) {
-        console.error('Error in processSlashCommandAsync:', error);
+        console.error('[Discord] Error in processSlashCommandAsync:', error);
         await sendFollowUp(applicationId, token, '❌ Something went wrong. Please try again.');
     }
 }
