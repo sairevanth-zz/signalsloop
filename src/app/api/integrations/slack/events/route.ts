@@ -81,6 +81,8 @@ async function sendSlackMessage(
     text: string,
     threadTs?: string
 ): Promise<void> {
+    console.log('[Slack] Sending message to channel:', channel, 'text length:', text.length);
+
     const response = await fetch('https://slack.com/api/chat.postMessage', {
         method: 'POST',
         headers: {
@@ -90,16 +92,21 @@ async function sendSlackMessage(
         body: JSON.stringify({
             channel,
             text,
-            thread_ts: threadTs, // Reply in thread if specified
+            thread_ts: threadTs,
             unfurl_links: false,
             unfurl_media: false,
         }),
     });
 
-    if (!response.ok) {
-        const error = await response.text();
-        console.error('Failed to send Slack message:', error);
+    const data = await response.json();
+
+    // Slack API returns 200 even on failure - check the 'ok' field
+    if (!data.ok) {
+        console.error('[Slack] API error:', data.error, 'channel:', channel);
+        throw new Error(`Slack API error: ${data.error}`);
     }
+
+    console.log('[Slack] Message sent successfully, ts:', data.ts);
 }
 
 /**
