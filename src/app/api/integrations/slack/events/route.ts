@@ -288,6 +288,7 @@ async function processAppMention(
         return;
     }
 
+
     if (!projectId) {
         console.error('[Slack] No project ID available');
         await sendSlackMessage(
@@ -298,6 +299,9 @@ async function processAppMention(
         );
         return;
     }
+
+    // Log project being used for debugging
+    console.log('[Slack] Using project_id:', projectId, 'from connection:', connection?.id);
 
     // Parse the message to extract intent
     console.log('[Slack] Parsing intent...');
