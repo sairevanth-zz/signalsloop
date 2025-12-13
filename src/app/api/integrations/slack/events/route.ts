@@ -337,17 +337,43 @@ async function processDirectMessage(
 
     // Try multiple places where team_id might be
     const teamId = event.team_id || event.team || event.authorizations?.[0]?.team_id;
-    console.log('[Slack] Team ID from event:', teamId, 'Full event keys:', Object.keys(event));
+    console.log('[Slack] Team ID from event:', teamId, 'auth team_id:', event.authorizations?.[0]?.team_id);
 
-    // Get Slack connection
-    const { data: connection, error: connError } = await supabase
+    // Get Slack connection - try by team_id first
+    let { data: connection, error: connError } = await supabase
         .from('slack_connections')
-        .select('id, project_id, bot_token_encrypted')
+        .select('id, project_id, bot_token_encrypted, team_id')
         .eq('team_id', teamId)
         .eq('status', 'active')
         .single();
 
-    console.log('[Slack] Connection lookup result:', connection ? 'found' : 'not found', 'error:', connError?.message);
+    // If not found by event team_id, try by authorization team_id
+    if (!connection && event.authorizations?.[0]?.team_id && event.authorizations[0].team_id !== teamId) {
+        console.log('[Slack] Trying auth team_id:', event.authorizations[0].team_id);
+        const result = await supabase
+            .from('slack_connections')
+            .select('id, project_id, bot_token_encrypted, team_id')
+            .eq('team_id', event.authorizations[0].team_id)
+            .eq('status', 'active')
+            .single();
+        connection = result.data;
+        connError = result.error;
+    }
+
+    // Last resort: get any active connection (for single-project setups)
+    if (!connection) {
+        console.log('[Slack] Falling back to any active connection');
+        const result = await supabase
+            .from('slack_connections')
+            .select('id, project_id, bot_token_encrypted, team_id')
+            .eq('status', 'active')
+            .limit(1)
+            .single();
+        connection = result.data;
+        connError = result.error;
+    }
+
+    console.log('[Slack] Connection lookup result:', connection ? `found (team: ${connection.team_id})` : 'not found', 'error:', connError?.message);
 
     let botToken: string | null = null;
     let projectId: string | null = connection?.project_id || null;
