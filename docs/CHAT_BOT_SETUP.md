@@ -97,81 +97,31 @@ Discord requires a Bot with registered slash commands.
 1. Go to **General Information**
 2. Set **Interactions Endpoint URL** to:
    ```
-   https://your-domain.com/api/integrations/discord/events
+   https://signalsloop.com/api/integrations/discord/events
    ```
-3. Copy the **Public Key** for environment variables
+3. Copy the **Public Key** and **Application ID** for environment variables
+4. Copy the **Bot Token** from the Bot tab
 
 ### Step 4: Register Slash Commands
 
-Run this script to register commands:
+**Easy Method (Recommended):**
+
+After setting environment variables, call the registration endpoint:
 
 ```bash
-curl -X POST \
-  "https://discord.com/api/v10/applications/YOUR_APP_ID/commands" \
-  -H "Authorization: Bot YOUR_BOT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "briefing",
-    "description": "Get today'\''s Mission Control briefing"
-  }'
-
-curl -X POST \
-  "https://discord.com/api/v10/applications/YOUR_APP_ID/commands" \
-  -H "Authorization: Bot YOUR_BOT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "health",
-    "description": "Get current product health score"
-  }'
-
-curl -X POST \
-  "https://discord.com/api/v10/applications/YOUR_APP_ID/commands" \
-  -H "Authorization: Bot YOUR_BOT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "feedback",
-    "description": "Manage feedback",
-    "options": [
-      {
-        "name": "action",
-        "description": "What to do",
-        "type": 3,
-        "required": true,
-        "choices": [
-          {"name": "Create new feedback", "value": "create"},
-          {"name": "Search feedback", "value": "search"},
-          {"name": "Vote on feedback", "value": "vote"}
-        ]
-      },
-      {
-        "name": "text",
-        "description": "Feedback content or search query",
-        "type": 3,
-        "required": true
-      },
-      {
-        "name": "priority",
-        "description": "Vote priority (for voting)",
-        "type": 3,
-        "required": false,
-        "choices": [
-          {"name": "Must Have", "value": "must_have"},
-          {"name": "Important", "value": "important"},
-          {"name": "Nice to Have", "value": "nice_to_have"}
-        ]
-      }
-    ]
-  }'
-
-curl -X POST \
-  "https://discord.com/api/v10/applications/YOUR_APP_ID/commands" \
-  -H "Authorization: Bot YOUR_BOT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "insights",
-    "description": "Get current feedback insights and themes"
-  }'
+curl -X POST https://signalsloop.com/api/integrations/discord/register-commands
 ```
+
+This registers all commands including:
+- `/briefing` - Get today's product briefing
+- `/health` - Get product health score
+- `/insights` - Get top themes from feedback
+- `/feedback` - Create, search, or vote on feedback
+- `/ask` - **NEW!** Natural language AI command
+
+**Manual Method:**
+
+See the individual curl commands in the old documentation if needed.
 
 ### Step 5: Add Bot to Server
 
@@ -255,13 +205,22 @@ OPENAI_API_KEY=sk-...         # Fallback (GPT-4)
 ### Test Discord
 
 1. Open Discord server with the bot
-2. Type:
+2. Try structured commands:
    ```
    /briefing
    ```
-   or
    ```
    /feedback action:create text:Users want dark mode
+   ```
+3. **Try the new NLP /ask command:**
+   ```
+   /ask what's our health score?
+   ```
+   ```
+   /ask create feedback about slow checkout
+   ```
+   ```
+   /ask find feedback about payments
    ```
 
 ---
