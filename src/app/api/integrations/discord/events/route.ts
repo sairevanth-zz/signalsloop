@@ -131,9 +131,17 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ type: RESPONSE_TYPES.PONG });
         }
 
-        // Handle slash commands
+        // Handle slash commands - use deferred response since AI takes > 3 seconds
         if (interaction.type === INTERACTION_TYPES.APPLICATION_COMMAND) {
-            return await handleSlashCommand(interaction);
+            // Immediately respond with "thinking..." to meet 3-second deadline
+            // Then process async and send follow-up via webhook
+            processSlashCommandAsync(interaction).catch((error) => {
+                console.error('Error processing slash command:', error);
+            });
+
+            return NextResponse.json({
+                type: RESPONSE_TYPES.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+            });
         }
 
         // Handle message component interactions (buttons, etc)
@@ -148,6 +156,105 @@ export async function POST(request: NextRequest) {
             { type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: '❌ An error occurred' } },
             { status: 500 }
         );
+    }
+}
+
+/**
+ * Send a follow-up message via Discord webhook (for deferred responses)
+ */
+async function sendFollowUp(
+    applicationId: string,
+    interactionToken: string,
+    content: string
+): Promise<void> {
+    const url = `https://discord.com/api/v10/webhooks/${applicationId}/${interactionToken}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+    });
+
+    if (!response.ok) {
+        const error = await response.text();
+        console.error('Failed to send Discord follow-up:', error);
+    }
+}
+
+/**
+ * Process slash command asynchronously and send result via webhook
+ */
+async function processSlashCommandAsync(interaction: any): Promise<void> {
+    const commandName = interaction.data.name;
+    const options = interaction.data.options || [];
+    const guildId = interaction.guild_id;
+    const applicationId = interaction.application_id;
+    const token = interaction.token;
+
+    try {
+        const supabase = getSupabaseServiceRoleClient();
+        if (!supabase) {
+            await sendFollowUp(applicationId, token, '❌ Database connection unavailable');
+            return;
+        }
+
+        // Get Discord connection for this guild
+        const { data: connection } = await supabase
+            .from('discord_integrations')
+            .select('id, project_id')
+            .eq('guild_id', guildId)
+            .single();
+
+        if (!connection) {
+            await sendFollowUp(
+                applicationId,
+                token,
+                '❌ SignalsLoop is not connected to this server. Please set up the integration first.'
+            );
+            return;
+        }
+
+        // Build a natural language query from the command
+        let query = '';
+
+        switch (commandName) {
+            case 'briefing':
+                query = "What's happening today?";
+                break;
+            case 'health':
+                query = "How healthy is our product?";
+                break;
+            case 'feedback': {
+                const action = options.find((o: any) => o.name === 'action')?.value;
+                const text = options.find((o: any) => o.name === 'text')?.value || '';
+
+                if (action === 'create') {
+                    query = `Create feedback: ${text}`;
+                } else if (action === 'search') {
+                    query = `Search feedback about ${text}`;
+                } else if (action === 'vote') {
+                    const priority = options.find((o: any) => o.name === 'priority')?.value || 'important';
+                    query = `Vote on ${text} as ${priority}`;
+                }
+                break;
+            }
+            case 'insights':
+                query = "What are users asking for?";
+                break;
+            default:
+                await sendFollowUp(applicationId, token, `Unknown command: ${commandName}`);
+                return;
+        }
+
+        // Parse intent and execute
+        const intent = await parseIntent(query);
+        const result = await executeAction(intent, connection.project_id);
+
+        // Send the result as a follow-up
+        await sendFollowUp(applicationId, token, result.message);
+    } catch (error) {
+        console.error('Error in processSlashCommandAsync:', error);
+        await sendFollowUp(applicationId, token, '❌ Something went wrong. Please try again.');
     }
 }
 
