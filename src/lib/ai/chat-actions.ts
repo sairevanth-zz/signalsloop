@@ -76,10 +76,27 @@ async function createFeedback(
     userId?: string
 ): Promise<ActionResult> {
     try {
+        // Get the project's default board
+        const { data: board } = await supabase
+            .from('boards')
+            .select('id')
+            .eq('project_id', projectId)
+            .limit(1)
+            .single();
+
+        if (!board) {
+            return {
+                success: false,
+                message: '❌ No feedback board found for this project. Please set up a board first.',
+                error: 'No board found',
+            };
+        }
+
         const { data: post, error } = await supabase
             .from('posts')
             .insert({
                 project_id: projectId,
+                board_id: board.id,
                 title: params.title,
                 description: params.description || null,
                 category: params.category || 'Feature Request',
