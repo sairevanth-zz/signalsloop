@@ -1,12 +1,15 @@
 /**
- * Discord Interactions Handler (Slash Commands)
+ * Discord Interactions Handler (Slash Commands + NLP)
  *
- * Optimized for speed - bypasses AI intent parsing since Discord slash commands
- * are already structured. Directly calls the appropriate functions.
+ * Supports:
+ * - Structured slash commands (fast, no AI)
+ * - /ask command for natural language processing (uses intent parser)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { parseIntent } from '@/lib/ai/intent-parser';
+import { executeAction } from '@/lib/ai/chat-actions';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -155,12 +158,53 @@ async function handleSlashCommand(interaction: any): Promise<string> {
                 return await handleFeedbackCommand(supabase, projectId, action, text, priority);
             }
 
+            case 'ask': {
+                // NLP mode - parse natural language with AI
+                const query = options.find((o: any) => o.name === 'query')?.value || '';
+                if (!query.trim()) {
+                    return "❓ Please provide a question or command after /ask\n\nExamples:\n• `/ask what's our health score?`\n• `/ask create feedback: users want dark mode`\n• `/ask find feedback about payments`";
+                }
+                return await handleNLPCommand(projectId, query);
+            }
+
             default:
                 return `Unknown command: ${commandName}`;
         }
     } catch (error) {
         console.error('[Discord] Command error:', error);
         return '❌ Something went wrong. Please try again.';
+    }
+}
+
+/**
+ * Handle NLP command using AI intent parsing
+ * Reuses the same intent parser and action executor as Slack
+ */
+async function handleNLPCommand(projectId: string, query: string): Promise<string> {
+    try {
+        console.log('[Discord NLP] Parsing query:', query);
+
+        // Parse intent using AI
+        const intent = await parseIntent(query);
+        console.log('[Discord NLP] Parsed intent:', intent.action);
+
+        // If it's an unknown action, just return the AI's response
+        if (intent.action === 'unknown') {
+            return intent.parameters.response || "I'm not sure what you mean. Try asking for a briefing, health score, or insights!";
+        }
+
+        // Execute the action
+        const result = await executeAction(intent, projectId);
+
+        // Format response for Discord (convert Slack markdown to Discord markdown)
+        let message = result.message
+            .replace(/\*([^*]+)\*/g, '**$1**') // Slack *bold* to Discord **bold**
+            .replace(/\\n/g, '\n'); // Ensure newlines are proper
+
+        return message;
+    } catch (error) {
+        console.error('[Discord NLP] Error:', error);
+        return '❌ Failed to process your request. Please try again.';
     }
 }
 
@@ -380,10 +424,23 @@ async function handleFeedbackCommand(
 ): Promise<string> {
     switch (action) {
         case 'create': {
+            // Get the project's default board
+            const { data: board } = await supabase
+                .from('boards')
+                .select('id')
+                .eq('project_id', projectId)
+                .limit(1)
+                .single();
+
+            if (!board) {
+                return '❌ No feedback board found. Please set up a board first at signalsloop.com';
+            }
+
             const { data: post, error } = await supabase
                 .from('posts')
                 .insert({
                     project_id: projectId,
+                    board_id: board.id,
                     title: text,
                     category: 'Feature Request',
                     status: 'open',
