@@ -21,7 +21,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { parseIntent } from '@/lib/ai/intent-parser';
 import { executeAction } from '@/lib/ai/chat-actions';
-import crypto from 'crypto';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -44,36 +43,44 @@ const RESPONSE_TYPES = {
 } as const;
 
 /**
- * Verify Discord request signature
+ * Verify Discord request signature using Ed25519
+ * Uses Web Crypto API available in Node.js 18+
  * @see https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
  */
-function verifyDiscordRequest(
+async function verifyDiscordRequest(
     signature: string | null,
     timestamp: string | null,
     body: string
-): boolean {
+): Promise<boolean> {
     const publicKey = process.env.DISCORD_PUBLIC_KEY;
 
     if (!publicKey || !signature || !timestamp) {
+        console.error('Discord verification failed: missing publicKey, signature, or timestamp');
         return false;
     }
 
     try {
-        const message = Buffer.from(timestamp + body);
-        const sig = Buffer.from(signature, 'hex');
-        const key = Buffer.from(publicKey, 'hex');
-
-        return crypto.verify(
-            null,
-            message,
-            { key: crypto.createPublicKey({ key, format: 'der', type: 'spki' }), dsaEncoding: 'ieee-p1363' },
-            sig
+        // Import the public key
+        const key = await crypto.subtle.importKey(
+            'raw',
+            Buffer.from(publicKey, 'hex'),
+            { name: 'Ed25519' },
+            false,
+            ['verify']
         );
-    } catch {
-        // Fallback for environments where ed25519 isn't available
-        // Just log and return false for now
-        console.warn('Discord signature verification skipped (ed25519 not available)');
-        return true; // In development, skip verification
+
+        // Verify the signature
+        const isValid = await crypto.subtle.verify(
+            'Ed25519',
+            key,
+            Buffer.from(signature, 'hex'),
+            Buffer.from(timestamp + body)
+        );
+
+        return isValid;
+    } catch (error) {
+        console.error('Discord signature verification error:', error);
+        return false;
     }
 }
 
@@ -111,11 +118,10 @@ export async function POST(request: NextRequest) {
         const signature = request.headers.get('x-signature-ed25519');
         const timestamp = request.headers.get('x-signature-timestamp');
 
-        // In production, always verify
-        if (process.env.NODE_ENV === 'production') {
-            if (!verifyDiscordRequest(signature, timestamp, rawBody)) {
-                return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-            }
+        // Verify the request signature
+        const isValid = await verifyDiscordRequest(signature, timestamp, rawBody);
+        if (!isValid) {
+            return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
         }
 
         const interaction = JSON.parse(rawBody);
@@ -154,6 +160,12 @@ async function handleSlashCommand(interaction: any) {
     const guildId = interaction.guild_id;
 
     const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+        return NextResponse.json({
+            type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: { content: '❌ Database connection unavailable' },
+        });
+    }
 
     // Get Discord connection for this guild
     const { data: connection } = await supabase
@@ -230,14 +242,20 @@ async function handleComponentInteraction(interaction: any) {
 
     const supabase = getSupabaseServiceRoleClient();
 
-    // Log interaction
-    await supabase.from('discord_interaction_logs').insert({
-        guild_id: guildId,
-        user_id: interaction.user?.id || interaction.member?.user?.id,
-        action_id: action,
-        payload: { entity_id: entityId },
-        channel_id: interaction.channel_id,
-    }).catch(() => { }); // Ignore if table doesn't exist
+    // Log interaction (ignore errors if table doesn't exist)
+    if (supabase) {
+        try {
+            await supabase.from('discord_interaction_logs').insert({
+                guild_id: guildId,
+                user_id: interaction.user?.id || interaction.member?.user?.id,
+                action_id: action,
+                payload: { entity_id: entityId },
+                channel_id: interaction.channel_id,
+            });
+        } catch {
+            // Ignore - table may not exist
+        }
+    }
 
     // Handle different actions
     switch (action) {
