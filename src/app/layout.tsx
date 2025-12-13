@@ -174,7 +174,7 @@ export default function RootLayout({
           </PostHogProvider>
         </ThemeProvider>
         <Toaster richColors position="top-right" />
-        {/* <Script src={widgetScriptSrc} strategy="afterInteractive" /> */}
+        <Script src={widgetScriptSrc} strategy="afterInteractive" />
       </body>
     </html>
   );
