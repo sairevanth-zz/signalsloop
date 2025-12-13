@@ -139,7 +139,9 @@ export async function GET(request: NextRequest) {
         ? `/${project.slug}/settings?tab=integrations`
         : '/settings?tab=integrations');
 
-    const successUrl = `${appBaseUrl}${redirectPath}&slack=connected&team=${encodeURIComponent(tokenData.team_name)}`;
+    // Properly append query parameters - use & if ? already exists, otherwise use ?
+    const separator = redirectPath.includes('?') ? '&' : '?';
+    const successUrl = `${appBaseUrl}${redirectPath}${separator}slack=connected&team=${encodeURIComponent(tokenData.team_name)}`;
 
     return NextResponse.redirect(successUrl);
   } catch (err) {
