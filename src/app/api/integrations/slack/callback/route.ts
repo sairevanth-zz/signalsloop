@@ -46,17 +46,6 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerClient();
 
-    // Get the authenticated user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.redirect(
-        `${appBaseUrl}/login?error=unauthorized&redirect=/settings`
-      );
-    }
-
     // Decode state to get project ID and validate CSRF token
     let projectId: string | null = null;
     let stateToken: string;
@@ -79,47 +68,36 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Validate state token exists in database
-    const { data: stateRecord } = await supabase
+    // Validate state token exists in database - this also gives us the user_id
+    const { data: stateRecord, error: stateError } = await supabase
       .from('slack_integration_states')
       .select('*')
       .eq('state', stateToken)
       .single();
 
-    if (!stateRecord) {
+    if (stateError || !stateRecord) {
+      console.error('[Slack OAuth] State lookup failed:', stateError);
       return NextResponse.redirect(
         `${appBaseUrl}/settings?slack_error=invalid_state`
       );
     }
 
-    // Use project ID from state record if not in state param
+    // Use data from state record (reliable, doesn't depend on session cookies)
+    const userId = stateRecord.user_id;
     projectId = projectId || stateRecord.project_id;
 
-    if (!projectId) {
+    if (!userId || !projectId) {
+      console.error('[Slack OAuth] Missing user_id or project_id from state');
       return NextResponse.redirect(
-        `${appBaseUrl}/settings?slack_error=missing_project`
-      );
-    }
-
-    // Verify user has access to project
-    const { data: projectMember } = await supabase
-      .from('members')
-      .select('role')
-      .eq('project_id', projectId)
-      .eq('user_id', user.id)
-      .single();
-
-    if (!projectMember) {
-      return NextResponse.redirect(
-        `${appBaseUrl}/settings?slack_error=unauthorized_project`
+        `${appBaseUrl}/settings?slack_error=missing_data`
       );
     }
 
     // Exchange code for token
     const tokenData = await exchangeCodeForToken(code);
 
-    // Store connection with encrypted token
-    await storeConnection(user.id, projectId, tokenData);
+    // Store connection with encrypted token (use user_id from state)
+    await storeConnection(userId, projectId, tokenData);
 
     // Delete used state token
     await supabase
