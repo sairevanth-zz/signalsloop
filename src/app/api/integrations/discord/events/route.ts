@@ -89,22 +89,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ type: RESPONSE_TYPES.PONG });
         }
 
-        // Handle slash commands
+        // Handle slash commands - fast direct responses
         if (interaction.type === INTERACTION_TYPES.APPLICATION_COMMAND) {
-            const commandName = interaction.data.name;
-
-            // /ask command needs deferred response (AI takes >3 seconds)
-            if (commandName === 'ask') {
-                // Process async - don't await
-                processAskCommandAsync(interaction).catch(console.error);
-
-                // Return deferred response immediately (shows "thinking...")
-                return NextResponse.json({
-                    type: RESPONSE_TYPES.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
-                });
-            }
-
-            // Other commands are fast enough for direct response
             const result = await handleSlashCommand(interaction);
             return NextResponse.json({
                 type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -174,12 +160,15 @@ async function handleSlashCommand(interaction: any): Promise<string> {
             }
 
             case 'ask': {
-                // NLP mode - parse natural language with AI
-                const query = options.find((o: any) => o.name === 'query')?.value || '';
-                if (!query.trim()) {
-                    return "❓ Please provide a question or command after /ask\n\nExamples:\n• `/ask what's our health score?`\n• `/ask create feedback: users want dark mode`\n• `/ask find feedback about payments`";
-                }
-                return await handleNLPCommand(projectId, query);
+                // NLP not supported on serverless - guide users to structured commands
+                return `💡 **Use these commands instead:**
+
+• \`/briefing\` - Get today's product briefing
+• \`/health\` - Get product health score  
+• \`/insights\` - Get top themes from feedback
+• \`/feedback action:create text:your feedback\` - Create feedback
+• \`/feedback action:search text:keyword\` - Search feedback
+• \`/feedback action:vote text:keyword\` - Vote on feedback`;
             }
 
             default:
