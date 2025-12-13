@@ -1,20 +1,8 @@
 /**
  * Discord Interactions Handler (Slash Commands & Bot Mentions)
  *
- * Handles Discord Interactions API for:
- * - Slash commands (future)
- * - Message component interactions
- *
- * For message-based commands, Discord requires a Bot with Gateway connection.
- * This handler is for the Interactions webhook endpoint.
- *
- * Note: Full natural language in Discord channels requires either:
- * 1. A WebSocket gateway connection (not serverless-friendly)
- * 2. Slash commands with options (this approach)
- *
- * We implement hybrid approach:
- * - Slash commands for structured actions
- * - Process message content when bot is directly mentioned
+ * Handles Discord Interactions API for slash commands.
+ * Processes commands synchronously to avoid serverless timeout issues.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -30,22 +18,16 @@ const INTERACTION_TYPES = {
     PING: 1,
     APPLICATION_COMMAND: 2,
     MESSAGE_COMPONENT: 3,
-    MODAL_SUBMIT: 5,
 } as const;
 
 // Discord response types
 const RESPONSE_TYPES = {
     PONG: 1,
     CHANNEL_MESSAGE_WITH_SOURCE: 4,
-    DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE: 5,
-    DEFERRED_UPDATE_MESSAGE: 6,
-    UPDATE_MESSAGE: 7,
 } as const;
 
 /**
  * Verify Discord request signature using Ed25519
- * Uses Web Crypto API available in Node.js 18+
- * @see https://discord.com/developers/docs/interactions/receiving-and-responding#security-and-authorization
  */
 async function verifyDiscordRequest(
     signature: string | null,
@@ -55,12 +37,11 @@ async function verifyDiscordRequest(
     const publicKey = process.env.DISCORD_PUBLIC_KEY;
 
     if (!publicKey || !signature || !timestamp) {
-        console.error('Discord verification failed: missing publicKey, signature, or timestamp');
+        console.error('[Discord] Missing publicKey, signature, or timestamp');
         return false;
     }
 
     try {
-        // Import the public key
         const key = await crypto.subtle.importKey(
             'raw',
             Buffer.from(publicKey, 'hex'),
@@ -69,7 +50,6 @@ async function verifyDiscordRequest(
             ['verify']
         );
 
-        // Verify the signature
         const isValid = await crypto.subtle.verify(
             'Ed25519',
             key,
@@ -79,36 +59,13 @@ async function verifyDiscordRequest(
 
         return isValid;
     } catch (error) {
-        console.error('Discord signature verification error:', error);
+        console.error('[Discord] Signature verification error:', error);
         return false;
     }
 }
 
 /**
- * Send a message to a Discord channel
- */
-async function sendDiscordMessage(
-    channelId: string,
-    content: string,
-    botToken: string
-): Promise<void> {
-    await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bot ${botToken}`,
-        },
-        body: JSON.stringify({
-            content,
-            allowed_mentions: { parse: [] }, // Don't mention anyone
-        }),
-    });
-}
-
-/**
  * POST /api/integrations/discord/events
- *
- * Receives interactions from Discord
  */
 export async function POST(request: NextRequest) {
     try {
@@ -118,7 +75,6 @@ export async function POST(request: NextRequest) {
         const signature = request.headers.get('x-signature-ed25519');
         const timestamp = request.headers.get('x-signature-timestamp');
 
-        // Verify the request signature
         const isValid = await verifyDiscordRequest(signature, timestamp, rawBody);
         if (!isValid) {
             return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
@@ -131,122 +87,87 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ type: RESPONSE_TYPES.PONG });
         }
 
-        // Handle slash commands - use deferred response since AI takes > 3 seconds
+        // Handle slash commands - process synchronously
         if (interaction.type === INTERACTION_TYPES.APPLICATION_COMMAND) {
-            // Immediately respond with "thinking..." to meet 3-second deadline
-            // Then process async and send follow-up via webhook
-            processSlashCommandAsync(interaction).catch((error) => {
-                console.error('Error processing slash command:', error);
-            });
-
+            const result = await processSlashCommand(interaction);
             return NextResponse.json({
-                type: RESPONSE_TYPES.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+                type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
+                data: { content: result },
             });
         }
 
-        // Handle message component interactions (buttons, etc)
+        // Handle button interactions
         if (interaction.type === INTERACTION_TYPES.MESSAGE_COMPONENT) {
-            return await handleComponentInteraction(interaction);
+            const action = interaction.data.custom_id?.split(':')[0] || 'unknown';
+            const userId = interaction.user?.id || interaction.member?.user?.id;
+
+            return NextResponse.json({
+                type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
+                data: { content: `✅ ${action} by <@${userId}>` },
+            });
         }
 
         return NextResponse.json({ type: RESPONSE_TYPES.PONG });
     } catch (error) {
-        console.error('Discord events error:', error);
+        console.error('[Discord] Error:', error);
         return NextResponse.json(
-            { type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: '❌ An error occurred' } },
+            { type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: '❌ Error' } },
             { status: 500 }
         );
     }
 }
 
 /**
- * Send a follow-up message via Discord webhook (for deferred responses)
+ * Process a slash command and return the result message
  */
-async function sendFollowUp(
-    applicationId: string,
-    interactionToken: string,
-    content: string
-): Promise<void> {
-    const url = `https://discord.com/api/v10/webhooks/${applicationId}/${interactionToken}`;
-
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
-    });
-
-    if (!response.ok) {
-        const error = await response.text();
-        console.error('Failed to send Discord follow-up:', error);
-    }
-}
-
-/**
- * Process slash command asynchronously and send result via webhook
- */
-async function processSlashCommandAsync(interaction: any): Promise<void> {
+async function processSlashCommand(interaction: any): Promise<string> {
     const commandName = interaction.data.name;
     const options = interaction.data.options || [];
     const guildId = interaction.guild_id;
-    const applicationId = interaction.application_id;
-    const token = interaction.token;
 
-    console.log(`[Discord] Processing command: ${commandName} for guild: ${guildId}`);
+    console.log(`[Discord] Command: ${commandName}, Guild: ${guildId}`);
 
     try {
         const supabase = getSupabaseServiceRoleClient();
         if (!supabase) {
-            console.error('[Discord] Supabase client is null');
-            await sendFollowUp(applicationId, token, '❌ Database connection unavailable');
-            return;
+            return '❌ Database unavailable';
         }
 
-        // Get Discord connection for this guild
-        const { data: connection, error: connectionError } = await supabase
+        // Try to find project for this guild
+        const { data: connection } = await supabase
             .from('discord_integrations')
-            .select('id, project_id')
+            .select('project_id')
             .eq('guild_id', guildId)
             .single();
 
-        if (connectionError) {
-            console.error('[Discord] Error finding connection:', connectionError);
-        }
+        let projectId = connection?.project_id;
 
-        let projectId: string | null = connection?.project_id || null;
-
-        // Fallback: if no connection, try to get any project (for demo/testing)
+        // Fallback: use first available project
         if (!projectId) {
-            console.log('[Discord] No connection found, trying fallback to first project');
-
+            console.log('[Discord] No guild connection, using fallback project');
             const { data: anyProject } = await supabase
                 .from('projects')
                 .select('id')
                 .limit(1)
                 .single();
 
-            if (anyProject) {
-                projectId = anyProject.id;
-                console.log(`[Discord] Using fallback project: ${projectId}`);
-            } else {
-                console.log('[Discord] No projects found at all');
-                await sendFollowUp(
-                    applicationId,
-                    token,
-                    '❌ No SignalsLoop projects found. Please create a project first at signalsloop.com'
-                );
-                return;
+            if (!anyProject) {
+                return '❌ No projects found. Create one at signalsloop.com';
             }
+            projectId = anyProject.id;
         }
 
-        // Build a natural language query from the command
+        // Build query from command
         let query = '';
-
         switch (commandName) {
             case 'briefing':
                 query = "What's happening today?";
                 break;
             case 'health':
                 query = "How healthy is our product?";
+                break;
+            case 'insights':
+                query = "What are users asking for?";
                 break;
             case 'feedback': {
                 const action = options.find((o: any) => o.name === 'action')?.value;
@@ -262,161 +183,22 @@ async function processSlashCommandAsync(interaction: any): Promise<void> {
                 }
                 break;
             }
-            case 'insights':
-                query = "What are users asking for?";
-                break;
             default:
-                await sendFollowUp(applicationId, token, `Unknown command: ${commandName}`);
-                return;
+                return `Unknown command: ${commandName}`;
         }
 
-        console.log(`[Discord] Parsed query: ${query}`);
+        console.log(`[Discord] Query: ${query}`);
 
         // Parse intent and execute
         const intent = await parseIntent(query);
-        console.log(`[Discord] Parsed intent: ${intent.action}`);
+        console.log(`[Discord] Intent: ${intent.action}`);
 
-        const result = await executeAction(intent, projectId!);
-        console.log(`[Discord] Action result: ${result.success ? 'success' : 'failed'}`);
+        const result = await executeAction(intent, projectId);
+        console.log(`[Discord] Success: ${result.success}`);
 
-        // Send the result as a follow-up
-        await sendFollowUp(applicationId, token, result.message);
-        console.log('[Discord] Follow-up sent successfully');
+        return result.message;
     } catch (error) {
-        console.error('[Discord] Error in processSlashCommandAsync:', error);
-        await sendFollowUp(applicationId, token, '❌ Something went wrong. Please try again.');
-    }
-}
-
-/**
- * Handle slash commands
- */
-async function handleSlashCommand(interaction: any) {
-    const commandName = interaction.data.name;
-    const options = interaction.data.options || [];
-    const guildId = interaction.guild_id;
-
-    const supabase = getSupabaseServiceRoleClient();
-    if (!supabase) {
-        return NextResponse.json({
-            type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: { content: '❌ Database connection unavailable' },
-        });
-    }
-
-    // Get Discord connection for this guild
-    const { data: connection } = await supabase
-        .from('discord_integrations')
-        .select('id, project_id')
-        .eq('guild_id', guildId)
-        .single();
-
-    if (!connection) {
-        return NextResponse.json({
-            type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-                content: '❌ SignalsLoop is not connected to this server. Please set up the integration first.',
-                flags: 64, // Ephemeral (only visible to user)
-            },
-        });
-    }
-
-    // Build a natural language query from the command
-    let query = '';
-
-    switch (commandName) {
-        case 'briefing':
-            query = "What's happening today?";
-            break;
-        case 'health':
-            query = "How healthy is our product?";
-            break;
-        case 'feedback': {
-            const action = options.find((o: any) => o.name === 'action')?.value;
-            const text = options.find((o: any) => o.name === 'text')?.value || '';
-
-            if (action === 'create') {
-                query = `Create feedback: ${text}`;
-            } else if (action === 'search') {
-                query = `Search feedback about ${text}`;
-            } else if (action === 'vote') {
-                const priority = options.find((o: any) => o.name === 'priority')?.value || 'important';
-                query = `Vote on ${text} as ${priority}`;
-            }
-            break;
-        }
-        case 'insights':
-            query = "What are users asking for?";
-            break;
-        default:
-            return NextResponse.json({
-                type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: { content: `Unknown command: ${commandName}` },
-            });
-    }
-
-    // Parse intent and execute
-    const intent = await parseIntent(query);
-    const result = await executeAction(intent, connection.project_id);
-
-    return NextResponse.json({
-        type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
-        data: {
-            content: result.message,
-        },
-    });
-}
-
-/**
- * Handle button/component interactions
- */
-async function handleComponentInteraction(interaction: any) {
-    const customId = interaction.data.custom_id;
-    const guildId = interaction.guild_id;
-
-    // Parse custom_id format: action:entityId
-    const [action, entityId] = customId.split(':');
-
-    const supabase = getSupabaseServiceRoleClient();
-
-    // Log interaction (ignore errors if table doesn't exist)
-    if (supabase) {
-        try {
-            await supabase.from('discord_interaction_logs').insert({
-                guild_id: guildId,
-                user_id: interaction.user?.id || interaction.member?.user?.id,
-                action_id: action,
-                payload: { entity_id: entityId },
-                channel_id: interaction.channel_id,
-            });
-        } catch {
-            // Ignore - table may not exist
-        }
-    }
-
-    // Handle different actions
-    switch (action) {
-        case 'acknowledge':
-            return NextResponse.json({
-                type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                    content: `✅ Acknowledged by <@${interaction.user?.id || interaction.member?.user?.id}>`,
-                },
-            });
-
-        case 'view':
-            return NextResponse.json({
-                type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                    content: `🔗 View in dashboard: ${process.env.NEXT_PUBLIC_SITE_URL}/post/${entityId}`,
-                    flags: 64, // Ephemeral
-                },
-            });
-
-        default:
-            return NextResponse.json({
-                type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: { content: `Action: ${action}` },
-            });
+        console.error('[Discord] Command error:', error);
+        return '❌ Something went wrong. Please try again.';
     }
 }
