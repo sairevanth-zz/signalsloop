@@ -94,13 +94,29 @@ async function sendSlackMessage(
  * Receives events from Slack Events API
  */
 export async function POST(request: NextRequest) {
+    const supabase = getSupabaseServiceRoleClient();
+
     try {
         const rawBody = await request.text();
-        console.log('[Slack] Received event');
+        console.log('[Slack] Received event, body length:', rawBody.length);
+
+        // Log incoming event for debugging (temporary)
+        if (supabase) {
+            try {
+                await supabase.from('slack_event_logs').insert({
+                    event_type: 'incoming',
+                    payload: { body_length: rawBody.length, timestamp: new Date().toISOString() },
+                });
+            } catch {
+                // Ignore if table doesn't exist
+            }
+        }
 
         // Verify request signature
         const signature = request.headers.get('x-slack-signature');
         const timestamp = request.headers.get('x-slack-request-timestamp');
+
+        console.log('[Slack] Headers - signature:', signature ? 'present' : 'missing', 'timestamp:', timestamp);
 
         if (!verifySlackRequest(signature, timestamp, rawBody)) {
             console.error('[Slack] Invalid signature');
@@ -110,32 +126,33 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        console.log('[Slack] Signature verified OK');
         const event = JSON.parse(rawBody);
 
         // Handle URL verification challenge (required for initial setup)
         if (event.type === 'url_verification') {
-            console.log('[Slack] URL verification challenge');
+            console.log('[Slack] URL verification challenge received');
             return NextResponse.json({ challenge: event.challenge });
         }
 
         // Handle event callbacks
         if (event.type === 'event_callback') {
             const innerEvent = event.event;
-            console.log('[Slack] Event type:', innerEvent.type);
+            console.log('[Slack] Event callback:', innerEvent.type, 'text:', innerEvent.text?.substring(0, 50));
 
             // Handle app_mention events (when someone @mentions the bot)
             if (innerEvent.type === 'app_mention') {
-                // Process synchronously to ensure completion
+                console.log('[Slack] Processing app_mention');
                 await processAppMention(event, innerEvent);
             }
 
             // Handle direct messages to the bot
             if (innerEvent.type === 'message' && innerEvent.channel_type === 'im') {
+                console.log('[Slack] Processing DM');
                 await processDirectMessage(event, innerEvent);
             }
         }
 
-        // Respond 
         return NextResponse.json({ ok: true });
     } catch (error) {
         console.error('[Slack] Error:', error);
