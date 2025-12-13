@@ -25,6 +25,7 @@ const INTERACTION_TYPES = {
 const RESPONSE_TYPES = {
     PONG: 1,
     CHANNEL_MESSAGE_WITH_SOURCE: 4,
+    DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE: 5,  // For async responses (shows "thinking...")
 } as const;
 
 /**
@@ -88,8 +89,22 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ type: RESPONSE_TYPES.PONG });
         }
 
-        // Handle slash commands - optimized direct calls, no AI parsing
+        // Handle slash commands
         if (interaction.type === INTERACTION_TYPES.APPLICATION_COMMAND) {
+            const commandName = interaction.data.name;
+
+            // /ask command needs deferred response (AI takes >3 seconds)
+            if (commandName === 'ask') {
+                // Process async - don't await
+                processAskCommandAsync(interaction).catch(console.error);
+
+                // Return deferred response immediately (shows "thinking...")
+                return NextResponse.json({
+                    type: RESPONSE_TYPES.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+                });
+            }
+
+            // Other commands are fast enough for direct response
             const result = await handleSlashCommand(interaction);
             return NextResponse.json({
                 type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -205,6 +220,63 @@ async function handleNLPCommand(projectId: string, query: string): Promise<strin
     } catch (error) {
         console.error('[Discord NLP] Error:', error);
         return '❌ Failed to process your request. Please try again.';
+    }
+}
+
+/**
+ * Process /ask command asynchronously and send response via webhook followup
+ * This is called after returning a deferred response to Discord
+ */
+async function processAskCommandAsync(interaction: any): Promise<void> {
+    const applicationId = process.env.DISCORD_APPLICATION_ID;
+    const interactionToken = interaction.token;
+    const guildId = interaction.guild_id;
+    const options = interaction.data.options || [];
+    const query = options.find((o: any) => o.name === 'query')?.value || '';
+
+    try {
+        console.log('[Discord /ask] Processing async query:', query);
+
+        const supabase = getSupabaseServiceRoleClient();
+        if (!supabase) {
+            await sendFollowupMessage(applicationId!, interactionToken, '❌ Database unavailable');
+            return;
+        }
+
+        const projectId = await getProjectId(supabase, guildId);
+        if (!projectId) {
+            await sendFollowupMessage(applicationId!, interactionToken, '❌ No projects found. Create one at signalsloop.com');
+            return;
+        }
+
+        // Process the NLP command
+        const result = await handleNLPCommand(projectId, query);
+
+        // Send the result via webhook followup
+        await sendFollowupMessage(applicationId!, interactionToken, result);
+
+        console.log('[Discord /ask] Response sent successfully');
+    } catch (error) {
+        console.error('[Discord /ask] Async processing error:', error);
+        await sendFollowupMessage(applicationId!, interactionToken, '❌ Failed to process your request. Please try again.');
+    }
+}
+
+/**
+ * Send a followup message to a deferred interaction
+ */
+async function sendFollowupMessage(applicationId: string, interactionToken: string, content: string): Promise<void> {
+    const url = `https://discord.com/api/v10/webhooks/${applicationId}/${interactionToken}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+    });
+
+    if (!response.ok) {
+        const error = await response.text();
+        console.error('[Discord] Followup message failed:', error);
     }
 }
 
