@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         // Get active slack connection
         const { data: connection, error: connError } = await supabase
             .from('slack_connections')
-            .select('id, team_name, team_id, bot_token_encrypted, status, created_at')
+            .select('id, team_name, team_id, bot_token_encrypted, status, created_at, project_id')
             .eq('status', 'active')
             .single();
 
@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
             id: connection.id,
             team_name: connection.team_name,
             team_id: connection.team_id,
+            project_id: connection.project_id || 'NOT SET',
             status: connection.status,
             created_at: connection.created_at,
             has_token: !!connection.bot_token_encrypted,
