@@ -19,6 +19,9 @@ import { decryptToken } from '@/lib/encryption';
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Allow longer for AI processing
 
+// In-memory cache for event deduplication (prevents duplicate responses)
+const processedEvents = new Set<string>();
+
 /**
  * GET /api/integrations/slack/events
  * 
@@ -159,7 +162,28 @@ export async function POST(request: NextRequest) {
         // Handle event callbacks
         if (event.type === 'event_callback') {
             const innerEvent = event.event;
-            console.log('[Slack] Event callback:', innerEvent.type, 'text:', innerEvent.text?.substring(0, 50));
+            const eventId = event.event_id;
+
+            console.log('[Slack] Event callback:', innerEvent.type, 'event_id:', eventId, 'text:', innerEvent.text?.substring(0, 50));
+
+            // Simple deduplication: skip if we've seen this event_id recently
+            // Slack may send the same event multiple times for retries
+            if (processedEvents.has(eventId)) {
+                console.log('[Slack] Skipping duplicate event:', eventId);
+                return NextResponse.json({ ok: true });
+            }
+            processedEvents.add(eventId);
+
+            // Clean up old events (keep only last 100)
+            if (processedEvents.size > 100) {
+                const iterator = processedEvents.values();
+                for (let i = 0; i < 50; i++) {
+                    const next = iterator.next();
+                    if (!next.done && next.value) {
+                        processedEvents.delete(next.value);
+                    }
+                }
+            }
 
             // Handle app_mention events (when someone @mentions the bot)
             if (innerEvent.type === 'app_mention') {
@@ -167,8 +191,9 @@ export async function POST(request: NextRequest) {
                 await processAppMention(event, innerEvent);
             }
 
-            // Handle direct messages to the bot
-            if (innerEvent.type === 'message' && innerEvent.channel_type === 'im') {
+            // Handle direct messages to the bot (only if NOT an app_mention)
+            // In channels, app_mention fires - skip message event to avoid duplicates
+            if (innerEvent.type === 'message' && innerEvent.channel_type === 'im' && !innerEvent.subtype) {
                 console.log('[Slack] Processing DM');
                 await processDirectMessage(event, innerEvent);
             }
