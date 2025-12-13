@@ -335,15 +335,19 @@ async function processDirectMessage(
         return;
     }
 
-    const teamId = event.team_id;
+    // Try multiple places where team_id might be
+    const teamId = event.team_id || event.team || event.authorizations?.[0]?.team_id;
+    console.log('[Slack] Team ID from event:', teamId, 'Full event keys:', Object.keys(event));
 
     // Get Slack connection
-    const { data: connection } = await supabase
+    const { data: connection, error: connError } = await supabase
         .from('slack_connections')
         .select('id, project_id, bot_token_encrypted')
         .eq('team_id', teamId)
         .eq('status', 'active')
         .single();
+
+    console.log('[Slack] Connection lookup result:', connection ? 'found' : 'not found', 'error:', connError?.message);
 
     let botToken: string | null = null;
     let projectId: string | null = connection?.project_id || null;
