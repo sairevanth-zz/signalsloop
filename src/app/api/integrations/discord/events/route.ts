@@ -1,14 +1,12 @@
 /**
- * Discord Interactions Handler (Slash Commands & Bot Mentions)
+ * Discord Interactions Handler (Slash Commands)
  *
- * Handles Discord Interactions API for slash commands.
- * Processes commands synchronously to avoid serverless timeout issues.
+ * Optimized for speed - bypasses AI intent parsing since Discord slash commands
+ * are already structured. Directly calls the appropriate functions.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
-import { parseIntent } from '@/lib/ai/intent-parser';
-import { executeAction } from '@/lib/ai/chat-actions';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -87,17 +85,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ type: RESPONSE_TYPES.PONG });
         }
 
-        // Handle slash commands - return quick static response for now
+        // Handle slash commands - optimized direct calls, no AI parsing
         if (interaction.type === INTERACTION_TYPES.APPLICATION_COMMAND) {
-            const commandName = interaction.data.name;
-            console.log(`[Discord] Received command: ${commandName}`);
-
-            // Return immediate static response to test connectivity
+            const result = await handleSlashCommand(interaction);
             return NextResponse.json({
                 type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                    content: `✅ SignalsLoop received your /${commandName} command!\n\n⚠️ AI processing is being configured. Full responses coming soon.`
-                },
+                data: { content: result },
             });
         }
 
@@ -123,9 +116,9 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Process a slash command and return the result message
+ * Handle slash command - direct database calls, no AI
  */
-async function processSlashCommand(interaction: any): Promise<string> {
+async function handleSlashCommand(interaction: any): Promise<string> {
     const commandName = interaction.data.name;
     const options = interaction.data.options || [];
     const guildId = interaction.guild_id;
@@ -138,72 +131,276 @@ async function processSlashCommand(interaction: any): Promise<string> {
             return '❌ Database unavailable';
         }
 
-        // Try to find project for this guild
-        const { data: connection } = await supabase
-            .from('discord_integrations')
-            .select('project_id')
-            .eq('guild_id', guildId)
-            .single();
-
-        let projectId = connection?.project_id;
-
-        // Fallback: use first available project
+        // Get project ID (with fallback)
+        const projectId = await getProjectId(supabase, guildId);
         if (!projectId) {
-            console.log('[Discord] No guild connection, using fallback project');
-            const { data: anyProject } = await supabase
-                .from('projects')
-                .select('id')
-                .limit(1)
-                .single();
-
-            if (!anyProject) {
-                return '❌ No projects found. Create one at signalsloop.com';
-            }
-            projectId = anyProject.id;
+            return '❌ No projects found. Create one at signalsloop.com';
         }
 
-        // Build query from command
-        let query = '';
+        // Handle each command directly
         switch (commandName) {
             case 'briefing':
-                query = "What's happening today?";
-                break;
+                return await handleBriefingCommand(supabase, projectId);
+
             case 'health':
-                query = "How healthy is our product?";
-                break;
+                return await handleHealthCommand(supabase, projectId);
+
             case 'insights':
-                query = "What are users asking for?";
-                break;
+                return await handleInsightsCommand(supabase, projectId);
+
             case 'feedback': {
                 const action = options.find((o: any) => o.name === 'action')?.value;
                 const text = options.find((o: any) => o.name === 'text')?.value || '';
-
-                if (action === 'create') {
-                    query = `Create feedback: ${text}`;
-                } else if (action === 'search') {
-                    query = `Search feedback about ${text}`;
-                } else if (action === 'vote') {
-                    const priority = options.find((o: any) => o.name === 'priority')?.value || 'important';
-                    query = `Vote on ${text} as ${priority}`;
-                }
-                break;
+                const priority = options.find((o: any) => o.name === 'priority')?.value;
+                return await handleFeedbackCommand(supabase, projectId, action, text, priority);
             }
+
             default:
                 return `Unknown command: ${commandName}`;
         }
-
-        console.log(`[Discord] Query: ${query}`);
-
-        // Parse intent and execute
-        const intent = await parseIntent(query);
-        console.log(`[Discord] Intent: ${intent.action}`);
-
-        const result = await executeAction(intent, projectId);
-        console.log(`[Discord] Success: ${result.success}`);
-
-        return result.message;
     } catch (error) {
         console.error('[Discord] Command error:', error);
         return '❌ Something went wrong. Please try again.';
+    }
+}
+
+/**
+ * Get project ID for guild (with fallback)
+ */
+async function getProjectId(supabase: any, guildId: string): Promise<string | null> {
+    // Try guild connection first
+    const { data: connection } = await supabase
+        .from('discord_integrations')
+        .select('project_id')
+        .eq('guild_id', guildId)
+        .single();
+
+    if (connection?.project_id) {
+        return connection.project_id;
+    }
+
+    // Fallback to first project
+    const { data: project } = await supabase
+        .from('projects')
+        .select('id')
+        .limit(1)
+        .single();
+
+    return project?.id || null;
+}
+
+/**
+ * /briefing - Get recent activity summary
+ */
+async function handleBriefingCommand(supabase: any, projectId: string): Promise<string> {
+    // Get recent posts count
+    const { count: totalPosts } = await supabase
+        .from('posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', projectId);
+
+    // Get posts from last 7 days
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    const { data: recentPosts, count: recentCount } = await supabase
+        .from('posts')
+        .select('id, title, status, category', { count: 'exact' })
+        .eq('project_id', projectId)
+        .gte('created_at', weekAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    // Get status breakdown
+    const { data: statusBreakdown } = await supabase
+        .from('posts')
+        .select('status')
+        .eq('project_id', projectId);
+
+    const statusCounts: Record<string, number> = {};
+    statusBreakdown?.forEach((p: any) => {
+        statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
+    });
+
+    let message = `📋 **Today's Briefing**\n\n`;
+    message += `📊 **Overview:**\n`;
+    message += `• Total feedback: ${totalPosts || 0}\n`;
+    message += `• New this week: ${recentCount || 0}\n\n`;
+
+    if (Object.keys(statusCounts).length > 0) {
+        message += `📈 **Status Breakdown:**\n`;
+        Object.entries(statusCounts).forEach(([status, count]) => {
+            const emoji = status === 'completed' ? '✅' : status === 'in_progress' ? '🔄' : status === 'planned' ? '📅' : '📝';
+            message += `• ${emoji} ${status}: ${count}\n`;
+        });
+        message += '\n';
+    }
+
+    if (recentPosts && recentPosts.length > 0) {
+        message += `📝 **Recent Feedback:**\n`;
+        recentPosts.slice(0, 3).forEach((post: any) => {
+            message += `• ${post.title}\n`;
+        });
+    }
+
+    return message;
+}
+
+/**
+ * /health - Get product health metrics
+ */
+async function handleHealthCommand(supabase: any, projectId: string): Promise<string> {
+    // Get total and resolved posts
+    const { count: totalPosts } = await supabase
+        .from('posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', projectId);
+
+    const { count: completedPosts } = await supabase
+        .from('posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', projectId)
+        .eq('status', 'completed');
+
+    const { count: inProgressPosts } = await supabase
+        .from('posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', projectId)
+        .eq('status', 'in_progress');
+
+    // Calculate simple health score
+    const resolutionRate = totalPosts ? Math.round((completedPosts || 0) / totalPosts * 100) : 0;
+    const activeRate = totalPosts ? Math.round(((completedPosts || 0) + (inProgressPosts || 0)) / totalPosts * 100) : 0;
+    const healthScore = Math.round((resolutionRate * 0.6) + (activeRate * 0.4));
+
+    const emoji = healthScore >= 70 ? '🟢' : healthScore >= 40 ? '🟡' : '🔴';
+    const grade = healthScore >= 80 ? 'Excellent' : healthScore >= 60 ? 'Good' : healthScore >= 40 ? 'Fair' : 'Needs Attention';
+
+    let message = `${emoji} **Product Health: ${healthScore}/100 (${grade})**\n\n`;
+    message += `📊 **Metrics:**\n`;
+    message += `• Resolution Rate: ${resolutionRate}%\n`;
+    message += `• Active Rate: ${activeRate}%\n`;
+    message += `• Total Feedback: ${totalPosts || 0}\n`;
+    message += `• Completed: ${completedPosts || 0}\n`;
+    message += `• In Progress: ${inProgressPosts || 0}\n`;
+
+    return message;
+}
+
+/**
+ * /insights - Get top themes
+ */
+async function handleInsightsCommand(supabase: any, projectId: string): Promise<string> {
+    // Get category breakdown as a simple insight
+    const { data: posts } = await supabase
+        .from('posts')
+        .select('category')
+        .eq('project_id', projectId);
+
+    const categoryCounts: Record<string, number> = {};
+    posts?.forEach((p: any) => {
+        const cat = p.category || 'Uncategorized';
+        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+    });
+
+    const sortedCategories = Object.entries(categoryCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+    if (sortedCategories.length === 0) {
+        return "📊 No insights available yet. Collect more feedback!";
+    }
+
+    let message = `📊 **Top Themes by Category:**\n\n`;
+    sortedCategories.forEach(([category, count], i) => {
+        const emoji = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][i] || '•';
+        message += `${emoji} **${category}**: ${count} items\n`;
+    });
+
+    return message;
+}
+
+/**
+ * /feedback - Create, search, or vote on feedback
+ */
+async function handleFeedbackCommand(
+    supabase: any,
+    projectId: string,
+    action: string,
+    text: string,
+    priority?: string
+): Promise<string> {
+    switch (action) {
+        case 'create': {
+            const { data: post, error } = await supabase
+                .from('posts')
+                .insert({
+                    project_id: projectId,
+                    title: text,
+                    category: 'Feature Request',
+                    status: 'open',
+                    source: 'discord',
+                })
+                .select('id, title')
+                .single();
+
+            if (error) throw error;
+            return `✅ Created feedback: "${post.title}"`;
+        }
+
+        case 'search': {
+            const { data: posts } = await supabase
+                .from('posts')
+                .select('id, title, status, category')
+                .eq('project_id', projectId)
+                .ilike('title', `%${text}%`)
+                .limit(5);
+
+            if (!posts || posts.length === 0) {
+                return `🔍 No feedback found matching "${text}"`;
+            }
+
+            let message = `🔍 **Found ${posts.length} results:**\n\n`;
+            posts.forEach((post: any, i: number) => {
+                const emoji = post.status === 'completed' ? '✅' : post.status === 'in_progress' ? '🔄' : '📝';
+                message += `${i + 1}. ${emoji} ${post.title}\n`;
+            });
+            return message;
+        }
+
+        case 'vote': {
+            // Find matching post
+            const { data: posts } = await supabase
+                .from('posts')
+                .select('id, title')
+                .eq('project_id', projectId)
+                .ilike('title', `%${text}%`)
+                .limit(1);
+
+            if (!posts || posts.length === 0) {
+                return `❌ No feedback found matching "${text}"`;
+            }
+
+            const post = posts[0];
+
+            // Create vote
+            await supabase.from('votes').insert({
+                post_id: post.id,
+                priority: priority || 'important',
+                source: 'discord',
+            });
+
+            // Get vote count
+            const { count } = await supabase
+                .from('votes')
+                .select('*', { count: 'exact', head: true })
+                .eq('post_id', post.id);
+
+            const priorityEmoji = priority === 'must_have' ? '🔴' : priority === 'nice_to_have' ? '🟢' : '🟡';
+            return `${priorityEmoji} Voted on "${post.title}"\n📊 Total votes: ${count || 1}`;
+        }
+
+        default:
+            return `Unknown action: ${action}`;
     }
 }
