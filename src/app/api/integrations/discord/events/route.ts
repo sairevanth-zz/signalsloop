@@ -190,16 +190,63 @@ async function getProjectId(supabase: any, guildId: string): Promise<string | nu
 }
 
 /**
- * /briefing - Get recent activity summary
+ * /briefing - Get today's briefing (uses cached AI briefing if available)
  */
 async function handleBriefingCommand(supabase: any, projectId: string): Promise<string> {
-    // Get recent posts count
+    // First, check if there's a cached AI-generated briefing from today
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data: cachedBriefing } = await supabase
+        .from('daily_briefings')
+        .select('content')
+        .eq('project_id', projectId)
+        .eq('briefing_date', today)
+        .single();
+
+    // If we have an AI-generated briefing, use it!
+    if (cachedBriefing?.content) {
+        const content = cachedBriefing.content;
+        let message = `📋 **Today's Briefing**\n\n`;
+
+        // Sentiment
+        const trend = content.sentiment_trend === 'up' ? '📈' : content.sentiment_trend === 'down' ? '📉' : '➡️';
+        message += `${trend} **Sentiment:** ${content.sentiment_score || 50}%\n\n`;
+
+        // Critical Items
+        if (content.critical_items?.length > 0) {
+            message += `🚨 **Critical Items (${content.critical_items.length}):**\n`;
+            content.critical_items.slice(0, 3).forEach((item: any) => {
+                message += `• ${item.title}\n`;
+            });
+            message += '\n';
+        }
+
+        // Warnings
+        if (content.warning_items?.length > 0) {
+            message += `⚠️ **Warnings (${content.warning_items.length}):**\n`;
+            content.warning_items.slice(0, 3).forEach((item: any) => {
+                message += `• ${item.title}\n`;
+            });
+            message += '\n';
+        }
+
+        // Recommended Actions
+        if (content.recommended_actions?.length > 0) {
+            message += `💡 **Recommended Actions:**\n`;
+            content.recommended_actions.slice(0, 3).forEach((action: any) => {
+                message += `• ${action.label || action.title || 'Action'}\n`;
+            });
+        }
+
+        return message;
+    }
+
+    // Fallback: Generate a quick summary from database (no AI)
     const { count: totalPosts } = await supabase
         .from('posts')
         .select('*', { count: 'exact', head: true })
         .eq('project_id', projectId);
 
-    // Get posts from last 7 days
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
 
@@ -211,7 +258,6 @@ async function handleBriefingCommand(supabase: any, projectId: string): Promise<
         .order('created_at', { ascending: false })
         .limit(5);
 
-    // Get status breakdown
     const { data: statusBreakdown } = await supabase
         .from('posts')
         .select('status')
@@ -242,6 +288,8 @@ async function handleBriefingCommand(supabase: any, projectId: string): Promise<
             message += `• ${post.title}\n`;
         });
     }
+
+    message += `\n💡 *Tip: Visit signalsloop.com to generate full AI briefing*`;
 
     return message;
 }
