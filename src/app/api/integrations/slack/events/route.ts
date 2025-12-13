@@ -96,13 +96,14 @@ async function sendSlackMessage(
 export async function POST(request: NextRequest) {
     try {
         const rawBody = await request.text();
+        console.log('[Slack] Received event');
 
         // Verify request signature
         const signature = request.headers.get('x-slack-signature');
         const timestamp = request.headers.get('x-slack-request-timestamp');
 
         if (!verifySlackRequest(signature, timestamp, rawBody)) {
-            console.error('Invalid Slack request signature');
+            console.error('[Slack] Invalid signature');
             return NextResponse.json(
                 { error: 'Invalid signature' },
                 { status: 401 }
@@ -113,33 +114,31 @@ export async function POST(request: NextRequest) {
 
         // Handle URL verification challenge (required for initial setup)
         if (event.type === 'url_verification') {
+            console.log('[Slack] URL verification challenge');
             return NextResponse.json({ challenge: event.challenge });
         }
 
         // Handle event callbacks
         if (event.type === 'event_callback') {
             const innerEvent = event.event;
+            console.log('[Slack] Event type:', innerEvent.type);
 
-            // Only handle app_mention events (when someone @mentions the bot)
+            // Handle app_mention events (when someone @mentions the bot)
             if (innerEvent.type === 'app_mention') {
-                // Process asynchronously to respond within 3 seconds
-                processAppMention(event, innerEvent).catch((error) => {
-                    console.error('Error processing app mention:', error);
-                });
+                // Process synchronously to ensure completion
+                await processAppMention(event, innerEvent);
             }
 
             // Handle direct messages to the bot
             if (innerEvent.type === 'message' && innerEvent.channel_type === 'im') {
-                processDirectMessage(event, innerEvent).catch((error) => {
-                    console.error('Error processing direct message:', error);
-                });
+                await processDirectMessage(event, innerEvent);
             }
         }
 
-        // Respond immediately (Slack requires response within 3 seconds)
+        // Respond 
         return NextResponse.json({ ok: true });
     } catch (error) {
-        console.error('Slack events error:', error);
+        console.error('[Slack] Error:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -160,60 +159,115 @@ async function processAppMention(
         user: string;
     }
 ): Promise<void> {
+    console.log('[Slack] Processing app_mention:', innerEvent.text);
+
     const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+        console.error('[Slack] Supabase client not available');
+        return;
+    }
+
     const teamId = event.team_id;
+    console.log('[Slack] Team ID:', teamId);
 
     // Get Slack connection for this team
-    const { data: connection } = await supabase
+    const { data: connection, error: connError } = await supabase
         .from('slack_connections')
         .select('id, project_id, bot_token_encrypted')
         .eq('team_id', teamId)
         .eq('status', 'active')
         .single();
 
-    if (!connection) {
-        console.error('No active Slack connection found for team:', teamId);
+    if (connError) {
+        console.error('[Slack] Connection lookup error:', connError);
+    }
+
+    let botToken: string | null = null;
+    let projectId: string | null = connection?.project_id || null;
+
+    // Try to get bot token from connection
+    if (connection?.bot_token_encrypted) {
+        try {
+            botToken = decryptToken(connection.bot_token_encrypted);
+            console.log('[Slack] Got bot token from connection');
+        } catch (error) {
+            console.error('[Slack] Failed to decrypt bot token:', error);
+        }
+    }
+
+    // Fallback: get bot token from env (for testing)
+    if (!botToken && process.env.SLACK_BOT_TOKEN) {
+        botToken = process.env.SLACK_BOT_TOKEN;
+        console.log('[Slack] Using bot token from env');
+    }
+
+    // Fallback: get any project if no connection
+    if (!projectId) {
+        console.log('[Slack] No connection, trying fallback project');
+        const { data: anyProject } = await supabase
+            .from('projects')
+            .select('id')
+            .limit(1)
+            .single();
+
+        if (anyProject) {
+            projectId = anyProject.id;
+            console.log('[Slack] Using fallback project:', projectId);
+        }
+    }
+
+    if (!botToken) {
+        console.error('[Slack] No bot token available');
         return;
     }
 
-    // Decrypt bot token
-    let botToken: string;
-    try {
-        botToken = decryptToken(connection.bot_token_encrypted);
-    } catch (error) {
-        console.error('Failed to decrypt bot token:', error);
+    if (!projectId) {
+        console.error('[Slack] No project ID available');
+        await sendSlackMessage(
+            botToken,
+            innerEvent.channel,
+            '❌ SignalsLoop is not connected to any project. Please set up the integration at signalsloop.com',
+            innerEvent.thread_ts || innerEvent.ts
+        );
         return;
     }
 
     // Parse the message to extract intent
+    console.log('[Slack] Parsing intent...');
     const intent = await parseIntent(innerEvent.text);
+    console.log('[Slack] Intent:', intent.action);
 
-    // Log the interaction
-    await supabase.from('slack_interaction_logs').insert({
-        slack_connection_id: connection.id,
-        slack_user_id: innerEvent.user,
-        action_id: `chat:${intent.action}`,
-        payload: {
-            text: innerEvent.text,
-            intent: intent,
-        },
-        message_ts: innerEvent.ts,
-        channel_id: innerEvent.channel,
-    });
+    // Log the interaction (ignore errors)
+    try {
+        if (connection?.id) {
+            await supabase.from('slack_interaction_logs').insert({
+                slack_connection_id: connection.id,
+                slack_user_id: innerEvent.user,
+                action_id: `chat:${intent.action}`,
+                payload: { text: innerEvent.text, intent },
+                message_ts: innerEvent.ts,
+                channel_id: innerEvent.channel,
+            });
+        }
+    } catch (e) {
+        console.warn('[Slack] Failed to log interaction:', e);
+    }
 
     // If it's an unknown action, just respond with the AI's message
     if (intent.action === 'unknown') {
         await sendSlackMessage(
             botToken,
             innerEvent.channel,
-            intent.parameters.response,
+            intent.parameters.response || "I'm not sure what you mean. Try asking for a briefing, health score, or insights!",
             innerEvent.thread_ts || innerEvent.ts
         );
         return;
     }
 
     // Execute the action
-    const result = await executeAction(intent, connection.project_id);
+    console.log('[Slack] Executing action...');
+    const result = await executeAction(intent, projectId);
+    console.log('[Slack] Result:', result.success);
 
     // Send the result back to Slack
     await sendSlackMessage(
@@ -222,6 +276,7 @@ async function processAppMention(
         result.message,
         innerEvent.thread_ts || innerEvent.ts
     );
+    console.log('[Slack] Message sent');
 }
 
 /**
@@ -241,7 +296,14 @@ async function processDirectMessage(
         return;
     }
 
+    console.log('[Slack] Processing DM:', innerEvent.text);
+
     const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+        console.error('[Slack] Supabase client not available');
+        return;
+    }
+
     const teamId = event.team_id;
 
     // Get Slack connection
@@ -252,44 +314,64 @@ async function processDirectMessage(
         .eq('status', 'active')
         .single();
 
-    if (!connection) {
-        console.error('No active Slack connection found for team:', teamId);
-        return;
+    let botToken: string | null = null;
+    let projectId: string | null = connection?.project_id || null;
+
+    if (connection?.bot_token_encrypted) {
+        try {
+            botToken = decryptToken(connection.bot_token_encrypted);
+        } catch (error) {
+            console.error('[Slack] Failed to decrypt bot token:', error);
+        }
     }
 
-    let botToken: string;
-    try {
-        botToken = decryptToken(connection.bot_token_encrypted);
-    } catch (error) {
-        console.error('Failed to decrypt bot token:', error);
+    // Fallback to env token
+    if (!botToken && process.env.SLACK_BOT_TOKEN) {
+        botToken = process.env.SLACK_BOT_TOKEN;
+    }
+
+    // Fallback project
+    if (!projectId) {
+        const { data: anyProject } = await supabase
+            .from('projects')
+            .select('id')
+            .limit(1)
+            .single();
+        projectId = anyProject?.id || null;
+    }
+
+    if (!botToken || !projectId) {
+        console.error('[Slack] Missing bot token or project ID');
         return;
     }
 
     // Parse and execute
     const intent = await parseIntent(innerEvent.text);
 
-    await supabase.from('slack_interaction_logs').insert({
-        slack_connection_id: connection.id,
-        slack_user_id: innerEvent.user,
-        action_id: `dm:${intent.action}`,
-        payload: {
-            text: innerEvent.text,
-            intent: intent,
-        },
-        message_ts: innerEvent.ts,
-        channel_id: innerEvent.channel,
-    });
+    try {
+        if (connection?.id) {
+            await supabase.from('slack_interaction_logs').insert({
+                slack_connection_id: connection.id,
+                slack_user_id: innerEvent.user,
+                action_id: `dm:${intent.action}`,
+                payload: { text: innerEvent.text, intent },
+                message_ts: innerEvent.ts,
+                channel_id: innerEvent.channel,
+            });
+        }
+    } catch (e) {
+        // Ignore logging errors
+    }
 
     if (intent.action === 'unknown') {
         await sendSlackMessage(
             botToken,
             innerEvent.channel,
-            intent.parameters.response
+            intent.parameters.response || "I'm not sure what you mean. Try: 'What's the briefing?' or 'Show me insights'"
         );
         return;
     }
 
-    const result = await executeAction(intent, connection.project_id);
-
+    const result = await executeAction(intent, projectId);
     await sendSlackMessage(botToken, innerEvent.channel, result.message);
 }
