@@ -56,25 +56,24 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: integration } = await supabase
-      .from('slack_integrations')
+      .from('slack_connections')
       .select(
-        'team_name, team_id, channel_name, channel_id, configuration_url, created_at, updated_at'
+        'team_name, team_id, status, bot_user_id, scope, created_at, updated_at'
       )
       .eq('project_id', projectId)
+      .eq('status', 'active')
       .maybeSingle();
 
     return NextResponse.json({
       connected: !!integration,
       integration: integration
         ? {
-            teamName: integration.team_name,
-            teamId: integration.team_id,
-            channelName: integration.channel_name,
-            channelId: integration.channel_id,
-            configurationUrl: integration.configuration_url,
-            connectedAt: integration.created_at,
-            updatedAt: integration.updated_at,
-          }
+          teamName: integration.team_name,
+          teamId: integration.team_id,
+          status: integration.status,
+          connectedAt: integration.created_at,
+          updatedAt: integration.updated_at,
+        }
         : null,
     });
   } catch (error) {
@@ -114,8 +113,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     await supabase
-      .from('slack_integrations')
-      .delete()
+      .from('slack_connections')
+      .update({ status: 'disconnected' })
       .eq('project_id', projectId);
 
     return NextResponse.json({ success: true });
