@@ -20,6 +20,20 @@ export const runtime = 'nodejs';
 export const maxDuration = 60; // Allow longer for AI processing
 
 /**
+ * GET /api/integrations/slack/events
+ * 
+ * Health check endpoint - Slack only uses POST, but this helps with debugging
+ */
+export async function GET() {
+    return NextResponse.json({
+        status: 'ok',
+        endpoint: 'Slack Events API',
+        method: 'POST required for events',
+        note: 'Slack sends POST requests for events. If you see this, the endpoint is reachable.',
+    });
+}
+
+/**
  * Verify Slack request signature
  */
 function verifySlackRequest(
