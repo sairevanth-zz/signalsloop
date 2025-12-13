@@ -87,12 +87,17 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ type: RESPONSE_TYPES.PONG });
         }
 
-        // Handle slash commands - process synchronously
+        // Handle slash commands - return quick static response for now
         if (interaction.type === INTERACTION_TYPES.APPLICATION_COMMAND) {
-            const result = await processSlashCommand(interaction);
+            const commandName = interaction.data.name;
+            console.log(`[Discord] Received command: ${commandName}`);
+
+            // Return immediate static response to test connectivity
             return NextResponse.json({
                 type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: { content: result },
+                data: {
+                    content: `✅ SignalsLoop received your /${commandName} command!\n\n⚠️ AI processing is being configured. Full responses coming soon.`
+                },
             });
         }
 
