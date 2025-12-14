@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { LinearAPI } from '@/lib/linear/api';
+import { getAccessToken } from '@/lib/linear/oauth';
 import { parseIntent } from '@/lib/ai/intent-parser';
 import { executeAction } from '@/lib/ai/chat-actions';
 import crypto from 'crypto';
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
         // Find connection for this Linear organization
         const { data: connection } = await supabase
             .from('linear_connections')
-            .select('id, project_id, access_token')
+            .select('id, project_id')
             .eq('organization_id', organizationId)
             .single();
 
@@ -84,14 +85,17 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: true, message: 'No connection' });
         }
 
+        // Get decrypted access token
+        const accessToken = await getAccessToken(connection.id);
+
         // Handle Comment events
         if (webhookType === 'Comment' && action === 'create') {
-            await handleCommentCreated(connection, payload.data, supabase);
+            await handleCommentCreated(connection, accessToken, payload.data, supabase);
         }
 
         // Handle Issue status updates
         if (webhookType === 'Issue' && action === 'update') {
-            await handleIssueUpdated(connection, payload.data, payload.updatedFrom, supabase);
+            await handleIssueUpdated(connection, accessToken, payload.data, payload.updatedFrom, supabase);
         }
 
         return NextResponse.json({ success: true });
@@ -115,7 +119,8 @@ function mentionsSignalsLoop(text: string): boolean {
  * Handle Comment created event
  */
 async function handleCommentCreated(
-    connection: { id: string; project_id: string; access_token: string },
+    connection: { id: string; project_id: string },
+    accessToken: string,
     commentData: any,
     supabase: ReturnType<typeof getSupabaseServiceRoleClient>
 ) {
@@ -154,7 +159,7 @@ async function handleCommentCreated(
         }
 
         // Post reply as comment
-        const api = new LinearAPI(connection.access_token);
+        const api = new LinearAPI(accessToken);
         await api.addComment(issueId, replyText);
 
         console.log('[Linear Webhook] Reply posted to issue:', issueId);
@@ -163,7 +168,7 @@ async function handleCommentCreated(
 
         // Try to post error reply
         try {
-            const api = new LinearAPI(connection.access_token);
+            const api = new LinearAPI(accessToken);
             await api.addComment(issueId, '❌ **SignalsLoop:** Sorry, I encountered an error processing your request.');
         } catch (replyError) {
             console.error('[Linear Webhook] Failed to post error reply:', replyError);
@@ -175,7 +180,8 @@ async function handleCommentCreated(
  * Handle Issue updated event - sync status changes
  */
 async function handleIssueUpdated(
-    connection: { id: string; project_id: string; access_token: string },
+    connection: { id: string; project_id: string },
+    accessToken: string,
     issueData: any,
     updatedFrom: any,
     supabase: ReturnType<typeof getSupabaseServiceRoleClient>
