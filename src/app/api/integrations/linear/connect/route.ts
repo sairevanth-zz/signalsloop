@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import { getAuthorizationUrl, createOAuthState } from '@/lib/linear/oauth';
 
 export const runtime = 'nodejs';
@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'projectId is required' }, { status: 400 });
         }
 
-        // Get current user
-        const supabase = getSupabaseServerClient();
+        // Get current user using async createServerClient
+        const supabase = await createServerClient();
         if (!supabase) {
             return NextResponse.json({ error: 'Database not available' }, { status: 500 });
         }
@@ -33,7 +33,10 @@ export async function GET(request: NextRequest) {
         } = await supabase.auth.getUser();
 
         if (authError || !user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            // Redirect to login instead of returning JSON error
+            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+            const returnUrl = encodeURIComponent(`/settings?tab=integrations`);
+            return NextResponse.redirect(`${baseUrl}/login?redirect=${returnUrl}`);
         }
 
         // Create OAuth state for CSRF protection
