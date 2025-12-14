@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getTodayBriefing, getDashboardMetrics } from '@/lib/ai/mission-control';
 import { getSupabaseServerClient } from '@/lib/supabase-client';
 import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
+import { triggerDiscordNotification } from '@/lib/discord';
+import { triggerSlackNotification } from '@/lib/slack';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -85,6 +87,18 @@ export async function GET(request: NextRequest) {
 
       // Increment AI usage
       await incrementAIUsage(projectId, 'sentiment_analysis');
+
+      // Trigger notifications for new briefing
+      const notificationPayload = {
+        briefing: {
+          date: new Date().toISOString().split('T')[0],
+          sentiment_score: briefing.content?.sentiment_score,
+          critical_count: briefing.content?.critical_items?.length ?? 0,
+          warning_count: briefing.content?.warning_items?.length ?? 0,
+        },
+      };
+      triggerDiscordNotification(projectId, 'briefing.generated', notificationPayload);
+      triggerSlackNotification(projectId, 'briefing.generated', notificationPayload);
     }
 
     // Fetch current metrics (always fresh)
@@ -176,6 +190,18 @@ export async function POST(request: NextRequest) {
 
     // Increment AI usage
     await incrementAIUsage(projectId, 'sentiment_analysis');
+
+    // Trigger notifications for regenerated briefing
+    const notificationPayload = {
+      briefing: {
+        date: new Date().toISOString().split('T')[0],
+        sentiment_score: briefing.content?.sentiment_score,
+        critical_count: briefing.content?.critical_items?.length ?? 0,
+        warning_count: briefing.content?.warning_items?.length ?? 0,
+      },
+    };
+    triggerDiscordNotification(projectId, 'briefing.generated', notificationPayload);
+    triggerSlackNotification(projectId, 'briefing.generated', notificationPayload);
 
     // Fetch current metrics
     const metrics = await getDashboardMetrics(projectId);

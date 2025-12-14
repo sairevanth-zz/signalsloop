@@ -6,7 +6,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-client';
-import type { Spec, SpecFilter, SpecSortOption } from '@/types/specs';
+import type { Spec, SpecSortOption } from '@/types/specs';
+import { triggerDiscordNotification } from '@/lib/discord';
+import { triggerSlackNotification } from '@/lib/slack';
 
 // ============================================================================
 // GET /api/specs - List specs
@@ -184,6 +186,17 @@ export async function POST(request: NextRequest) {
       console.error('Error creating spec version:', versionError);
       // Don't fail the request if version creation fails
     }
+
+    // Trigger notifications for new spec
+    const notificationPayload = {
+      spec: {
+        id: spec.id,
+        title: spec.title,
+        feedback_count: linkedFeedbackIds?.length ?? 0,
+      },
+    };
+    triggerDiscordNotification(projectId, 'spec.generated', notificationPayload);
+    triggerSlackNotification(projectId, 'spec.generated', notificationPayload);
 
     return NextResponse.json({
       success: true,
