@@ -310,7 +310,34 @@ When you update a Jira issue status, linked feedback in SignalsLoop automaticall
 
 Enable @signalsloop mentions in Linear issue comments.
 
-### Step 1: Create Webhook in Linear
+### Step 1: Create Linear OAuth App
+
+1. Go to [Linear Settings → API → OAuth Applications](https://linear.app/settings/api)
+2. Click **New application**
+3. Set **Name** to "SignalsLoop"
+4. Set **Redirect URL** to:
+   ```
+   https://signalsloop.com/api/integrations/linear/callback
+   ```
+5. Copy the **Client ID** and **Client Secret**
+
+### Step 2: Set Environment Variables
+
+Add to Vercel:
+```
+LINEAR_CLIENT_ID=your-client-id
+LINEAR_CLIENT_SECRET=your-client-secret
+LINEAR_WEBHOOK_SECRET=your-webhook-secret (optional)
+```
+
+### Step 3: Run Database Migration
+
+Run this SQL in Supabase:
+```sql
+-- See: supabase/migrations/20241214_linear_connections.sql
+```
+
+### Step 4: Create Webhook in Linear
 
 1. Go to **Settings → API → Webhooks**
 2. Click **New webhook**
@@ -321,22 +348,14 @@ Enable @signalsloop mentions in Linear issue comments.
 4. Enable these events:
    - `Comment` (create)
    - `Issue` (update)
-5. Copy the **Signing secret** for verification (optional)
-6. Click **Create webhook**
+5. Click **Create webhook**
 
-### Step 2: Set Environment Variable (Optional)
+### Step 5: Connect in SignalsLoop
 
-For signature verification, add to Vercel:
-```
-LINEAR_WEBHOOK_SECRET=your-signing-secret
-```
-
-### Step 3: Store Linear Access Token
-
-Store your Linear access token in the `linear_connections` table with:
-- `project_id` - Your SignalsLoop project ID
-- `organization_id` - Your Linear organization ID
-- `access_token` - Linear API token
+Users can connect Linear from their project settings:
+1. Go to **Settings → Integrations → Linear**
+2. Click **Connect Linear**
+3. Authorize SignalsLoop in Linear
 
 ### Using @signalsloop in Linear Comments
 
