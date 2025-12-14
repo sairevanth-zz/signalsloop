@@ -2,11 +2,22 @@ import crypto from 'crypto';
 import { getSupabaseServiceRoleClient } from './supabase-client';
 
 export type WebhookEvent =
+  // Core feedback events
   | 'post.created'
   | 'post.status_changed'
   | 'post.deleted'
   | 'comment.created'
-  | 'vote.created';
+  | 'vote.created'
+  // Mission Control events
+  | 'briefing.generated'
+  | 'health.threshold_crossed'
+  // AI/Analytics events
+  | 'anomaly.detected'
+  | 'theme.emerging'
+  | 'sentiment.shift'
+  | 'priority.escalated'
+  | 'duplicate.merged'
+  | 'spec.generated';
 
 export interface WebhookPayload {
   event: WebhookEvent;

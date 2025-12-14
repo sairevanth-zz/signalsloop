@@ -121,12 +121,12 @@ async function buildSlackMessage(
           },
           post.description
             ? {
-                type: 'section',
-                text: {
-                  type: 'mrkdwn',
-                  text: formatSlackText(truncate(post.description, 300)),
-                },
-              }
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: formatSlackText(truncate(post.description, 300)),
+              },
+            }
             : undefined,
           {
             type: 'context',
@@ -194,14 +194,14 @@ async function buildSlackMessage(
           },
           post.description
             ? {
-                type: 'context',
-                elements: [
-                  {
-                    type: 'mrkdwn',
-                    text: formatSlackText(truncate(post.description, 200)),
-                  },
-                ],
-              }
+              type: 'context',
+              elements: [
+                {
+                  type: 'mrkdwn',
+                  text: formatSlackText(truncate(post.description, 200)),
+                },
+              ],
+            }
             : undefined,
         ].filter(Boolean),
       };
@@ -273,19 +273,260 @@ async function buildSlackMessage(
           },
           priorityMeta
             ? {
-                type: 'context',
-                elements: [
-                  {
-                    type: 'mrkdwn',
-                    text: `${priorityMeta.emoji} Marked as *${priorityMeta.label}*`,
-                  },
-                ],
-              }
+              type: 'context',
+              elements: [
+                {
+                  type: 'mrkdwn',
+                  text: `${priorityMeta.emoji} Marked as *${priorityMeta.label}*`,
+                },
+              ],
+            }
             : undefined,
         ].filter(Boolean),
       };
     }
 
+    case 'briefing.generated': {
+      const briefing = payload.briefing as {
+        date: string;
+        sentiment_score?: number;
+        critical_count?: number;
+        warning_count?: number;
+      };
+
+      const dashboardUrl = buildProjectLink(meta.slug, '/dashboard');
+      const emoji = (briefing.critical_count ?? 0) > 0 ? ':rotating_light:' : ':clipboard:';
+
+      return {
+        text: `Daily briefing generated for ${formatSlackText(meta.name || 'your project')}`,
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `${emoji} *Daily Briefing Generated*\n<${dashboardUrl}|View Mission Control>`,
+            },
+          },
+          {
+            type: 'section',
+            fields: [
+              { type: 'mrkdwn', text: `*Sentiment:* ${briefing.sentiment_score ?? 50}%` },
+              { type: 'mrkdwn', text: `*Critical:* ${briefing.critical_count ?? 0}` },
+              { type: 'mrkdwn', text: `*Warnings:* ${briefing.warning_count ?? 0}` },
+            ],
+          },
+        ],
+      };
+    }
+
+    case 'health.threshold_crossed': {
+      const health = payload.health as {
+        old_score: number;
+        new_score: number;
+        old_grade: string;
+        new_grade: string;
+        direction: 'improved' | 'degraded';
+      };
+
+      const dashboardUrl = buildProjectLink(meta.slug, '/dashboard');
+      const emoji = health.direction === 'improved' ? ':chart_with_upwards_trend:' : ':chart_with_downwards_trend:';
+
+      return {
+        text: `Product health ${health.direction}`,
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `${emoji} *Product Health ${health.direction === 'improved' ? 'Improved' : 'Degraded'}*\n<${dashboardUrl}|View Dashboard>`,
+            },
+          },
+          {
+            type: 'section',
+            fields: [
+              { type: 'mrkdwn', text: `*Previous:* ${health.old_score}/100 (${health.old_grade})` },
+              { type: 'mrkdwn', text: `*Current:* ${health.new_score}/100 (${health.new_grade})` },
+            ],
+          },
+        ],
+      };
+    }
+
+    case 'anomaly.detected': {
+      const anomaly = payload.anomaly as {
+        type: string;
+        description: string;
+        severity: 'low' | 'medium' | 'high';
+      };
+
+      const dashboardUrl = buildProjectLink(meta.slug, '/dashboard');
+      const emoji = anomaly.severity === 'high' ? ':red_circle:' : anomaly.severity === 'medium' ? ':large_yellow_circle:' : ':large_green_circle:';
+
+      return {
+        text: `Anomaly detected: ${anomaly.type}`,
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `${emoji} *Anomaly Detected*: ${formatSlackText(anomaly.type)}\n<${dashboardUrl}|View Dashboard>`,
+            },
+          },
+          {
+            type: 'section',
+            text: { type: 'mrkdwn', text: formatSlackText(anomaly.description) },
+          },
+          {
+            type: 'context',
+            elements: [{ type: 'mrkdwn', text: `Severity: *${anomaly.severity.toUpperCase()}*` }],
+          },
+        ],
+      };
+    }
+
+    case 'theme.emerging': {
+      const theme = payload.theme as {
+        name: string;
+        frequency: number;
+        growth_rate?: number;
+      };
+
+      const dashboardUrl = buildProjectLink(meta.slug, '/dashboard');
+
+      return {
+        text: `Emerging theme: ${formatSlackText(theme.name)}`,
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `:fire: *Emerging Theme*: "${formatSlackText(theme.name)}"\n<${dashboardUrl}|View Dashboard>`,
+            },
+          },
+          {
+            type: 'context',
+            elements: [
+              { type: 'mrkdwn', text: `*${theme.frequency}* mentions` },
+              { type: 'mrkdwn', text: theme.growth_rate ? `Growth: *+${theme.growth_rate}%*` : '*New*' },
+            ],
+          },
+        ],
+      };
+    }
+
+    case 'sentiment.shift': {
+      const sentiment = payload.sentiment as {
+        old_score: number;
+        new_score: number;
+        direction: 'positive' | 'negative';
+        change: number;
+      };
+
+      const dashboardUrl = buildProjectLink(meta.slug, '/dashboard');
+      const emoji = sentiment.direction === 'positive' ? ':slightly_smiling_face:' : ':slightly_frowning_face:';
+
+      return {
+        text: `Sentiment ${sentiment.direction === 'positive' ? 'improved' : 'declined'}`,
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `${emoji} *Significant Sentiment ${sentiment.direction === 'positive' ? 'Improvement' : 'Decline'}*\n<${dashboardUrl}|View Dashboard>`,
+            },
+          },
+          {
+            type: 'section',
+            fields: [
+              { type: 'mrkdwn', text: `*Change:* ${sentiment.change > 0 ? '+' : ''}${sentiment.change}%` },
+              { type: 'mrkdwn', text: `*Current:* ${sentiment.new_score}%` },
+            ],
+          },
+        ],
+      };
+    }
+
+    case 'priority.escalated': {
+      const post = payload.post as {
+        id: string;
+        title: string;
+        priority_score: number;
+        priority_level: string;
+      };
+
+      const postUrl = buildProjectLink(meta.slug, `/post/${post.id}`);
+
+      return {
+        text: `Priority escalated: ${formatSlackText(post.title)}`,
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `:rocket: *Priority Escalated*\n<${postUrl}|${formatSlackText(post.title)}> is now *${post.priority_level}*`,
+            },
+          },
+          {
+            type: 'context',
+            elements: [{ type: 'mrkdwn', text: `Priority Score: *${post.priority_score}/10*` }],
+          },
+        ],
+      };
+    }
+
+    case 'duplicate.merged': {
+      const merge = payload.merge as {
+        primary_id: string;
+        primary_title: string;
+        duplicate_count: number;
+      };
+
+      const postUrl = buildProjectLink(meta.slug, `/post/${merge.primary_id}`);
+
+      return {
+        text: `Duplicates merged into ${formatSlackText(merge.primary_title)}`,
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `:link: *Duplicates Merged*\n${merge.duplicate_count} post(s) merged into <${postUrl}|${formatSlackText(merge.primary_title)}>`,
+            },
+          },
+        ],
+      };
+    }
+
+    case 'spec.generated': {
+      const spec = payload.spec as {
+        id: string;
+        title: string;
+        feedback_count?: number;
+      };
+
+      const specUrl = buildProjectLink(meta.slug, `/specs/${spec.id}`);
+
+      return {
+        text: `Product spec generated: ${formatSlackText(spec.title)}`,
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `:page_facing_up: *Product Spec Generated*\n<${specUrl}|${formatSlackText(spec.title)}>`,
+            },
+          },
+          spec.feedback_count
+            ? {
+              type: 'context',
+              elements: [{ type: 'mrkdwn', text: `Based on *${spec.feedback_count}* feedback item(s)` }],
+            }
+            : undefined,
+        ].filter(Boolean),
+      };
+    }
+
+    case 'post.deleted':
     default:
       return null;
   }

@@ -236,14 +236,190 @@ async function buildDiscordMessage(
       return {
         content: priorityMeta
           ? `🗳️ New ${priorityMeta.emoji} **${priorityMeta.label}** vote on **${sanitizeDiscordText(
-              post.title
-            )}** · Total votes: ${vote?.vote_count ?? 0}\n${postUrl}`
+            post.title
+          )}** · Total votes: ${vote?.vote_count ?? 0}\n${postUrl}`
           : `🗳️ New vote on **${sanitizeDiscordText(
-              post.title
-            )}** · Total votes: ${vote?.vote_count ?? 0}\n${postUrl}`,
+            post.title
+          )}** · Total votes: ${vote?.vote_count ?? 0}\n${postUrl}`,
       };
     }
 
+    case 'briefing.generated': {
+      const briefing = payload.briefing as {
+        date: string;
+        sentiment_score?: number;
+        critical_count?: number;
+        warning_count?: number;
+      };
+
+      const dashboardUrl = buildProjectLink(meta.slug, '/dashboard');
+      const emoji = (briefing.critical_count ?? 0) > 0 ? '🚨' : '📋';
+
+      return {
+        content: `${emoji} **Daily Briefing Generated** for **${sanitizeDiscordText(meta.name || 'your project')}**`,
+        embeds: [{
+          ...buildEmbedBase('Mission Control Briefing', dashboardUrl, null, 0x3498db),
+          fields: [
+            { name: 'Sentiment', value: `${briefing.sentiment_score ?? 50}%`, inline: true },
+            { name: 'Critical Items', value: `${briefing.critical_count ?? 0}`, inline: true },
+            { name: 'Warnings', value: `${briefing.warning_count ?? 0}`, inline: true },
+          ],
+        }],
+      };
+    }
+
+    case 'health.threshold_crossed': {
+      const health = payload.health as {
+        old_score: number;
+        new_score: number;
+        old_grade: string;
+        new_grade: string;
+        direction: 'improved' | 'degraded';
+      };
+
+      const dashboardUrl = buildProjectLink(meta.slug, '/dashboard');
+      const emoji = health.direction === 'improved' ? '📈' : '📉';
+      const color = health.direction === 'improved' ? 0x2ed573 : 0xff4757;
+
+      return {
+        content: `${emoji} **Product Health ${health.direction === 'improved' ? 'Improved' : 'Degraded'}**`,
+        embeds: [{
+          ...buildEmbedBase('Health Score Update', dashboardUrl, null, color),
+          fields: [
+            { name: 'Previous', value: `${health.old_score}/100 (${health.old_grade})`, inline: true },
+            { name: 'Current', value: `${health.new_score}/100 (${health.new_grade})`, inline: true },
+          ],
+        }],
+      };
+    }
+
+    case 'anomaly.detected': {
+      const anomaly = payload.anomaly as {
+        type: string;
+        description: string;
+        severity: 'low' | 'medium' | 'high';
+      };
+
+      const dashboardUrl = buildProjectLink(meta.slug, '/dashboard');
+      const emoji = anomaly.severity === 'high' ? '🔴' : anomaly.severity === 'medium' ? '🟡' : '🟢';
+      const color = anomaly.severity === 'high' ? 0xff4757 : anomaly.severity === 'medium' ? 0xf1c40f : 0x2ed573;
+
+      return {
+        content: `${emoji} **Anomaly Detected** - ${anomaly.type}`,
+        embeds: [{
+          ...buildEmbedBase('Anomaly Alert', dashboardUrl, anomaly.description, color),
+          fields: [
+            { name: 'Severity', value: anomaly.severity.toUpperCase(), inline: true },
+          ],
+        }],
+      };
+    }
+
+    case 'theme.emerging': {
+      const theme = payload.theme as {
+        name: string;
+        frequency: number;
+        growth_rate?: number;
+      };
+
+      const dashboardUrl = buildProjectLink(meta.slug, '/dashboard');
+
+      return {
+        content: `🔥 **Emerging Theme**: "${sanitizeDiscordText(theme.name)}"`,
+        embeds: [{
+          ...buildEmbedBase('New Trending Theme', dashboardUrl, null, 0xe74c3c),
+          fields: [
+            { name: 'Mentions', value: `${theme.frequency}`, inline: true },
+            { name: 'Growth', value: theme.growth_rate ? `+${theme.growth_rate}%` : 'New', inline: true },
+          ],
+        }],
+      };
+    }
+
+    case 'sentiment.shift': {
+      const sentiment = payload.sentiment as {
+        old_score: number;
+        new_score: number;
+        direction: 'positive' | 'negative';
+        change: number;
+      };
+
+      const dashboardUrl = buildProjectLink(meta.slug, '/dashboard');
+      const emoji = sentiment.direction === 'positive' ? '😊' : '😟';
+      const color = sentiment.direction === 'positive' ? 0x2ed573 : 0xff4757;
+
+      return {
+        content: `${emoji} **Significant Sentiment ${sentiment.direction === 'positive' ? 'Improvement' : 'Decline'}**`,
+        embeds: [{
+          ...buildEmbedBase('Sentiment Shift Detected', dashboardUrl, null, color),
+          fields: [
+            { name: 'Change', value: `${sentiment.change > 0 ? '+' : ''}${sentiment.change}%`, inline: true },
+            { name: 'Current', value: `${sentiment.new_score}%`, inline: true },
+          ],
+        }],
+      };
+    }
+
+    case 'priority.escalated': {
+      const post = payload.post as {
+        id: string;
+        title: string;
+        priority_score: number;
+        priority_level: string;
+      };
+
+      const postUrl = buildProjectLink(meta.slug, `/post/${post.id}`);
+
+      return {
+        content: `🚀 **Priority Escalated** - "${sanitizeDiscordText(post.title)}" is now **${post.priority_level}**`,
+        embeds: [{
+          ...buildEmbedBase(post.title, postUrl, null, 0xff4757),
+          fields: [
+            { name: 'Priority Score', value: `${post.priority_score}/10`, inline: true },
+            { name: 'Level', value: post.priority_level, inline: true },
+          ],
+        }],
+      };
+    }
+
+    case 'duplicate.merged': {
+      const merge = payload.merge as {
+        primary_id: string;
+        primary_title: string;
+        duplicate_count: number;
+      };
+
+      const postUrl = buildProjectLink(meta.slug, `/post/${merge.primary_id}`);
+
+      return {
+        content: `🔗 **Duplicates Merged** - ${merge.duplicate_count} post(s) merged into "${sanitizeDiscordText(merge.primary_title)}"`,
+        embeds: [{
+          ...buildEmbedBase(merge.primary_title, postUrl, null, 0x9b59b6),
+        }],
+      };
+    }
+
+    case 'spec.generated': {
+      const spec = payload.spec as {
+        id: string;
+        title: string;
+        feedback_count?: number;
+      };
+
+      const specUrl = buildProjectLink(meta.slug, `/specs/${spec.id}`);
+
+      return {
+        content: `📄 **Product Spec Generated** - "${sanitizeDiscordText(spec.title)}"`,
+        embeds: [{
+          ...buildEmbedBase(spec.title, specUrl, null, 0x3498db),
+          fields: spec.feedback_count ? [
+            { name: 'Based on', value: `${spec.feedback_count} feedback item(s)`, inline: true },
+          ] : [],
+        }],
+      };
+    }
+
+    case 'post.deleted':
     default:
       return null;
   }
