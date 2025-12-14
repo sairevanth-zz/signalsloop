@@ -306,6 +306,64 @@ When you update a Jira issue status, linked feedback in SignalsLoop automaticall
 
 ---
 
+## Linear Comment Bot Setup
+
+Enable @signalsloop mentions in Linear issue comments.
+
+### Step 1: Create Webhook in Linear
+
+1. Go to **Settings → API → Webhooks**
+2. Click **New webhook**
+3. Set the **URL** to:
+   ```
+   https://signalsloop.com/api/integrations/linear/webhooks
+   ```
+4. Enable these events:
+   - `Comment` (create)
+   - `Issue` (update)
+5. Copy the **Signing secret** for verification (optional)
+6. Click **Create webhook**
+
+### Step 2: Set Environment Variable (Optional)
+
+For signature verification, add to Vercel:
+```
+LINEAR_WEBHOOK_SECRET=your-signing-secret
+```
+
+### Step 3: Store Linear Access Token
+
+Store your Linear access token in the `linear_connections` table with:
+- `project_id` - Your SignalsLoop project ID
+- `organization_id` - Your Linear organization ID
+- `access_token` - Linear API token
+
+### Using @signalsloop in Linear Comments
+
+In any Linear issue, add a comment mentioning @signalsloop:
+
+```
+@signalsloop what feedback is related to this?
+```
+
+The bot will reply in the same issue:
+
+```
+✅ SignalsLoop: Found 3 related feedback items:
+• "Slow checkout" (12 votes)
+• "Payment issues" (8 votes)
+```
+
+### Status Sync
+
+| Linear State Type | SignalsLoop Status |
+|------------------|-------------------|
+| completed | Completed |
+| started | In Progress |
+| unstarted, backlog, triage | Open |
+
+---
+
 ## Cost Considerations
 
 Each natural language command uses Claude (or GPT-4 fallback) for intent parsing:
