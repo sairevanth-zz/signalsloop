@@ -17,6 +17,7 @@ import { SlackSettings } from '@/components/slack/SlackSettings';
 import { SlackIntegrationSettings } from '@/components/SlackIntegrationSettings';
 import { DiscordIntegrationSettings } from '@/components/DiscordIntegrationSettings';
 import { JiraSettingsPanel } from '@/components/JiraSettingsPanel';
+import { LinearSettingsPanel } from '@/components/LinearSettingsPanel';
 import { toast } from 'sonner';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import BoardSettings from '@/components/BoardSettings';
@@ -663,6 +664,13 @@ export default function SettingsPage() {
                   projectId={project.id}
                   onUpdate={() => {
                     toast.success('Jira integration updated');
+                  }}
+                />
+
+                <LinearSettingsPanel
+                  projectId={project.id}
+                  onUpdate={() => {
+                    toast.success('Linear integration updated');
                   }}
                 />
                 {/* Enhanced Slack Integration with OAuth 2.0 & Block Kit */}
