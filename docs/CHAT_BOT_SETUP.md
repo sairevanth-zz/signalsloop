@@ -246,6 +246,66 @@ OPENAI_API_KEY=sk-...         # Fallback (GPT-4)
 
 ---
 
+## Jira Comment Bot Setup
+
+Enable @signalsloop mentions in Jira issue comments.
+
+### Step 1: Configure Webhook in Jira
+
+1. Go to your Jira project **Settings → Webhooks**
+2. Click **Create webhook**
+3. Set the **URL** to:
+   ```
+   https://signalsloop.com/api/integrations/jira/webhooks
+   ```
+4. Select these events:
+   - `Comment created`
+   - `Issue updated`
+5. Click **Create**
+
+### Step 2: Connect Jira to SignalsLoop
+
+1. In SignalsLoop, go to **Settings → Integrations → Jira**
+2. Complete the OAuth connection flow
+3. Select your Jira project
+
+### Using @signalsloop in Jira Comments
+
+In any Jira issue, add a comment mentioning @signalsloop:
+
+```
+@signalsloop link this to related feedback
+```
+
+The bot will reply with matched feedback items:
+
+```
+✅ SignalsLoop: Found 3 related feedback items:
+• "Checkout is slow" (12 votes)
+• "Payment timeout errors" (8 votes)
+• "Cart abandonment issues" (5 votes)
+```
+
+**More examples:**
+```
+@signalsloop what feedback is related to this?
+@signalsloop create feedback: users report login issues
+@signalsloop what's our product health?
+```
+
+### Status Sync
+
+When you update a Jira issue status, linked feedback in SignalsLoop automatically updates:
+
+| Jira Status | SignalsLoop Status |
+|-------------|-------------------|
+| Done, Resolved, Closed | Completed |
+| In Progress, In Review | In Progress |
+| To Do, Backlog, Open | Open |
+| Planned, Selected | Planned |
+
+---
+
 ## Cost Considerations
 
 Each natural language command uses Claude (or GPT-4 fallback) for intent parsing:
