@@ -89,30 +89,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ type: RESPONSE_TYPES.PONG });
         }
 
-        // Handle slash commands
+        // Handle slash commands - direct fast responses
         if (interaction.type === INTERACTION_TYPES.APPLICATION_COMMAND) {
-            const commandName = interaction.data.name;
-
-            // /ask command needs deferred response (AI takes >3 seconds)
-            if (commandName === 'ask') {
-                // Use waitUntil to keep function alive while processing
-                const asyncTask = processAskCommandAsync(interaction);
-
-                // waitUntil keeps the function running after response is sent
-                if (typeof (globalThis as any).waitUntil === 'function') {
-                    (globalThis as any).waitUntil(asyncTask);
-                } else {
-                    // Fallback: await the task (may timeout, but worth trying)
-                    asyncTask.catch(console.error);
-                }
-
-                // Return deferred response immediately (shows "thinking...")
-                return NextResponse.json({
-                    type: RESPONSE_TYPES.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
-                });
-            }
-
-            // Other commands are fast enough for direct response
             const result = await handleSlashCommand(interaction);
             return NextResponse.json({
                 type: RESPONSE_TYPES.CHANNEL_MESSAGE_WITH_SOURCE,
