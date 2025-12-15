@@ -2042,135 +2042,179 @@ export default function Homepage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <Card className="border border-gray-200 shadow-depth-lg hover:shadow-depth-xl transition-all duration-300 hover:-translate-y-2 bg-white rounded-3xl overflow-hidden">
-              <CardHeader className="text-center pb-8 pt-10 px-8 border-b border-gray-100">
-                <div className="mb-4">
-                  <Badge className="bg-gray-100 text-gray-700 border-0 font-semibold text-xs px-3 py-1">
-                    ALWAYS FREE
-                  </Badge>
-                </div>
-                <CardTitle className="text-3xl font-display font-bold text-gray-900 mb-2">Free Forever</CardTitle>
-                <div className="flex items-baseline justify-center gap-2 my-6">
-                  <span className="text-6xl font-display font-bold text-gray-900">$0</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {/* Free Tier */}
+            <Card className="border border-gray-200 shadow-depth-md hover:shadow-depth-lg transition-all duration-300 hover:-translate-y-1 bg-white rounded-3xl overflow-hidden">
+              <CardHeader className="text-center pb-6 pt-8 px-6 border-b border-gray-100">
+                <CardTitle className="text-2xl font-display font-bold text-gray-900 mb-2">Free Forever</CardTitle>
+                <div className="flex items-baseline justify-center gap-2 my-4">
+                  <span className="text-5xl font-display font-bold text-gray-900">$0</span>
                   <span className="text-gray-500 font-medium">/month</span>
                 </div>
-                <CardDescription className="text-gray-600 font-body text-base">Experience AI-powered feedback management risk-free</CardDescription>
+                <CardDescription className="text-gray-600 font-body">Test drive AI-powered feedback</CardDescription>
               </CardHeader>
               <CardContent className="px-6 pb-6">
-                <div className="bg-green-50 rounded-2xl p-4 mb-4 border-2 border-green-300">
-                  <p className="text-sm font-bold text-green-700 text-center">🤖 Try All 5 AI Features FREE</p>
-                  <p className="text-xs text-green-600 text-center mt-1">10 AI requests/day • Test drive before upgrading</p>
-                  <div className="mt-2 pt-2 border-t border-green-200">
-                    <p className="text-xs text-gray-700 text-center">
-                      <strong>Experience the AI magic.</strong> Upgrade to unlimited when you're ready.
-                    </p>
-                  </div>
-                </div>
                 <ul className="space-y-3">
                   {[
                     "1 feedback board",
                     "50 posts maximum",
-                    "Basic team collaboration",
-                    "🤖 AI Auto-Categorization (10/day)",
-                    "🎯 AI Priority Scoring (10/day)",
-                    "🔍 AI Duplicate Detection (10/day)",
-                    "💬 AI Smart Replies (10/day)",
-                    "✍️ AI Writing Assistant (10/day)",
+                    "1 team member",
+                    "🤖 AI Categorization (30/day)",
+                    "📊 AI Sentiment (30/day)",
+                    "🔍 AI Duplicates (10/day)",
+                    "💬 AI Smart Replies (5/day)",
                     "Public boards only",
-                    "Community support",
-                    "SignalsLoop branding"
+                    "Community support"
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
                 <div className="mt-8">
                   <Link href="/login" className="block">
-                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
-                      🚀 Start Free • Try AI Now
+                    <Button className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                      Start Free
                     </Button>
                   </Link>
-                  <p className="text-xs text-gray-700 mt-3 text-center font-medium">
-                    No credit card • No time limit • Upgrade only when you love it
+                  <p className="text-xs text-gray-600 mt-3 text-center font-medium">
+                    No credit card required
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-cyan-200 shadow-depth-xl hover:shadow-depth-xl transition-all duration-300 hover:-translate-y-2 bg-white rounded-3xl overflow-visible relative ring-2 ring-cyan-100/50">
+            {/* Pro Tier */}
+            <Card className="border-2 border-cyan-300 shadow-depth-xl hover:shadow-depth-xl transition-all duration-300 hover:-translate-y-2 bg-white rounded-3xl overflow-visible relative ring-2 ring-cyan-100/50">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                 <Badge className="gradient-cyan-purple text-white border-0 px-5 py-1.5 rounded-full shadow-depth-md font-semibold text-xs whitespace-nowrap">
                   ⭐ MOST POPULAR
                 </Badge>
               </div>
-              <CardHeader className="text-center pb-8 pt-12 px-8 bg-gradient-to-b from-cyan-50/30 to-white border-b border-cyan-100">
-                <CardTitle className="text-3xl font-display font-bold text-gray-900 mb-2">Pro</CardTitle>
-                <div className="my-6">
+              <CardHeader className="text-center pb-6 pt-12 px-6 bg-gradient-to-b from-cyan-50/30 to-white border-b border-cyan-100">
+                <CardTitle className="text-2xl font-display font-bold text-gray-900 mb-2">Pro</CardTitle>
+                <div className="my-4">
                   {isAnnual ? (
                     <>
                       <div className="flex items-baseline justify-center gap-2">
-                        <span className="text-6xl font-display font-bold bg-gradient-to-r from-cyan-500 to-sky-500 bg-clip-text text-transparent">$15.20</span>
+                        <span className="text-5xl font-display font-bold bg-gradient-to-r from-cyan-500 to-sky-500 bg-clip-text text-transparent">$15</span>
                         <span className="text-gray-500 font-medium">/month</span>
                       </div>
-                      <div className="mt-3 text-sm text-green-600 font-semibold">
-                        Billed annually ($182.40/year) • Save 20%
+                      <div className="mt-2 text-sm text-green-600 font-semibold">
+                        Billed annually ($180/year) • Save 20%
                       </div>
                     </>
                   ) : (
                     <>
                       <div className="flex items-baseline justify-center gap-2">
-                        <span className="text-6xl font-display font-bold bg-gradient-to-r from-cyan-500 to-sky-500 bg-clip-text text-transparent">$19</span>
+                        <span className="text-5xl font-display font-bold bg-gradient-to-r from-cyan-500 to-sky-500 bg-clip-text text-transparent">$19</span>
                         <span className="text-gray-500 font-medium">/month</span>
                       </div>
-                      <div className="mt-3 text-sm text-gray-500 font-medium">
-                        Cancel anytime • No commitments
+                      <div className="mt-2 text-sm text-gray-500 font-medium">
+                        Cancel anytime
                       </div>
                     </>
                   )}
                 </div>
-                <CardDescription className="text-gray-600 font-body text-base">For growing teams • Unlimited AI • Everything you need</CardDescription>
+                <CardDescription className="text-gray-600 font-body">For indie makers & solo founders</CardDescription>
               </CardHeader>
               <CardContent className="px-6 pb-6">
-                <div className="bg-cyan-50 rounded-2xl p-3 mb-4 border border-cyan-100">
-                  <p className="text-sm font-bold text-cyan-500 text-center">⚡ Unlimited AI Requests</p>
-                  <p className="text-xs text-cyan-500 text-center mt-1">No per-request charges • No usage limits</p>
-                </div>
                 <ul className="space-y-3">
                   {[
-                    "Unlimited boards",
-                    "Unlimited posts",
-                    "Private boards",
-                    "👥 Team collaboration & roles",
-                    "🔐 Admin & member permissions",
-                    "📧 Team invitations & management",
-                    "🤖 AI Smart Categorization (Unlimited)",
-                    "🔍 AI Duplicate Detection (Unlimited)",
-                    "🎯 AI Priority Scoring (Unlimited)",
-                    "💬 AI Smart Replies (Unlimited)",
-                    "✍️ AI Writing Assistant (Unlimited)",
-                    "Custom domain (white-label)",
-                    "Remove branding",
-                    "Slack & Discord integration",
-                    "Webhooks & API access",
-                    "CSV Import/Export",
-                    "Email notifications & digests",
-                    "Priority email support"
+                    "5 feedback boards",
+                    "1,000 posts",
+                    "2 team members",
+                    "🔎 Hunter Agent (Reddit + HN)",
+                    "📝 10 AI Specs/month",
+                    "😈 5 Devil's Advocate/month",
+                    "💬 50 Ask SignalsLoop queries",
+                    "📊 1 Executive Brief/month",
+                    "🎧 5 Call transcripts/month",
+                    "Jira & Slack integration",
+                    "1,000 API calls/month",
+                    "Custom domain",
+                    "Email support (48hr)"
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <CheckCircle className="h-5 w-5 text-cyan-500 mr-3 flex-shrink-0" />
                       <span className="text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
                 <Button
-                  className="w-full mt-8 gradient-cyan-purple hover:bg-blue-700 text-white font-semibold rounded-3xl hover:scale-110 hover-lift transition-all duration-200 shadow-lg hover:shadow-xl py-4"
+                  className="w-full mt-8 gradient-cyan-purple hover:bg-blue-700 text-white font-semibold rounded-3xl hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl py-4"
                   onClick={() => handleProCheckout()}
                 >
                   🚀 Start Free - Upgrade Anytime
                 </Button>
+              </CardContent>
+            </Card>
+
+            {/* Premium Tier */}
+            <Card className="border border-purple-200 shadow-depth-md hover:shadow-depth-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-purple-50/50 to-blue-50/50 rounded-3xl overflow-visible relative">
+              <div className="absolute -top-3 right-4 z-10">
+                <Badge className="bg-purple-600 text-white border-0 px-3 py-1 rounded-full shadow-md font-semibold text-xs flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />Team
+                </Badge>
+              </div>
+              <CardHeader className="text-center pb-6 pt-10 px-6 border-b border-purple-100">
+                <CardTitle className="text-2xl font-display font-bold text-gray-900 mb-2">Premium</CardTitle>
+                <div className="my-4">
+                  {isAnnual ? (
+                    <>
+                      <div className="flex items-baseline justify-center gap-2">
+                        <span className="text-5xl font-display font-bold text-purple-600">$63</span>
+                        <span className="text-gray-500 font-medium">/month</span>
+                      </div>
+                      <div className="mt-2 text-sm text-purple-600 font-semibold">
+                        Billed annually ($756/year) • Save 20%
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-baseline justify-center gap-2">
+                        <span className="text-5xl font-display font-bold text-purple-600">$79</span>
+                        <span className="text-gray-500 font-medium">/month</span>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-500 font-medium">
+                        For growing teams
+                      </div>
+                    </>
+                  )}
+                </div>
+                <CardDescription className="text-gray-600 font-body">For PM teams (3-10 people)</CardDescription>
+              </CardHeader>
+              <CardContent className="px-6 pb-6">
+                <ul className="space-y-3">
+                  {[
+                    "Unlimited boards & posts",
+                    "10 team members",
+                    "🔎 Hunter Agent (4hr scans)",
+                    "📝 30 AI Specs/month",
+                    "😈 15 Devil's Advocate/month",
+                    "💬 100 Ask SignalsLoop queries",
+                    "📊 4 Executive Briefs/month",
+                    "🎧 20 Call transcripts/month",
+                    "Full Competitive War Room",
+                    "Linear & Webhooks",
+                    "5,000 API calls/month",
+                    "Team permissions & roles",
+                    "Priority support (24hr)"
+                  ].map((feature) => (
+                    <li key={feature} className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-purple-500 mr-3 flex-shrink-0" />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-8">
+                  <Link href="/login" className="block">
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 py-4 rounded-3xl">
+                      🚀 Start with Premium
+                    </Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           </div>
