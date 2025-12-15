@@ -10,9 +10,11 @@ function getStripe(): Stripe {
 }
 
 type BillingCycle = 'monthly' | 'yearly';
+type PlanType = 'pro' | 'premium';
 
 interface CheckoutBody {
   billingCycle?: BillingCycle;
+  plan?: PlanType;
   projectId?: string;
   accountId?: string;
   priceId?: string;
@@ -20,7 +22,21 @@ interface CheckoutBody {
   cancelUrl?: string;
 }
 
-const getDefaultPriceId = (cycle: BillingCycle): string | null => {
+const getDefaultPriceId = (cycle: BillingCycle, plan: PlanType = 'pro'): string | null => {
+  if (plan === 'premium') {
+    if (cycle === 'yearly') {
+      return (
+        process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID ||
+        null
+      );
+    }
+    return (
+      process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID ||
+      null
+    );
+  }
+
+  // Default: Pro plan
   if (cycle === 'yearly') {
     return (
       process.env.STRIPE_YEARLY_PRICE_ID ||
@@ -51,15 +67,25 @@ export async function createCheckoutSession(body: CheckoutBody, request: Request
   try {
     const body = (await request.json()) as CheckoutBody;
     const billingCycle: BillingCycle = body.billingCycle ?? 'monthly';
+    const plan: PlanType = body.plan ?? 'pro';
     const identifier = body.projectId || body.accountId;
 
-    console.log('🛒 Checkout request:', { billingCycle, identifier, rawBillingCycle: body.billingCycle });
+    console.log('🛒 Checkout request:', { billingCycle, plan, identifier, rawBillingCycle: body.billingCycle });
 
     // Validate billing cycle
     if (body.billingCycle && body.billingCycle !== 'monthly' && body.billingCycle !== 'yearly') {
       console.error('❌ Invalid billing cycle:', body.billingCycle);
       return NextResponse.json(
         { error: 'Invalid billing cycle', details: `Billing cycle must be 'monthly' or 'yearly', received: '${body.billingCycle}'` },
+        { status: 400 }
+      );
+    }
+
+    // Validate plan
+    if (body.plan && body.plan !== 'pro' && body.plan !== 'premium') {
+      console.error('❌ Invalid plan:', body.plan);
+      return NextResponse.json(
+        { error: 'Invalid plan', details: `Plan must be 'pro' or 'premium', received: '${body.plan}'` },
         { status: 400 }
       );
     }
@@ -89,18 +115,20 @@ export async function createCheckoutSession(body: CheckoutBody, request: Request
       currentPlan: context.profile?.plan
     });
 
-    const priceId = body.priceId ?? getDefaultPriceId(billingCycle);
+    const priceId = body.priceId ?? getDefaultPriceId(billingCycle, plan);
     if (!priceId) {
       console.error(
-        `[stripe/checkout] Missing price for ${billingCycle}. ` +
+        `[stripe/checkout] Missing price for ${plan} ${billingCycle}. ` +
         `STRIPE_MONTHLY_PRICE_ID=${process.env.STRIPE_MONTHLY_PRICE_ID}, ` +
-        `STRIPE_YEARLY_PRICE_ID=${process.env.STRIPE_YEARLY_PRICE_ID}`
+        `STRIPE_YEARLY_PRICE_ID=${process.env.STRIPE_YEARLY_PRICE_ID}, ` +
+        `STRIPE_PREMIUM_MONTHLY_PRICE_ID=${process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID}, ` +
+        `STRIPE_PREMIUM_YEARLY_PRICE_ID=${process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID}`
       );
     }
 
     if (!priceId) {
       return NextResponse.json(
-        { error: `Missing Stripe price ID for ${billingCycle} billing` },
+        { error: `Missing Stripe price ID for ${plan} ${billingCycle} billing` },
         { status: 500 }
       );
     }
@@ -109,7 +137,7 @@ export async function createCheckoutSession(body: CheckoutBody, request: Request
     const origin = request.headers.get('origin') || request.url.replace(/\/api\/.*/, '');
 
     const hasCustomer = Boolean(context.profile?.stripe_customer_id);
-    console.log('🔧 Creating checkout session:', { hasCustomer, priceId, billingCycle });
+    console.log('🔧 Creating checkout session:', { hasCustomer, priceId, billingCycle, plan });
 
     // Check if customer already has an active subscription
     if (hasCustomer && context.profile?.subscription_id) {
@@ -166,12 +194,14 @@ export async function createCheckoutSession(body: CheckoutBody, request: Request
         account_user_id: context.userId,
         project_id: context.project?.id ?? '',
         upgrade_type: billingCycle,
+        plan_type: plan,
       },
       subscription_data: {
         metadata: {
           account_user_id: context.userId,
           project_id: context.project?.id ?? '',
           upgrade_type: billingCycle,
+          plan_type: plan,
         },
       },
       success_url:

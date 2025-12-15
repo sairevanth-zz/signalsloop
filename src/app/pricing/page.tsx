@@ -107,210 +107,259 @@ export default function PricingPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
+            {/* Free Tier */}
             <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl">
               <CardHeader className="text-center pb-6">
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Free Forever</CardTitle>
                 <div className="text-4xl font-bold text-gray-900 dark:text-white my-6">$0</div>
-                <CardDescription className="text-gray-600 dark:text-gray-400">Experience AI-powered feedback management risk-free</CardDescription>
+                <CardDescription className="text-gray-600 dark:text-gray-400">Test drive AI-powered feedback</CardDescription>
               </CardHeader>
               <CardContent className="px-6 pb-6">
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-4 border-2 border-blue-300 dark:border-blue-700">
-                  <p className="text-sm font-bold text-blue-700 dark:text-blue-400 text-center flex items-center justify-center gap-1"><Bot className="w-4 h-4" />Try All 5 AI Features FREE</p>
-                  <p className="text-xs text-blue-600 dark:text-blue-400 text-center mt-1">10 AI requests/day • Test drive before upgrading</p>
-                  <div className="mt-2 pt-2 border-t border-blue-200 dark:border-blue-800">
-                    <p className="text-xs text-gray-700 dark:text-gray-300 text-center">
-                      <strong>Experience the AI magic.</strong> Upgrade to unlimited when you're ready.
-                    </p>
-                  </div>
-                </div>
                 <ul className="space-y-3">
                   {[
                     "1 feedback board",
                     "50 posts maximum",
-                    "Basic team collaboration",
-                    "AI Auto-Categorization (10/day)",
-                    "AI Priority Scoring (10/day)",
-                    "AI Duplicate Detection (10/day)",
-                    "AI Smart Replies (10/day)",
-                    "AI Writing Assistant (10/day)",
+                    "1 team member",
+                    "AI Categorization (30/day)",
+                    "AI Sentiment (30/day)",
+                    "AI Duplicates (10/day)",
+                    "AI Smart Replies (5/day)",
                     "Public boards only",
                     "Community support",
                     "SignalsLoop branding"
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
                       <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
                     </li>
                   ))}
                 </ul>
                 <div className="mt-8">
                   <Link href="/login" className="block">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
-                      🚀 Start Free • Try AI Now
+                    <Button className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                      Start Free
                     </Button>
                   </Link>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-3 text-center font-medium">
-                    No credit card • No time limit • Upgrade only when you love it
+                    No credit card required
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl relative">
+            {/* Pro Tier */}
+            <Card className="border-2 border-blue-500 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl relative">
               <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full">
                 Most Popular
               </Badge>
-              <Badge className="absolute -top-3 right-4 bg-purple-600 text-white px-3 py-1 rounded-full flex items-center gap-1">
-                <Bot className="w-3 h-3" />Powered by AI
-              </Badge>
               <CardHeader className="text-center pb-6 pt-8">
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Pro</CardTitle>
-                <div className="text-4xl font-bold text-gray-900 dark:text-white my-6">
+                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 my-6">
                   {isAnnual ? (
                     <>
-                      $15.20<span className="text-lg text-gray-500 dark:text-gray-400">/month</span>
+                      $15<span className="text-lg text-gray-500 dark:text-gray-400">/month</span>
                       <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mt-1">
-                        Billed annually ($182.40/year) • Save 20%
+                        Billed annually ($180/year) • Save 20%
                       </div>
                     </>
                   ) : (
                     <>
                       $19<span className="text-lg text-gray-500 dark:text-gray-400">/month</span>
-                      <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mt-1">
-                        Cancel anytime • No commitments
+                      <div className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-1">
+                        Cancel anytime
                       </div>
                     </>
                   )}
                 </div>
-                <CardDescription className="text-gray-600 dark:text-gray-400">For growing teams • Start free, upgrade when ready</CardDescription>
+                <CardDescription className="text-gray-600 dark:text-gray-400">For indie makers & solo founders</CardDescription>
               </CardHeader>
               <CardContent className="px-6 pb-6">
-                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 mb-4 border border-purple-200 dark:border-purple-700">
-                  <p className="text-sm font-bold text-purple-700 dark:text-purple-400 text-center flex items-center justify-center gap-1"><Zap className="w-4 h-4" />Unlimited AI Requests</p>
-                  <p className="text-xs text-purple-600 dark:text-purple-400 text-center mt-1">No per-request charges • No usage limits</p>
-                </div>
                 <ul className="space-y-3">
                   {[
-                    "Unlimited boards",
-                    "Unlimited posts",
-                    "Private boards",
-                    "Team collaboration & roles",
-                    "Admin & member permissions",
-                    "Team invitations & management",
-                    "AI Smart Categorization (Unlimited)",
-                    "AI Duplicate Detection (Unlimited)",
-                    "AI Priority Scoring (Unlimited)",
-                    "AI Smart Replies (Unlimited)",
-                    "AI Writing Assistant (Unlimited)",
-                    "Custom domain (white-label)",
+                    "5 feedback boards",
+                    "1,000 posts",
+                    "2 team members",
+                    "Hunter Agent (Reddit + HN)",
+                    "10 AI Specs/month",
+                    "5 Devil's Advocate/month",
+                    "50 Ask SignalsLoop queries",
+                    "1 Executive Brief/month",
+                    "5 Call transcripts/month",
+                    "Jira & Slack integration",
+                    "1,000 API calls/month",
+                    "Custom domain",
                     "Remove branding",
-                    "Slack & Discord integration",
-                    "Webhooks & API access",
-                    "CSV Import/Export",
-                    "Email notifications & digests",
-                    "Priority email support"
+                    "Email support (48hr)"
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <CheckCircle className="h-5 w-5 text-blue-500 mr-3 flex-shrink-0" />
                       <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
                     </li>
                   ))}
                 </ul>
                 <GradientButton
-                  className="cta-primary w-full mt-8 text-white font-semibold rounded-xl py-4"
+                  className="w-full mt-8 text-white font-semibold rounded-xl py-4"
                   onClick={handleProCheckout}
                 >
                   🚀 Start Free - Upgrade Anytime
                 </GradientButton>
               </CardContent>
             </Card>
+
+            {/* Premium Tier */}
+            <Card className="border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 backdrop-blur-sm rounded-xl relative">
+              <Badge className="absolute -top-3 right-4 bg-purple-600 text-white px-3 py-1 rounded-full flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />Team
+              </Badge>
+              <CardHeader className="text-center pb-6 pt-8">
+                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Premium</CardTitle>
+                <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 my-6">
+                  {isAnnual ? (
+                    <>
+                      $63<span className="text-lg text-gray-500 dark:text-gray-400">/month</span>
+                      <div className="text-sm text-purple-600 dark:text-purple-400 font-medium mt-1">
+                        Billed annually ($756/year) • Save 20%
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      $79<span className="text-lg text-gray-500 dark:text-gray-400">/month</span>
+                      <div className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-1">
+                        For growing teams
+                      </div>
+                    </>
+                  )}
+                </div>
+                <CardDescription className="text-gray-600 dark:text-gray-400">For PM teams (3-10 people)</CardDescription>
+              </CardHeader>
+              <CardContent className="px-6 pb-6">
+                <ul className="space-y-3">
+                  {[
+                    "Unlimited boards & posts",
+                    "10 team members",
+                    "Hunter Agent (4hr scans)",
+                    "30 AI Specs/month",
+                    "15 Devil's Advocate/month",
+                    "100 Ask SignalsLoop queries",
+                    "4 Executive Briefs/month",
+                    "20 Call transcripts/month",
+                    "Full Competitive War Room",
+                    "Linear & Webhooks",
+                    "5,000 API calls/month",
+                    "Team permissions & roles",
+                    "Priority support (24hr)"
+                  ].map((feature) => (
+                    <li key={feature} className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-purple-500 mr-3 flex-shrink-0" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-8">
+                  <Link href="/login" className="block">
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 py-4 rounded-xl">
+                      🚀 Start with Premium
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
-          {/* Pricing Comparison Table */}
-          <div className="mt-20 max-w-5xl mx-auto">
-            <h3 className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white mb-8">
-              Feature Comparison
-            </h3>
+        {/* Pricing Comparison Table */}
+        <div className="mt-20 max-w-5xl mx-auto">
+          <h3 className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white mb-8">
+            Feature Comparison
+          </h3>
 
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-              {/* Table Header */}
-              <div className="grid grid-cols-3 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
-                <div className="p-4 font-bold text-gray-900 dark:text-white">Feature</div>
-                <div className="p-4 text-center font-bold text-gray-900 dark:text-white border-l border-gray-200 dark:border-gray-700">Free</div>
-                <div className="p-4 text-center font-bold text-gray-900 dark:text-white border-l border-gray-200 dark:border-gray-700">Pro</div>
-              </div>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {/* Table Header */}
+            <div className="grid grid-cols-4 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
+              <div className="p-4 font-bold text-gray-900 dark:text-white">Feature</div>
+              <div className="p-4 text-center font-bold text-gray-900 dark:text-white border-l border-gray-200 dark:border-gray-700">Free</div>
+              <div className="p-4 text-center font-bold text-blue-600 dark:text-blue-400 border-l border-gray-200 dark:border-gray-700">Pro $19</div>
+              <div className="p-4 text-center font-bold text-purple-600 dark:text-purple-400 border-l border-gray-200 dark:border-gray-700">Premium $79</div>
+            </div>
 
-              {/* Table Rows */}
-              {[
-                { feature: "Feedback Boards", free: "1 board", pro: "Unlimited" },
-                { feature: "Posts per Board", free: "50 posts", pro: "Unlimited" },
-                { feature: "Team Members", free: "Basic", pro: "Unlimited + Roles" },
-                { feature: "AI Auto-Categorization", free: "10/day", pro: "Unlimited" },
-                { feature: "AI Priority Scoring", free: "10/day", pro: "Unlimited" },
-                { feature: "AI Duplicate Detection", free: "10/day", pro: "Unlimited" },
-                { feature: "AI Smart Replies", free: "10/day", pro: "Unlimited" },
-                { feature: "AI Writing Assistant", free: "10/day", pro: "Unlimited" },
-                { feature: "Private Boards", free: false, pro: true },
-                { feature: "Custom Branding", free: false, pro: true },
-                { feature: "CSV Export", free: false, pro: true },
-                { feature: "API Access", free: false, pro: true },
-                { feature: "Webhooks", free: false, pro: true },
-                { feature: "Slack Integration", free: false, pro: true },
-                { feature: "Discord Integration", free: false, pro: true },
-                { feature: "Public Roadmap", free: true, pro: true },
-                { feature: "Changelog", free: true, pro: true },
-                { feature: "Widget Embed", free: true, pro: true },
-                { feature: "Analytics Dashboard", free: "Basic", pro: "Advanced" },
-                { feature: "Priority Support", free: false, pro: true },
-              ].map((row, index) => (
-                <div
-                  key={row.feature}
-                  className={`grid grid-cols-3 ${
-                    index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-900/50' : 'bg-white dark:bg-gray-800'
+            {/* Table Rows */}
+            {[
+              { feature: "Feedback Boards", free: "1", pro: "5", premium: "Unlimited" },
+              { feature: "Posts", free: "50", pro: "1,000", premium: "Unlimited" },
+              { feature: "Team Members", free: "1", pro: "2", premium: "10" },
+              { feature: "Hunter Agent", free: false, pro: "24hr", premium: "4hr" },
+              { feature: "AI Specs", free: false, pro: "10/mo", premium: "30/mo" },
+              { feature: "Devil's Advocate", free: false, pro: "5/mo", premium: "15/mo" },
+              { feature: "Ask SignalsLoop", free: false, pro: "50/mo", premium: "100/mo" },
+              { feature: "Executive Briefs", free: false, pro: "1/mo", premium: "4/mo" },
+              { feature: "Call Intelligence", free: false, pro: "5/mo", premium: "20/mo" },
+              { feature: "AI Categorization", free: "30/day", pro: "1K/mo", premium: "Unlimited" },
+              { feature: "Competitive War Room", free: false, pro: "Basic", premium: "Full" },
+              { feature: "Private Boards", free: false, pro: true, premium: true },
+              { feature: "Custom Domain", free: false, pro: true, premium: true },
+              { feature: "Jira Integration", free: false, pro: true, premium: true },
+              { feature: "Linear Integration", free: false, pro: false, premium: true },
+              { feature: "Webhooks", free: false, pro: false, premium: true },
+              { feature: "API Calls", free: false, pro: "1K/mo", premium: "5K/mo" },
+              { feature: "Support", free: "Community", pro: "Email 48hr", premium: "Priority 24hr" },
+            ].map((row, index) => (
+              <div
+                key={row.feature}
+                className={`grid grid-cols-4 ${index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-900/50' : 'bg-white dark:bg-gray-800'
                   } border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors`}
-                >
-                  <div className="p-4 text-sm text-gray-700 dark:text-gray-300 font-medium">{row.feature}</div>
-                  <div className="p-4 text-center border-l border-gray-200 dark:border-gray-700 text-sm">
-                    {typeof row.free === 'boolean' ? (
-                      row.free ? (
-                        <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
-                      ) : (
-                        <span className="text-gray-400 dark:text-gray-600">—</span>
-                      )
+              >
+                <div className="p-3 text-sm text-gray-700 dark:text-gray-300 font-medium">{row.feature}</div>
+                <div className="p-3 text-center border-l border-gray-200 dark:border-gray-700 text-sm">
+                  {typeof row.free === 'boolean' ? (
+                    row.free ? (
+                      <CheckCircle className="w-4 h-4 text-green-500 mx-auto" />
                     ) : (
-                      <span className="text-gray-700 dark:text-gray-300">{row.free}</span>
-                    )}
-                  </div>
-                  <div className="p-4 text-center border-l border-gray-200 dark:border-gray-700 text-sm">
-                    {typeof row.pro === 'boolean' ? (
-                      row.pro ? (
-                        <CheckCircle className="w-5 h-5 text-blue-500 mx-auto" />
-                      ) : (
-                        <span className="text-gray-400 dark:text-gray-600">—</span>
-                      )
-                    ) : (
-                      <span className="text-gray-700 dark:text-gray-300 font-medium">{row.pro}</span>
-                    )}
-                  </div>
+                      <span className="text-gray-400 dark:text-gray-600">—</span>
+                    )
+                  ) : (
+                    <span className="text-gray-700 dark:text-gray-300">{row.free}</span>
+                  )}
                 </div>
-              ))}
-            </div>
-
-            {/* CTA below table */}
-            <div className="text-center mt-8">
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                All plans include SSL encryption, uptime SLA, and data backups
-              </p>
-              <Link href="/login">
-                <Button className="cta-primary text-lg px-8 py-6">
-                  Start Free • Upgrade Anytime
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
+                <div className="p-3 text-center border-l border-gray-200 dark:border-gray-700 text-sm">
+                  {typeof row.pro === 'boolean' ? (
+                    row.pro ? (
+                      <CheckCircle className="w-4 h-4 text-blue-500 mx-auto" />
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-600">—</span>
+                    )
+                  ) : (
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">{row.pro}</span>
+                  )}
+                </div>
+                <div className="p-3 text-center border-l border-gray-200 dark:border-gray-700 text-sm">
+                  {typeof row.premium === 'boolean' ? (
+                    row.premium ? (
+                      <CheckCircle className="w-4 h-4 text-purple-500 mx-auto" />
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-600">—</span>
+                    )
+                  ) : (
+                    <span className="text-purple-700 dark:text-purple-300 font-medium">{row.premium}</span>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
+
+          {/* CTA below table */}
+          <div className="text-center mt-8">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              All plans include SSL encryption, uptime SLA, and data backups
+            </p>
+            <Link href="/login">
+              <Button className="cta-primary text-lg px-8 py-6">
+                Start Free • Upgrade Anytime
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* Competitive Comparison */}

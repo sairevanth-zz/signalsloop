@@ -22,10 +22,14 @@ const getOrigin = (request: NextRequest) => {
 
 export async function POST(request: NextRequest) {
   try {
-    const { billingType, projectId, returnUrl } = await request.json();
+    const { billingType, plan = 'pro', projectId, returnUrl } = await request.json();
 
     if (!billingType || !['monthly', 'annual'].includes(billingType)) {
       return NextResponse.json({ error: 'Invalid billing type' }, { status: 400 });
+    }
+
+    if (plan && !['pro', 'premium'].includes(plan)) {
+      return NextResponse.json({ error: 'Invalid plan. Must be pro or premium.' }, { status: 400 });
     }
 
     const stripe = getStripe();
@@ -42,49 +46,54 @@ export async function POST(request: NextRequest) {
       return prices;
     };
 
-    // Find the appropriate price based on billing type
+    // Find the appropriate price based on billing type and plan
     let priceId: string;
 
-    const envMonthlyPrice = process.env.STRIPE_MONTHLY_PRICE_ID;
-    const envYearlyPrice = process.env.STRIPE_YEARLY_PRICE_ID;
+    // Get env vars based on plan type
+    const envMonthlyPrice = plan === 'premium'
+      ? process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID
+      : process.env.STRIPE_MONTHLY_PRICE_ID;
+    const envYearlyPrice = plan === 'premium'
+      ? process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID
+      : process.env.STRIPE_YEARLY_PRICE_ID;
 
     if (billingType === 'monthly' && envMonthlyPrice) {
       priceId = envMonthlyPrice;
     } else if (billingType === 'annual' && envYearlyPrice) {
       priceId = envYearlyPrice;
     } else if (billingType === 'monthly') {
-      // Look for monthly Pro price
+      // Look for monthly price matching plan
       const monthlyPrices = await ensurePricesLoaded();
-      const monthlyPrice = monthlyPrices.data.find(price => 
-        price.recurring?.interval === 'month' && 
-        (price.product as Stripe.Product).name?.toLowerCase().includes('pro')
+      const monthlyPrice = monthlyPrices.data.find(price =>
+        price.recurring?.interval === 'month' &&
+        (price.product as Stripe.Product).name?.toLowerCase().includes(plan)
       );
-      
+
       if (!monthlyPrice) {
-        return NextResponse.json({ error: 'Monthly Pro price not found. Please contact support.' }, { status: 404 });
+        return NextResponse.json({ error: `Monthly ${plan} price not found. Please contact support.` }, { status: 404 });
       }
-      
+
       priceId = monthlyPrice.id;
     } else if (billingType === 'annual') {
-      // Look for annual Pro price
+      // Look for annual price matching plan
       const annualPrices = await ensurePricesLoaded();
-      const annualPrice = annualPrices.data.find(price => 
-        price.recurring?.interval === 'year' && 
-        (price.product as Stripe.Product).name?.toLowerCase().includes('pro')
+      const annualPrice = annualPrices.data.find(price =>
+        price.recurring?.interval === 'year' &&
+        (price.product as Stripe.Product).name?.toLowerCase().includes(plan)
       );
-      
+
       if (!annualPrice) {
         // Fallback to monthly price if annual not found
         const monthlyPrices = await ensurePricesLoaded();
-        const monthlyPrice = monthlyPrices.data.find(price => 
-          price.recurring?.interval === 'month' && 
-          (price.product as Stripe.Product).name?.toLowerCase().includes('pro')
+        const monthlyPrice = monthlyPrices.data.find(price =>
+          price.recurring?.interval === 'month' &&
+          (price.product as Stripe.Product).name?.toLowerCase().includes(plan)
         );
-        
+
         if (!monthlyPrice) {
-          return NextResponse.json({ error: 'Pro pricing not found. Please contact support.' }, { status: 404 });
+          return NextResponse.json({ error: `${plan} pricing not found. Please contact support.` }, { status: 404 });
         }
-        
+
         priceId = monthlyPrice.id;
         console.log('Annual price not found, using monthly price as fallback');
       } else {
@@ -95,9 +104,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (!priceId) {
-      console.error('Stripe price lookup failed for billing type:', billingType);
+      console.error('Stripe price lookup failed for:', { billingType, plan });
       return NextResponse.json(
-        { error: `Stripe price not configured for ${billingType} billing. Please contact support.` },
+        { error: `Stripe price not configured for ${plan} ${billingType} billing. Please contact support.` },
         { status: 500 }
       );
     }
@@ -138,6 +147,7 @@ export async function POST(request: NextRequest) {
       },
       metadata: {
         billingType,
+        plan_type: plan,
         source: 'homepage',
         projectId: projectId ?? '',
       },
@@ -147,7 +157,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Homepage checkout error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Failed to create checkout session',
       details: message
     }, { status: 500 });
