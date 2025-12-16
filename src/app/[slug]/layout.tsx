@@ -72,9 +72,9 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
     <TooltipProvider>
       <ShortcutsProvider projectSlug={projectSlug}>
         <TourProvider autoStart={true}>
-          <div className="min-h-screen" style={{ backgroundColor: '#0d1117' }}>
+          <div className="min-h-screen bg-gray-50 dark:bg-[#0d1117]">
             {/* Global Header with Mobile Menu */}
-            <div className="sticky top-0 z-50 flex items-center" style={{ backgroundColor: '#0d1117', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="sticky top-0 z-50 flex items-center bg-[#0d1117] border-b border-white/10">
               <div className="lg:hidden pl-3">
                 <MobileSidebar projectSlug={projectSlug} />
               </div>
@@ -93,16 +93,15 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
 
             {/* Main Layout with Sidebar */}
             <div className="flex">
-              {/* Workflow Sidebar */}
+              {/* Workflow Sidebar - always dark for branding consistency */}
               <aside
-                className="hidden lg:block w-64 flex-shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto"
-                style={{ borderRight: '1px solid rgba(255,255,255,0.1)' }}
+                className="hidden lg:block w-64 flex-shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto bg-[#1e2228] border-r border-white/10"
               >
                 <WorkflowSidebar projectSlug={projectSlug} />
               </aside>
 
-              {/* Main Content */}
-              <main className="flex-1 min-w-0">
+              {/* Main Content - theme-aware background */}
+              <main className="flex-1 min-w-0 bg-gray-50 dark:bg-[#13151a]">
                 {children}
               </main>
             </div>
