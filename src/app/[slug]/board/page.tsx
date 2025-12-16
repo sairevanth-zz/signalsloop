@@ -1211,17 +1211,9 @@ export default function BoardPage() {
                     </Button>
                   </Link>
 
-                  {/* User Stories Button - Visible for logged-in users */}
-                  {user && project && (
-                    <Link href={`/app/user-stories?projectId=${project.id}`}>
-                      <Button variant="outline" className="flex items-center gap-1 min-touch-target tap-highlight-transparent bg-blue-50 hover:bg-blue-100 border-blue-200">
-                        <FileText className="w-4 h-4 text-blue-600" />
-                        <span className="hidden md:inline">User Stories</span>
-                      </Button>
-                    </Link>
-                  )}
 
                   {/* Settings Button - Visible for logged-in users on all devices */}
+
                   {user && (
                     <Link href={`/${params?.slug}/settings`}>
                       <Button variant="outline" className="flex items-center gap-1 min-touch-target tap-highlight-transparent">

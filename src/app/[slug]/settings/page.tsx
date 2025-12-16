@@ -360,7 +360,7 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -372,7 +372,7 @@ export default function SettingsPage() {
 
   if (loading || authUser === undefined) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -384,7 +384,7 @@ export default function SettingsPage() {
 
   if (authUser === null) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center space-y-4">
             <h1 className="text-2xl font-bold text-gray-900">Session Needed</h1>
@@ -402,7 +402,7 @@ export default function SettingsPage() {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Project Not Found</h1>
@@ -417,14 +417,14 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Project Settings</h1>
-              <p className="text-gray-600">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Project Settings</h1>
+              <p className="text-gray-600 dark:text-gray-400">
                 Manage settings for <span className="font-semibold">{project.name}</span>
               </p>
             </div>
@@ -455,22 +455,22 @@ export default function SettingsPage() {
           <div className="flex gap-8">
             {/* Left Sidebar - Grouped Navigation */}
             <div className="w-72 flex-shrink-0">
-              <div className="bg-white rounded-xl border border-gray-200 shadow-lg sticky top-4 overflow-hidden">
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-lg sticky top-4 overflow-hidden">
                 {/* Group 1: Board & Widget */}
-                <div className="border-b border-gray-100">
-                  <div className="px-4 py-3 bg-gray-50">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Board & Widget</h3>
+                <div className="border-b border-gray-100 dark:border-slate-700">
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700/50">
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Board & Widget</h3>
                   </div>
                   <div className="p-2 space-y-1">
-                    <button onClick={() => setActiveTab('api-keys')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'api-keys' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('api-keys')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'api-keys' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <Key className="w-4 h-4" />
                       API Keys
                     </button>
-                    <button onClick={() => setActiveTab('board')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'board' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('board')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'board' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <Settings className="w-4 h-4" />
                       Board Settings
                     </button>
-                    <button onClick={() => setActiveTab('domain')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'domain' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('domain')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'domain' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <Globe className="w-4 h-4" />
                       Custom Domain
                     </button>
@@ -478,20 +478,20 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Group 2: Notifications */}
-                <div className="border-b border-gray-100">
-                  <div className="px-4 py-3 bg-gray-50">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notifications</h3>
+                <div className="border-b border-gray-100 dark:border-slate-700">
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700/50">
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Notifications</h3>
                   </div>
                   <div className="p-2 space-y-1">
-                    <button onClick={() => setActiveTab('notifications')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'notifications' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('notifications')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'notifications' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <Mail className="w-4 h-4" />
                       Email Alerts
                     </button>
-                    <button onClick={() => setActiveTab('push')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'push' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('push')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'push' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <Bell className="w-4 h-4" />
                       Push Notifications
                     </button>
-                    <button onClick={() => setActiveTab('webhooks')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'webhooks' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('webhooks')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'webhooks' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <Zap className="w-4 h-4" />
                       Webhooks
                     </button>
@@ -499,24 +499,24 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Group 3: Integrations */}
-                <div className="border-b border-gray-100">
-                  <div className="px-4 py-3 bg-gray-50">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Integrations</h3>
+                <div className="border-b border-gray-100 dark:border-slate-700">
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700/50">
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Integrations</h3>
                   </div>
                   <div className="p-2 space-y-1">
-                    <button onClick={() => setActiveTab('integrations')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'integrations' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('integrations')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'integrations' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <Plug className="w-4 h-4" />
                       Connected Apps
                     </button>
-                    <button onClick={() => setActiveTab('agents')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'agents' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('agents')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'agents' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <Activity className="w-4 h-4" />
                       AI Agents
                     </button>
-                    <button onClick={() => setActiveTab('import')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'import' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('import')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'import' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <Upload className="w-4 h-4" />
                       Import Data
                     </button>
-                    <button onClick={() => setActiveTab('export')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'export' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('export')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'export' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <Download className="w-4 h-4" />
                       Export Data
                     </button>
@@ -525,27 +525,27 @@ export default function SettingsPage() {
 
                 {/* Group 4: Access & Team */}
                 <div>
-                  <div className="px-4 py-3 bg-gray-50">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Access & Team</h3>
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700/50">
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Access & Team</h3>
                   </div>
                   <div className="p-2 space-y-1">
-                    <button onClick={() => setActiveTab('teammates')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'teammates' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('teammates')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'teammates' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <Users className="w-4 h-4" />
                       Team Members
                     </button>
-                    <button onClick={() => setActiveTab('stakeholders')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'stakeholders' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('stakeholders')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'stakeholders' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <Briefcase className="w-4 h-4" />
                       Stakeholders
                     </button>
-                    <button onClick={() => setActiveTab('votes')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'votes' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('votes')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'votes' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <UserPlus className="w-4 h-4" />
                       Votes Dashboard
                     </button>
-                    <button onClick={() => setActiveTab('feedback')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'feedback' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('feedback')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'feedback' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <MessageSquare className="w-4 h-4" />
                       Feedback Dashboard
                     </button>
-                    <button onClick={() => setActiveTab('changelog')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'changelog' ? 'bg-teal-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <button onClick={() => setActiveTab('changelog')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${activeTab === 'changelog' ? 'bg-teal-500 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}>
                       <FileText className="w-4 h-4" />
                       Changelog
                     </button>
@@ -558,11 +558,11 @@ export default function SettingsPage() {
             <div className="flex-1 min-w-0">
 
               <TabsContent value="api-keys" className="mt-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900">API Keys</h3>
-                      <p className="text-gray-600">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">API Keys</h3>
+                      <p className="text-gray-600 dark:text-gray-400">
                         Manage API keys for embedding widgets
                       </p>
                     </div>
@@ -578,7 +578,7 @@ export default function SettingsPage() {
               </TabsContent>
 
               <TabsContent value="board" className="mt-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <BoardSettings
                     projectSlug={project.slug}
                     userPlan={project.plan}
@@ -597,14 +597,14 @@ export default function SettingsPage() {
 
               <TabsContent value="integrations" className="mt-6 space-y-6">
                 {/* CRM Systems - Salesforce & HubSpot */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                         <DollarSign className="w-5 h-5 text-green-500" />
                         CRM Systems
                       </h3>
-                      <p className="text-gray-600 mt-1">
+                      <p className="text-gray-600 dark:text-gray-400 mt-1">
                         Connect Salesforce or HubSpot to prioritize feedback by customer revenue
                       </p>
                     </div>
@@ -616,7 +616,7 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">Revenue-Based Prioritization</div>
-                        <div className="text-sm text-gray-600">Configure Salesforce & HubSpot integrations</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">Configure Salesforce & HubSpot integrations</div>
                       </div>
                     </div>
                     <Button
@@ -629,14 +629,14 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Experiment Platforms - LaunchDarkly & Optimizely */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                         <Briefcase className="w-5 h-5" />
                         Experiment Platforms
                       </h3>
-                      <p className="text-gray-600 mt-1">
+                      <p className="text-gray-600 dark:text-gray-400 mt-1">
                         Connect LaunchDarkly or Optimizely for live experiment tracking
                       </p>
                     </div>
@@ -648,7 +648,7 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">Live Experiment Tracking</div>
-                        <div className="text-sm text-gray-600">Configure LaunchDarkly & Optimizely integrations</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">Configure LaunchDarkly & Optimizely integrations</div>
                       </div>
                     </div>
                     <Button
@@ -685,14 +685,14 @@ export default function SettingsPage() {
                 />
 
                 {/* AI Prototyping - Lovable */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                         <span className="text-pink-500">✨</span>
                         AI Prototyping
                       </h3>
-                      <p className="text-gray-600 mt-1">
+                      <p className="text-gray-600 dark:text-gray-400 mt-1">
                         Generate working prototypes from specs using Lovable AI (BYOK)
                       </p>
                     </div>
@@ -704,7 +704,7 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">Lovable Prototype Generation</div>
-                        <div className="text-sm text-gray-600">Add your own API key to enable prototype generation</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">Add your own API key to enable prototype generation</div>
                       </div>
                     </div>
                     <Button
@@ -718,17 +718,17 @@ export default function SettingsPage() {
               </TabsContent>
 
               <TabsContent value="votes" className="mt-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900">Votes on Behalf</h3>
-                      <p className="text-gray-600">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Votes on Behalf</h3>
+                      <p className="text-gray-600 dark:text-gray-400">
                         View and manage votes submitted on behalf of customers
                       </p>
                     </div>
                   </div>
                   <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
                       View detailed vote information at:
                     </p>
                     <Button
@@ -742,17 +742,17 @@ export default function SettingsPage() {
               </TabsContent>
 
               <TabsContent value="feedback" className="mt-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900">Feedback on Behalf</h3>
-                      <p className="text-gray-600">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Feedback on Behalf</h3>
+                      <p className="text-gray-600 dark:text-gray-400">
                         View and manage feedback submitted on behalf of customers
                       </p>
                     </div>
                   </div>
                   <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
                       View detailed feedback information at:
                     </p>
                     <Button
@@ -773,14 +773,14 @@ export default function SettingsPage() {
               </TabsContent>
 
               <TabsContent value="push" className="mt-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                         <Bell className="w-5 h-5 text-purple-500" />
                         Push Notifications
                       </h3>
-                      <p className="text-gray-600 mt-1">
+                      <p className="text-gray-600 dark:text-gray-400 mt-1">
                         Get real-time alerts for anomalies, competitive intel, and important updates
                       </p>
                     </div>
@@ -803,7 +803,7 @@ export default function SettingsPage() {
               </TabsContent>
 
               <TabsContent value="webhooks" className="mt-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <WebhooksSettingsWrapper
                     projectId={project.id}
                     onShowNotification={handleShowNotification}
@@ -812,11 +812,11 @@ export default function SettingsPage() {
               </TabsContent>
 
               <TabsContent value="import" className="mt-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900">CSV Import</h3>
-                      <p className="text-gray-600">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">CSV Import</h3>
+                      <p className="text-gray-600 dark:text-gray-400">
                         {project?.plan === 'pro'
                           ? 'Import posts and votes from CSV files into your project'
                           : 'CSV import is available for Pro users'
@@ -837,10 +837,10 @@ export default function SettingsPage() {
                       <div className="w-16 h-16 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Upload className="h-8 w-8 text-yellow-600" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                         CSV Import Tool
                       </h3>
-                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
                         Import posts and votes from CSV files into your project. Perfect for migrating data from other feedback systems.
                       </p>
                       <div className="space-y-3">
@@ -860,11 +860,11 @@ export default function SettingsPage() {
               </TabsContent>
 
               <TabsContent value="export" className="mt-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900">Data Export</h3>
-                      <p className="text-gray-600">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Data Export</h3>
+                      <p className="text-gray-600 dark:text-gray-400">
                         {project?.plan === 'pro'
                           ? 'Export feedback data to CSV or Excel for analysis'
                           : 'Data export is available for Pro users'
@@ -900,10 +900,10 @@ export default function SettingsPage() {
                       <div className="w-16 h-16 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Download className="h-8 w-8 text-yellow-600" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                         Data Export
                       </h3>
-                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
                         Export feedback data to CSV or Excel for analysis in external tools. Perfect for reporting and data analysis.
                       </p>
                       <div className="space-y-3">
@@ -923,11 +923,11 @@ export default function SettingsPage() {
               </TabsContent>
 
               <TabsContent value="changelog" className="mt-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900">Changelog Management</h3>
-                      <p className="text-gray-600">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Changelog Management</h3>
+                      <p className="text-gray-600 dark:text-gray-400">
                         Create and manage product changelog releases for your users
                       </p>
                     </div>
@@ -940,10 +940,10 @@ export default function SettingsPage() {
                       <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <FileText className="h-8 w-8 text-blue-600" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                         Loading...
                       </h3>
-                      <p className="text-gray-600">
+                      <p className="text-gray-600 dark:text-gray-400">
                         Loading changelog settings...
                       </p>
                     </div>
@@ -952,7 +952,7 @@ export default function SettingsPage() {
               </TabsContent>
 
               <TabsContent value="agents" className="mt-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   {project ? (
                     <Tabs defaultValue="status" className="w-full">
                       <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -971,10 +971,10 @@ export default function SettingsPage() {
                       <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Activity className="h-8 w-8 text-blue-600" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                         Loading...
                       </h3>
-                      <p className="text-gray-600">
+                      <p className="text-gray-600 dark:text-gray-400">
                         Loading agent settings...
                       </p>
                     </div>
@@ -983,7 +983,7 @@ export default function SettingsPage() {
               </TabsContent>
 
               <TabsContent value="teammates" className="mt-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   {project && authUser ? (
                     <TeammatesSettings
                       projectId={project.id}
@@ -996,10 +996,10 @@ export default function SettingsPage() {
                       <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Users className="h-8 w-8 text-blue-600" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                         Loading...
                       </h3>
-                      <p className="text-gray-600">
+                      <p className="text-gray-600 dark:text-gray-400">
                         Loading team settings...
                       </p>
                     </div>
@@ -1008,17 +1008,17 @@ export default function SettingsPage() {
               </TabsContent>
 
               <TabsContent value="stakeholders" className="mt-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900">Stakeholder Management</h3>
-                      <p className="text-gray-600">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Stakeholder Management</h3>
+                      <p className="text-gray-600 dark:text-gray-400">
                         Manage stakeholders and automated status reports
                       </p>
                     </div>
                   </div>
                   <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
                       Configure stakeholders and automated reporting:
                     </p>
                     <Button
