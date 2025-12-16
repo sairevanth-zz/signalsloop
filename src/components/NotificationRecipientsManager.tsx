@@ -298,7 +298,7 @@ export function NotificationRecipientsManager({
   const showEmptyState = isAuthenticated && initialLoadComplete && recipients.length === 0;
 
   return (
-    <Card className="border border-slate-200">
+    <Card className="border border-slate-200 dark:border-slate-700">
       <CardHeader>
         <CardTitle>Notification Recipients</CardTitle>
         <CardDescription>
@@ -308,10 +308,10 @@ export function NotificationRecipientsManager({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <form onSubmit={handleAddRecipient} className="grid gap-4 rounded-lg border border-slate-200 p-4">
+        <form onSubmit={handleAddRecipient} className="grid gap-4 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
           <div className="grid gap-2 sm:grid-cols-[2fr_1fr]">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700" htmlFor="recipient-email">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="recipient-email">
                 Email
               </label>
               <Input
@@ -325,7 +325,7 @@ export function NotificationRecipientsManager({
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700" htmlFor="recipient-name">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="recipient-name">
                 Name (optional)
               </label>
               <Input
@@ -338,7 +338,7 @@ export function NotificationRecipientsManager({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-6">
-            <label className="flex items-center gap-3 text-sm text-slate-600">
+            <label className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
               <Switch
                 checked={form.receiveTeamAlerts}
                 onCheckedChange={(checked) => handleFormChange('receiveTeamAlerts', checked)}
@@ -346,7 +346,7 @@ export function NotificationRecipientsManager({
               />
               Team alerts for new submissions
             </label>
-            <label className="flex items-center gap-3 text-sm text-slate-600">
+            <label className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
               <Switch
                 checked={form.receiveWeeklyDigest}
                 onCheckedChange={(checked) => handleFormChange('receiveWeeklyDigest', checked)}
@@ -366,21 +366,21 @@ export function NotificationRecipientsManager({
         </form>
 
         {!sessionKnown ? (
-          <div className="flex items-center gap-2 text-sm text-slate-500">
+          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
             <Loader2 className="h-4 w-4 animate-spin" />
             Checking authentication…
           </div>
         ) : authError ? (
-          <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+          <div className="rounded-lg border border-dashed border-slate-200 dark:border-slate-700 p-6 text-center text-sm text-slate-500 dark:text-slate-400">
             {authError}
           </div>
         ) : loading ? (
-          <div className="flex items-center gap-2 text-sm text-slate-500">
+          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
             <Loader2 className="h-4 w-4 animate-spin" />
             Loading recipients…
           </div>
         ) : showEmptyState ? (
-          <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+          <div className="rounded-lg border border-dashed border-slate-200 dark:border-slate-700 p-6 text-center text-sm text-slate-500 dark:text-slate-400">
             No recipients yet. Add the first email above to start customizing notifications. If the
             list stays empty, we’ll continue notifying the project owner.
           </div>
@@ -388,7 +388,7 @@ export function NotificationRecipientsManager({
           <div className="overflow-x-auto">
             <table className="w-full min-w-[520px] border-collapse text-sm">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   <th className="px-3 py-2">Email</th>
                   <th className="px-3 py-2">Name</th>
                   <th className="px-3 py-2 text-center">Team Alerts</th>
@@ -398,9 +398,9 @@ export function NotificationRecipientsManager({
               </thead>
               <tbody>
                 {recipients.map((recipient) => (
-                  <tr key={recipient.id} className="border-b border-slate-100">
-                    <td className="px-3 py-3 font-medium text-slate-800">{recipient.email}</td>
-                    <td className="px-3 py-3 text-slate-600">
+                  <tr key={recipient.id} className="border-b border-slate-100 dark:border-slate-700">
+                    <td className="px-3 py-3 font-medium text-slate-800 dark:text-slate-200">{recipient.email}</td>
+                    <td className="px-3 py-3 text-slate-600 dark:text-slate-400">
                       <Input
                         value={recipient.name ?? ''}
                         placeholder="Add a label"

@@ -261,9 +261,9 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
 
   // Column mapping handling
   const updateMapping = (csvColumn: string, dbField: string) => {
-    setColumnMappings(prev => 
-      prev.map(mapping => 
-        mapping.csvColumn === csvColumn 
+    setColumnMappings(prev =>
+      prev.map(mapping =>
+        mapping.csvColumn === csvColumn
           ? { ...mapping, dbField }
           : mapping
       )
@@ -285,7 +285,7 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
 
     const previewData = csvData.slice(0, 5).map((row, index) => {
       const processedRow: any = { rowNumber: index + 1 };
-      
+
       columnMappings.forEach(mapping => {
         if (mapping.dbField !== 'skip') {
           let value = row[mapping.csvColumn];
@@ -293,14 +293,14 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
           if (typeof value === 'string') {
             value = value.trim();
           }
-          
+
           // Process specific fields
           if (mapping.dbField === 'status') {
-            value = STATUS_OPTIONS.includes(value?.toLowerCase()) 
-              ? value.toLowerCase() 
+            value = STATUS_OPTIONS.includes(value?.toLowerCase())
+              ? value.toLowerCase()
               : 'open';
           }
-          
+
           if (mapping.dbField === 'votes') {
             value = parseInt(String(value)) || 0;
           }
@@ -312,11 +312,11 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
           if (mapping.dbField === 'author_name' && typeof value === 'string') {
             value = value.replace(/\s+/g, ' ').trim();
           }
-          
+
           processedRow[mapping.dbField] = value;
         }
       });
-      
+
       return processedRow;
     });
 
@@ -348,11 +348,11 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
       const batchSize = 10;
       for (let i = 0; i < csvData.length; i += batchSize) {
         const batch = csvData.slice(i, i + batchSize);
-        
+
         for (let j = 0; j < batch.length; j++) {
           const row = batch[j];
           const rowNumber = i + j + 1;
-          
+
           try {
             // Build post data from mappings
             const postData: any = {
@@ -374,7 +374,7 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
             columnMappings.forEach(mapping => {
               if (mapping.dbField !== 'skip') {
                 let value = row[mapping.csvColumn];
-                
+
                 if (typeof value === 'string') {
                   value = value.trim();
                 }
@@ -382,13 +382,13 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
                 if (mapping.dbField === 'title' && !value?.trim()) {
                   throw new Error('Title is required');
                 }
-                
+
                 if (mapping.dbField === 'status') {
-                  value = STATUS_OPTIONS.includes(value?.toLowerCase()) 
-                    ? value.toLowerCase() 
+                  value = STATUS_OPTIONS.includes(value?.toLowerCase())
+                    ? value.toLowerCase()
                     : 'open';
                 }
-                
+
                 if (mapping.dbField === 'votes') {
                   value = Math.min(Math.max(parseInt(String(value)) || 0, 0), 1000);
                 }
@@ -400,7 +400,7 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
                 if (mapping.dbField === 'author_name' && typeof value === 'string') {
                   value = value.replace(/\s+/g, ' ').trim();
                 }
-                
+
                 postData[mapping.dbField] = value;
               }
             });
@@ -417,16 +417,16 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
             }
 
             const createdPost = await response.json();
-            
+
             // Create votes if specified
             const voteCount = postData.votes || 0;
             if (voteCount > 0) {
               await fetch('/api/admin/seed-votes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  postId: createdPost.id, 
-                  count: voteCount 
+                body: JSON.stringify({
+                  postId: createdPost.id,
+                  count: voteCount
                 })
               });
             }
@@ -449,7 +449,7 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
 
         // Update progress
         setImportProgress(Math.round(((i + batch.length) / csvData.length) * 100));
-        
+
         // Small delay to prevent overwhelming the server
         await new Promise(resolve => setTimeout(resolve, 100));
       }
@@ -469,14 +469,14 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
   // Download error report
   const downloadErrorReport = () => {
     if (!importResults?.errors.length) return;
-    
+
     const csvContent = [
       'Row,Field,Error',
-      ...importResults.errors.map(error => 
+      ...importResults.errors.map(error =>
         `${error.row},"${error.field}","${error.message}"`
       )
     ].join('\n');
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -507,18 +507,16 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
           {['upload', 'mapping', 'preview', 'importing', 'complete'].map((stepName, index) => (
             <div
               key={stepName}
-              className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
-                step === stepName
-                  ? 'bg-blue-100 text-blue-800'
+              className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${step === stepName
+                  ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300'
                   : index < ['upload', 'mapping', 'preview', 'importing', 'complete'].indexOf(step)
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-500'
-              }`}
+                    ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300'
+                    : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400'
+                }`}
             >
-              <div className={`w-4 h-4 rounded-full flex items-center justify-center text-xs ${
-                step === stepName ? 'bg-blue-500 text-white' :
-                index < ['upload', 'mapping', 'preview', 'importing', 'complete'].indexOf(step) ? 'bg-green-500 text-white' : 'bg-gray-300'
-              }`}>
+              <div className={`w-4 h-4 rounded-full flex items-center justify-center text-xs ${step === stepName ? 'bg-blue-500 text-white' :
+                  index < ['upload', 'mapping', 'preview', 'importing', 'complete'].indexOf(step) ? 'bg-green-500 text-white' : 'bg-gray-300 dark:bg-slate-600'
+                }`}>
                 {index < ['upload', 'mapping', 'preview', 'importing', 'complete'].indexOf(step) ? (
                   <Check className="w-3 h-3" />
                 ) : (
@@ -546,31 +544,30 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
 
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                isDragActive
-                  ? 'border-blue-400 bg-blue-50'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
+              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive
+                  ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/30'
+                  : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+                }`}
             >
               <input {...getInputProps()} />
-              <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
               {isDragActive ? (
-                <p className="text-lg text-blue-600">Drop your CSV file here...</p>
+                <p className="text-lg text-blue-600 dark:text-blue-400">Drop your CSV file here...</p>
               ) : (
                 <>
-                  <p className="text-lg text-gray-600 mb-2">
+                  <p className="text-lg text-gray-600 dark:text-gray-300 mb-2">
                     Drag & drop your CSV file here, or click to browse
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     Supports .csv and .txt files
                   </p>
                 </>
               )}
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-medium mb-2">CSV Format Guidelines:</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
+            <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
+              <h4 className="font-medium mb-2 text-gray-900 dark:text-white">CSV Format Guidelines:</h4>
+              <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                 <li>• First row should contain column headers</li>
                 <li>• At least one column must map to "Title" (required)</li>
                 <li>• Status values: open, planned, in_progress, done, declined</li>
@@ -585,18 +582,18 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
         {step === 'mapping' && (
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-medium mb-4">Map CSV Columns to Database Fields</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">Map CSV Columns to Database Fields</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Found {csvHeaders.length} columns in your CSV. Map them to the appropriate database fields:
               </p>
             </div>
 
             <div className="grid gap-4">
               {csvHeaders.map((header) => (
-                <div key={header} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                <div key={header} className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900">{header}</div>
-                    <div className="text-sm text-gray-500">
+                    <div className="font-medium text-gray-900 dark:text-white">{header}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                       Sample: "{csvData[0]?.[header] || 'N/A'}"
                     </div>
                   </div>
@@ -636,21 +633,21 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
         {step === 'preview' && (
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-medium mb-4">Preview Import Data</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">Preview Import Data</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Preview of first 5 rows. {csvData.length} total rows will be imported.
               </p>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-200">
+              <table className="w-full border-collapse border border-gray-200 dark:border-slate-700">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="border border-gray-200 p-2 text-left">Row</th>
+                  <tr className="bg-gray-50 dark:bg-slate-800">
+                    <th className="border border-gray-200 dark:border-slate-700 p-2 text-left text-gray-900 dark:text-white">Row</th>
                     {columnMappings
                       .filter(m => m.dbField !== 'skip')
                       .map(mapping => (
-                        <th key={mapping.dbField} className="border border-gray-200 p-2 text-left">
+                        <th key={mapping.dbField} className="border border-gray-200 dark:border-slate-700 p-2 text-left text-gray-900 dark:text-white">
                           {DB_FIELDS.find(f => f.value === mapping.dbField)?.label}
                         </th>
                       ))}
@@ -659,11 +656,11 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
                 <tbody>
                   {csvData.slice(0, 5).map((row, index) => (
                     <tr key={index}>
-                      <td className="border border-gray-200 p-2">{index + 1}</td>
+                      <td className="border border-gray-200 dark:border-slate-700 p-2 text-gray-900 dark:text-white">{index + 1}</td>
                       {columnMappings
                         .filter(m => m.dbField !== 'skip')
                         .map(mapping => (
-                          <td key={mapping.dbField} className="border border-gray-200 p-2 text-sm">
+                          <td key={mapping.dbField} className="border border-gray-200 dark:border-slate-700 p-2 text-sm text-gray-700 dark:text-gray-300">
                             {row[mapping.csvColumn] || '-'}
                           </td>
                         ))}
@@ -688,15 +685,15 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
         {step === 'importing' && (
           <div className="space-y-4 text-center">
             <div>
-              <h3 className="text-lg font-medium mb-4">Importing Data...</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">Importing Data...</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Please don't close this page while the import is running.
               </p>
             </div>
 
             <div className="space-y-2">
               <Progress value={importProgress} className="w-full" />
-              <p className="text-sm text-gray-600">{importProgress}% complete</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{importProgress}% complete</p>
             </div>
 
             <div className="animate-pulse">
@@ -710,41 +707,41 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
           <div className="space-y-4">
             <div className="text-center">
               <Check className="w-16 h-16 mx-auto text-green-500 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Import Complete!</h3>
+              <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">Import Complete!</h3>
             </div>
 
             <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{importResults.totalRows}</div>
-                <div className="text-sm text-blue-800">Total Rows</div>
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{importResults.totalRows}</div>
+                <div className="text-sm text-blue-800 dark:text-blue-300">Total Rows</div>
               </div>
-              <div className="p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{importResults.successCount}</div>
-                <div className="text-sm text-green-800">Successful</div>
+              <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{importResults.successCount}</div>
+                <div className="text-sm text-green-800 dark:text-green-300">Successful</div>
               </div>
-              <div className="p-4 bg-red-50 rounded-lg">
-                <div className="text-2xl font-bold text-red-600">{importResults.errorCount}</div>
-                <div className="text-sm text-red-800">Errors</div>
+              <div className="p-4 bg-red-50 dark:bg-red-900/30 rounded-lg">
+                <div className="text-2xl font-bold text-red-600 dark:text-red-400">{importResults.errorCount}</div>
+                <div className="text-sm text-red-800 dark:text-red-300">Errors</div>
               </div>
             </div>
 
             {importResults.errors.length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-red-800">Import Errors:</h4>
+                  <h4 className="font-medium text-red-800 dark:text-red-400">Import Errors:</h4>
                   <Button size="sm" variant="outline" onClick={downloadErrorReport}>
                     <Download className="w-4 h-4 mr-2" />
                     Download Error Report
                   </Button>
                 </div>
-                <div className="max-h-48 overflow-y-auto bg-red-50 rounded-lg p-3">
+                <div className="max-h-48 overflow-y-auto bg-red-50 dark:bg-red-900/30 rounded-lg p-3">
                   {importResults.errors.slice(0, 10).map((error, index) => (
-                    <div key={index} className="text-sm text-red-800 mb-1">
+                    <div key={index} className="text-sm text-red-800 dark:text-red-300 mb-1">
                       Row {error.row}: {error.message}
                     </div>
                   ))}
                   {importResults.errors.length > 10 && (
-                    <div className="text-sm text-red-600 italic">
+                    <div className="text-sm text-red-600 dark:text-red-400 italic">
                       ... and {importResults.errors.length - 10} more errors
                     </div>
                   )}
@@ -754,15 +751,15 @@ export function CSVImport({ projectId, boardId, projectSlug, onImportComplete }:
 
             {importResults.createdPosts.length > 0 && (
               <div>
-                <h4 className="font-medium text-green-800 mb-2">Successfully Created Posts:</h4>
-                <div className="max-h-48 overflow-y-auto bg-green-50 rounded-lg p-3">
+                <h4 className="font-medium text-green-800 dark:text-green-400 mb-2">Successfully Created Posts:</h4>
+                <div className="max-h-48 overflow-y-auto bg-green-50 dark:bg-green-900/30 rounded-lg p-3">
                   {importResults.createdPosts.slice(0, 10).map((post, index) => (
-                    <div key={index} className="text-sm text-green-800 mb-1">
+                    <div key={index} className="text-sm text-green-800 dark:text-green-300 mb-1">
                       • {post.title}
                     </div>
                   ))}
                   {importResults.createdPosts.length > 10 && (
-                    <div className="text-sm text-green-600 italic">
+                    <div className="text-sm text-green-600 dark:text-green-400 italic">
                       ... and {importResults.createdPosts.length - 10} more posts
                     </div>
                   )}

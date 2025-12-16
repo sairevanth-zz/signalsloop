@@ -795,8 +795,8 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Notification Preferences */}
-                  <div className="border-t pt-6">
-                    <h4 className="text-lg font-medium text-gray-900 mb-4">Notification Preferences</h4>
+                  <div className="border-t dark:border-slate-700 pt-6">
+                    <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Notification Preferences</h4>
                     <NotificationSettings projectId={project.id} />
                   </div>
                 </div>

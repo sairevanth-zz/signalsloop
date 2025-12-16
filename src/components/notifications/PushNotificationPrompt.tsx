@@ -82,7 +82,7 @@ export function PushNotificationPrompt({
     });
 
     const registration = await Promise.race([registrationPromise, timeoutPromise]);
-    
+
     // Wait for ready with timeout
     const readyPromise = navigator.serviceWorker.ready;
     const readyTimeoutPromise = new Promise<never>((_, reject) => {
@@ -121,7 +121,7 @@ export function PushNotificationPrompt({
         throw new Error(errorData.error || `VAPID fetch failed: ${vapidResponse.status}`);
       }
       const { publicKey } = await vapidResponse.json();
-      
+
       if (!publicKey) {
         throw new Error('VAPID public key not configured on server');
       }
@@ -173,12 +173,12 @@ export function PushNotificationPrompt({
   if (isCheckingSubscription) {
     return null;
   }
-  
+
   // Don't show if already has subscription, denied, unsupported, or dismissed (and has subscription)
   if (hasSubscription || permission === 'denied' || permission === 'unsupported') {
     return null;
   }
-  
+
   // If permission granted but no subscription, allow dismissing only temporarily
   // (don't check localStorage dismissed state - user needs to complete subscription)
   if (permission !== 'granted' && isDismissed) {
@@ -252,31 +252,31 @@ export function PushNotificationPrompt({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       className={cn(
-        'relative p-4 bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg',
+        'relative p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 border border-blue-200 dark:border-blue-800 rounded-lg',
         className
       )}
     >
       <button
         onClick={handleDismiss}
-        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors"
       >
         <X className="w-4 h-4" />
       </button>
 
       <div className="flex items-start gap-3">
-        <div className="p-2 bg-blue-100 rounded-lg">
-          <Bell className="w-5 h-5 text-blue-600" />
+        <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+          <Bell className="w-5 h-5 text-blue-600 dark:text-blue-400" />
         </div>
         <div className="flex-1">
-          <h3 className="font-medium text-gray-900">Enable Push Notifications</h3>
-          <p className="text-sm text-gray-600 mt-1">
+          <h3 className="font-medium text-gray-900 dark:text-white">Enable Push Notifications</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Get instant alerts for critical feedback, anomalies, and competitor updates.
           </p>
-          
+
           {error && (
-            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-700 font-medium">Failed to enable</p>
-              <p className="text-xs text-red-600 mt-1">{error}</p>
+            <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-700 dark:text-red-400 font-medium">Failed to enable</p>
+              <p className="text-xs text-red-600 dark:text-red-500 mt-1">{error}</p>
             </div>
           )}
 
