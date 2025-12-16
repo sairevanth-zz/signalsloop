@@ -373,7 +373,6 @@ export interface IntegrationSetupConfig {
 export const HIDDEN_INTEGRATIONS: IntegrationType[] = [
   'intercom',      // Requires paid Intercom subscription for OAuth
   'zendesk',       // Requires paid Zendesk subscription for API
-  'email_outlook', // Requires Azure AD OAuth app setup
   'typeform',      // Requires paid Typeform plan for API
   'twitter',       // Twitter API now costs $100+/month
   'g2',            // Enterprise-only API access
