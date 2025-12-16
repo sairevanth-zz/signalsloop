@@ -541,40 +541,40 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
             return (
               <div key={column.key} className="space-y-4">
                 {/* Column Header */}
-                <div className={`${column.headerColor} rounded-lg p-4`}>
+                <div className={`${column.headerColor} dark:bg-slate-700/80 rounded-lg p-4`}>
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-gray-800">{column.title}</h3>
+                    <h3 className="font-semibold text-gray-800 dark:text-white">{column.title}</h3>
                     <div className={`w-6 h-6 ${column.badgeColor} rounded-full flex items-center justify-center text-xs font-medium`}>
                       {posts.length}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600">{column.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{column.description}</p>
                 </div>
 
                 {/* Posts */}
                 <div className="space-y-3">
                   {posts.length === 0 ? (
-                    <div className="bg-white rounded-lg p-8 text-center border border-gray-200">
-                      <Icon className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">
+                    <div className="bg-white dark:bg-slate-800 rounded-lg p-8 text-center border border-gray-200 dark:border-slate-700">
+                      <Icon className="h-8 w-8 text-gray-300 dark:text-gray-500 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {column.key === 'planned' ? 'Nothing planned' :
                           column.key === 'completed' ? 'Nothing completed' : 'No items'}
                       </p>
                     </div>
                   ) : (
                     posts.map((post) => (
-                      <div key={post.id} className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow">
+                      <div key={post.id} className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 mb-1 line-clamp-2">
+                            <h4 className="font-medium text-gray-900 dark:text-white mb-1 line-clamp-2">
                               <Link
                                 href={`/${project.slug}/board?post=${post.id}`}
-                                className="hover:text-blue-600 transition-colors"
+                                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                               >
                                 {post.title}
                               </Link>
                             </h4>
-                            <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
                               {post.description}
                             </p>
                           </div>
@@ -589,7 +589,7 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
                                   handleStatusChange(post.id, e.target.value);
                                 }}
                                 disabled={updatingStatus === post.id}
-                                className="text-xs border border-gray-300 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="text-xs border border-gray-300 dark:border-slate-600 rounded px-2 py-1 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                               >
                                 <option value="open">Ideas</option>
                                 <option value="planned">Planned</option>
@@ -603,15 +603,15 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             <ThumbsUp className="h-3 w-3 text-gray-400" />
-                            <span className="text-xs text-gray-500">{post.vote_count}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{post.vote_count}</span>
                             {post.category && (
-                              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                              <span className="text-xs bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded-full">
                                 {post.category}
                               </span>
                             )}
                           </div>
 
-                          <div className="flex items-center text-xs text-gray-500">
+                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
                             <Calendar className="h-3 w-3 mr-1" />
                             {formatDate(post.created_at)}
                           </div>
@@ -626,39 +626,39 @@ export default function PublicRoadmap({ project, roadmapData }: PublicRoadmapPro
         </div>
 
         {/* Legend Section */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">How our roadmap works</h3>
+        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-slate-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">How our roadmap works</h3>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
-                <Lightbulb className="h-5 w-5 text-gray-600" />
+                <Lightbulb className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </div>
-              <h4 className="font-medium text-gray-900 mb-1">Ideas</h4>
-              <p className="text-sm text-gray-600">Top community suggestions we're considering. Vote to help us prioritize!</p>
+              <h4 className="font-medium text-gray-900 dark:text-white mb-1">Ideas</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Top community suggestions we're considering. Vote to help us prioritize!</p>
             </div>
 
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
-                <Target className="h-5 w-5 text-gray-600" />
+                <Target className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </div>
-              <h4 className="font-medium text-gray-900 mb-1">Planned</h4>
-              <p className="text-sm text-gray-600">Features we've committed to building. Timeline estimates included where possible.</p>
+              <h4 className="font-medium text-gray-900 dark:text-white mb-1">Planned</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Features we've committed to building. Timeline estimates included where possible.</p>
             </div>
 
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
-                <Clock className="h-5 w-5 text-gray-600" />
+                <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </div>
-              <h4 className="font-medium text-gray-900 mb-1">In Progress</h4>
-              <p className="text-sm text-gray-600">Currently in development. Check back regularly for updates!</p>
+              <h4 className="font-medium text-gray-900 dark:text-white mb-1">In Progress</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Currently in development. Check back regularly for updates!</p>
             </div>
 
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
-                <CheckCircle className="h-5 w-5 text-gray-600" />
+                <CheckCircle className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </div>
-              <h4 className="font-medium text-gray-900 mb-1">Completed</h4>
-              <p className="text-sm text-gray-600">Features that have been shipped and are available to use.</p>
+              <h4 className="font-medium text-gray-900 dark:text-white mb-1">Completed</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Features that have been shipped and are available to use.</p>
             </div>
           </div>
         </div>

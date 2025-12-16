@@ -381,15 +381,15 @@ export default function PostSubmissionForm({
                         type="button"
                         onClick={() => handleInputChange('category', category.value)}
                         className={`p-3 rounded-lg border-2 transition-all text-left min-touch-target tap-highlight-transparent active:scale-95 ${formData.category === category.value
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400'
+                          : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 dark:bg-slate-700/50'
                           }`}
                       >
                         <div className="flex items-center gap-2 mb-1">
-                          <Icon className="h-4 w-4 text-gray-600" />
-                          <span className="font-medium text-sm">{category.label}</span>
+                          <Icon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                          <span className="font-medium text-sm text-gray-900 dark:text-white">{category.label}</span>
                         </div>
-                        <p className="text-xs text-gray-500">{category.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{category.description}</p>
                       </button>
                     );
                   })}
@@ -535,8 +535,8 @@ export default function PostSubmissionForm({
                       type="button"
                       onClick={() => handleInputChange('priority', priority.value)}
                       className={`px-3 py-2 rounded-md text-sm font-medium border transition-all ${formData.priority === priority.value
-                          ? 'border-gray-400 bg-gray-100'
-                          : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-gray-400 bg-gray-100'
+                        : 'border-gray-200 hover:border-gray-300'
                         } ${priority.color}`}
                     >
                       {priority.label}
