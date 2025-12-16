@@ -1,6 +1,9 @@
 /**
  * Project-Specific AI Feedback Hunter Page
  * Autonomous feedback discovery for this specific project
+ * 
+ * Note: Layout already provides GlobalBanner and sidebar, so this page
+ * only renders content.
  */
 
 'use client';
@@ -11,9 +14,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { HunterDashboard } from '@/components/hunter';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Brain } from 'lucide-react';
+import { Brain } from 'lucide-react';
 import Link from 'next/link';
-import GlobalBanner from '@/components/GlobalBanner';
 
 export default function ProjectHunterPage() {
   const params = useParams();
@@ -51,10 +53,10 @@ export default function ProjectHunterPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Brain className="w-12 h-12 text-blue-600 animate-pulse mx-auto mb-4" />
-          <p className="text-gray-600">Loading AI Feedback Hunter...</p>
+          <Brain className="w-12 h-12 text-teal-500 animate-pulse mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading AI Feedback Hunter...</p>
         </div>
       </div>
     );
@@ -62,9 +64,9 @@ export default function ProjectHunterPage() {
 
   if (!project) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <p className="text-gray-600">Project not found</p>
+          <p className="text-gray-600 dark:text-gray-400">Project not found</p>
           <Link href="/app">
             <Button className="mt-4">Back to Dashboard</Button>
           </Link>
@@ -74,29 +76,19 @@ export default function ProjectHunterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <GlobalBanner />
-
+    <div className="min-h-screen bg-gray-50 dark:bg-[#13151a]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href={`/${projectSlug}/board`}>
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Board
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                  <Brain className="w-8 h-8 text-blue-600" />
-                  AI Feedback Hunter
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Autonomous feedback discovery for {project.name}
-                </p>
-              </div>
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                <Brain className="w-8 h-8 text-teal-500" />
+                AI Feedback Hunter
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                Autonomous feedback discovery for {project.name}
+              </p>
             </div>
           </div>
         </div>
