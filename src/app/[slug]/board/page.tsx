@@ -534,13 +534,16 @@ export default function BoardPage() {
       };
 
       const processedPosts = postsData?.map((post: Record<string, unknown>) => {
-        const aggregatedVotes = normalizeCount((post as Record<string, unknown>).vote_summary);
+        // Use the authoritative vote_count column from posts table (maintained by RPC functions with service role)
+        // Do NOT use vote_summary:votes(count) as primary source - it's RLS-filtered and unreliable for anonymous users
         const storedVoteCount = normalizeCount(post.vote_count);
-        const finalVoteCount = aggregatedVotes > 0 ? aggregatedVotes : storedVoteCount;
+        const aggregatedVotes = normalizeCount((post as Record<string, unknown>).vote_summary);
+        const finalVoteCount = storedVoteCount > 0 ? storedVoteCount : aggregatedVotes;
 
-        const aggregatedComments = normalizeCount((post as Record<string, unknown>).comment_summary);
+        // Same for comments - prefer stored count
         const storedCommentCount = normalizeCount(post.comment_count);
-        const finalCommentCount = aggregatedComments > 0 ? aggregatedComments : storedCommentCount;
+        const aggregatedComments = normalizeCount((post as Record<string, unknown>).comment_summary);
+        const finalCommentCount = storedCommentCount > 0 ? storedCommentCount : aggregatedComments;
 
         // Handle sentiment data - Supabase returns it as an array even for 1-to-1 relationships
         const sentimentArray = post.sentiment_analysis as any;
