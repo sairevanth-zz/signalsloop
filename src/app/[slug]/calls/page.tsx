@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,10 +16,10 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CallsDashboard } from '@/components/calls/CallsDashboard';
 import WorkflowSidebar from '@/components/WorkflowSidebar';
-import GlobalBanner from '@/components/GlobalBanner';
 
 export default function ProjectCallsPage() {
     const params = useParams();
+    const router = useRouter();
     const slug = params?.slug as string;
     const { user, loading: authLoading } = useAuth();
     const [projectId, setProjectId] = useState<string | null>(null);
@@ -117,16 +117,8 @@ export default function ProjectCallsPage() {
     return (
         <div className="flex min-h-screen bg-[#13151a]">
             <WorkflowSidebar projectSlug={slug} />
-            <div className="flex-1 flex flex-col min-w-0">
-                <GlobalBanner
-                    projectSlug={slug}
-                    showBackButton={true}
-                    backUrl={`/${slug}/dashboard`}
-                    backLabel="Back to Dashboard"
-                />
-                <main className="flex-1 overflow-auto bg-gray-50 dark:bg-[#13151a]">
-                    <CallsDashboard projectId={projectId} />
-                </main>
+            <div className="flex-1 flex flex-col min-w-0 overflow-auto bg-gray-50 dark:bg-[#13151a]">
+                <CallsDashboard projectId={projectId} />
             </div>
         </div>
     );
