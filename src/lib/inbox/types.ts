@@ -371,13 +371,12 @@ export interface IntegrationSetupConfig {
 // Integrations that require paid subscriptions or OAuth apps we haven't set up
 // are marked as hidden and won't appear in the UI
 export const HIDDEN_INTEGRATIONS: IntegrationType[] = [
-  'intercom',    // Requires paid Intercom subscription for OAuth
-  'zendesk',     // Requires paid Zendesk subscription for API
-  'email_gmail', // Requires Google Cloud OAuth app setup
+  'intercom',      // Requires paid Intercom subscription for OAuth
+  'zendesk',       // Requires paid Zendesk subscription for API
   'email_outlook', // Requires Azure AD OAuth app setup
-  'typeform',    // Requires paid Typeform plan for API
-  'twitter',     // Twitter API now costs $100+/month
-  'g2',          // Enterprise-only API access
+  'typeform',      // Requires paid Typeform plan for API
+  'twitter',       // Twitter API now costs $100+/month
+  'g2',            // Enterprise-only API access
 ];
 
 export const INTEGRATION_CONFIGS: Record<IntegrationType, IntegrationSetupConfig> = {
