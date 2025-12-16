@@ -33,7 +33,7 @@ import {
 export default function InboxPage() {
   const params = useParams();
   const projectSlug = params?.slug as string;
-  
+
   const [projectId, setProjectId] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<UnifiedFeedbackItem | null>(null);
   const [integrations, setIntegrations] = useState<FeedbackIntegration[]>([]);
@@ -41,7 +41,7 @@ export default function InboxPage() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
-  
+
   // Fetch project ID from slug
   useEffect(() => {
     const fetchProject = async () => {
@@ -55,43 +55,43 @@ export default function InboxPage() {
         console.error('[InboxPage] Error fetching project:', error);
       }
     };
-    
+
     if (projectSlug) {
       fetchProject();
     }
   }, [projectSlug]);
-  
+
   // Fetch integrations and stats
   useEffect(() => {
     const fetchData = async () => {
       if (!projectId) return;
-      
+
       try {
         setLoading(true);
-        
+
         // Fetch integrations
         const intResponse = await fetch(`/api/inbox/integrations?projectId=${projectId}`);
         const intData = await intResponse.json();
         setIntegrations(intData.integrations || []);
-        
+
         // Fetch stats
         const statsResponse = await fetch(`/api/inbox/stats?projectId=${projectId}`);
         const statsData = await statsResponse.json();
         setStats(statsData);
-        
+
       } catch (error) {
         console.error('[InboxPage] Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [projectId]);
-  
+
   const handleSync = async () => {
     if (!projectId) return;
-    
+
     setSyncing(true);
     try {
       await fetch('/api/inbox/sync', {
@@ -99,7 +99,7 @@ export default function InboxPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId }),
       });
-      
+
       // Refresh data
       window.location.reload();
     } catch (error) {
@@ -108,17 +108,17 @@ export default function InboxPage() {
       setSyncing(false);
     }
   };
-  
+
   const handleItemAction = async (action: string, data?: any) => {
     if (!selectedItem) return;
-    
+
     try {
       const response = await fetch(`/api/inbox/items/${selectedItem.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, ...data }),
       });
-      
+
       if (response.ok) {
         const updated = await response.json();
         setSelectedItem(updated);
@@ -127,79 +127,79 @@ export default function InboxPage() {
       console.error('[InboxPage] Action error:', error);
     }
   };
-  
+
   const handleIntegrationComplete = (integration: FeedbackIntegration) => {
     setIntegrations([...integrations, integration]);
     setShowWizard(false);
   };
-  
+
   const activeIntegrations = integrations.filter(i => i.isActive && i.isConnected);
-  
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#13151a] flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-500">Loading inbox...</p>
+          <p className="text-gray-500 dark:text-gray-400">Loading inbox...</p>
         </div>
       </div>
     );
   }
-  
+
   // Empty state - no integrations
   if (integrations.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#13151a] p-8">
         <div className="max-w-2xl mx-auto">
-          <Card className="p-12 text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Inbox className="h-8 w-8 text-blue-600" />
+          <Card className="p-12 text-center bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Inbox className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Universal Feedback Inbox
             </h1>
-            <p className="text-gray-500 mb-8 max-w-md mx-auto">
+            <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
               Connect your feedback sources to receive all customer feedback in one unified inbox.
               AI will automatically categorize, prioritize, and deduplicate everything.
             </p>
-            
+
             <Button size="lg" onClick={() => setShowWizard(true)}>
               <Plus className="h-5 w-5 mr-2" />
               Add Your First Integration
             </Button>
-            
+
             <div className="mt-12 grid grid-cols-3 gap-6 text-left">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
-                  <Plug className="h-5 w-5 text-purple-600" />
+              <div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-3">
+                  <Plug className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">15+ Integrations</h3>
-                <p className="text-sm text-gray-500">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">15+ Integrations</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Connect Slack, Intercom, Gmail, Twitter, G2, App Store, and more.
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mb-3">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+              <div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-3">
+                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">AI Classification</h3>
-                <p className="text-sm text-gray-500">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">AI Classification</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Auto-categorize as bugs, features, praise, or complaints.
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mb-3">
-                  <AlertCircle className="h-5 w-5 text-amber-600" />
+              <div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center mb-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Smart Alerts</h3>
-                <p className="text-sm text-gray-500">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Smart Alerts</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Get notified about urgent feedback and churn risks.
                 </p>
               </div>
             </div>
           </Card>
         </div>
-        
+
         <IntegrationWizard
           projectId={projectId || ''}
           open={showWizard}
@@ -211,22 +211,22 @@ export default function InboxPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#13151a]">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-4">
+      <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Inbox className="h-5 w-5 text-blue-600" />
+            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+              <Inbox className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Universal Inbox</h1>
-              <p className="text-sm text-gray-500">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Universal Inbox</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {stats?.totalItems || 0} items from {activeIntegrations.length} sources
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {/* Connected Integrations */}
             <div className="flex items-center gap-1">
@@ -246,7 +246,7 @@ export default function InboxPage() {
                 </Badge>
               )}
             </div>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -256,7 +256,7 @@ export default function InboxPage() {
               <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
               {syncing ? 'Syncing...' : 'Sync Now'}
             </Button>
-            
+
             <Button size="sm" onClick={() => setShowWizard(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Integration
@@ -264,7 +264,7 @@ export default function InboxPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-6">
         <div className="flex gap-6">
@@ -278,7 +278,7 @@ export default function InboxPage() {
               />
             )}
           </div>
-          
+
           {/* Detail Panel */}
           {selectedItem && (
             <div className="w-1/2">
@@ -293,7 +293,7 @@ export default function InboxPage() {
           )}
         </div>
       </div>
-      
+
       {/* Integration Wizard */}
       <IntegrationWizard
         projectId={projectId || ''}
