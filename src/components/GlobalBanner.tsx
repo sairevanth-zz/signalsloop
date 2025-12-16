@@ -180,7 +180,7 @@ export default function GlobalBanner({
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push(backUrl)}
-                className="min-touch-target tap-highlight-transparent px-2 sm:px-3 flex-shrink-0"
+                className="min-touch-target tap-highlight-transparent px-2 sm:px-3 flex-shrink-0 text-white hover:text-white hover:bg-white/10"
               >
                 <span aria-hidden="true" className="mr-1 text-base">←</span>
                 <span className="text-sm font-medium sm:hidden">Back</span>
