@@ -191,7 +191,7 @@ export default function GlobalBanner({
               <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-8 h-8 rounded-lg shadow-sm flex-shrink-0" />
               <span className="text-base sm:text-xl font-bold text-white hidden sm:block">SignalsLoop</span>
               {projectSlug && (
-                <Badge variant="outline" className="hidden lg:inline-flex text-xs">
+                <Badge variant="outline" className="hidden lg:inline-flex text-xs text-white/80 border-white/30">
                   {projectSlug}
                 </Badge>
               )}
