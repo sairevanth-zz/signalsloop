@@ -1238,8 +1238,8 @@ export default function BoardPage() {
             {/* Welcome Message */}
             {
               board?.welcome_message && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 sm:mb-6">
-                  <p className="text-sm sm:text-base text-blue-900 whitespace-pre-wrap">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4 sm:mb-6">
+                  <p className="text-sm sm:text-base text-blue-900 dark:text-blue-200 whitespace-pre-wrap">
                     {board.welcome_message}
                   </p>
                 </div>
@@ -1247,7 +1247,7 @@ export default function BoardPage() {
             }
 
             {/* Filters and Search */}
-            <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 mb-4 sm:mb-6">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-3 sm:p-4 mb-4 sm:mb-6">
               {/* Mobile Filter Toggle */}
               <div className="lg:hidden mb-3">
                 <Button
@@ -1472,7 +1472,7 @@ export default function BoardPage() {
                           {/* Post Content */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-4 mb-2">
-                              <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
                                 {post.title}
                               </h3>
                               <div className="flex items-center gap-2 flex-shrink-0">

@@ -93,13 +93,13 @@ export function SentimentWidget({
   };
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 shadow-sm ${className}`}>
+    <div className={`bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 shadow-sm ${className}`}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 dark:border-slate-700">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Sentiment Analysis</h3>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Sentiment Analysis</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               {total > 0 ? `${total} feedback items analyzed` : 'No data available'}
             </p>
           </div>
@@ -112,10 +112,9 @@ export function SentimentWidget({
                 onClick={() => setTimeRange(days)}
                 className={`
                   px-3 py-1.5 text-sm font-medium rounded-md transition-colors
-                  ${
-                    timeRange === days
-                      ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                      : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
+                  ${timeRange === days
+                    ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
+                    : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-slate-600 hover:bg-gray-200 dark:hover:bg-slate-600'
                   }
                 `}
               >
@@ -149,7 +148,7 @@ export function SentimentWidget({
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -161,8 +160,8 @@ export function SentimentWidget({
                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                 />
               </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No sentiment data</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No sentiment data</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 No feedback has been analyzed yet for this time range.
               </p>
             </div>
@@ -223,10 +222,9 @@ export function SentimentWidget({
                     onClick={() => handleCategoryClick(category)}
                     className={`
                       flex items-center justify-between p-3 rounded-lg border-2 transition-all
-                      ${
-                        isSelected
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      ${isSelected
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }
                     `}
                   >

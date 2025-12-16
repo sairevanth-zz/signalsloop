@@ -111,22 +111,22 @@ export function SentimentTrendChart({
   const trendDirection = getTrendDirection();
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 shadow-sm ${className}`}>
+    <div className={`bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 shadow-sm ${className}`}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 dark:border-slate-700">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Sentiment Trend</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Sentiment Trend</h3>
             <div className="flex items-center gap-4 mt-1">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Average score: <span className="font-medium">{averageSentiment.toFixed(2)}</span>
               </p>
               <div
                 className={`
                   inline-flex items-center gap-1 text-sm font-medium
-                  ${trendDirection === 'improving' ? 'text-green-600' : ''}
-                  ${trendDirection === 'declining' ? 'text-red-600' : ''}
-                  ${trendDirection === 'stable' ? 'text-gray-600' : ''}
+                  ${trendDirection === 'improving' ? 'text-green-600 dark:text-green-400' : ''}
+                  ${trendDirection === 'declining' ? 'text-red-600 dark:text-red-400' : ''}
+                  ${trendDirection === 'stable' ? 'text-gray-600 dark:text-gray-400' : ''}
                 `}
               >
                 {trendDirection === 'improving' && (
@@ -165,10 +165,9 @@ export function SentimentTrendChart({
                 onClick={() => setTimeRange(days)}
                 className={`
                   px-3 py-1.5 text-sm font-medium rounded-md transition-colors
-                  ${
-                    timeRange === days
-                      ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                      : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
+                  ${timeRange === days
+                    ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
+                    : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-slate-600 hover:bg-gray-200 dark:hover:bg-slate-600'
                   }
                 `}
               >
@@ -202,7 +201,7 @@ export function SentimentTrendChart({
           <div className="flex items-center justify-center h-80">
             <div className="text-center">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -214,8 +213,8 @@ export function SentimentTrendChart({
                   d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
                 />
               </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No trend data</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No trend data</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Not enough data to show trends for this time range.
               </p>
             </div>
