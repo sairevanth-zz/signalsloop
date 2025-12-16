@@ -85,11 +85,11 @@ export function ReleaseNotesGenerator({
   };
 
   return (
-    <Card className="border border-blue-100 bg-blue-50/60">
+    <Card className="border border-blue-100 dark:border-blue-900 bg-blue-50/60 dark:bg-blue-950/40">
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <div>
-          <CardTitle className="text-lg">Release Planning Agent</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-lg text-gray-900 dark:text-white">Release Planning Agent</CardTitle>
+          <CardDescription className="dark:text-gray-400">
             Auto-generate release notes, changelog entries, and customer comms from completed work.
           </CardDescription>
         </div>
@@ -98,7 +98,7 @@ export function ReleaseNotesGenerator({
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-wrap gap-3 text-sm text-gray-700">
+        <div className="flex flex-wrap gap-3 text-sm text-gray-700 dark:text-gray-300">
           <Badge variant="outline">
             {result?.detectedFeatures ? `${result.detectedFeatures} completed items detected` : 'Find completed roadmap items'}
           </Badge>
@@ -107,24 +107,24 @@ export function ReleaseNotesGenerator({
         </div>
 
         {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-400">
             {error}
           </div>
         )}
 
         {result?.release && (
-          <div className="rounded-lg border border-blue-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-blue-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-wide text-blue-600">Draft created</p>
-                <p className="text-base font-semibold text-gray-900">{result.release.title}</p>
+                <p className="text-xs uppercase tracking-wide text-blue-600 dark:text-blue-400">Draft created</p>
+                <p className="text-base font-semibold text-gray-900 dark:text-white">{result.release.title}</p>
                 {result.release.excerpt && (
-                  <p className="text-sm text-gray-600">{result.release.excerpt}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{result.release.excerpt}</p>
                 )}
               </div>
               {result.release.slug && (
                 <a
-                  className="text-sm text-blue-600 hover:underline"
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                   href={`/${projectSlug}/changelog/${result.release.slug}`}
                   target="_blank"
                   rel="noreferrer"
@@ -136,24 +136,24 @@ export function ReleaseNotesGenerator({
 
             {result.entries && result.entries.length > 0 && (
               <div className="mt-3 space-y-2">
-                <p className="text-sm font-medium text-gray-800">Changelog entries</p>
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Changelog entries</p>
                 <div className="grid gap-2 md:grid-cols-2">
                   {result.entries.map((entry) => (
                     <div
                       key={entry.id || entry.title}
-                      className="rounded-md border border-gray-100 bg-gray-50 p-3"
+                      className="rounded-md border border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50 p-3"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-gray-900">{entry.title}</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{entry.title}</span>
                         <Badge variant="outline" className="text-xs capitalize">
                           {entry.entry_type || 'feature'}
                         </Badge>
                       </div>
                       {entry.description && (
-                        <p className="mt-1 text-sm text-gray-700">{entry.description}</p>
+                        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{entry.description}</p>
                       )}
                       {entry.priority && (
-                        <p className="mt-1 text-xs text-gray-500">Priority: {entry.priority}</p>
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Priority: {entry.priority}</p>
                       )}
                     </div>
                   ))}
@@ -166,7 +166,7 @@ export function ReleaseNotesGenerator({
                 {result.communications?.email && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-gray-800">Customer email draft</p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Customer email draft</p>
                       <Button
                         variant="outline"
                         size="sm"
@@ -176,7 +176,7 @@ export function ReleaseNotesGenerator({
                       </Button>
                     </div>
                     <Textarea
-                      className="h-40 bg-white"
+                      className="h-40 bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                       value={result.communications.email || ''}
                       readOnly
                     />
@@ -185,7 +185,7 @@ export function ReleaseNotesGenerator({
                 {result.communications?.blog && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-gray-800">Blog / announcement draft</p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Blog / announcement draft</p>
                       <Button
                         variant="outline"
                         size="sm"
@@ -195,7 +195,7 @@ export function ReleaseNotesGenerator({
                       </Button>
                     </div>
                     <Textarea
-                      className="h-40 bg-white"
+                      className="h-40 bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                       value={result.communications.blog || ''}
                       readOnly
                     />
@@ -205,7 +205,7 @@ export function ReleaseNotesGenerator({
             )}
 
             {result.message && (
-              <p className="mt-3 text-xs text-gray-500">{result.message}</p>
+              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">{result.message}</p>
             )}
           </div>
         )}

@@ -697,13 +697,13 @@ export default function SettingsPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950/40 dark:to-purple-950/40 border border-pink-200 dark:border-pink-800 rounded-lg p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                        <span className="text-pink-600 text-lg">💎</span>
+                      <div className="w-10 h-10 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center">
+                        <span className="text-pink-600 dark:text-pink-400 text-lg">💎</span>
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900">Lovable Prototype Generation</div>
+                        <div className="font-medium text-gray-900 dark:text-white">Lovable Prototype Generation</div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">Add your own API key to enable prototype generation</div>
                       </div>
                     </div>
