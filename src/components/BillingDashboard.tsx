@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  CreditCard, 
-  Crown, 
-  Check, 
+import {
+  CreditCard,
+  Crown,
+  Check,
   X,
   ExternalLink,
   Star,
@@ -58,10 +58,10 @@ interface BillingDashboardProps {
   stripeSettings: any;
 }
 
-export function BillingDashboard({ 
-  projectId, 
+export function BillingDashboard({
+  projectId,
   projectSlug,
-  stripeSettings 
+  stripeSettings
 }: BillingDashboardProps) {
   const returnPath = projectSlug ? `/${projectSlug}/billing` : '/app/billing';
   const [billingInfo, setBillingInfo] = useState<BillingInfo>({
@@ -104,12 +104,12 @@ export function BillingDashboard({
 
     try {
       console.log('🔍 Loading billing info for project:', projectId);
-      
+
       // Check if this is account-level billing (using user ID as project ID)
       if (projectId && projectId.length > 20) {
         // This looks like a user ID, so we'll treat it as account-level billing
         console.log('🔍 Detected account-level billing, using user-based approach');
-        
+
         // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
@@ -118,14 +118,14 @@ export function BillingDashboard({
         }
 
         // Get REAL user data from the users table
-      const response = await fetch(`/api/billing/account?accountId=${user.id}`);
-      if (!response.ok) {
-        throw new Error('Failed to load account billing info');
-      }
+        const response = await fetch(`/api/billing/account?accountId=${user.id}`);
+        if (!response.ok) {
+          throw new Error('Failed to load account billing info');
+        }
 
-      const data = await response.json();
-      setBillingInfo(data.billingInfo);
-      return;
+        const data = await response.json();
+        setBillingInfo(data.billingInfo);
+        return;
       }
 
       // Project-level billing (existing logic)
@@ -179,11 +179,11 @@ export function BillingDashboard({
       // Calculate date range for "this month"
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      
+
       // Check if this is account-level billing
       if (projectId && projectId.length > 20) {
         console.log('🔍 Loading account-level usage stats');
-        
+
         // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
@@ -299,9 +299,9 @@ export function BillingDashboard({
 
   const handleUpgrade = async () => {
     console.log('🚀 Upgrade button clicked', selectedBillingCycle);
-    
+
     setUpgrading(true);
-    
+
     try {
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
@@ -325,7 +325,7 @@ export function BillingDashboard({
 
       const { url } = await response.json();
       console.log('✅ Upgrade URL received:', url);
-      
+
       if (url) {
         window.location.href = url;
       } else {
@@ -466,13 +466,13 @@ export function BillingDashboard({
   const handleCancelTrial = async () => {
     console.log('❌ Cancel trial clicked');
     console.log('📋 Project ID:', projectId);
-    
+
     if (!confirm('Are you sure you want to cancel your trial? You will lose access to Pro features immediately.')) {
       return;
     }
 
     setLoading(true);
-    
+
     try {
       console.log('🚀 Cancelling trial...');
       const response = await fetch('/api/trial/cancel', {
@@ -495,7 +495,7 @@ export function BillingDashboard({
       const result = await response.json();
       console.log('✅ Trial cancelled:', result);
       toast.success(result.message || 'Trial cancelled successfully');
-      
+
       // Reload billing info
       loadBillingInfo();
     } catch (error) {
@@ -522,18 +522,31 @@ export function BillingDashboard({
       { name: 'Email notifications', included: false }
     ],
     pro: [
-      { name: 'Unlimited boards', included: true },
-      { name: 'Unlimited posts', included: true },
-      { name: 'Private boards', included: true },
+      { name: '5 feedback boards', included: true },
+      { name: '1,000 posts', included: true },
+      { name: '2 team members', included: true },
+      { name: 'Hunter Agent (Reddit + HN)', included: true },
+      { name: '10 AI Specs/month', included: true },
+      { name: '5 Devil\'s Advocate/month', included: true },
+      { name: '50 Ask SignalsLoop queries', included: true },
+      { name: 'Jira & Slack integration', included: true },
+      { name: '1,000 API calls/month', included: true },
       { name: 'Custom domain', included: true },
-      { name: 'Remove branding', included: true },
-      { name: 'Priority email support', included: true },
-      { name: 'API access', included: true },
-      { name: 'Email notifications', included: true },
-      { name: 'Advanced analytics', included: true },
-      { name: 'Team collaboration', included: true },
-      { name: 'White-label widget', included: true },
-      { name: 'SLA guarantee', included: true }
+      { name: 'Email support (48hr)', included: true }
+    ],
+    premium: [
+      { name: 'Unlimited boards & posts', included: true },
+      { name: '10 team members', included: true },
+      { name: 'Hunter Agent (4hr scans)', included: true },
+      { name: '30 AI Specs/month', included: true },
+      { name: '15 Devil\'s Advocate/month', included: true },
+      { name: '100 Ask SignalsLoop queries', included: true },
+      { name: '4 Executive Briefs/month', included: true },
+      { name: '20 Call transcripts/month', included: true },
+      { name: 'Full Competitive War Room', included: true },
+      { name: 'Linear & Webhooks', included: true },
+      { name: '5,000 API calls/month', included: true },
+      { name: 'Priority support (24hr)', included: true }
     ]
   };
 
@@ -639,7 +652,7 @@ export function BillingDashboard({
             Manage your SignalsLoop subscription and billing details
           </p>
         </div>
-        <Badge 
+        <Badge
           variant={billingInfo.plan === 'pro' ? 'default' : 'outline'}
           className="text-sm"
         >
@@ -777,7 +790,7 @@ export function BillingDashboard({
                     <span className="text-xs text-muted-foreground">$180 billed yearly</span>
                   </button>
                 </div>
-                <Button 
+                <Button
                   onClick={handleUpgrade}
                   disabled={upgrading}
                   size="lg"
@@ -892,7 +905,7 @@ export function BillingDashboard({
                 {billingInfo.plan === 'free' ? 'Limit: 1' : 'Unlimited'}
               </div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
                 {usage.posts_count}
@@ -902,7 +915,7 @@ export function BillingDashboard({
                 {billingInfo.plan === 'free' ? `Limit: 50` : 'Unlimited'}
               </div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
                 {usage.votes_count}
@@ -910,7 +923,7 @@ export function BillingDashboard({
               <div className="text-sm text-muted-foreground">Votes</div>
               <div className="text-xs text-muted-foreground mt-1">Unlimited</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600">
                 {usage.widget_loads.toLocaleString()}
@@ -924,7 +937,7 @@ export function BillingDashboard({
             <Alert className="mt-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                You&apos;re approaching the 50 post limit on the Free plan. 
+                You&apos;re approaching the 50 post limit on the Free plan.
                 <Button variant="link" className="h-auto p-0 ml-1" onClick={handleUpgrade}>
                   Upgrade to Pro for unlimited posts
                 </Button>
@@ -935,7 +948,7 @@ export function BillingDashboard({
       </Card>
 
       {/* Plan Comparison */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="relative">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -947,7 +960,7 @@ export function BillingDashboard({
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="text-3xl font-bold mb-4">$0<span className="text-sm font-normal">/month</span></div>
-            
+
             <ul className="space-y-2">
               {planFeatures.free.map((feature, index) => (
                 <li key={index} className="flex items-center gap-2 text-sm">
@@ -984,7 +997,7 @@ export function BillingDashboard({
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="text-3xl font-bold mb-4">$19<span className="text-sm font-normal">/month</span></div>
-            
+
             <ul className="space-y-2">
               {planFeatures.pro.map((feature, index) => (
                 <li key={index} className="flex items-center gap-2 text-sm">
@@ -1007,6 +1020,67 @@ export function BillingDashboard({
               <div className="text-center text-sm text-muted-foreground mt-4">
                 {billingInfo.is_trial ? '🎉 Enjoying your free trial' : '🎁 Enjoying your gifted Pro access'}
               </div>
+            ) : (
+              <Button
+                onClick={handleManageBilling}
+                disabled={loading}
+                variant="outline"
+                className="w-full mt-4"
+              >
+                Manage Subscription
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Premium Plan Card */}
+        <Card className="relative border-purple-300 bg-gradient-to-br from-purple-50/50 to-blue-50/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Crown className="h-4 w-4 text-purple-500" />
+              Premium Plan
+              {billingInfo.plan === 'premium' && (
+                <Badge className="bg-purple-100 text-purple-800">Current</Badge>
+              )}
+            </CardTitle>
+            <Badge className="absolute top-4 right-4 bg-purple-600">Team</Badge>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="text-3xl font-bold text-purple-600 mb-4">$79<span className="text-sm font-normal text-gray-500">/month</span></div>
+            <p className="text-sm text-muted-foreground mb-2">For PM teams (3-10 people)</p>
+
+            <ul className="space-y-2">
+              {planFeatures.premium.map((feature, index) => (
+                <li key={index} className="flex items-center gap-2 text-sm">
+                  <Check className="h-4 w-4 text-purple-600" />
+                  <span>{feature.name}</span>
+                </li>
+              ))}
+            </ul>
+
+            {billingInfo.plan !== 'premium' ? (
+              <Button
+                onClick={() => {
+                  fetch('/api/stripe/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      billingCycle: 'monthly',
+                      plan: 'premium',
+                      projectId: projectId,
+                      successUrl: `${window.location.origin}${returnPath}?success=true&session_id={CHECKOUT_SESSION_ID}`,
+                      cancelUrl: `${window.location.origin}${returnPath}?cancelled=true`,
+                    })
+                  })
+                    .then(res => res.json())
+                    .then(data => { if (data.url) window.location.href = data.url; })
+                    .catch(err => toast.error('Failed to start upgrade: ' + err.message));
+                }}
+                className="w-full mt-4 bg-purple-600 hover:bg-purple-700"
+              >
+                Upgrade to Premium
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
             ) : (
               <Button
                 onClick={handleManageBilling}
