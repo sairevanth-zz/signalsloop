@@ -165,9 +165,9 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE}`
         },
-        body: JSON.stringify({ 
-          postId: newPost.id, 
-          projectId: project_id 
+        body: JSON.stringify({
+          postId: newPost.id,
+          projectId: project_id
         })
       }).then(response => {
         if (response.ok) {
@@ -186,9 +186,9 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE}`
         },
-        body: JSON.stringify({ 
-          postId: newPost.id, 
-          projectId: project_id 
+        body: JSON.stringify({
+          postId: newPost.id,
+          projectId: project_id
         })
       }).then(response => {
         if (response.ok) {
@@ -198,6 +198,26 @@ export async function POST(request: NextRequest) {
         }
       }).catch(error => {
         console.error('Error triggering priority scoring:', error);
+      });
+
+      // 4. Trigger AI Sentiment Analysis (async)
+      fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/analyze-sentiment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          postIds: [newPost.id],
+          projectId: project_id
+        })
+      }).then(response => {
+        if (response.ok) {
+          console.log('✅ AI sentiment analysis triggered for post:', newPost.id);
+        } else {
+          console.error('❌ AI sentiment analysis failed for post:', newPost.id);
+        }
+      }).catch(error => {
+        console.error('Error triggering sentiment analysis:', error);
       });
 
     } else {
