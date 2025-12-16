@@ -197,13 +197,16 @@ export async function POST(
       // Successfully inserted with priority column present
     }
 
-    // Increment vote_count in posts table and get the new count
-    const { data: newVoteCount, error: updateError } = await getSupabase()
-      .rpc('increment_vote_count', { post_id_param: postId });
+    // NOTE: Database trigger `trigger_update_vote_count` automatically increments vote_count
+    // on INSERT, so we don't call increment_vote_count RPC here. Just fetch the updated count.
+    const { data: updatedPost, error: fetchError } = await getSupabase()
+      .from('posts')
+      .select('vote_count')
+      .eq('id', postId)
+      .single();
 
-    if (updateError) {
-      console.error('Error incrementing vote count:', updateError);
-      return NextResponse.json({ error: updateError.message || 'Failed to update vote count' }, { status: 500 });
+    if (fetchError) {
+      console.error('Error fetching updated vote count:', fetchError);
     }
 
     if (priorityColumnAvailable) {
@@ -214,8 +217,8 @@ export async function POST(
       }
     }
 
-    // Use the vote_count returned by the increment function
-    const safeTotalVotes = newVoteCount ?? 0;
+    // Use the vote_count from the post (updated by trigger)
+    const safeTotalVotes = updatedPost?.vote_count ?? 0;
 
     // Trigger webhooks for vote.created event
     if (postRecord) {
@@ -324,13 +327,16 @@ export async function DELETE(
       return NextResponse.json({ error: 'Failed to remove vote' }, { status: 500 });
     }
 
-    // Decrement vote_count in posts table and get the new count
-    const { data: newVoteCount, error: updateError } = await getSupabase()
-      .rpc('decrement_vote_count', { post_id_param: postId });
+    // NOTE: Database trigger `trigger_update_vote_count` automatically decrements vote_count
+    // on DELETE, so we don't call decrement_vote_count RPC here. Just fetch the updated count.
+    const { data: updatedPost, error: fetchError } = await getSupabase()
+      .from('posts')
+      .select('vote_count')
+      .eq('id', postId)
+      .single();
 
-    if (updateError) {
-      console.error('Error decrementing vote count:', updateError);
-      return NextResponse.json({ error: 'Failed to update vote count' }, { status: 500 });
+    if (fetchError) {
+      console.error('Error fetching updated vote count:', fetchError);
     }
 
     try {
@@ -339,10 +345,10 @@ export async function DELETE(
       console.error('Error updating priority counts:', priorityError);
     }
 
-    // Use the vote_count returned by the decrement function
+    // Use the vote_count from the post (updated by trigger)
     return NextResponse.json({
       message: 'Vote removed successfully',
-      new_vote_count: newVoteCount ?? 0
+      new_vote_count: updatedPost?.vote_count ?? 0
     }, { status: 200 });
 
   } catch (error) {
