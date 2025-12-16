@@ -373,20 +373,20 @@ export function DiscordIntegrationSettings({
 
   if (userPlan !== 'pro') {
     return (
-      <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
+      <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/20 dark:border-slate-700 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
             <MessageSquare className="w-5 h-5 text-indigo-500" />
             Discord Integration
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="dark:text-gray-400">
             Connect Discord to share feedback updates directly in your community channels.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert className="border-yellow-200 bg-yellow-50">
-            <AlertTriangle className="h-4 w-4 text-yellow-600" />
-            <AlertDescription>
+          <Alert className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/30">
+            <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+            <AlertDescription className="text-yellow-800 dark:text-yellow-300">
               Discord integration is available on the Pro plan. Upgrade to unlock instant Discord
               notifications for new feedback, comments, and status updates.
             </AlertDescription>
@@ -405,43 +405,43 @@ export function DiscordIntegrationSettings({
   }
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
+    <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/20 dark:border-slate-700 shadow-lg">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
           <MessageSquare className="w-5 h-5 text-indigo-500" />
           Discord Integration
           {integration?.connected && (
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 ml-2">
+            <Badge variant="outline" className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 ml-2">
               <CheckCircle2 className="w-3 h-3 mr-1" />
               Connected
             </Badge>
           )}
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="dark:text-gray-400">
           Send real-time notifications to a Discord channel when feedback is created, updated, or
           receives activity.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {loading ? (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <Loader2 className="h-4 w-4 animate-spin" />
             Loading Discord integration…
           </div>
         ) : error ? (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <AlertDescription>{error}</AlertDescription>
+          <Alert className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30">
+            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-500" />
+            <AlertDescription className="text-red-800 dark:text-red-300">{error}</AlertDescription>
           </Alert>
         ) : integration?.integrationStatus === 'invalid' ? (
           <div className="space-y-4">
-            <Alert className="border-red-200 bg-red-50">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
+            <Alert className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30">
+              <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-500" />
               <AlertDescription className="space-y-2">
-                <div className="font-semibold text-red-900">
+                <div className="font-semibold text-red-900 dark:text-red-300">
                   Discord webhook expired
                 </div>
-                <p className="text-red-800/80 text-sm">
+                <p className="text-red-800/80 dark:text-red-400 text-sm">
                   Discord rejected the last vote notification because the stored webhook token is
                   no longer valid. Reconnect to generate a fresh webhook so vote alerts resume.
                 </p>
@@ -463,23 +463,23 @@ export function DiscordIntegrationSettings({
           </div>
         ) : integration?.connected && integration.integration ? (
           <div className="space-y-3">
-            <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-4">
+            <div className="rounded-xl border border-indigo-100 dark:border-indigo-900 bg-indigo-50/60 dark:bg-indigo-950/40 p-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <div className="text-sm text-indigo-700 font-medium">Connected Guild</div>
-                  <div className="text-base font-semibold text-indigo-900">
+                  <div className="text-sm text-indigo-700 dark:text-indigo-400 font-medium">Connected Guild</div>
+                  <div className="text-base font-semibold text-indigo-900 dark:text-indigo-200">
                     {integration.integration.guildName || 'Discord Server'}
                   </div>
-                  <div className="text-sm text-indigo-700">
+                  <div className="text-sm text-indigo-700 dark:text-indigo-400">
                     Channel: {integration.integration.channelName || 'Selected channel'}
                   </div>
                 </div>
-                <Badge variant="outline" className="bg-white text-indigo-700 border-indigo-200">
+                <Badge variant="outline" className="bg-white dark:bg-slate-800 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800">
                   <PlugZap className="w-4 h-4 mr-1" />
                   Active
                 </Badge>
               </div>
-              <div className="mt-3 grid gap-2 text-sm text-indigo-900/80 sm:grid-cols-2">
+              <div className="mt-3 grid gap-2 text-sm text-indigo-900/80 dark:text-indigo-300 sm:grid-cols-2">
                 <div>
                   <span className="font-medium">Connected on: </span>
                   {formatDate(integration.integration.connectedAt)}
@@ -490,7 +490,7 @@ export function DiscordIntegrationSettings({
                 </div>
                 {integration.integration.webhookUrl && (
                   <div className="sm:col-span-2 flex items-center gap-2 break-all">
-                    <ExternalLink className="h-4 w-4 text-indigo-500" />
+                    <ExternalLink className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
                     <span>{integration.integration.webhookUrl}</span>
                   </div>
                 )}
@@ -531,18 +531,18 @@ export function DiscordIntegrationSettings({
           </div>
         ) : (
           <div className="space-y-4">
-            <Alert className="border-indigo-200 bg-indigo-50">
-              <MessageSquare className="h-4 w-4 text-indigo-600" />
+            <Alert className="border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/40">
+              <MessageSquare className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
               <AlertDescription className="space-y-2">
-                <div className="font-semibold text-indigo-900">
+                <div className="font-semibold text-indigo-900 dark:text-indigo-200">
                   Ready to connect Discord?
                 </div>
-                <p className="text-indigo-800/80 text-sm">
+                <p className="text-indigo-800/80 dark:text-indigo-400 text-sm">
                   Authorize SignalsLoop to post updates into a Discord channel of your choice. Your
                   community will receive instant notifications for new feedback, comments, votes, and
                   status changes.
                 </p>
-                <ul className="text-sm text-indigo-800/80 list-disc list-inside space-y-1">
+                <ul className="text-sm text-indigo-800/80 dark:text-indigo-400 list-disc list-inside space-y-1">
                   <li>No bots to configure manually—Discord handles the webhook.</li>
                   <li>Choose the channel during authorization and change it anytime.</li>
                   <li>Disable or reconnect in one click whenever you need.</li>
@@ -565,13 +565,13 @@ export function DiscordIntegrationSettings({
           </div>
         )}
         {!loading && (
-          <div className="border-t border-indigo-100 pt-4">
+          <div className="border-t border-indigo-100 dark:border-slate-700 pt-4">
             <div className="space-y-3">
               <div>
-                <div className="text-sm font-semibold text-indigo-900">
+                <div className="text-sm font-semibold text-indigo-900 dark:text-indigo-200">
                   Already have a Discord webhook?
                 </div>
-                <p className="text-sm text-indigo-800/80">
+                <p className="text-sm text-indigo-800/80 dark:text-indigo-400">
                   Paste an existing webhook URL to connect without using the Discord authorization
                   flow. You need the <span className="font-medium">Manage Webhooks</span> permission
                   in the target server to create one from Discord.
@@ -585,6 +585,7 @@ export function DiscordIntegrationSettings({
                     setManualWebhookUrl(event.target.value);
                     if (manualError) setManualError(null);
                   }}
+                  className="dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder-slate-500"
                 />
                 <Input
                   placeholder="Channel name (optional)"
@@ -593,6 +594,7 @@ export function DiscordIntegrationSettings({
                     setManualChannelName(event.target.value);
                     if (manualError) setManualError(null);
                   }}
+                  className="dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder-slate-500"
                 />
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -609,12 +611,12 @@ export function DiscordIntegrationSettings({
                     </>
                   )}
                 </Button>
-                <p className="text-xs text-indigo-700/80">
+                <p className="text-xs text-indigo-700/80 dark:text-indigo-400">
                   We store the webhook URL securely and use it only to send product notifications.
                 </p>
               </div>
               {manualError && (
-                <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md px-3 py-2">
                   {manualError}
                 </div>
               )}
