@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
-import { Mail, Lock, Eye, EyeClosed, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeClosed, ArrowRight, Key } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { useAuth } from '@/hooks/useAuth';
 
@@ -28,6 +28,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -36,6 +37,7 @@ export default function LoginPage() {
   const [focusedInput, setFocusedInput] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [redirectTarget, setRedirectTarget] = useState('/app');
+  const [loginMode, setLoginMode] = useState<'magic' | 'password'>('password');
 
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -77,19 +79,19 @@ export default function LoginPage() {
     const hash = window.location.hash;
     if (hash.includes('access_token=')) {
       console.log('OAuth tokens detected in URL hash, processing...');
-      
+
       // Show loading state immediately to prevent flash
       setIsGoogleLoading(true);
       setError('');
-      
+
       // Extract tokens from hash
       const urlParams = new URLSearchParams(hash.substring(1));
       const accessToken = urlParams.get('access_token');
       const refreshToken = urlParams.get('refresh_token');
-      
+
       if (accessToken) {
         console.log('Access token found, setting session and redirecting to target');
-        
+
         // Set the session in Supabase client (async function)
         const setSession = async () => {
           try {
@@ -165,18 +167,18 @@ export default function LoginPage() {
           window.history.replaceState({}, document.title, window.location.pathname);
           window.location.href = target;
         };
-        
+
         setSession();
         return;
       }
     }
-  
+
     const errorParam = urlSearchParams.get('error');
     const detailsParam = urlSearchParams.get('details');
-  
+
     if (errorParam) {
       let errorMessage = 'Authentication failed. Please try again.';
-      
+
       if (errorParam === 'oauth_error') {
         errorMessage = 'Google authentication failed. Please try again.';
       } else if (errorParam === 'auth_callback_error') {
@@ -188,11 +190,11 @@ export default function LoginPage() {
       } else if (errorParam === 'unexpected_error') {
         errorMessage = 'An unexpected error occurred during authentication. Please try again.';
       }
-      
+
       if (detailsParam) {
         errorMessage += ' (' + detailsParam + ')';
       }
-      
+
       setError(errorMessage);
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -230,7 +232,7 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     if (!isClient) return;
-    
+
     console.log('handleGoogleLogin called');
     setIsGoogleLoading(true);
     setError('');
@@ -238,10 +240,10 @@ export default function LoginPage() {
     try {
       // Import Supabase dynamically only on client side
       const { createClient } = await import('@supabase/supabase-js');
-      
+
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      
+
       if (!supabaseUrl || !supabaseKey) {
         setError('Missing Supabase environment variables');
         return;
@@ -299,10 +301,10 @@ export default function LoginPage() {
     try {
       // Import Supabase dynamically only on client side
       const { createClient } = await import('@supabase/supabase-js');
-      
+
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      
+
       if (!supabaseUrl || !supabaseKey) {
         setError('Missing Supabase environment variables');
         return;
@@ -332,13 +334,59 @@ export default function LoginPage() {
     }
   };
 
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password || !isClient) return;
+
+    setIsPasswordLoading(true);
+    setError('');
+
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseKey) {
+        setError('Missing Supabase environment variables');
+        return;
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setError(error.message);
+      } else if (data.session) {
+        // Check if new user (created within last 5 minutes)
+        const userCreatedAt = new Date(data.user.created_at);
+        const timeSinceCreation = Date.now() - userCreatedAt.getTime();
+        const isNewUser = timeSinceCreation < 300000;
+
+        if (isNewUser) {
+          window.location.href = '/welcome';
+        } else {
+          window.location.href = redirectTarget;
+        }
+      }
+    } catch (error) {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setIsPasswordLoading(false);
+    }
+  };
+
   // Don't render until client-side
   if (!isClient) {
     return (
       <div className="min-h-screen w-screen bg-black relative overflow-hidden flex items-center justify-center">
         {/* Background gradient effect */}
         <div className="absolute inset-0 bg-purple-500/40" />
-        
+
         {/* Loading card */}
         <div className="relative bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/[0.05] shadow-2xl">
           <div className="text-center">
@@ -362,12 +410,12 @@ export default function LoginPage() {
           </div>
         </div>
       )}
-      
+
       {/* Background gradient effect */}
       <div className="absolute inset-0 bg-purple-500/40" />
-      
+
       {/* Subtle noise texture overlay */}
-      <div className="absolute inset-0 opacity-[0.03] mix-blend-soft-light" 
+      <div className="absolute inset-0 opacity-[0.03] mix-blend-soft-light"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
           backgroundSize: '200px 200px'
@@ -376,26 +424,26 @@ export default function LoginPage() {
 
       {/* Top radial glow */}
       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[120vh] h-[60vh] rounded-b-[50%] bg-purple-400/20 blur-[80px]" />
-      <motion.div 
+      <motion.div
         className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[100vh] h-[60vh] rounded-b-full bg-purple-300/20 blur-[60px]"
-        animate={{ 
+        animate={{
           opacity: [0.15, 0.3, 0.15],
           scale: [0.98, 1.02, 0.98]
         }}
-        transition={{ 
-          duration: 8, 
+        transition={{
+          duration: 8,
           repeat: Infinity,
           repeatType: "mirror"
         }}
       />
-      <motion.div 
+      <motion.div
         className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[90vh] h-[90vh] rounded-t-full bg-purple-400/20 blur-[60px]"
-        animate={{ 
+        animate={{
           opacity: [0.3, 0.5, 0.3],
           scale: [1, 1.1, 1]
         }}
-        transition={{ 
-          duration: 6, 
+        transition={{
+          duration: 6,
           repeat: Infinity,
           repeatType: "mirror",
           delay: 1
@@ -422,7 +470,7 @@ export default function LoginPage() {
         >
           <div className="relative group">
             {/* Card glow effect */}
-            <motion.div 
+            <motion.div
               className="absolute -inset-[1px] rounded-2xl opacity-0 group-hover:opacity-70 transition-opacity duration-700"
               animate={{
                 boxShadow: [
@@ -432,11 +480,11 @@ export default function LoginPage() {
                 ],
                 opacity: [0.2, 0.4, 0.2]
               }}
-              transition={{ 
-                duration: 4, 
-                repeat: Infinity, 
-                ease: "easeInOut", 
-                repeatType: "mirror" 
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+                repeatType: "mirror"
               }}
             />
 
@@ -462,7 +510,7 @@ export default function LoginPage() {
                 >
                   Welcome Back
                 </motion.h1>
-                
+
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -475,7 +523,7 @@ export default function LoginPage() {
 
               {/* Error/Success Messages */}
               {error && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg"
@@ -485,7 +533,7 @@ export default function LoginPage() {
               )}
 
               {isSuccess && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg"
@@ -503,17 +551,17 @@ export default function LoginPage() {
                 className="w-full relative group/google mb-4"
               >
                 <div className="absolute inset-0 bg-white/5 rounded-lg blur opacity-0 group-hover/google:opacity-70 transition-opacity duration-300" />
-                
+
                 <div className="relative overflow-hidden bg-white/5 text-white font-medium h-10 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-300 flex items-center justify-center gap-2">
                   {isGoogleLoading ? (
                     <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
                       <svg className="w-4 h-4" viewBox="0 0 24 24">
-                        <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                        <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                       </svg>
                       <span className="text-white/80 group-hover/google:text-white transition-colors text-sm">
                         Continue with Google
@@ -526,7 +574,7 @@ export default function LoginPage() {
               {/* Divider */}
               <div className="relative mt-4 mb-4 flex items-center">
                 <div className="flex-grow border-t border-white/5"></div>
-                <motion.span 
+                <motion.span
                   className="mx-3 text-xs text-white/40"
                   initial={{ opacity: 0.7 }}
                   animate={{ opacity: [0.7, 0.9, 0.7] }}
@@ -537,19 +585,45 @@ export default function LoginPage() {
                 <div className="flex-grow border-t border-white/5"></div>
               </div>
 
-              {/* Magic Link Form */}
-              <form onSubmit={handleLogin} className="space-y-4">
-                <motion.div 
+              {/* Login Mode Toggle */}
+              <div className="flex mb-4 bg-white/5 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => setLoginMode('password')}
+                  className={`flex-1 py-2 text-xs font-medium rounded-md transition-all flex items-center justify-center gap-1.5 ${loginMode === 'password'
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/50 hover:text-white/70'
+                    }`}
+                >
+                  <Lock className="w-3 h-3" />
+                  Password
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLoginMode('magic')}
+                  className={`flex-1 py-2 text-xs font-medium rounded-md transition-all flex items-center justify-center gap-1.5 ${loginMode === 'magic'
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/50 hover:text-white/70'
+                    }`}
+                >
+                  <Key className="w-3 h-3" />
+                  Magic Link
+                </button>
+              </div>
+
+              {/* Login Form */}
+              <form onSubmit={loginMode === 'password' ? handlePasswordLogin : handleLogin} className="space-y-3">
+                {/* Email Field */}
+                <motion.div
                   className={`relative ${focusedInput === "email" ? 'z-10' : ''}`}
                   whileFocus={{ scale: 1.02 }}
                   whileHover={{ scale: 1.01 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 >
                   <div className="relative flex items-center overflow-hidden rounded-lg">
-                    <Mail className={`absolute left-3 w-4 h-4 transition-all duration-300 ${
-                      focusedInput === "email" ? 'text-white' : 'text-white/40'
-                    }`} />
-                    
+                    <Mail className={`absolute left-3 w-4 h-4 transition-all duration-300 ${focusedInput === "email" ? 'text-white' : 'text-white/40'
+                      }`} />
+
                     <Input
                       type="email"
                       placeholder="Email address"
@@ -563,19 +637,53 @@ export default function LoginPage() {
                   </div>
                 </motion.div>
 
-                {/* Send Magic Link Button */}
+                {/* Password Field - only shown in password mode */}
+                {loginMode === 'password' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className={`relative ${focusedInput === "password" ? 'z-10' : ''}`}
+                  >
+                    <div className="relative flex items-center overflow-hidden rounded-lg">
+                      <Lock className={`absolute left-3 w-4 h-4 transition-all duration-300 ${focusedInput === "password" ? 'text-white' : 'text-white/40'
+                        }`} />
+
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onFocus={() => setFocusedInput("password" as any)}
+                        onBlur={() => setFocusedInput(null)}
+                        className="w-full bg-white/5 border-transparent focus:border-white/20 text-white placeholder:text-white/30 h-10 transition-all duration-300 pl-10 pr-10 focus:bg-white/10"
+                        required={loginMode === 'password'}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 text-white/40 hover:text-white transition-colors"
+                      >
+                        {showPassword ? <EyeClosed className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Submit Button */}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  disabled={isLoading}
-                  className="w-full relative group/button mt-5"
+                  disabled={isLoading || isPasswordLoading}
+                  className="w-full relative group/button mt-4"
                 >
                   <div className="absolute inset-0 bg-white/10 rounded-lg blur-lg opacity-0 group-hover/button:opacity-70 transition-opacity duration-300" />
-                  
+
                   <div className="relative overflow-hidden bg-white text-black font-medium h-10 rounded-lg transition-all duration-300 flex items-center justify-center">
                     <AnimatePresence mode="wait">
-                      {isLoading ? (
+                      {(isLoading || isPasswordLoading) ? (
                         <motion.div
                           key="loading"
                           initial={{ opacity: 0 }}
@@ -593,7 +701,7 @@ export default function LoginPage() {
                           exit={{ opacity: 0 }}
                           className="flex items-center justify-center gap-1 text-sm font-medium"
                         >
-                          Send Magic Link
+                          {loginMode === 'password' ? 'Sign In' : 'Send Magic Link'}
                           <ArrowRight className="w-3 h-3 group-hover/button:translate-x-1 transition-transform duration-300" />
                         </motion.span>
                       )}
@@ -602,21 +710,39 @@ export default function LoginPage() {
                 </motion.button>
               </form>
 
+              {/* Signup Link */}
+              <motion.p
+                className="text-center text-xs text-white/60 mt-5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                Don't have an account?{' '}
+                <Link
+                  href="/signup"
+                  className="relative inline-block group/signup"
+                >
+                  <span className="relative z-10 text-white group-hover/signup:text-purple-300 transition-colors duration-300 font-medium">
+                    Sign up
+                  </span>
+                  <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-purple-300 group-hover/signup:w-full transition-all duration-300" />
+                </Link>
+              </motion.p>
+
               {/* Back to Home Link */}
-              <motion.p 
-                className="text-center text-xs text-white/60 mt-6"
+              <motion.p
+                className="text-center text-xs text-white/60 mt-3"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
               >
-                <Link 
-                  href="/" 
+                <Link
+                  href="/"
                   className="relative inline-block group/home"
                 >
-                  <span className="relative z-10 text-white group-hover/home:text-white/70 transition-colors duration-300 font-medium">
+                  <span className="relative z-10 text-white/60 group-hover/home:text-white/70 transition-colors duration-300">
                     ← Back to Home
                   </span>
-                  <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-white group-hover/home:w-full transition-all duration-300" />
                 </Link>
               </motion.p>
             </div>
