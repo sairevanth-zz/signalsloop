@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { AskModal } from '@/components/ask/AskModal';
+import { FloatingAskAI } from '@/components/dashboard/FloatingAskAI';
 import { TourProvider } from '@/components/tours/TourProvider';
 import { ShortcutsProvider } from '@/components/shortcuts/ShortcutsProvider';
 import { PushNotificationPrompt } from '@/components/notifications/PushNotificationPrompt';
@@ -60,7 +60,7 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
         <ShortcutsProvider projectSlug={projectSlug}>
           <TourProvider autoStart={true}>
             {children}
-            <AskModal />
+            <FloatingAskAI projectSlug={projectSlug} />
             <CommandPalette />
           </TourProvider>
         </ShortcutsProvider>
@@ -107,7 +107,7 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
               </main>
             </div>
 
-            <AskModal />
+            <FloatingAskAI projectSlug={projectSlug} projectId={projectId || undefined} />
             <CommandPalette />
           </div>
         </TourProvider>

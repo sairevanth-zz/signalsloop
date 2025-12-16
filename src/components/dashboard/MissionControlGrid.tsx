@@ -11,7 +11,6 @@
  * 3. CommandBar - Feature navigation 
  * 4. Hero Zone - AI Briefing (60%) + Attention Stack (40%)
  * 5. DashboardTabs - Deep-dive sections
- * 6. FloatingAskAI - Persistent AI button
  */
 
 'use client';
@@ -22,7 +21,6 @@ import { RealtimeToasts } from './RealtimeToasts';
 import { MetricStrip, MetricStripSkeleton } from './MetricStrip';
 import { AttentionStack, AttentionStackSkeleton } from './AttentionStack';
 import { CommandBar, CommandBarCompact } from './CommandBar';
-import { FloatingAskAI } from './FloatingAskAI';
 import { DashboardTabs } from './DashboardTabs';
 import { RoadmapAdjustmentBanner } from '@/components/roadmap/RoadmapAdjustmentBanner';
 import { StrategyShiftsCard } from './StrategyShiftsCard';
@@ -170,9 +168,6 @@ export function MissionControlGrid({
           metrics={liveMetrics}
         />
       </div>
-
-      {/* Floating Ask AI Button */}
-      <FloatingAskAI projectId={projectId} projectSlug={projectSlug} />
     </>
   );
 }

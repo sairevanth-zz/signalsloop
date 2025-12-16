@@ -7,24 +7,61 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Brain, X, Send, Loader2, AlertCircle } from 'lucide-react';
 
 interface FloatingAskAIProps {
-    projectId: string;
-    projectSlug: string;
+    projectId?: string;
+    projectSlug?: string;
 }
 
-export function FloatingAskAI({ projectId, projectSlug }: FloatingAskAIProps) {
+export function FloatingAskAI({ projectId: providedProjectId, projectSlug: providedProjectSlug }: FloatingAskAIProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [input, setInput] = useState('');
     const [completion, setCompletion] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [projectId, setProjectId] = useState<string | null>(providedProjectId || null);
+    const [isLoadingProject, setIsLoadingProject] = useState(!providedProjectId);
+    const pathname = usePathname();
+
+    // Check if we're on the Ask page (hide to avoid duplication)
+    const isOnAskPage = pathname?.includes('/dashboard/ask') || pathname?.includes('/ask');
+
+    // Fetch user's default project if not provided
+    useEffect(() => {
+        if (providedProjectId) {
+            setProjectId(providedProjectId);
+            setIsLoadingProject(false);
+            return;
+        }
+
+        const fetchDefaultProject = async () => {
+            try {
+                const response = await fetch('/api/projects?limit=1', {
+                    credentials: 'include',
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.projects && data.projects.length > 0) {
+                        setProjectId(data.projects[0].id);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching default project:', error);
+            } finally {
+                setIsLoadingProject(false);
+            }
+        };
+
+        fetchDefaultProject();
+    }, [providedProjectId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim() || isLoading) return;
+        if (!input.trim() || isLoading || !projectId) return;
+
 
         const query = input.trim();
         setInput('');
@@ -63,6 +100,11 @@ export function FloatingAskAI({ projectId, projectSlug }: FloatingAskAIProps) {
             setIsLoading(false);
         }
     };
+
+    // Don't render if we're on the Ask page or still loading project
+    if (isOnAskPage) {
+        return null;
+    }
 
     return (
         <>

@@ -9,7 +9,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTheme } from '@/components/theme-provider';
-import { FloatingAskAI } from './FloatingAskAI';
 import {
     AlertTriangle,
     Lightbulb,
@@ -327,9 +326,6 @@ export function MissionControlDashboard({
                     </div>
                 </div>
             </div>
-
-            {/* Floating AI Chat Button */}
-            <FloatingAskAI projectId={projectId} projectSlug={projectSlug} />
         </div>
     );
 }
