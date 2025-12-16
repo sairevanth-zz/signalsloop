@@ -197,8 +197,8 @@ export async function POST(
       // Successfully inserted with priority column present
     }
 
-    // Increment vote_count in posts table
-    const { error: updateError } = await getSupabase()
+    // Increment vote_count in posts table and get the new count
+    const { data: newVoteCount, error: updateError } = await getSupabase()
       .rpc('increment_vote_count', { post_id_param: postId });
 
     if (updateError) {
@@ -214,16 +214,8 @@ export async function POST(
       }
     }
 
-    const { count: totalVotes, error: countError } = await getSupabase()
-      .from('votes')
-      .select('*', { count: 'exact', head: true })
-      .eq('post_id', postId);
-
-    if (countError) {
-      console.error('Error counting votes:', countError);
-    }
-
-    const safeTotalVotes = totalVotes ?? 0;
+    // Use the vote_count returned by the increment function
+    const safeTotalVotes = newVoteCount ?? 0;
 
     // Trigger webhooks for vote.created event
     if (postRecord) {
@@ -303,7 +295,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
     }
 
-    const { data: postRecord, error: postError } = await supabase
+    const { data: postRecord, error: postError } = await getSupabase()
       .from('posts')
       .select('id, duplicate_of')
       .eq('id', postId)
@@ -321,7 +313,7 @@ export async function DELETE(
     }
 
     // Delete the vote (check both IP and anonymous ID)
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await getSupabase()
       .from('votes')
       .delete()
       .eq('post_id', postId)
@@ -332,8 +324,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Failed to remove vote' }, { status: 500 });
     }
 
-    // Decrement vote_count in posts table
-    const { data: updatedPost, error: updateError } = await supabase
+    // Decrement vote_count in posts table and get the new count
+    const { data: newVoteCount, error: updateError } = await getSupabase()
       .rpc('decrement_vote_count', { post_id_param: postId });
 
     if (updateError) {
@@ -342,23 +334,15 @@ export async function DELETE(
     }
 
     try {
-      await supabase.rpc('update_post_priority_counts', { p_post_id: postId });
+      await getSupabase().rpc('update_post_priority_counts', { p_post_id: postId });
     } catch (priorityError) {
       console.error('Error updating priority counts:', priorityError);
     }
 
-    const { count: totalVotes, error: countError } = await supabase
-      .from('votes')
-      .select('*', { count: 'exact', head: true })
-      .eq('post_id', postId);
-
-    if (countError) {
-      console.error('Error counting votes after removal:', countError);
-    }
-
+    // Use the vote_count returned by the decrement function
     return NextResponse.json({
       message: 'Vote removed successfully',
-      new_vote_count: totalVotes ?? updatedPost ?? 0
+      new_vote_count: newVoteCount ?? 0
     }, { status: 200 });
 
   } catch (error) {
