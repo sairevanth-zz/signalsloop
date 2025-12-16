@@ -192,15 +192,15 @@ export function MissionControlDashboard({
                 </div>
 
                 {/* Right Panel - Dynamic Context - responsive width */}
-                <div className="w-full lg:w-[400px] xl:w-[500px] flex-shrink-0">
+                <div className="w-full lg:w-[320px] xl:w-[380px] flex-shrink-0">
                     <div
-                        className="p-4 md:p-6 lg:p-8"
+                        className="p-3 md:p-4 lg:p-5"
                         style={{
                             backgroundColor: colors.panelBg,
-                            borderRadius: '20px',
+                            borderRadius: '16px',
                             border: `1px solid ${colors.border}`,
                             transition: 'all 0.3s ease',
-                            minHeight: '400px',
+                            minHeight: '320px',
                         }}
                     >
                         {/* Header */}
@@ -208,24 +208,24 @@ export function MissionControlDashboard({
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            marginBottom: '16px'
+                            marginBottom: '12px'
                         }}>
                             <h3 style={{
-                                fontSize: '16px',
+                                fontSize: '14px',
                                 fontWeight: 600,
                                 color: colors.textPrimary,
                                 margin: 0
                             }}>
                                 Dynamic Context
                             </h3>
-                            <ChevronRight style={{ width: '16px', height: '16px', color: colors.textMuted }} />
+                            <ChevronRight style={{ width: '14px', height: '14px', color: colors.textMuted }} />
                         </div>
 
                         {/* User Sentiment Pulse - Clickable */}
-                        <Link href={`/${projectSlug}/ai-insights`} style={{ display: 'block', marginBottom: '24px', textDecoration: 'none' }}>
+                        <Link href={`/${projectSlug}/ai-insights`} style={{ display: 'block', marginBottom: '16px', textDecoration: 'none' }}>
                             <div style={{
-                                padding: '20px',
-                                borderRadius: '16px',
+                                padding: '14px',
+                                borderRadius: '12px',
                                 backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease',
@@ -237,26 +237,26 @@ export function MissionControlDashboard({
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
-                                    marginBottom: '12px'
+                                    marginBottom: '8px'
                                 }}>
-                                    <span style={{ fontSize: '16px', fontWeight: 600, color: colors.textPrimary }}>
+                                    <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textPrimary }}>
                                         User Sentiment Pulse
                                     </span>
-                                    <ChevronRight style={{ width: '16px', height: '16px', color: colors.textMuted }} />
+                                    <ChevronRight style={{ width: '14px', height: '14px', color: colors.textMuted }} />
                                 </div>
                                 <div style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '10px',
-                                    marginBottom: '16px'
+                                    gap: '8px',
+                                    marginBottom: '12px'
                                 }}>
                                     <div style={{
-                                        width: '10px',
-                                        height: '10px',
+                                        width: '8px',
+                                        height: '8px',
                                         borderRadius: '50%',
                                         backgroundColor: (dashboardData?.sentimentScore || 0.5) >= 0.6 ? '#10b981' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? '#fbbf24' : '#ef4444'
                                     }} />
-                                    <span style={{ fontSize: '15px', fontWeight: 500, color: (dashboardData?.sentimentScore || 0.5) >= 0.6 ? '#10b981' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? '#fbbf24' : '#ef4444' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: 500, color: (dashboardData?.sentimentScore || 0.5) >= 0.6 ? '#10b981' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? '#fbbf24' : '#ef4444' }}>
                                         {(dashboardData?.sentimentScore || 0.5) >= 0.6 ? 'Generally Positive' : (dashboardData?.sentimentScore || 0.5) >= 0.4 ? 'Mixed Sentiment' : 'Concerning Trend'}
                                     </span>
                                 </div>
@@ -268,14 +268,14 @@ export function MissionControlDashboard({
                         <div style={{
                             height: '1px',
                             backgroundColor: colors.border,
-                            margin: '24px 0'
+                            margin: '16px 0'
                         }} />
 
                         {/* Recent Activity - Clickable */}
                         <Link href={`/${projectSlug}/board`} style={{ display: 'block', textDecoration: 'none' }}>
                             <div style={{
-                                padding: '20px',
-                                borderRadius: '16px',
+                                padding: '14px',
+                                borderRadius: '12px',
                                 backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease',
@@ -287,24 +287,24 @@ export function MissionControlDashboard({
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
-                                    marginBottom: '20px'
+                                    marginBottom: '14px'
                                 }}>
                                     <h4 style={{
-                                        fontSize: '16px',
+                                        fontSize: '13px',
                                         fontWeight: 600,
                                         color: colors.textPrimary,
                                         margin: 0
                                     }}>
                                         Recent Activity & Insights
                                     </h4>
-                                    <ChevronRight style={{ width: '16px', height: '16px', color: colors.textMuted }} />
+                                    <ChevronRight style={{ width: '14px', height: '14px', color: colors.textMuted }} />
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                                     {dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 ? (
                                         dashboardData.recentActivity.slice(0, 3).map((activity, index) => (
                                             <ActivityItem
                                                 key={activity.id || index}
-                                                icon={<MessageSquare style={{ width: '18px', height: '18px', color: activity.sentiment && activity.sentiment > 0.5 ? '#14b8a6' : '#fbbf24' }} />}
+                                                icon={<MessageSquare style={{ width: '16px', height: '16px', color: activity.sentiment && activity.sentiment > 0.5 ? '#14b8a6' : '#fbbf24' }} />}
                                                 title={`${activity.authorEmail?.split('@')[0] || 'User'}: "${activity.content}"`}
                                                 time={formatTimeAgo(activity.createdAt)}
                                             />
@@ -312,11 +312,11 @@ export function MissionControlDashboard({
                                     ) : (
                                         <div style={{
                                             textAlign: 'center',
-                                            padding: '40px 20px',
+                                            padding: '28px 16px',
                                             color: colors.textSecondary,
-                                            fontSize: '15px'
+                                            fontSize: '13px'
                                         }}>
-                                            <Inbox style={{ width: '32px', height: '32px', margin: '0 auto 12px', opacity: 0.5 }} />
+                                            <Inbox style={{ width: '28px', height: '28px', margin: '0 auto 10px', opacity: 0.5 }} />
                                             No recent activity yet
                                         </div>
                                     )}
@@ -428,16 +428,16 @@ function ActionCard({
     return (
         <div style={{
             position: 'relative',
-            borderRadius: '20px',
-            padding: '40px',
+            borderRadius: '16px',
+            padding: '24px',
             backgroundColor: cardBg,
-            border: `3px solid ${accentColor}`,
+            border: `2px solid ${accentColor}`,
             boxShadow: isDark
-                ? `0 0 80px ${accentColor}${glowIntensity}, 0 0 40px ${accentColor}50, inset 0 0 40px ${accentColor}${insetGlow}`
-                : `0 0 40px ${accentColor}30, 0 4px 12px rgba(0,0,0,0.1)`,
+                ? `0 0 60px ${accentColor}${glowIntensity}, 0 0 30px ${accentColor}50, inset 0 0 30px ${accentColor}${insetGlow}`
+                : `0 0 30px ${accentColor}30, 0 4px 12px rgba(0,0,0,0.1)`,
             overflow: 'hidden',
             transition: 'all 0.3s ease',
-            height: '500px',
+            height: '320px',
             display: 'flex',
             flexDirection: 'column',
         }}>
@@ -458,25 +458,25 @@ function ActionCard({
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
                 {/* Icon circle */}
                 <div style={{
-                    width: '52px',
-                    height: '52px',
+                    width: '40px',
+                    height: '40px',
                     borderRadius: '50%',
                     backgroundColor: `${accentColor}${isDark ? '30' : '20'}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: '20px',
-                    boxShadow: isDark ? `0 0 20px ${accentColor}40` : 'none'
+                    marginBottom: '12px',
+                    boxShadow: isDark ? `0 0 16px ${accentColor}40` : 'none'
                 }}>
                     {icon}
                 </div>
 
                 {/* Title */}
                 <h3 style={{
-                    fontSize: '18px',
+                    fontSize: '16px',
                     fontWeight: 600,
                     color: textPrimary,
-                    margin: '0 0 12px 0',
+                    margin: '0 0 8px 0',
                     letterSpacing: '-0.01em'
                 }}>
                     {title}
@@ -484,10 +484,10 @@ function ActionCard({
 
                 {/* Description */}
                 <p style={{
-                    fontSize: '14px',
+                    fontSize: '13px',
                     color: textSecondary,
-                    margin: '0 0 20px 0',
-                    lineHeight: 1.6,
+                    margin: '0 0 16px 0',
+                    lineHeight: 1.5,
                     flex: 1,
                 }}>
                     {description}
@@ -501,14 +501,14 @@ function ActionCard({
                         width: '100%',
                         textAlign: 'center',
                         color: buttonText,
-                        fontWeight: 700,
-                        fontSize: '14px',
-                        padding: '12px 16px',
+                        fontWeight: 600,
+                        fontSize: '13px',
+                        padding: '10px 14px',
                         borderRadius: '8px',
                         backgroundColor: accentColor,
                         textDecoration: 'none',
                         boxShadow: isDark
-                            ? `0 8px 30px ${accentColor}70, 0 0 50px ${accentColor}50, 0 0 80px ${accentColor}30`
+                            ? `0 6px 24px ${accentColor}70, 0 0 40px ${accentColor}50, 0 0 60px ${accentColor}30`
                             : `0 4px 16px ${accentColor}40`
                     }}
                 >
