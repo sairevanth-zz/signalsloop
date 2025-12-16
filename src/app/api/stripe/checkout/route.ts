@@ -65,7 +65,7 @@ const buildReturnPath = (slug?: string | null) => {
  */
 export async function createCheckoutSession(body: CheckoutBody, request: Request) {
   try {
-    const body = (await request.json()) as CheckoutBody;
+    // body is already passed in - don't read from request again
     const billingCycle: BillingCycle = body.billingCycle ?? 'monthly';
     const plan: PlanType = body.plan ?? 'pro';
     const identifier = body.projectId || body.accountId;
