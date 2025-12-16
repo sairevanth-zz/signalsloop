@@ -22,6 +22,7 @@ import {
 import {
   IntegrationType,
   INTEGRATION_CONFIGS,
+  VISIBLE_INTEGRATION_CONFIGS,
   IntegrationSetupConfig,
   FeedbackIntegration,
 } from '@/lib/inbox/types';
@@ -87,12 +88,13 @@ export function IntegrationWizard({
   const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   const selectedConfig = selectedType ? INTEGRATION_CONFIGS[selectedType] : null;
-  
-  // Group integrations by category
-  const integrationsByCategory = Object.entries(INTEGRATION_CONFIGS).reduce(
+
+  // Group integrations by category (only visible ones)
+  const integrationsByCategory = Object.entries(VISIBLE_INTEGRATION_CONFIGS).reduce(
     (acc, [key, config]) => {
+      if (!config) return acc;
       const category = config.category;
       if (!acc[category]) acc[category] = [];
       acc[category].push({ type: key as IntegrationType, config });
@@ -100,20 +102,20 @@ export function IntegrationWizard({
     },
     {} as Record<string, Array<{ type: IntegrationType; config: IntegrationSetupConfig }>>
   );
-  
+
   // Filter integrations by search
   const filteredCategories = searchQuery
     ? Object.entries(integrationsByCategory).reduce((acc, [category, items]) => {
-        const filtered = items.filter(
-          (item) =>
-            item.config.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.config.description.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        if (filtered.length > 0) acc[category] = filtered;
-        return acc;
-      }, {} as typeof integrationsByCategory)
+      const filtered = items.filter(
+        (item) =>
+          item.config.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.config.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      if (filtered.length > 0) acc[category] = filtered;
+      return acc;
+    }, {} as typeof integrationsByCategory)
     : integrationsByCategory;
-  
+
   const handleSelectType = (type: IntegrationType) => {
     setSelectedType(type);
     setCredentials({});
@@ -121,11 +123,11 @@ export function IntegrationWizard({
     setTestResult(null);
     setStep('configure');
   };
-  
+
   const handleTest = async () => {
     setTesting(true);
     setTestResult(null);
-    
+
     try {
       // Create temporary integration to test
       const response = await fetch('/api/inbox/integrations', {
@@ -139,23 +141,23 @@ export function IntegrationWizard({
           config,
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to create integration');
       }
-      
+
       // Test the connection
       const testResponse = await fetch(`/api/inbox/integrations/${data.integration.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'test' }),
       });
-      
+
       const testData = await testResponse.json();
       setTestResult(testData);
-      
+
       if (testData.success) {
         setStep('test');
       }
@@ -168,10 +170,10 @@ export function IntegrationWizard({
       setTesting(false);
     }
   };
-  
+
   const handleSave = async () => {
     setSaving(true);
-    
+
     try {
       const response = await fetch('/api/inbox/integrations', {
         method: 'POST',
@@ -184,13 +186,13 @@ export function IntegrationWizard({
           config,
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to save integration');
       }
-      
+
       onComplete(data.integration);
       handleClose();
     } catch (error) {
@@ -202,7 +204,7 @@ export function IntegrationWizard({
       setSaving(false);
     }
   };
-  
+
   const handleClose = () => {
     setStep('select');
     setSelectedType(null);
@@ -212,7 +214,7 @@ export function IntegrationWizard({
     setSearchQuery('');
     onClose();
   };
-  
+
   const renderSelectStep = () => (
     <div className="space-y-6">
       {/* Search */}
@@ -225,13 +227,13 @@ export function IntegrationWizard({
           className="pl-10"
         />
       </div>
-      
+
       {/* Integration Categories */}
       <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2">
         {CATEGORY_ORDER.map((category) => {
           const items = filteredCategories[category];
           if (!items || items.length === 0) return null;
-          
+
           return (
             <div key={category}>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">
@@ -261,10 +263,10 @@ export function IntegrationWizard({
       </div>
     </div>
   );
-  
+
   const renderConfigureStep = () => {
     if (!selectedConfig) return null;
-    
+
     const renderCredentialFields = () => {
       switch (selectedConfig.authType) {
         case 'oauth':
@@ -275,13 +277,13 @@ export function IntegrationWizard({
                   Click the button below to connect your {selectedConfig.name} account via OAuth.
                 </p>
               </div>
-              <Button className="w-full" onClick={() => {/* OAuth flow */}}>
+              <Button className="w-full" onClick={() => {/* OAuth flow */ }}>
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Connect {selectedConfig.name}
               </Button>
             </div>
           );
-          
+
         case 'api_key':
           return (
             <div className="space-y-4">
@@ -312,7 +314,7 @@ export function IntegrationWizard({
               )}
             </div>
           );
-          
+
         case 'none':
           return (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -322,12 +324,12 @@ export function IntegrationWizard({
               </p>
             </div>
           );
-          
+
         default:
           return null;
       }
     };
-    
+
     const renderConfigFields = () => {
       switch (selectedType) {
         case 'slack':
@@ -351,7 +353,7 @@ export function IntegrationWizard({
               </p>
             </div>
           );
-          
+
         case 'twitter':
         case 'reddit':
         case 'hackernews':
@@ -374,7 +376,7 @@ export function IntegrationWizard({
               </p>
             </div>
           );
-          
+
         case 'app_store':
         case 'play_store':
           return (
@@ -414,7 +416,7 @@ export function IntegrationWizard({
               </div>
             </div>
           );
-          
+
         case 'g2':
           return (
             <div className="space-y-4">
@@ -438,7 +440,7 @@ export function IntegrationWizard({
               </div>
             </div>
           );
-          
+
         case 'email_gmail':
         case 'email_outlook':
           return (
@@ -455,12 +457,12 @@ export function IntegrationWizard({
               </p>
             </div>
           );
-          
+
         default:
           return null;
       }
     };
-    
+
     return (
       <div className="space-y-6">
         {/* Integration Header */}
@@ -471,19 +473,19 @@ export function IntegrationWizard({
             <p className="text-sm text-gray-500">{selectedConfig.description}</p>
           </div>
         </div>
-        
+
         {/* Credentials */}
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-3">Authentication</h4>
           {renderCredentialFields()}
         </div>
-        
+
         {/* Configuration */}
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-3">Configuration</h4>
           {renderConfigFields()}
         </div>
-        
+
         {/* Test Result */}
         {testResult && !testResult.success && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
@@ -494,7 +496,7 @@ export function IntegrationWizard({
             </div>
           </div>
         )}
-        
+
         {/* Actions */}
         <div className="flex justify-between pt-4 border-t">
           <Button variant="outline" onClick={() => setStep('select')}>
@@ -518,20 +520,20 @@ export function IntegrationWizard({
       </div>
     );
   };
-  
+
   const renderTestStep = () => (
     <div className="space-y-6 text-center py-8">
       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
         <Check className="h-8 w-8 text-green-600" />
       </div>
-      
+
       <div>
         <h3 className="text-lg font-semibold text-gray-900">Connection Successful!</h3>
         <p className="text-gray-500 mt-1">
           Your {selectedConfig?.name} integration is ready to start syncing feedback.
         </p>
       </div>
-      
+
       <div className="bg-gray-50 rounded-lg p-4 text-left">
         <h4 className="text-sm font-medium text-gray-700 mb-2">What happens next?</h4>
         <ul className="space-y-2 text-sm text-gray-600">
@@ -549,7 +551,7 @@ export function IntegrationWizard({
           </li>
         </ul>
       </div>
-      
+
       <div className="flex justify-center gap-3 pt-4">
         <Button variant="outline" onClick={handleClose}>
           Cancel
@@ -586,7 +588,7 @@ export function IntegrationWizard({
             {step === 'test' && 'Your integration is ready to use'}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="mt-4">
           {step === 'select' && renderSelectStep()}
           {step === 'configure' && renderConfigureStep()}

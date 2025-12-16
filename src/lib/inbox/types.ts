@@ -28,18 +28,18 @@ export interface IntegrationConfig {
   // Common config
   enabled: boolean;
   syncFrequencyMinutes: number;
-  
+
   // Source-specific config
   channels?: string[]; // Slack/Discord channels to monitor
   keywords?: string[]; // Keywords to filter
   excludeKeywords?: string[];
   minEngagement?: number; // Minimum likes/upvotes
   languages?: string[];
-  
+
   // For email
   inboxEmail?: string;
   labelFilter?: string;
-  
+
   // For app stores
   appId?: string;
   countries?: string[];
@@ -162,21 +162,21 @@ export interface UnifiedFeedbackItem {
   id: string;
   projectId: string;
   integrationId?: string;
-  
+
   // Source
   sourceType: IntegrationType;
   sourceId?: string;
   sourceUrl?: string;
   sourceChannel?: string;
   sourceThreadId?: string;
-  
+
   // Content
   title?: string;
   content: string;
   contentHtml?: string;
   contentPlain?: string;
   language: string;
-  
+
   // Author
   authorId?: string;
   authorName?: string;
@@ -184,11 +184,11 @@ export interface UnifiedFeedbackItem {
   authorUsername?: string;
   authorAvatarUrl?: string;
   authorMetadata: AuthorMetadata;
-  
+
   // Customer linking
   customerId?: string;
   customer?: Customer;
-  
+
   // Classification
   category?: FeedbackCategory;
   categoryConfidence?: number;
@@ -198,34 +198,34 @@ export interface UnifiedFeedbackItem {
   urgencyReason?: string;
   tags: string[];
   aiSummary?: string;
-  
+
   // Deduplication
   contentHash?: string;
   duplicateOf?: string;
   duplicateConfidence?: number;
   isDuplicate: boolean;
-  
+
   // Engagement
   engagementMetrics: EngagementMetrics;
   engagementScore: number;
-  
+
   // Status
   status: FeedbackStatus;
   starred: boolean;
   readAt?: Date;
   readBy?: string;
-  
+
   // Reply
   repliedAt?: Date;
   repliedBy?: string;
   replyContent?: string;
   replySentVia?: string;
-  
+
   // Conversion
   convertedToPostId?: string;
   convertedAt?: Date;
   convertedBy?: string;
-  
+
   // Timestamps
   originalCreatedAt: Date;
   importedAt: Date;
@@ -278,20 +278,20 @@ export interface RawFeedbackItem {
   sourceUrl?: string;
   sourceChannel?: string;
   sourceThreadId?: string;
-  
+
   title?: string;
   content: string;
   contentHtml?: string;
-  
+
   authorId?: string;
   authorName?: string;
   authorEmail?: string;
   authorUsername?: string;
   authorAvatarUrl?: string;
   authorMetadata?: AuthorMetadata;
-  
+
   engagementMetrics?: EngagementMetrics;
-  
+
   originalCreatedAt: Date;
   metadata?: Record<string, any>;
 }
@@ -367,6 +367,18 @@ export interface IntegrationSetupConfig {
   setupSteps: IntegrationSetupStep[];
   category: 'communication' | 'support' | 'review' | 'social' | 'survey' | 'custom';
 }
+
+// Integrations that require paid subscriptions or OAuth apps we haven't set up
+// are marked as hidden and won't appear in the UI
+export const HIDDEN_INTEGRATIONS: IntegrationType[] = [
+  'intercom',    // Requires paid Intercom subscription for OAuth
+  'zendesk',     // Requires paid Zendesk subscription for API
+  'email_gmail', // Requires Google Cloud OAuth app setup
+  'email_outlook', // Requires Azure AD OAuth app setup
+  'typeform',    // Requires paid Typeform plan for API
+  'twitter',     // Twitter API now costs $100+/month
+  'g2',          // Enterprise-only API access
+];
 
 export const INTEGRATION_CONFIGS: Record<IntegrationType, IntegrationSetupConfig> = {
   slack: {
@@ -546,3 +558,10 @@ export const INTEGRATION_CONFIGS: Record<IntegrationType, IntegrationSetupConfig
     ],
   },
 };
+
+// Get only visible (non-hidden) integrations for UI
+export const VISIBLE_INTEGRATION_CONFIGS = Object.fromEntries(
+  Object.entries(INTEGRATION_CONFIGS).filter(
+    ([key]) => !HIDDEN_INTEGRATIONS.includes(key as IntegrationType)
+  )
+) as Partial<Record<IntegrationType, IntegrationSetupConfig>>;
