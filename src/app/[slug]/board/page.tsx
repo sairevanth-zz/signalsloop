@@ -999,8 +999,8 @@ export default function BoardPage() {
                       >
                         <Share2 className="h-4 w-4 text-green-600" />
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">Share board</span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">Share board</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             Get a link to invite contributors
                           </span>
                         </div>
@@ -1013,8 +1013,8 @@ export default function BoardPage() {
                       >
                         <Plus className="h-4 w-4 text-blue-600" />
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">Submit feedback</span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">Submit feedback</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             Share a new idea or report an issue
                           </span>
                         </div>
@@ -1028,8 +1028,8 @@ export default function BoardPage() {
                         >
                           <FileText className="h-4 w-4 text-green-700" />
                           <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900">Submit on behalf</span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">Submit on behalf</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
                               Record feedback you&apos;ve collected elsewhere
                             </span>
                           </div>
@@ -1059,8 +1059,8 @@ export default function BoardPage() {
                               <Target className="h-4 w-4 text-blue-600" />
                             )}
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">Auto-prioritize</span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">Auto-prioritize</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 Generate AI priority scores
                               </span>
                             </div>
@@ -1081,8 +1081,8 @@ export default function BoardPage() {
                               <Wand2 className="h-4 w-4 text-indigo-600" />
                             )}
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">Smart Categorize</span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">Smart Categorize</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 AI organizes feedback by category
                               </span>
                             </div>
@@ -1103,8 +1103,8 @@ export default function BoardPage() {
                               <GitMerge className="h-4 w-4 text-orange-600" />
                             )}
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">Find Duplicates</span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">Find Duplicates</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 AI merges duplicate feedback
                               </span>
                             </div>
@@ -1125,8 +1125,8 @@ export default function BoardPage() {
                               <Sparkles className="h-4 w-4 text-purple-600" />
                             )}
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">Analyze Sentiment</span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">Analyze Sentiment</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 AI analyzes emotional tone
                               </span>
                             </div>

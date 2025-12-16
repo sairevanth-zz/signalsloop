@@ -93,7 +93,7 @@ export default function FeedbackOnBehalfModal({
   const [aiCategory, setAiCategory] = useState<AICategory | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showAICategory, setShowAICategory] = useState(false);
-  const [aiUsage, setAiUsage] = useState<{current: number; limit: number; remaining: number; isPro: boolean} | null>(null);
+  const [aiUsage, setAiUsage] = useState<{ current: number; limit: number; remaining: number; isPro: boolean } | null>(null);
 
   if (!isOpen) return null;
 
@@ -301,38 +301,26 @@ export default function FeedbackOnBehalfModal({
       }}
     >
       <div
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '12px',
-          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
-          maxWidth: '800px',
-          width: '90%',
-          maxHeight: '90vh',
-          overflow: 'hidden',
-          position: 'relative',
-          margin: '20px auto',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
+        className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-[800px] w-[90%] max-h-[90vh] relative my-5 mx-auto flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center flex-shrink-0">
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Submit Feedback on Behalf</h2>
-            <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white m-0">Submit Feedback on Behalf</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Submit customer feedback from a sales call or meeting
             </p>
           </div>
           <button
             onClick={handleClose}
-            style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#6b7280' }}
+            className="bg-transparent border-none text-xl cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             disabled={loading}
           >
             ×
           </button>
         </div>
 
-        <div style={{ padding: '20px', paddingBottom: '24px', flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}>
+        <div className="p-5 pb-6 flex-1 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
           {isSuccess ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -349,7 +337,7 @@ export default function FeedbackOnBehalfModal({
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Feedback Type Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   What type of feedback is this?
                 </label>
                 <div className="grid grid-cols-1 gap-3 xs:grid-cols-2">
@@ -360,11 +348,10 @@ export default function FeedbackOnBehalfModal({
                         key={category.value}
                         type="button"
                         onClick={() => handleInputChange('category', category.value)}
-                        className={`p-3 rounded-lg border-2 transition-all text-left min-touch-target tap-highlight-transparent active:scale-95 ${
-                          formData.category === category.value
+                        className={`p-3 rounded-lg border-2 transition-all text-left min-touch-target tap-highlight-transparent active:scale-95 ${formData.category === category.value
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-2 mb-1">
                           <Icon className="h-4 w-4 text-gray-600" />
@@ -379,7 +366,7 @@ export default function FeedbackOnBehalfModal({
 
               {/* Title */}
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Title *
                 </label>
                 <Input
@@ -400,7 +387,7 @@ export default function FeedbackOnBehalfModal({
 
               {/* Description */}
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Description *
                 </label>
                 <Textarea
@@ -492,12 +479,12 @@ export default function FeedbackOnBehalfModal({
 
               {/* Divider */}
               <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Customer Details</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Customer Details</h3>
 
                 <div className="space-y-4">
                   {/* Customer Name */}
                   <div>
-                    <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Name *
                     </label>
                     <Input
@@ -518,7 +505,7 @@ export default function FeedbackOnBehalfModal({
 
                   {/* Customer Email */}
                   <div>
-                    <label htmlFor="customerEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="customerEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Email *
                     </label>
                     <Input
@@ -540,7 +527,7 @@ export default function FeedbackOnBehalfModal({
 
                   {/* Customer Company */}
                   <div>
-                    <label htmlFor="customerCompany" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="customerCompany" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Company
                     </label>
                     <Input
@@ -557,7 +544,7 @@ export default function FeedbackOnBehalfModal({
 
               {/* Additional Details */}
               <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Additional Details</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Additional Details</h3>
 
                 <div className="space-y-4">
                   {/* Priority */}
@@ -571,11 +558,10 @@ export default function FeedbackOnBehalfModal({
                           key={option.value}
                           type="button"
                           onClick={() => handleInputChange('priority', option.value)}
-                          className={`p-2 rounded-lg border-2 transition-all text-center ${
-                            formData.priority === option.value
+                          className={`p-2 rounded-lg border-2 transition-all text-center ${formData.priority === option.value
                               ? 'border-blue-500 bg-blue-50'
                               : 'border-gray-200 hover:border-gray-300'
-                          }`}
+                            }`}
                         >
                           <div className="font-medium text-xs">{option.label}</div>
                         </button>

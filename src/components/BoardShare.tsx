@@ -96,14 +96,14 @@ Best regards`;
   const socialMediaText = `🚀 Check out our ${projectName} feedback board! Share your ideas and vote on features that matter to you. Your voice counts! ${boardUrl}`;
 
   return (
-    <div className="w-full bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg p-4 sm:p-6 max-h-[85vh] overflow-y-auto">
+    <div className="w-full bg-white/80 dark:bg-slate-800/95 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700 shadow-lg p-4 sm:p-6 max-h-[85vh] overflow-y-auto">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
             <Share2 className="w-5 h-5 mr-2 text-blue-600" />
             Share {projectName} Board
           </h3>
-          <p className="text-gray-600 mt-1 text-sm sm:text-base">
+          <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
             Share your feedback board with team members and customers
           </p>
         </div>
@@ -145,7 +145,7 @@ Best regards`;
         <TabsContent value="link" className="mt-4 sm:mt-6">
           <div className="space-y-4">
             <div>
-              <Label htmlFor="board-url" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="board-url" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Board URL
               </Label>
               <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -193,7 +193,7 @@ Best regards`;
         <TabsContent value="qr" className="mt-4 sm:mt-6">
           <div className="space-y-4 sm:space-y-6">
             <div className="text-center">
-              <h4 className="font-medium text-gray-900 mb-4 text-sm sm:text-base">QR Code for Mobile Sharing</h4>
+              <h4 className="font-medium text-gray-900 dark:text-white mb-4 text-sm sm:text-base">QR Code for Mobile Sharing</h4>
               {qrCodeDataUrl ? (
                 <div className="inline-block p-3 sm:p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
                   <img
@@ -207,7 +207,7 @@ Best regards`;
                   <QrCode className="w-8 h-8 text-gray-400" />
                 </div>
               )}
-              <p className="text-xs sm:text-sm text-gray-500 mt-3">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-3">
                 Scan with your phone camera or QR code app
               </p>
             </div>

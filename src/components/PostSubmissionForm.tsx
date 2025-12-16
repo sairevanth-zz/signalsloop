@@ -40,14 +40,14 @@ interface FormData {
   title: string;
   description: string;
   category:
-    | 'Feature Request'
-    | 'Bug'
-    | 'Improvement'
-    | 'UI/UX'
-    | 'Integration'
-    | 'Performance'
-    | 'Documentation'
-    | 'Other';
+  | 'Feature Request'
+  | 'Bug'
+  | 'Improvement'
+  | 'UI/UX'
+  | 'Integration'
+  | 'Performance'
+  | 'Documentation'
+  | 'Other';
   priority: 'low' | 'medium' | 'high';
   name: string;
   email: string;
@@ -65,15 +65,15 @@ const categoryOptions: Array<{
   icon: LucideIcon;
   description: string;
 }> = [
-  { value: 'Feature Request', label: 'Feature Request', icon: Star, description: 'Suggest a new feature or capability' },
-  { value: 'Bug', label: 'Bug Report', icon: Bug, description: 'Report a problem or defect' },
-  { value: 'Improvement', label: 'Improvement', icon: Lightbulb, description: 'Enhance an existing feature or workflow' },
-  { value: 'UI/UX', label: 'UI / UX', icon: Palette, description: 'Design, usability, or user experience feedback' },
-  { value: 'Integration', label: 'Integration', icon: Share2, description: 'Connect SignalsLoop with other tools or APIs' },
-  { value: 'Performance', label: 'Performance', icon: Gauge, description: 'Speed, stability, or reliability issues' },
-  { value: 'Documentation', label: 'Documentation', icon: BookOpen, description: 'Onboarding, guides, or help content' },
-  { value: 'Other', label: 'Other', icon: MessageSquare, description: 'Anything else not covered above' }
-];
+    { value: 'Feature Request', label: 'Feature Request', icon: Star, description: 'Suggest a new feature or capability' },
+    { value: 'Bug', label: 'Bug Report', icon: Bug, description: 'Report a problem or defect' },
+    { value: 'Improvement', label: 'Improvement', icon: Lightbulb, description: 'Enhance an existing feature or workflow' },
+    { value: 'UI/UX', label: 'UI / UX', icon: Palette, description: 'Design, usability, or user experience feedback' },
+    { value: 'Integration', label: 'Integration', icon: Share2, description: 'Connect SignalsLoop with other tools or APIs' },
+    { value: 'Performance', label: 'Performance', icon: Gauge, description: 'Speed, stability, or reliability issues' },
+    { value: 'Documentation', label: 'Documentation', icon: BookOpen, description: 'Onboarding, guides, or help content' },
+    { value: 'Other', label: 'Other', icon: MessageSquare, description: 'Anything else not covered above' }
+  ];
 
 const isValidCategory = (value: string): value is FormData['category'] =>
   categoryOptions.some((option) => option.value === value);
@@ -84,15 +84,15 @@ const priorities = [
   { value: 'high', label: 'High', color: 'text-red-600' }
 ];
 
-export default function PostSubmissionForm({ 
-  isOpen, 
-  onClose, 
-  projectId,  
-  boardId, 
-  onPostSubmitted 
+export default function PostSubmissionForm({
+  isOpen,
+  onClose,
+  projectId,
+  boardId,
+  onPostSubmitted
 }: PostSubmissionFormProps) {
   const supabase = getSupabaseClient();
-  
+
   const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
@@ -101,14 +101,14 @@ export default function PostSubmissionForm({
     name: '',
     email: ''
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [aiCategory, setAiCategory] = useState<AICategory | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showAICategory, setShowAICategory] = useState(false);
-  const [aiUsage, setAiUsage] = useState<{current: number; limit: number; remaining: number; isPro: boolean} | null>(null);
+  const [aiUsage, setAiUsage] = useState<{ current: number; limit: number; remaining: number; isPro: boolean } | null>(null);
 
   const categorizeWithAI = async () => {
     if (!formData.title.trim()) {
@@ -199,7 +199,7 @@ export default function PostSubmissionForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -214,7 +214,7 @@ export default function PostSubmissionForm({
     try {
       // Get current user session
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       // If boardId is empty, fetch it from the project
       let finalBoardId = boardId;
       if (!finalBoardId) {
@@ -223,14 +223,14 @@ export default function PostSubmissionForm({
           .select('id')
           .eq('project_id', projectId)
           .single();
-        
+
         if (boardError || !boardData) {
           throw new Error('Board not found for this project');
         }
-        
+
         finalBoardId = boardData.id;
       }
-      
+
       // Create the post using the API route (includes automatic AI categorization)
       const response = await fetch('/api/posts', {
         method: 'POST',
@@ -259,7 +259,7 @@ export default function PostSubmissionForm({
       // Show success state
       setIsSuccess(true);
       toast.success('Feedback submitted successfully!');
-      
+
       // Reset form after a delay
       setTimeout(() => {
         setIsSuccess(false);
@@ -306,7 +306,7 @@ export default function PostSubmissionForm({
     } else {
       document.body.style.overflow = 'unset';
     }
-    
+
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -315,7 +315,7 @@ export default function PostSubmissionForm({
   if (!isOpen || !mounted) return null;
 
   const modalContent = (
-    <div 
+    <div
       style={{
         position: 'fixed',
         top: 0,
@@ -335,310 +335,296 @@ export default function PostSubmissionForm({
       }}
     >
       <div
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '12px',
-          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
-          maxWidth: '800px',
-          width: '90%',
-          maxHeight: '90vh',
-          overflow: 'hidden',
-          position: 'relative',
-          margin: '20px auto',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
+        className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-[800px] w-[90%] max-h-[90vh] relative my-5 mx-auto flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center flex-shrink-0">
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Submit Feedback</h2>
-            <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white m-0">Submit Feedback</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Help us improve by sharing your thoughts and ideas
             </p>
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#6b7280' }}
+            className="bg-transparent border-none text-xl cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           >
             ×
           </button>
         </div>
-        <div style={{ padding: '20px', paddingBottom: '24px', flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}>
-            {isSuccess ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="h-8 w-8 text-green-600" />
+        <div className="p-5 pb-6 flex-1 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
+          {isSuccess ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Feedback Submitted!
+              </h3>
+              <p className="text-gray-600">
+                Thank you for your feedback. We&apos;ll review it and get back to you soon.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Category Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Which category best fits this feedback?
+                </label>
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
+                  {categoryOptions.map((category) => {
+                    const Icon = category.icon;
+                    return (
+                      <button
+                        key={category.value}
+                        type="button"
+                        onClick={() => handleInputChange('category', category.value)}
+                        className={`p-3 rounded-lg border-2 transition-all text-left min-touch-target tap-highlight-transparent active:scale-95 ${formData.category === category.value
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <Icon className="h-4 w-4 text-gray-600" />
+                          <span className="font-medium text-sm">{category.label}</span>
+                        </div>
+                        <p className="text-xs text-gray-500">{category.description}</p>
+                      </button>
+                    );
+                  })}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Feedback Submitted!
-                </h3>
-                <p className="text-gray-600">
-                  Thank you for your feedback. We&apos;ll review it and get back to you soon.
+              </div>
+
+              {/* Title */}
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Title *
+                </label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  placeholder="Brief, descriptive title for your feedback"
+                  className={`text-base ${errors.title ? 'border-red-500' : ''}`}
+                  autoComplete="off"
+                />
+                {errors.title && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.title}
+                  </p>
+                )}
+              </div>
+
+              {/* Description */}
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description *
+                </label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  placeholder="Provide more details about your feedback. Include steps to reproduce for bugs, or explain the benefit for feature requests."
+                  rows={4}
+                  className={`text-base momentum-scroll ${errors.description ? 'border-red-500 mb-2' : 'mb-2'}`}
+                  autoComplete="off"
+                />
+
+                {/* AI Writing Assistant */}
+                <AIWritingAssistant
+                  currentText={formData.description}
+                  context={`Feedback category: ${formData.category}, Title: ${formData.title}`}
+                  onTextImprove={(improved) => handleInputChange('description', improved)}
+                  placeholder="Provide more details..."
+                />
+
+                {errors.description && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.description}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {formData.description.length}/500 characters
                 </p>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Category Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Which category best fits this feedback?
-                  </label>
-                  <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
-                    {categoryOptions.map((category) => {
-                      const Icon = category.icon;
-                      return (
-                        <button
-                          key={category.value}
-                          type="button"
-                          onClick={() => handleInputChange('category', category.value)}
-                          className={`p-3 rounded-lg border-2 transition-all text-left min-touch-target tap-highlight-transparent active:scale-95 ${
-                            formData.category === category.value
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <Icon className="h-4 w-4 text-gray-600" />
-                            <span className="font-medium text-sm">{category.label}</span>
-                          </div>
-                          <p className="text-xs text-gray-500">{category.description}</p>
-                        </button>
-                      );
-                    })}
+
+              {/* AI Analysis Section */}
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-4 w-4 text-purple-600" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Analysis</span>
                   </div>
-                </div>
-
-                {/* Title */}
-                <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                    Title *
-                  </label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    placeholder="Brief, descriptive title for your feedback"
-                    className={`text-base ${errors.title ? 'border-red-500' : ''}`}
-                    autoComplete="off"
-                  />
-                  {errors.title && (
-                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      {errors.title}
-                    </p>
-                  )}
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                    Description *
-                  </label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    placeholder="Provide more details about your feedback. Include steps to reproduce for bugs, or explain the benefit for feature requests."
-                    rows={4}
-                    className={`text-base momentum-scroll ${errors.description ? 'border-red-500 mb-2' : 'mb-2'}`}
-                    autoComplete="off"
-                  />
-                  
-                  {/* AI Writing Assistant */}
-                  <AIWritingAssistant
-                    currentText={formData.description}
-                    context={`Feedback category: ${formData.category}, Title: ${formData.title}`}
-                    onTextImprove={(improved) => handleInputChange('description', improved)}
-                    placeholder="Provide more details..."
-                  />
-                  
-                  {errors.description && (
-                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      {errors.description}
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    {formData.description.length}/500 characters
-                  </p>
-                </div>
-
-                {/* AI Analysis Section */}
-                <div className="border-t pt-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Brain className="h-4 w-4 text-purple-600" />
-                      <span className="text-sm font-medium text-gray-700">AI Analysis</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={categorizeWithAI}
-                      disabled={isAnalyzing || !formData.title.trim()}
-                      className="text-purple-600 border-purple-200 hover:bg-purple-50 min-touch-target tap-highlight-transparent"
-                    >
-                      {isAnalyzing ? (
-                        <>
-                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                          Analyzing...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          Analyze
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  
-                  {showAICategory && aiCategory && (
-                    <div className="space-y-3">
-                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-purple-900">
-                            Suggested Category
-                          </span>
-                          <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
-                            {Math.round(aiCategory.confidence * 100)}% confidence
-                          </span>
-                        </div>
-                        <div className="mb-2">
-                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-800 bg-white border border-purple-200 rounded-full">
-                            {aiCategory.category}
-                          </span>
-                        </div>
-                        {aiCategory.reasoning && (
-                          <p className="text-xs text-purple-700">
-                            {aiCategory.reasoning}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* AI Usage Indicator */}
-                      {aiUsage && (
-                        <AIUsageIndicator
-                          current={aiUsage.current}
-                          limit={aiUsage.limit}
-                          remaining={aiUsage.remaining}
-                          isPro={aiUsage.isPro}
-                          featureName="AI categorization"
-                        />
-                      )}
-                    </div>
-                  )}
-
-                  {!showAICategory && (
-                    <p className="text-xs text-gray-500">
-                      Get AI-powered category suggestions for your feedback
-                    </p>
-                  )}
-                </div>
-
-                {/* Priority */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Priority
-                  </label>
-                  <div className="flex gap-2">
-                    {priorities.map((priority) => (
-                      <button
-                        key={priority.value}
-                        type="button"
-                        onClick={() => handleInputChange('priority', priority.value)}
-                        className={`px-3 py-2 rounded-md text-sm font-medium border transition-all ${
-                          formData.priority === priority.value
-                            ? 'border-gray-400 bg-gray-100'
-                            : 'border-gray-200 hover:border-gray-300'
-                        } ${priority.color}`}
-                      >
-                        {priority.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Name (Required) */}
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Name *
-                  </label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="John Doe"
-                    className={`text-base ${errors.name ? 'border-red-500' : ''}`}
-                    autoComplete="name"
-                    required
-                  />
-                  {errors.name && (
-                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      {errors.name}
-                    </p>
-                  )}
-                </div>
-
-                {/* Email (Required) */}
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email *
-                  </label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="your@email.com"
-                    className={`text-base ${errors.email ? 'border-red-500' : ''}`}
-                    autoComplete="email"
-                    inputMode="email"
-                    required
-                  />
-                  {errors.email && (
-                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      {errors.email}
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    We&apos;ll use this to notify you of updates on your feedback.
-                  </p>
-                </div>
-
-                {/* Submit Button */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t mt-6">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={onClose}
-                    className="flex-1 min-touch-target tap-highlight-transparent order-2 sm:order-1"
+                    size="sm"
+                    onClick={categorizeWithAI}
+                    disabled={isAnalyzing || !formData.title.trim()}
+                    className="text-purple-600 border-purple-200 hover:bg-purple-50 min-touch-target tap-highlight-transparent"
                   >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform min-touch-target tap-highlight-transparent order-1 sm:order-2"
-                  >
-                    {isSubmitting ? (
+                    {isAnalyzing ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Submitting...
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Analyzing...
                       </>
                     ) : (
                       <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Submit Feedback
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        Analyze
                       </>
                     )}
                   </Button>
                 </div>
-              </form>
-            )}
+
+                {showAICategory && aiCategory && (
+                  <div className="space-y-3">
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-purple-900">
+                          Suggested Category
+                        </span>
+                        <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
+                          {Math.round(aiCategory.confidence * 100)}% confidence
+                        </span>
+                      </div>
+                      <div className="mb-2">
+                        <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-800 bg-white border border-purple-200 rounded-full">
+                          {aiCategory.category}
+                        </span>
+                      </div>
+                      {aiCategory.reasoning && (
+                        <p className="text-xs text-purple-700">
+                          {aiCategory.reasoning}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* AI Usage Indicator */}
+                    {aiUsage && (
+                      <AIUsageIndicator
+                        current={aiUsage.current}
+                        limit={aiUsage.limit}
+                        remaining={aiUsage.remaining}
+                        isPro={aiUsage.isPro}
+                        featureName="AI categorization"
+                      />
+                    )}
+                  </div>
+                )}
+
+                {!showAICategory && (
+                  <p className="text-xs text-gray-500">
+                    Get AI-powered category suggestions for your feedback
+                  </p>
+                )}
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Priority
+                </label>
+                <div className="flex gap-2">
+                  {priorities.map((priority) => (
+                    <button
+                      key={priority.value}
+                      type="button"
+                      onClick={() => handleInputChange('priority', priority.value)}
+                      className={`px-3 py-2 rounded-md text-sm font-medium border transition-all ${formData.priority === priority.value
+                          ? 'border-gray-400 bg-gray-100'
+                          : 'border-gray-200 hover:border-gray-300'
+                        } ${priority.color}`}
+                    >
+                      {priority.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Name (Required) */}
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Your Name *
+                </label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="John Doe"
+                  className={`text-base ${errors.name ? 'border-red-500' : ''}`}
+                  autoComplete="name"
+                  required
+                />
+                {errors.name && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.name}
+                  </p>
+                )}
+              </div>
+
+              {/* Email (Required) */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email *
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="your@email.com"
+                  className={`text-base ${errors.email ? 'border-red-500' : ''}`}
+                  autoComplete="email"
+                  inputMode="email"
+                  required
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.email}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  We&apos;ll use this to notify you of updates on your feedback.
+                </p>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t mt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  className="flex-1 min-touch-target tap-highlight-transparent order-2 sm:order-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform min-touch-target tap-highlight-transparent order-1 sm:order-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Submit Feedback
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>
