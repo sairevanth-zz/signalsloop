@@ -148,15 +148,15 @@ export function CallsDashboard({ projectId }: { projectId: string }) {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <Link href="/app/calls">
-              <Button variant="ghost" size="sm">
+            <Link href={`/${project.slug}/dashboard`}>
+              <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold">{project.name}</h1>
-              <p className="text-gray-600">Call Intelligence Dashboard</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{project.name}</h1>
+              <p className="text-gray-600 dark:text-gray-400">Call Intelligence Dashboard</p>
             </div>
           </div>
 
