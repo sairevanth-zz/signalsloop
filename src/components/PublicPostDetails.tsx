@@ -224,7 +224,9 @@ export default function PublicPostDetails({
       important: next.important,
       niceToHave: next.niceToHave,
     });
-    setVoteCount((prev) => (prev === next.totalVotes ? prev : next.totalVotes));
+    // Note: Do NOT update voteCount from VoteStats.totalVotes - it's unreliable
+    // due to RLS (anonymous users only see their own vote). Vote count should
+    // only be updated from the API response in onVoteChange.
   }, []);
   const [analyzingPriority, setAnalyzingPriority] = useState(false);
   const [priorityResults, setPriorityResults] = useState<PriorityResult | null>(null);
@@ -842,8 +844,8 @@ export default function PublicPostDetails({
       <header className="border-b bg-white/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center justify-between gap-2">
-            <Link 
-              href={`/${project.slug}/board`} 
+            <Link
+              href={`/${project.slug}/board`}
               className="flex items-center text-sm text-gray-700 hover:text-gray-900 sm:text-base"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -858,7 +860,7 @@ export default function PublicPostDetails({
         <div className="w-full max-w-4xl">
           {/* Main Post Card */}
           <Card className="mb-6">
-              <CardContent className="p-5 sm:p-8">
+            <CardContent className="p-5 sm:p-8">
               {isMergedDuplicate && canonicalPost && (
                 <Alert className="mb-6 border border-orange-200 bg-orange-50 text-orange-900">
                   <AlertTriangle className="h-4 w-4 text-orange-600" />
@@ -910,17 +912,17 @@ export default function PublicPostDetails({
                 </div>
               )}
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="flex-1">
+                <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
-                      <CategoryBadge category={post.category} />
+                    <CategoryBadge category={post.category} />
                     <Badge variant="secondary" className="bg-orange-100 text-orange-800">
                       {statusLabel}
                     </Badge>
                   </div>
-                  
+
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-gray-600 sm:text-sm mb-4">
                     <div className="flex items-center gap-1 whitespace-nowrap">
-                        <Calendar className="h-4 w-4 flex-shrink-0" />
+                      <Calendar className="h-4 w-4 flex-shrink-0" />
                       <span>{formattedDate}</span>
                     </div>
                     <span className="hidden text-gray-300 sm:inline">•</span>
@@ -928,7 +930,7 @@ export default function PublicPostDetails({
                       <Clock className="h-4 w-4 flex-shrink-0" />
                       <span>{formattedTime}</span>
                     </div>
-                      {post.author_email && (
+                    {post.author_email && (
                       <>
                         <span className="hidden text-gray-300 sm:inline">•</span>
                         <div className="flex items-center gap-1 min-w-0">
@@ -938,13 +940,13 @@ export default function PublicPostDetails({
                           </span>
                         </div>
                       </>
-                      )}
-                    </div>
-                    
-                    <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                      {post.title}
-                    </h1>
-                  
+                    )}
+                  </div>
+
+                  <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                    {post.title}
+                  </h1>
+
                   <PriorityMixCompact
                     mustHave={priorityMix.mustHave}
                     important={priorityMix.important}
@@ -952,11 +954,11 @@ export default function PublicPostDetails({
                     align="start"
                     className="mt-2 gap-3 text-sm text-gray-600"
                   />
-                  
+
                   <p className="mt-4 text-gray-700 leading-relaxed">
                     {post.description}
                   </p>
-                  
+
                   {post.status === 'in_progress' && (
                     <div className="mt-6 p-4 bg-orange-50 border-l-4 border-orange-400 rounded">
                       <p className="text-sm text-gray-700">
@@ -964,8 +966,8 @@ export default function PublicPostDetails({
                       </p>
                     </div>
                   )}
-                  </div>
-                  
+                </div>
+
                 <div
                   className="flex flex-col items-center gap-3"
                   onClick={(e) => e.stopPropagation()}
@@ -1014,57 +1016,57 @@ export default function PublicPostDetails({
                     </Button>
                   )}
                 </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <details className="mb-6 rounded-lg border border-gray-200 bg-white/70 shadow-sm">
-              <summary className="cursor-pointer list-none rounded-lg px-4 py-3 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50">
-                View full breakdown
-              </summary>
-              <div className="px-4 pb-4">
-                <VoteStats
-                  postId={post.id}
-                  refreshToken={voteCount}
-                  onShowNotification={(message, type) => {
-                    if (type === 'success') toast.success(message);
-                    else if (type === 'error') toast.error(message);
-                    else toast.info(message);
-                  }}
-                  onStatsChange={handlePriorityStatsChange}
-                />
               </div>
-            </details>
+            </CardContent>
+          </Card>
 
-            {/* AI Auto-Response - Owner/Admin Only */}
-            {isOwner && user && !isMergedDuplicate && (
-              <div className="mb-6">
-                <AIAutoResponse 
-                  postId={post.id}
-                  postTitle={post.title}
-                  postDescription={post.description}
-                  postType="feature"
-                  authorName={post.author_email || 'User'}
-                  projectId={project.id}
-                  onResponsePosted={loadComments}
-                />
-              </div>
-            )}
+          <details className="mb-6 rounded-lg border border-gray-200 bg-white/70 shadow-sm">
+            <summary className="cursor-pointer list-none rounded-lg px-4 py-3 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50">
+              View full breakdown
+            </summary>
+            <div className="px-4 pb-4">
+              <VoteStats
+                postId={post.id}
+                refreshToken={voteCount}
+                onShowNotification={(message, type) => {
+                  if (type === 'success') toast.success(message);
+                  else if (type === 'error') toast.error(message);
+                  else toast.info(message);
+                }}
+                onStatsChange={handlePriorityStatsChange}
+              />
+            </div>
+          </details>
 
-            {/* AI Post Intelligence - Owner/Admin Only */}
-            {isOwner && user && !isMergedDuplicate && (
-              <div className="mb-6">
-                <AIPostIntelligence 
-                  title={post.title}
-                  description={post.description}
-                  postType="feature"
-                  projectId={project.id}
-                />
-              </div>
-            )}
+          {/* AI Auto-Response - Owner/Admin Only */}
+          {isOwner && user && !isMergedDuplicate && (
+            <div className="mb-6">
+              <AIAutoResponse
+                postId={post.id}
+                postTitle={post.title}
+                postDescription={post.description}
+                postType="feature"
+                authorName={post.author_email || 'User'}
+                projectId={project.id}
+                onResponsePosted={loadComments}
+              />
+            </div>
+          )}
 
-            {/* AI Features Section - Owner/Admin Only */}
-            {isOwner && user && (
+          {/* AI Post Intelligence - Owner/Admin Only */}
+          {isOwner && user && !isMergedDuplicate && (
+            <div className="mb-6">
+              <AIPostIntelligence
+                title={post.title}
+                description={post.description}
+                postType="feature"
+                projectId={project.id}
+              />
+            </div>
+          )}
+
+          {/* AI Features Section - Owner/Admin Only */}
+          {isOwner && user && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               {!isMergedDuplicate ? (
                 <div className="h-full">
@@ -1108,15 +1110,15 @@ export default function PublicPostDetails({
 
               {/* AI Priority Scoring */}
               <Card className="border-blue-200 bg-blue-50">
-              <CardContent className="p-6">
+                <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
                       🎯
                     </div>
                     <h3 className="font-semibold text-gray-900">AI Priority Scoring</h3>
                   </div>
-                  <Button 
-                    variant="default" 
+                  <Button
+                    variant="default"
                     className="w-full bg-gray-900 hover:bg-gray-800 text-white"
                     onClick={handleAnalyzePriority}
                     disabled={analyzingPriority || priorityLimitReached || isMergedDuplicate}
@@ -1145,7 +1147,7 @@ export default function PublicPostDetails({
                   <p className="text-xs text-gray-600 mt-3 text-center">
                     AI will analyze urgency, impact, and engagement to score this post
                   </p>
-                  
+
                   {priorityResults && (
                     <div className="mt-4 p-3 bg-white rounded-lg border">
                       <div className="text-center">
@@ -1174,7 +1176,7 @@ export default function PublicPostDetails({
                 </CardContent>
               </Card>
             </div>
-            )}
+          )}
 
           {/* Comments Section */}
           <Card>
@@ -1183,7 +1185,7 @@ export default function PublicPostDetails({
                 <MessageSquare className="h-5 w-5 text-gray-700" />
                 <h3 className="font-semibold text-gray-900">Comments ({comments.length})</h3>
               </div>
-              
+
               {comments.length === 0 ? (
                 <div className="text-center py-8">
                   <MessageSquare className="h-12 w-12 mx-auto mb-3 text-gray-300" />
@@ -1233,7 +1235,7 @@ export default function PublicPostDetails({
                                 Reply
                               </Button>
                             )}
-                            
+
                             {/* Reply Form */}
                             {replyingTo === comment.id && !isMergedDuplicate && (
                               <div className="mt-3 ml-0 p-3 bg-gray-50 rounded-lg border">
@@ -1290,11 +1292,11 @@ export default function PublicPostDetails({
                                     variant="outline"
                                   >
                                     Cancel
-                    </Button>
+                                  </Button>
                                 </div>
                               </div>
                             )}
-                            
+
                             {/* Replies */}
                             {replies.length > 0 && (
                               <div className="mt-3 ml-8 space-y-3">
@@ -1339,7 +1341,7 @@ export default function PublicPostDetails({
                   })}
                 </div>
               )}
-              
+
               {/* Add Comment Form */}
               <div ref={commentFormRef} className="mt-6 pt-6 border-t scroll-mt-20">
                 <h4 className="font-medium text-gray-900 mb-3">Add a comment</h4>
@@ -1362,7 +1364,7 @@ export default function PublicPostDetails({
                       minRows={4}
                       maxRows={10}
                     />
-                    
+
                     {/* AI Writing Assistant */}
                     <AIWritingAssistant
                       currentText={commentText}
@@ -1397,9 +1399,9 @@ export default function PublicPostDetails({
                     </Button>
                   </>
                 )}
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
 
