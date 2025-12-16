@@ -3,27 +3,24 @@
 /**
  * Project-specific Call Intelligence Page
  * 
- * Displays the CallsDashboard within the project context,
- * integrated with the Mission Control sidebar layout.
+ * Displays the CallsDashboard within the project context.
+ * The sidebar is provided by the [slug]/layout.tsx
  */
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CallsDashboard } from '@/components/calls/CallsDashboard';
-import WorkflowSidebar from '@/components/WorkflowSidebar';
 
 export default function ProjectCallsPage() {
     const params = useParams();
-    const router = useRouter();
     const slug = params?.slug as string;
     const { user, loading: authLoading } = useAuth();
     const [projectId, setProjectId] = useState<string | null>(null);
-    const [projectName, setProjectName] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -46,7 +43,6 @@ export default function ProjectCallsPage() {
                 }
 
                 setProjectId(data.id);
-                setProjectName(data.name);
             } catch (err) {
                 console.error('Error loading project:', err);
                 setError('Failed to load project');
@@ -58,14 +54,11 @@ export default function ProjectCallsPage() {
         loadProject();
     }, [supabase, slug]);
 
-    // Loading states
+    // Loading state
     if (authLoading || loading) {
         return (
-            <div className="flex min-h-screen bg-[#13151a]">
-                <WorkflowSidebar projectSlug={slug} />
-                <div className="flex-1 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
-                </div>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
             </div>
         );
     }
@@ -73,21 +66,18 @@ export default function ProjectCallsPage() {
     // Auth required
     if (!user) {
         return (
-            <div className="flex min-h-screen bg-[#13151a]">
-                <WorkflowSidebar projectSlug={slug} />
-                <div className="flex-1 flex items-center justify-center">
-                    <Card className="max-w-md">
-                        <CardHeader>
-                            <CardTitle>Authentication Required</CardTitle>
-                            <CardDescription>Please sign in to view call analytics</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Link href="/login">
-                                <Button>Sign In</Button>
-                            </Link>
-                        </CardContent>
-                    </Card>
-                </div>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Card className="max-w-md">
+                    <CardHeader>
+                        <CardTitle>Authentication Required</CardTitle>
+                        <CardDescription>Please sign in to view call analytics</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Link href="/login">
+                            <Button>Sign In</Button>
+                        </Link>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
@@ -95,31 +85,21 @@ export default function ProjectCallsPage() {
     // Error state
     if (error || !projectId) {
         return (
-            <div className="flex min-h-screen bg-[#13151a]">
-                <WorkflowSidebar projectSlug={slug} />
-                <div className="flex-1 flex items-center justify-center">
-                    <Card className="max-w-md">
-                        <CardHeader>
-                            <CardTitle>Error</CardTitle>
-                            <CardDescription>{error || 'Project not found'}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Link href="/app">
-                                <Button>Go to Dashboard</Button>
-                            </Link>
-                        </CardContent>
-                    </Card>
-                </div>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Card className="max-w-md">
+                    <CardHeader>
+                        <CardTitle>Error</CardTitle>
+                        <CardDescription>{error || 'Project not found'}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Link href="/app">
+                            <Button>Go to Dashboard</Button>
+                        </Link>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
 
-    return (
-        <div className="flex min-h-screen bg-[#13151a]">
-            <WorkflowSidebar projectSlug={slug} />
-            <div className="flex-1 flex flex-col min-w-0 overflow-auto bg-gray-50 dark:bg-[#13151a]">
-                <CallsDashboard projectId={projectId} />
-            </div>
-        </div>
-    );
+    return <CallsDashboard projectId={projectId} />;
 }
