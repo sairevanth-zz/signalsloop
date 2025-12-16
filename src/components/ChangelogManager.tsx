@@ -10,12 +10,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  EyeOff, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
   Calendar,
   Tag,
   Image,
@@ -140,12 +140,12 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
         {[...Array(3)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardHeader>
-              <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-6 bg-gray-200 dark:bg-slate-700 rounded w-1/3"></div>
+              <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/2"></div>
             </CardHeader>
             <CardContent>
-              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-full mb-2"></div>
+              <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-3/4"></div>
             </CardContent>
           </Card>
         ))}
@@ -158,8 +158,8 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Changelog Management</h2>
-          <p className="text-gray-600">Manage your product changelog and release notes</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Changelog Management</h2>
+          <p className="text-gray-600 dark:text-gray-400">Manage your product changelog and release notes</p>
         </div>
         <Button onClick={handleCreateRelease}>
           <Plus className="h-4 w-4 mr-2" />
@@ -181,11 +181,11 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
           {releases.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
-                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <Calendar className="h-12 w-12 text-gray-400 dark:text-slate-500 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                   No releases yet
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
                   Create your first changelog release to keep your users informed about updates.
                 </p>
                 <Button onClick={handleCreateRelease}>
@@ -203,7 +203,7 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <CardTitle className="text-lg">{release.title}</CardTitle>
-                          <Badge 
+                          <Badge
                             variant={release.is_published ? "default" : "secondary"}
                           >
                             {release.is_published ? 'Published' : 'Draft'}
@@ -253,7 +253,7 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
                   </CardHeader>
                   {release.excerpt && (
                     <CardContent>
-                      <p className="text-gray-700">{release.excerpt}</p>
+                      <p className="text-gray-700 dark:text-gray-300">{release.excerpt}</p>
                     </CardContent>
                   )}
                 </Card>
@@ -272,13 +272,13 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <div className="text-gray-400 mb-4">
+                <div className="text-gray-400 dark:text-slate-500 mb-4">
                   <Tag className="h-12 w-12 mx-auto" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                   No templates yet
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-400">
                   Create templates to speed up your release creation process.
                 </p>
               </div>
@@ -296,13 +296,13 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <div className="text-gray-400 mb-4">
+                <div className="text-gray-400 dark:text-slate-500 mb-4">
                   <Users className="h-12 w-12 mx-auto" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                   Subscriber management
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-400">
                   View and manage your changelog email subscribers.
                 </p>
               </div>
@@ -320,25 +320,25 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-slate-700 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <Webhook className="h-5 w-5 text-gray-400" />
+                    <Webhook className="h-5 w-5 text-gray-400 dark:text-slate-500" />
                     <div>
-                      <h3 className="font-medium">Webhooks</h3>
-                      <p className="text-sm text-gray-600">Get notified when releases are published</p>
+                      <h3 className="font-medium text-gray-900 dark:text-white">Webhooks</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Get notified when releases are published</p>
                     </div>
                   </div>
                   <Button variant="outline" size="sm">
                     Configure
                   </Button>
                 </div>
-                
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+
+                <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-slate-700 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <Rss className="h-5 w-5 text-gray-400" />
+                    <Rss className="h-5 w-5 text-gray-400 dark:text-slate-500" />
                     <div>
-                      <h3 className="font-medium">RSS Feed</h3>
-                      <p className="text-sm text-gray-600">RSS feed for your changelog</p>
+                      <h3 className="font-medium text-gray-900 dark:text-white">RSS Feed</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">RSS feed for your changelog</p>
                     </div>
                   </div>
                   <Button variant="outline" size="sm">
@@ -362,28 +362,28 @@ export default function ChangelogManager({ projectId, projectSlug }: ChangelogMa
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium">Auto-notify subscribers</h3>
-                    <p className="text-sm text-gray-600">
+                    <h3 className="font-medium text-gray-900 dark:text-white">Auto-notify subscribers</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Automatically send email notifications when releases are published
                     </p>
                   </div>
                   <Switch />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium">Allow public comments</h3>
-                    <p className="text-sm text-gray-600">
+                    <h3 className="font-medium text-gray-900 dark:text-white">Allow public comments</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Let users comment on changelog releases
                     </p>
                   </div>
                   <Switch />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium">Show release timeline</h3>
-                    <p className="text-sm text-gray-600">
+                    <h3 className="font-medium text-gray-900 dark:text-white">Show release timeline</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Display a visual timeline of releases
                     </p>
                   </div>
