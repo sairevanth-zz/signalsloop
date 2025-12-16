@@ -158,11 +158,11 @@ export default function FeedbackAdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-green-50 p-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-green-50 dark:from-slate-900 dark:to-slate-800 p-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading feedback...</p>
+            <p className="text-gray-600 dark:text-gray-400">Loading feedback...</p>
           </div>
         </div>
       </div>
@@ -170,19 +170,19 @@ export default function FeedbackAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-green-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-green-50 dark:from-slate-900 dark:to-slate-800 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Feedback Submitted on Behalf</h1>
-            <p className="text-gray-600">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Feedback Submitted on Behalf</h1>
+            <p className="text-gray-600 dark:text-gray-400">
               View all feedback submitted on behalf of customers, including internal notes
             </p>
           </div>
           <a
             href={`/${params.slug}/board`}
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
           >
             Back to Board
           </a>
@@ -192,13 +192,13 @@ export default function FeedbackAdminPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="p-6">
-              <div className="text-sm text-gray-600">Total Feedback</div>
-              <div className="text-2xl font-bold text-gray-900">{feedbackItems.length}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Total Feedback</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{feedbackItems.length}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-6">
-              <div className="text-sm text-gray-600">Must Have</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Must Have</div>
               <div className="text-2xl font-bold text-red-600">
                 {feedbackItems.filter(f => f.priority === 'must_have').length}
               </div>
@@ -206,7 +206,7 @@ export default function FeedbackAdminPage() {
           </Card>
           <Card>
             <CardContent className="p-6">
-              <div className="text-sm text-gray-600">Important</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Important</div>
               <div className="text-2xl font-bold text-yellow-600">
                 {feedbackItems.filter(f => f.priority === 'important').length}
               </div>
@@ -214,7 +214,7 @@ export default function FeedbackAdminPage() {
           </Card>
           <Card>
             <CardContent className="p-6">
-              <div className="text-sm text-gray-600">Customers Notified</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Customers Notified</div>
               <div className="text-2xl font-bold text-green-600">
                 {feedbackItems.filter(f => f.customer_notified).length}
               </div>
@@ -226,7 +226,7 @@ export default function FeedbackAdminPage() {
         {feedbackItems.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
-              <p className="text-gray-600">No feedback submitted on behalf yet</p>
+              <p className="text-gray-600 dark:text-gray-400">No feedback submitted on behalf yet</p>
             </CardContent>
           </Card>
         ) : (
@@ -238,7 +238,7 @@ export default function FeedbackAdminPage() {
                     <div className="flex-1">
                       <CardTitle className="text-lg mb-2">{feedback.post.title}</CardTitle>
                       {feedback.post.description && (
-                        <p className="text-sm text-gray-600 mb-3">{feedback.post.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{feedback.post.description}</p>
                       )}
                       <div className="flex flex-wrap gap-2">
                         <Badge className={getPriorityColor(feedback.priority)}>
@@ -270,37 +270,37 @@ export default function FeedbackAdminPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     {/* Customer Info */}
                     <div className="space-y-2">
-                      <h4 className="font-semibold text-sm text-gray-700 mb-2">Customer Information</h4>
+                      <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300 mb-2">Customer Information</h4>
                       <div className="flex items-center gap-2 text-sm">
                         <User className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-900">{feedback.customer_name}</span>
+                        <span className="text-gray-900 dark:text-white">{feedback.customer_name}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Mail className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-600">{feedback.customer_email}</span>
+                        <span className="text-gray-600 dark:text-gray-400">{feedback.customer_email}</span>
                       </div>
                       {feedback.customer_company && (
                         <div className="flex items-center gap-2 text-sm">
                           <Building2 className="h-4 w-4 text-gray-400" />
-                          <span className="text-gray-600">{feedback.customer_company}</span>
+                          <span className="text-gray-600 dark:text-gray-400">{feedback.customer_company}</span>
                         </div>
                       )}
                     </div>
 
                     {/* Admin Info */}
                     <div className="space-y-2">
-                      <h4 className="font-semibold text-sm text-gray-700 mb-2">Submitted By</h4>
+                      <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300 mb-2">Submitted By</h4>
                       <div className="flex items-center gap-2 text-sm">
                         <User className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-900">{feedback.submitted_by_admin_name}</span>
+                        <span className="text-gray-900 dark:text-white">{feedback.submitted_by_admin_name}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Mail className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-600">{feedback.submitted_by_admin_email}</span>
+                        <span className="text-gray-600 dark:text-gray-400">{feedback.submitted_by_admin_email}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Calendar className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-600">
+                        <span className="text-gray-600 dark:text-gray-400">
                           {new Date(feedback.created_at).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
@@ -315,14 +315,14 @@ export default function FeedbackAdminPage() {
 
                   {/* Internal Note */}
                   {feedback.internal_note && (
-                    <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                       <div className="flex items-start gap-2">
-                        <FileText className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                        <FileText className="h-4 w-4 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
-                          <h4 className="font-semibold text-sm text-yellow-900 mb-1">
+                          <h4 className="font-semibold text-sm text-yellow-900 dark:text-yellow-300 mb-1">
                             Internal Note (Admin Only)
                           </h4>
-                          <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                          <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                             {feedback.internal_note}
                           </p>
                         </div>

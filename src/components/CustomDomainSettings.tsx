@@ -188,7 +188,7 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
 
   if (userPlan !== 'pro') {
     return (
-      <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
+      <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/20 dark:border-slate-700 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="w-5 h-5 text-teal-600" />
@@ -200,19 +200,19 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Globe className="w-8 h-8 text-teal-600" />
+            <div className="w-16 h-16 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Globe className="w-8 h-8 text-teal-600 dark:text-teal-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Custom Domain</h3>
-            <p className="text-gray-600 mb-4">
-              Use your own domain like <code className="bg-gray-100 px-2 py-1 rounded">feedback.yourcompany.com</code>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Custom Domain</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Use your own domain like <code className="bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded">feedback.yourcompany.com</code>
             </p>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-              <div className="flex items-center gap-2 text-yellow-800">
+            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 mb-4">
+              <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-300">
                 <Info className="w-4 h-4" />
                 <span className="font-medium">Pro Feature</span>
               </div>
-              <p className="text-sm text-yellow-700 mt-1">
+              <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
                 Custom domains are available for Pro users only.
               </p>
             </div>
@@ -229,7 +229,7 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
   }
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
+    <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/20 dark:border-slate-700 shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Globe className="w-5 h-5 text-purple-600" />
@@ -247,7 +247,7 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
               <div>
                 <Label className="text-sm font-medium">Current Domain</Label>
                 <div className="flex items-center gap-2 mt-1">
-                  <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                  <code className="bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-sm dark:text-gray-200">
                     {domainStatus.custom_domain}
                   </code>
                   {getStatusBadge()}
@@ -295,12 +295,12 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
         {/* DNS Instructions */}
         {domainStatus?.custom_domain && domainStatus.domain_status === 'pending' && domainStatus.domain_verification_token && (
           <div className="space-y-4">
-            <h4 className="font-semibold text-gray-900">DNS Configuration</h4>
-            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+            <h4 className="font-semibold text-gray-900 dark:text-white">DNS Configuration</h4>
+            <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-4 space-y-3">
               <div>
-                <Label className="text-sm font-medium text-gray-700">Add this TXT record to your DNS:</Label>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Add this TXT record to your DNS:</Label>
                 <div className="flex items-center gap-2 mt-2">
-                  <code className="flex-1 bg-white px-3 py-2 rounded border text-sm">
+                  <code className="flex-1 bg-white dark:bg-slate-800 px-3 py-2 rounded border dark:border-slate-600 text-sm dark:text-gray-200">
                     signalsloop-verification={domainStatus.domain_verification_token}
                   </code>
                   <Button
@@ -317,9 +317,9 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
               </div>
 
               <div>
-                <Label className="text-sm font-medium text-gray-700">Add this CNAME record:</Label>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Add this CNAME record:</Label>
                 <div className="flex items-center gap-2 mt-2">
-                  <code className="flex-1 bg-white px-3 py-2 rounded border text-sm">
+                  <code className="flex-1 bg-white dark:bg-slate-800 px-3 py-2 rounded border dark:border-slate-600 text-sm dark:text-gray-200">
                     {domainStatus.custom_domain} → cname.signalsloop.com
                   </code>
                   <Button
@@ -336,10 +336,10 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <div className="flex items-start gap-2">
-                <Info className="w-4 h-4 text-blue-600 mt-0.5" />
-                <div className="text-sm text-blue-800">
+                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <div className="text-sm text-blue-800 dark:text-blue-300">
                   <p className="font-medium mb-1">DNS Propagation</p>
                   <p>
                     DNS changes can take up to 24 hours to propagate.
@@ -372,15 +372,15 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
         {/* Set New Domain */}
         {(!domainStatus?.custom_domain || domainStatus.domain_status === 'failed') && (
           <div className="space-y-4">
-            <h4 className="font-semibold text-gray-900">
+            <h4 className="font-semibold text-gray-900 dark:text-white">
               {domainStatus?.custom_domain ? 'Update Domain' : 'Set Custom Domain'}
             </h4>
 
             {/* Instructions */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <div className="flex items-start gap-2">
-                <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-800 space-y-2">
+                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
                   <p className="font-medium">How to set up your custom domain:</p>
                   <ol className="list-decimal list-inside space-y-1 ml-2">
                     <li>Enter your subdomain below (e.g., feedback.yourcompany.com)</li>
@@ -418,34 +418,34 @@ export function CustomDomainSettings({ projectId, projectSlug, userPlan }: Custo
                   )}
                 </Button>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Enter your domain without http:// or https://
               </p>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h5 className="font-medium text-gray-900 mb-2">Examples:</h5>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• <code>feedback.yourcompany.com</code></li>
-                <li>• <code>support.yoursite.com</code></li>
-                <li>• <code>ideas.myapp.io</code></li>
+            <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-4">
+              <h5 className="font-medium text-gray-900 dark:text-white mb-2">Examples:</h5>
+              <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <li>• <code className="dark:text-gray-300">feedback.yourcompany.com</code></li>
+                <li>• <code className="dark:text-gray-300">support.yoursite.com</code></li>
+                <li>• <code className="dark:text-gray-300">ideas.myapp.io</code></li>
               </ul>
             </div>
           </div>
         )}
 
         {/* Default Domain Info */}
-        <div className="border-t pt-4">
+        <div className="border-t dark:border-slate-600 pt-4">
           <div className="flex items-center justify-between">
             <div>
               <Label className="text-sm font-medium">Default Domain</Label>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Your feedback board is always available at:
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 mt-2">
-            <code className="flex-1 bg-gray-100 px-3 py-2 rounded text-sm">
+            <code className="flex-1 bg-gray-100 dark:bg-slate-700 px-3 py-2 rounded text-sm dark:text-gray-200">
               {projectSlug}.signalsloop.com
             </code>
             <Button

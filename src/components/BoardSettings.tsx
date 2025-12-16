@@ -17,12 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Settings, 
-  Save, 
-  Trash2, 
-  Eye, 
-  Shield, 
+import {
+  Settings,
+  Save,
+  Trash2,
+  Eye,
+  Shield,
   Palette,
   Users,
   Lock,
@@ -63,13 +63,13 @@ interface Project {
   plan: 'free' | 'pro';
 }
 
-export default function BoardSettings({ 
-  projectSlug, 
+export default function BoardSettings({
+  projectSlug,
   onShowNotification,
   userPlan = 'free'
 }: BoardSettingsProps) {
   const router = useRouter();
-  
+
   const [project, setProject] = useState<Project | null>(null);
   const [board, setBoard] = useState<BoardConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -205,15 +205,15 @@ export default function BoardSettings({
       if (userPlan === 'free' || project.plan === 'free') {
         if (formData.is_private) {
           notify(
-            'Private boards are only available on Pro plans. Upgrade to enable this feature.', 
+            'Private boards are only available on Pro plans. Upgrade to enable this feature.',
             'error'
           );
           return;
         }
-        
+
         if (formData.custom_css) {
           notify(
-            'Custom CSS is only available on Pro plans. Upgrade to enable this feature.', 
+            'Custom CSS is only available on Pro plans. Upgrade to enable this feature.',
             'error'
           );
           return;
@@ -250,7 +250,7 @@ export default function BoardSettings({
       // Update local state
       setBoard({ ...board, ...formData });
       setHasChanges(false);
-      
+
       notify('Settings saved successfully', 'success');
 
     } catch (error) {
@@ -271,17 +271,17 @@ export default function BoardSettings({
   const handleDeleteBoard = async () => {
     console.log('🚨🚨🚨 DELETE BOARD FUNCTION CALLED! 🚨🚨🚨');
     console.log('🚨 Current state:', { board, project, supabase: !!supabase });
-    console.log('🗑️ Delete board clicked:', { 
-      board: board ? { id: board.id, name: board.name } : null, 
-      supabase: !!supabase, 
-      project: project ? { id: project.id, slug: project.slug } : null 
+    console.log('🗑️ Delete board clicked:', {
+      board: board ? { id: board.id, name: board.name } : null,
+      supabase: !!supabase,
+      project: project ? { id: project.id, slug: project.slug } : null
     });
-    
+
     if (!board || !supabase || !project) {
-      console.error('❌ Missing required data:', { 
-        board: board ? { id: board.id, name: board.name } : null, 
-        supabase: !!supabase, 
-        project: project ? { id: project.id, slug: project.slug } : null 
+      console.error('❌ Missing required data:', {
+        board: board ? { id: board.id, name: board.name } : null,
+        supabase: !!supabase,
+        project: project ? { id: project.id, slug: project.slug } : null
       });
       notify('Database connection not available. Please refresh the page.', 'error');
       return;
@@ -295,11 +295,11 @@ export default function BoardSettings({
 
     try {
       console.log('🗑️ Attempting to delete board via API:', { boardId: board.id, boardName: board.name });
-      
+
       // Get auth session
       const { data: session } = await supabase.auth.getSession();
       console.log('🔐 Auth session:', { hasSession: !!session.session, hasToken: !!session.session?.access_token });
-      
+
       // Use API route with service role key to bypass RLS
       const response = await fetch('/api/boards/delete', {
         method: 'DELETE',
@@ -343,10 +343,10 @@ export default function BoardSettings({
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
+          <div className="h-8 bg-gray-200 dark:bg-slate-700 rounded w-1/3 mb-6"></div>
           <div className="space-y-6">
-            {[1,2,3].map(i => (
-              <div key={i} className="h-48 bg-gray-200 rounded"></div>
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-48 bg-gray-200 dark:bg-slate-700 rounded"></div>
             ))}
           </div>
         </div>
@@ -358,8 +358,8 @@ export default function BoardSettings({
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Board not found</h2>
-          <p className="text-gray-600">The feedback board you&apos;re looking for doesn&apos;t exist.</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Board not found</h2>
+          <p className="text-gray-600 dark:text-gray-400">The feedback board you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     );
@@ -373,19 +373,19 @@ export default function BoardSettings({
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Board Settings</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Board Settings</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Configure your feedback board for {project.name}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {hasChanges && (
               <Button variant="outline" onClick={handleReset}>
                 Reset
               </Button>
             )}
-            <Button 
+            <Button
               onClick={handleSave}
               disabled={!hasChanges || saving}
               className="bg-blue-600 hover:bg-blue-700"
@@ -426,7 +426,7 @@ export default function BoardSettings({
                   placeholder="e.g., Feature Requests"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="sort-default">Default Sort Order</Label>
                 <Select
@@ -487,7 +487,7 @@ export default function BoardSettings({
                 )}
                 <div>
                   <Label htmlFor="is-private">Private Board</Label>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Only team members can view this board
                   </p>
                   {!isPro && (
@@ -511,7 +511,7 @@ export default function BoardSettings({
                 <Users className="w-5 h-5 text-blue-600" />
                 <div>
                   <Label htmlFor="allow-anonymous">Allow Anonymous Posts</Label>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Users can submit feedback without providing email
                   </p>
                 </div>
@@ -528,7 +528,7 @@ export default function BoardSettings({
                 <CheckCircle className="w-5 h-5 text-purple-600" />
                 <div>
                   <Label htmlFor="require-approval">Require Post Approval</Label>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     All posts must be approved before appearing publicly
                   </p>
                 </div>
@@ -588,7 +588,7 @@ export default function BoardSettings({
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="show-emails">Show Author Emails</Label>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Display email addresses on posts and comments
                   </p>
                 </div>
@@ -602,7 +602,7 @@ export default function BoardSettings({
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="enable-comments">Enable Comments</Label>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Allow users to comment on posts
                   </p>
                 </div>
@@ -616,7 +616,7 @@ export default function BoardSettings({
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="enable-voting">Enable Voting</Label>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Allow users to vote on posts
                   </p>
                 </div>
@@ -674,15 +674,13 @@ export default function BoardSettings({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
               <div>
-                <h3 className="font-medium text-red-900">Delete Project</h3>
-                <p className="text-sm text-red-600">
+                <h3 className="font-medium text-red-900 dark:text-red-300">Delete Project</h3>
+                <p className="text-sm text-red-600 dark:text-red-400">
                   Permanently delete this entire project including the board, all posts, comments, and votes.
                 </p>
-                
               </div>
-              
               <Button
                 variant="outline"
                 className="border-red-300 text-red-700 hover:bg-red-50"
@@ -694,7 +692,7 @@ export default function BoardSettings({
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete Project
               </Button>
-              
+
               {/* Custom Modal */}
               {showDeleteDialog && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -702,23 +700,23 @@ export default function BoardSettings({
                     setShowDeleteDialog(false);
                     setDeleteError(null);
                   }}></div>
-                  <div className="relative bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
-                    <h2 className="text-lg font-semibold mb-4">Delete Project</h2>
-                    <p className="text-gray-600 mb-4">
+                  <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 max-w-md w-full">
+                    <h2 className="text-lg font-semibold mb-4 dark:text-white">Delete Project</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
                       Are you sure you want to delete the entire project &quot;{project?.name}&quot;? This will permanently delete:
                     </p>
-                    <ul className="list-disc list-inside mb-6 text-gray-600 space-y-1">
+                    <ul className="list-disc list-inside mb-6 text-gray-600 dark:text-gray-400 space-y-1">
                       <li>The entire project and its board</li>
                       <li>All feedback posts</li>
                       <li>All comments and votes</li>
                       <li>All project settings</li>
                       <li>API keys and integrations</li>
                     </ul>
-                    <p className="text-red-600 mb-6">This action cannot be undone.</p>
+                    <p className="text-red-600 dark:text-red-400 mb-6">This action cannot be undone.</p>
 
                     {deleteError && (
-                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                        <p className="text-sm text-red-800">{deleteError}</p>
+                      <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                        <p className="text-sm text-red-800 dark:text-red-300">{deleteError}</p>
                       </div>
                     )}
 

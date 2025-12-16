@@ -272,11 +272,11 @@ export function TeammatesSettings({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="w-full sm:w-auto">
-          <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <Users className="w-6 h-6 text-blue-600" />
             Team Members
           </h3>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Manage who has access to this project
           </p>
         </div>
@@ -350,7 +350,7 @@ export function TeammatesSettings({
               </>
             )}
           </Button>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-900">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-blue-900 dark:text-blue-300">
             <AlertCircle className="w-4 h-4 inline mr-2" />
             If the user has an account, they'll be added immediately. Otherwise, they'll receive an invitation email.
           </div>
@@ -364,8 +364,8 @@ export function TeammatesSettings({
         </CardHeader>
         <CardContent>
           {members.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Users className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <Users className="w-12 h-12 mx-auto mb-3 text-gray-400 dark:text-gray-500" />
               <p>No team members yet</p>
               <p className="text-sm mt-1">Invite your first team member above</p>
             </div>
@@ -374,7 +374,7 @@ export function TeammatesSettings({
               {members.map((member) => (
                 <div
                   key={member.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-200 dark:border-slate-600 rounded-lg hover:border-gray-300 dark:hover:border-slate-500 transition-colors"
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0 w-full">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
@@ -382,7 +382,7 @@ export function TeammatesSettings({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-gray-900 dark:text-white">
                           {member.user_email || 'Unknown User'}
                         </p>
                         {member.user_id === currentUserId && (
@@ -391,7 +391,7 @@ export function TeammatesSettings({
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 break-words">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 break-words">
                         Added {new Date(member.created_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -429,7 +429,7 @@ export function TeammatesSettings({
       </Card>
 
       {/* Role Descriptions */}
-      <Card className="bg-gray-50">
+      <Card className="bg-gray-50 dark:bg-slate-800/50">
         <CardHeader>
           <CardTitle className="text-lg">Role Permissions</CardTitle>
         </CardHeader>
@@ -437,8 +437,8 @@ export function TeammatesSettings({
           <div className="flex items-start gap-3">
             <Crown className="w-5 h-5 text-yellow-600 mt-0.5" />
             <div>
-              <p className="font-medium text-gray-900">Owner</p>
-              <p className="text-sm text-gray-600">
+              <p className="font-medium text-gray-900 dark:text-white">Owner</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Full access to project settings, billing, and team management. Cannot be removed.
               </p>
             </div>
@@ -446,17 +446,17 @@ export function TeammatesSettings({
           <div className="flex items-start gap-3">
             <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
             <div>
-              <p className="font-medium text-gray-900">Admin</p>
-              <p className="text-sm text-gray-600">
+              <p className="font-medium text-gray-900 dark:text-white">Admin</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Can manage project settings, view analytics, and moderate content.
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <User className="w-5 h-5 text-gray-600 mt-0.5" />
+            <User className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-0.5" />
             <div>
-              <p className="font-medium text-gray-900">Member</p>
-              <p className="text-sm text-gray-600">
+              <p className="font-medium text-gray-900 dark:text-white">Member</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Can view project content and respond to feedback.
               </p>
             </div>

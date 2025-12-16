@@ -308,11 +308,11 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <Zap className="w-5 h-5 text-teal-600" />
             Webhooks
           </h3>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Receive real-time notifications when events occur in your project
           </p>
         </div>
@@ -355,7 +355,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
                 onChange={(e) => setWebhookUrl(e.target.value)}
                 className="mt-1"
               />
-              <p className="text-xs text-gray-500 mt-1">Must be an HTTPS URL</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Must be an HTTPS URL</p>
             </div>
 
             <div>
@@ -386,7 +386,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
                       >
                         {event.label}
                       </label>
-                      <p className="text-xs text-gray-500">{event.description}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{event.description}</p>
                     </div>
                   </div>
                 ))}
@@ -413,17 +413,17 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
       )}
 
       {/* Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h4 className="font-medium text-blue-900 mb-1">Need help setting up webhooks?</h4>
-            <p className="text-sm text-blue-700 mb-2">
+            <h4 className="font-medium text-blue-900 dark:text-blue-300 mb-1">Need help setting up webhooks?</h4>
+            <p className="text-sm text-blue-700 dark:text-blue-400 mb-2">
               Check out our comprehensive documentation with examples and code samples.
             </p>
             <Button
               variant="link"
-              className="text-blue-600 p-0 h-auto"
+              className="text-blue-600 dark:text-blue-300 p-0 h-auto"
               onClick={() => window.open('/docs/api', '_blank')}
             >
               View API Documentation
@@ -435,10 +435,10 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
 
       {/* Webhooks List */}
       {webhooks.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-          <Zap className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No webhooks configured</h3>
-          <p className="text-gray-600 mb-4">
+        <div className="text-center py-12 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700">
+          <Zap className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No webhooks configured</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Create your first webhook to start receiving real-time notifications
           </p>
           <Button
@@ -459,22 +459,22 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                        <code className="text-sm font-mono bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded dark:text-gray-200">
                           {webhook.webhook_url}
                         </code>
                         {webhook.is_active ? (
-                          <Badge className="bg-green-100 text-green-800 border-green-200">
+                          <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border-green-200 dark:border-green-800">
                             <CheckCircle className="w-3 h-3 mr-1" />
                             Active
                           </Badge>
                         ) : (
-                          <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+                          <Badge className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600">
                             Inactive
                           </Badge>
                         )}
                       </div>
                       {webhook.description && (
-                        <p className="text-sm text-gray-600">{webhook.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{webhook.description}</p>
                       )}
                     </div>
                     <Button
@@ -489,7 +489,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
 
                   {/* Events */}
                   <div>
-                    <p className="text-xs font-medium text-gray-500 mb-2">SUBSCRIBED EVENTS</p>
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">SUBSCRIBED EVENTS</p>
                     <div className="flex flex-wrap gap-1">
                       {webhook.events.map(event => (
                         <Badge key={event} variant="outline" className="text-xs">
@@ -501,9 +501,9 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
 
                   {/* Secret */}
                   <div>
-                    <p className="text-xs font-medium text-gray-500 mb-2">WEBHOOK SECRET</p>
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">WEBHOOK SECRET</p>
                     <div className="flex items-center gap-2">
-                      <code className="text-xs font-mono bg-gray-100 px-2 py-1 rounded flex-1">
+                      <code className="text-xs font-mono bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded flex-1 dark:text-gray-200">
                         {showSecret[webhook.id]
                           ? webhook.webhook_secret
                           : '•'.repeat(40)}
@@ -537,20 +537,20 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
                   {webhook.last_triggered_at && (
                     <div className="grid grid-cols-3 gap-4 text-xs">
                       <div>
-                        <p className="text-gray-500 mb-1">Last Triggered</p>
-                        <p className="font-medium">
+                        <p className="text-gray-500 dark:text-gray-400 mb-1">Last Triggered</p>
+                        <p className="font-medium dark:text-gray-200">
                           {new Date(webhook.last_triggered_at).toLocaleString()}
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500 mb-1">Last Status</p>
+                        <p className="text-gray-500 dark:text-gray-400 mb-1">Last Status</p>
                         <p className="font-medium">
                           {webhook.last_status_code ? (
                             <Badge
                               className={
                                 webhook.last_status_code >= 200 && webhook.last_status_code < 300
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-red-100 text-red-800'
+                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                                  : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
                               }
                             >
                               {webhook.last_status_code}
@@ -561,8 +561,8 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500 mb-1">Failures</p>
-                        <p className="font-medium">{webhook.failure_count || 0}</p>
+                        <p className="text-gray-500 dark:text-gray-400 mb-1">Failures</p>
+                        <p className="font-medium dark:text-gray-200">{webhook.failure_count || 0}</p>
                       </div>
                     </div>
                   )}
@@ -606,7 +606,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
                           <RefreshCw className="w-4 h-4 animate-spin text-gray-400" />
                         </div>
                       ) : deliveries.length === 0 ? (
-                        <p className="text-sm text-gray-500 py-4 text-center">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
                           No delivery attempts yet
                         </p>
                       ) : (
@@ -614,7 +614,7 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
                           {deliveries.map(delivery => (
                             <div
                               key={delivery.id}
-                              className="flex items-center justify-between text-xs p-2 bg-gray-50 rounded"
+                              className="flex items-center justify-between text-xs p-2 bg-gray-50 dark:bg-slate-700/50 rounded"
                             >
                               <div className="flex items-center gap-2">
                                 {delivery.success ? (
@@ -623,8 +623,8 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
                                   <XCircle className="w-4 h-4 text-red-600" />
                                 )}
                                 <div>
-                                  <p className="font-medium">{delivery.event_type}</p>
-                                  <p className="text-gray-500">
+                                  <p className="font-medium dark:text-gray-200">{delivery.event_type}</p>
+                                  <p className="text-gray-500 dark:text-gray-400">
                                     {new Date(delivery.delivered_at).toLocaleString()}
                                   </p>
                                 </div>
@@ -634,20 +634,20 @@ export function WebhooksSettings({ projectId, apiKey, onShowNotification, onRese
                                   <Badge
                                     className={
                                       delivery.success
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-red-100 text-red-800'
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                                        : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
                                     }
                                   >
                                     {delivery.status_code}
                                   </Badge>
                                 )}
                                 {delivery.delivery_duration_ms && (
-                                  <p className="text-gray-500 mt-1">
+                                  <p className="text-gray-500 dark:text-gray-400 mt-1">
                                     {delivery.delivery_duration_ms}ms
                                   </p>
                                 )}
                                 {delivery.error_message && (
-                                  <p className="text-red-600 text-xs mt-1">
+                                  <p className="text-red-600 dark:text-red-400 text-xs mt-1">
                                     {delivery.error_message}
                                   </p>
                                 )}
