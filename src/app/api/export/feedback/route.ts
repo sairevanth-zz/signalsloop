@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 // Lazy getter for Supabase client to avoid build-time initialization
 function getSupabase() {
@@ -120,29 +120,35 @@ export async function GET(request: NextRequest) {
         }
       });
     } else {
-      // Generate Excel
-      const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      // Generate Excel using ExcelJS
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Feedback');
+
+      // Add headers
+      const headers = Object.keys(exportData[0] || {});
+      worksheet.addRow(headers);
+
+      // Add data rows
+      exportData.forEach(row => {
+        worksheet.addRow(Object.values(row));
+      });
 
       // Set column widths
-      const columnWidths = [
-        { wch: 10 }, // ID
-        { wch: 30 }, // Title
-        { wch: 50 }, // Description
-        { wch: 15 }, // Status
-        { wch: 20 }, // Category
-        { wch: 20 }, // Author Name
-        { wch: 30 }, // Author Email
-        { wch: 10 }, // Votes
-        { wch: 10 }, // Comments
-        { wch: 20 }, // Created At
-        { wch: 20 }  // Updated At
-      ];
-      worksheet['!cols'] = columnWidths;
+      const columnWidths = [10, 30, 50, 15, 20, 20, 30, 10, 10, 20, 20];
+      worksheet.columns.forEach((col, i) => {
+        col.width = columnWidths[i] || 15;
+      });
 
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Feedback');
+      // Style header row
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true };
+      headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      };
 
-      const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+      const excelBuffer = await workbook.xlsx.writeBuffer();
       const filename = `${project.name}_feedback_${new Date().toISOString().split('T')[0]}.xlsx`;
 
       return new NextResponse(excelBuffer, {

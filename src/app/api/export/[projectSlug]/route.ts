@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-client';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 export async function GET(
   request: NextRequest,
@@ -96,7 +96,7 @@ export async function GET(
     // Get comments for posts
     const postIds = posts?.map(post => post.id) || [];
     let comments: any[] = [];
-    
+
     if (postIds.length > 0) {
       const { data: commentsData, error: commentsError } = await supabase
         .from('comments')
@@ -118,7 +118,7 @@ export async function GET(
 
     // Get votes for posts
     let votes: any[] = [];
-    
+
     if (postIds.length > 0) {
       const { data: votesData, error: votesError } = await supabase
         .from('votes')
@@ -140,7 +140,7 @@ export async function GET(
     const exportData = posts?.map(post => {
       const postComments = comments.filter(comment => comment.post_id === post.id);
       const postVotes = votes.filter(vote => vote.post_id === post.id);
-      
+
       return {
         'Post ID': post.id,
         'Title': post.title,
@@ -170,12 +170,29 @@ export async function GET(
     const filename = `${project.name.replace(/[^a-zA-Z0-9]/g, '_')}_feedback_${timestamp}`;
 
     if (format === 'excel') {
-      // Create Excel workbook with multiple sheets
-      const workbook = XLSX.utils.book_new();
+      // Create Excel workbook with multiple sheets using ExcelJS
+      const workbook = new ExcelJS.Workbook();
+
+      // Helper function to add data to worksheet
+      const addDataToSheet = (sheetName: string, data: any[]) => {
+        if (data.length === 0) return;
+        const sheet = workbook.addWorksheet(sheetName);
+        const headers = Object.keys(data[0]);
+        sheet.addRow(headers);
+        data.forEach(row => sheet.addRow(Object.values(row)));
+
+        // Style header row
+        const headerRow = sheet.getRow(1);
+        headerRow.font = { bold: true };
+        headerRow.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFE0E0E0' }
+        };
+      };
 
       // Main posts sheet
-      const postsSheet = XLSX.utils.json_to_sheet(exportData);
-      XLSX.utils.book_append_sheet(workbook, postsSheet, 'Feedback Posts');
+      addDataToSheet('Feedback Posts', exportData);
 
       // Comments sheet
       if (comments.length > 0) {
@@ -187,8 +204,7 @@ export async function GET(
           'Content': comment.content,
           'Created At': new Date(comment.created_at).toISOString()
         }));
-        const commentsSheet = XLSX.utils.json_to_sheet(commentsData);
-        XLSX.utils.book_append_sheet(workbook, commentsSheet, 'Comments');
+        addDataToSheet('Comments', commentsData);
       }
 
       // Votes sheet
@@ -199,8 +215,7 @@ export async function GET(
           'Voter Email': vote.author_email || '',
           'Created At': new Date(vote.created_at).toISOString()
         }));
-        const votesSheet = XLSX.utils.json_to_sheet(votesData);
-        XLSX.utils.book_append_sheet(workbook, votesSheet, 'Votes');
+        addDataToSheet('Votes', votesData);
       }
 
       // Summary sheet
@@ -212,12 +227,11 @@ export async function GET(
         { 'Metric': 'Project', 'Value': project.name },
         { 'Metric': 'Filters Applied', 'Value': `Status: ${status}, Category: ${category}${dateFrom ? `, From: ${dateFrom}` : ''}${dateTo ? `, To: ${dateTo}` : ''}` }
       ];
-      const summarySheet = XLSX.utils.json_to_sheet(summaryData);
-      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+      addDataToSheet('Summary', summaryData);
 
       // Generate Excel file
-      const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-      
+      const excelBuffer = await workbook.xlsx.writeBuffer();
+
       return new NextResponse(excelBuffer, {
         status: 200,
         headers: {
@@ -238,7 +252,7 @@ export async function GET(
       const headers = Object.keys(exportData[0]);
       const csvRows = [
         headers.join(','),
-        ...exportData.map(row => 
+        ...exportData.map(row =>
           headers.map(header => {
             const value = row[header as keyof typeof row];
             // Escape commas and quotes in CSV
@@ -251,7 +265,7 @@ export async function GET(
       ];
 
       const csvContent = csvRows.join('\n');
-      
+
       return new NextResponse(csvContent, {
         status: 200,
         headers: {

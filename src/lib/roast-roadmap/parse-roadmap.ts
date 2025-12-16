@@ -1,6 +1,6 @@
 
 import { getOpenAI } from '@/lib/openai-client';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 export interface ParsedRoadmap {
     features: {
@@ -165,13 +165,23 @@ export async function parseRoadmapFromFile(fileBuffer: Buffer, fileType: string)
 
     if (fileType === 'application/json' || fileType.endsWith('json')) {
         rawText = fileBuffer.toString('utf-8');
+    } else if (fileType === 'text/csv' || fileType.endsWith('csv')) {
+        // Handle CSV as plain text
+        rawText = fileBuffer.toString('utf-8');
     } else {
-        // Handle CSV/Excel using XLSX
-        const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        // Convert to CSV string provided easier structure for LLM to parse
-        rawText = XLSX.utils.sheet_to_csv(sheet);
+        // Handle Excel using ExcelJS
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(fileBuffer);
+        const worksheet = workbook.worksheets[0];
+
+        // Convert worksheet to CSV-like string for LLM parsing
+        const rows: string[] = [];
+        worksheet.eachRow((row) => {
+            const values = row.values as (string | number | null)[];
+            // Skip first element (ExcelJS uses 1-based indexing, index 0 is empty)
+            rows.push(values.slice(1).map(v => v?.toString() || '').join(','));
+        });
+        rawText = rows.join('\n');
     }
 
     // Reuse the text parsing logic but with a hint about source
