@@ -22,7 +22,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface BillingInfo {
-  plan: 'free' | 'pro';
+  plan: 'free' | 'pro' | 'premium';
   stripe_customer_id: string | null;
   subscription_status: 'active' | 'canceled' | 'past_due' | null;
   current_period_end: string | null;
@@ -1060,21 +1060,32 @@ export function BillingDashboard({
 
             {billingInfo.plan !== 'premium' ? (
               <Button
-                onClick={() => {
-                  fetch('/api/stripe/checkout', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      billingCycle: 'monthly',
-                      plan: 'premium',
-                      projectId: projectId,
-                      successUrl: `${window.location.origin}${returnPath}?success=true&session_id={CHECKOUT_SESSION_ID}`,
-                      cancelUrl: `${window.location.origin}${returnPath}?cancelled=true`,
-                    })
-                  })
-                    .then(res => res.json())
-                    .then(data => { if (data.url) window.location.href = data.url; })
-                    .catch(err => toast.error('Failed to start upgrade: ' + err.message));
+                onClick={async () => {
+                  try {
+                    const res = await fetch('/api/stripe/checkout', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        billingCycle: 'monthly',
+                        plan: 'premium',
+                        projectId: projectId,
+                        successUrl: `${window.location.origin}${returnPath}?success=true&session_id={CHECKOUT_SESSION_ID}`,
+                        cancelUrl: `${window.location.origin}${returnPath}?cancelled=true`,
+                      })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                      toast.error(data.error || data.details || 'Failed to create checkout');
+                      return;
+                    }
+                    if (data.url) {
+                      window.location.href = data.url;
+                    } else {
+                      toast.error('No checkout URL received');
+                    }
+                  } catch (err) {
+                    toast.error('Failed to start upgrade: ' + (err as Error).message);
+                  }
                 }}
                 className="w-full mt-4 bg-purple-600 hover:bg-purple-700"
               >
