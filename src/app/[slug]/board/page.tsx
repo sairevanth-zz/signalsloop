@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import GlobalBanner from '@/components/GlobalBanner';
+// GlobalBanner removed - layout already provides it
 import { CategoryBadge } from '@/components/CategoryBadge';
 import BoardShare from '@/components/BoardShare';
 import FeedbackExport from '@/components/FeedbackExport';
@@ -72,7 +72,7 @@ import VoteButton from '@/components/VoteButton';
 import { AIInsightsSlideout } from '@/components/AIInsightsSlideout';
 import FeedbackOnBehalfModal from '@/components/FeedbackOnBehalfModal';
 import { SentimentWidget, SentimentTrendChart } from '@/components/sentiment';
-import { SpecsDashboardWidget } from '@/components/specs';
+// SpecsDashboardWidget removed - not needed on board page
 
 interface Post {
   id: string;
@@ -926,15 +926,11 @@ export default function BoardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 safe-top safe-bottom">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#13151a] safe-top safe-bottom">
       {/* Custom CSS */}
       {board?.custom_css && (
         <style dangerouslySetInnerHTML={{ __html: board.custom_css }} />
       )}
-      <GlobalBanner
-        showBackButton={true}
-        backLabel="Back to Dashboard"
-      />
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <div className="flex gap-4 lg:gap-8">
           {/* Main Content */}
@@ -950,8 +946,8 @@ export default function BoardPage() {
             <div className="mb-8">
               {/* Breadcrumb Navigation - Mobile Optimized */}
               <div className="mb-4">
-                <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-600 overflow-x-auto hide-scrollbar">
-                  <Link href="/app" className="hover:text-gray-900 flex items-center gap-1 whitespace-nowrap">
+                <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-600 dark:text-gray-400 overflow-x-auto hide-scrollbar">
+                  <Link href="/app" className="hover:text-gray-900 dark:hover:text-gray-200 flex items-center gap-1 whitespace-nowrap">
                     <Home className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                     <span className="hidden sm:inline">Dashboard</span>
                   </Link>
@@ -964,17 +960,17 @@ export default function BoardPage() {
                 {/* User Email - Mobile: Hidden, shown in GlobalBanner dropdown */}
                 {user && (
                   <div className="hidden sm:flex items-center gap-2 mt-2">
-                    <span className="text-sm text-gray-600 truncate">{user.email}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400 truncate">{user.email}</span>
                   </div>
                 )}
               </div>
 
               <div className="flex flex-col gap-4">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                     {board?.name || project?.name}
                   </h1>
-                  <p className="text-sm sm:text-base text-gray-600 mt-1">
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
                     {board?.description || 'Share your ideas and help us build better features'}
                   </p>
                 </div>
@@ -1382,17 +1378,7 @@ export default function BoardPage() {
               )
             }
 
-            {/* Spec Writer Dashboard - Only show for project owners/admins */}
-            {
-              isOwnerOrAdmin && project && (
-                <div className="mb-6">
-                  <SpecsDashboardWidget
-                    projectId={project.id}
-                    projectSlug={project.slug}
-                  />
-                </div>
-              )
-            }
+            {/* Spec Writer Dashboard removed - available from sidebar */}
 
             {/* Posts List */}
             <div className="space-y-4">
