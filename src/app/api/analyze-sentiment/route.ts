@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import {
   analyzeSentimentBatch,
   analyzeSentimentWithRetry,
@@ -62,18 +62,17 @@ export async function POST(request: NextRequest) {
     let demoUsageInfo: { limit: number; remaining: number; resetAt: number } | null = null;
 
     if (projectId) {
-      const usageCheck = await checkAIUsageLimit(projectId, 'sentiment');
+      const usageCheck = await checkAIUsageLimit(projectId, 'sentiment_analysis');
 
       if (!usageCheck.allowed) {
         return NextResponse.json(
           {
             success: false,
             error: 'Rate limit exceeded',
-            message: `You've reached your monthly limit of ${usageCheck.limit} AI sentiment analyses. ${
-              usageCheck.isPro
-                ? 'Please try again next month.'
-                : 'Upgrade to Pro for 50,000 analyses per month!'
-            }`,
+            message: `You've reached your monthly limit of ${usageCheck.limit} AI sentiment analyses. ${usageCheck.isPro
+              ? 'Please try again next month.'
+              : 'Upgrade to Pro for 50,000 analyses per month!'
+              }`,
             current: usageCheck.current,
             limit: usageCheck.limit,
             remaining: usageCheck.remaining,
@@ -85,7 +84,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Demo/unauthenticated user - use IP-based rate limiting
       const clientIP = getClientIP(request);
-      const demoCheck = checkDemoRateLimit(clientIP, 'sentiment');
+      const demoCheck = checkDemoRateLimit(clientIP, 'sentiment_analysis');
 
       if (!demoCheck.allowed) {
         return NextResponse.json(
@@ -110,10 +109,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Initialize Supabase client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const supabase = getServiceRoleClient();
+    if (!supabase) {
+      console.error('[SENTIMENT API] No database client available');
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Database connection not available',
+        },
+        { status: 500 },
+      );
+    }
 
     console.log(`[SENTIMENT API] Fetching ${postIds.length} posts from database`);
 
@@ -208,12 +214,12 @@ export async function POST(request: NextRequest) {
     if (projectId && successCount > 0) {
       // Increment by the number of successful analyses
       for (let i = 0; i < successCount; i++) {
-        await incrementAIUsage(projectId, 'sentiment');
+        await incrementAIUsage(projectId, 'sentiment_analysis');
       }
     } else if (!projectId && successCount > 0) {
       const clientIP = getClientIP(request);
       for (let i = 0; i < successCount; i++) {
-        incrementDemoUsage(clientIP, 'sentiment');
+        incrementDemoUsage(clientIP, 'sentiment_analysis');
       }
     }
 
@@ -266,12 +272,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Initialize Supabase client
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const supabase = getServiceRoleClient();
+    if (!supabase) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Database connection not available',
+        },
+        { status: 500 },
+      );
+    }
 
     console.log(`[SENTIMENT API] Getting distribution for project ${projectId}`);
+
 
     // Get sentiment distribution
     const { data: distribution, error: distError } = await supabase.rpc(
