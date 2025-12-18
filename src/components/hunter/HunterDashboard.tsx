@@ -41,6 +41,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState<DiscoveredFeedback | null>(null);
+  const [selectedAction, setSelectedAction] = useState<ActionRecommendation | null>(null);
   const [activeTab, setActiveTab] = useState('feed');
 
   useEffect(() => {
@@ -381,7 +382,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                       </div>
                     )}
                   </div>
-                  <Button size="sm">Take Action</Button>
+                  <Button size="sm" onClick={() => setSelectedAction(action)}>Take Action</Button>
                 </div>
               </Card>
             ))
@@ -635,6 +636,116 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                   View on {selectedFeedback.platform}
                 </Button>
                 <Button variant="outline" onClick={() => setSelectedFeedback(null)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Action Detail Dialog */}
+      <Dialog open={!!selectedAction} onOpenChange={(open) => !open && setSelectedAction(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-500" />
+              Action Required
+            </DialogTitle>
+          </DialogHeader>
+          {selectedAction && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className={`text-xs px-2 py-1 rounded-full ${selectedAction.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                    selectedAction.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                      selectedAction.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-blue-100 text-blue-800'
+                  }`}>
+                  {selectedAction.priority.toUpperCase()}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {selectedAction.mention_count} mentions
+                </span>
+              </div>
+
+              <h3 className="text-lg font-semibold">{selectedAction.issue_summary}</h3>
+
+              {selectedAction.business_impact && (
+                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
+                  <p className="text-sm text-red-700 dark:text-red-400">
+                    <strong>Business Impact:</strong> {selectedAction.business_impact}
+                  </p>
+                </div>
+              )}
+
+              {selectedAction.suggested_actions && selectedAction.suggested_actions.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-medium">Suggested Actions:</h4>
+                  <div className="space-y-2">
+                    {selectedAction.suggested_actions.map((sa: any, i: number) => (
+                      <div key={i} className="flex items-start gap-3 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                        <input type="checkbox" className="mt-1 h-4 w-4 rounded" />
+                        <span className="text-sm">{sa.description || sa}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedAction.draft_response && (
+                <div className="space-y-2">
+                  <h4 className="font-medium">Draft Response:</h4>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                    <p className="text-sm whitespace-pre-wrap">{selectedAction.draft_response}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-4 border-t">
+                <Button
+                  onClick={async () => {
+                    // Mark as complete
+                    try {
+                      await fetch('/api/hunter/actions', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          id: selectedAction.id,
+                          status: 'completed'
+                        }),
+                      });
+                      setActions(actions.filter(a => a.id !== selectedAction.id));
+                      setSelectedAction(null);
+                    } catch (error) {
+                      console.error('Error completing action:', error);
+                    }
+                  }}
+                >
+                  Mark Complete
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    // Dismiss
+                    try {
+                      await fetch('/api/hunter/actions', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          id: selectedAction.id,
+                          status: 'dismissed'
+                        }),
+                      });
+                      setActions(actions.filter(a => a.id !== selectedAction.id));
+                      setSelectedAction(null);
+                    } catch (error) {
+                      console.error('Error dismissing action:', error);
+                    }
+                  }}
+                >
+                  Dismiss
+                </Button>
+                <Button variant="ghost" onClick={() => setSelectedAction(null)}>
                   Close
                 </Button>
               </div>

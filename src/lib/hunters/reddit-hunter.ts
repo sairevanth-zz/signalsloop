@@ -154,6 +154,22 @@ export class RedditHunter extends BaseHunter {
             );
             if (isJobPosting) continue;
 
+            // Filter out generic AI discussions that aren't product feedback
+            const irrelevantIndicators = [
+              'accused of using ai', 'using ai to cheat', 'ai plagiarism', 'academic integrity',
+              'ai detection', 'turnitin', 'gptzero', 'caught using ai', 'ai in school',
+              'ai in education', 'ai ethics debate', 'ai will destroy', 'ai will take over',
+              'ai vs human', 'is ai art', 'ai generated art', 'ai replacing',
+              'ai consciousness', 'sentient ai', 'agi when', 'superintelligence',
+              'the multi-agent', 'daily news rundown', 'news roundup', 'ai news',
+              'yu-gi-oh', 'yugioh', 'pokemon', 'trading card', 'magic the gathering',
+              'knife', 'blade', 'gyuto', 'whetstone', 'sharpening'
+            ];
+            const isIrrelevant = irrelevantIndicators.some(indicator =>
+              lowerTitle.includes(indicator) || lowerContent.includes(indicator)
+            );
+            if (isIrrelevant) continue;
+
             seenIds.add(item.id);
 
             results.push({
