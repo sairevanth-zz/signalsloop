@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import {
   GenerateRecommendationsRequest,
   GenerateRecommendationsResponse,
@@ -20,22 +20,13 @@ export const maxDuration = 60;
  */
 export async function GET(request: NextRequest) {
   try {
-    // Use createServerClient for auth (reads cookies)
-    const supabaseAuth = await createServerClient();
-    const { data: { user } } = await supabaseAuth.auth.getUser();
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
-      );
-    }
-
-    const supabase = getSupabaseServiceRoleClient();
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection error' },
-        { status: 500 }
       );
     }
 
@@ -109,21 +100,13 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabaseAuth = await createServerClient();
-    const { data: { user } } = await supabaseAuth.auth.getUser();
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
-      );
-    }
-
-    const supabase = getSupabaseServiceRoleClient();
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection error' },
-        { status: 500 }
       );
     }
 
@@ -194,12 +177,12 @@ export async function POST(request: NextRequest) {
       // Use OpenAI to analyze and generate recommendation
       const feedbackTexts = items.slice(0, 20).map((f) => f.content);
       const avgSentiment =
-        items.reduce((sum, f) => sum + (f.sentiment_score || 0), 0) /
+        items.reduce((sum: number, f: any) => sum + (f.sentiment_score || 0), 0) /
         items.length;
 
       const prompt = `Analyze these ${items.length} customer feedback items classified as "${classification}":
 
-${feedbackTexts.map((t, i) => `${i + 1}. ${t.substring(0, 200)}`).join('\n\n')}
+${feedbackTexts.map((t: string, i: number) => `${i + 1}. ${t.substring(0, 200)}`).join('\n\n')}
 
 Generate an action recommendation with:
 - issue_summary: A concise summary of the common issue/theme
@@ -243,7 +226,7 @@ Return JSON only.`;
           .from('action_recommendations')
           .insert({
             project_id: projectId,
-            feedback_ids: items.map((f) => f.id),
+            feedback_ids: items.map((f: any) => f.id),
             issue_summary: analysis.issue_summary,
             issue_category: analysis.issue_category,
             mention_count: items.length,
@@ -297,21 +280,13 @@ Return JSON only.`;
  */
 export async function PUT(request: NextRequest) {
   try {
-    const supabaseAuth = await createServerClient();
-    const { data: { user } } = await supabaseAuth.auth.getUser();
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
-      );
-    }
-
-    const supabase = getSupabaseServiceRoleClient();
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection error' },
-        { status: 500 }
       );
     }
 

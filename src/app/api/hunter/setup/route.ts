@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import {
   HunterSetupRequest,
   HunterSetupResponse,
@@ -19,27 +19,13 @@ export const maxDuration = 30;
  */
 export async function POST(request: NextRequest) {
   try {
-    // Use createServerClient for auth (reads cookies)
-    const supabaseAuth = await createServerClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabaseAuth.auth.getUser();
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
-      );
-    }
-
-    // Use service role client for database operations
-    const supabase = getSupabaseServiceRoleClient();
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection error' },
-        { status: 500 }
       );
     }
 
@@ -191,27 +177,13 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Use createServerClient for auth (reads cookies)
-    const supabaseAuth = await createServerClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabaseAuth.auth.getUser();
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
-      );
-    }
-
-    // Use service role client for database operations
-    const supabase = getSupabaseServiceRoleClient();
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection error' },
-        { status: 500 }
       );
     }
 

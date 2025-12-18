@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import {
   AddPlatformRequest,
   UpdatePlatformRequest,
@@ -19,21 +19,13 @@ export const maxDuration = 30;
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabaseAuth = await createServerClient();
-    const { data: { user } } = await supabaseAuth.auth.getUser();
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
-      );
-    }
-
-    const supabase = getSupabaseServiceRoleClient();
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection error' },
-        { status: 500 }
       );
     }
 
@@ -101,21 +93,13 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabaseAuth = await createServerClient();
-    const { data: { user } } = await supabaseAuth.auth.getUser();
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
-      );
-    }
-
-    const supabase = getSupabaseServiceRoleClient();
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection error' },
-        { status: 500 }
       );
     }
 
@@ -204,21 +188,13 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const supabaseAuth = await createServerClient();
-    const { data: { user } } = await supabaseAuth.auth.getUser();
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
-      );
-    }
-
-    const supabase = getSupabaseServiceRoleClient();
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection error' },
-        { status: 500 }
       );
     }
 
@@ -316,21 +292,13 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const supabaseAuth = await createServerClient();
-    const { data: { user } } = await supabaseAuth.auth.getUser();
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
-      );
-    }
-
-    const supabase = getSupabaseServiceRoleClient();
-    if (!supabase) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection error' },
-        { status: 500 }
       );
     }
 
