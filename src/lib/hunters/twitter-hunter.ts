@@ -206,6 +206,7 @@ Return ONLY a JSON array of posts. No explanations.`;
             {
               type: 'live_search',
               live_search: {
+                sources: ['x'],  // Search X/Twitter
                 from_date: fromDate,
                 to_date: new Date().toISOString().split('T')[0],
               },

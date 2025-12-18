@@ -15,7 +15,7 @@ import {
   HunterScanResult,
   HunterError,
 } from '@/types/hunter';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 
 /**
  * Abstract base class for all hunters
@@ -97,10 +97,11 @@ export abstract class BaseHunter {
     items: ClassifiedFeedback[],
     projectId: string
   ): Promise<{ stored: number; duplicates: number }> {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      console.error(`[${this.platform}] Supabase client not available`);
+      return { stored: 0, duplicates: 0 };
+    }
     let stored = 0;
     let duplicates = 0;
 
@@ -226,10 +227,11 @@ export abstract class BaseHunter {
     projectId: string,
     scanType: 'scheduled' | 'manual' | 'test' = 'scheduled'
   ): Promise<void> {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      console.error(`[${this.platform}] Could not log scan result - Supabase not available`);
+      return;
+    }
 
     await supabase.from('hunter_logs').insert({
       project_id: projectId,
@@ -345,10 +347,10 @@ ${input.engagementMetrics ? `\nEngagement: ${JSON.stringify(input.engagementMetr
    * Check if theme detection should be triggered
    */
   private async checkThemeDetectionTrigger(projectId: string): Promise<void> {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      return;
+    }
 
     // Get hunter config
     const { data: config } = await supabase
