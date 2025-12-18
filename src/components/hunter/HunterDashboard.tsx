@@ -107,6 +107,33 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
     }
   };
 
+  const generateActions = async () => {
+    try {
+      setRefreshing(true);
+      const res = await fetch('/api/hunter/actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, minMentions: 2, lookbackDays: 30 }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        // Reload actions after generation
+        const actionsRes = await fetch(
+          `/api/hunter/actions?projectId=${projectId}&status=pending`
+        );
+        const actionsData = await actionsRes.json();
+        if (actionsData.success) {
+          setActions(actionsData.recommendations || []);
+        }
+      }
+    } catch (error) {
+      console.error('[Hunter Dashboard] Error generating actions:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -273,6 +300,15 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
               <p className="text-sm text-gray-400 mt-2">
                 Action items are generated based on feedback patterns.
               </p>
+              {recentFeedback.length > 0 && (
+                <Button
+                  className="mt-4"
+                  onClick={generateActions}
+                  disabled={refreshing}
+                >
+                  {refreshing ? 'Generating...' : 'Generate Action Items'}
+                </Button>
+              )}
             </Card>
           ) : (
             actions.map((action) => (
