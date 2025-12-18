@@ -23,8 +23,9 @@ import {
   PlatformHealthStats,
   DiscoveredFeedback,
   ActionRecommendation,
+  PlatformType,
 } from '@/types/hunter';
-import { RefreshCw, Settings, TrendingUp, AlertCircle } from 'lucide-react';
+import { RefreshCw, Settings, TrendingUp, AlertCircle, ExternalLink, Clock, User, ThumbsUp, ThumbsDown, Tag } from 'lucide-react';
 
 interface HunterDashboardProps {
   projectId: string;
@@ -38,6 +39,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
+  const [selectedFeedback, setSelectedFeedback] = useState<DiscoveredFeedback | null>(null);
 
   useEffect(() => {
     loadData();
@@ -253,7 +255,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                       )}
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedFeedback(item)}>
                     View
                   </Button>
                 </div>
@@ -279,15 +281,14 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${
-                          action.priority === 'urgent'
-                            ? 'bg-red-100 text-red-800'
-                            : action.priority === 'high'
-                              ? 'bg-orange-100 text-orange-800'
-                              : action.priority === 'medium'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-blue-100 text-blue-800'
-                        }`}
+                        className={`text-xs px-2 py-0.5 rounded-full ${action.priority === 'urgent'
+                          ? 'bg-red-100 text-red-800'
+                          : action.priority === 'high'
+                            ? 'bg-orange-100 text-orange-800'
+                            : action.priority === 'medium'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}
                       >
                         {action.priority.toUpperCase()}
                       </span>
@@ -347,13 +348,12 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                   </div>
                   <div className="text-right">
                     <div
-                      className={`text-sm font-medium ${
-                        platform.status === 'active'
-                          ? 'text-green-600'
-                          : platform.status === 'error'
-                            ? 'text-red-600'
-                            : 'text-gray-600'
-                      }`}
+                      className={`text-sm font-medium ${platform.status === 'active'
+                        ? 'text-green-600'
+                        : platform.status === 'error'
+                          ? 'text-red-600'
+                          : 'text-gray-600'
+                        }`}
                     >
                       {platform.status.toUpperCase()}
                     </div>
@@ -368,14 +368,108 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
         </TabsContent>
 
         {/* Analytics Tab */}
-        <TabsContent value="analytics">
-          <Card className="p-8 text-center">
-            <TrendingUp className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500">Analytics coming soon</p>
-            <p className="text-sm text-gray-400 mt-2">
-              Charts and insights for your discovered feedback
-            </p>
-          </Card>
+        <TabsContent value="analytics" className="space-y-6">
+          {recentFeedback.length === 0 ? (
+            <Card className="p-8 text-center">
+              <TrendingUp className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500">No data for analytics yet</p>
+              <p className="text-sm text-gray-400 mt-2">
+                Run a scan to collect feedback data
+              </p>
+            </Card>
+          ) : (
+            <>
+              {/* Classification Distribution */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Classification Distribution</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {['bug', 'feature_request', 'praise', 'complaint', 'question', 'other'].map((type) => {
+                    const count = recentFeedback.filter(f => f.classification === type).length;
+                    const percentage = recentFeedback.length > 0 ? ((count / recentFeedback.length) * 100).toFixed(0) : 0;
+                    return (
+                      <div key={type} className="bg-slate-100 dark:bg-slate-700 rounded-lg p-4 text-center">
+                        <div className="text-2xl font-bold">{count}</div>
+                        <div className="text-sm text-gray-500 capitalize">{type.replace('_', ' ')}</div>
+                        <div className="text-xs text-gray-400">{percentage}%</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+
+              {/* Sentiment Breakdown */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Sentiment Analysis</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-4 text-center">
+                    <ThumbsUp className="h-6 w-6 mx-auto text-green-600 mb-2" />
+                    <div className="text-2xl font-bold text-green-600">
+                      {recentFeedback.filter(f => (f.sentiment_score ?? 0) > 0.2).length}
+                    </div>
+                    <div className="text-sm text-gray-500">Positive</div>
+                  </div>
+                  <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 text-center">
+                    <div className="h-6 w-6 mx-auto bg-gray-400 rounded-full mb-2" />
+                    <div className="text-2xl font-bold">
+                      {recentFeedback.filter(f => (f.sentiment_score ?? 0) >= -0.2 && (f.sentiment_score ?? 0) <= 0.2).length}
+                    </div>
+                    <div className="text-sm text-gray-500">Neutral</div>
+                  </div>
+                  <div className="bg-red-100 dark:bg-red-900/30 rounded-lg p-4 text-center">
+                    <ThumbsDown className="h-6 w-6 mx-auto text-red-600 mb-2" />
+                    <div className="text-2xl font-bold text-red-600">
+                      {recentFeedback.filter(f => (f.sentiment_score ?? 0) < -0.2).length}
+                    </div>
+                    <div className="text-sm text-gray-500">Negative</div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Platform Distribution */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Feedback by Platform</h3>
+                <div className="space-y-3">
+                  {['reddit', 'hackernews', 'twitter', 'playstore'].map((platform) => {
+                    const count = recentFeedback.filter(f => f.platform === platform).length;
+                    const percentage = recentFeedback.length > 0 ? ((count / recentFeedback.length) * 100) : 0;
+                    return (
+                      <div key={platform} className="flex items-center gap-4">
+                        <PlatformBadge platform={platform as PlatformType} size="sm" />
+                        <div className="flex-1">
+                          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-blue-500 rounded-full transition-all"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="text-sm font-medium w-16 text-right">{count} items</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+
+              {/* Urgency Overview */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Urgency Distribution</h3>
+                <div className="grid grid-cols-5 gap-2">
+                  {[1, 2, 3, 4, 5].map((level) => {
+                    const count = recentFeedback.filter(f => f.urgency_score === level).length;
+                    return (
+                      <div key={level} className={`rounded-lg p-3 text-center ${level >= 4 ? 'bg-red-100 dark:bg-red-900/30' :
+                        level === 3 ? 'bg-yellow-100 dark:bg-yellow-900/30' :
+                          'bg-green-100 dark:bg-green-900/30'
+                        }`}>
+                        <div className="text-xl font-bold">{count}</div>
+                        <div className="text-xs text-gray-500">Level {level}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            </>
+          )}
         </TabsContent>
       </Tabs>
 
@@ -392,6 +486,97 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
               loadData(); // Reload data after setup
             }}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Feedback Detail Dialog */}
+      <Dialog open={!!selectedFeedback} onOpenChange={(open) => !open && setSelectedFeedback(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedFeedback && <PlatformBadge platform={selectedFeedback.platform} />}
+              Feedback Details
+            </DialogTitle>
+          </DialogHeader>
+          {selectedFeedback && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                {selectedFeedback.classification && (
+                  <ClassificationBadge classification={selectedFeedback.classification} />
+                )}
+                {selectedFeedback.urgency_score && selectedFeedback.urgency_score >= 4 && (
+                  <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">
+                    Urgent (Level {selectedFeedback.urgency_score})
+                  </span>
+                )}
+                {selectedFeedback.sentiment_category && (
+                  <span className={`text-xs px-2 py-1 rounded-full ${selectedFeedback.sentiment_category === 'positive' ? 'bg-green-100 text-green-800' :
+                    selectedFeedback.sentiment_category === 'negative' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                    {selectedFeedback.sentiment_category}
+                  </span>
+                )}
+              </div>
+
+              {selectedFeedback.title && (
+                <h3 className="text-lg font-semibold">{selectedFeedback.title}</h3>
+              )}
+
+              <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4">
+                <p className="whitespace-pre-wrap">{selectedFeedback.content}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center gap-2 text-gray-500">
+                  <User className="h-4 w-4" />
+                  <span>{selectedFeedback.author_username || 'Anonymous'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-500">
+                  <Clock className="h-4 w-4" />
+                  <span>{new Date(selectedFeedback.discovered_at).toLocaleString()}</span>
+                </div>
+              </div>
+
+              {selectedFeedback.classification_reason && (
+                <div className="text-sm">
+                  <strong>Classification Reason:</strong>
+                  <p className="text-gray-600 mt-1">{selectedFeedback.classification_reason}</p>
+                </div>
+              )}
+
+              {selectedFeedback.urgency_reason && (
+                <div className="text-sm">
+                  <strong>Urgency Reason:</strong>
+                  <p className="text-gray-600 mt-1">{selectedFeedback.urgency_reason}</p>
+                </div>
+              )}
+
+              {selectedFeedback.tags && selectedFeedback.tags.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Tag className="h-4 w-4 text-gray-400" />
+                  {selectedFeedback.tags.map((tag, i) => (
+                    <span key={i} className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => window.open(selectedFeedback.platform_url, '_blank')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View on {selectedFeedback.platform}
+                </Button>
+                <Button variant="outline" onClick={() => setSelectedFeedback(null)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
