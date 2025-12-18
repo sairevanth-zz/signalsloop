@@ -12,6 +12,7 @@ import {
   PlatformIntegration,
   PlatformIntegrationError,
 } from '@/types/hunter';
+import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
 
 /**
  * Structure of a post found via Grok's x_search
@@ -67,6 +68,21 @@ export class TwitterHunter extends BaseHunter {
     integration: PlatformIntegration
   ): Promise<RawFeedback[]> {
     try {
+      // Check rate limit before proceeding
+      const usageCheck = await checkAIUsageLimit(config.project_id, 'hunter_scan');
+      if (!usageCheck.allowed) {
+        throw new PlatformIntegrationError(
+          `X/Twitter scan limit reached (${usageCheck.current}/${usageCheck.limit} this month). ` +
+          (usageCheck.plan === 'free'
+            ? 'Upgrade to Pro for more scans!'
+            : usageCheck.plan === 'pro'
+              ? 'Upgrade to Premium for more scans!'
+              : 'Limit will reset next month.'),
+          'twitter',
+          { limit_exceeded: true, current: usageCheck.current, limit: usageCheck.limit }
+        );
+      }
+
       const apiKey = process.env.XAI_API_KEY;
 
       if (!apiKey) {
@@ -123,6 +139,10 @@ export class TwitterHunter extends BaseHunter {
       }
 
       console.log(`[Twitter/Grok] Found ${results.length} items via Grok x_search`);
+
+      // Increment usage counter after successful scan
+      await incrementAIUsage(config.project_id, 'hunter_scan');
+
       return results;
     } catch (error) {
       console.error('[Twitter/Grok] Hunt error:', error);
@@ -177,7 +197,7 @@ Return ONLY a JSON array of posts. No explanations.`;
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'grok-3-fast',
+          model: 'grok-4.1-fast',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt },
