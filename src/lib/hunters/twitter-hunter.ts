@@ -1,6 +1,7 @@
 /**
  * Twitter/X Hunter
- * Discovers feedback from Twitter/X using the Twitter API v2
+ * Discovers feedback from Twitter/X using xAI's Grok API with x_search tool
+ * (Replaces the expensive Twitter API v2 with cost-effective Grok-powered search)
  */
 
 import { BaseHunter } from './base-hunter';
@@ -12,63 +13,71 @@ import {
   PlatformIntegrationError,
 } from '@/types/hunter';
 
-interface Tweet {
+/**
+ * Structure of a post found via Grok's x_search
+ */
+interface GrokXPost {
   id: string;
   text: string;
+  author_username: string;
+  author_verified?: boolean;
+  author_followers?: number;
   created_at: string;
-  author_id: string;
-  public_metrics: {
-    retweet_count: number;
-    reply_count: number;
-    like_count: number;
-    quote_count: number;
-  };
+  likes?: number;
+  retweets?: number;
+  replies?: number;
+  url?: string;
 }
 
-interface TwitterUser {
+/**
+ * Response from xAI API
+ */
+interface XAIResponse {
   id: string;
-  username: string;
-  verified?: boolean;
-  public_metrics?: {
-    followers_count: number;
-  };
-}
-
-interface TwitterResponse {
-  data?: Tweet[];
-  includes?: {
-    users?: TwitterUser[];
-  };
-  meta?: {
-    result_count: number;
-    next_token?: string;
-  };
+  choices: {
+    message: {
+      content: string;
+      tool_calls?: {
+        id: string;
+        type: string;
+        function: {
+          name: string;
+          arguments: string;
+        };
+      }[];
+    };
+    finish_reason: string;
+  }[];
+  citations?: {
+    url: string;
+    title?: string;
+    snippet?: string;
+  }[];
 }
 
 export class TwitterHunter extends BaseHunter {
   platform: PlatformType = 'twitter';
-  private readonly TWITTER_API_URL = 'https://api.twitter.com/2/tweets/search/recent';
+  private readonly XAI_API_URL = 'https://api.x.ai/v1/chat/completions';
 
   /**
-   * Hunt for feedback on Twitter
+   * Hunt for feedback on Twitter/X using Grok's x_search
    */
   async hunt(
     config: HunterConfig,
     integration: PlatformIntegration
   ): Promise<RawFeedback[]> {
     try {
-      // Use centralized API credentials from environment variables
-      const bearerToken = process.env.TWITTER_BEARER_TOKEN;
+      const apiKey = process.env.XAI_API_KEY;
 
-      if (!bearerToken) {
+      if (!apiKey) {
         throw new PlatformIntegrationError(
-          'Missing Twitter API bearer token in environment variables. Please configure TWITTER_BEARER_TOKEN.',
+          'Missing xAI API key in environment variables. Please configure XAI_API_KEY.',
           'twitter',
           { integration_id: integration.id }
         );
       }
 
-      // Build search queries
+      // Build search terms from config
       const searchTerms = [
         config.company_name,
         ...config.name_variations,
@@ -76,66 +85,47 @@ export class TwitterHunter extends BaseHunter {
         ...config.keywords,
       ].filter(Boolean);
 
-      // Also search for specific usernames if configured
-      const usernames = integration.config.twitter_usernames || [];
+      // Get lookback period (default 1 day)
+      const lookbackDays = integration.config.twitter_lookback_days || 1;
+      const fromDate = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0]; // YYYY-MM-DD format
 
       const results: RawFeedback[] = [];
       const seenIds = new Set<string>();
 
-      // Search for mentions
+      // Search for each term using Grok
       for (const term of searchTerms) {
-        // Skip if excluded
         if (this.containsExcludedKeywords(term, config.excluded_keywords)) {
           continue;
         }
 
         try {
-          const tweets = await this.searchTweets(
+          const posts = await this.searchWithGrok(
             term,
-            bearerToken,
-            config.excluded_keywords
+            apiKey,
+            fromDate,
+            config.excluded_keywords,
+            integration.config.twitter_usernames
           );
 
-          for (const tweet of tweets) {
-            if (seenIds.has(tweet.id)) continue;
-
-            seenIds.add(tweet.id);
-            results.push(tweet);
+          for (const post of posts) {
+            if (seenIds.has(post.platform_id)) continue;
+            seenIds.add(post.platform_id);
+            results.push(post);
           }
 
           // Rate limit: wait between searches
-          await this.delay(2000);
+          await this.delay(1000);
         } catch (error) {
-          console.error(`[Twitter] Error searching for "${term}":`, error);
+          console.error(`[Twitter/Grok] Error searching for "${term}":`, error);
         }
       }
 
-      // Search for tweets from specific usernames
-      for (const username of usernames) {
-        try {
-          const tweets = await this.searchTweets(
-            `from:${username}`,
-            bearerToken,
-            config.excluded_keywords
-          );
-
-          for (const tweet of tweets) {
-            if (seenIds.has(tweet.id)) continue;
-
-            seenIds.add(tweet.id);
-            results.push(tweet);
-          }
-
-          await this.delay(2000);
-        } catch (error) {
-          console.error(`[Twitter] Error searching for @${username}:`, error);
-        }
-      }
-
-      console.log(`[Twitter] Found ${results.length} items`);
+      console.log(`[Twitter/Grok] Found ${results.length} items via Grok x_search`);
       return results;
     } catch (error) {
-      console.error('[Twitter] Hunt error:', error);
+      console.error('[Twitter/Grok] Hunt error:', error);
       throw new PlatformIntegrationError(
         `Twitter hunt failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'twitter',
@@ -145,83 +135,123 @@ export class TwitterHunter extends BaseHunter {
   }
 
   /**
-   * Search Twitter API
+   * Search X posts using Grok's x_search capability
    */
-  private async searchTweets(
+  private async searchWithGrok(
     query: string,
-    bearerToken: string,
-    excludedKeywords: string[]
+    apiKey: string,
+    fromDate: string,
+    excludedKeywords: string[],
+    targetUsernames?: string[]
   ): Promise<RawFeedback[]> {
-    const startTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    // Build the prompt for Grok to search X
+    const usernameContext = targetUsernames?.length
+      ? `Focus on posts from these accounts if relevant: ${targetUsernames.join(', ')}.`
+      : '';
 
-    const params = new URLSearchParams({
-      query: `${query} -is:retweet`, // Exclude retweets
-      'tweet.fields': 'created_at,public_metrics,author_id',
-      'user.fields': 'username,verified,public_metrics',
-      expansions: 'author_id',
-      max_results: '100',
-      start_time: startTime,
-    });
+    const systemPrompt = `You are a feedback discovery assistant. When asked to find posts about a topic, use the x_search tool to find relevant posts on X (Twitter). 
 
-    const response = await fetch(`${this.TWITTER_API_URL}?${params}`, {
-      headers: {
-        Authorization: `Bearer ${bearerToken}`,
-      },
-    });
+Return the results as a JSON array of posts with these fields:
+- id: the post ID
+- text: the post content
+- author_username: the author's X username (without @)
+- author_verified: whether the author is verified (boolean)
+- author_followers: approximate follower count if available
+- created_at: when the post was created (ISO format)
+- likes: number of likes
+- retweets: number of retweets
+- replies: number of replies
+- url: full URL to the post
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Twitter API error: ${response.statusText} - ${error}`);
-    }
+Only include posts that contain genuine product feedback, complaints, feature requests, bug reports, or praise. Exclude promotional content, spam, and irrelevant mentions.`;
 
-    const data: TwitterResponse = await response.json();
+    const userPrompt = `Find recent X posts mentioning "${query}" that contain product feedback, user opinions, complaints, feature requests, or bug reports. ${usernameContext}
 
-    if (!data.data || data.data.length === 0) {
-      return [];
-    }
+Return ONLY a JSON array of posts. No explanations.`;
 
-    // Build user map
-    const userMap = new Map<string, TwitterUser>();
-    if (data.includes?.users) {
-      for (const user of data.includes.users) {
-        userMap.set(user.id, user);
-      }
-    }
-
-    const results: RawFeedback[] = [];
-
-    for (const tweet of data.data) {
-      // Check for excluded keywords
-      if (this.containsExcludedKeywords(tweet.text, excludedKeywords)) {
-        continue;
-      }
-
-      const author = userMap.get(tweet.author_id);
-      const username = author?.username || 'unknown';
-
-      results.push({
-        content: this.sanitizeText(tweet.text),
-        platform: 'twitter',
-        platform_id: tweet.id,
-        platform_url: `https://twitter.com/${username}/status/${tweet.id}`,
-        author_username: username,
-        author_profile_url: `https://twitter.com/${username}`,
-        author_metadata: author
-          ? {
-              verified: author.verified,
-              follower_count: author.public_metrics?.followers_count,
-            }
-          : undefined,
-        discovered_at: new Date(tweet.created_at),
-        engagement_metrics: {
-          likes: tweet.public_metrics.like_count,
-          retweets: tweet.public_metrics.retweet_count,
-          replies: tweet.public_metrics.reply_count,
-          shares: tweet.public_metrics.quote_count,
+    try {
+      const response = await fetch(this.XAI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
         },
+        body: JSON.stringify({
+          model: 'grok-3-fast',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          tools: [
+            {
+              type: 'x_search',
+              x_search: {
+                from_date: fromDate,
+                to_date: new Date().toISOString().split('T')[0],
+              },
+            },
+          ],
+          temperature: 0.1,
+        }),
       });
-    }
 
-    return results;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`xAI API error: ${response.status} - ${errorText}`);
+      }
+
+      const data: XAIResponse = await response.json();
+      const content = data.choices[0]?.message?.content || '[]';
+
+      // Parse the JSON response from Grok
+      let posts: GrokXPost[] = [];
+      try {
+        // Try to extract JSON from the response
+        const jsonMatch = content.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          posts = JSON.parse(jsonMatch[0]);
+        }
+      } catch (parseError) {
+        console.warn('[Twitter/Grok] Failed to parse response as JSON:', parseError);
+        return [];
+      }
+
+      // Convert to RawFeedback format
+      const results: RawFeedback[] = [];
+
+      for (const post of posts) {
+        // Skip if contains excluded keywords
+        if (this.containsExcludedKeywords(post.text, excludedKeywords)) {
+          continue;
+        }
+
+        const postUrl =
+          post.url || `https://x.com/${post.author_username}/status/${post.id}`;
+
+        results.push({
+          content: this.sanitizeText(post.text),
+          platform: 'twitter',
+          platform_id: post.id,
+          platform_url: postUrl,
+          author_username: post.author_username,
+          author_profile_url: `https://x.com/${post.author_username}`,
+          author_metadata: {
+            verified: post.author_verified,
+            follower_count: post.author_followers,
+          },
+          discovered_at: new Date(post.created_at || Date.now()),
+          engagement_metrics: {
+            likes: post.likes || 0,
+            retweets: post.retweets || 0,
+            replies: post.replies || 0,
+          },
+        });
+      }
+
+      return results;
+    } catch (error) {
+      console.error('[Twitter/Grok] Search error:', error);
+      throw error;
+    }
   }
 }

@@ -113,10 +113,11 @@ export interface PlatformConfig {
   reddit_refresh_token?: string;
   subreddits?: string[];
 
-  // Twitter
-  twitter_bearer_token?: string;
+  // Twitter/X (via xAI Grok API)
+  twitter_bearer_token?: string; // Legacy - no longer used
   twitter_search_terms?: string[];
   twitter_usernames?: string[];
+  twitter_lookback_days?: number; // How far back to search (default: 1)
 
   // Hacker News
   hn_keywords?: string[];
