@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,8 @@ const STEPS = [
 export function HunterSetup({ projectId, onComplete, className }: HunterSetupProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [loadingConfig, setLoadingConfig] = useState(true);
+  const [existingConfigId, setExistingConfigId] = useState<string | null>(null);
 
   // Step 1: Company Info
   const [companyName, setCompanyName] = useState('');
@@ -43,6 +45,41 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
   // Step 3: Keywords
   const [keywords, setKeywords] = useState<string[]>(['']);
   const [excludedKeywords, setExcludedKeywords] = useState<string[]>(['']);
+
+  // Load existing config on mount
+  useEffect(() => {
+    const loadExistingConfig = async () => {
+      try {
+        setLoadingConfig(true);
+        const res = await fetch(`/api/hunter/setup?projectId=${projectId}`);
+        const data = await res.json();
+
+        if (data.success && data.config) {
+          const config = data.config;
+          setExistingConfigId(config.id);
+          setCompanyName(config.company_name || '');
+          setNameVariations(config.name_variations?.length ? config.name_variations : ['']);
+          setCompetitors(config.competitors?.length ? config.competitors : ['']);
+          setIndustry(config.industry || '');
+          setKeywords(config.keywords?.length ? config.keywords : ['']);
+          setExcludedKeywords(config.excluded_keywords?.length ? config.excluded_keywords : ['']);
+
+          // Load platforms from integrations
+          const platformsRes = await fetch(`/api/hunter/platforms?projectId=${projectId}`);
+          const platformsData = await platformsRes.json();
+          if (platformsData.success && platformsData.integrations) {
+            setSelectedPlatforms(platformsData.integrations.map((i: any) => i.platform_type));
+          }
+        }
+      } catch (error) {
+        console.error('Error loading config:', error);
+      } finally {
+        setLoadingConfig(false);
+      }
+    };
+
+    loadExistingConfig();
+  }, [projectId]);
 
   const addField = (
     array: string[],
@@ -139,8 +176,24 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
     }
   };
 
+  // Show loading while fetching config
+  if (loadingConfig) {
+    return (
+      <div className={`flex items-center justify-center h-64 ${className}`}>
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
   return (
     <div className={className}>
+      {/* Edit mode indicator */}
+      {existingConfigId && (
+        <div className="mb-4 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+          Editing existing configuration
+        </div>
+      )}
+
       {/* Progress Steps */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
@@ -418,12 +471,12 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Setting up...
+                  {existingConfigId ? 'Saving...' : 'Setting up...'}
                 </>
               ) : (
                 <>
                   <Check className="h-4 w-4 mr-2" />
-                  Complete Setup
+                  {existingConfigId ? 'Save Changes' : 'Complete Setup'}
                 </>
               )}
             </Button>
