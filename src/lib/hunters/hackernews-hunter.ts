@@ -55,9 +55,10 @@ export class HackerNewsHunter extends BaseHunter {
 
       const results: RawFeedback[] = [];
       const seenIds = new Set<string>();
+      const MAX_ITEMS_PER_QUERY = 20; // Limit to prevent timeout
 
-      // Get Unix timestamp for 7 days ago (extended from 24h for better results)
-      const sevenDaysAgo = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
+      // Get Unix timestamp for 3 days ago (balanced for results vs speed)
+      const threeDaysAgo = Math.floor((Date.now() - 3 * 24 * 60 * 60 * 1000) / 1000);
 
       for (const query of queries) {
         // Skip if excluded
@@ -66,9 +67,11 @@ export class HackerNewsHunter extends BaseHunter {
         }
 
         try {
-          // Search stories
-          const storyData = await this.searchAlgolia(query, 'story', sevenDaysAgo);
+          // Search stories (limit to MAX_ITEMS_PER_QUERY)
+          const storyData = await this.searchAlgolia(query, 'story', threeDaysAgo);
+          let storyCount = 0;
           for (const hit of storyData.hits) {
+            if (storyCount >= MAX_ITEMS_PER_QUERY) break;
             if (seenIds.has(hit.objectID)) continue;
 
             const content = hit.story_text || hit.title || '';
@@ -92,11 +95,14 @@ export class HackerNewsHunter extends BaseHunter {
                 comments: hit.num_comments || 0,
               },
             });
+            storyCount++;
           }
 
-          // Search comments
-          const commentData = await this.searchAlgolia(query, 'comment', sevenDaysAgo);
+          // Search comments (limit to MAX_ITEMS_PER_QUERY)
+          const commentData = await this.searchAlgolia(query, 'comment', threeDaysAgo);
+          let commentCount = 0;
           for (const hit of commentData.hits) {
+            if (commentCount >= MAX_ITEMS_PER_QUERY) break;
             if (seenIds.has(hit.objectID)) continue;
 
             const content = hit.comment_text || '';
@@ -119,6 +125,7 @@ export class HackerNewsHunter extends BaseHunter {
                 points: hit.points || 0,
               },
             });
+            commentCount++;
           }
 
           // Small delay between queries
