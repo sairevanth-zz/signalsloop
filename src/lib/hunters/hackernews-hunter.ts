@@ -56,8 +56,8 @@ export class HackerNewsHunter extends BaseHunter {
       const results: RawFeedback[] = [];
       const seenIds = new Set<string>();
 
-      // Get Unix timestamp for 24 hours ago
-      const oneDayAgo = Math.floor((Date.now() - 24 * 60 * 60 * 1000) / 1000);
+      // Get Unix timestamp for 7 days ago (extended from 24h for better results)
+      const sevenDaysAgo = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
 
       for (const query of queries) {
         // Skip if excluded
@@ -67,7 +67,7 @@ export class HackerNewsHunter extends BaseHunter {
 
         try {
           // Search stories
-          const storyData = await this.searchAlgolia(query, 'story', oneDayAgo);
+          const storyData = await this.searchAlgolia(query, 'story', sevenDaysAgo);
           for (const hit of storyData.hits) {
             if (seenIds.has(hit.objectID)) continue;
 
@@ -95,7 +95,7 @@ export class HackerNewsHunter extends BaseHunter {
           }
 
           // Search comments
-          const commentData = await this.searchAlgolia(query, 'comment', oneDayAgo);
+          const commentData = await this.searchAlgolia(query, 'comment', sevenDaysAgo);
           for (const hit of commentData.hits) {
             if (seenIds.has(hit.objectID)) continue;
 

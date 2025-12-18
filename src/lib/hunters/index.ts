@@ -9,6 +9,7 @@ import { TwitterHunter } from './twitter-hunter';
 import { HackerNewsHunter } from './hackernews-hunter';
 import { ProductHuntHunter } from './producthunt-hunter';
 import { G2Hunter } from './g2-hunter';
+import { PlayStoreHunter } from './playstore-hunter';
 import { PlatformType } from '@/types/hunter';
 
 // Export all hunters
@@ -18,6 +19,7 @@ export { TwitterHunter } from './twitter-hunter';
 export { HackerNewsHunter } from './hackernews-hunter';
 export { ProductHuntHunter } from './producthunt-hunter';
 export { G2Hunter } from './g2-hunter';
+export { PlayStoreHunter } from './playstore-hunter';
 
 /**
  * Factory function to get the appropriate hunter for a platform
@@ -34,6 +36,8 @@ export function getHunter(platform: PlatformType): BaseHunter {
       return new ProductHuntHunter();
     case 'g2':
       return new G2Hunter();
+    case 'playstore':
+      return new PlayStoreHunter();
     default:
       throw new Error(`Unsupported platform: ${platform}`);
   }
@@ -49,6 +53,7 @@ export function getAllHunters(): BaseHunter[] {
     new HackerNewsHunter(),
     new ProductHuntHunter(),
     new G2Hunter(),
+    new PlayStoreHunter(),
   ];
 }
 
@@ -56,5 +61,5 @@ export function getAllHunters(): BaseHunter[] {
  * Get supported platforms
  */
 export function getSupportedPlatforms(): PlatformType[] {
-  return ['reddit', 'twitter', 'hackernews', 'producthunt', 'g2'];
+  return ['reddit', 'twitter', 'hackernews', 'producthunt', 'g2', 'playstore'];
 }
