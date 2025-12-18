@@ -209,16 +209,14 @@ Return ONLY a JSON array of posts. No explanations.`;
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt },
           ],
-          tools: [
-            {
-              type: 'live_search',
-              live_search: {
-                sources: ['x'],  // Search X/Twitter
-                from_date: fromDate,
-                to_date: new Date().toISOString().split('T')[0],
-              },
-            },
-          ],
+          search_parameters: {
+            mode: 'on',  // Enable live search
+            sources: [{ type: 'x' }],  // Search X/Twitter
+            from_date: fromDate,
+            to_date: new Date().toISOString().split('T')[0],
+            max_search_results: 30,
+            return_citations: true,
+          },
           temperature: 0.1,
         }),
       });
