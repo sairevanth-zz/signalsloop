@@ -43,6 +43,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
   const [selectedFeedback, setSelectedFeedback] = useState<DiscoveredFeedback | null>(null);
   const [selectedAction, setSelectedAction] = useState<ActionRecommendation | null>(null);
   const [activeTab, setActiveTab] = useState('feed');
+  const [usageInfo, setUsageInfo] = useState<{ current: number; limit: number; remaining: number; plan: string } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -59,6 +60,9 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
       if (statsData.success) {
         setStats(statsData.dashboardStats);
         setPlatformHealth(statsData.platformHealth || []);
+        if (statsData.usageInfo) {
+          setUsageInfo(statsData.usageInfo);
+        }
       }
 
       // Load recent feedback (for feed tab)
@@ -165,11 +169,22 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
             Autonomous feedback discovery across multiple platforms
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
+          {/* Usage Display */}
+          {usageInfo && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-sm">
+              <span className="text-gray-500">Scans:</span>
+              <span className={`font-medium ${usageInfo.remaining <= 5 ? 'text-red-600' : 'text-green-600'}`}>
+                {usageInfo.remaining}/{usageInfo.limit}
+              </span>
+              <span className="text-xs text-gray-400">({usageInfo.plan})</span>
+            </div>
+          )}
+
           <Button
             variant="outline"
             onClick={handleTriggerScan}
-            disabled={refreshing}
+            disabled={refreshing || !!(usageInfo && usageInfo.remaining <= 0)}
           >
             <RefreshCw
               className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`}
@@ -657,9 +672,9 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <span className={`text-xs px-2 py-1 rounded-full ${selectedAction.priority === 'urgent' ? 'bg-red-100 text-red-800' :
-                    selectedAction.priority === 'high' ? 'bg-orange-100 text-orange-800' :
-                      selectedAction.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-blue-100 text-blue-800'
+                  selectedAction.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                    selectedAction.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-blue-100 text-blue-800'
                   }`}>
                   {selectedAction.priority.toUpperCase()}
                 </span>

@@ -222,7 +222,10 @@ Return ONLY a JSON array of posts. No explanations.`;
       }
 
       const data: XAIResponse = await response.json();
+      console.log('[Twitter/Grok] API Response:', JSON.stringify(data, null, 2));
+
       const content = data.choices[0]?.message?.content || '[]';
+      console.log('[Twitter/Grok] Content:', content.substring(0, 500));
 
       // Parse the JSON response from Grok
       let posts: GrokXPost[] = [];
@@ -231,6 +234,9 @@ Return ONLY a JSON array of posts. No explanations.`;
         const jsonMatch = content.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
           posts = JSON.parse(jsonMatch[0]);
+          console.log('[Twitter/Grok] Parsed posts:', posts.length);
+        } else {
+          console.warn('[Twitter/Grok] No JSON array found in response');
         }
       } catch (parseError) {
         console.warn('[Twitter/Grok] Failed to parse response as JSON:', parseError);

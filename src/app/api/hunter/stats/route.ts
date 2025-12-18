@@ -80,6 +80,15 @@ export async function GET(request: NextRequest) {
       { p_project_id: projectId, p_days: 30 }
     );
 
+    // Get rate limit info
+    let usageInfo = null;
+    try {
+      const { checkAIUsageLimit } = await import('@/lib/ai-rate-limit');
+      usageInfo = await checkAIUsageLimit(projectId, 'hunter_scan');
+    } catch (e) {
+      console.error('[Hunter Stats] Error getting usage info:', e);
+    }
+
     return NextResponse.json({
       success: true,
       dashboardStats: dashboardStats || {},
@@ -87,6 +96,7 @@ export async function GET(request: NextRequest) {
       classificationDist: classificationDist || [],
       platformDist: platformDist || [],
       recentActivity: recentActivity || [],
+      usageInfo: usageInfo,
     });
   } catch (error) {
     console.error('[Hunter Stats] Error:', error);
