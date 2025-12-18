@@ -143,6 +143,8 @@ export abstract class BaseHunter {
           engagement_metrics: item.engagement_metrics || {},
           tags: item.tags,
           auto_tagged: true,
+          is_duplicate: false,
+          is_archived: false,
           discovered_at: item.discovered_at.toISOString(),
           processed_at: new Date().toISOString(),
         });
