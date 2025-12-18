@@ -85,7 +85,10 @@ export class TwitterHunter extends BaseHunter {
 
       const apiKey = process.env.XAI_API_KEY;
 
+      console.log('[Twitter/Grok] Starting hunt, API key present:', !!apiKey);
+
       if (!apiKey) {
+        console.error('[Twitter/Grok] XAI_API_KEY is missing!');
         throw new PlatformIntegrationError(
           'Missing xAI API key in environment variables. Please configure XAI_API_KEY.',
           'twitter',
@@ -100,6 +103,8 @@ export class TwitterHunter extends BaseHunter {
         ...(integration.config.twitter_search_terms || []),
         ...config.keywords,
       ].filter(Boolean);
+
+      console.log('[Twitter/Grok] Search terms:', searchTerms);
 
       // Get lookback period (default 1 day)
       const lookbackDays = integration.config.twitter_lookback_days || 1;
@@ -117,6 +122,7 @@ export class TwitterHunter extends BaseHunter {
         }
 
         try {
+          console.log(`[Twitter/Grok] Searching for term: "${term}"`);
           const posts = await this.searchWithGrok(
             term,
             apiKey,
@@ -124,6 +130,7 @@ export class TwitterHunter extends BaseHunter {
             config.excluded_keywords,
             integration.config.twitter_usernames
           );
+          console.log(`[Twitter/Grok] Term "${term}" returned ${posts.length} posts`);
 
           for (const post of posts) {
             if (seenIds.has(post.platform_id)) continue;
