@@ -354,53 +354,68 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
               )}
             </Card>
           ) : (
-            actions.map((action) => (
-              <Card key={action.id} className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${action.priority === 'urgent'
-                          ? 'bg-red-100 text-red-800'
-                          : action.priority === 'high'
-                            ? 'bg-orange-100 text-orange-800'
-                            : action.priority === 'medium'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-blue-100 text-blue-800'
-                          }`}
-                      >
-                        {action.priority.toUpperCase()}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {action.mention_count} mentions
-                      </span>
-                    </div>
-                    <h4 className="font-semibold mb-2">{action.issue_summary}</h4>
-                    {action.business_impact && (
-                      <p className="text-sm text-gray-600 mb-2">
-                        {action.business_impact}
-                      </p>
-                    )}
-                    {action.suggested_actions && action.suggested_actions.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-xs font-medium text-gray-700 mb-1">
-                          Suggested Actions:
-                        </p>
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          {action.suggested_actions.slice(0, 3).map((sa: any, i: number) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-blue-500">•</span>
-                              <span>{sa.description || sa}</span>
-                            </li>
-                          ))}
-                        </ul>
+            <>
+              {/* Header with Regenerate button */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">{actions.length} Action Items</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={generateActions}
+                  disabled={refreshing}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                  {refreshing ? 'Regenerating...' : 'Regenerate Actions'}
+                </Button>
+              </div>
+              {actions.map((action) => (
+                <Card key={action.id} className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full ${action.priority === 'urgent'
+                            ? 'bg-red-100 text-red-800'
+                            : action.priority === 'high'
+                              ? 'bg-orange-100 text-orange-800'
+                              : action.priority === 'medium'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}
+                        >
+                          {action.priority.toUpperCase()}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {action.mention_count} mentions
+                        </span>
                       </div>
-                    )}
+                      <h4 className="font-semibold mb-2">{action.issue_summary}</h4>
+                      {action.business_impact && (
+                        <p className="text-sm text-gray-600 mb-2">
+                          {action.business_impact}
+                        </p>
+                      )}
+                      {action.suggested_actions && action.suggested_actions.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs font-medium text-gray-700 mb-1">
+                            Suggested Actions:
+                          </p>
+                          <ul className="text-sm text-gray-600 space-y-1">
+                            {action.suggested_actions.slice(0, 3).map((sa: any, i: number) => (
+                              <li key={i} className="flex items-start gap-2">
+                                <span className="text-blue-500">•</span>
+                                <span>{sa.description || sa}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                    <Button size="sm" onClick={() => setSelectedAction(action)}>Take Action</Button>
                   </div>
-                  <Button size="sm" onClick={() => setSelectedAction(action)}>Take Action</Button>
-                </div>
-              </Card>
-            ))
+                </Card>
+              ))}
+            </>
           )}
         </TabsContent>
 
