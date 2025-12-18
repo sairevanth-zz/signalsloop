@@ -16,7 +16,6 @@ import {
   HunterError,
 } from '@/types/hunter';
 import { createClient } from '@supabase/supabase-js';
-import { cacheManager } from '@/lib/ai-cache-manager';
 
 /**
  * Abstract base class for all hunters
@@ -53,19 +52,9 @@ export abstract class BaseHunter {
         engagementMetrics: feedback.engagement_metrics,
       };
 
-      // Check cache first
-      const cacheKey = `classify:${this.hashContent(feedback.content)}`;
-      const cached = await cacheManager.get<ClassificationOutput>(cacheKey);
-
-      if (cached) {
-        return this.buildClassifiedFeedback(feedback, cached);
-      }
-
-      // Call OpenAI for classification
+      // Skip caching for now - directly call OpenAI for classification
+      // TODO: Re-implement caching with proper key-value interface
       const classification = await this.callOpenAIClassification(input);
-
-      // Cache the result
-      await cacheManager.set(cacheKey, classification, 7 * 24 * 60 * 60); // 7 days
 
       return this.buildClassifiedFeedback(feedback, classification);
     } catch (error) {
@@ -158,12 +147,12 @@ export abstract class BaseHunter {
         });
 
         if (error) {
-          console.error(`[${this.platform}] Error storing feedback:`, error);
+          console.error(`[${this.platform}] Error storing feedback: `, error);
         } else {
           stored++;
         }
       } catch (error) {
-        console.error(`[${this.platform}] Error processing item:`, error);
+        console.error(`[${this.platform}] Error processing item: `, error);
       }
     }
 
@@ -215,7 +204,7 @@ export abstract class BaseHunter {
         success: true,
       };
     } catch (error) {
-      console.error(`[${this.platform}] Scan error:`, error);
+      console.error(`[${this.platform}] Scan error: `, error);
       return {
         platform: this.platform,
         itemsFound: 0,
@@ -270,22 +259,22 @@ export abstract class BaseHunter {
   private async callOpenAIClassification(
     input: ClassificationInput
   ): Promise<ClassificationOutput> {
-    const systemPrompt = `You are an expert at analyzing customer feedback. Analyze the following feedback and provide a detailed classification.
+    const systemPrompt = `You are an expert at analyzing customer feedback.Analyze the following feedback and provide a detailed classification.
 
 Return a JSON object with:
 - classification: bug | feature_request | praise | complaint | churn_risk | question | other
-- confidence: 0-1 (how confident are you in this classification)
-- reasoning: brief explanation of why you chose this classification
-- urgency_score: 1-5 (5 = critical, needs response <2h, 1 = low priority)
-- urgency_reason: why you assigned this urgency score
-- sentiment_score: -1 to +1 (-1 = very negative, 0 = neutral, +1 = very positive)
-- sentiment_category: positive | negative | neutral | mixed
-- tags: array of relevant tags (max 5)`;
+  - confidence: 0 - 1(how confident are you in this classification)
+    - reasoning: brief explanation of why you chose this classification
+      - urgency_score: 1 - 5(5 = critical, needs response < 2h, 1 = low priority)
+        - urgency_reason: why you assigned this urgency score
+          - sentiment_score: -1 to + 1(-1 = very negative, 0 = neutral, +1 = very positive)
+            - sentiment_category: positive | negative | neutral | mixed
+              - tags: array of relevant tags(max 5)`;
 
     const userPrompt = `Platform: ${input.platform}
-${input.title ? `Title: ${input.title}\n` : ''}Content: ${input.content}
+${input.title ? `Title: ${input.title}\n` : ''} Content: ${input.content}
 ${input.authorMetadata ? `\nAuthor Info: ${JSON.stringify(input.authorMetadata)}` : ''}
-${input.engagementMetrics ? `\nEngagement: ${JSON.stringify(input.engagementMetrics)}` : ''}`;
+${input.engagementMetrics ? `\nEngagement: ${JSON.stringify(input.engagementMetrics)}` : ''} `;
 
     const response = await this.openai.chat.completions.create({
       model: 'gpt-4o-mini',

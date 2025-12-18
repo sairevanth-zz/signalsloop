@@ -204,8 +204,8 @@ Return ONLY a JSON array of posts. No explanations.`;
           ],
           tools: [
             {
-              type: 'x_search',
-              x_search: {
+              type: 'live_search',
+              live_search: {
                 from_date: fromDate,
                 to_date: new Date().toISOString().split('T')[0],
               },
