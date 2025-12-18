@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { TriggerScanRequest, TriggerScanResponse } from '@/types/hunter';
 import { getHunter } from '@/lib/hunters';
 
@@ -17,20 +17,27 @@ export const maxDuration = 300; // 5 minutes for scanning
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Use createServerClient for auth (reads cookies)
+    const supabaseAuth = await createServerClient();
 
     // Check authentication
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = await supabaseAuth.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Use service role client for database operations
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      return NextResponse.json(
+        { success: false, error: 'Database connection error' },
+        { status: 500 }
       );
     }
 
@@ -96,7 +103,7 @@ export async function POST(request: NextRequest) {
         .from('platform_integrations')
         .select('*')
         .eq('project_id', projectId)
-        .in('status', ['active', 'paused']);
+        .in('status', ['active', 'paused', 'setup']);
       integrations = data || [];
     }
 

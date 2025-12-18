@@ -149,10 +149,10 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
               <div className="flex flex-col items-center">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${currentStep > step.id
-                      ? 'bg-green-500 text-white'
-                      : currentStep === step.id
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'
+                    ? 'bg-green-500 text-white'
+                    : currentStep === step.id
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'
                     }`}
                 >
                   {currentStep > step.id ? <Check className="h-5 w-5" /> : step.id}
@@ -279,8 +279,8 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
                 <div
                   key={key}
                   className={`border rounded-lg p-4 cursor-pointer transition-all select-none ${selectedPlatforms.includes(key as PlatformType)
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400'
-                      : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 dark:bg-slate-700/50'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400'
+                    : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 dark:bg-slate-700/50'
                     }`}
                   onClick={() => togglePlatform(key as PlatformType)}
                   role="button"
@@ -290,8 +290,7 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
                   <div className="flex items-start gap-3">
                     <Checkbox
                       checked={selectedPlatforms.includes(key as PlatformType)}
-                      onCheckedChange={() => togglePlatform(key as PlatformType)}
-                      className="mt-1 h-5 w-5"
+                      className="mt-1 h-5 w-5 pointer-events-none"
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">

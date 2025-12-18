@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { FeedbackFeedRequest, FeedbackFeedResponse } from '@/types/hunter';
+import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { FeedbackFeedResponse } from '@/types/hunter';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -16,20 +16,27 @@ export const maxDuration = 30;
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Use createServerClient for auth (reads cookies)
+    const supabaseAuth = await createServerClient();
 
     // Check authentication
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = await supabaseAuth.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Use service role client for database operations
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      return NextResponse.json(
+        { success: false, error: 'Database connection error' },
+        { status: 500 }
       );
     }
 

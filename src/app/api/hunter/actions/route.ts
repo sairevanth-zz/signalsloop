@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import {
   GenerateRecommendationsRequest,
   GenerateRecommendationsResponse,
@@ -20,20 +20,22 @@ export const maxDuration = 60;
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // Use createServerClient for auth (reads cookies)
+    const supabaseAuth = await createServerClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      return NextResponse.json(
+        { success: false, error: 'Database connection error' },
+        { status: 500 }
       );
     }
 
@@ -107,20 +109,21 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const supabaseAuth = await createServerClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      return NextResponse.json(
+        { success: false, error: 'Database connection error' },
+        { status: 500 }
       );
     }
 
@@ -173,7 +176,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Group feedback by classification and extract patterns
-    const grouped = feedback.reduce((acc, item) => {
+    const grouped: Record<string, any[]> = feedback.reduce((acc: Record<string, any[]>, item) => {
       const key = item.classification || 'other';
       if (!acc[key]) {
         acc[key] = [];
@@ -294,20 +297,21 @@ Return JSON only.`;
  */
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const supabaseAuth = await createServerClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      return NextResponse.json(
+        { success: false, error: 'Database connection error' },
+        { status: 500 }
       );
     }
 
