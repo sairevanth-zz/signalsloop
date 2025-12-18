@@ -199,13 +199,27 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
             </div>
           </Card>
 
-          <Card className="p-4">
+          <Card
+            className="p-4 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors"
+            onClick={async () => {
+              // Load urgent items only
+              try {
+                const res = await fetch(`/api/hunter/feed?projectId=${projectId}&urgency=4&limit=50`);
+                const data = await res.json();
+                if (data.success) {
+                  setRecentFeedback(data.items || []);
+                }
+              } catch (error) {
+                console.error('Error loading urgent items:', error);
+              }
+            }}
+          >
             <div className="text-sm text-gray-500">Urgent Items</div>
             <div className="text-3xl font-bold mt-1 text-red-600">
               {stats.urgent_items}
             </div>
             <div className="text-xs text-gray-400 mt-1">
-              {stats.churn_risks} churn risks
+              {stats.churn_risks} churn risks - click to filter
             </div>
           </Card>
         </div>

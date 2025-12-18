@@ -40,7 +40,7 @@ export class RedditHunter extends BaseHunter {
     for (const entry of entries) {
       try {
         const title = entry.match(/<title>(.*?)<\/title>/s)?.[1]?.trim() || '';
-        const link = entry.match(/<link href="(.*?)"/)?.[ 1] || '';
+        const link = entry.match(/<link href="(.*?)"/)?.[1] || '';
         const contentMatch = entry.match(/<content type="html">(.*?)<\/content>/s);
         const content = contentMatch?.[1] ? this.decodeHTML(contentMatch[1]) : '';
         const author = entry.match(/<author><name>(.*?)<\/name><\/author>/)?.[1] || '';
@@ -137,6 +137,22 @@ export class RedditHunter extends BaseHunter {
             // Filter to last 24 hours
             const age = Date.now() - item.published.getTime();
             if (age > 24 * 60 * 60 * 1000) continue;
+
+            // Filter out job postings
+            const jobIndicators = [
+              'hiring', 'job', 'remote job', 'job opening', 'job posting',
+              'we\'re hiring', 'looking for', 'position available', 'job opportunity',
+              'career', 'vacancy', 'recruiting', 'apply now', 'open position',
+              'lead data scientist', 'senior engineer', 'frontend developer',
+              'backend developer', 'full stack', 'part-time', 'full-time',
+              'salary', '$k', 'per year', 'per hour', 'benefits'
+            ];
+            const lowerTitle = item.title.toLowerCase();
+            const lowerContent = item.content.toLowerCase();
+            const isJobPosting = jobIndicators.some(indicator =>
+              lowerTitle.includes(indicator) || lowerContent.includes(indicator)
+            );
+            if (isJobPosting) continue;
 
             seenIds.add(item.id);
 
