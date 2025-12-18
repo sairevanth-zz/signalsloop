@@ -148,27 +148,25 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
             <div key={step.id} className="flex items-center flex-1">
               <div className="flex flex-col items-center">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                    currentStep > step.id
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${currentStep > step.id
                       ? 'bg-green-500 text-white'
                       : currentStep === step.id
                         ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 text-gray-500'
-                  }`}
+                        : 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'
+                    }`}
                 >
                   {currentStep > step.id ? <Check className="h-5 w-5" /> : step.id}
                 </div>
                 <div className="mt-2 text-center">
-                  <div className="text-sm font-medium">{step.name}</div>
-                  <div className="text-xs text-gray-500">{step.description}</div>
+                  <div className="text-sm font-medium dark:text-white">{step.name}</div>
+                  <div className="text-xs text-gray-500 dark:text-slate-400">{step.description}</div>
                 </div>
               </div>
               {idx < STEPS.length - 1 && (
-                <div className="flex-1 h-1 mx-4 bg-gray-200">
+                <div className="flex-1 h-1 mx-4 bg-gray-200 dark:bg-slate-700">
                   <div
-                    className={`h-full transition-all ${
-                      currentStep > step.id ? 'bg-green-500' : 'bg-gray-200'
-                    }`}
+                    className={`h-full transition-all ${currentStep > step.id ? 'bg-green-500' : 'bg-gray-200 dark:bg-slate-700'
+                      }`}
                     style={{ width: currentStep > step.id ? '100%' : '0%' }}
                   />
                 </div>
@@ -179,7 +177,7 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
       </div>
 
       {/* Step Content */}
-      <Card className="p-6">
+      <Card className="p-6 dark:bg-slate-800 dark:border-slate-700">
         {/* Step 1: Company Info */}
         {currentStep === 1 && (
           <div className="space-y-6">
@@ -192,7 +190,7 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
                 placeholder="e.g., SignalsLoop"
                 className="mt-1"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                 The main name to search for across platforms
               </p>
             </div>
@@ -273,37 +271,40 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
         {/* Step 2: Platform Selection */}
         {currentStep === 2 && (
           <div className="space-y-4">
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-600 dark:text-slate-300 mb-4">
               Select the platforms where you want to discover feedback
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(PLATFORM_META).map(([key, meta]) => (
                 <div
                   key={key}
-                  className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                    selectedPlatforms.includes(key as PlatformType)
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  className={`border rounded-lg p-4 cursor-pointer transition-all select-none ${selectedPlatforms.includes(key as PlatformType)
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400'
+                      : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 dark:bg-slate-700/50'
+                    }`}
                   onClick={() => togglePlatform(key as PlatformType)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && togglePlatform(key as PlatformType)}
                 >
                   <div className="flex items-start gap-3">
                     <Checkbox
                       checked={selectedPlatforms.includes(key as PlatformType)}
                       onCheckedChange={() => togglePlatform(key as PlatformType)}
+                      className="mt-1 h-5 w-5"
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-2xl">{meta.icon}</span>
-                        <span className="font-semibold">{meta.name}</span>
+                        <span className="font-semibold dark:text-white">{meta.name}</span>
                         {meta.costTier !== 'free' && (
-                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
+                          <span className="text-xs bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 px-2 py-0.5 rounded">
                             {meta.costTier}
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600">{meta.description}</p>
-                      <div className="text-xs text-gray-500 mt-2">
+                      <p className="text-sm text-gray-600 dark:text-slate-300">{meta.description}</p>
+                      <div className="text-xs text-gray-500 dark:text-slate-400 mt-2">
                         Rate limit: {meta.rateLimitPerHour}/hour
                         {meta.requiresAuth && ' • Requires API key'}
                       </div>
@@ -320,7 +321,7 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
           <div className="space-y-6">
             <div>
               <Label>Additional Keywords (Optional)</Label>
-              <p className="text-xs text-gray-500 mb-2">
+              <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">
                 Add specific keywords or phrases to search for
               </p>
               {keywords.map((keyword, idx) => (
@@ -353,7 +354,7 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
 
             <div>
               <Label>Excluded Keywords (Optional)</Label>
-              <p className="text-xs text-gray-500 mb-2">
+              <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">
                 Filter out results containing these words
               </p>
               {excludedKeywords.map((keyword, idx) => (
@@ -384,9 +385,9 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
               </Button>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-              <h4 className="font-semibold text-blue-900 mb-2">What happens next?</h4>
-              <ul className="text-sm text-blue-800 space-y-1">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mt-6">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">What happens next?</h4>
+              <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
                 <li>• Hunter will scan selected platforms every 15 minutes</li>
                 <li>• Feedback will be automatically classified and scored</li>
                 <li>• Sentiment analysis will run on all discovered items</li>
@@ -398,7 +399,7 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
         )}
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between mt-8 pt-6 border-t">
+        <div className="flex justify-between mt-8 pt-6 border-t dark:border-slate-700">
           <Button
             variant="outline"
             onClick={handleBack}
