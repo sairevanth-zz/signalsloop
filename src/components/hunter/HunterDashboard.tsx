@@ -35,11 +35,13 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
   const [stats, setStats] = useState<HunterDashboardStats | null>(null);
   const [platformHealth, setPlatformHealth] = useState<PlatformHealthStats[]>([]);
   const [recentFeedback, setRecentFeedback] = useState<DiscoveredFeedback[]>([]);
+  const [allFeedback, setAllFeedback] = useState<DiscoveredFeedback[]>([]); // For analytics
   const [actions, setActions] = useState<ActionRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState<DiscoveredFeedback | null>(null);
+  const [activeTab, setActiveTab] = useState('feed');
 
   useEffect(() => {
     loadData();
@@ -58,7 +60,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
         setPlatformHealth(statsData.platformHealth || []);
       }
 
-      // Load recent feedback
+      // Load recent feedback (for feed tab)
       const feedRes = await fetch(
         `/api/hunter/feed?projectId=${projectId}&limit=10`
       );
@@ -66,6 +68,16 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
 
       if (feedData.success) {
         setRecentFeedback(feedData.items || []);
+      }
+
+      // Load all feedback for analytics (higher limit)
+      const allFeedRes = await fetch(
+        `/api/hunter/feed?projectId=${projectId}&limit=500`
+      );
+      const allFeedData = await allFeedRes.json();
+
+      if (allFeedData.success) {
+        setAllFeedback(allFeedData.items || []);
       }
 
       // Load action recommendations
@@ -208,6 +220,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                 const data = await res.json();
                 if (data.success) {
                   setRecentFeedback(data.items || []);
+                  setActiveTab('feed'); // Switch to feed tab to show results
                 }
               } catch (error) {
                 console.error('Error loading urgent items:', error);
@@ -226,7 +239,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
       )}
 
       {/* Main Content */}
-      <Tabs defaultValue="feed" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>
           <TabsTrigger value="feed">Recent Feedback</TabsTrigger>
           <TabsTrigger value="actions">
@@ -419,7 +432,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
 
         {/* Analytics Tab */}
         <TabsContent value="analytics" className="space-y-6">
-          {recentFeedback.length === 0 ? (
+          {allFeedback.length === 0 ? (
             <Card className="p-8 text-center">
               <TrendingUp className="h-12 w-12 mx-auto text-gray-400 mb-4" />
               <p className="text-gray-500">No data for analytics yet</p>
@@ -434,8 +447,8 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                 <h3 className="text-lg font-semibold mb-4">Classification Distribution</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {['bug', 'feature_request', 'praise', 'complaint', 'question', 'other'].map((type) => {
-                    const count = recentFeedback.filter(f => f.classification === type).length;
-                    const percentage = recentFeedback.length > 0 ? ((count / recentFeedback.length) * 100).toFixed(0) : 0;
+                    const count = allFeedback.filter(f => f.classification === type).length;
+                    const percentage = allFeedback.length > 0 ? ((count / allFeedback.length) * 100).toFixed(0) : 0;
                     return (
                       <div key={type} className="bg-slate-100 dark:bg-slate-700 rounded-lg p-4 text-center">
                         <div className="text-2xl font-bold">{count}</div>
@@ -454,21 +467,21 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                   <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-4 text-center">
                     <ThumbsUp className="h-6 w-6 mx-auto text-green-600 mb-2" />
                     <div className="text-2xl font-bold text-green-600">
-                      {recentFeedback.filter(f => (f.sentiment_score ?? 0) > 0.2).length}
+                      {allFeedback.filter(f => (f.sentiment_score ?? 0) > 0.2).length}
                     </div>
                     <div className="text-sm text-gray-500">Positive</div>
                   </div>
                   <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 text-center">
                     <div className="h-6 w-6 mx-auto bg-gray-400 rounded-full mb-2" />
                     <div className="text-2xl font-bold">
-                      {recentFeedback.filter(f => (f.sentiment_score ?? 0) >= -0.2 && (f.sentiment_score ?? 0) <= 0.2).length}
+                      {allFeedback.filter(f => (f.sentiment_score ?? 0) >= -0.2 && (f.sentiment_score ?? 0) <= 0.2).length}
                     </div>
                     <div className="text-sm text-gray-500">Neutral</div>
                   </div>
                   <div className="bg-red-100 dark:bg-red-900/30 rounded-lg p-4 text-center">
                     <ThumbsDown className="h-6 w-6 mx-auto text-red-600 mb-2" />
                     <div className="text-2xl font-bold text-red-600">
-                      {recentFeedback.filter(f => (f.sentiment_score ?? 0) < -0.2).length}
+                      {allFeedback.filter(f => (f.sentiment_score ?? 0) < -0.2).length}
                     </div>
                     <div className="text-sm text-gray-500">Negative</div>
                   </div>
@@ -480,8 +493,8 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                 <h3 className="text-lg font-semibold mb-4">Feedback by Platform</h3>
                 <div className="space-y-3">
                   {['reddit', 'hackernews', 'twitter', 'playstore'].map((platform) => {
-                    const count = recentFeedback.filter(f => f.platform === platform).length;
-                    const percentage = recentFeedback.length > 0 ? ((count / recentFeedback.length) * 100) : 0;
+                    const count = allFeedback.filter(f => f.platform === platform).length;
+                    const percentage = allFeedback.length > 0 ? ((count / allFeedback.length) * 100) : 0;
                     return (
                       <div key={platform} className="flex items-center gap-4">
                         <PlatformBadge platform={platform as PlatformType} size="sm" />
@@ -505,7 +518,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                 <h3 className="text-lg font-semibold mb-4">Urgency Distribution</h3>
                 <div className="grid grid-cols-5 gap-2">
                   {[1, 2, 3, 4, 5].map((level) => {
-                    const count = recentFeedback.filter(f => f.urgency_score === level).length;
+                    const count = allFeedback.filter(f => f.urgency_score === level).length;
                     return (
                       <div key={level} className={`rounded-lg p-3 text-center ${level >= 4 ? 'bg-red-100 dark:bg-red-900/30' :
                         level === 3 ? 'bg-yellow-100 dark:bg-yellow-900/30' :
