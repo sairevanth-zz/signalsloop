@@ -68,16 +68,17 @@ export class TwitterHunter extends BaseHunter {
     integration: PlatformIntegration
   ): Promise<RawFeedback[]> {
     try {
-      // Check rate limit before proceeding
+      // Twitter/X is Premium-only - check plan first
       const usageCheck = await checkAIUsageLimit(config.project_id, 'hunter_scan');
+      if (usageCheck.plan !== 'premium') {
+        console.log('[Twitter/Grok] Twitter/X is a Premium-only feature. Skipping scan.');
+        return []; // Silently skip for Free/Pro users
+      }
+
+      // Check rate limit before proceeding
       if (!usageCheck.allowed) {
         throw new PlatformIntegrationError(
-          `X/Twitter scan limit reached (${usageCheck.current}/${usageCheck.limit} this month). ` +
-          (usageCheck.plan === 'free'
-            ? 'Upgrade to Pro for more scans!'
-            : usageCheck.plan === 'pro'
-              ? 'Upgrade to Premium for more scans!'
-              : 'Limit will reset next month.'),
+          `X/Twitter scan limit reached (${usageCheck.current}/${usageCheck.limit} this month). Limit will reset next month.`,
           'twitter',
           { limit_exceeded: true, current: usageCheck.current, limit: usageCheck.limit }
         );

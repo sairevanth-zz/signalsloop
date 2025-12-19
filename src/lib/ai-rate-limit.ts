@@ -18,8 +18,8 @@ export const AI_LIMITS = {
     theme_detection: 0,
     executive_briefs: 0,
     call_intelligence: 0,
-    // Hunter (Twitter/X feedback discovery)
-    hunter_scan: 30,                 // 1 per day (30/month)
+    // Hunter (Reddit + HackerNews only, Twitter is Premium-only)
+    hunter_scan: 4,                  // 1 per week (4/month)
     // API
     api_calls: 0,
   },
@@ -40,8 +40,8 @@ export const AI_LIMITS = {
     // Premium AI (taste test)
     executive_briefs: 1,            // 1 per month
     call_intelligence: 5,           // 5 transcripts per month
-    // Hunter (Twitter/X feedback discovery)
-    hunter_scan: 120,               // ~4 per day (120/month)
+    // Hunter (Reddit + HackerNews only, Twitter is Premium-only)
+    hunter_scan: 30,                // 1 per day (30/month)
     // API
     api_calls: 1000,                // 1,000 API calls per month
   },
@@ -62,8 +62,8 @@ export const AI_LIMITS = {
     // Premium AI
     executive_briefs: 4,            // 4 per month (weekly + monthly)
     call_intelligence: 20,          // 20 transcripts per month
-    // Hunter (Twitter/X feedback discovery)
-    hunter_scan: 300,               // ~10 per day (300/month)
+    // Hunter (Reddit + HackerNews + Twitter/X)
+    hunter_scan: 90,                // 3 per day (90/month)
     // API
     api_calls: 5000,                // 5,000 API calls per month
   }
