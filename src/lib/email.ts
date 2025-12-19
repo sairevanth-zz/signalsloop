@@ -229,6 +229,7 @@ interface SendGiftNotificationParams {
   senderName?: string;
   giftMessage?: string;
   durationMonths: number;
+  tier?: 'pro' | 'premium';
   redemptionCode?: string;
   expiresAt: string;
   giftId: string;
@@ -249,6 +250,7 @@ export async function sendGiftNotificationEmail({
   senderName,
   giftMessage,
   durationMonths,
+  tier = 'pro',
   redemptionCode,
   expiresAt,
   giftId
@@ -260,6 +262,11 @@ export async function sendGiftNotificationEmail({
     month: 'long',
     day: 'numeric'
   });
+  const tierName = tier === 'premium' ? 'Premium' : 'Pro';
+  const tierColor = tier === 'premium' ? '#9333ea' : '#667eea';
+  const tierGradient = tier === 'premium'
+    ? 'linear-gradient(135deg, #9333ea 0%, #c026d3 100%)'
+    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
 
   const html = `
         <!DOCTYPE html>
@@ -276,7 +283,7 @@ export async function sendGiftNotificationEmail({
                   <table role="presentation" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                     <!-- Header -->
                     <tr>
-                      <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px 12px 0 0;">
+                      <td style="padding: 40px 40px 20px; text-align: center; background: ${tierGradient}; border-radius: 12px 12px 0 0;">
                         <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: bold;">🎁 You've Got a Gift!</h1>
                       </td>
                     </tr>
@@ -289,7 +296,7 @@ export async function sendGiftNotificationEmail({
                         </p>
                         
                         <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
-                          ${senderName ? `<strong>${senderName}</strong>` : 'Someone special'} has gifted you a <strong>${durationMonths}-month Pro subscription</strong> to SignalsLoop!
+                          ${senderName ? `<strong>${senderName}</strong>` : 'Someone special'} has gifted you a <strong>${durationMonths}-month ${tierName} subscription</strong> to SignalsLoop!
                         </p>
                         
                         ${giftMessage ? `
@@ -301,7 +308,7 @@ export async function sendGiftNotificationEmail({
                         ` : ''}
                         
                         ${redemptionCode ? `
-                          <div style="margin: 30px 0; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; text-align: center;">
+                          <div style="margin: 30px 0; padding: 30px; background: ${tierGradient}; border-radius: 8px; text-align: center;">
                             <p style="margin: 0 0 10px; font-size: 14px; color: rgba(255, 255, 255, 0.9); text-transform: uppercase; letter-spacing: 1px;">
                               Your Redemption Code
                             </p>
@@ -312,8 +319,8 @@ export async function sendGiftNotificationEmail({
                         ` : ''}
                         
                         <div style="text-align: center; margin: 30px 0;">
-                          <a href="${claimUrl}" style="display: inline-block; padding: 16px 40px; background-color: #667eea; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; transition: background-color 0.3s;">
-                            Claim Your Pro Subscription
+                          <a href="${claimUrl}" style="display: inline-block; padding: 16px 40px; background-color: ${tierColor}; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; transition: background-color 0.3s;">
+                            Claim Your ${tierName} Subscription
                           </a>
                         </div>
                         
@@ -357,7 +364,7 @@ export async function sendGiftNotificationEmail({
 
   await sendEmail({
     to: recipientEmail,
-    subject: `🎁 You've received a ${durationMonths}-month Pro subscription gift!`,
+    subject: `🎁 You've received a ${durationMonths}-month ${tierName} subscription gift!`,
     html,
   });
 }

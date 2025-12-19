@@ -45,6 +45,7 @@ export const POST = secureAPI(
       sender_name,
       gift_message,
       duration_months,
+      tier = 'pro',
       expires_at
     } = body!;
 
@@ -54,8 +55,9 @@ export const POST = secureAPI(
       return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
     }
 
-    // Generate a unique redemption code
-    const redemption_code = `GIFT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+    // Generate a unique redemption code with tier identifier
+    const tierPrefix = tier === 'premium' ? 'PREMIUM' : 'PRO';
+    const redemption_code = `GIFT-${tierPrefix}-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
 
     const { data: newGift, error } = await supabase
       .from('gift_subscriptions')
@@ -66,6 +68,7 @@ export const POST = secureAPI(
         sender_name: sender_name || 'SignalsLoop Admin',
         gift_message,
         duration_months,
+        tier,
         redemption_code,
         status: 'pending',
         expires_at: expires_at || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
@@ -86,11 +89,12 @@ export const POST = secureAPI(
         senderName: sender_name || 'SignalsLoop Admin',
         giftMessage: gift_message,
         durationMonths: duration_months,
+        tier,
         redemptionCode: redemption_code,
         expiresAt: newGift.expires_at,
         giftId: newGift.id
       });
-      console.log('✅ Gift notification email sent to:', recipient_email);
+      console.log(`✅ Gift notification email sent to: ${recipient_email} (${tier} tier)`);
     } catch (emailError) {
       console.error('⚠️ Failed to send gift email (gift still created):', emailError);
     }
@@ -108,6 +112,7 @@ export const POST = secureAPI(
       sender_name: z.string().optional(),
       gift_message: z.string().optional(),
       duration_months: z.number().int().positive(),
+      tier: z.enum(['pro', 'premium']).optional().default('pro'),
       expires_at: z.string().optional(),
     }),
   }
