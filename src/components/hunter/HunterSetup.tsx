@@ -27,6 +27,28 @@ const STEPS = [
   { id: 3, name: 'Keywords', description: 'Define search terms' },
 ];
 
+/**
+ * Platforms that are actually implemented and working
+ * - reddit: Reddit API integration
+ * - twitter: Grok-powered X search (Premium only)
+ * - hackernews: HN API (free)
+ * - g2/capterra/trustpilot: Grok-powered web search (paid)
+ * - producthunt: PH API integration
+ * 
+ * NOT included (no working implementation):
+ * - appstore: No hunter implemented
+ * - playstore: Scraping is too fragile
+ */
+const AVAILABLE_PLATFORMS: PlatformType[] = [
+  'reddit',
+  'twitter',
+  'hackernews',
+  'g2',
+  'capterra',
+  'trustpilot',
+  'producthunt',
+];
+
 export function HunterSetup({ projectId, onComplete, className }: HunterSetupProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -328,42 +350,44 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
               Select the platforms where you want to discover feedback
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(PLATFORM_META).map(([key, meta]) => (
-                <div
-                  key={key}
-                  className={`border rounded-lg p-4 cursor-pointer transition-all select-none ${selectedPlatforms.includes(key as PlatformType)
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400'
-                    : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 dark:bg-slate-700/50'
-                    }`}
-                  onClick={() => togglePlatform(key as PlatformType)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && togglePlatform(key as PlatformType)}
-                >
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      checked={selectedPlatforms.includes(key as PlatformType)}
-                      className="mt-1 h-5 w-5 pointer-events-none"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-2xl">{meta.icon}</span>
-                        <span className="font-semibold dark:text-white">{meta.name}</span>
-                        {meta.costTier !== 'free' && (
-                          <span className="text-xs bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 px-2 py-0.5 rounded">
-                            {meta.costTier}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-slate-300">{meta.description}</p>
-                      <div className="text-xs text-gray-500 dark:text-slate-400 mt-2">
-                        Rate limit: {meta.rateLimitPerHour}/hour
-                        {meta.requiresAuth && ' • Requires API key'}
+              {Object.entries(PLATFORM_META)
+                .filter(([key]) => AVAILABLE_PLATFORMS.includes(key as PlatformType))
+                .map(([key, meta]) => (
+                  <div
+                    key={key}
+                    className={`border rounded-lg p-4 cursor-pointer transition-all select-none ${selectedPlatforms.includes(key as PlatformType)
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400'
+                      : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 dark:bg-slate-700/50'
+                      }`}
+                    onClick={() => togglePlatform(key as PlatformType)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && togglePlatform(key as PlatformType)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        checked={selectedPlatforms.includes(key as PlatformType)}
+                        className="mt-1 h-5 w-5 pointer-events-none"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-2xl">{meta.icon}</span>
+                          <span className="font-semibold dark:text-white">{meta.name}</span>
+                          {meta.costTier !== 'free' && (
+                            <span className="text-xs bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 px-2 py-0.5 rounded">
+                              {meta.costTier}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-slate-300">{meta.description}</p>
+                        <div className="text-xs text-gray-500 dark:text-slate-400 mt-2">
+                          Rate limit: {meta.rateLimitPerHour}/hour
+                          {meta.requiresAuth && ' • Requires API key'}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         )}
