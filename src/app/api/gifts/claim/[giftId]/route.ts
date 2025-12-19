@@ -18,6 +18,7 @@ type GiftRecord = {
   claimed_at: string | null;
   recipient_id: string | null;
   gift_message?: string | null;
+  redemption_code?: string | null;
 };
 
 export async function POST(
@@ -79,7 +80,7 @@ export async function POST(
     // Load gift record
     const { data: gift, error: giftError } = await adminClient
       .from('gift_subscriptions')
-      .select<GiftRecord>('id, project_id, status, gift_type, duration_months, expires_at, claimed_at, recipient_id')
+      .select<GiftRecord>('id, project_id, status, gift_type, duration_months, expires_at, claimed_at, recipient_id, redemption_code')
       .eq('id', params.giftId)
       .maybeSingle();
 
@@ -131,12 +132,17 @@ export async function POST(
 
     let claimMessage = 'Gift claimed successfully';
 
+    // Detect tier from redemption code (GIFT-PREMIUM-xxx vs GIFT-PRO-xxx)
+    const redemptionCode = gift.redemption_code || '';
+    const giftedPlan: 'pro' | 'premium' = redemptionCode.includes('PREMIUM') ? 'premium' : 'pro';
+    console.log(`${logPrefix} Detected gift tier: ${giftedPlan} from code: ${redemptionCode}`);
+
     // Update project if applicable
     if (gift.project_id) {
       const { error: projectUpdateError } = await adminClient
         .from('projects')
         .update({
-          plan: 'pro',
+          plan: giftedPlan,
           subscription_status: 'active',
           current_period_end: expiresAt,
           updated_at: utcNowIso,
@@ -151,7 +157,7 @@ export async function POST(
         );
       }
 
-      console.log(`${logPrefix} Project marked pro`, { projectId: gift.project_id });
+      console.log(`${logPrefix} Project marked ${giftedPlan}`, { projectId: gift.project_id });
     }
 
     const { error: updateGiftError } = await adminClient
@@ -172,27 +178,27 @@ export async function POST(
       );
     }
 
-    // Update all projects owned by the user to reflect Pro access
+    // Update all projects owned by the user to reflect gifted access
     const { error: upgradeProjectsError } = await adminClient
       .from('projects')
       .update({
-        plan: 'pro',
+        plan: giftedPlan,
         subscription_status: 'active',
         updated_at: utcNowIso,
       })
       .eq('owner_id', userId);
 
     if (upgradeProjectsError) {
-      console.error(`${logPrefix} Failed to upgrade user projects to pro`, upgradeProjectsError);
+      console.error(`${logPrefix} Failed to upgrade user projects to ${giftedPlan}`, upgradeProjectsError);
     }
 
-    // Persist gifted status on the account profile so the dashboard reflects Pro access
+    // Persist gifted status on the account profile so the dashboard reflects access
     const { error: profileError } = await adminClient
       .from('account_billing_profiles')
       .upsert(
         {
           user_id: userId,
-          plan: 'pro',
+          plan: giftedPlan,
           billing_cycle: 'gifted',
           subscription_status: 'active',
           current_period_end: expiresAt,
@@ -215,7 +221,7 @@ export async function POST(
         {
           id: userId,
           email: userEmail,
-          plan: 'pro',
+          plan: giftedPlan,
           updated_at: utcNowIso,
         },
         { onConflict: 'id' }
@@ -229,7 +235,7 @@ export async function POST(
       const { error: projectUpdateError } = await adminClient
         .from('projects')
         .update({
-          plan: 'pro',
+          plan: giftedPlan,
           subscription_status: 'active',
           current_period_end: expiresAt,
           updated_at: utcNowIso,
@@ -239,7 +245,7 @@ export async function POST(
       if (projectUpdateError) {
         console.error(`${logPrefix} Project update failed`, projectUpdateError);
       } else {
-        console.log(`${logPrefix} Project marked pro`, { projectId: gift.project_id });
+        console.log(`${logPrefix} Project marked ${giftedPlan}`, { projectId: gift.project_id });
       }
     }
 

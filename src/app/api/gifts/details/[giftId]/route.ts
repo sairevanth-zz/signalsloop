@@ -10,7 +10,7 @@ export async function GET(
 ) {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
+
     // Get gift details
     const { data: gift, error } = await supabase
       .from('gift_subscriptions')
@@ -49,9 +49,14 @@ export async function GET(
     }
 
     // Add project name to the gift object
+    // Detect tier from redemption_code (GIFT-PREMIUM-xxx vs GIFT-PRO-xxx)
+    const redemptionCode = gift.redemption_code || '';
+    const tier: 'pro' | 'premium' = redemptionCode.includes('PREMIUM') ? 'premium' : 'pro';
+
     const giftWithProject = {
       ...gift,
       project_name: projectName,
+      tier, // Add tier for UI to use
     };
 
     return NextResponse.json({ gift: giftWithProject });
