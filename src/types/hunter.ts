@@ -32,8 +32,10 @@ export type IntegrationStatus = 'active' | 'paused' | 'error' | 'setup';
 export type FeedbackClassification =
   | 'bug'
   | 'feature_request'
+  | 'usability_issue'
   | 'praise'
   | 'complaint'
+  | 'comparison'
   | 'churn_risk'
   | 'question'
   | 'other';
@@ -247,6 +249,15 @@ export interface DiscoveredFeedback {
   customer_segment?: string;
   customer_mrr?: number;
   customer_plan_tier?: string;
+
+  // Relevance scoring (from Stage 2 filter)
+  relevance_score?: number;
+  relevance_reasoning?: string;
+  needs_review?: boolean;
+
+  // Convenience fields
+  source_url?: string; // Alias for platform_url
+  author_name?: string; // Alias for author_username
 }
 
 /**
@@ -847,8 +858,10 @@ export const CLASSIFICATION_META: Record<
 > = {
   bug: { label: 'Bug Report', color: 'red', emoji: '🐛' },
   feature_request: { label: 'Feature Request', color: 'blue', emoji: '✨' },
+  usability_issue: { label: 'Usability Issue', color: 'amber', emoji: '🎯' },
   praise: { label: 'Praise', color: 'green', emoji: '👏' },
   complaint: { label: 'Complaint', color: 'orange', emoji: '😤' },
+  comparison: { label: 'Comparison', color: 'indigo', emoji: '⚔️' },
   churn_risk: { label: 'Churn Risk', color: 'purple', emoji: '⚠️' },
   question: { label: 'Question', color: 'yellow', emoji: '❓' },
   other: { label: 'Other', color: 'gray', emoji: '📝' },

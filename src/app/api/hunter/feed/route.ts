@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
     const sentimentMax = searchParams.get('sentimentMax');
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
+    const needsReview = searchParams.get('needsReview') === 'true';
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
@@ -94,6 +95,11 @@ export async function GET(request: NextRequest) {
 
     if (dateTo) {
       query = query.lte('discovered_at', dateTo);
+    }
+
+    // Filter for items needing human review
+    if (needsReview) {
+      query = query.eq('needs_review', true);
     }
 
     // Apply pagination and ordering

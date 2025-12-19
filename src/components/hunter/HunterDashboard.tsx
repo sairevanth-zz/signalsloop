@@ -44,6 +44,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
   const [selectedAction, setSelectedAction] = useState<ActionRecommendation | null>(null);
   const [activeTab, setActiveTab] = useState('feed');
   const [usageInfo, setUsageInfo] = useState<{ current: number; limit: number; remaining: number; plan: string } | null>(null);
+  const [needsReviewFeedback, setNeedsReviewFeedback] = useState<DiscoveredFeedback[]>([]);
 
   useEffect(() => {
     loadData();
@@ -93,6 +94,22 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
 
       if (actionsData.success) {
         setActions(actionsData.recommendations || []);
+      }
+
+      // Load items needing human review
+      const reviewRes = await fetch(
+        `/api/hunter/feed?projectId=${projectId}&needsReview=true&limit=50`
+      );
+      const reviewData = await reviewRes.json();
+
+      if (reviewData.success) {
+        // Map platform_url to source_url and author_username to author_name for convenience
+        const reviewItems = (reviewData.items || []).map((item: DiscoveredFeedback) => ({
+          ...item,
+          source_url: item.source_url || item.platform_url,
+          author_name: item.author_name || item.author_username,
+        }));
+        setNeedsReviewFeedback(reviewItems);
       }
     } catch (error) {
       console.error('[Hunter Dashboard] Error loading data:', error);
@@ -268,6 +285,14 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
           </TabsTrigger>
           <TabsTrigger value="platforms">Platforms</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="review">
+            Needs Review
+            {needsReviewFeedback.length > 0 && (
+              <span className="ml-2 bg-amber-500 text-white text-xs rounded-full px-2 py-0.5">
+                {needsReviewFeedback.length}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         {/* Recent Feedback Tab */}
@@ -563,6 +588,123 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                 </div>
               </Card>
             </>
+          )}
+        </TabsContent>
+
+        {/* Needs Review Tab */}
+        <TabsContent value="review" className="space-y-4">
+          <Card className="p-4 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-amber-900 dark:text-amber-200">Human Review Queue</h4>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                  These items scored between 50-69% relevance and need manual verification.
+                  Review and mark as relevant or irrelevant to improve AI accuracy.
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {needsReviewFeedback.length === 0 ? (
+            <Card className="p-8 text-center">
+              <p className="text-gray-500">No items pending review. Great job! 🎉</p>
+            </Card>
+          ) : (
+            needsReviewFeedback.map((item) => (
+              <Card key={item.id} className="p-4 border-l-4 border-l-amber-500">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <PlatformBadge platform={item.platform} size="sm" />
+                      {item.classification && (
+                        <ClassificationBadge
+                          classification={item.classification}
+                          size="sm"
+                        />
+                      )}
+                      <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded">
+                        Relevance: {item.relevance_score}%
+                      </span>
+                    </div>
+                    {item.title && (
+                      <h4 className="font-medium mb-1">{item.title}</h4>
+                    )}
+                    <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3">
+                      {item.content}
+                    </p>
+                    {item.relevance_reasoning && (
+                      <p className="text-xs text-gray-500 mt-2 italic">
+                        AI: {item.relevance_reasoning}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {item.author_name || 'Anonymous'}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {item.discovered_at ? new Date(item.discovered_at).toLocaleDateString() : 'Unknown'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 ml-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-green-600 border-green-300 hover:bg-green-50"
+                      onClick={async () => {
+                        try {
+                          await fetch('/api/hunter/feedback/review', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: item.id, decision: 'relevant' }),
+                          });
+                          setNeedsReviewFeedback(needsReviewFeedback.filter(f => f.id !== item.id));
+                        } catch (error) {
+                          console.error('Error marking as relevant:', error);
+                        }
+                      }}
+                    >
+                      <ThumbsUp className="h-4 w-4 mr-1" />
+                      Relevant
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-red-600 border-red-300 hover:bg-red-50"
+                      onClick={async () => {
+                        try {
+                          await fetch('/api/hunter/feedback/review', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: item.id, decision: 'irrelevant' }),
+                          });
+                          setNeedsReviewFeedback(needsReviewFeedback.filter(f => f.id !== item.id));
+                        } catch (error) {
+                          console.error('Error marking as irrelevant:', error);
+                        }
+                      }}
+                    >
+                      <ThumbsDown className="h-4 w-4 mr-1" />
+                      Irrelevant
+                    </Button>
+                    {item.source_url && (
+                      <a
+                        href={item.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-500 hover:underline flex items-center justify-center"
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        View
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))
           )}
         </TabsContent>
       </Tabs>
