@@ -28,7 +28,7 @@ interface GrokReview {
     pros?: string;
     cons?: string;
     source_url: string;
-    platform: 'g2' | 'capterra' | 'trustpilot';
+    platform: 'g2' | 'capterra' | 'trustpilot' | 'producthunt';
 }
 
 /**
@@ -53,7 +53,7 @@ interface XAIResponse {
  * Review site configuration
  */
 interface ReviewSiteConfig {
-    platform: 'g2' | 'capterra' | 'trustpilot';
+    platform: 'g2' | 'capterra' | 'trustpilot' | 'producthunt';
     product_name: string;
     product_url?: string;
 }
@@ -131,12 +131,14 @@ export class ReviewSiteHunter extends BaseHunter {
         const platformType = integration.platform_type;
 
         // Map platform type to review site - URLs are auto-detected via search
-        let platform: 'g2' | 'capterra' | 'trustpilot' = 'g2';
+        let platform: 'g2' | 'capterra' | 'trustpilot' | 'producthunt' = 'g2';
 
         if (platformType === 'capterra') {
             platform = 'capterra';
         } else if (platformType === 'trustpilot') {
             platform = 'trustpilot';
+        } else if (platformType === 'producthunt') {
+            platform = 'producthunt';
         } else {
             platform = 'g2'; // Default
         }
@@ -146,6 +148,7 @@ export class ReviewSiteHunter extends BaseHunter {
             integration.config.g2_product_url ||
             (integration.config as any).capterra_product_url ||
             (integration.config as any).trustpilot_product_url ||
+            integration.config.producthunt_product_slug ||
             undefined;
 
         return {
@@ -264,7 +267,7 @@ Look for reviews from the past 30 days if available. Return at least 5-10 review
     /**
      * Get site filter for search query
      */
-    private getSiteFilter(platform: 'g2' | 'capterra' | 'trustpilot'): string {
+    private getSiteFilter(platform: 'g2' | 'capterra' | 'trustpilot' | 'producthunt'): string {
         switch (platform) {
             case 'g2':
                 return 'g2.com';
@@ -272,6 +275,8 @@ Look for reviews from the past 30 days if available. Return at least 5-10 review
                 return 'capterra.com';
             case 'trustpilot':
                 return 'trustpilot.com';
+            case 'producthunt':
+                return 'producthunt.com';
             default:
                 return 'g2.com';
         }
@@ -280,7 +285,7 @@ Look for reviews from the past 30 days if available. Return at least 5-10 review
     /**
      * Get platform display name
      */
-    private getPlatformName(platform: 'g2' | 'capterra' | 'trustpilot'): string {
+    private getPlatformName(platform: 'g2' | 'capterra' | 'trustpilot' | 'producthunt'): string {
         switch (platform) {
             case 'g2':
                 return 'G2';
@@ -288,6 +293,8 @@ Look for reviews from the past 30 days if available. Return at least 5-10 review
                 return 'Capterra';
             case 'trustpilot':
                 return 'Trustpilot';
+            case 'producthunt':
+                return 'Product Hunt';
             default:
                 return 'G2';
         }
@@ -298,7 +305,7 @@ Look for reviews from the past 30 days if available. Return at least 5-10 review
      */
     private extractReviewsFromText(
         text: string,
-        platform: 'g2' | 'capterra' | 'trustpilot'
+        platform: 'g2' | 'capterra' | 'trustpilot' | 'producthunt'
     ): GrokReview[] {
         // Simple fallback - try to extract any review-like content
         const reviews: GrokReview[] = [];

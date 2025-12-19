@@ -25,7 +25,7 @@ export { PlayStoreHunter } from './playstore-hunter';
 
 /**
  * Factory function to get the appropriate hunter for a platform
- * Note: g2, capterra, and trustpilot all use ReviewSiteHunter (Grok-powered)
+ * Note: g2, capterra, trustpilot, and producthunt all use ReviewSiteHunter (Grok-powered)
  */
 export function getHunter(platform: PlatformType): BaseHunter {
   switch (platform) {
@@ -36,7 +36,8 @@ export function getHunter(platform: PlatformType): BaseHunter {
     case 'hackernews':
       return new HackerNewsHunter();
     case 'producthunt':
-      return new ProductHuntHunter();
+      // Use ReviewSiteHunter with Grok - no API key needed
+      return new ReviewSiteHunter();
     case 'g2':
       // Use ReviewSiteHunter with Grok for better reliability than scraping
       return new ReviewSiteHunter();
@@ -59,8 +60,7 @@ export function getAllHunters(): BaseHunter[] {
     new RedditHunter(),
     new TwitterHunter(),
     new HackerNewsHunter(),
-    new ProductHuntHunter(),
-    new ReviewSiteHunter(), // Handles G2, Capterra, Trustpilot
+    new ReviewSiteHunter(), // Handles G2, Capterra, Trustpilot, ProductHunt
     new PlayStoreHunter(),
   ];
 }

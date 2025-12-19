@@ -792,9 +792,9 @@ export const PLATFORM_META: Record<PlatformType, PlatformMeta> = {
     icon: '🚀',
     color: '#DA552F',
     description: 'Monitor Product Hunt comments',
-    requiresAuth: true,
-    rateLimitPerHour: 60,
-    costTier: 'free',
+    requiresAuth: false,
+    rateLimitPerHour: 12,
+    costTier: 'paid',
   },
   appstore: {
     name: 'App Store',
