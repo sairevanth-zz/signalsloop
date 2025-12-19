@@ -2125,7 +2125,7 @@ export default function Homepage() {
                     "5 feedback boards",
                     "1,000 posts",
                     "2 team members",
-                    "🔎 Hunter Agent (Reddit + HN)",
+                    "🔎 Hunter: 30/mo (Reddit, HN)",
                     "📝 10 AI Specs/month",
                     "😈 5 Devil's Advocate/month",
                     "💬 50 Ask SignalsLoop queries",
@@ -2190,7 +2190,7 @@ export default function Homepage() {
                   {[
                     "Unlimited boards & posts",
                     "10 team members",
-                    "🔎 Hunter Agent (4hr scans)",
+                    "🔎 Hunter: 90/mo + Twitter/X",
                     "📝 30 AI Specs/month",
                     "😈 15 Devil's Advocate/month",
                     "💬 100 Ask SignalsLoop queries",
