@@ -8,10 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Crown, 
-  Gift, 
-  Users, 
+import {
+  Crown,
+  Gift,
+  Users,
   Calendar,
   Search,
   Plus,
@@ -28,7 +28,7 @@ interface Project {
   id: string;
   name: string;
   slug: string;
-  plan: 'free' | 'pro';
+  plan: 'free' | 'pro' | 'premium';
   owner_id: string;
   subscription_status?: string;
   current_period_end?: string;
@@ -49,6 +49,7 @@ interface SubscriptionGift {
   redeemed_at?: string;
   created_at: string;
   expires_at: string;
+  tier?: 'pro' | 'premium';
 }
 
 export default function AdminSubscriptionsPage() {
@@ -59,9 +60,10 @@ export default function AdminSubscriptionsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showGiftForm, setShowGiftForm] = useState(false);
   const [giftLoading, setGiftLoading] = useState(false);
-  
+
   // Gift form state - Updated to use email instead of project
   const [giftEmail, setGiftEmail] = useState('');
+  const [giftTier, setGiftTier] = useState<'pro' | 'premium'>('pro');
   const [giftDuration, setGiftDuration] = useState('1');
   const [giftReason, setGiftReason] = useState('');
 
@@ -145,6 +147,7 @@ export default function AdminSubscriptionsPage() {
           sender_name: 'SignalsLoop Admin',
           gift_message: giftReason || 'Thank you for being an awesome user!',
           duration_months: parseInt(giftDuration),
+          tier: giftTier,
         }),
       });
 
@@ -154,15 +157,16 @@ export default function AdminSubscriptionsPage() {
       }
 
       const result = await response.json();
-      
-      toast.success(`Successfully gifted ${giftDuration} month${parseInt(giftDuration) > 1 ? 's' : ''} of Pro to ${giftEmail}! Email sent.`);
-      
+
+      toast.success(`Successfully gifted ${giftDuration} month${parseInt(giftDuration) > 1 ? 's' : ''} of ${giftTier === 'premium' ? 'Premium' : 'Pro'} to ${giftEmail}! Email sent.`);
+
       // Reset form
       setGiftEmail('');
+      setGiftTier('pro');
       setGiftDuration('1');
       setGiftReason('');
       setShowGiftForm(false);
-      
+
       // Reload data
       loadData();
 
@@ -200,153 +204,180 @@ export default function AdminSubscriptionsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Projects</p>
-                  <p className="text-2xl font-bold">{projects.length}</p>
-                </div>
-                <Users className="h-8 w-8 text-blue-600" />
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Projects</p>
+                <p className="text-2xl font-bold">{projects.length}</p>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pro Projects</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {projects.filter(p => p.plan === 'pro').length}
-                  </p>
-                </div>
-                <Crown className="h-8 w-8 text-green-600" />
+              <Users className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pro Projects</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {projects.filter(p => p.plan === 'pro').length}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Free Projects</p>
-                  <p className="text-2xl font-bold text-gray-600">
-                    {projects.filter(p => p.plan === 'free').length}
-                  </p>
-                </div>
-                <Users className="h-8 w-8 text-gray-600" />
+              <Crown className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Premium Projects</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {projects.filter(p => p.plan === 'premium').length}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Gifts Given</p>
-                  <p className="text-2xl font-bold text-purple-600">{gifts.length}</p>
-                </div>
-                <Gift className="h-8 w-8 text-purple-600" />
+              <Crown className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Free Projects</p>
+                <p className="text-2xl font-bold text-gray-600">
+                  {projects.filter(p => p.plan === 'free').length}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Users className="h-8 w-8 text-gray-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Gifts Given</p>
+                <p className="text-2xl font-bold text-purple-600">{gifts.length}</p>
+              </div>
+              <Gift className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Gift Subscription Section */}
       <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Gift className="h-5 w-5" />
-              Gift Pro Subscription
-            </CardTitle>
-            <CardDescription>
-              Give Pro access to any user for a specified duration
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {!showGiftForm ? (
-              <Button onClick={() => setShowGiftForm(true)} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Gift Subscription
-              </Button>
-            ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="gift-email">User Email Address *</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input
-                        id="gift-email"
-                        type="email"
-                        placeholder="user@example.com"
-                        value={giftEmail}
-                        onChange={(e) => setGiftEmail(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Enter the email address of the user to gift Pro access to
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="duration">Duration</Label>
-                    <Select value={giftDuration} onValueChange={setGiftDuration}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 Month</SelectItem>
-                        <SelectItem value="3">3 Months</SelectItem>
-                        <SelectItem value="6">6 Months</SelectItem>
-                        <SelectItem value="12">1 Year</SelectItem>
-                        <SelectItem value="24">2 Years</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Gift className="h-5 w-5" />
+            Gift Subscription
+          </CardTitle>
+          <CardDescription>
+            Give Pro or Premium access to any user for a specified duration
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!showGiftForm ? (
+            <Button onClick={() => setShowGiftForm(true)} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Gift Subscription
+            </Button>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="reason">Reason (Optional)</Label>
-                  <Input
-                    id="reason"
-                    placeholder="e.g., Influencer partnership, Beta tester, etc."
-                    value={giftReason}
-                    onChange={(e) => setGiftReason(e.target.value)}
-                  />
+                  <Label htmlFor="gift-email">User Email Address *</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      id="gift-email"
+                      type="email"
+                      placeholder="user@example.com"
+                      value={giftEmail}
+                      onChange={(e) => setGiftEmail(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Enter the email address of the user to gift access to
+                  </p>
                 </div>
-                
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={giftSubscription}
-                    disabled={giftLoading || !giftEmail}
-                    className="flex items-center gap-2"
-                  >
-                    {giftLoading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Gifting...
-                      </>
-                    ) : (
-                      <>
-                        <Gift className="h-4 w-4" />
-                        Gift Subscription
-                      </>
-                    )}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowGiftForm(false)}
-                  >
-                    Cancel
-                  </Button>
+
+                <div>
+                  <Label htmlFor="tier">Subscription Tier</Label>
+                  <Select value={giftTier} onValueChange={(v) => setGiftTier(v as 'pro' | 'premium')}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pro">Pro ($19/mo)</SelectItem>
+                      <SelectItem value="premium">Premium ($79/mo)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="duration">Duration</Label>
+                  <Select value={giftDuration} onValueChange={setGiftDuration}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 Month</SelectItem>
+                      <SelectItem value="3">3 Months</SelectItem>
+                      <SelectItem value="6">6 Months</SelectItem>
+                      <SelectItem value="12">1 Year</SelectItem>
+                      <SelectItem value="24">2 Years</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+
+              <div>
+                <Label htmlFor="reason">Reason (Optional)</Label>
+                <Input
+                  id="reason"
+                  placeholder="e.g., Influencer partnership, Beta tester, etc."
+                  value={giftReason}
+                  onChange={(e) => setGiftReason(e.target.value)}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={giftSubscription}
+                  disabled={giftLoading || !giftEmail}
+                  className="flex items-center gap-2"
+                >
+                  {giftLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Gifting...
+                    </>
+                  ) : (
+                    <>
+                      <Gift className="h-4 w-4" />
+                      Gift Subscription
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowGiftForm(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Gift History */}
       {gifts.length > 0 && (

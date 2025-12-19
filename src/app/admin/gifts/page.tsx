@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Gift, 
+import {
+  Gift,
   Plus,
   Mail,
   Calendar,
@@ -23,6 +23,7 @@ interface GiftSubscription {
   id: string;
   recipientEmail: string;
   recipientName?: string;
+  tier: 'pro' | 'premium';
   durationMonths: number;
   message?: string;
   status: 'pending' | 'sent' | 'claimed' | 'expired';
@@ -38,10 +39,11 @@ export default function AdminGiftsPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
-  
+
   // Form state
   const [recipientEmail, setRecipientEmail] = useState('');
   const [recipientName, setRecipientName] = useState('');
+  const [tier, setTier] = useState<'pro' | 'premium'>('pro');
   const [duration, setDuration] = useState('1');
   const [message, setMessage] = useState('');
 
@@ -57,6 +59,7 @@ export default function AdminGiftsPage() {
           id: '1',
           recipientEmail: 'user@example.com',
           recipientName: 'John Doe',
+          tier: 'pro',
           durationMonths: 3,
           message: 'Thank you for being a beta tester!',
           status: 'claimed',
@@ -70,6 +73,7 @@ export default function AdminGiftsPage() {
           id: '2',
           recipientEmail: 'influencer@example.com',
           recipientName: 'Jane Smith',
+          tier: 'premium',
           durationMonths: 6,
           message: 'Partnership collaboration',
           status: 'sent',
@@ -82,6 +86,7 @@ export default function AdminGiftsPage() {
           id: '3',
           recipientEmail: 'partner@example.com',
           recipientName: 'Mike Johnson',
+          tier: 'premium',
           durationMonths: 12,
           message: 'Strategic partnership gift',
           status: 'pending',
@@ -101,27 +106,29 @@ export default function AdminGiftsPage() {
     }
 
     setCreateLoading(true);
-    
+
     // Simulate creating gift
     setTimeout(() => {
       const newGift: GiftSubscription = {
         id: Date.now().toString(),
         recipientEmail,
         recipientName: recipientName || undefined,
+        tier,
         durationMonths: parseInt(duration),
         message: message || undefined,
         status: 'pending',
-        giftCode: `GIFT-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+        giftCode: `GIFT-${tier.toUpperCase()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
         createdAt: new Date().toISOString()
       };
 
       setGifts(prev => [newGift, ...prev]);
       toast.success('Gift subscription created successfully!');
-      
+
       // Reset form
       setRecipientEmail('');
       setRecipientName('');
+      setTier('pro');
       setDuration('1');
       setMessage('');
       setShowCreateForm(false);
@@ -130,8 +137,8 @@ export default function AdminGiftsPage() {
   };
 
   const sendGift = async (giftId: string) => {
-    setGifts(prev => prev.map(gift => 
-      gift.id === giftId 
+    setGifts(prev => prev.map(gift =>
+      gift.id === giftId
         ? { ...gift, status: 'sent' as const, sentAt: new Date().toISOString() }
         : gift
     ));
@@ -168,11 +175,10 @@ export default function AdminGiftsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Gift Subscriptions</h1>
         <p className="text-gray-600">
-          Create and manage Pro subscription gifts for users and partners
+          Create and manage Pro and Premium subscription gifts for users and partners
         </p>
       </div>
 
@@ -189,7 +195,7 @@ export default function AdminGiftsPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -203,7 +209,7 @@ export default function AdminGiftsPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -217,7 +223,7 @@ export default function AdminGiftsPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -241,7 +247,7 @@ export default function AdminGiftsPage() {
             Create Gift Subscription
           </CardTitle>
           <CardDescription>
-            Send a Pro subscription gift to a user
+            Send a Pro or Premium subscription gift to a user
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -267,7 +273,7 @@ export default function AdminGiftsPage() {
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="recipient-name">Recipient Name (Optional)</Label>
                   <Input
@@ -278,8 +284,21 @@ export default function AdminGiftsPage() {
                   />
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="tier">Subscription Tier</Label>
+                  <select
+                    id="tier"
+                    value={tier}
+                    onChange={(e) => setTier(e.target.value as 'pro' | 'premium')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="pro">Pro ($19/mo)</option>
+                    <option value="premium">Premium ($79/mo)</option>
+                  </select>
+                </div>
+
                 <div>
                   <Label htmlFor="duration">Duration</Label>
                   <select
@@ -295,7 +314,7 @@ export default function AdminGiftsPage() {
                     <option value="24">2 Years</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="message">Personal Message (Optional)</Label>
                   <Input
@@ -306,9 +325,9 @@ export default function AdminGiftsPage() {
                   />
                 </div>
               </div>
-              
+
               <div className="flex gap-2">
-                <Button 
+                <Button
                   onClick={createGift}
                   disabled={createLoading || !recipientEmail}
                   className="flex items-center gap-2"
@@ -325,8 +344,8 @@ export default function AdminGiftsPage() {
                     </>
                   )}
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setShowCreateForm(false)}
                 >
                   Cancel
@@ -360,6 +379,9 @@ export default function AdminGiftsPage() {
                         <StatusIcon className="h-3 w-3 mr-1" />
                         {gift.status}
                       </Badge>
+                      <Badge className={gift.tier === 'premium' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}>
+                        {gift.tier === 'premium' ? '✨ Premium' : 'Pro'}
+                      </Badge>
                       <Badge variant="outline">
                         {gift.durationMonths} month{gift.durationMonths > 1 ? 's' : ''}
                       </Badge>
@@ -377,7 +399,7 @@ export default function AdminGiftsPage() {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     {gift.status === 'pending' && (
                       <Button
