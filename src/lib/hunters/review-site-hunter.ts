@@ -160,11 +160,13 @@ export class ReviewSiteHunter extends BaseHunter {
 
     /**
      * Search for reviews using Grok's web search capability
+     * Enhanced with Product Context for better disambiguation
      */
     private async searchWithGrok(
         reviewConfig: ReviewSiteConfig,
         apiKey: string,
-        excludedKeywords: string[]
+        excludedKeywords: string[],
+        productContext?: string
     ): Promise<GrokReview[]> {
         const { platform, product_name, product_url } = reviewConfig;
 
@@ -174,12 +176,56 @@ export class ReviewSiteHunter extends BaseHunter {
             ? `${product_url} reviews`
             : `${product_name} reviews site:${siteFilter}`;
 
-        const systemPrompt = `You are a review discovery assistant. Search the web for product reviews and return structured data.
+        const excludeContext = excludedKeywords.length > 0
+            ? `\nEXCLUDE reviews mentioning: ${excludedKeywords.join(', ')}`
+            : '';
 
-Return the results as a JSON array of reviews with these fields:
+        const systemPrompt = `You are an expert B2B software review analyst. Your job is to find and extract structured reviews from ${this.getPlatformName(platform)}.
+
+${productContext || ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL: PRODUCT DISAMBIGUATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Many products share similar names. Use these signals to ensure you're finding the RIGHT product:
+
+VERIFICATION CHECKLIST:
+☑ Product URL on review site matches expected domain
+☑ Product category matches (e.g., "Product Management" not "Project Management")
+☑ Product description mentions expected features
+☑ Vendor/company name matches
+
+COMMON MISTAKES TO AVOID:
+- "Loop" could be Loop Email, Loop Returns, Loop Feedback, etc.
+- "Signal" could be Signal Messenger, Signal AI, etc.
+- Always verify via the review site product page URL
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REVIEW QUALITY SIGNALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HIGH QUALITY REVIEWS (prioritize):
+✓ Detailed pros/cons with specific examples
+✓ Mentions specific features by name
+✓ Includes use case context ("We use it for...")
+✓ Verified reviewer (G2 badge, verified purchase)
+✓ Recent (within 6 months)
+✓ From target persona (job title matches target audience)
+
+LOW QUALITY REVIEWS (flag but include):
+✗ Generic praise ("Great product!")
+✗ Suspiciously perfect 5-star with no details
+✗ Very short (<50 words)${excludeContext}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Return a JSON array of reviews with these fields:
 - title: Review title or headline
 - content: Full review text (combine pros, cons, and overall if available)
-- rating: Numerical rating (1-5 or 1-10, normalize to 5-point scale)
+- rating: Numerical rating (normalize to 5-point scale)
 - author_name: Reviewer's name or username
 - author_title: Reviewer's job title (if available)
 - author_company: Reviewer's company (if available)
@@ -187,15 +233,17 @@ Return the results as a JSON array of reviews with these fields:
 - pros: What the reviewer liked (if structured as pros/cons)
 - cons: What the reviewer disliked (if structured as pros/cons)
 - source_url: Direct URL to the review
-- platform: "g2", "capterra", or "trustpilot"
+- platform: "${platform}"
+- preliminary_relevance_score: 0-100 confidence this is about the right product
+- is_verified_reviewer: boolean if reviewer badge visible
 
-Only include genuine user reviews. Exclude promotional content, press releases, and affiliate content.
-${excludedKeywords.length > 0 ? `Exclude reviews mentioning: ${excludedKeywords.join(', ')}` : ''}
-
+Only include reviews with preliminary_relevance_score >= 70.
 Return ONLY a valid JSON array. No explanations or markdown formatting.`;
 
         const userPrompt = `Find the most recent reviews for "${product_name}" on ${this.getPlatformName(platform)}. 
 ${product_url ? `Product page: ${product_url}` : ''}
+
+CRITICAL: Verify you are finding reviews for the correct product, not a similarly-named product.
 
 Look for reviews from the past 30 days if available. Return at least 5-10 reviews if found.`;
 

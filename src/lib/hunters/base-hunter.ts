@@ -259,21 +259,85 @@ export abstract class BaseHunter {
 
   /**
    * Call OpenAI for feedback classification
+   * Enhanced with expanded taxonomy and detailed urgency rules
    */
   private async callOpenAIClassification(
     input: ClassificationInput
   ): Promise<ClassificationOutput> {
-    const systemPrompt = `You are an expert at analyzing customer feedback.Analyze the following feedback and provide a detailed classification.
+    const systemPrompt = `You are an expert product feedback analyst. You're analyzing feedback that has been verified as relevant to the product. Provide deep classification and insight extraction.
 
-Return a JSON object with:
-- classification: bug | feature_request | praise | complaint | churn_risk | question | other
-  - confidence: 0 - 1(how confident are you in this classification)
-    - reasoning: brief explanation of why you chose this classification
-      - urgency_score: 1 - 5(5 = critical, needs response < 2h, 1 = low priority)
-        - urgency_reason: why you assigned this urgency score
-          - sentiment_score: -1 to + 1(-1 = very negative, 0 = neutral, +1 = very positive)
-            - sentiment_category: positive | negative | neutral | mixed
-              - tags: array of relevant tags(max 5)`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLASSIFICATION TAXONOMY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PRIMARY CLASSIFICATION (mutually exclusive):
+
+1. bug - Something isn't working as expected (errors, crashes, broken features)
+2. feature_request - User wants new functionality ("I wish...", "Please add...")
+3. usability_issue - It works but is confusing/hard to use (UX problems)
+4. praise - Positive sentiment, endorsement, recommendation
+5. complaint - Negative sentiment without specific bug (frustration)
+6. comparison - Discussing product vs competitors, switch stories
+7. question - Seeking help or information ("How do I...")
+8. churn_risk - Indicators of potential cancellation ("Thinking of switching...")
+9. other - Doesn't fit above categories
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URGENCY SCORING (1-5)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+5 - CRITICAL (respond within 2 hours):
+  - Data loss or security issues
+  - Complete inability to use product
+  - High-profile user (verified, high followers)
+  - Viral negative post
+  - Explicit churn threat
+
+4 - HIGH (respond within 24 hours):
+  - Major feature broken
+  - Blocking user workflow
+  - Multiple users reporting same issue
+
+3 - MEDIUM (respond within 3 days):
+  - Feature request with good traction
+  - Usability complaints
+  - Moderate negative sentiment
+
+2 - LOW (respond within 1 week):
+  - Minor UX suggestions
+  - Nice-to-have feature requests
+
+1 - INFORMATIONAL (no response needed):
+  - Pure praise (but track it!)
+  - General feedback
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SENTIMENT SCALE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+-1.0 to -0.6: very_negative (anger, threats to leave)
+-0.6 to -0.2: negative (disappointment, criticism)
+-0.2 to +0.2: neutral (factual, balanced)
++0.2 to +0.6: positive (satisfaction, mild praise)
++0.6 to +1.0: very_positive (enthusiasm, advocacy)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT (JSON)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{
+  "classification": "feature_request",
+  "confidence": 0.92,
+  "reasoning": "brief explanation",
+  "urgency_score": 3,
+  "urgency_reason": "why this urgency",
+  "sentiment_score": 0.35,
+  "sentiment_category": "positive",
+  "tags": ["integrations", "slack", "feature-request"],
+  "churn_risk_level": "low" | "medium" | "high",
+  "competitors_mentioned": ["Canny", "ProductBoard"],
+  "features_mentioned": ["AI categorization", "Slack integration"]
+}`;
 
     const userPrompt = `Platform: ${input.platform}
 ${input.title ? `Title: ${input.title}\n` : ''} Content: ${input.content}

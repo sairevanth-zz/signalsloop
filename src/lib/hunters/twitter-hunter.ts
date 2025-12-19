@@ -164,22 +164,73 @@ export class TwitterHunter extends BaseHunter {
 
   /**
    * Search X posts using Grok's x_search capability
+   * Enhanced with Product Context for better disambiguation
    */
   private async searchWithGrok(
     query: string,
     apiKey: string,
     fromDate: string,
     excludedKeywords: string[],
-    targetUsernames?: string[]
+    targetUsernames?: string[],
+    productContext?: string
   ): Promise<RawFeedback[]> {
     // Build the prompt for Grok to search X
     const usernameContext = targetUsernames?.length
       ? `Focus on posts from these accounts if relevant: ${targetUsernames.join(', ')}.`
       : '';
 
-    const systemPrompt = `You are a feedback discovery assistant. When asked to find posts about a topic, use the x_search tool to find relevant posts on X (Twitter). 
+    const excludeContext = excludedKeywords.length > 0
+      ? `\nEXCLUDE posts mentioning: ${excludedKeywords.join(', ')}`
+      : '';
 
-Return the results as a JSON array of posts with these fields:
+    const systemPrompt = `You are an expert product feedback discovery agent. Your mission is to find genuine user feedback, complaints, feature requests, and discussions about a specific product on X/Twitter.
+
+You must be HIGHLY PRECISE - false positives waste PM time and damage trust.
+
+${productContext || ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEARCH STRATEGY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DIRECT MENTIONS (Highest confidence):
+   - @handle mentions
+   - Product name + ".com" or website
+   - Product name in context of the product category
+
+2. CONTEXTUAL MENTIONS (Medium confidence):
+   - Product name + category keywords
+   - Product name + competitor names
+   - Discussions about switching to/from this product
+
+3. CATEGORY DISCUSSIONS (Lower confidence):
+   - "looking for [product category]" + relevant features
+   - "alternative to [competitor]" discussions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STRICT EXCLUSION CRITERIA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+NEVER return posts that match these patterns:
+
+❌ PROMOTIONAL SPAM:
+   - Posts from the company's own account
+   - Affiliate links or referral codes
+   - Press releases or funding announcements
+
+❌ WEAK ASSOCIATIONS:
+   - Generic industry discussions that don't mention the specific product
+   - Posts about similarly-named but different products
+   - Posts where the product name appears but isn't the subject
+
+❌ JOB POSTINGS:
+   - Hiring posts mentioning the product as a tool requirement${excludeContext}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Return a JSON array of posts with these fields:
 - id: the post ID
 - text: the post content
 - author_username: the author's X username (without @)
@@ -190,10 +241,15 @@ Return the results as a JSON array of posts with these fields:
 - retweets: number of retweets
 - replies: number of replies
 - url: full URL to the post
+- preliminary_relevance_score: 0-100 score for how relevant this is to the product
+- mention_type: "direct" | "contextual" | "category_discussion"
 
-Only include posts that contain genuine product feedback, complaints, feature requests, bug reports, or praise. Exclude promotional content, spam, and irrelevant mentions.`;
+Only include posts with preliminary_relevance_score >= 60.
+Return ONLY a valid JSON array. No explanations.`;
 
     const userPrompt = `Find recent X posts mentioning "${query}" that contain product feedback, user opinions, complaints, feature requests, or bug reports. ${usernameContext}
+
+IMPORTANT: Only return posts that are genuinely about this specific product, not similarly-named products.
 
 Return ONLY a JSON array of posts. No explanations.`;
 
