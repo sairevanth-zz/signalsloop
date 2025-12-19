@@ -343,8 +343,9 @@ export function BillingDashboard({
     console.log('🔧 Manage billing clicked');
     console.log('📋 Billing info:', billingInfo);
 
-    if (billingInfo.plan !== 'pro') {
-      console.log('⚠️ User is not on Pro plan');
+    // Allow billing access for pro OR premium plans
+    if (billingInfo.plan !== 'pro' && billingInfo.plan !== 'premium') {
+      console.log('⚠️ User is not on a paid plan');
       toast.info('You need to upgrade to Pro first to access billing management.');
       return;
     }
@@ -558,7 +559,9 @@ export function BillingDashboard({
     });
   };
 
-  const isProPlan = billingInfo.plan === 'pro';
+  // isPaidPlan: Check for pro OR premium
+  const isPaidPlan = billingInfo.plan === 'pro' || billingInfo.plan === 'premium';
+  const isProPlan = isPaidPlan; // Alias for backward compatibility
   const humanizeStatus = (value: string) =>
     value
       .split('_')
@@ -609,7 +612,13 @@ export function BillingDashboard({
   })();
 
   const planSummaryLabel = (() => {
-    if (!isProPlan) return 'SignalsLoop Free';
+    if (!isPaidPlan) return 'SignalsLoop Free';
+    if (billingInfo.plan === 'premium') {
+      if (billingInfo.subscription_type === 'gifted') return 'Premium • Gifted';
+      if (billingInfo.subscription_type === 'yearly') return 'Premium • Yearly';
+      if (billingInfo.subscription_type === 'monthly') return 'Premium • Monthly';
+      return 'SignalsLoop Premium';
+    }
     if (billingInfo.is_trial) return 'Pro Trial';
     if (billingInfo.subscription_type === 'gifted') return billingInfo.is_yearly ? 'Pro • Gifted Yearly' : 'Pro • Gifted';
     if (billingInfo.subscription_type === 'yearly') return 'Pro • Yearly';
@@ -653,10 +662,15 @@ export function BillingDashboard({
           </p>
         </div>
         <Badge
-          variant={billingInfo.plan === 'pro' ? 'default' : 'outline'}
-          className="text-sm"
+          variant={isPaidPlan ? 'default' : 'outline'}
+          className={cn('text-sm', billingInfo.plan === 'premium' && 'bg-purple-600')}
         >
-          {billingInfo.plan === 'pro' ? (
+          {billingInfo.plan === 'premium' ? (
+            <>
+              <Crown className="h-3 w-3 mr-1" />
+              Premium Plan
+            </>
+          ) : billingInfo.plan === 'pro' ? (
             <>
               <Crown className="h-3 w-3 mr-1" />
               {billingInfo.is_trial ? 'Pro Plan (Trial)' : 'Pro Plan'}
@@ -717,9 +731,9 @@ export function BillingDashboard({
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-lg">
-                {billingInfo.plan === 'pro' ? 'SignalsLoop Pro' : 'SignalsLoop Free'}
+                {billingInfo.plan === 'premium' ? 'SignalsLoop Premium' : billingInfo.plan === 'pro' ? 'SignalsLoop Pro' : 'SignalsLoop Free'}
               </h3>
-              {billingInfo.plan === 'pro' ? (
+              {isPaidPlan ? (
                 <div>
                   {billingInfo.is_trial ? (
                     <div>
@@ -845,7 +859,7 @@ export function BillingDashboard({
                     </Button>
                   ) : billingInfo.subscription_type === 'gifted' ? (
                     <div className="text-sm text-muted-foreground">
-                      🎁 Your Pro access is a gift! No payment required.
+                      🎁 Your {billingInfo.plan === 'premium' ? 'Premium' : 'Pro'} access is a gift! No payment required.
                     </div>
                   ) : (
                     <>
@@ -1118,7 +1132,7 @@ export function BillingDashboard({
               : 'Need to change or review your billing details? The Stripe portal lets you update payment methods, cancel or resume subscriptions, and download invoices.'}
           </p>
           <div className="flex flex-wrap gap-2">
-            {billingInfo.subscription_type !== 'gifted' && !billingInfo.is_trial && billingInfo.plan === 'pro' && (
+            {billingInfo.subscription_type !== 'gifted' && !billingInfo.is_trial && isPaidPlan && (
               <Button onClick={handleManageBilling} size="sm">
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Open Billing Portal
@@ -1139,6 +1153,6 @@ export function BillingDashboard({
           </div>
         </CardContent>
       </Card>
-    </div>
+    </div >
   );
 }
