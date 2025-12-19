@@ -25,6 +25,7 @@ const STEPS = [
   { id: 1, name: 'Company Info', description: 'Tell us about your product' },
   { id: 2, name: 'Platforms', description: 'Choose where to hunt' },
   { id: 3, name: 'Keywords', description: 'Define search terms' },
+  { id: 4, name: 'Product Context', description: 'AI disambiguation (optional)' },
 ];
 
 /**
@@ -68,6 +69,16 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
   const [keywords, setKeywords] = useState<string[]>(['']);
   const [excludedKeywords, setExcludedKeywords] = useState<string[]>(['']);
 
+  // Step 4: Product Context (for AI disambiguation)
+  const [productTagline, setProductTagline] = useState('');
+  const [productCategory, setProductCategory] = useState('');
+  const [productDescription, setProductDescription] = useState('');
+  const [targetAudience, setTargetAudience] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [twitterHandle, setTwitterHandle] = useState('');
+  const [excludeTerms, setExcludeTerms] = useState<string[]>(['']);
+  const [generatingContext, setGeneratingContext] = useState(false);
+
   // Load existing config on mount
   useEffect(() => {
     const loadExistingConfig = async () => {
@@ -85,6 +96,15 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
           setIndustry(config.industry || '');
           setKeywords(config.keywords?.length ? config.keywords : ['']);
           setExcludedKeywords(config.excluded_keywords?.length ? config.excluded_keywords : ['']);
+
+          // Load product context fields
+          setProductTagline(config.product_tagline || '');
+          setProductCategory(config.product_category || '');
+          setProductDescription(config.product_description || '');
+          setTargetAudience(config.target_audience || '');
+          setWebsiteUrl(config.website_url || '');
+          setTwitterHandle(config.social_handles?.twitter || '');
+          setExcludeTerms(config.exclude_terms?.length ? config.exclude_terms : ['']);
 
           // Load platforms from integrations
           const platformsRes = await fetch(`/api/hunter/platforms?projectId=${projectId}`);
@@ -179,6 +199,14 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
           industry: industry.trim() || undefined,
           keywords: keywords.filter((k) => k.trim()),
           platforms: selectedPlatforms,
+          // Product context fields
+          productTagline: productTagline.trim() || undefined,
+          productCategory: productCategory.trim() || undefined,
+          productDescription: productDescription.trim() || undefined,
+          targetAudience: targetAudience.trim() || undefined,
+          websiteUrl: websiteUrl.trim() || undefined,
+          socialHandles: twitterHandle.trim() ? { twitter: twitterHandle.trim() } : undefined,
+          excludeTerms: excludeTerms.filter((t) => t.trim()),
         }),
       });
 
@@ -470,6 +498,112 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
                 <li>• Action recommendations will be generated</li>
                 <li>• You'll be notified of urgent items</li>
               </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Product Context */}
+        {currentStep === 4 && (
+          <div className="space-y-6">
+            <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg p-4 mb-6">
+              <h4 className="font-semibold text-amber-900 dark:text-amber-200 mb-2">🎯 Improve AI Accuracy</h4>
+              <p className="text-sm text-amber-800 dark:text-amber-300">
+                This optional context helps the AI distinguish your product from similarly-named products
+                and filter out irrelevant results. You can skip this step if your product name is unique.
+              </p>
+            </div>
+
+            <div>
+              <Label>Product Tagline</Label>
+              <Input
+                value={productTagline}
+                onChange={(e) => setProductTagline(e.target.value)}
+                placeholder="e.g., AI-powered product feedback management"
+                className="mt-1"
+              />
+              <p className="text-xs text-gray-500 mt-1">One-line value proposition</p>
+            </div>
+
+            <div>
+              <Label>Product Category</Label>
+              <Input
+                value={productCategory}
+                onChange={(e) => setProductCategory(e.target.value)}
+                placeholder="e.g., B2B SaaS, Product Management Tools"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label>Product Description</Label>
+              <textarea
+                value={productDescription}
+                onChange={(e) => setProductDescription(e.target.value)}
+                placeholder="2-3 sentence description of what your product does..."
+                className="w-full mt-1 p-2 border rounded-md dark:bg-slate-800 dark:border-slate-600 min-h-[80px]"
+              />
+            </div>
+
+            <div>
+              <Label>Target Audience</Label>
+              <Input
+                value={targetAudience}
+                onChange={(e) => setTargetAudience(e.target.value)}
+                placeholder="e.g., Product managers, startup founders, indie makers"
+                className="mt-1"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Website URL</Label>
+                <Input
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  placeholder="e.g., example.com"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Twitter/X Handle</Label>
+                <Input
+                  value={twitterHandle}
+                  onChange={(e) => setTwitterHandle(e.target.value)}
+                  placeholder="e.g., @yourproduct"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Terms to Exclude (False Positives)</Label>
+              <p className="text-xs text-gray-500 mb-2">Add terms that might cause false matches</p>
+              {excludeTerms.map((term, idx) => (
+                <div key={idx} className="flex gap-2 mb-2">
+                  <Input
+                    value={term}
+                    onChange={(e) =>
+                      updateField(excludeTerms, idx, e.target.value, setExcludeTerms)
+                    }
+                    placeholder="e.g., trading signals, traffic signals"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeField(excludeTerms, idx, setExcludeTerms)}
+                  >
+                    ×
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => addField(excludeTerms, setExcludeTerms)}
+                className="mt-2"
+              >
+                + Add Exclude Term
+              </Button>
             </div>
           </div>
         )}

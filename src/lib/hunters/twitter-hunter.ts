@@ -124,12 +124,14 @@ export class TwitterHunter extends BaseHunter {
 
         try {
           console.log(`[Twitter/Grok] Searching for term: "${term}"`);
+          const productContext = this.getProductContextBlock(config);
           const posts = await this.searchWithGrok(
             term,
             apiKey,
             fromDate,
             config.excluded_keywords,
-            integration.config.twitter_usernames
+            integration.config.twitter_usernames,
+            productContext
           );
           console.log(`[Twitter/Grok] Term "${term}" returned ${posts.length} posts`);
 

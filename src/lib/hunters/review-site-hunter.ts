@@ -97,10 +97,12 @@ export class ReviewSiteHunter extends BaseHunter {
             console.log(`[ReviewSite/Grok] Starting hunt for ${reviewConfig.product_name} on ${reviewConfig.platform}`);
 
             // Search for reviews using Grok
+            const productContext = this.getProductContextBlock(config);
             const reviews = await this.searchWithGrok(
                 reviewConfig,
                 apiKey,
-                config.excluded_keywords
+                config.excluded_keywords,
+                productContext
             );
 
             // Increment usage after successful scan

@@ -79,6 +79,17 @@ export interface HunterConfig {
   auto_theme_detection: boolean;
   theme_detection_threshold: number;
   is_active: boolean;
+  // Product Context fields (for disambiguation)
+  product_tagline?: string;
+  product_category?: string;
+  product_description?: string;
+  target_audience?: string;
+  website_url?: string;
+  social_handles?: {
+    twitter?: string;
+    reddit?: string;
+  };
+  exclude_terms?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -344,6 +355,17 @@ export interface HunterSetupRequest {
   industry?: string;
   keywords?: string[];
   platforms: PlatformType[];
+  // Product Context fields
+  productTagline?: string;
+  productCategory?: string;
+  productDescription?: string;
+  targetAudience?: string;
+  websiteUrl?: string;
+  socialHandles?: {
+    twitter?: string;
+    reddit?: string;
+  };
+  excludeTerms?: string[];
 }
 
 /**

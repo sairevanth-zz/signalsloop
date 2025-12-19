@@ -16,6 +16,7 @@ import {
   HunterError,
 } from '@/types/hunter';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { buildProductContext, formatContextBlock, ProductContext } from './product-context';
 
 /**
  * Abstract base class for all hunters
@@ -38,6 +39,15 @@ export abstract class BaseHunter {
     config: HunterConfig,
     integration: PlatformIntegration
   ): Promise<RawFeedback[]>;
+
+  /**
+   * Build formatted Product Context block from HunterConfig
+   * Use this in subclass prompts for disambiguation
+   */
+  protected getProductContextBlock(config: HunterConfig): string {
+    const context = buildProductContext(config);
+    return formatContextBlock(context);
+  }
 
   /**
    * Classify a single feedback item using OpenAI

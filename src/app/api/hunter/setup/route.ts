@@ -38,6 +38,14 @@ export async function POST(request: NextRequest) {
       industry,
       keywords = [],
       platforms = [],
+      // Product context fields
+      productTagline,
+      productCategory,
+      productDescription,
+      targetAudience,
+      websiteUrl,
+      socialHandles,
+      excludeTerms = [],
     } = body;
 
     // Validate input
@@ -94,6 +102,14 @@ export async function POST(request: NextRequest) {
           competitors,
           industry,
           keywords,
+          // Product context fields
+          product_tagline: productTagline,
+          product_category: productCategory,
+          product_description: productDescription,
+          target_audience: targetAudience,
+          website_url: websiteUrl,
+          social_handles: socialHandles,
+          exclude_terms: excludeTerms,
           updated_at: new Date().toISOString(),
         })
         .eq('id', existingConfig.id)
@@ -116,6 +132,14 @@ export async function POST(request: NextRequest) {
           competitors,
           industry,
           keywords,
+          // Product context fields
+          product_tagline: productTagline,
+          product_category: productCategory,
+          product_description: productDescription,
+          target_audience: targetAudience,
+          website_url: websiteUrl,
+          social_handles: socialHandles,
+          exclude_terms: excludeTerms,
           is_active: true,
         })
         .select('id')
