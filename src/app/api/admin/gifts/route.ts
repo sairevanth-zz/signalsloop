@@ -68,7 +68,7 @@ export const POST = secureAPI(
         sender_name: sender_name || 'SignalsLoop Admin',
         gift_message,
         duration_months,
-        tier,
+        // Note: tier is encoded in redemption_code prefix and passed to email, but not stored separately
         redemption_code,
         status: 'pending',
         expires_at: expires_at || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
