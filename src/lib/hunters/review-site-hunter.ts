@@ -11,7 +11,6 @@ import {
     HunterConfig,
     PlatformIntegration,
     PlatformIntegrationError,
-    PlatformConfig,
 } from '@/types/hunter';
 import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
 
@@ -123,6 +122,7 @@ export class ReviewSiteHunter extends BaseHunter {
 
     /**
      * Extract review site configuration from hunter config
+     * URLs are auto-detected - only company name is required
      */
     private getReviewSiteConfig(
         config: HunterConfig,
@@ -130,40 +130,29 @@ export class ReviewSiteHunter extends BaseHunter {
     ): ReviewSiteConfig {
         const platformType = integration.platform_type;
 
-        // Determine which review site based on platform type or config
+        // Map platform type to review site - URLs are auto-detected via search
         let platform: 'g2' | 'capterra' | 'trustpilot' = 'g2';
-        let product_url: string | undefined;
 
-        if (platformType === 'g2' && integration.config.g2_product_url) {
-            platform = 'g2';
-            product_url = integration.config.g2_product_url;
-        } else if (this.hasCaperraConfig(integration.config)) {
+        if (platformType === 'capterra') {
             platform = 'capterra';
-            product_url = integration.config.capterra_product_url;
-        } else if (this.hasTrustpilotConfig(integration.config)) {
+        } else if (platformType === 'trustpilot') {
             platform = 'trustpilot';
-            product_url = integration.config.trustpilot_product_url;
+        } else {
+            platform = 'g2'; // Default
         }
+
+        // URL is optional - if provided, use it, otherwise search by name
+        const product_url =
+            integration.config.g2_product_url ||
+            (integration.config as any).capterra_product_url ||
+            (integration.config as any).trustpilot_product_url ||
+            undefined;
 
         return {
             platform,
             product_name: config.company_name,
-            product_url,
+            product_url, // Optional - will search by name if not provided
         };
-    }
-
-    /**
-     * Check if Capterra config exists
-     */
-    private hasCaperraConfig(config: PlatformConfig): boolean {
-        return !!(config as any).capterra_product_url;
-    }
-
-    /**
-     * Check if Trustpilot config exists
-     */
-    private hasTrustpilotConfig(config: PlatformConfig): boolean {
-        return !!(config as any).trustpilot_product_url;
     }
 
     /**
