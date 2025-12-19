@@ -15,6 +15,8 @@ export type PlatformType =
   | 'twitter'
   | 'hackernews'
   | 'g2'
+  | 'capterra'
+  | 'trustpilot'
   | 'producthunt'
   | 'appstore'
   | 'playstore';
@@ -125,6 +127,14 @@ export interface PlatformConfig {
   // G2
   g2_product_url?: string;
   g2_scrape_interval_minutes?: number;
+
+  // Capterra (via Grok web search)
+  capterra_product_url?: string;
+  capterra_product_name?: string;
+
+  // Trustpilot (via Grok web search)
+  trustpilot_product_url?: string;
+  trustpilot_business_name?: string;
 
   // ProductHunt
   producthunt_product_slug?: string;
@@ -757,7 +767,25 @@ export const PLATFORM_META: Record<PlatformType, PlatformMeta> = {
     description: 'Collect reviews from G2',
     requiresAuth: false,
     rateLimitPerHour: 12,
-    costTier: 'free',
+    costTier: 'paid',
+  },
+  capterra: {
+    name: 'Capterra',
+    icon: '📊',
+    color: '#FF9D28',
+    description: 'Collect reviews from Capterra',
+    requiresAuth: false,
+    rateLimitPerHour: 12,
+    costTier: 'paid',
+  },
+  trustpilot: {
+    name: 'Trustpilot',
+    icon: '⭐',
+    color: '#00B67A',
+    description: 'Collect reviews from Trustpilot',
+    requiresAuth: false,
+    rateLimitPerHour: 12,
+    costTier: 'paid',
   },
   producthunt: {
     name: 'Product Hunt',
