@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Crown, 
-  Lock, 
+import {
+  Crown,
+  Lock,
   Shield,
   Globe,
   EyeOff,
@@ -21,9 +21,12 @@ import {
 } from 'lucide-react';
 
 interface UserPlan {
-  plan: 'free' | 'pro';
+  plan: 'free' | 'pro' | 'premium';
   features: string[];
 }
+
+// Helper to check if plan is paid (pro or premium)
+const isPaidPlan = (plan: 'free' | 'pro' | 'premium') => plan === 'pro' || plan === 'premium';
 
 interface FeatureConfig {
   id: string;
@@ -37,22 +40,23 @@ interface FeatureConfig {
 // Feature gate hook for use throughout the app
 export function useFeatureGate(feature: string, userPlan: UserPlan) {
   const featureConfig = FEATURES.find(f => f.id === feature);
-  const hasAccess = !featureConfig?.proOnly || userPlan.plan === 'pro';
-  
+  const hasAccess = !featureConfig?.proOnly || isPaidPlan(userPlan.plan);
+
   return {
     hasAccess,
-    isPro: userPlan.plan === 'pro',
+    isPro: isPaidPlan(userPlan.plan),
+    isPremium: userPlan.plan === 'premium',
     feature: featureConfig
   };
 }
 
 // Feature gate component wrapper
-export function FeatureGate({ 
-  feature, 
-  userPlan, 
-  children, 
+export function FeatureGate({
+  feature,
+  userPlan,
+  children,
   fallback,
-  showUpgradePrompt = true 
+  showUpgradePrompt = true
 }: {
   feature: string;
   userPlan: UserPlan;
@@ -72,8 +76,8 @@ export function FeatureGate({
 
   if (showUpgradePrompt) {
     return (
-      <ProFeaturePrompt 
-        feature={featureConfig} 
+      <ProFeaturePrompt
+        feature={featureConfig}
         onUpgrade={() => window.location.href = '/billing'}
       />
     );
@@ -83,10 +87,10 @@ export function FeatureGate({
 }
 
 // Pro feature prompt component
-export function ProFeaturePrompt({ 
-  feature, 
+export function ProFeaturePrompt({
+  feature,
   onUpgrade,
-  compact = false 
+  compact = false
 }: {
   feature?: FeatureConfig;
   onUpgrade: () => void;
@@ -229,11 +233,11 @@ const FEATURES: FeatureConfig[] = [
 ];
 
 // Feature usage component with limits
-export function FeatureUsage({ 
-  feature, 
-  current, 
-  limit, 
-  userPlan 
+export function FeatureUsage({
+  feature,
+  current,
+  limit,
+  userPlan
 }: {
   feature: string;
   current: number;
@@ -263,13 +267,12 @@ export function FeatureUsage({
           </Badge>
         )}
       </div>
-      
+
       {!isUnlimited && (
         <div className="w-full bg-muted rounded-full h-2">
-          <div 
-            className={`h-2 rounded-full transition-all ${
-              isAtLimit ? 'bg-red-500' : isNearLimit ? 'bg-yellow-500' : 'bg-blue-500'
-            }`}
+          <div
+            className={`h-2 rounded-full transition-all ${isAtLimit ? 'bg-red-500' : isNearLimit ? 'bg-yellow-500' : 'bg-blue-500'
+              }`}
             style={{ width: `${Math.min(percentage, 100)}%` }}
           />
         </div>
@@ -291,11 +294,11 @@ export function FeatureManagement({ userPlan }: { userPlan: UserPlan }) {
     { id: 'support', name: 'Support' }
   ];
 
-  const filteredFeatures = selectedCategory === 'all' 
-    ? FEATURES 
+  const filteredFeatures = selectedCategory === 'all'
+    ? FEATURES
     : FEATURES.filter(f => f.category === selectedCategory);
 
-  const enabledFeatures = FEATURES.filter(f => !f.proOnly || userPlan.plan === 'pro').length;
+  const enabledFeatures = FEATURES.filter(f => !f.proOnly || isPaidPlan(userPlan.plan)).length;
   const totalFeatures = FEATURES.length;
 
   return (
@@ -307,8 +310,13 @@ export function FeatureManagement({ userPlan }: { userPlan: UserPlan }) {
             {enabledFeatures} of {totalFeatures} features available on your plan
           </p>
         </div>
-        <Badge variant={userPlan.plan === 'pro' ? 'default' : 'outline'}>
-          {userPlan.plan === 'pro' ? (
+        <Badge variant={isPaidPlan(userPlan.plan) ? 'default' : 'outline'}>
+          {userPlan.plan === 'premium' ? (
+            <>
+              <Crown className="h-3 w-3 mr-1" />
+              Premium Plan
+            </>
+          ) : userPlan.plan === 'pro' ? (
             <>
               <Crown className="h-3 w-3 mr-1" />
               Pro Plan
@@ -336,8 +344,8 @@ export function FeatureManagement({ userPlan }: { userPlan: UserPlan }) {
       {/* Feature Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredFeatures.map((feature) => {
-          const hasAccess = !feature.proOnly || userPlan.plan === 'pro';
-          
+          const hasAccess = !feature.proOnly || isPaidPlan(userPlan.plan);
+
           return (
             <Card key={feature.id} className={`relative ${!hasAccess ? 'opacity-60' : ''}`}>
               <CardContent className="pt-6">
@@ -355,22 +363,22 @@ export function FeatureManagement({ userPlan }: { userPlan: UserPlan }) {
                     </div>
                   )}
                 </div>
-                
+
                 <p className="text-sm text-muted-foreground mb-3">
                   {feature.description}
                 </p>
-                
+
                 <div className="flex items-center justify-between">
-                  <Badge 
+                  <Badge
                     variant={hasAccess ? 'default' : 'outline'}
                     className={!hasAccess ? 'text-yellow-600 border-yellow-600' : ''}
                   >
                     {hasAccess ? 'Available' : 'Pro Only'}
                   </Badge>
-                  
+
                   {!hasAccess && (
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       onClick={() => window.location.href = '/billing'}
                     >
                       Upgrade
@@ -399,7 +407,7 @@ export function FeatureManagement({ userPlan }: { userPlan: UserPlan }) {
                   </p>
                 </div>
               </div>
-              <Button 
+              <Button
                 onClick={() => window.location.href = '/billing'}
                 className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
               >
@@ -419,9 +427,9 @@ export function FeatureGateDemo() {
   const [userPlan, setUserPlan] = useState<UserPlan>({ plan: 'free', features: [] });
 
   const togglePlan = () => {
-    setUserPlan(prev => ({ 
-      ...prev, 
-      plan: prev.plan === 'free' ? 'pro' : 'free' 
+    setUserPlan(prev => ({
+      ...prev,
+      plan: prev.plan === 'free' ? 'pro' : 'free'
     }));
   };
 
@@ -437,7 +445,12 @@ export function FeatureGateDemo() {
         <div className="flex items-center gap-2">
           <span className="text-sm">Demo as:</span>
           <Button onClick={togglePlan} variant="outline" size="sm">
-            {userPlan.plan === 'pro' ? (
+            {userPlan.plan === 'premium' ? (
+              <>
+                <Crown className="h-4 w-4 mr-2 text-purple-500" />
+                Premium User
+              </>
+            ) : userPlan.plan === 'pro' ? (
               <>
                 <Crown className="h-4 w-4 mr-2 text-yellow-500" />
                 Pro User
@@ -473,8 +486,8 @@ export function FeatureGateDemo() {
             <FeatureGate feature="custom_domain" userPlan={userPlan}>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Custom Domain</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="feedback.yourcompany.com"
                   className="w-full p-2 border rounded"
                 />

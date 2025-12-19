@@ -43,7 +43,7 @@ type GiftRow = {
 type ProjectRow = {
   id: string;
   slug: string | null;
-  plan: 'free' | 'pro' | null;
+  plan: 'free' | 'pro' | 'premium' | null;
   stripe_customer_id: string | null;
   subscription_status: string | null;
   subscription_id: string | null;
@@ -78,7 +78,7 @@ async function promoteAccountForGift({
     .upsert(
       {
         user_id: accountId,
-        plan: 'pro',
+        plan: 'pro', // Gift claims default to pro unless explicitly premium
         billing_cycle: 'gifted',
         subscription_status: 'active',
         current_period_end: expiresAt,
@@ -100,7 +100,7 @@ async function promoteAccountForGift({
       {
         id: accountId,
         email: userEmail ?? undefined,
-        plan: 'pro',
+        plan: 'pro', // Gift claims default to pro unless explicitly premium
         updated_at: utcNowIso,
       },
       { onConflict: 'id' }
@@ -113,7 +113,7 @@ async function promoteAccountForGift({
   const { error: projectsUpdateError } = await supabase
     .from('projects')
     .update({
-      plan: 'pro',
+      plan: 'pro', // Gift claims default to pro unless explicitly premium
       subscription_status: 'active',
       current_period_end: expiresAt,
       updated_at: utcNowIso,
@@ -219,7 +219,7 @@ async function autoClaimGiftForAccount({
 
     const updatedProjects = projects.map((project) => ({
       ...project,
-      plan: 'pro',
+      plan: 'pro', // Gift claims default to pro unless explicitly premium
       subscription_status: 'active',
       current_period_end: computedExpiry,
     }));
@@ -298,10 +298,14 @@ export async function GET(request: NextRequest) {
 
     const nowIso = new Date().toISOString();
 
-    let plan: 'free' | 'pro' =
-      accountProfile?.plan === 'pro' || selectedProject?.plan === 'pro' || userRecord?.plan === 'pro'
-        ? 'pro'
-        : 'free';
+    // isPaidPlan: Check for pro OR premium
+    const isPaidPlan = (p: string | null | undefined) => p === 'pro' || p === 'premium';
+
+    let plan: 'free' | 'pro' | 'premium' =
+      isPaidPlan(accountProfile?.plan) ? (accountProfile?.plan as 'pro' | 'premium') :
+        isPaidPlan(selectedProject?.plan) ? (selectedProject?.plan as 'pro' | 'premium') :
+          isPaidPlan(userRecord?.plan) ? (userRecord?.plan as 'pro' | 'premium') :
+            'free';
 
     // Check for active gifted subscription as an additional guard
     let activeGiftExpiresAt: string | null = null;
@@ -358,7 +362,10 @@ export async function GET(request: NextRequest) {
           gift.recipient_email.toLowerCase() === normalizedEmail;
 
         if (matchesRecipientId || matchesEmail) {
-          plan = 'pro';
+          // Preserve premium if already set, otherwise default to pro for gifts
+          if (plan !== 'premium') {
+            plan = 'pro';
+          }
           activeGiftExpiresAt = gift.expires_at ?? activeGiftExpiresAt;
           break;
         }
@@ -389,7 +396,7 @@ export async function GET(request: NextRequest) {
     // Ensure gifted subscriptions are recognized even if account profile hasn't been updated yet
     if (
       subscriptionType === 'monthly' &&
-      plan === 'pro' &&
+      (plan === 'pro' || plan === 'premium') &&
       (activeGiftExpiresAt || (selectedProject && (!selectedProject.stripe_customer_id || selectedProject.stripe_customer_id.startsWith('gift-'))))
     ) {
       subscriptionType = 'gifted';
@@ -420,11 +427,11 @@ export async function GET(request: NextRequest) {
 
     const primaryProject = selectedProject
       ? {
-          id: selectedProject.id,
-          slug: selectedProject.slug,
-          plan: selectedProject.plan,
-          stripe_customer_id: selectedProject.stripe_customer_id,
-        }
+        id: selectedProject.id,
+        slug: selectedProject.slug,
+        plan: selectedProject.plan,
+        stripe_customer_id: selectedProject.stripe_customer_id,
+      }
       : null;
 
     return NextResponse.json({

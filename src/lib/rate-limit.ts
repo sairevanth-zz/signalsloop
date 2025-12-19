@@ -59,6 +59,17 @@ export const RATE_LIMITS = {
       minuteLimit: 10,
     },
   },
+  // Premium uses same limits as pro (or higher if needed)
+  premium: {
+    api: {
+      hourlyLimit: 20000,
+      minuteLimit: 500,
+    },
+    webhookManagement: {
+      hourlyLimit: 100,
+      minuteLimit: 10,
+    },
+  },
   // Rate limits for unauthenticated public endpoints
   public: {
     feedback: {
@@ -213,12 +224,12 @@ export async function getIdentifier(request: NextRequest): Promise<string> {
 }
 
 // Cache for API key -> plan mappings (10 minute TTL)
-const apiKeyPlanCache = new Map<string, { plan: 'free' | 'pro'; expiresAt: number }>();
+const apiKeyPlanCache = new Map<string, { plan: 'free' | 'pro' | 'premium'; expiresAt: number }>();
 
 /**
  * Get user plan from API key with caching
  */
-export async function getUserPlanFromApiKey(apiKey: string): Promise<'free' | 'pro'> {
+export async function getUserPlanFromApiKey(apiKey: string): Promise<'free' | 'pro' | 'premium'> {
   // Check cache first
   const cached = apiKeyPlanCache.get(apiKey);
   if (cached && Date.now() < cached.expiresAt) {
@@ -239,7 +250,12 @@ export async function getUserPlanFromApiKey(apiKey: string): Promise<'free' | 'p
       .eq('key_hash', keyHash)
       .single();
 
-    const plan = apiKeyData?.projects?.plan === 'pro' ? 'pro' : 'free';
+    // Recognize both pro and premium as paid plans
+    const projectPlan = apiKeyData?.projects?.plan;
+    const plan: 'free' | 'pro' | 'premium' =
+      projectPlan === 'premium' ? 'premium' :
+        projectPlan === 'pro' ? 'pro' :
+          'free';
 
     // Cache for 10 minutes
     apiKeyPlanCache.set(apiKey, {
@@ -281,15 +297,16 @@ export async function applyRateLimit(
     const identifier = await getIdentifier(request);
 
     // Get user plan
-    let plan: 'free' | 'pro' = 'free';
+    let plan: 'free' | 'pro' | 'premium' = 'free';
     const authHeader = request.headers.get('authorization');
     if (authHeader?.startsWith('Bearer ')) {
       const apiKey = authHeader.substring(7);
       plan = await getUserPlanFromApiKey(apiKey);
     }
 
-    // Get rate limit config
-    const config = RATE_LIMITS[plan][type];
+    // Get rate limit config - premium uses pro limits
+    const rateLimitPlan = plan === 'premium' ? 'pro' : plan;
+    const config = RATE_LIMITS[rateLimitPlan][type];
 
     // Check rate limit
     const result = checkRateLimit(identifier, config);
