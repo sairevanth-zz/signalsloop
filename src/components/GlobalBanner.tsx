@@ -34,7 +34,7 @@ export default function GlobalBanner({
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [billingInfo, setBillingInfo] = useState<{
-    plan: 'free' | 'pro';
+    plan: 'free' | 'pro' | 'premium';
     subscription_status: string | null;
     subscription_id?: string | null;
     stripe_customer_id: string | null;
@@ -111,7 +111,8 @@ export default function GlobalBanner({
       return;
     }
 
-    if (billingInfo.plan !== 'pro') {
+    // Allow billing access for pro OR premium plans
+    if (billingInfo.plan !== 'pro' && billingInfo.plan !== 'premium') {
       toast.info('You need to upgrade to Pro first to access billing management.');
       return;
     }
@@ -212,8 +213,8 @@ export default function GlobalBanner({
                     </Avatar>
                     {showBilling && billingInfo && (
                       <Badge
-                        variant={billingInfo.plan === 'pro' ? 'default' : 'secondary'}
-                        className={`text-xs ${billingInfo.plan === 'pro' ? 'bg-teal-600' : ''}`}
+                        variant={(billingInfo.plan === 'pro' || billingInfo.plan === 'premium') ? 'default' : 'secondary'}
+                        className={`text-xs ${billingInfo.plan === 'premium' ? 'bg-purple-600' : billingInfo.plan === 'pro' ? 'bg-teal-600' : ''}`}
                       >
                         {billingInfo.is_trial ? 'Trial' : billingInfo.plan.charAt(0).toUpperCase() + billingInfo.plan.slice(1)}
                       </Badge>
@@ -232,12 +233,12 @@ export default function GlobalBanner({
                           <X className="mr-2 h-4 w-4" />
                           Cancel Trial
                         </DropdownMenuItem>
-                      ) : billingInfo.plan === 'pro' && billingInfo.stripe_customer_id ? (
+                      ) : (billingInfo.plan === 'pro' || billingInfo.plan === 'premium') && billingInfo.stripe_customer_id ? (
                         <DropdownMenuItem onClick={handleManageBilling}>
                           <CreditCard className="mr-2 h-4 w-4" />
                           Manage Billing
                         </DropdownMenuItem>
-                      ) : billingInfo.plan === 'pro' && !billingInfo.stripe_customer_id ? (
+                      ) : (billingInfo.plan === 'pro' || billingInfo.plan === 'premium') && !billingInfo.stripe_customer_id ? (
                         <DropdownMenuItem onClick={() => router.push('/app/billing')}>
                           <CreditCard className="mr-2 h-4 w-4" />
                           View Billing
@@ -291,10 +292,10 @@ export default function GlobalBanner({
                     <>
                       <div className="px-2 py-1.5">
                         <Badge
-                          variant={billingInfo.plan === 'pro' ? 'default' : 'secondary'}
-                          className={`text-xs w-full justify-center ${billingInfo.plan === 'pro' ? 'bg-teal-600' : ''}`}
+                          variant={(billingInfo.plan === 'pro' || billingInfo.plan === 'premium') ? 'default' : 'secondary'}
+                          className={`text-xs w-full justify-center ${billingInfo.plan === 'premium' ? 'bg-purple-600' : billingInfo.plan === 'pro' ? 'bg-teal-600' : ''}`}
                         >
-                          {billingInfo.plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
+                          {billingInfo.plan === 'premium' ? 'Premium Plan' : billingInfo.plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
                         </Badge>
                       </div>
                       <DropdownMenuSeparator />
@@ -303,12 +304,12 @@ export default function GlobalBanner({
                           <X className="mr-2 h-4 w-4" />
                           Cancel Trial
                         </DropdownMenuItem>
-                      ) : billingInfo.plan === 'pro' && billingInfo.stripe_customer_id ? (
+                      ) : (billingInfo.plan === 'pro' || billingInfo.plan === 'premium') && billingInfo.stripe_customer_id ? (
                         <DropdownMenuItem onClick={handleManageBilling}>
                           <CreditCard className="mr-2 h-4 w-4" />
                           Manage Billing
                         </DropdownMenuItem>
-                      ) : billingInfo.plan === 'pro' && !billingInfo.stripe_customer_id ? (
+                      ) : (billingInfo.plan === 'pro' || billingInfo.plan === 'premium') && !billingInfo.stripe_customer_id ? (
                         <DropdownMenuItem onClick={() => router.push('/app/billing')}>
                           <CreditCard className="mr-2 h-4 w-4" />
                           View Billing
