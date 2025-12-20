@@ -169,6 +169,20 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
         setNeedsReviewFeedback(reviewItems);
       }
 
+      // Check for pending items (to show processing indicator and start polling)
+      const pendingRes = await fetch(
+        `/api/hunter/feed?projectId=${projectId}&processingStatus=pending&limit=100`
+      );
+      const pendingData = await pendingRes.json();
+
+      if (pendingData.success) {
+        const pendingCount = (pendingData.items || []).length;
+        setProcessingCount(pendingCount);
+        if (pendingCount > 0) {
+          console.log(`[Hunter Dashboard] ${pendingCount} items pending processing`);
+        }
+      }
+
       // Mark as loaded to prevent re-fetch on remount
       dataLoadedRef.current = true;
     } catch (error) {
@@ -191,8 +205,9 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
       const data = await res.json();
 
       if (data.success) {
-        // Reload data after scan
-        setTimeout(loadData, 2000);
+        // Force reload data after scan to show new pending items
+        dataLoadedRef.current = false; // Allow reload
+        await loadData();
       }
     } catch (error) {
       console.error('[Hunter Dashboard] Error triggering scan:', error);
