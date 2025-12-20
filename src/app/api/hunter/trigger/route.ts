@@ -108,37 +108,49 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Run scans
-    const results = [];
-    for (const integration of integrations) {
+    // Run scans in parallel with timeout
+    const scanWithTimeout = async (integration: any) => {
       try {
         const hunter = getHunter(integration.platform_type);
-        const result = await hunter.scan(config, integration);
 
-        // Log the scan
-        await hunter.logScan(result, integration.id, projectId, 'manual');
+        // Create a timeout promise (30 seconds per platform)
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Scan timeout')), 30000)
+        );
 
-        results.push({
+        // Race between scan and timeout
+        const result = await Promise.race([
+          hunter.scan(config, integration),
+          timeoutPromise
+        ]);
+
+        // Log the scan (don't await to save time)
+        hunter.logScan(result, integration.id, projectId, 'manual').catch(console.error);
+
+        return {
           platform: integration.platform_type,
           success: result.success,
           itemsFound: result.itemsFound,
           itemsStored: result.itemsStored,
           error: result.error,
-        });
+        };
       } catch (error) {
         console.error(
           `[Hunter Trigger] Error scanning ${integration.platform_type}:`,
           error
         );
-        results.push({
+        return {
           platform: integration.platform_type,
           success: false,
           itemsFound: 0,
           itemsStored: 0,
           error: error instanceof Error ? error.message : 'Unknown error',
-        });
+        };
       }
-    }
+    };
+
+    // Run all scans in parallel
+    const results = await Promise.all(integrations.map(scanWithTimeout));
 
     return NextResponse.json<TriggerScanResponse>({
       success: true,
