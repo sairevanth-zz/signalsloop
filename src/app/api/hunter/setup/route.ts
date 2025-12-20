@@ -46,6 +46,8 @@ export async function POST(request: NextRequest) {
       websiteUrl,
       socialHandles,
       excludeTerms = [],
+      // Platform-specific config
+      redditSubreddits = [],
     } = body;
 
     // Validate input
@@ -154,13 +156,20 @@ export async function POST(request: NextRequest) {
 
     // Create platform integrations (with default setup status)
     for (const platform of platforms) {
+      // Build platform-specific config
+      let platformConfig: Record<string, unknown> = {};
+
+      if (platform === 'reddit' && redditSubreddits.length > 0) {
+        platformConfig.subreddits = redditSubreddits;
+      }
+
       const { error: platformError } = await supabase
         .from('platform_integrations')
         .upsert(
           {
             project_id: projectId,
             platform_type: platform,
-            config: {},
+            config: platformConfig,
             status: 'setup',
             scan_frequency_minutes: 15,
           },

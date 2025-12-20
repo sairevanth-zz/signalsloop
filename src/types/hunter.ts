@@ -377,6 +377,8 @@ export interface HunterSetupRequest {
     reddit?: string;
   };
   excludeTerms?: string[];
+  // Platform-specific config
+  redditSubreddits?: string[];
 }
 
 /**

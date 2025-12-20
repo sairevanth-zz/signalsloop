@@ -50,6 +50,68 @@ const AVAILABLE_PLATFORMS: PlatformType[] = [
   'producthunt',
 ];
 
+/**
+ * Industry/category to subreddit mapping for auto-suggestion
+ * These are communities where target users typically discuss products
+ */
+const INDUSTRY_SUBREDDIT_MAP: Record<string, string[]> = {
+  // Software & SaaS
+  'saas': ['SaaS', 'startups', 'Entrepreneur', 'smallbusiness'],
+  'software': ['software', 'technology', 'programming'],
+  'b2b': ['SaaS', 'sales', 'marketing', 'startups'],
+
+  // Project Management
+  'project management': ['projectmanagement', 'productivity', 'agile', 'scrum', 'PMTools'],
+  'productivity': ['productivity', 'getdisciplined', 'Notion', 'ObsidianMD'],
+  'task management': ['productivity', 'organizemylife', 'GTD'],
+
+  // Design & Creative
+  'design': ['design', 'UI_Design', 'web_design', 'graphic_design', 'UXDesign'],
+  'ux': ['UXDesign', 'userexperience', 'UI_Design'],
+  'creative': ['creative', 'design', 'graphic_design'],
+
+  // Developer Tools
+  'developer tools': ['programming', 'webdev', 'devops', 'coding'],
+  'devops': ['devops', 'sysadmin', 'kubernetes', 'docker'],
+  'api': ['programming', 'webdev', 'api'],
+
+  // Marketing & Sales
+  'marketing': ['marketing', 'digital_marketing', 'SEO', 'PPC', 'socialmedia'],
+  'sales': ['sales', 'salesforce', 'startups', 'Entrepreneur'],
+  'analytics': ['analytics', 'datascience', 'webanalytics'],
+  'seo': ['SEO', 'bigseo', 'digital_marketing'],
+
+  // Customer Success
+  'customer success': ['CustomerSuccess', 'customersupport', 'SaaS'],
+  'support': ['customersupport', 'helpdesk', 'sysadmin'],
+  'crm': ['sales', 'salesforce', 'CRM'],
+
+  // Finance & Accounting
+  'fintech': ['fintech', 'personalfinance', 'investing', 'startups'],
+  'accounting': ['Accounting', 'bookkeeping', 'smallbusiness'],
+  'payments': ['fintech', 'ecommerce', 'Entrepreneur'],
+
+  // E-commerce
+  'ecommerce': ['ecommerce', 'Entrepreneur', 'dropship', 'FulfillmentByAmazon'],
+  'retail': ['retail', 'ecommerce', 'smallbusiness'],
+
+  // HR & Recruiting
+  'hr': ['humanresources', 'recruiting', 'jobs'],
+  'recruiting': ['recruiting', 'recruitinghell', 'jobs'],
+
+  // AI & Machine Learning
+  'ai': ['artificial', 'MachineLearning', 'ChatGPT', 'LocalLLaMA'],
+  'machine learning': ['MachineLearning', 'datascience', 'learnmachinelearning'],
+
+  // Security
+  'security': ['cybersecurity', 'netsec', 'sysadmin'],
+  'cybersecurity': ['cybersecurity', 'netsec', 'hacking'],
+
+  // Communication
+  'communication': ['Slack', 'teams', 'remotework'],
+  'collaboration': ['productivity', 'remotework', 'digitalnomad'],
+};
+
 export function HunterSetup({ projectId, onComplete, className }: HunterSetupProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -77,6 +139,7 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [twitterHandle, setTwitterHandle] = useState('');
   const [excludeTerms, setExcludeTerms] = useState<string[]>(['']);
+  const [targetSubreddits, setTargetSubreddits] = useState<string[]>(['']);
   const [generatingContext, setGeneratingContext] = useState(false);
 
   // Track if config has been loaded to prevent re-fetching on remount
@@ -117,6 +180,12 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
           const platformsData = await platformsRes.json();
           if (platformsData.success && platformsData.integrations) {
             setSelectedPlatforms(platformsData.integrations.map((i: any) => i.platform_type));
+
+            // Load Reddit subreddits from integration config
+            const redditIntegration = platformsData.integrations.find((i: any) => i.platform_type === 'reddit');
+            if (redditIntegration?.config?.subreddits?.length) {
+              setTargetSubreddits([...redditIntegration.config.subreddits, '']);
+            }
           }
         }
         configLoadedRef.current = true;
@@ -233,13 +302,56 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
         }
       }
 
+      // Auto-suggest subreddits based on industry and competitors
+      if (targetSubreddits.filter(s => s.trim()).length === 0 && selectedPlatforms.includes('reddit')) {
+        const suggestedSubreddits: string[] = [];
+
+        // Match industry to subreddits
+        const industryLower = industry.toLowerCase();
+        for (const [key, subs] of Object.entries(INDUSTRY_SUBREDDIT_MAP)) {
+          if (industryLower.includes(key) || key.includes(industryLower)) {
+            suggestedSubreddits.push(...subs);
+          }
+        }
+
+        // Add competitor-specific subreddits
+        const comps = competitors.filter(c => c.trim());
+        for (const comp of comps) {
+          const compLower = comp.toLowerCase().replace(/\s+/g, '');
+          // Check for known competitor subreddits
+          if (compLower.includes('asana')) suggestedSubreddits.push('asana');
+          if (compLower.includes('notion')) suggestedSubreddits.push('Notion', 'NotionSo');
+          if (compLower.includes('monday')) suggestedSubreddits.push('mondaydotcom');
+          if (compLower.includes('trello')) suggestedSubreddits.push('trello');
+          if (compLower.includes('jira')) suggestedSubreddits.push('jira', 'atlassian');
+          if (compLower.includes('clickup')) suggestedSubreddits.push('ClickUp');
+          if (compLower.includes('slack')) suggestedSubreddits.push('Slack');
+          if (compLower.includes('teams')) suggestedSubreddits.push('MicrosoftTeams');
+          if (compLower.includes('hubspot')) suggestedSubreddits.push('hubspot', 'sales');
+          if (compLower.includes('salesforce')) suggestedSubreddits.push('salesforce');
+          if (compLower.includes('zendesk')) suggestedSubreddits.push('Zendesk', 'customersupport');
+          if (compLower.includes('intercom')) suggestedSubreddits.push('Intercom', 'CustomerSuccess');
+        }
+
+        // Always add general startup/SaaS subreddits
+        if (suggestedSubreddits.length === 0) {
+          suggestedSubreddits.push('SaaS', 'startups', 'Entrepreneur');
+        }
+
+        // Deduplicate and limit
+        const uniqueSubs = [...new Set(suggestedSubreddits)].slice(0, 8);
+        if (uniqueSubs.length > 0) {
+          setTargetSubreddits([...uniqueSubs, '']);
+        }
+      }
+
       toast.success('Auto-generated context from company info');
     } catch (error) {
       console.error('Error auto-generating context:', error);
     } finally {
       setGeneratingContext(false);
     }
-  }, [companyName, industry, nameVariations, competitors, productTagline, productCategory, productDescription, websiteUrl, excludeTerms]);
+  }, [companyName, industry, nameVariations, competitors, productTagline, productCategory, productDescription, websiteUrl, excludeTerms, targetSubreddits, selectedPlatforms]);
 
   const handleNext = async () => {
     if (canProceed() && currentStep < STEPS.length) {
@@ -283,6 +395,8 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
           websiteUrl: websiteUrl.trim() || undefined,
           socialHandles: twitterHandle.trim() ? { twitter: twitterHandle.trim() } : undefined,
           excludeTerms: excludeTerms.filter((t) => t.trim()),
+          // Platform-specific config
+          redditSubreddits: targetSubreddits.filter((s) => s.trim()),
         }),
       });
 
@@ -681,6 +795,49 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
                 + Add Exclude Term
               </Button>
             </div>
+
+            {/* Subreddits targeting - only show if Reddit is selected */}
+            {selectedPlatforms.includes('reddit') && (
+              <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">🔍</span>
+                  <Label className="text-orange-900 dark:text-orange-200 font-semibold">Target Subreddits</Label>
+                </div>
+                <p className="text-xs text-orange-700 dark:text-orange-300 mb-3">
+                  Specify subreddits where your target audience hangs out. Auto-suggested based on your industry.
+                </p>
+                {targetSubreddits.map((sub, idx) => (
+                  <div key={idx} className="flex gap-2 mb-2">
+                    <div className="flex items-center bg-white dark:bg-slate-800 border rounded-md px-2">
+                      <span className="text-gray-400 text-sm">r/</span>
+                      <Input
+                        value={sub}
+                        onChange={(e) =>
+                          updateField(targetSubreddits, idx, e.target.value, setTargetSubreddits)
+                        }
+                        placeholder="subredditname"
+                        className="border-0 focus-visible:ring-0 pl-1"
+                      />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeField(targetSubreddits, idx, setTargetSubreddits)}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addField(targetSubreddits, setTargetSubreddits)}
+                  className="mt-2"
+                >
+                  + Add Subreddit
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
