@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,8 +46,14 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
   const [usageInfo, setUsageInfo] = useState<{ current: number; limit: number; remaining: number; plan: string } | null>(null);
   const [needsReviewFeedback, setNeedsReviewFeedback] = useState<DiscoveredFeedback[]>([]);
 
+  // Track if data has been loaded to prevent re-fetch on tab switch
+  const dataLoadedRef = useRef(false);
+
   useEffect(() => {
-    loadData();
+    // Only load on first mount or if projectId changes
+    if (!dataLoadedRef.current) {
+      loadData();
+    }
   }, [projectId]);
 
   const loadData = async () => {
@@ -111,6 +117,9 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
         }));
         setNeedsReviewFeedback(reviewItems);
       }
+
+      // Mark as loaded to prevent re-fetch on remount
+      dataLoadedRef.current = true;
     } catch (error) {
       console.error('[Hunter Dashboard] Error loading data:', error);
     } finally {

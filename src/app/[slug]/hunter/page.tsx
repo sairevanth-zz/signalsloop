@@ -9,7 +9,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { HunterDashboard } from '@/components/hunter';
@@ -23,15 +23,15 @@ export default function ProjectHunterPage() {
   const [project, setProject] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const projectSlug = params?.slug as string;
-  const supabase = getSupabaseClient();
 
-  useEffect(() => {
-    if (user && supabase && projectSlug) {
-      loadProject();
-    }
-  }, [user, supabase, projectSlug]);
+  // Use ref to track if project has been loaded (prevents re-fetch on tab switch)
+  const projectLoadedRef = useRef(false);
 
-  const loadProject = async () => {
+  const loadProject = useCallback(async () => {
+    // Skip if already loaded
+    if (projectLoadedRef.current) return;
+
+    const supabase = getSupabaseClient();
     if (!supabase) return;
 
     setLoading(true);
@@ -44,12 +44,19 @@ export default function ProjectHunterPage() {
 
       if (error) throw error;
       setProject(data);
+      projectLoadedRef.current = true;
     } catch (error) {
       console.error('Error loading project:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectSlug]);
+
+  useEffect(() => {
+    if (user && projectSlug && !projectLoadedRef.current) {
+      loadProject();
+    }
+  }, [user, projectSlug, loadProject]);
 
   if (authLoading || loading) {
     return (
