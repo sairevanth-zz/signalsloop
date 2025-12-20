@@ -27,6 +27,11 @@ export type PlatformType =
 export type IntegrationStatus = 'active' | 'paused' | 'error' | 'setup';
 
 /**
+ * Processing status for background job pipeline
+ */
+export type ProcessingStatus = 'pending' | 'processing' | 'complete' | 'failed';
+
+/**
  * Feedback classification types
  */
 export type FeedbackClassification =
@@ -254,6 +259,9 @@ export interface DiscoveredFeedback {
   relevance_score?: number;
   relevance_reasoning?: string;
   needs_review?: boolean;
+
+  // Background processing status
+  processing_status?: ProcessingStatus;
 
   // Convenience fields
   source_url?: string; // Alias for platform_url

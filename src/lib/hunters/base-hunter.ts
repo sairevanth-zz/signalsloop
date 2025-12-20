@@ -177,13 +177,16 @@ export abstract class BaseHunter {
 
     return { stored, duplicates };
   }
-
   /**
-   * Execute a complete scan: hunt, filter, classify, and store
-   * 3-Stage Pipeline:
-   *   Stage 1: Discovery (hunt) - Find raw feedback
-   *   Stage 2: Relevance Filter - Score 0-100, exclude false positives
-   *   Stage 3: Classification - Classify high-relevance feedback
+   * Execute a scan: hunt and store immediately with pending status
+   * 
+   * Background Processing Pipeline:
+   *   Stage 1: Discovery (hunt) - Find raw feedback [SYNCHRONOUS - runs here]
+   *   Stage 2: Relevance Filter - Score 0-100 [ASYNC - runs in cron job]
+   *   Stage 3: Classification - Classify feedback [ASYNC - runs in cron job]
+   * 
+   * Items are stored immediately with processing_status='pending'
+   * The cron job (/api/cron/process-feedback) handles Stages 2 & 3
    */
   async scan(
     config: HunterConfig,
@@ -192,7 +195,7 @@ export abstract class BaseHunter {
     const startTime = Date.now();
 
     try {
-      // Stage 1: Hunt for feedback
+      // Stage 1: Hunt for feedback (synchronous)
       console.log(`[${this.platform}] Stage 1: Discovering feedback...`);
       const rawFeedback = await this.hunt(config, integration);
 
@@ -209,79 +212,14 @@ export abstract class BaseHunter {
 
       console.log(`[${this.platform}] Stage 1: Found ${rawFeedback.length} items`);
 
-      // Stage 2: Relevance Filter (with timeout fallback)
-      // Skip Stage 2 if product context is minimal (no disambiguation needed)
-      const context = buildProductContext(config);
-      const hasProductContext = config.product_description || config.product_tagline || config.product_category;
-
-      let toClassify: RawFeedback[] = rawFeedback;
-      let toReview: { item: RawFeedback; relevanceScore: number; relevanceReasoning: string; }[] = [];
-
-      if (hasProductContext && rawFeedback.length > 0) {
-        console.log(`[${this.platform}] Stage 2: Filtering by relevance...`);
-
-        try {
-          // Set a 20-second timeout for Stage 2
-          const filterPromise = filterByRelevance(rawFeedback, context);
-          const timeoutPromise = new Promise<null>((_, reject) =>
-            setTimeout(() => reject(new Error('Stage 2 timeout')), 20000)
-          );
-
-          const filterResult = await Promise.race([filterPromise, timeoutPromise]);
-
-          if (filterResult) {
-            console.log(`[${this.platform}] Stage 2 Results:`, {
-              included: filterResult.stats.includedCount,
-              needsReview: filterResult.stats.needsReviewCount,
-              excluded: filterResult.stats.excludedCount,
-              avgScore: filterResult.stats.avgScore.toFixed(1),
-            });
-
-            toClassify = filterResult.included.map((r: RelevanceResult) => r.item);
-            toReview = filterResult.needsReview.map((r: RelevanceResult) => ({
-              item: r.item,
-              relevanceScore: r.relevanceScore,
-              relevanceReasoning: r.reasoning,
-            }));
-          }
-        } catch (error) {
-          console.warn(`[${this.platform}] Stage 2 skipped (timeout or error):`, error instanceof Error ? error.message : 'Unknown error');
-          console.log(`[${this.platform}] Falling back: passing all ${rawFeedback.length} items to classification`);
-          // Keep toClassify = rawFeedback (all items pass through)
-        }
-      } else {
-        console.log(`[${this.platform}] Stage 2: Skipped (no product context for disambiguation)`);
-      }
-
-      // Stage 3: Classify high-relevance feedback
-      let classifiedFeedback: ClassifiedFeedback[] = [];
-      if (toClassify.length > 0) {
-        console.log(`[${this.platform}] Stage 3: Classifying ${toClassify.length} items...`);
-        classifiedFeedback = await this.classifyBatch(toClassify);
-      }
-
-      // Prepare needs_review items (classify but mark for review)
-      let reviewFeedback: ClassifiedFeedback[] = [];
-      if (toReview.length > 0) {
-        console.log(`[${this.platform}] Stage 3: Classifying ${toReview.length} review items...`);
-        const reviewItems = toReview.map(r => r.item);
-        const classified = await this.classifyBatch(reviewItems);
-        reviewFeedback = classified.map((cf, i) => ({
-          ...cf,
-          relevance_score: toReview[i].relevanceScore,
-          relevance_reasoning: toReview[i].relevanceReasoning,
-          needs_review: true,
-        }));
-      }
-
-      // Combine all classified feedback
-      const allClassified = [...classifiedFeedback, ...reviewFeedback];
-
-      // Store feedback
-      const { stored, duplicates } = await this.store(
-        allClassified,
+      // Store items immediately with pending status (no classification yet)
+      // Background cron job will run Stage 2 + Stage 3
+      const { stored, duplicates } = await this.storeAsPending(
+        rawFeedback,
         config.project_id
       );
+
+      console.log(`[${this.platform}] Items stored as pending for background processing`);
 
       return {
         platform: this.platform,
@@ -303,6 +241,70 @@ export abstract class BaseHunter {
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
+  }
+
+  /**
+   * Store raw feedback items with pending processing status
+   * Classification will happen in background via cron job
+   */
+  protected async storeAsPending(
+    items: RawFeedback[],
+    projectId: string
+  ): Promise<{ stored: number; duplicates: number }> {
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) {
+      console.error(`[${this.platform}] Could not store feedback - Supabase not available`);
+      return { stored: 0, duplicates: 0 };
+    }
+
+    let stored = 0;
+    let duplicates = 0;
+
+    for (const item of items) {
+      // Check for duplicates
+      const { data: existing } = await supabase
+        .from('discovered_feedback')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('platform_id', item.platform_id)
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        duplicates++;
+        continue;
+      }
+
+      // Store with pending status and no classification
+      const { error } = await supabase.from('discovered_feedback').insert({
+        project_id: projectId,
+        platform: item.platform,
+        platform_id: item.platform_id,
+        platform_url: item.platform_url,
+        title: item.title,
+        content: item.content,
+        author_username: item.author_username,
+        author_profile_url: item.author_profile_url,
+        discovered_at: item.discovered_at || new Date().toISOString(),
+        engagement_metrics: item.engagement_metrics || {},
+        // No classification yet - will be filled by cron job
+        classification: null,
+        sentiment_score: null,
+        sentiment_label: null,
+        urgency_level: null,
+        // Mark for background processing
+        processing_status: 'pending',
+        is_duplicate: false,
+        is_archived: false,
+      });
+
+      if (!error) {
+        stored++;
+      } else {
+        console.error(`[${this.platform}] Error storing item:`, error.message);
+      }
+    }
+
+    return { stored, duplicates };
   }
 
   /**

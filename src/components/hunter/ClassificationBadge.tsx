@@ -7,12 +7,14 @@
 
 import { FeedbackClassification, CLASSIFICATION_META } from '@/types/hunter';
 import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
 interface ClassificationBadgeProps {
-  classification: FeedbackClassification;
+  classification: FeedbackClassification | null | undefined;
   size?: 'sm' | 'md' | 'lg';
   showEmoji?: boolean;
   className?: string;
+  isProcessing?: boolean;
 }
 
 export function ClassificationBadge({
@@ -20,9 +22,8 @@ export function ClassificationBadge({
   size = 'md',
   showEmoji = true,
   className,
+  isProcessing = false,
 }: ClassificationBadgeProps) {
-  const meta = CLASSIFICATION_META[classification];
-
   const sizeClasses = {
     sm: 'text-xs px-2 py-0.5',
     md: 'text-sm px-2.5 py-1',
@@ -37,7 +38,28 @@ export function ClassificationBadge({
     blue: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
     purple: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
     gray: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
+    amber: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+    indigo: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
   };
+
+  // Show processing state if no classification yet
+  if (!classification || isProcessing) {
+    return (
+      <span
+        className={cn(
+          'inline-flex items-center gap-1.5 rounded-full font-medium',
+          sizeClasses[size],
+          'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+          className
+        )}
+      >
+        <Loader2 className="h-3 w-3 animate-spin" />
+        <span>Processing...</span>
+      </span>
+    );
+  }
+
+  const meta = CLASSIFICATION_META[classification];
 
   return (
     <span

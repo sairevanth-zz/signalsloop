@@ -45,16 +45,67 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
   const [activeTab, setActiveTab] = useState('feed');
   const [usageInfo, setUsageInfo] = useState<{ current: number; limit: number; remaining: number; plan: string } | null>(null);
   const [needsReviewFeedback, setNeedsReviewFeedback] = useState<DiscoveredFeedback[]>([]);
+  const [processingCount, setProcessingCount] = useState(0);
 
   // Track if data has been loaded to prevent re-fetch on tab switch
   const dataLoadedRef = useRef(false);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Only load on first mount or if projectId changes
     if (!dataLoadedRef.current) {
       loadData();
     }
+
+    // Cleanup polling on unmount
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
   }, [projectId]);
+
+  // Poll for processing updates when items are pending
+  useEffect(() => {
+    if (processingCount > 0 && !pollingRef.current) {
+      // Start polling every 10 seconds
+      pollingRef.current = setInterval(async () => {
+        try {
+          // Check for processing items
+          const res = await fetch(`/api/hunter/feed?projectId=${projectId}&processingStatus=pending&limit=100`);
+          const data = await res.json();
+
+          if (data.success) {
+            const pendingItems = data.items || [];
+            setProcessingCount(pendingItems.length);
+
+            // If no more pending items, reload all data and stop polling
+            if (pendingItems.length === 0) {
+              dataLoadedRef.current = false; // Allow reload
+              loadData();
+              if (pollingRef.current) {
+                clearInterval(pollingRef.current);
+                pollingRef.current = null;
+              }
+            } else {
+              // Refresh the feed to show updated items
+              const feedRes = await fetch(`/api/hunter/feed?projectId=${projectId}&limit=20`);
+              const feedData = await feedRes.json();
+              if (feedData.success) {
+                setRecentFeedback(feedData.items || []);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('[Hunter Dashboard] Polling error:', error);
+        }
+      }, 10000);
+    } else if (processingCount === 0 && pollingRef.current) {
+      // Stop polling when no more processing items
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  }, [processingCount, projectId]);
 
   const loadData = async () => {
     try {

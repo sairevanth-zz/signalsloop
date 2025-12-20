@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
     const needsReview = searchParams.get('needsReview') === 'true';
+    const processingStatus = searchParams.get('processingStatus');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
@@ -100,6 +101,11 @@ export async function GET(request: NextRequest) {
     // Filter for items needing human review
     if (needsReview) {
       query = query.eq('needs_review', true);
+    }
+
+    // Filter by processing status (for polling)
+    if (processingStatus) {
+      query = query.eq('processing_status', processingStatus);
     }
 
     // Apply pagination and ordering
