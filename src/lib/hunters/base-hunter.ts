@@ -209,25 +209,49 @@ export abstract class BaseHunter {
 
       console.log(`[${this.platform}] Stage 1: Found ${rawFeedback.length} items`);
 
-      // Stage 2: Relevance Filter
-      console.log(`[${this.platform}] Stage 2: Filtering by relevance...`);
+      // Stage 2: Relevance Filter (with timeout fallback)
+      // Skip Stage 2 if product context is minimal (no disambiguation needed)
       const context = buildProductContext(config);
-      const filterResult = await filterByRelevance(rawFeedback, context);
+      const hasProductContext = config.product_description || config.product_tagline || config.product_category;
 
-      console.log(`[${this.platform}] Stage 2 Results:`, {
-        included: filterResult.stats.includedCount,
-        needsReview: filterResult.stats.needsReviewCount,
-        excluded: filterResult.stats.excludedCount,
-        avgScore: filterResult.stats.avgScore.toFixed(1),
-      });
+      let toClassify: RawFeedback[] = rawFeedback;
+      let toReview: { item: RawFeedback; relevanceScore: number; relevanceReasoning: string; }[] = [];
 
-      // Prepare items for processing
-      const toClassify = filterResult.included.map((r: RelevanceResult) => r.item);
-      const toReview = filterResult.needsReview.map((r: RelevanceResult) => ({
-        item: r.item,
-        relevanceScore: r.relevanceScore,
-        relevanceReasoning: r.reasoning,
-      }));
+      if (hasProductContext && rawFeedback.length > 0) {
+        console.log(`[${this.platform}] Stage 2: Filtering by relevance...`);
+
+        try {
+          // Set a 20-second timeout for Stage 2
+          const filterPromise = filterByRelevance(rawFeedback, context);
+          const timeoutPromise = new Promise<null>((_, reject) =>
+            setTimeout(() => reject(new Error('Stage 2 timeout')), 20000)
+          );
+
+          const filterResult = await Promise.race([filterPromise, timeoutPromise]);
+
+          if (filterResult) {
+            console.log(`[${this.platform}] Stage 2 Results:`, {
+              included: filterResult.stats.includedCount,
+              needsReview: filterResult.stats.needsReviewCount,
+              excluded: filterResult.stats.excludedCount,
+              avgScore: filterResult.stats.avgScore.toFixed(1),
+            });
+
+            toClassify = filterResult.included.map((r: RelevanceResult) => r.item);
+            toReview = filterResult.needsReview.map((r: RelevanceResult) => ({
+              item: r.item,
+              relevanceScore: r.relevanceScore,
+              relevanceReasoning: r.reasoning,
+            }));
+          }
+        } catch (error) {
+          console.warn(`[${this.platform}] Stage 2 skipped (timeout or error):`, error instanceof Error ? error.message : 'Unknown error');
+          console.log(`[${this.platform}] Falling back: passing all ${rawFeedback.length} items to classification`);
+          // Keep toClassify = rawFeedback (all items pass through)
+        }
+      } else {
+        console.log(`[${this.platform}] Stage 2: Skipped (no product context for disambiguation)`);
+      }
 
       // Stage 3: Classify high-relevance feedback
       let classifiedFeedback: ClassifiedFeedback[] = [];
