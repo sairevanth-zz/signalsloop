@@ -17,6 +17,7 @@ import {
 } from '@/types/hunter';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { buildProductContext, formatContextBlock, ProductContext } from './product-context';
+import { filterByRelevance, RelevanceResult } from './relevance-filter';
 
 /**
  * Abstract base class for all hunters
@@ -178,7 +179,11 @@ export abstract class BaseHunter {
   }
 
   /**
-   * Execute a complete scan: hunt, classify, and store
+   * Execute a complete scan: hunt, filter, classify, and store
+   * 3-Stage Pipeline:
+   *   Stage 1: Discovery (hunt) - Find raw feedback
+   *   Stage 2: Relevance Filter - Score 0-100, exclude false positives
+   *   Stage 3: Classification - Classify high-relevance feedback
    */
   async scan(
     config: HunterConfig,
@@ -187,7 +192,8 @@ export abstract class BaseHunter {
     const startTime = Date.now();
 
     try {
-      // Hunt for feedback
+      // Stage 1: Hunt for feedback
+      console.log(`[${this.platform}] Stage 1: Discovering feedback...`);
       const rawFeedback = await this.hunt(config, integration);
 
       if (rawFeedback.length === 0) {
@@ -201,12 +207,55 @@ export abstract class BaseHunter {
         };
       }
 
-      // Classify feedback
-      const classifiedFeedback = await this.classifyBatch(rawFeedback);
+      console.log(`[${this.platform}] Stage 1: Found ${rawFeedback.length} items`);
+
+      // Stage 2: Relevance Filter
+      console.log(`[${this.platform}] Stage 2: Filtering by relevance...`);
+      const context = buildProductContext(config);
+      const filterResult = await filterByRelevance(rawFeedback, context);
+
+      console.log(`[${this.platform}] Stage 2 Results:`, {
+        included: filterResult.stats.includedCount,
+        needsReview: filterResult.stats.needsReviewCount,
+        excluded: filterResult.stats.excludedCount,
+        avgScore: filterResult.stats.avgScore.toFixed(1),
+      });
+
+      // Prepare items for processing
+      const toClassify = filterResult.included.map((r: RelevanceResult) => r.item);
+      const toReview = filterResult.needsReview.map((r: RelevanceResult) => ({
+        item: r.item,
+        relevanceScore: r.relevanceScore,
+        relevanceReasoning: r.reasoning,
+      }));
+
+      // Stage 3: Classify high-relevance feedback
+      let classifiedFeedback: ClassifiedFeedback[] = [];
+      if (toClassify.length > 0) {
+        console.log(`[${this.platform}] Stage 3: Classifying ${toClassify.length} items...`);
+        classifiedFeedback = await this.classifyBatch(toClassify);
+      }
+
+      // Prepare needs_review items (classify but mark for review)
+      let reviewFeedback: ClassifiedFeedback[] = [];
+      if (toReview.length > 0) {
+        console.log(`[${this.platform}] Stage 3: Classifying ${toReview.length} review items...`);
+        const reviewItems = toReview.map(r => r.item);
+        const classified = await this.classifyBatch(reviewItems);
+        reviewFeedback = classified.map((cf, i) => ({
+          ...cf,
+          relevance_score: toReview[i].relevanceScore,
+          relevance_reasoning: toReview[i].relevanceReasoning,
+          needs_review: true,
+        }));
+      }
+
+      // Combine all classified feedback
+      const allClassified = [...classifiedFeedback, ...reviewFeedback];
 
       // Store feedback
       const { stored, duplicates } = await this.store(
-        classifiedFeedback,
+        allClassified,
         config.project_id
       );
 

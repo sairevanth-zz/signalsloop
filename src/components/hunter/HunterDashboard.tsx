@@ -502,7 +502,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Classification Distribution</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {['bug', 'feature_request', 'praise', 'complaint', 'question', 'other'].map((type) => {
+                  {['bug', 'feature_request', 'usability_issue', 'praise', 'complaint', 'comparison', 'churn_risk', 'question', 'other'].map((type) => {
                     const count = allFeedback.filter(f => f.classification === type).length;
                     const percentage = allFeedback.length > 0 ? ((count / allFeedback.length) * 100).toFixed(0) : 0;
                     return (
