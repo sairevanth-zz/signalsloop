@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -79,8 +79,14 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
   const [excludeTerms, setExcludeTerms] = useState<string[]>(['']);
   const [generatingContext, setGeneratingContext] = useState(false);
 
-  // Load existing config on mount
+  // Track if config has been loaded to prevent re-fetching on remount
+  const configLoadedRef = useRef(false);
+
+  // Load existing config only once on mount
   useEffect(() => {
+    // Skip if already loaded (prevents losing edits on tab switch)
+    if (configLoadedRef.current) return;
+
     const loadExistingConfig = async () => {
       try {
         setLoadingConfig(true);
@@ -113,6 +119,7 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
             setSelectedPlatforms(platformsData.integrations.map((i: any) => i.platform_type));
           }
         }
+        configLoadedRef.current = true;
       } catch (error) {
         console.error('Error loading config:', error);
       } finally {
@@ -167,14 +174,83 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
         return selectedPlatforms.length > 0;
       case 3:
         return true;
+      case 4:
+        return true; // Step 4 is optional
       default:
         return false;
     }
   };
 
-  const handleNext = () => {
+  // Auto-generate product context from company info when reaching step 4
+  const autoGenerateContext = useCallback(async () => {
+    // Only auto-generate if fields are empty and company name exists
+    if (productTagline || productCategory || productDescription) return;
+    if (!companyName.trim()) return;
+
+    try {
+      setGeneratingContext(true);
+
+      // Build context from existing company info
+      const companyLower = companyName.toLowerCase();
+
+      // Auto-fill some fields based on company info
+      if (!productTagline) {
+        setProductTagline(`${companyName} - ${industry || 'Software Solution'}`);
+      }
+
+      if (!productCategory && industry) {
+        setProductCategory(industry);
+      }
+
+      // Auto-fill website URL if not set
+      if (!websiteUrl) {
+        setWebsiteUrl(`${companyLower.replace(/\s+/g, '')}.com`);
+      }
+
+      // Build description from available info
+      if (!productDescription) {
+        const variations = nameVariations.filter(v => v.trim());
+        const comps = competitors.filter(c => c.trim());
+        let desc = `${companyName} is a ${industry || 'software'} product`;
+        if (variations.length > 0) {
+          desc += ` (also known as ${variations.join(', ')})`;
+        }
+        if (comps.length > 0) {
+          desc += `. Competes with ${comps.join(', ')}`;
+        }
+        setProductDescription(desc + '.');
+      }
+
+      // Add common false positive exclusions based on company name
+      if (excludeTerms.filter(t => t.trim()).length === 0) {
+        const commonFalsePositives: string[] = [];
+        // Add industry-specific exclusions
+        if (companyLower.includes('signal')) {
+          commonFalsePositives.push('traffic signal', 'signal processing', 'cell signal');
+        }
+        if (commonFalsePositives.length > 0) {
+          setExcludeTerms([...commonFalsePositives, '']);
+        }
+      }
+
+      toast.success('Auto-generated context from company info');
+    } catch (error) {
+      console.error('Error auto-generating context:', error);
+    } finally {
+      setGeneratingContext(false);
+    }
+  }, [companyName, industry, nameVariations, competitors, productTagline, productCategory, productDescription, websiteUrl, excludeTerms]);
+
+  const handleNext = async () => {
     if (canProceed() && currentStep < STEPS.length) {
-      setCurrentStep(currentStep + 1);
+      const nextStep = currentStep + 1;
+
+      // Auto-generate context when moving to step 4
+      if (nextStep === 4) {
+        await autoGenerateContext();
+      }
+
+      setCurrentStep(nextStep);
     }
   };
 
