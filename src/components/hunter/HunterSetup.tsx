@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PlatformType, PLATFORM_META } from '@/types/hunter';
-import { ChevronRight, ChevronLeft, Check, Loader2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface HunterSetupProps {
@@ -416,6 +416,56 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
     }
   };
 
+  // Handle reset/delete configuration
+  const handleResetConfig = async () => {
+    if (!confirm('Are you sure you want to delete this configuration? All settings will be lost.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Delete hunter config
+      const response = await fetch('/api/hunter/setup', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Reset all form state
+        setCompanyName('');
+        setNameVariations(['']);
+        setCompetitors(['']);
+        setIndustry('');
+        setSelectedPlatforms([]);
+        setKeywords(['']);
+        setExcludedKeywords(['']);
+        setProductTagline('');
+        setProductCategory('');
+        setProductDescription('');
+        setTargetAudience('');
+        setWebsiteUrl('');
+        setTwitterHandle('');
+        setExcludeTerms(['']);
+        setTargetSubreddits(['']);
+        setExistingConfigId(null);
+        setCurrentStep(1);
+
+        toast.success('Configuration reset! You can now set up from scratch.');
+      } else {
+        toast.error(data.error || 'Failed to reset configuration');
+      }
+    } catch (error) {
+      console.error('[HunterSetup] Reset error:', error);
+      toast.error('Failed to reset configuration');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Show loading while fetching config
   if (loadingConfig) {
     return (
@@ -427,10 +477,23 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
 
   return (
     <div className={className}>
-      {/* Edit mode indicator */}
+      {/* Edit mode indicator with Reset button */}
       {existingConfigId && (
-        <div className="mb-4 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg text-sm text-blue-700 dark:text-blue-300">
-          Editing existing configuration
+        <div className="mb-4 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg flex items-center justify-between">
+          <span className="text-sm text-blue-700 dark:text-blue-300">
+            Editing existing configuration
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleResetConfig}
+            disabled={loading}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Reset & Start Over
+          </Button>
         </div>
       )}
 

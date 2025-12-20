@@ -274,3 +274,83 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+/**
+ * DELETE /api/hunter/setup
+ * Delete hunter configuration and start fresh
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { projectId } = body;
+
+    if (!projectId) {
+      return NextResponse.json(
+        { success: false, error: 'projectId is required' },
+        { status: 400 }
+      );
+    }
+
+    // Verify user owns the project
+    const { data: project } = await supabase
+      .from('projects')
+      .select('id, owner_id')
+      .eq('id', projectId)
+      .single();
+
+    if (!project || project.owner_id !== user.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 403 }
+      );
+    }
+
+    // Delete platform integrations
+    const { error: integrationError } = await supabase
+      .from('platform_integrations')
+      .delete()
+      .eq('project_id', projectId);
+
+    if (integrationError) {
+      console.error('[Hunter Setup] Error deleting integrations:', integrationError);
+    }
+
+    // Delete hunter config
+    const { error: configError } = await supabase
+      .from('hunter_configs')
+      .delete()
+      .eq('project_id', projectId);
+
+    if (configError) {
+      console.error('[Hunter Setup] Error deleting config:', configError);
+      return NextResponse.json(
+        { success: false, error: 'Failed to delete configuration' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Configuration deleted successfully',
+    });
+  } catch (error) {
+    console.error('[Hunter Setup] Delete error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to delete configuration',
+      },
+      { status: 500 }
+    );
+  }
+}
