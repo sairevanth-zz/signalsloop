@@ -274,7 +274,7 @@ export abstract class BaseHunter {
         continue;
       }
 
-      // Store with pending status and no classification
+      // Store with pending status - classification will be filled by cron job
       const { error } = await supabase.from('discovered_feedback').insert({
         project_id: projectId,
         platform: item.platform,
@@ -286,12 +286,7 @@ export abstract class BaseHunter {
         author_profile_url: item.author_profile_url,
         discovered_at: item.discovered_at || new Date().toISOString(),
         engagement_metrics: item.engagement_metrics || {},
-        // No classification yet - will be filled by cron job
-        classification: null,
-        sentiment_score: null,
-        sentiment_label: null,
-        urgency_level: null,
-        // Mark for background processing
+        // Mark for background processing - classification null means "pending"
         processing_status: 'pending',
         is_duplicate: false,
         is_archived: false,
