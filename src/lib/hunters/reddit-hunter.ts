@@ -89,18 +89,33 @@ export class RedditHunter extends BaseHunter {
   ): Promise<RawFeedback[]> {
     try {
 
-      // Build search queries
-      const queries = [
-        config.company_name,
-        ...config.name_variations,
-        ...config.keywords,
-      ].filter(Boolean);
+      // Build TARGETED search queries - focus on product-specific feedback
+      // Instead of searching for each keyword separately, combine with product name
+      const productName = config.company_name;
+
+      // Priority 1: Direct product mentions with feedback intent
+      const feedbackQueries = [
+        `"${productName}" review`,
+        `"${productName}" alternative`,
+        `"${productName}" vs`,
+        `switched from "${productName}"`,
+        `switched to "${productName}"`,
+        `${productName} feedback`,
+        `${productName} problem`,
+        `${productName} issue`,
+      ];
+
+      // Priority 2: Name variations (important for misspellings, nicknames)
+      const variationQueries = config.name_variations.map(v => `"${v}"`);
+
+      // Combine and limit to avoid too many requests
+      const allQueries = [...feedbackQueries, ...variationQueries].slice(0, 8);
 
       const results: RawFeedback[] = [];
       const seenIds = new Set<string>();
 
       // Search Reddit-wide for mentions using RSS feeds
-      for (const query of queries) {
+      for (const query of allQueries) {
         // Skip if excluded
         if (this.containsExcludedKeywords(query, config.excluded_keywords)) {
           continue;
@@ -108,7 +123,7 @@ export class RedditHunter extends BaseHunter {
 
         try {
           // Search posts using Reddit's RSS feed (no auth required!)
-          const searchUrl = `${this.REDDIT_SEARCH_RSS}?q=${encodeURIComponent(query)}&sort=new&limit=100`;
+          const searchUrl = `${this.REDDIT_SEARCH_RSS}?q=${encodeURIComponent(query)}&sort=new&limit=50`;
 
           const response = await fetch(searchUrl, {
             headers: {
@@ -227,7 +242,7 @@ export class RedditHunter extends BaseHunter {
 
               // Check if post contains any of our keywords
               const fullContent = `${item.title} ${item.content}`;
-              if (!this.extractKeywords(fullContent, queries)) {
+              if (!this.extractKeywords(fullContent, allQueries)) {
                 continue;
               }
 
