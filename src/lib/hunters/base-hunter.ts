@@ -157,6 +157,7 @@ export abstract class BaseHunter {
           auto_tagged: true,
           is_duplicate: false,
           is_archived: false,
+          processing_status: 'complete', // Mark as fully processed
           discovered_at: (item.discovered_at instanceof Date && !isNaN(item.discovered_at.getTime()))
             ? item.discovered_at.toISOString()
             : new Date().toISOString(),
