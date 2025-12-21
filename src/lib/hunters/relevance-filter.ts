@@ -115,36 +115,47 @@ ${formatContextBlock(context)}
 RELEVANCE SCORING CRITERIA (0-100)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-SCORE 90-100: DEFINITE MATCH
+SCORE 90-100: DEFINITE MATCH - INCLUDE
 - Explicitly names the product AND discusses using it
 - Links to product website
 - @ mentions official account
 - Reviews on product's actual review page
 - "I use {product} for..." statements
+- MUST have actual USER FEEDBACK about the product
 
-SCORE 70-89: HIGH CONFIDENCE
-- Names product in context of its category
-- Compares product to known competitors
-- Discusses features unique to this product
-- From relevant subreddit/community discussing the product
+SCORE 80-89: HIGH CONFIDENCE - INCLUDE
+- Names product in context of discussing its features
+- Direct comparison: "I switched from X to {product}"
+- Discusses specific features/bugs of THIS product
+- From relevant subreddit specifically for this product
+- User is sharing THEIR experience with the product
 
-SCORE 50-69: MODERATE - NEEDS VERIFICATION
+SCORE 60-79: MODERATE - NEEDS HUMAN REVIEW
 - Mentions product name but context is ambiguous
-- Could be about a different product with similar name
-- Generic category discussion that might include product
+- Generic category discussion that briefly mentions product
+- News/announcement about the product (not user feedback)
 - Pass to human review queue
 
-SCORE 30-49: LOW - LIKELY FALSE POSITIVE
-- Product name appears but isn't the subject
+SCORE 40-59: LOW - EXCLUDE
+- Product name appears but isn't the main subject
 - Wrong product category entirely
 - Name match but different product/company
-- DO NOT INCLUDE in results
+- Discussion ABOUT the category, not specific product feedback
+- DO NOT INCLUDE - exclude from results
 
-SCORE 0-29: DEFINITE FALSE POSITIVE
+SCORE 0-39: DEFINITE FALSE POSITIVE - EXCLUDE
 - Completely unrelated content
 - Different product with same name
 - Spam/promotional content
-- DO NOT INCLUDE in results
+- The product is only mentioned in passing
+- DO NOT INCLUDE - exclude from results
+
+⚠️ CRITICAL: BE VERY STRICT. Most content does NOT qualify.
+- Generic productivity discussions = EXCLUDE
+- "What tools do you use?" posts = EXCLUDE unless discussing THIS product specifically
+- News articles = EXCLUDE (we want user feedback, not news)
+- Tutorials/how-to = EXCLUDE unless user is giving feedback on the product
+
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 FALSE POSITIVE DETECTION RULES
