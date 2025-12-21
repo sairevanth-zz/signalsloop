@@ -14,6 +14,7 @@ import {
   ClassificationInput,
   HunterScanResult,
   HunterError,
+  FeedbackClassification,
 } from '@/types/hunter';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { buildProductContext, formatContextBlock, ProductContext } from './product-context';
@@ -178,15 +179,12 @@ export abstract class BaseHunter {
     return { stored, duplicates };
   }
   /**
-   * Execute a scan: hunt and store immediately with pending status
+   * Execute a complete scan: hunt, filter, classify, and store
    * 
-   * Background Processing Pipeline:
-   *   Stage 1: Discovery (hunt) - Find raw feedback [SYNCHRONOUS - runs here]
-   *   Stage 2: Relevance Filter - Score 0-100 [ASYNC - runs in cron job]
-   *   Stage 3: Classification - Classify feedback [ASYNC - runs in cron job]
-   * 
-   * Items are stored immediately with processing_status='pending'
-   * The cron job (/api/cron/process-feedback) handles Stages 2 & 3
+   * 3-Stage Pipeline (ALL SYNCHRONOUS):
+   *   Stage 1: Discovery - Find raw feedback
+   *   Stage 2: Relevance Filter - Score 0-100 (15s timeout)
+   *   Stage 3: Classification - Classify feedback (20s timeout)
    */
   async scan(
     config: HunterConfig,
@@ -195,7 +193,7 @@ export abstract class BaseHunter {
     const startTime = Date.now();
 
     try {
-      // Stage 1: Hunt for feedback (synchronous)
+      // ==================== STAGE 1: DISCOVERY ====================
       console.log(`[${this.platform}] Stage 1: Discovering feedback...`);
       const rawFeedback = await this.hunt(config, integration);
 
@@ -212,14 +210,118 @@ export abstract class BaseHunter {
 
       console.log(`[${this.platform}] Stage 1: Found ${rawFeedback.length} items`);
 
-      // Store items immediately with pending status (no classification yet)
-      // Background cron job will run Stage 2 + Stage 3
-      const { stored, duplicates } = await this.storeAsPending(
-        rawFeedback,
-        config.project_id
-      );
+      // ==================== STAGE 2: RELEVANCE FILTER ====================
+      let toClassify: RawFeedback[] = rawFeedback;
+      let toReview: { item: RawFeedback; relevanceScore: number; relevanceReasoning: string; }[] = [];
+      let excluded: { item: RawFeedback; relevanceScore: number; relevanceReasoning: string; }[] = [];
 
-      console.log(`[${this.platform}] Items stored as pending for background processing`);
+      // Run Stage 2 if we have ANY context (company name counts)
+      const hasContext = config.company_name || config.product_description ||
+        config.product_tagline || (config.keywords && config.keywords.length > 0);
+
+      if (hasContext && rawFeedback.length > 0) {
+        console.log(`[${this.platform}] Stage 2: Filtering by relevance...`);
+
+        try {
+          // 15-second timeout for Stage 2
+          const context = buildProductContext(config);
+          const filterPromise = filterByRelevance(rawFeedback, context);
+          const timeoutPromise = new Promise<null>((_, reject) =>
+            setTimeout(() => reject(new Error('Stage 2 timeout')), 15000)
+          );
+
+          const filterResult = await Promise.race([filterPromise, timeoutPromise]);
+
+          if (filterResult) {
+            console.log(`[${this.platform}] Stage 2 Results:`, {
+              included: filterResult.stats.includedCount,
+              needsReview: filterResult.stats.needsReviewCount,
+              excluded: filterResult.stats.excludedCount,
+              avgScore: filterResult.stats.avgScore.toFixed(1),
+            });
+
+            toClassify = filterResult.included.map((r: RelevanceResult) => r.item);
+            toReview = filterResult.needsReview.map((r: RelevanceResult) => ({
+              item: r.item,
+              relevanceScore: r.relevanceScore,
+              relevanceReasoning: r.reasoning,
+            }));
+            excluded = filterResult.excluded.map((r: RelevanceResult) => ({
+              item: r.item,
+              relevanceScore: r.relevanceScore,
+              relevanceReasoning: r.reasoning,
+            }));
+          }
+        } catch (error) {
+          console.warn(`[${this.platform}] Stage 2 skipped:`, error instanceof Error ? error.message : 'Unknown error');
+          // Keep all items for classification if Stage 2 fails
+        }
+      } else {
+        console.log(`[${this.platform}] Stage 2: Skipped (no product context)`);
+      }
+
+      // ==================== STAGE 3: CLASSIFICATION ====================
+      let classifiedFeedback: ClassifiedFeedback[] = [];
+
+      if (toClassify.length > 0) {
+        console.log(`[${this.platform}] Stage 3: Classifying ${toClassify.length} items...`);
+        try {
+          classifiedFeedback = await this.classifyBatchWithTimeout(toClassify, 20000);
+        } catch (error) {
+          console.warn(`[${this.platform}] Stage 3 error, storing as unclassified:`, error);
+          // Convert to unclassified feedback with all required fields
+          classifiedFeedback = toClassify.map(item => ({
+            ...item,
+            classification: 'other' as FeedbackClassification,
+            classification_confidence: 0,
+            classification_reason: 'Classification failed',
+            urgency_score: 0,
+            urgency_reason: '',
+            sentiment_score: 0,
+            sentiment_category: 'neutral',
+            tags: [],
+            engagement_score: 0,
+          }));
+        }
+      }
+
+      // Classify needs_review items
+      let reviewFeedback: ClassifiedFeedback[] = [];
+      if (toReview.length > 0) {
+        console.log(`[${this.platform}] Stage 3: Classifying ${toReview.length} review items...`);
+        try {
+          const reviewItems = toReview.map(r => r.item);
+          const classified = await this.classifyBatchWithTimeout(reviewItems, 15000);
+          reviewFeedback = classified.map((cf, i) => ({
+            ...cf,
+            relevance_score: toReview[i].relevanceScore,
+            relevance_reasoning: toReview[i].relevanceReasoning,
+            needs_review: true,
+          }));
+        } catch (error) {
+          console.warn(`[${this.platform}] Stage 3 review error:`, error);
+        }
+      }
+
+      // Combine all classified feedback
+      const allClassified = [...classifiedFeedback, ...reviewFeedback];
+
+      // ==================== STORE RESULTS ====================
+      const { stored, duplicates } = await this.store(allClassified, config.project_id);
+
+      // Also store excluded items as archived (low relevance)
+      let excludedStored = 0;
+      for (const ex of excluded) {
+        const result = await this.storeExcluded(
+          ex.item,
+          config.project_id,
+          ex.relevanceScore,
+          ex.relevanceReasoning
+        );
+        if (result) excludedStored++;
+      }
+
+      console.log(`[${this.platform}] Complete: ${stored} stored, ${excludedStored} excluded, ${duplicates} duplicates`);
 
       return {
         platform: this.platform,
@@ -241,6 +343,64 @@ export abstract class BaseHunter {
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
+  }
+
+  /**
+   * Classify batch with timeout
+   */
+  private async classifyBatchWithTimeout(items: RawFeedback[], timeoutMs: number): Promise<ClassifiedFeedback[]> {
+    const classifyPromise = this.classifyBatch(items);
+    const timeoutPromise = new Promise<ClassifiedFeedback[]>((_, reject) =>
+      setTimeout(() => reject(new Error('Classification timeout')), timeoutMs)
+    );
+    return Promise.race([classifyPromise, timeoutPromise]);
+  }
+
+  /**
+   * Store an excluded (low relevance) item as archived
+   */
+  private async storeExcluded(
+    item: RawFeedback,
+    projectId: string,
+    relevanceScore: number,
+    relevanceReasoning: string
+  ): Promise<boolean> {
+    const supabase = getSupabaseServiceRoleClient();
+    if (!supabase) return false;
+
+    // Check for duplicate
+    const { data: existing } = await supabase
+      .from('discovered_feedback')
+      .select('id')
+      .eq('project_id', projectId)
+      .eq('platform_id', item.platform_id)
+      .limit(1);
+
+    if (existing && existing.length > 0) return false;
+
+    const { error } = await supabase.from('discovered_feedback').insert({
+      project_id: projectId,
+      platform: item.platform,
+      platform_id: item.platform_id,
+      platform_url: item.platform_url,
+      title: item.title,
+      content: item.content,
+      author_username: item.author_username,
+      author_profile_url: item.author_profile_url,
+      classification: 'other',
+      sentiment_score: 0,
+      sentiment_category: 'neutral',
+      urgency_score: 0,
+      relevance_score: relevanceScore,
+      relevance_reasoning: relevanceReasoning,
+      discovered_at: item.discovered_at || new Date().toISOString(),
+      engagement_metrics: item.engagement_metrics || {},
+      processing_status: 'complete',
+      is_duplicate: false,
+      is_archived: true, // Excluded items are archived
+    });
+
+    return !error;
   }
 
   /**
