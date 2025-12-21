@@ -181,11 +181,15 @@ export abstract class BaseHunter {
   /**
    * Execute a complete scan: hunt, filter, classify, and store
    * 
-   * 3-Stage Pipeline (ALL SYNCHRONOUS):
-   *   Stage 1: Discovery - Find raw feedback
-   *   Stage 2: Relevance Filter - Score 0-100 (15s timeout)
-   *   Stage 3: Classification - Classify feedback (20s timeout)
+   * HYBRID 3-Stage Pipeline:
+   *   Stage 1: Discovery - Find raw feedback [SYNC]
+   *   Stage 2: Relevance Filter - Score 0-100 [SYNC for first N items]
+   *   Stage 3: Classification - Classify feedback [SYNC for first N items]
+   *   
+   * Items beyond SYNC_LIMIT are stored as pending for background cron
    */
+  private SYNC_LIMIT = 15; // Process first 15 items sync for immediate value
+
   async scan(
     config: HunterConfig,
     integration: PlatformIntegration
@@ -210,8 +214,23 @@ export abstract class BaseHunter {
 
       console.log(`[${this.platform}] Stage 1: Found ${rawFeedback.length} items`);
 
-      // ==================== STAGE 2: RELEVANCE FILTER ====================
-      let toClassify: RawFeedback[] = rawFeedback;
+      // ==================== SPLIT: SYNC vs ASYNC ====================
+      // Process first N items synchronously for immediate value
+      // Store remaining items as pending for background cron
+      const syncBatch = rawFeedback.slice(0, this.SYNC_LIMIT);
+      const asyncBatch = rawFeedback.slice(this.SYNC_LIMIT);
+
+      if (asyncBatch.length > 0) {
+        console.log(`[${this.platform}] Queuing ${asyncBatch.length} items for background processing`);
+        // Store async items as pending (cron will handle Stage 2+3)
+        const { stored: pendingStored } = await this.storeAsPending(asyncBatch, config.project_id);
+        console.log(`[${this.platform}] ${pendingStored} items queued for cron`);
+      }
+
+      console.log(`[${this.platform}] Processing ${syncBatch.length} items synchronously...`);
+
+      // ==================== STAGE 2: RELEVANCE FILTER (sync batch only) ====================
+      let toClassify: RawFeedback[] = syncBatch;
       let toReview: { item: RawFeedback; relevanceScore: number; relevanceReasoning: string; }[] = [];
       let excluded: { item: RawFeedback; relevanceScore: number; relevanceReasoning: string; }[] = [];
 
@@ -219,13 +238,13 @@ export abstract class BaseHunter {
       const hasContext = config.company_name || config.product_description ||
         config.product_tagline || (config.keywords && config.keywords.length > 0);
 
-      if (hasContext && rawFeedback.length > 0) {
+      if (hasContext && syncBatch.length > 0) {
         console.log(`[${this.platform}] Stage 2: Filtering by relevance...`);
 
         try {
           // 15-second timeout for Stage 2
           const context = buildProductContext(config);
-          const filterPromise = filterByRelevance(rawFeedback, context);
+          const filterPromise = filterByRelevance(syncBatch, context);
           const timeoutPromise = new Promise<null>((_, reject) =>
             setTimeout(() => reject(new Error('Stage 2 timeout')), 15000)
           );
