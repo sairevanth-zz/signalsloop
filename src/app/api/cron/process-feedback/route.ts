@@ -117,14 +117,19 @@ export async function GET(request: NextRequest) {
                     engagement_metrics: item.engagement_metrics || {},
                 }));
 
-                // Stage 2: Relevance filtering (if product context exists)
+                // Stage 2: Relevance filtering
+                // Run if we have ANY identifying info (company name is enough)
                 let itemsToClassify = rawItems;
                 let relevanceResults: Map<string, { score: number; reasoning: string; needsReview: boolean }> = new Map();
 
-                const hasProductContext = config?.product_description || config?.product_tagline || config?.product_category;
+                // Run Stage 2 if we have company name OR keywords - basic filtering is still valuable
+                const hasAnyContext = config?.company_name ||
+                    (config?.keywords && config.keywords.length > 0) ||
+                    config?.product_description ||
+                    config?.product_tagline;
 
-                if (hasProductContext && process.env.OPENAI_API_KEY) {
-                    console.log(`[Cron] Running Stage 2 for project ${projectId}...`);
+                if (hasAnyContext && process.env.OPENAI_API_KEY) {
+                    console.log(`[Cron] Running Stage 2 for project ${projectId} (company: ${config?.company_name})...`);
                     try {
                         const context = buildProductContext(config as HunterConfig);
                         const filterResult = await filterByRelevance(rawItems, context);
@@ -146,7 +151,7 @@ export async function GET(request: NextRequest) {
                             });
                         }
 
-                        // Mark excluded items as complete (with low relevance)
+                        // Mark excluded items as complete (with low relevance) and archive
                         for (const excluded of filterResult.excluded) {
                             await supabase
                                 .from('discovered_feedback')
@@ -159,6 +164,9 @@ export async function GET(request: NextRequest) {
                                 })
                                 .eq('platform_id', excluded.item.platform_id)
                                 .eq('project_id', projectId);
+
+                            // Count excluded as processed
+                            processed++;
                         }
 
                         // Only classify included + needs_review items
@@ -168,6 +176,8 @@ export async function GET(request: NextRequest) {
                         console.error(`[Cron] Stage 2 error, proceeding with all items:`, error);
                         // Continue with all items if Stage 2 fails
                     }
+                } else {
+                    console.warn(`[Cron] Stage 2 SKIPPED - no context available for project ${projectId}`);
                 }
 
                 // Stage 3: Classification
