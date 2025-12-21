@@ -386,12 +386,11 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <PlatformBadge platform={item.platform} size="sm" />
-                      {item.classification && (
-                        <ClassificationBadge
-                          classification={item.classification}
-                          size="sm"
-                        />
-                      )}
+                      <ClassificationBadge
+                        classification={item.classification}
+                        size="sm"
+                        isProcessing={item.processing_status === 'pending' || item.processing_status === 'processing'}
+                      />
                       {item.urgency_score && item.urgency_score >= 4 && (
                         <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
                           Urgent
@@ -692,12 +691,11 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <PlatformBadge platform={item.platform} size="sm" />
-                      {item.classification && (
-                        <ClassificationBadge
-                          classification={item.classification}
-                          size="sm"
-                        />
-                      )}
+                      <ClassificationBadge
+                        classification={item.classification}
+                        size="sm"
+                        isProcessing={item.processing_status === 'pending' || item.processing_status === 'processing'}
+                      />
                       <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded">
                         Relevance: {item.relevance_score}%
                       </span>
