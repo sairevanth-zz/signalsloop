@@ -26,6 +26,7 @@ import {
   PlatformType,
 } from '@/types/hunter';
 import { RefreshCw, Settings, TrendingUp, AlertCircle, ExternalLink, Clock, User, ThumbsUp, ThumbsDown, Tag } from 'lucide-react';
+import { ScanProgressPanel } from './ScanProgressPanel';
 
 interface HunterDashboardProps {
   projectId: string;
@@ -46,6 +47,7 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
   const [usageInfo, setUsageInfo] = useState<{ current: number; limit: number; remaining: number; plan: string } | null>(null);
   const [needsReviewFeedback, setNeedsReviewFeedback] = useState<DiscoveredFeedback[]>([]);
   const [processingCount, setProcessingCount] = useState(0);
+  const [currentScanId, setCurrentScanId] = useState<string | null>(null);
 
   // Track if data has been loaded to prevent re-fetch on tab switch
   const dataLoadedRef = useRef(false);
@@ -205,6 +207,10 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
       const data = await res.json();
 
       if (data.success) {
+        // Store scanId for progress tracking
+        if (data.scanId) {
+          setCurrentScanId(data.scanId);
+        }
         // Force reload data after scan to show new pending items
         dataLoadedRef.current = false; // Allow reload
         await loadData();
@@ -289,6 +295,14 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
           </Button>
         </div>
       </div>
+
+      {/* Scan Progress Panel */}
+      {currentScanId && (
+        <ScanProgressPanel
+          scanId={currentScanId}
+          onClose={() => setCurrentScanId(null)}
+        />
+      )}
 
       {/* Stats Overview */}
       {stats && (
