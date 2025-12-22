@@ -3,19 +3,15 @@
  * Utilities for managing the queue-based Hunter architecture
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-
-// Lazy-initialized Supabase client (avoids build-time errors)
-let _supabase: SupabaseClient | null = null;
+import { getServiceRoleClient } from '@/lib/supabase-singleton';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 function getSupabase(): SupabaseClient {
-    if (!_supabase) {
-        _supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
+    const client = getServiceRoleClient();
+    if (!client) {
+        throw new Error('[JobQueue] Supabase client not available - missing env vars');
     }
-    return _supabase;
+    return client;
 }
 
 // ==========================================
