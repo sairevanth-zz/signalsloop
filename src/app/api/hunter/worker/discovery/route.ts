@@ -50,6 +50,7 @@ export async function POST() {
             .single();
 
         if (configError || !config) {
+            console.error(`[Discovery Worker] FAILED: No hunter config for project ${job.project_id}:`, configError);
             await failJob(job.id, `No hunter config found: ${configError?.message}`, false);
             await updatePlatformStatus(job.scan_id, job.platform, 'failed');
             return NextResponse.json({ processed: 0, error: 'No config' });
@@ -65,6 +66,7 @@ export async function POST() {
             .single();
 
         if (intError || !integration) {
+            console.error(`[Discovery Worker] FAILED: No integration for ${job.platform} in project ${job.project_id}:`, intError);
             await failJob(job.id, `No integration for ${job.platform}: ${intError?.message}`, false);
             await updatePlatformStatus(job.scan_id, job.platform, 'failed');
             return NextResponse.json({ processed: 0, error: 'No integration' });
