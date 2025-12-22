@@ -61,11 +61,11 @@ export async function POST() {
             .select('*')
             .eq('project_id', job.project_id)
             .eq('platform_type', job.platform)
-            .eq('status', 'active')
+            .in('status', ['active', 'paused', 'setup'])
             .single();
 
         if (intError || !integration) {
-            await failJob(job.id, `No active integration for ${job.platform}`, false);
+            await failJob(job.id, `No integration for ${job.platform}: ${intError?.message}`, false);
             await updatePlatformStatus(job.scan_id, job.platform, 'failed');
             return NextResponse.json({ processed: 0, error: 'No integration' });
         }
