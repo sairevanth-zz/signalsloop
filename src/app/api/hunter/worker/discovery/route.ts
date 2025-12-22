@@ -57,7 +57,7 @@ export async function POST() {
 
         // Get integration for this platform
         const { data: integration, error: intError } = await supabase
-            .from('hunter_integrations')
+            .from('platform_integrations')
             .select('*')
             .eq('project_id', job.project_id)
             .eq('platform_type', job.platform)

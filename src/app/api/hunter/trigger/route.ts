@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     let integrations;
     if (integrationId) {
       const { data } = await supabase
-        .from('hunter_integrations')
+        .from('platform_integrations')
         .select('*')
         .eq('id', integrationId)
         .eq('status', 'active')
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       integrations = data ? [data] : [];
     } else if (platformType) {
       const { data } = await supabase
-        .from('hunter_integrations')
+        .from('platform_integrations')
         .select('*')
         .eq('project_id', projectId)
         .eq('platform_type', platformType)
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Get all active integrations
       const { data } = await supabase
-        .from('hunter_integrations')
+        .from('platform_integrations')
         .select('*')
         .eq('project_id', projectId)
         .eq('status', 'active');
