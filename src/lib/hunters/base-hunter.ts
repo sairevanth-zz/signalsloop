@@ -526,85 +526,77 @@ export abstract class BaseHunter {
   private async callOpenAIClassification(
     input: ClassificationInput
   ): Promise<ClassificationOutput> {
-    const systemPrompt = `You are an expert product feedback analyst. You're analyzing feedback that has been verified as relevant to the product. Provide deep classification and insight extraction.
+    const systemPrompt = `Classify this verified product feedback. Extract actionable insights.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CLASSIFICATION TAXONOMY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+═══════════════════════════════════════════════════════════════
+CLASSIFICATION (pick ONE):
+═══════════════════════════════════════════════════════════════
 
-PRIMARY CLASSIFICATION (mutually exclusive):
+bug - broken, errors, crashes, "doesn't work"
+feature_request - "I wish", "please add", missing capability
+usability_issue - works but confusing, "can't figure out"
+praise - positive, recommendation, "love it"
+complaint - negative without specific bug, "frustrating"
+comparison - mentions competitors, "switched from", "vs"
+question - "how do I", "can it do"
+churn_risk - "thinking of switching", "looking for alternatives"
+other - doesn't fit above categories
 
-1. bug - Something isn't working as expected (errors, crashes, broken features)
-2. feature_request - User wants new functionality ("I wish...", "Please add...")
-3. usability_issue - It works but is confusing/hard to use (UX problems)
-4. praise - Positive sentiment, endorsement, recommendation
-5. complaint - Negative sentiment without specific bug (frustration)
-6. comparison - Discussing product vs competitors, switch stories
-7. question - Seeking help or information ("How do I...")
-8. churn_risk - Indicators of potential cancellation ("Thinking of switching...")
-9. other - Doesn't fit above categories
+═══════════════════════════════════════════════════════════════
+URGENCY (1-5):
+═══════════════════════════════════════════════════════════════
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-URGENCY SCORING (1-5)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5: Data loss, security, viral complaint, churn threat
+4: Major bug, workflow blocked
+3: Feature request with traction, usability issue
+2: Minor suggestion
+1: Pure praise, general feedback
 
-5 - CRITICAL (respond within 2 hours):
-  - Data loss or security issues
-  - Complete inability to use product
-  - High-profile user (verified, high followers)
-  - Viral negative post
-  - Explicit churn threat
+═══════════════════════════════════════════════════════════════
+SENTIMENT (-1 to +1):
+═══════════════════════════════════════════════════════════════
 
-4 - HIGH (respond within 24 hours):
-  - Major feature broken
-  - Blocking user workflow
-  - Multiple users reporting same issue
+-1 to -0.5: Very negative
+-0.5 to -0.1: Negative
+-0.1 to +0.1: Neutral
++0.1 to +0.5: Positive
++0.5 to +1: Very positive
 
-3 - MEDIUM (respond within 3 days):
-  - Feature request with good traction
-  - Usability complaints
-  - Moderate negative sentiment
-
-2 - LOW (respond within 1 week):
-  - Minor UX suggestions
-  - Nice-to-have feature requests
-
-1 - INFORMATIONAL (no response needed):
-  - Pure praise (but track it!)
-  - General feedback
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SENTIMENT SCALE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
--1.0 to -0.6: very_negative (anger, threats to leave)
--0.6 to -0.2: negative (disappointment, criticism)
--0.2 to +0.2: neutral (factual, balanced)
-+0.2 to +0.6: positive (satisfaction, mild praise)
-+0.6 to +1.0: very_positive (enthusiasm, advocacy)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-OUTPUT FORMAT (JSON)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+═══════════════════════════════════════════════════════════════
+OUTPUT (JSON):
+═══════════════════════════════════════════════════════════════
 
 {
   "classification": "feature_request",
-  "confidence": 0.92,
+  "confidence": 0.9,
   "reasoning": "brief explanation",
   "urgency_score": 3,
-  "urgency_reason": "why this urgency",
-  "sentiment_score": 0.35,
+  "urgency_reason": "Feature request with clear use case",
+  "sentiment_score": 0.3,
   "sentiment_category": "positive",
-  "tags": ["integrations", "slack", "feature-request"],
-  "churn_risk_level": "low" | "medium" | "high",
-  "competitors_mentioned": ["Canny", "ProductBoard"],
-  "features_mentioned": ["AI categorization", "Slack integration"]
+  "tags": ["integrations", "slack"],
+  "extracted": {
+    "features_mentioned": ["AI categorization"],
+    "competitors_mentioned": ["Canny"],
+    "integrations_requested": ["Slack"],
+    "pain_points": [],
+    "praise_points": ["time savings"]
+  },
+  "quotable": "Best single quote from feedback",
+  "churn_risk_level": "low",
+  "action_needed": true
 }`;
 
-    const userPrompt = `Platform: ${input.platform}
-${input.title ? `Title: ${input.title}\n` : ''} Content: ${input.content}
-${input.authorMetadata ? `\nAuthor Info: ${JSON.stringify(input.authorMetadata)}` : ''}
-${input.engagementMetrics ? `\nEngagement: ${JSON.stringify(input.engagementMetrics)}` : ''} `;
+    const userPrompt = `Classify this feedback:
+
+CONTENT:
+${input.content}
+${input.title ? `\nTITLE: ${input.title}` : ''}
+
+SOURCE: ${input.platform}${input.authorMetadata ? ` | AUTHOR: ${JSON.stringify(input.authorMetadata)}` : ''}
+${input.engagementMetrics ? `ENGAGEMENT: ${JSON.stringify(input.engagementMetrics)}` : ''}
+
+Return JSON classification.`;
 
     const response = await this.openai.chat.completions.create({
       model: 'gpt-4o-mini',

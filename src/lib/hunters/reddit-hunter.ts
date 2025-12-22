@@ -90,26 +90,39 @@ export class RedditHunter extends BaseHunter {
     try {
 
       // Build TARGETED search queries - focus on product-specific feedback
-      // Instead of searching for each keyword separately, combine with product name
+      // Experience-based queries have highest signal
       const productName = config.company_name;
 
-      // Priority 1: Direct product mentions with feedback intent
-      const feedbackQueries = [
-        `"${productName}" review`,
-        `"${productName}" alternative`,
-        `"${productName}" vs`,
-        `switched from "${productName}"`,
-        `switched to "${productName}"`,
-        `${productName} feedback`,
-        `${productName} problem`,
-        `${productName} issue`,
+      // Priority 1: Experience-based (highest signal)
+      const experienceQueries = [
+        `"using ${productName}"`,
+        `"tried ${productName}"`,
+        `"switched to ${productName}"`,
+        `"${productName} is"`,
       ];
 
-      // Priority 2: Name variations (important for misspellings, nicknames)
+      // Priority 2: Problem-based
+      const problemQueries = [
+        `"${productName}" problem`,
+        `"${productName}" issue`,
+        `"${productName}" bug`,
+      ];
+
+      // Priority 3: Comparison with top 2 competitors
+      const competitorQueries = config.competitors.slice(0, 2).map(comp =>
+        `"${productName}" "${comp}"`
+      );
+
+      // Priority 4: Name variations (misspellings, nicknames)
       const variationQueries = config.name_variations.map(v => `"${v}"`);
 
       // Combine and limit to avoid too many requests
-      const allQueries = [...feedbackQueries, ...variationQueries].slice(0, 8);
+      const allQueries = [
+        ...experienceQueries,
+        ...problemQueries,
+        ...competitorQueries,
+        ...variationQueries
+      ].slice(0, 10);
 
       const results: RawFeedback[] = [];
       const seenIds = new Set<string>();

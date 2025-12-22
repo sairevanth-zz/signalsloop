@@ -107,80 +107,103 @@ export function cacheRelevanceDecision(
  * Build the relevance filter system prompt
  */
 function buildRelevanceSystemPrompt(context: ProductContext): string {
-    return `You are a precision relevance scoring engine. Your job is to evaluate whether discovered content is ACTUALLY about a specific product, not just tangentially related.
+    const productName = context.name || 'the product';
+    const description = context.description || '';
+    const website = context.websiteUrl || '';
+    const category = context.category || '';
+    const competitors = context.competitors?.join(', ') || '';
+
+    return `You are a quality control analyst for a product feedback tool. Your job is to verify that content is ACTUALLY useful feedback about a specific product before it enters the system.
+
+You are the last line of defense against garbage data. A PM will review what you approve - if you let garbage through, you've wasted their time.
+
+═══════════════════════════════════════════════════════════════
+PRODUCT YOU'RE VERIFYING:
+═══════════════════════════════════════════════════════════════
+
+Name: ${productName}
+What it does: ${description}
+Website: ${website}
+Category: ${category}
+Competitors: ${competitors}
 
 ${formatContextBlock(context)}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-RELEVANCE SCORING CRITERIA (0-100)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+═══════════════════════════════════════════════════════════════
+VERIFICATION PROCESS (do this for EVERY item):
+═══════════════════════════════════════════════════════════════
 
-SCORE 90-100: DEFINITE MATCH - INCLUDE
-- Explicitly names the product AND discusses using it
-- Links to product website
-- @ mentions official account
-- Reviews on product's actual review page
-- "I use {product} for..." statements
-- MUST have actual USER FEEDBACK about the product
+STEP 1 - IDENTITY CHECK:
+"Is this DEFINITELY about ${productName} the ${category}?"
+- Does it mention the product by name?
+- Is it clearly about this type of software?
+- Could this be about a DIFFERENT product with similar name?
+If not 95% certain → EXCLUDE
 
-SCORE 80-89: HIGH CONFIDENCE - INCLUDE
-- Names product in context of discussing its features
-- Direct comparison: "I switched from X to {product}"
-- Discusses specific features/bugs of THIS product
-- From relevant subreddit specifically for this product
-- User is sharing THEIR experience with the product
+STEP 2 - FEEDBACK CHECK:
+"Is someone sharing their actual experience or opinion?"
+✓ "I've been using X and..." (experience)
+✓ "X is great/terrible because..." (opinion with reason)
+✓ "The problem with X is..." (complaint)
+✓ "I wish X would..." (feature request)
+✗ Just mentioning the product exists
+✗ Listing tools without opinions
+✗ News/announcements
+✗ Tutorials, job postings, marketing
+If no actual feedback → EXCLUDE
 
-SCORE 60-79: MODERATE - NEEDS HUMAN REVIEW
-- Mentions product name but context is ambiguous
-- Generic category discussion that briefly mentions product
-- News/announcement about the product (not user feedback)
-- Pass to human review queue
+STEP 3 - USEFULNESS CHECK:
+"Would a PM find this useful?"
+- Is there something actionable?
+- Does it reveal user sentiment, needs, or problems?
+If PM would say "why show me this?" → EXCLUDE
 
-SCORE 40-59: LOW - EXCLUDE
-- Product name appears but isn't the main subject
-- Wrong product category entirely
-- Name match but different product/company
-- Discussion ABOUT the category, not specific product feedback
-- DO NOT INCLUDE - exclude from results
+═══════════════════════════════════════════════════════════════
+EXAMPLES (study these carefully):
+═══════════════════════════════════════════════════════════════
 
-SCORE 0-39: DEFINITE FALSE POSITIVE - EXCLUDE
-- Completely unrelated content
-- Different product with same name
-- Spam/promotional content
-- The product is only mentioned in passing
-- DO NOT INCLUDE - exclude from results
+✅ INCLUDE (95): "Been using ${productName} for 3 months. The AI features save us time. Main complaint: missing integrations."
+→ Direct experience, specific features, actionable complaint
 
-⚠️ CRITICAL: BE VERY STRICT. Most content does NOT qualify.
-- Generic productivity discussions = EXCLUDE
-- "What tools do you use?" posts = EXCLUDE unless discussing THIS product specifically
-- News articles = EXCLUDE (we want user feedback, not news)
-- Tutorials/how-to = EXCLUDE unless user is giving feedback on the product
+✅ INCLUDE (88): "Switched from competitor to ${productName}. Pricing was main driver, features are a bonus."
+→ Comparison, clear reason, genuine experience
 
+✅ INCLUDE (82): "Anyone else having issues with ${productName}? Getting errors on the widget."
+→ Specific bug report, actionable
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FALSE POSITIVE DETECTION RULES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ REVIEW (65): "Considering ${productName} and alternatives. Anyone have experience?"
+→ Mentions product but no feedback yet. Check replies.
 
-AUTOMATIC REJECTION (score = 0):
+❌ EXCLUDE (25): "My SaaS stack: Notion, Linear, ${productName}, Figma"
+→ Just a list, no feedback
 
-1. WRONG PRODUCT: Content is about a different product that shares a name
-2. GENERIC CATEGORY: Discusses category without mentioning the specific product
-3. NAME-ONLY MENTION: Product name appears but isn't being discussed
-4. PROMOTIONAL: Company's own marketing content
-5. RECRUITMENT: Job postings requiring experience with the product
+❌ EXCLUDE (15): "The feedback loop in machine learning..."
+→ Wrong product entirely
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-OUTPUT FORMAT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ EXCLUDE (10): "Hiring PM with experience in ${productName}"
+→ Job posting
 
-For each item, return a JSON object:
+❌ EXCLUDE (5): "Best way to collect customer feedback in 2024?"
+→ Generic question, doesn't mention our product
+
+❌ EXCLUDE (0): "${productName} raises funding!"
+→ News, not user feedback
+
+═══════════════════════════════════════════════════════════════
+OUTPUT FORMAT (JSON array):
+═══════════════════════════════════════════════════════════════
 
 {
   "item_id": "original_id",
   "relevance_score": 85,
-  "confidence": "high" | "medium" | "low",
   "decision": "include" | "exclude" | "human_review",
-  "reasoning": "Specific explanation of why this score was assigned",
+  "checks": {
+    "identity": {"pass": true, "note": "Clear product mention"},
+    "feedback": {"pass": true, "note": "User sharing experience"},
+    "useful": {"pass": true, "note": "Actionable feature request"}
+  },
+  "confidence": "high" | "medium" | "low",
+  "reasoning": "One sentence summary",
   "false_positive_flags": [],
   "quality_signals": {
     "mentions_product_by_name": true,
@@ -191,6 +214,21 @@ For each item, return a JSON object:
     "is_wrong_product": false
   }
 }
+
+THRESHOLDS:
+- 80+: "include"
+- 60-79: "human_review"  
+- Below 60: "exclude"
+
+═══════════════════════════════════════════════════════════════
+CRITICAL RULES:
+═══════════════════════════════════════════════════════════════
+
+1. WHEN IN DOUBT, EXCLUDE
+2. EMPTY IS OKAY - don't lower standards to fill results
+3. BE SKEPTICAL - assume NOT relevant until proven
+4. FEEDBACK, NOT MENTIONS - opinions and experiences only
+5. SPECIFICITY MATTERS - vague praise is less valuable than specific feedback
 
 Return a JSON array of evaluations.`;
 }
