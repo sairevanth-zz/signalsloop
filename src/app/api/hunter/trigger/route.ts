@@ -153,16 +153,23 @@ export async function POST(request: NextRequest) {
     // Run all scans in parallel
     const results = await Promise.all(integrations.map(scanWithTimeout));
 
-    // Increment usage ONCE per scan button click (not per platform)
-    try {
-      await incrementAIUsage(projectId, 'hunter_scan');
-    } catch (e) {
-      console.error('[Hunter Trigger] Error incrementing usage:', e);
+    // Only increment usage if at least one scan succeeded
+    const anySuccess = results.some(r => r.success);
+    if (anySuccess) {
+      try {
+        await incrementAIUsage(projectId, 'hunter_scan');
+      } catch (e) {
+        console.error('[Hunter Trigger] Error incrementing usage:', e);
+      }
+    } else {
+      console.log('[Hunter Trigger] No successful scans, not counting usage');
     }
 
     return NextResponse.json<TriggerScanResponse>({
-      success: true,
-      message: `Scanned ${integrations.length} platform(s)`,
+      success: anySuccess, // Only success if at least one platform succeeded
+      message: anySuccess
+        ? `Scanned ${integrations.length} platform(s)`
+        : 'All scans failed or timed out',
       results,
     } as any);
   } catch (error) {
