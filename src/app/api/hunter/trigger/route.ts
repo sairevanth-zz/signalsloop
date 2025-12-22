@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         .from('platform_integrations')
         .select('*')
         .eq('id', integrationId)
-        .eq('status', 'active')
+        .in('status', ['active', 'paused', 'setup'])
         .single();
       integrations = data ? [data] : [];
       integrationError = error;
@@ -94,16 +94,16 @@ export async function POST(request: NextRequest) {
         .select('*')
         .eq('project_id', projectId)
         .eq('platform_type', platformType)
-        .eq('status', 'active');
+        .in('status', ['active', 'paused', 'setup']);
       integrations = data || [];
       integrationError = error;
     } else {
-      // Get all active integrations
+      // Get all active/paused/setup integrations (matches original working code)
       const { data, error } = await supabase
         .from('platform_integrations')
         .select('*')
         .eq('project_id', projectId)
-        .eq('status', 'active');
+        .in('status', ['active', 'paused', 'setup']);
       integrations = data || [];
       integrationError = error;
     }
