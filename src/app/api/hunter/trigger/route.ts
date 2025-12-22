@@ -1,24 +1,32 @@
 /**
  * Hunter Trigger API
- * Manually trigger a scan for one or all platforms
+ * Queue-based: Creates a scan record and enqueues discovery jobs
+ * Returns immediately, workers process async
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase-client';
-import { TriggerScanRequest, TriggerScanResponse } from '@/types/hunter';
-import { getHunter } from '@/lib/hunters';
+import { TriggerScanRequest } from '@/types/hunter';
+import { createScan } from '@/lib/hunters/job-queue';
 import { incrementAIUsage } from '@/lib/ai-rate-limit';
 
 export const runtime = 'nodejs';
-export const maxDuration = 300; // 5 minutes for scanning
+export const maxDuration = 10; // Fast response, workers do the work
+
+interface QueuedScanResponse {
+  success: boolean;
+  scanId?: string;
+  platforms?: string[];
+  message?: string;
+  error?: string;
+}
 
 /**
  * POST /api/hunter/trigger
- * Manually trigger a scan
+ * Queue a scan for background processing
  */
 export async function POST(request: NextRequest) {
   try {
-    // Use createServerClient for auth and database operations
     const supabase = await createServerClient();
 
     // Check authentication
@@ -27,7 +35,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
+      return NextResponse.json<QueuedScanResponse>(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
@@ -37,7 +45,7 @@ export async function POST(request: NextRequest) {
     const { projectId, platformType, integrationId } = body;
 
     if (!projectId) {
-      return NextResponse.json(
+      return NextResponse.json<QueuedScanResponse>(
         { success: false, error: 'projectId is required' },
         { status: 400 }
       );
@@ -51,26 +59,9 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!project || project.owner_id !== user.id) {
-      return NextResponse.json(
+      return NextResponse.json<QueuedScanResponse>(
         { success: false, error: 'Unauthorized' },
         { status: 403 }
-      );
-    }
-
-    // Get hunter config
-    const { data: config, error: configError } = await supabase
-      .from('hunter_configs')
-      .select('*')
-      .eq('project_id', projectId)
-      .single();
-
-    if (configError || !config) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Hunter not configured for this project',
-        },
-        { status: 404 }
       );
     }
 
@@ -78,107 +69,64 @@ export async function POST(request: NextRequest) {
     let integrations;
     if (integrationId) {
       const { data } = await supabase
-        .from('platform_integrations')
+        .from('hunter_integrations')
         .select('*')
         .eq('id', integrationId)
+        .eq('status', 'active')
         .single();
       integrations = data ? [data] : [];
     } else if (platformType) {
       const { data } = await supabase
-        .from('platform_integrations')
+        .from('hunter_integrations')
         .select('*')
         .eq('project_id', projectId)
-        .eq('platform_type', platformType);
+        .eq('platform_type', platformType)
+        .eq('status', 'active');
       integrations = data || [];
     } else {
+      // Get all active integrations
       const { data } = await supabase
-        .from('platform_integrations')
+        .from('hunter_integrations')
         .select('*')
         .eq('project_id', projectId)
-        .in('status', ['active', 'paused', 'setup']);
+        .eq('status', 'active');
       integrations = data || [];
     }
 
     if (integrations.length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No active integrations found',
-        },
+      return NextResponse.json<QueuedScanResponse>(
+        { success: false, error: 'No active integrations found' },
         { status: 404 }
       );
     }
 
-    // Run scans in parallel with timeout
-    const scanWithTimeout = async (integration: any) => {
-      try {
-        const hunter = getHunter(integration.platform_type);
+    // Get unique platforms
+    const platforms = [...new Set(integrations.map((i: any) => i.platform_type))];
 
-        // Create a timeout promise (60 seconds per platform)
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Scan timeout')), 60000)
-        );
+    // Create scan and queue discovery jobs
+    const { scan, jobs } = await createScan(projectId, platforms, user.id);
 
-        // Race between scan and timeout
-        const result = await Promise.race([
-          hunter.scan(config, integration),
-          timeoutPromise
-        ]);
+    console.log(`[Hunter Trigger] Created scan ${scan.id} with ${jobs.length} discovery jobs`);
 
-        // Log the scan (don't await to save time)
-        hunter.logScan(result, integration.id, projectId, 'manual').catch(console.error);
-
-        return {
-          platform: integration.platform_type,
-          success: result.success,
-          itemsFound: result.itemsFound,
-          itemsStored: result.itemsStored,
-          error: result.error,
-        };
-      } catch (error) {
-        console.error(
-          `[Hunter Trigger] Error scanning ${integration.platform_type}:`,
-          error
-        );
-        return {
-          platform: integration.platform_type,
-          success: false,
-          itemsFound: 0,
-          itemsStored: 0,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        };
-      }
-    };
-
-    // Run all scans in parallel
-    const results = await Promise.all(integrations.map(scanWithTimeout));
-
-    // Only increment usage if at least one scan succeeded
-    const anySuccess = results.some(r => r.success);
-    if (anySuccess) {
-      try {
-        await incrementAIUsage(projectId, 'hunter_scan');
-      } catch (e) {
-        console.error('[Hunter Trigger] Error incrementing usage:', e);
-      }
-    } else {
-      console.log('[Hunter Trigger] No successful scans, not counting usage');
+    // Increment usage ONCE per scan button click
+    try {
+      await incrementAIUsage(projectId, 'hunter_scan');
+    } catch (e) {
+      console.error('[Hunter Trigger] Error incrementing usage:', e);
     }
 
-    return NextResponse.json<TriggerScanResponse>({
-      success: anySuccess, // Only success if at least one platform succeeded
-      message: anySuccess
-        ? `Scanned ${integrations.length} platform(s)`
-        : 'All scans failed or timed out',
-      results,
-    } as any);
+    return NextResponse.json<QueuedScanResponse>({
+      success: true,
+      scanId: scan.id,
+      platforms,
+      message: `Scan queued for ${platforms.length} platform(s). Results will appear as they're processed.`,
+    });
   } catch (error) {
     console.error('[Hunter Trigger] Error:', error);
-    return NextResponse.json(
+    return NextResponse.json<QueuedScanResponse>(
       {
         success: false,
-        error: 'Failed to trigger scan',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Failed to queue scan',
       },
       { status: 500 }
     );

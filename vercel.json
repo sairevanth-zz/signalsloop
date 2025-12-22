@@ -51,6 +51,22 @@
     {
       "path": "/api/cron/process-feedback",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/hunter/worker/discovery",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/hunter/worker/relevance",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/hunter/worker/classify",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/hunter/worker/cleanup",
+      "schedule": "*/5 * * * *"
     }
   ],
   "functions": {
