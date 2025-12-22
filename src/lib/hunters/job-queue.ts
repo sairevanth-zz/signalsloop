@@ -89,7 +89,7 @@ export async function createScan(
     const platformStatus: Record<string, string> = {};
     platforms.forEach(p => platformStatus[p] = 'pending');
 
-    const { data: scan, error: scanError } = await supabase
+    const { data: scan, error: scanError } = await getSupabase()
         .from('hunter_scans')
         .insert({
             project_id: projectId,
@@ -106,7 +106,7 @@ export async function createScan(
     // Create discovery jobs for each platform
     const jobs: HunterJob[] = [];
     for (const platform of platforms) {
-        const { data: job, error: jobError } = await supabase
+        const { data: job, error: jobError } = await getSupabase()
             .from('hunter_jobs')
             .insert({
                 scan_id: scan.id,
@@ -131,7 +131,7 @@ export async function createScan(
  * Get scan by ID
  */
 export async function getScan(scanId: string): Promise<HunterScan | null> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
         .from('hunter_scans')
         .select('*')
         .eq('id', scanId)
@@ -145,7 +145,7 @@ export async function getScan(scanId: string): Promise<HunterScan | null> {
  * Get all jobs for a scan
  */
 export async function getScanJobs(scanId: string): Promise<HunterJob[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
         .from('hunter_jobs')
         .select('*')
         .eq('scan_id', scanId)
@@ -222,7 +222,7 @@ export async function createJob(params: {
     jobType: JobType;
     platform: string;
 }): Promise<HunterJob | null> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
         .from('hunter_jobs')
         .insert({
             scan_id: params.scanId,
@@ -278,7 +278,7 @@ export async function storeRawItems(
         stage: 'discovered',
     }));
 
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
         .from('hunter_raw_items')
         .upsert(rows, {
             onConflict: 'scan_id,platform,external_id',
@@ -302,7 +302,7 @@ export async function getItemsForRelevance(
     platform: string,
     limit: number = 15
 ): Promise<HunterRawItem[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
         .from('hunter_raw_items')
         .select('*')
         .eq('scan_id', scanId)
@@ -325,7 +325,7 @@ export async function updateItemRelevance(
 ): Promise<void> {
     const newStage = decision === 'exclude' ? 'excluded' : 'filtered';
 
-    const { error } = await supabase
+    const { error } = await getSupabase()
         .from('hunter_raw_items')
         .update({
             relevance_score: score,
@@ -348,7 +348,7 @@ export async function getItemsForClassification(
     platform: string,
     limit: number = 10
 ): Promise<HunterRawItem[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
         .from('hunter_raw_items')
         .select('*')
         .eq('scan_id', scanId)
@@ -368,7 +368,7 @@ export async function updateItemClassification(
     itemId: string,
     classification: Record<string, unknown>
 ): Promise<void> {
-    const { error } = await supabase
+    const { error } = await getSupabase()
         .from('hunter_raw_items')
         .update({
             classification,
@@ -413,7 +413,7 @@ export async function updatePlatformStatus(
     status: string
 ): Promise<void> {
     // First get current platforms
-    const { data: scan } = await supabase
+    const { data: scan } = await getSupabase()
         .from('hunter_scans')
         .select('platforms')
         .eq('id', scanId)
@@ -423,7 +423,7 @@ export async function updatePlatformStatus(
 
     const platforms = { ...scan.platforms, [platform]: status };
 
-    const { error } = await supabase
+    const { error } = await getSupabase()
         .from('hunter_scans')
         .update({ platforms })
         .eq('id', scanId);
