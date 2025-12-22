@@ -12,7 +12,7 @@ import {
   PlatformIntegration,
   PlatformIntegrationError,
 } from '@/types/hunter';
-import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
+import { checkAIUsageLimit } from '@/lib/ai-rate-limit';
 
 /**
  * Structure of a post found via Grok's x_search
@@ -150,8 +150,7 @@ export class TwitterHunter extends BaseHunter {
 
       console.log(`[Twitter/Grok] Found ${results.length} items via Grok x_search`);
 
-      // Increment usage counter after successful scan
-      await incrementAIUsage(config.project_id, 'hunter_scan');
+      // Usage is now tracked in trigger API, not per-platform
 
       return results;
     } catch (error) {

@@ -12,7 +12,7 @@ import {
     PlatformIntegration,
     PlatformIntegrationError,
 } from '@/types/hunter';
-import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
+import { checkAIUsageLimit } from '@/lib/ai-rate-limit';
 
 /**
  * Structure of a review found via Grok's web search
@@ -105,8 +105,7 @@ export class ReviewSiteHunter extends BaseHunter {
                 productContext
             );
 
-            // Increment usage after successful scan
-            await incrementAIUsage(config.project_id, 'hunter_scan');
+            // Usage is now tracked in trigger API, not per-platform
 
             console.log(`[ReviewSite/Grok] Found ${reviews.length} reviews via Grok web search`);
 

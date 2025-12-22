@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase-client';
 import { TriggerScanRequest, TriggerScanResponse } from '@/types/hunter';
 import { getHunter } from '@/lib/hunters';
+import { incrementAIUsage } from '@/lib/ai-rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes for scanning
@@ -151,6 +152,13 @@ export async function POST(request: NextRequest) {
 
     // Run all scans in parallel
     const results = await Promise.all(integrations.map(scanWithTimeout));
+
+    // Increment usage ONCE per scan button click (not per platform)
+    try {
+      await incrementAIUsage(projectId, 'hunter_scan');
+    } catch (e) {
+      console.error('[Hunter Trigger] Error incrementing usage:', e);
+    }
 
     return NextResponse.json<TriggerScanResponse>({
       success: true,
