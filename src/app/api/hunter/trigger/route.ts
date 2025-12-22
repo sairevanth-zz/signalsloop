@@ -114,9 +114,9 @@ export async function POST(request: NextRequest) {
       try {
         const hunter = getHunter(integration.platform_type);
 
-        // Create a timeout promise (30 seconds per platform)
+        // Create a timeout promise (60 seconds per platform)
         const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Scan timeout')), 30000)
+          setTimeout(() => reject(new Error('Scan timeout')), 60000)
         );
 
         // Race between scan and timeout

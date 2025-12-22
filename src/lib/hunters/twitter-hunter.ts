@@ -97,13 +97,13 @@ export class TwitterHunter extends BaseHunter {
         );
       }
 
-      // Build search terms from config
+      // Build search terms from config (limit to 5 to avoid timeout)
       const searchTerms = [
         config.company_name,
         ...config.name_variations,
         ...(integration.config.twitter_search_terms || []),
         ...config.keywords,
-      ].filter(Boolean);
+      ].filter(Boolean).slice(0, 5);
 
       console.log('[Twitter/Grok] Search terms:', searchTerms);
 

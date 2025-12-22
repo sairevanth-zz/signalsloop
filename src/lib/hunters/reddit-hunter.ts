@@ -122,7 +122,7 @@ export class RedditHunter extends BaseHunter {
         ...problemQueries,
         ...competitorQueries,
         ...variationQueries
-      ].slice(0, 10);
+      ].slice(0, 5); // Limit to 5 queries to avoid timeout
 
       const results: RawFeedback[] = [];
       const seenIds = new Set<string>();
@@ -217,8 +217,8 @@ export class RedditHunter extends BaseHunter {
             });
           }
 
-          // Rate limit: 2 seconds between requests (RSS is more lenient)
-          await this.delay(2000);
+          // Rate limit: 500ms between requests (fast but still polite)
+          await this.delay(500);
         } catch (error) {
           console.error(`[Reddit RSS] Error searching for "${query}":`, error);
         }
@@ -282,7 +282,7 @@ export class RedditHunter extends BaseHunter {
               });
             }
 
-            await this.delay(2000);
+            await this.delay(500);
           } catch (error) {
             console.error(
               `[Reddit RSS] Error fetching from r/${subreddit}:`,
