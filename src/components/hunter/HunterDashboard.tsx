@@ -67,12 +67,21 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
     };
   }, [projectId]);
 
-  // Poll for processing updates when items are pending
+  // Poll for updates when scan is active OR items are processing
   useEffect(() => {
-    if (processingCount > 0 && !pollingRef.current) {
-      // Start polling every 10 seconds
+    const shouldPoll = processingCount > 0 || currentScanId;
+
+    if (shouldPoll && !pollingRef.current) {
+      // Start polling every 8 seconds (faster for better UX)
       pollingRef.current = setInterval(async () => {
         try {
+          // Refresh the feed to show new items
+          const feedRes = await fetch(`/api/hunter/feed?projectId=${projectId}&limit=20`);
+          const feedData = await feedRes.json();
+          if (feedData.success) {
+            setRecentFeedback(feedData.items || []);
+          }
+
           // Check for processing items
           const res = await fetch(`/api/hunter/feed?projectId=${projectId}&processingStatus=pending&limit=100`);
           const data = await res.json();
@@ -81,33 +90,26 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
             const pendingItems = data.items || [];
             setProcessingCount(pendingItems.length);
 
-            // If no more pending items, reload all data and stop polling
-            if (pendingItems.length === 0) {
+            // If no more pending items and no active scan, stop polling
+            if (pendingItems.length === 0 && !currentScanId) {
               dataLoadedRef.current = false; // Allow reload
               loadData();
               if (pollingRef.current) {
                 clearInterval(pollingRef.current);
                 pollingRef.current = null;
               }
-            } else {
-              // Refresh the feed to show updated items
-              const feedRes = await fetch(`/api/hunter/feed?projectId=${projectId}&limit=20`);
-              const feedData = await feedRes.json();
-              if (feedData.success) {
-                setRecentFeedback(feedData.items || []);
-              }
             }
           }
         } catch (error) {
           console.error('[Hunter Dashboard] Polling error:', error);
         }
-      }, 10000);
-    } else if (processingCount === 0 && pollingRef.current) {
-      // Stop polling when no more processing items
+      }, 8000);
+    } else if (!shouldPoll && pollingRef.current) {
+      // Stop polling when no more processing items and no active scan
       clearInterval(pollingRef.current);
       pollingRef.current = null;
     }
-  }, [processingCount, projectId]);
+  }, [processingCount, projectId, currentScanId]);
 
   const loadData = async () => {
     try {

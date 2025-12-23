@@ -105,7 +105,25 @@ export async function POST() {
         } as any;
 
         console.log(`[Discovery Worker] Running hunt for ${job.platform}...`);
-        const rawFeedback = await hunter.hunt(hunterConfig, platformIntegration);
+
+        // Wrap hunt in timeout to prevent Vercel timeout (max 55s)
+        const HUNT_TIMEOUT = 45000; // 45 seconds - leave 10s buffer
+        let rawFeedback: Awaited<ReturnType<typeof hunter.hunt>> = [];
+
+        try {
+            const huntPromise = hunter.hunt(hunterConfig, platformIntegration);
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('Hunt timeout')), HUNT_TIMEOUT)
+            );
+            rawFeedback = await Promise.race([huntPromise, timeoutPromise]);
+        } catch (error) {
+            if (error instanceof Error && error.message === 'Hunt timeout') {
+                console.warn(`[Discovery Worker] Hunt for ${job.platform} timed out after 45s - proceeding with partial results`);
+                rawFeedback = []; // Continue with empty results rather than failing
+            } else {
+                throw error;
+            }
+        }
 
         console.log(`[Discovery Worker] Found ${rawFeedback.length} items on ${job.platform}`);
 
