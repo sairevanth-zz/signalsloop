@@ -325,6 +325,46 @@ export async function DELETE(request: NextRequest) {
       console.error('[Hunter Setup] Error deleting integrations:', integrationError);
     }
 
+    // Delete all discovered feedback
+    const { error: feedbackError } = await supabase
+      .from('discovered_feedback')
+      .delete()
+      .eq('project_id', projectId);
+
+    if (feedbackError) {
+      console.error('[Hunter Setup] Error deleting feedback:', feedbackError);
+    }
+
+    // Delete all hunter scans
+    const { error: scansError } = await supabase
+      .from('hunter_scans')
+      .delete()
+      .eq('project_id', projectId);
+
+    if (scansError) {
+      console.error('[Hunter Setup] Error deleting scans:', scansError);
+    }
+
+    // Delete all raw items (via scan_id cascade or direct if needed)
+    const { error: rawItemsError } = await supabase
+      .from('hunter_raw_items')
+      .delete()
+      .eq('project_id', projectId);
+
+    if (rawItemsError) {
+      console.error('[Hunter Setup] Error deleting raw items:', rawItemsError);
+    }
+
+    // Delete all hunter jobs
+    const { error: jobsError } = await supabase
+      .from('hunter_jobs')
+      .delete()
+      .eq('project_id', projectId);
+
+    if (jobsError) {
+      console.error('[Hunter Setup] Error deleting jobs:', jobsError);
+    }
+
     // Delete hunter config
     const { error: configError } = await supabase
       .from('hunter_configs')

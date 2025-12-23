@@ -465,6 +465,48 @@ export async function updatePlatformStatus(
 }
 
 /**
+ * Update platform integration stats (total_scans, successful_scans, etc.)
+ * Called after discovery completes for a platform
+ */
+export async function updatePlatformIntegrationStats(
+    projectId: string,
+    platform: string,
+    itemsFound: number,
+    success: boolean
+): Promise<void> {
+    // Get current integration
+    const { data: integration, error: fetchError } = await getSupabase()
+        .from('platform_integrations')
+        .select('id, total_scans, successful_scans, failed_scans, total_items_found')
+        .eq('project_id', projectId)
+        .eq('platform_type', platform)
+        .single();
+
+    if (fetchError || !integration) {
+        console.error(`[JobQueue] Error fetching integration for stats:`, fetchError);
+        return;
+    }
+
+    // Update stats
+    const { error } = await getSupabase()
+        .from('platform_integrations')
+        .update({
+            total_scans: (integration.total_scans || 0) + 1,
+            successful_scans: success ? (integration.successful_scans || 0) + 1 : integration.successful_scans || 0,
+            failed_scans: success ? integration.failed_scans || 0 : (integration.failed_scans || 0) + 1,
+            total_items_found: (integration.total_items_found || 0) + itemsFound,
+            last_scan_at: new Date().toISOString(),
+        })
+        .eq('id', integration.id);
+
+    if (error) {
+        console.error(`[JobQueue] Error updating platform stats:`, error);
+    } else {
+        console.log(`[JobQueue] Updated ${platform} stats: +${itemsFound} items, success=${success}`);
+    }
+}
+
+/**
  * Check if scan is complete and send notification
  */
 export async function checkScanComplete(scanId: string): Promise<boolean> {

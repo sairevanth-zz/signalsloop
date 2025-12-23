@@ -13,6 +13,7 @@ import {
     storeRawItems,
     updateScanStats,
     updatePlatformStatus,
+    updatePlatformIntegrationStats,
 } from '@/lib/hunters/job-queue';
 import { getHunter } from '@/lib/hunters';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
@@ -174,9 +175,10 @@ export async function POST() {
             console.log(`[Discovery Worker] Created relevance job for ${job.platform}`);
         }
 
-        // Mark job complete
+        // Mark job complete and update platform integration stats
         await completeJob(job.id);
         await updatePlatformStatus(job.scan_id, job.platform, 'discovered');
+        await updatePlatformIntegrationStats(job.project_id, job.platform, rawFeedback.length, true);
 
         return NextResponse.json({
             processed: 1,
