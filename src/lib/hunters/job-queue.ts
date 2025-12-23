@@ -410,12 +410,27 @@ export async function updateScanStats(
 }
 
 /**
- * Update platform status in scan
+ * Platform status priority for monotonic updates
+ * Status can only go forward, never backward
+ */
+const STATUS_PRIORITY: Record<string, number> = {
+    'pending': 0,
+    'queued': 1,
+    'discovering': 2,
+    'filtering': 3,
+    'filtered': 3,
+    'classifying': 4,
+    'complete': 5,
+    'failed': 6,
+};
+
+/**
+ * Update platform status in scan (monotonic - only allows forward transitions)
  */
 export async function updatePlatformStatus(
     scanId: string,
     platform: string,
-    status: string
+    newStatus: string
 ): Promise<void> {
     // First get current platforms
     const { data: scan } = await getSupabase()
@@ -426,7 +441,18 @@ export async function updatePlatformStatus(
 
     if (!scan) return;
 
-    const platforms = { ...scan.platforms, [platform]: status };
+    const currentStatus = scan.platforms?.[platform] || 'pending';
+    const currentPriority = STATUS_PRIORITY[currentStatus] ?? 0;
+    const newPriority = STATUS_PRIORITY[newStatus] ?? 0;
+
+    // Only allow forward transitions (or same status)
+    // Exception: 'failed' can always be set
+    if (newPriority < currentPriority && newStatus !== 'failed') {
+        console.log(`[JobQueue] Ignoring backward status: ${platform} ${currentStatus} → ${newStatus}`);
+        return;
+    }
+
+    const platforms = { ...scan.platforms, [platform]: newStatus };
 
     const { error } = await getSupabase()
         .from('hunter_scans')
@@ -439,7 +465,7 @@ export async function updatePlatformStatus(
 }
 
 /**
- * Check if scan is complete
+ * Check if scan is complete and send notification
  */
 export async function checkScanComplete(scanId: string): Promise<boolean> {
     const { data, error } = await getSupabase().rpc('check_hunter_scan_complete', {
@@ -451,7 +477,66 @@ export async function checkScanComplete(scanId: string): Promise<boolean> {
         return false;
     }
 
+    // If scan just completed, send email notification
+    if (data === true) {
+        try {
+            await sendScanCompleteNotification(scanId);
+        } catch (notifyError) {
+            console.error(`[JobQueue] Error sending scan completion notification:`, notifyError);
+        }
+    }
+
     return data || false;
+}
+
+/**
+ * Send email notification when scan completes
+ */
+async function sendScanCompleteNotification(scanId: string): Promise<void> {
+    // Get scan details
+    const { data: scan } = await getSupabase()
+        .from('hunter_scans')
+        .select('*, projects(name, owner_id)')
+        .eq('id', scanId)
+        .single();
+
+    if (!scan) return;
+
+    // Get user email
+    const { data: userData } = await getSupabase().auth.admin.getUserById(scan.projects?.owner_id);
+
+    if (!userData?.user?.email) {
+        console.log(`[JobQueue] No email found for user ${scan.projects?.owner_id}`);
+        return;
+    }
+
+    const projectName = scan.projects?.name || 'your project';
+    const stats = {
+        discovered: scan.total_discovered || 0,
+        relevant: scan.total_relevant || 0,
+        classified: scan.total_classified || 0,
+    };
+
+    // Send via Resend or internal email API
+    await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://signalsloop.com'}/api/email/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            to: userData.user.email,
+            subject: `🎯 Hunter Scan Complete for ${projectName}`,
+            template: 'scan-complete',
+            data: {
+                projectName,
+                scanId,
+                stats,
+                dashboardUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://signalsloop.com'}/${encodeURIComponent(projectName.toLowerCase().replace(/\s+/g, '-'))}/hunter`,
+            },
+        }),
+    }).catch(err => {
+        console.error('[JobQueue] Failed to send email:', err);
+    });
+
+    console.log(`[JobQueue] Sent scan completion email to ${userData.user.email}`);
 }
 
 // ==========================================

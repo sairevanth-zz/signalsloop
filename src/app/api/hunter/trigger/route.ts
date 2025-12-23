@@ -127,6 +127,21 @@ export async function POST(request: NextRequest) {
 
     // Create scan and queue discovery jobs
     try {
+      // Auto-cancel any running scans for this project (to prevent overlap)
+      const { data: runningScans } = await supabase
+        .from('hunter_scans')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('status', 'running');
+
+      if (runningScans && runningScans.length > 0) {
+        console.log(`[Hunter Trigger] Cancelling ${runningScans.length} previous running scans`);
+        await supabase
+          .from('hunter_scans')
+          .update({ status: 'cancelled', completed_at: new Date().toISOString() })
+          .in('id', runningScans.map(s => s.id));
+      }
+
       const { scan, jobs } = await createScan(projectId, platforms, user.id);
       console.log(`[Hunter Trigger] Created scan ${scan.id} with ${jobs.length} discovery jobs`);
 

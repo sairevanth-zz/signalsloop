@@ -82,10 +82,10 @@ export function ScanProgressPanel({ scanId, onClose, onRetry }: ScanProgressPane
 
     return (
         <div className={`border rounded-lg p-4 mb-4 ${allComplete
-                ? scan?.status === 'complete'
-                    ? 'bg-green-900/20 border-green-500/50'
-                    : 'bg-yellow-900/20 border-yellow-500/50'
-                : 'bg-blue-900/20 border-blue-500/50'
+            ? scan?.status === 'complete'
+                ? 'bg-green-900/20 border-green-500/50'
+                : 'bg-yellow-900/20 border-yellow-500/50'
+            : 'bg-blue-900/20 border-blue-500/50'
             }`}>
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
@@ -118,7 +118,16 @@ export function ScanProgressPanel({ scanId, onClose, onRetry }: ScanProgressPane
 
             {/* Progress bar (only when running) */}
             {isRunning && (
-                <Progress value={progress} className="h-2 mb-4" />
+                <>
+                    <Progress value={progress} className="h-2 mb-2" />
+                    <div className="flex justify-between items-center text-xs text-gray-400 mb-4">
+                        <span>✨ Feedback appears as discovered - no need to wait!</span>
+                        <span>~{Math.ceil((platforms.length - completedPlatforms) * 2)} min remaining</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-3 italic">
+                        Scanning continues in background - you can navigate away safely.
+                    </p>
+                </>
             )}
 
             {/* Platform status list */}
