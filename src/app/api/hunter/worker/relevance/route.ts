@@ -63,8 +63,8 @@ export async function POST() {
             return NextResponse.json({ processed: 0, error: 'No config' });
         }
 
-        // Get items to filter
-        const items = await getItemsForRelevance(job.scan_id, job.platform, 15);
+        // Get items to filter (reduced batch size to avoid timeout)
+        const items = await getItemsForRelevance(job.scan_id, job.platform, 5);
 
         if (items.length === 0) {
             console.log(`[Relevance Worker] No items to filter for ${job.platform} - marking complete`);
