@@ -13,7 +13,7 @@ export const GET = secureAPI(
       const infrastructureChecks = {
         supabase_url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
         supabase_anon_key: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        supabase_service_role: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        supabase_service_role: !!process.env.SUPABASE_SERVICE_ROLE,
         client_initialized: false,
         can_list_users: false,
         can_query_projects: false,

@@ -244,7 +244,7 @@ export async function POST(request: NextRequest) {
     // Use service role client for direct inserts
     const serviceClient = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.SUPABASE_SERVICE_ROLE!
     );
     
     const results = [];

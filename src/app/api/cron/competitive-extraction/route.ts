@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     // Create Supabase client with service role for cron jobs
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE!,
     );
 
     console.log('[Competitive Extraction Cron] Starting competitive extraction');

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE!,
     );
 
     let query = supabase
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE!,
     );
 
     // Check if competitor already exists
@@ -147,7 +147,7 @@ export async function PUT(request: NextRequest) {
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE!,
     );
 
     const updateData: {
@@ -211,7 +211,7 @@ export async function DELETE(request: NextRequest) {
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE!,
     );
 
     const { error: deleteError } = await supabase.from('competitors').delete().eq('id', competitorId);
