@@ -47,8 +47,8 @@ export async function POST() {
             return NextResponse.json({ processed: 0, error: 'No supabase client' });
         }
 
-        // Get items to classify
-        const items = await getItemsForClassification(job.scan_id, job.platform, 10);
+        // Get items to classify (reduced batch size to avoid timeout)
+        const items = await getItemsForClassification(job.scan_id, job.platform, 5);
 
         if (items.length === 0) {
             console.log(`[Classify Worker] No items to classify for ${job.platform}`);
