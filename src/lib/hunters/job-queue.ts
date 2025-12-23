@@ -264,34 +264,39 @@ export async function storeRawItems(
 ): Promise<number> {
     if (items.length === 0) return 0;
 
-    const rows = items.map(item => ({
-        scan_id: scanId,
-        project_id: projectId,
-        platform,
-        external_id: item.external_id,
-        external_url: item.external_url,
-        title: item.title,
-        content: item.content,
-        author: item.author,
-        posted_at: item.posted_at,
-        raw_metadata: item.raw_metadata || {},
-        stage: 'discovered',
-    }));
+    let storedCount = 0;
 
-    const { data, error } = await getSupabase()
-        .from('hunter_raw_items')
-        .upsert(rows, {
-            onConflict: 'scan_id,platform,external_id',
-            ignoreDuplicates: true,
-        })
-        .select('id');
+    // Insert items one by one to handle duplicates gracefully
+    for (const item of items) {
+        const row = {
+            scan_id: scanId,
+            project_id: projectId,
+            platform,
+            external_id: item.external_id,
+            external_url: item.external_url,
+            title: item.title,
+            content: item.content,
+            author: item.author,
+            posted_at: item.posted_at,
+            raw_metadata: item.raw_metadata || {},
+            stage: 'discovered',
+        };
 
-    if (error) {
-        console.error(`[JobQueue] Error storing raw items:`, error);
-        return 0;
+        const { error } = await getSupabase()
+            .from('hunter_raw_items')
+            .insert(row);
+
+        if (error) {
+            // Ignore duplicate errors (23505 = unique_violation)
+            if (error.code !== '23505') {
+                console.error(`[JobQueue] Error storing raw item:`, error);
+            }
+        } else {
+            storedCount++;
+        }
     }
 
-    return data?.length || 0;
+    return storedCount;
 }
 
 /**
