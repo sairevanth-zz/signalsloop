@@ -94,7 +94,8 @@ export async function POST() {
                         // Required for feed query to find items
                         is_duplicate: false,
                         is_archived: false,
-                        needs_review: false,
+                        // Flag for human review if relevance filter marked it
+                        needs_review: item.relevance_decision === 'human_review',
                     }, {
                         onConflict: 'project_id,platform,platform_id',
                     });
