@@ -246,7 +246,7 @@ ${product_url ? `Product page: ${product_url}` : ''}
 
 CRITICAL: Verify you are finding reviews for the correct product, not a similarly-named product.
 
-Look for reviews from the past 30 days if available. Return at least 5-10 reviews if found.`;
+Look for reviews from the past 7 days if available. Return at least 5-10 reviews if found.`;
 
         try {
             console.log(`[ReviewSite/Grok] Searching: ${searchQuery}`);

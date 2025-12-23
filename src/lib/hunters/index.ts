@@ -8,7 +8,6 @@ import { RedditHunter } from './reddit-hunter';
 import { TwitterHunter } from './twitter-hunter';
 import { HackerNewsHunter } from './hackernews-hunter';
 import { ProductHuntHunter } from './producthunt-hunter';
-import { G2Hunter } from './g2-hunter';
 import { ReviewSiteHunter } from './review-site-hunter';
 import { PlayStoreHunter } from './playstore-hunter';
 import { PlatformType } from '@/types/hunter';
@@ -19,7 +18,6 @@ export { RedditHunter } from './reddit-hunter';
 export { TwitterHunter } from './twitter-hunter';
 export { HackerNewsHunter } from './hackernews-hunter';
 export { ProductHuntHunter } from './producthunt-hunter';
-export { G2Hunter } from './g2-hunter';
 export { ReviewSiteHunter } from './review-site-hunter';
 export { PlayStoreHunter } from './playstore-hunter';
 

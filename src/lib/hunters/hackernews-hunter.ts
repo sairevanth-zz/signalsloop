@@ -57,8 +57,8 @@ export class HackerNewsHunter extends BaseHunter {
       const seenIds = new Set<string>();
       const MAX_ITEMS_PER_QUERY = 20; // Limit to prevent timeout
 
-      // Get Unix timestamp for 3 days ago (balanced for results vs speed)
-      const threeDaysAgo = Math.floor((Date.now() - 3 * 24 * 60 * 60 * 1000) / 1000);
+      // Get Unix timestamp for 7 days ago (premium feature)
+      const sevenDaysAgo = Math.floor((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000);
 
       for (const query of queries) {
         // Skip if excluded
@@ -68,7 +68,7 @@ export class HackerNewsHunter extends BaseHunter {
 
         try {
           // Search stories (limit to MAX_ITEMS_PER_QUERY)
-          const storyData = await this.searchAlgolia(query, 'story', threeDaysAgo);
+          const storyData = await this.searchAlgolia(query, 'story', sevenDaysAgo);
           let storyCount = 0;
           for (const hit of storyData.hits) {
             if (storyCount >= MAX_ITEMS_PER_QUERY) break;
@@ -99,7 +99,7 @@ export class HackerNewsHunter extends BaseHunter {
           }
 
           // Search comments (limit to MAX_ITEMS_PER_QUERY)
-          const commentData = await this.searchAlgolia(query, 'comment', threeDaysAgo);
+          const commentData = await this.searchAlgolia(query, 'comment', sevenDaysAgo);
           let commentCount = 0;
           for (const hit of commentData.hits) {
             if (commentCount >= MAX_ITEMS_PER_QUERY) break;

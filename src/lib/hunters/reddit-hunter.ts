@@ -124,6 +124,8 @@ export class RedditHunter extends BaseHunter {
         ...variationQueries
       ].slice(0, 5); // Limit to 5 queries to avoid timeout
 
+      console.log(`[Reddit] Searching with queries:`, allQueries);
+
       const results: RawFeedback[] = [];
       const seenIds = new Set<string>();
 
@@ -153,6 +155,8 @@ export class RedditHunter extends BaseHunter {
           const xml = await response.text();
           const items = this.parseRSS(xml);
 
+          console.log(`[Reddit] Query "${query}" returned ${items.length} items from RSS`);
+
           for (const item of items) {
             if (seenIds.has(item.id)) continue;
 
@@ -162,9 +166,12 @@ export class RedditHunter extends BaseHunter {
               continue;
             }
 
-            // Filter to last 24 hours
+            // Filter to last 7 days (increased from 24h for established products)
             const age = Date.now() - item.published.getTime();
-            if (age > 24 * 60 * 60 * 1000) continue;
+            const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+            if (age > SEVEN_DAYS) {
+              continue;
+            }
 
             // Filter out job postings
             const jobIndicators = [

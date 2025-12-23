@@ -107,8 +107,8 @@ export class TwitterHunter extends BaseHunter {
 
       console.log('[Twitter/Grok] Search terms:', searchTerms);
 
-      // Get lookback period (default 1 day)
-      const lookbackDays = integration.config.twitter_lookback_days || 1;
+      // Get lookback period (default 7 days for premium feature)
+      const lookbackDays = integration.config.twitter_lookback_days || 7;
       const fromDate = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000)
         .toISOString()
         .split('T')[0]; // YYYY-MM-DD format

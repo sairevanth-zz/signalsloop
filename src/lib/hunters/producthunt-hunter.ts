@@ -86,14 +86,14 @@ export class ProductHuntHunter extends BaseHunter {
 
       // Process comments
       if (post.comments?.edges) {
-        const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
         for (const edge of post.comments.edges) {
           const comment = edge.node;
 
-          // Only get comments from last 24 hours
+          // Only get comments from last 7 days (premium feature)
           const commentDate = new Date(comment.createdAt).getTime();
-          if (commentDate < oneDayAgo) continue;
+          if (commentDate < sevenDaysAgo) continue;
 
           // Check for excluded keywords
           if (this.containsExcludedKeywords(comment.body, config.excluded_keywords)) {
