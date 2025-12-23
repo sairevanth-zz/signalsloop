@@ -15,7 +15,7 @@ import {
     updatePlatformStatus,
     checkScanComplete,
 } from '@/lib/hunters/job-queue';
-import { createServerClient } from '@/lib/supabase-client';
+import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import OpenAI from 'openai';
 
 export const maxDuration = 55;
@@ -40,7 +40,12 @@ export async function POST() {
         console.log(`[Classify Worker] Claimed job ${job.id} for ${job.platform}`);
         await updatePlatformStatus(job.scan_id, job.platform, 'classifying');
 
-        const supabase = await createServerClient();
+        const supabase = getServiceRoleClient();
+        if (!supabase) {
+            console.error('[Classify Worker] FAILED: Supabase client not available');
+            await failJob(job.id, 'Supabase client not available', false);
+            return NextResponse.json({ processed: 0, error: 'No supabase client' });
+        }
 
         // Get items to classify
         const items = await getItemsForClassification(job.scan_id, job.platform, 10);

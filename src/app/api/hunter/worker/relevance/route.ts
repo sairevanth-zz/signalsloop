@@ -15,7 +15,7 @@ import {
     updateScanStats,
     updatePlatformStatus,
 } from '@/lib/hunters/job-queue';
-import { createServerClient } from '@/lib/supabase-client';
+import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import { filterByRelevance } from '@/lib/hunters/relevance-filter';
 import { buildProductContext } from '@/lib/hunters/product-context';
 import type { RawFeedback, PlatformType } from '@/types/hunter';
@@ -42,16 +42,23 @@ export async function POST() {
         console.log(`[Relevance Worker] Claimed job ${job.id} for ${job.platform}`);
         await updatePlatformStatus(job.scan_id, job.platform, 'filtering');
 
-        const supabase = await createServerClient();
+        const supabase = getServiceRoleClient();
+        if (!supabase) {
+            console.error('[Relevance Worker] FAILED: Supabase client not available');
+            await failJob(job.id, 'Supabase client not available', false);
+            return NextResponse.json({ processed: 0, error: 'No supabase client' });
+        }
 
         // Get hunter config
         const { data: config, error: configError } = await supabase
             .from('hunter_configs')
             .select('*')
             .eq('project_id', job.project_id)
-            .single();
+            .limit(1)
+            .maybeSingle();
 
         if (configError || !config) {
+            console.error('[Relevance Worker] FAILED: No hunter config:', configError);
             await failJob(job.id, `No hunter config found`, false);
             return NextResponse.json({ processed: 0, error: 'No config' });
         }
