@@ -15,7 +15,7 @@ import {
     updatePlatformStatus,
 } from '@/lib/hunters/job-queue';
 import { getHunter } from '@/lib/hunters';
-import { createServerClient } from '@/lib/supabase-client';
+import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import type { PlatformType, HunterConfig, PlatformIntegration } from '@/types/hunter';
 
 export const maxDuration = 55; // Vercel max for Pro plan
@@ -40,7 +40,13 @@ export async function POST() {
         console.log(`[Discovery Worker] Claimed job ${job.id} for ${job.platform}`);
         await updatePlatformStatus(job.scan_id, job.platform, 'discovering');
 
-        const supabase = await createServerClient();
+        const supabase = getServiceRoleClient();
+        if (!supabase) {
+            console.error('[Discovery Worker] FAILED: Supabase client not available');
+            await failJob(job.id, 'Supabase client not available', false);
+            await updatePlatformStatus(job.scan_id, job.platform, 'failed');
+            return NextResponse.json({ processed: 0, error: 'No supabase client' });
+        }
 
         // Get hunter config for this project (use maybeSingle to handle 0 or multiple rows)
         const { data: config, error: configError } = await supabase
