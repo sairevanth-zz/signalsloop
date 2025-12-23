@@ -14,6 +14,7 @@ import {
     updateScanStats,
     updatePlatformStatus,
     checkScanComplete,
+    createJob,
 } from '@/lib/hunters/job-queue';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import OpenAI from 'openai';
@@ -107,12 +108,27 @@ export async function POST() {
         // Update scan stats
         await updateScanStats(job.scan_id, { classified: classifiedCount });
 
-        // Mark job complete
+        // Mark this job complete
         await completeJob(job.id);
-        await updatePlatformStatus(job.scan_id, job.platform, 'complete');
 
-        // Check if entire scan is complete
-        await checkScanComplete(job.scan_id);
+        // Check if there are more items to classify
+        const remainingItems = await getItemsForClassification(job.scan_id, job.platform, 1);
+
+        if (remainingItems.length > 0) {
+            // More items to classify - create another job (cron will pick it up)
+            await createJob({
+                scanId: job.scan_id,
+                projectId: job.project_id,
+                jobType: 'classify',
+                platform: job.platform,
+            });
+            console.log(`[Classify Worker] Created follow-up classify job for ${job.platform} (${remainingItems.length}+ items remaining)`);
+        } else {
+            // No more items - mark platform complete
+            await updatePlatformStatus(job.scan_id, job.platform, 'complete');
+            await checkScanComplete(job.scan_id);
+            console.log(`[Classify Worker] Platform ${job.platform} complete`);
+        }
 
         console.log(`[Classify Worker] Classified ${classifiedCount} items for ${job.platform}`);
 

@@ -186,7 +186,23 @@ export async function POST() {
 
         // Mark job complete
         await completeJob(job.id);
-        await updatePlatformStatus(job.scan_id, job.platform, 'filtered');
+
+        // Check if there are more items to filter
+        const remainingItems = await getItemsForRelevance(job.scan_id, job.platform, 1);
+
+        if (remainingItems.length > 0) {
+            // More items to filter - create another relevance job
+            await createJob({
+                scanId: job.scan_id,
+                projectId: job.project_id,
+                jobType: 'relevance',
+                platform: job.platform,
+            });
+            console.log(`[Relevance Worker] Created follow-up relevance job for ${job.platform} (${remainingItems.length}+ items remaining)`);
+        } else {
+            // No more items to filter - update status
+            await updatePlatformStatus(job.scan_id, job.platform, 'filtered');
+        }
 
         console.log(`[Relevance Worker] Filtered ${items.length} items, ${relevantCount} relevant`);
 
