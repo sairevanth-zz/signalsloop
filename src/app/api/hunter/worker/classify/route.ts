@@ -91,6 +91,10 @@ export async function POST() {
                         urgency_reason: classification.action_needed ? 'Action needed' : null,
                         tags: classification.tags || [],
                         processed_at: new Date().toISOString(),
+                        // Required for feed query to find items
+                        is_duplicate: false,
+                        is_archived: false,
+                        needs_review: false,
                     }, {
                         onConflict: 'project_id,platform,platform_id',
                     });
