@@ -61,7 +61,7 @@ const relevanceCache = new Map<string, CachedDecision>();
  * Generate content hash for caching
  */
 function generateContentHash(content: string, platform: PlatformType): string {
-    const normalized = content.toLowerCase().trim().slice(0, 500);
+    const normalized = (content || '').toLowerCase().trim().slice(0, 500);
     return createHash('md5').update(`${platform}:${normalized}`).digest('hex');
 }
 

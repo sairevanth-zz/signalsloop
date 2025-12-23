@@ -54,7 +54,7 @@ export interface ExtendedHunterConfig {
  */
 export function buildProductContext(config: ExtendedHunterConfig): ProductContext {
     return {
-        name: config.company_name,
+        name: config.company_name || '',
         tagline: config.product_tagline || '',
         category: config.product_category || config.industry || '',
         description: config.product_description || '',
@@ -161,6 +161,7 @@ export function formatContextBlock(context: ProductContext): string {
  */
 function generateFalsePositiveHints(productName: string): string[] {
     const hints: string[] = [];
+    if (!productName) return hints;
     const nameLower = productName.toLowerCase();
 
     // Common word associations that cause false positives
