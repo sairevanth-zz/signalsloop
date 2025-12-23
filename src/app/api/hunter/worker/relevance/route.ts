@@ -67,8 +67,12 @@ export async function POST() {
         const items = await getItemsForRelevance(job.scan_id, job.platform, 15);
 
         if (items.length === 0) {
-            console.log(`[Relevance Worker] No items to filter for ${job.platform}`);
+            console.log(`[Relevance Worker] No items to filter for ${job.platform} - marking complete`);
             await completeJob(job.id);
+            // Update platform status and check if scan is done
+            await updatePlatformStatus(job.scan_id, job.platform, 'complete');
+            const { checkScanComplete } = await import('@/lib/hunters/job-queue');
+            await checkScanComplete(job.scan_id);
             return NextResponse.json({ processed: 1, filtered: 0 });
         }
 
