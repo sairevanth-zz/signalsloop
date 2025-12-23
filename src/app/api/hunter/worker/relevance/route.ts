@@ -78,18 +78,18 @@ export async function POST() {
 
         console.log(`[Relevance Worker] Filtering ${items.length} items for ${job.platform}`);
 
-        // Build product context
+        // Build product context (with null safety for all fields)
         const context = buildProductContext({
-            companyName: config.company_name,
-            productDescription: config.product_description,
-            productTagline: config.product_tagline,
-            websiteUrl: config.website_url,
+            companyName: config.company_name || '',
+            productDescription: config.product_description || '',
+            productTagline: config.product_tagline || '',
+            websiteUrl: config.website_url || '',
             nameVariations: config.name_variations || [],
             keywords: config.keywords || [],
             excludedKeywords: config.excluded_keywords || [],
             competitors: config.competitors || [],
-            targetAudience: config.target_audience,
-            productCategory: config.product_category,
+            targetAudience: config.target_audience || '',
+            productCategory: config.product_category || '',
         });
 
         // Convert to RawFeedback format for filter
