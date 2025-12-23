@@ -111,6 +111,17 @@ export async function POST() {
 
         // Store raw items in staging table
         if (rawFeedback.length > 0) {
+            // Safe date conversion helper
+            const safeISOString = (date: Date | string | null | undefined): string | undefined => {
+                if (!date) return undefined;
+                try {
+                    const d = date instanceof Date ? date : new Date(date);
+                    return isNaN(d.getTime()) ? undefined : d.toISOString();
+                } catch {
+                    return undefined;
+                }
+            };
+
             const storedCount = await storeRawItems(
                 job.scan_id,
                 job.project_id,
@@ -121,7 +132,7 @@ export async function POST() {
                     title: item.title,
                     content: item.content,
                     author: item.author_username,
-                    posted_at: item.discovered_at?.toISOString(),
+                    posted_at: safeISOString(item.discovered_at),
                     raw_metadata: {
                         engagement_metrics: item.engagement_metrics,
                         author_profile_url: item.author_profile_url,
