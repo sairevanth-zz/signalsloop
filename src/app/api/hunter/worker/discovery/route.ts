@@ -42,15 +42,13 @@ export async function POST() {
 
         const supabase = await createServerClient();
 
-        // Get hunter config for this project (get most recent if multiple exist)
-        const { data: configs, error: configError } = await supabase
+        // Get hunter config for this project (use maybeSingle to handle 0 or multiple rows)
+        const { data: config, error: configError } = await supabase
             .from('hunter_configs')
             .select('*')
             .eq('project_id', job.project_id)
-            .order('created_at', { ascending: false })
-            .limit(1);
-
-        const config = configs?.[0];
+            .limit(1)
+            .maybeSingle();
 
         if (configError || !config) {
             console.error(`[Discovery Worker] FAILED: No hunter config for project ${job.project_id}:`, configError);
