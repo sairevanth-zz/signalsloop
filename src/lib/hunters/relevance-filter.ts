@@ -279,6 +279,46 @@ EXCLUDE - Low value:
 DECISION RULE: If a PM saw this and said "Why did you show me this?", it fails.
 
 ═══════════════════════════════════════════════════════════════════════════════
+TANGENTIAL MENTION DETECTION (Critical for search-sourced content)
+═══════════════════════════════════════════════════════════════════════════════
+
+Search APIs return content where the product name appears ANYWHERE - including 
+comments, replies, or passing mentions. You must determine if the product is 
+the TOPIC or just MENTIONED.
+
+THE TITLE TEST:
+If the product name does NOT appear in the title, be EXTRA SKEPTICAL.
+Ask: "Is this post ABOUT ${productName}, or does it just mention it somewhere?"
+
+TANGENTIAL MENTION SIGNALS (score 40 MAX):
+✗ Post title is about something else entirely (Kubernetes, AI models, trains, etc.)
+✗ Product mentioned once in a long post about a different topic
+✗ Product mentioned only in comments/replies, not the main content
+✗ Product used as an example: "tools like ${productName}, Trello, etc."
+✗ Product mentioned for comparison but isn't being evaluated
+
+EXAMPLES:
+
+Post: "Show HN: Luxury Yacht, a Kubernetes management app"
+Content: "...for our docs we use ${productName} but this post is about Kubernetes..."
+Decision: EXCLUDE (score: 25)
+Reason: Post is about Kubernetes. ${productName} mentioned once tangentially.
+
+Post: "GPT-5.2-Codex advances in coding"  
+Content: "...I keep my coding notes in ${productName}..."
+Decision: EXCLUDE (score: 20)
+Reason: Post is about AI coding. ${productName} is just where someone stores notes.
+
+Post: "I Love Offline Mode, but I Don't Like Automatic Downloads"
+Content: "I'm facing an issue with ${productName} and I'd really like to discuss..."
+Decision: INCLUDE (score: 85)
+Reason: Post IS about ${productName}. ${productName} is the subject being discussed.
+
+RULE: If the title suggests a different topic than ${productName}, 
+the item needs OVERWHELMING evidence in the content that it's actually 
+about ${productName} to score above 60. Otherwise, max score is 40.
+
+═══════════════════════════════════════════════════════════════════════════════
 SCORING GUIDE
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -288,11 +328,14 @@ All 4 checks pass with high confidence. Clear product mention, substantive feedb
 SCORE 80-89: INCLUDE
 All 4 checks pass. May have minor ambiguity but clearly relevant.
 
-SCORE 60-79: HUMAN REVIEW
-3 of 4 checks pass clearly, 1 is ambiguous. Could be valuable.
+SCORE 70-79: HUMAN REVIEW
+3-4 checks pass, product is the topic but feedback may be thin.
+
+SCORE 60-69: HUMAN REVIEW (borderline)
+3 of 4 checks pass, but some ambiguity. Worth a quick look.
 
 SCORE 40-59: LIKELY EXCLUDE
-2 or fewer checks pass. Probably not relevant.
+2 or fewer checks pass. Probably not relevant. Tangential mentions score here.
 
 SCORE 0-39: DEFINITE EXCLUDE
 Clearly fails multiple checks. Wrong product, not feedback, or not useful.
@@ -443,27 +486,43 @@ async function evaluateBatch(
     apiKey: string
 ): Promise<RelevanceResult[]> {
     const systemPrompt = buildSystemPrompt(context);
+    const productName = context.name?.toLowerCase() || '';
 
-    // Format items for evaluation
-    const itemsForEval = items.map((item, index) => ({
-        id: index.toString(),
-        platform: item.platform,
-        content: item.content.slice(0, 1000), // Truncate long content
-        title: item.title || '',
-        author: item.author_username || 'unknown',
-    }));
+    // Format items for evaluation with title flag heuristic
+    const itemsForEval = items.map((item, index) => {
+        const title = item.title || '';
+        const titleHasProduct = productName && title.toLowerCase().includes(productName);
+
+        return {
+            id: index.toString(),
+            platform: item.platform,
+            content: item.content.slice(0, 1000), // Truncate long content
+            title: title,
+            author: item.author_username || 'unknown',
+            // Add warning hint when product not in title
+            analysis_hint: !titleHasProduct && productName
+                ? `⚠️ WARNING: Product name "${context.name}" not found in title. Be extra strict - this may be a tangential mention. Max score 40 unless content clearly proves otherwise.`
+                : null
+        };
+    });
 
     const userPrompt = `TASK: Score the relevance of these ${items.length} items for "${context.name}"
+
+CRITICAL: Pay close attention to the "analysis_hint" field. If it contains a warning, the product was NOT found in the title, meaning it may only be mentioned tangentially in the content.
 
 ITEMS TO EVALUATE:
 ${JSON.stringify(itemsForEval, null, 2)}
 
-For each item, provide a relevance score (0-100) and decision.
-Only items scoring 70+ should have decision "include".
-Items scoring 50-69 should have decision "human_review".
-Items scoring below 50 should have decision "exclude".
+SCORING THRESHOLDS:
+- Score 80+: "include" (product is clearly the main topic with substantive feedback)
+- Score 60-79: "human_review" (product is discussed but may need verification)
+- Score below 60: "exclude" (tangential mention, wrong product, or not feedback)
 
-Return a JSON array of evaluations.`;
+REMEMBER: If the title is about a different topic (Kubernetes, AI models, trains, etc.), 
+the product is likely just mentioned in passing. Score 40 MAX unless the content 
+overwhelmingly proves the item is actually about ${context.name}.
+
+Return a JSON object with an "evaluations" array.`;
 
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -495,9 +554,11 @@ Return a JSON array of evaluations.`;
         // Handle both array response and object with evaluations property
         const evaluations = Array.isArray(parsed) ? parsed : (parsed.evaluations || []);
 
-        return items.map((item, index) => {
+        const results = items.map((item, index) => {
             const evaluation = evaluations.find((e: any) => e.item_id === index.toString()) || {};
-            return {
+            const titleHasProduct = productName && (item.title || '').toLowerCase().includes(productName);
+
+            const result: RelevanceResult = {
                 item,
                 relevanceScore: evaluation.relevance_score || 50,
                 confidence: (evaluation.confidence || 'medium') as 'high' | 'medium' | 'low',
@@ -513,7 +574,41 @@ Return a JSON array of evaluations.`;
                     isWrongProduct: evaluation.quality_signals?.is_wrong_product ?? false,
                 },
             };
+
+            // Debug logging for each item
+            console.log(`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[RelevanceFilter] ${result.decision.toUpperCase()} (Score: ${result.relevanceScore})
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Title: ${item.title}
+Platform: ${item.platform}
+Title contains "${context.name}": ${titleHasProduct ? '✅ YES' : '⚠️ NO'}
+Content preview: ${item.content?.slice(0, 150)}...
+Reasoning: ${result.reasoning}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            `);
+
+            return result;
         });
+
+        // Summary stats
+        const included = results.filter(r => r.decision === 'include').length;
+        const excluded = results.filter(r => r.decision === 'exclude').length;
+        const review = results.filter(r => r.decision === 'human_review').length;
+        const noTitleMatch = items.filter(item =>
+            productName && !(item.title || '').toLowerCase().includes(productName)
+        ).length;
+
+        console.log(`
+📊 [RelevanceFilter] BATCH SUMMARY
+──────────────────────────────
+Include: ${included}
+Exclude: ${excluded}
+Human Review: ${review}
+Items without "${context.name}" in title: ${noTitleMatch}
+        `);
+
+        return results;
     } catch (error) {
         console.error('[RelevanceFilter] Error evaluating batch:', error);
         return items.map(item => createDefaultResult(item));
