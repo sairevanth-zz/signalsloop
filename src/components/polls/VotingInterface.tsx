@@ -19,10 +19,19 @@ import {
     CheckCircle,
     AlertCircle,
     GripVertical,
-    BarChart3
+    BarChart3,
+    Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { PollWithOptions, PollOption, SubmitVoteInput } from '@/types/polls';
+
+interface ResultData {
+    option_id: string;
+    option_text: string;
+    vote_count: number;
+    percentage: number;
+    avg_rank?: number;
+}
 
 interface VotingInterfaceProps {
     pollId: string;
@@ -32,6 +41,8 @@ interface VotingInterfaceProps {
     embedded?: boolean;
     projectSlug?: string;
 }
+
+const CHART_COLORS = ['#14b8a6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
 export function VotingInterface({
     pollId,
@@ -46,6 +57,8 @@ export function VotingInterface({
     const [submitting, setSubmitting] = useState(false);
     const [voted, setVoted] = useState(false);
     const [error, setError] = useState('');
+    const [results, setResults] = useState<ResultData[]>([]);
+    const [totalVoters, setTotalVoters] = useState(0);
 
     // Vote state
     const [selectedOption, setSelectedOption] = useState<string>('');
@@ -130,6 +143,18 @@ export function VotingInterface({
                 throw new Error(data.error || 'Failed to submit vote');
             }
 
+            // Fetch results after voting
+            if (showResults) {
+                const resultsRes = await fetch(`/api/polls/${pollId}/results`, {
+                    credentials: 'include'
+                });
+                if (resultsRes.ok) {
+                    const resultsData = await resultsRes.json();
+                    setResults(resultsData.results || []);
+                    setTotalVoters(resultsData.unique_voters || resultsData.total_votes || 0);
+                }
+            }
+
             setVoted(true);
             toast.success('Vote submitted!');
             onVoteComplete?.();
@@ -183,25 +208,59 @@ export function VotingInterface({
 
     if (!poll) return null;
 
-    // Success state
+    // Success state with inline results
     if (voted) {
         return (
             <Card className={embedded ? 'border-0 shadow-none' : ''}>
-                <CardContent className="py-12 text-center">
-                    <div className="w-16 h-16 rounded-full bg-teal-500/20 flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="w-8 h-8 text-teal-500" />
+                <CardContent className="py-8">
+                    <div className="text-center mb-6">
+                        <div className="w-16 h-16 rounded-full bg-teal-500/20 flex items-center justify-center mx-auto mb-4">
+                            <CheckCircle className="w-8 h-8 text-teal-500" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-foreground mb-2">Thank you!</h3>
+                        <p className="text-muted-foreground">Your vote has been recorded.</p>
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">Thank you!</h3>
-                    <p className="text-muted-foreground">Your vote has been recorded.</p>
-                    {showResults && projectSlug && (
-                        <Button
-                            variant="outline"
-                            className="mt-4"
-                            onClick={() => window.location.href = `/${projectSlug}/polls/${pollId}`}
-                        >
-                            <BarChart3 className="w-4 h-4 mr-2" />
-                            View Results
-                        </Button>
+
+                    {/* Inline Results Display */}
+                    {showResults && results.length > 0 && (
+                        <div className="mt-6 pt-6 border-t">
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="font-medium text-foreground flex items-center gap-2">
+                                    <BarChart3 className="w-4 h-4 text-teal-500" />
+                                    Current Results
+                                </h4>
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                    <Users className="w-4 h-4 mr-1" />
+                                    {totalVoters} {totalVoters === 1 ? 'voter' : 'voters'}
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                {results.map((result, index) => (
+                                    <div key={result.option_id}>
+                                        <div className="flex items-center justify-between text-sm mb-1">
+                                            <span className="text-foreground font-medium truncate">
+                                                {result.option_text}
+                                            </span>
+                                            <span className="text-muted-foreground ml-2">
+                                                {poll?.poll_type === 'ranked' && result.avg_rank
+                                                    ? `Avg Rank: ${result.avg_rank.toFixed(1)}`
+                                                    : `${result.percentage.toFixed(0)}%`
+                                                }
+                                            </span>
+                                        </div>
+                                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full rounded-full transition-all duration-500"
+                                                style={{
+                                                    width: `${result.percentage}%`,
+                                                    backgroundColor: CHART_COLORS[index % CHART_COLORS.length]
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     )}
                 </CardContent>
             </Card>

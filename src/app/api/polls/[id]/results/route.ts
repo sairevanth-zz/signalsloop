@@ -81,18 +81,57 @@ export async function GET(
             );
         }
 
-        // Calculate totals
+        // Calculate totals from results
         const totalVotes = resultsData?.reduce((sum: number, r: any) => sum + Number(r.vote_count), 0) || 0;
         const totalWeighted = resultsData?.reduce((sum: number, r: any) => sum + Number(r.weighted_vote_count), 0) || 0;
 
-        // Format results
+        // Count unique voters (extract base hash from composite hash 'base_hash:option_id')
+        const { data: voterData } = await serviceClient!
+            .from('poll_votes')
+            .select('voter_hash')
+            .eq('poll_id', pollId);
+
+        // Extract unique base hashes (before the ':' separator)
+        const uniqueVoters = new Set(
+            (voterData || []).map((v: any) => {
+                const parts = v.voter_hash.split(':');
+                return parts.length > 1 ? parts.slice(0, -1).join(':') : v.voter_hash;
+            })
+        ).size;
+
+        // For ranked polls, get average rank per option
+        let avgRanks: Record<string, number> = {};
+        if (poll.poll_type === 'ranked') {
+            const { data: rankData } = await serviceClient!
+                .from('poll_votes')
+                .select('option_id, rank_position')
+                .eq('poll_id', pollId)
+                .not('rank_position', 'is', null);
+
+            if (rankData && rankData.length > 0) {
+                const rankSums: Record<string, { sum: number; count: number }> = {};
+                for (const vote of rankData) {
+                    if (!rankSums[vote.option_id]) {
+                        rankSums[vote.option_id] = { sum: 0, count: 0 };
+                    }
+                    rankSums[vote.option_id].sum += vote.rank_position;
+                    rankSums[vote.option_id].count += 1;
+                }
+                for (const [optId, data] of Object.entries(rankSums)) {
+                    avgRanks[optId] = data.sum / data.count;
+                }
+            }
+        }
+
+        // Format results with avg_rank for ranked polls
         const results: PollResult[] = (resultsData || []).map((r: any) => ({
             option_id: r.option_id,
             option_text: r.option_text,
             vote_count: Number(r.vote_count),
             weighted_vote_count: Number(r.weighted_vote_count),
             percentage: Number(r.percentage),
-            weighted_percentage: Number(r.weighted_percentage)
+            weighted_percentage: Number(r.weighted_percentage),
+            avg_rank: avgRanks[r.option_id]
         }));
 
         // Get segment breakdown if requested
@@ -177,6 +216,7 @@ export async function GET(
 
         return NextResponse.json({
             ...response,
+            unique_voters: uniqueVoters,
             explanations: explanations.length > 0 ? explanations : undefined
         });
 
