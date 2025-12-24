@@ -19,7 +19,7 @@ import {
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import OpenAI from 'openai';
 
-export const maxDuration = 55;
+export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 
 export async function GET() {

@@ -20,7 +20,7 @@ import { filterByRelevance } from '@/lib/hunters/relevance-filter';
 import { buildProductContext } from '@/lib/hunters/product-context';
 import type { RawFeedback, PlatformType } from '@/types/hunter';
 
-export const maxDuration = 55;
+export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -106,7 +106,7 @@ export async function POST() {
         // Run relevance filter with timeout
         const filterPromise = filterByRelevance(rawFeedback, context);
         const timeoutPromise = new Promise<null>((_, reject) =>
-            setTimeout(() => reject(new Error('Relevance filter timeout')), 45000)
+            setTimeout(() => reject(new Error('Relevance filter timeout')), 240000)
         );
 
         const result = await Promise.race([filterPromise, timeoutPromise]);

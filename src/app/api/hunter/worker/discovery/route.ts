@@ -19,7 +19,7 @@ import { getHunter } from '@/lib/hunters';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import type { PlatformType, HunterConfig, PlatformIntegration } from '@/types/hunter';
 
-export const maxDuration = 55; // Vercel max for Pro plan
+export const maxDuration = 300; // Vercel Pro allows up to 300s
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
@@ -108,7 +108,7 @@ export async function POST() {
         console.log(`[Discovery Worker] Running hunt for ${job.platform}...`);
 
         // Wrap hunt in timeout to prevent Vercel timeout (max 55s)
-        const HUNT_TIMEOUT = 45000; // 45 seconds - leave 10s buffer
+        const HUNT_TIMEOUT = 240000; // 240 seconds (4 min) - leave 1 min buffer for processing
         let rawFeedback: Awaited<ReturnType<typeof hunter.hunt>> = [];
 
         try {

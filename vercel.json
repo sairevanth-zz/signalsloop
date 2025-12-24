@@ -70,6 +70,10 @@
     }
   ],
   "functions": {
+    "app/api/hunter/worker/**/*.ts": {
+      "maxDuration": 300,
+      "memory": 1024
+    },
     "app/api/**/*.ts": {
       "maxDuration": 60,
       "memory": 1024
