@@ -57,6 +57,8 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
     // Only load on first mount or if projectId changes
     if (!dataLoadedRef.current) {
       loadData();
+      // Also check for active scans to restore progress bar
+      fetchActiveScan();
     }
 
     // Cleanup polling on unmount
@@ -66,6 +68,24 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
       }
     };
   }, [projectId]);
+
+  // Fetch active scan (called on mount to restore progress bar after navigation)
+  const fetchActiveScan = async () => {
+    try {
+      const res = await fetch(`/api/hunter/active?projectId=${projectId}`);
+      const data = await res.json();
+
+      if (data.success && data.activeScan) {
+        // Only show if scan is running, not completed
+        if (data.activeScan.status === 'running') {
+          setCurrentScanId(data.activeScan.id);
+          console.log('[Hunter Dashboard] Restored active scan:', data.activeScan.id);
+        }
+      }
+    } catch (error) {
+      console.error('[Hunter Dashboard] Error fetching active scan:', error);
+    }
+  };
 
   // Poll for updates when scan is active OR items are processing
   useEffect(() => {
@@ -89,14 +109,21 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
           if (data.success) {
             const pendingItems = data.items || [];
             setProcessingCount(pendingItems.length);
+          }
 
-            // If no more pending items and no active scan, stop polling
-            if (pendingItems.length === 0 && !currentScanId) {
-              dataLoadedRef.current = false; // Allow reload
-              loadData();
-              if (pollingRef.current) {
-                clearInterval(pollingRef.current);
-                pollingRef.current = null;
+          // Check if scan is still running (to detect completion)
+          if (currentScanId) {
+            const scanRes = await fetch(`/api/hunter/active?projectId=${projectId}`);
+            const scanData = await scanRes.json();
+
+            if (scanData.success) {
+              const activeScan = scanData.activeScan;
+              // If scan completed or no longer running, clear it
+              if (!activeScan || activeScan.status !== 'running') {
+                console.log('[Hunter Dashboard] Scan completed, clearing progress bar');
+                setCurrentScanId(null);
+                dataLoadedRef.current = false; // Allow reload
+                loadData();
               }
             }
           }
