@@ -101,16 +101,21 @@ export async function POST(
 
         // Generate voter hash - only use for logged-in users or email-based votes
         // IP+UA based hashing is unreliable due to proxy changes on Vercel
+        // Ensure empty email string is treated as no email
+        const voterEmail = body.voter_email?.trim() || undefined;
+
         const voterHash = generateVoterHash(
-            body.voter_email,
+            voterEmail,
             ip,
             userAgent,
             user?.id
         );
 
+        console.log(`[Poll Vote API] Generated hash: ${voterHash.slice(0, 8)}... (UUID format: ${voterHash.includes('-')}, user: ${!!user?.id}, email: ${!!voterEmail})`);
+
         // Only check for existing votes if user is logged in or provided an email
         // Anonymous IP-based voting cannot be reliably deduplicated on serverless
-        if (user?.id || body.voter_email) {
+        if (user?.id || voterEmail) {
             const { data: existingVote } = await serviceClient!
                 .from('poll_votes')
                 .select('id')
