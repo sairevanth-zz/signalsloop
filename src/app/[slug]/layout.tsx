@@ -31,8 +31,11 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
   // Only show notification prompt on dashboard page
   const showNotificationPrompt = pathname?.includes('/dashboard');
 
-  // Check if we're on the public board page (no auth required pages)
-  const isPublicPage = pathname === `/${projectSlug}` || pathname?.includes('/post/');
+  // Check if we're on a public page (no auth required, no sidebar)
+  const isPublicPage = pathname === `/${projectSlug}` ||
+    pathname?.includes('/post/') ||
+    pathname?.endsWith('/vote') ||
+    pathname?.endsWith('/respond');
 
   // Fetch project ID from slug
   useEffect(() => {

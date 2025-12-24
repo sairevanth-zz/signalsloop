@@ -14,10 +14,11 @@ export default function PollVotePage() {
     const slug = params?.slug as string;
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: '#1a1d23' }}>
+        <div className="min-h-screen flex items-center justify-center p-6 bg-background">
             <div className="w-full max-w-lg">
                 <VotingInterface
                     pollId={pollId}
+                    projectSlug={slug}
                     showResults={true}
                     onVoteComplete={() => {
                         // Optional: redirect or show additional content
@@ -30,7 +31,7 @@ export default function PollVotePage() {
                         href="https://signalsloop.com"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-slate-500 hover:text-slate-400 transition-colors"
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                     >
                         Powered by SignalsLoop
                     </a>

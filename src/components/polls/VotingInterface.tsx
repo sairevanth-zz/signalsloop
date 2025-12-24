@@ -30,6 +30,7 @@ interface VotingInterfaceProps {
     onVoteComplete?: () => void;
     showResults?: boolean;
     embedded?: boolean;
+    projectSlug?: string;
 }
 
 export function VotingInterface({
@@ -37,7 +38,8 @@ export function VotingInterface({
     poll: initialPoll,
     onVoteComplete,
     showResults = false,
-    embedded = false
+    embedded = false,
+    projectSlug
 }: VotingInterfaceProps) {
     const [poll, setPoll] = useState<PollWithOptions | null>(initialPoll || null);
     const [loading, setLoading] = useState(!initialPoll);
@@ -61,7 +63,7 @@ export function VotingInterface({
 
     const loadPoll = async () => {
         try {
-            const res = await fetch(`/api/polls/${pollId}`);
+            const res = await fetch(`/api/polls/${pollId}`, { credentials: 'include' });
             if (!res.ok) throw new Error('Failed to load poll');
             const data = await res.json();
             setPoll(data.poll);
@@ -118,6 +120,7 @@ export function VotingInterface({
             const res = await fetch(`/api/polls/${pollId}/vote`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(voteInput)
             });
 
@@ -158,10 +161,10 @@ export function VotingInterface({
 
     if (loading) {
         return (
-            <Card className={embedded ? 'border-0 shadow-none' : 'border-slate-700 bg-slate-800/50'}>
+            <Card className={embedded ? 'border-0 shadow-none' : ''}>
                 <CardContent className="py-12 text-center">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-teal-400" />
-                    <p className="mt-2 text-slate-400">Loading poll...</p>
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-teal-500" />
+                    <p className="mt-2 text-muted-foreground">Loading poll...</p>
                 </CardContent>
             </Card>
         );
@@ -169,10 +172,10 @@ export function VotingInterface({
 
     if (error && !poll) {
         return (
-            <Card className={embedded ? 'border-0 shadow-none' : 'border-slate-700 bg-slate-800/50'}>
+            <Card className={embedded ? 'border-0 shadow-none' : ''}>
                 <CardContent className="py-12 text-center">
-                    <AlertCircle className="w-12 h-12 mx-auto text-red-400" />
-                    <p className="mt-2 text-slate-400">{error}</p>
+                    <AlertCircle className="w-12 h-12 mx-auto text-destructive" />
+                    <p className="mt-2 text-muted-foreground">{error}</p>
                 </CardContent>
             </Card>
         );
@@ -183,18 +186,18 @@ export function VotingInterface({
     // Success state
     if (voted) {
         return (
-            <Card className={embedded ? 'border-0 shadow-none bg-slate-900' : 'border-slate-700 bg-slate-800/50'}>
+            <Card className={embedded ? 'border-0 shadow-none' : ''}>
                 <CardContent className="py-12 text-center">
                     <div className="w-16 h-16 rounded-full bg-teal-500/20 flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="w-8 h-8 text-teal-400" />
+                        <CheckCircle className="w-8 h-8 text-teal-500" />
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-2">Thank you!</h3>
-                    <p className="text-slate-400">Your vote has been recorded.</p>
-                    {showResults && (
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Thank you!</h3>
+                    <p className="text-muted-foreground">Your vote has been recorded.</p>
+                    {showResults && projectSlug && (
                         <Button
                             variant="outline"
-                            className="mt-4 border-slate-600"
-                            onClick={() => window.location.href = `/polls/${pollId}/results`}
+                            className="mt-4"
+                            onClick={() => window.location.href = `/${projectSlug}/polls/${pollId}`}
                         >
                             <BarChart3 className="w-4 h-4 mr-2" />
                             View Results
@@ -208,14 +211,14 @@ export function VotingInterface({
     const sortedOptions = [...(poll.options || [])].sort((a, b) => a.display_order - b.display_order);
 
     return (
-        <Card className={embedded ? 'border-0 shadow-none bg-slate-900' : 'border-slate-700 bg-slate-800/50'}>
+        <Card className={embedded ? 'border-0 shadow-none' : ''}>
             <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                    <Vote className="w-5 h-5 text-teal-400" />
+                <CardTitle className="text-foreground flex items-center gap-2">
+                    <Vote className="w-5 h-5 text-teal-500" />
                     {poll.title}
                 </CardTitle>
                 {poll.description && (
-                    <CardDescription className="text-slate-400">
+                    <CardDescription>
                         {poll.description}
                     </CardDescription>
                 )}
@@ -228,14 +231,14 @@ export function VotingInterface({
                         {sortedOptions.map((option) => (
                             <div
                                 key={option.id}
-                                className="flex items-center space-x-3 p-3 rounded-lg border border-slate-700 hover:border-teal-500/50 transition-colors cursor-pointer"
+                                className="flex items-center space-x-3 p-3 rounded-lg border hover:border-teal-500/50 transition-colors cursor-pointer"
                                 onClick={() => setSelectedOption(option.id)}
                             >
                                 <RadioGroupItem value={option.id} id={option.id} />
-                                <Label htmlFor={option.id} className="flex-1 cursor-pointer text-white">
+                                <Label htmlFor={option.id} className="flex-1 cursor-pointer text-foreground">
                                     {option.option_text}
                                     {option.description && (
-                                        <span className="block text-xs text-slate-400 mt-0.5">
+                                        <span className="block text-xs text-muted-foreground mt-0.5">
                                             {option.description}
                                         </span>
                                     )}
@@ -251,17 +254,17 @@ export function VotingInterface({
                         {sortedOptions.map((option) => (
                             <div
                                 key={option.id}
-                                className="flex items-center space-x-3 p-3 rounded-lg border border-slate-700 hover:border-teal-500/50 transition-colors cursor-pointer"
+                                className="flex items-center space-x-3 p-3 rounded-lg border hover:border-teal-500/50 transition-colors cursor-pointer"
                                 onClick={() => toggleMultiOption(option.id)}
                             >
                                 <Checkbox
                                     checked={selectedOptions.has(option.id)}
                                     onCheckedChange={() => toggleMultiOption(option.id)}
                                 />
-                                <Label className="flex-1 cursor-pointer text-white">
+                                <Label className="flex-1 cursor-pointer text-foreground">
                                     {option.option_text}
                                     {option.description && (
-                                        <span className="block text-xs text-slate-400 mt-0.5">
+                                        <span className="block text-xs text-muted-foreground mt-0.5">
                                             {option.description}
                                         </span>
                                     )}
@@ -274,27 +277,27 @@ export function VotingInterface({
                 {/* Ranked Choice */}
                 {poll.poll_type === 'ranked' && (
                     <div className="space-y-2">
-                        <p className="text-sm text-slate-400 mb-2">Drag to reorder by preference (top = most preferred)</p>
+                        <p className="text-sm text-muted-foreground mb-2">Drag to reorder by preference (top = most preferred)</p>
                         {rankedOptions.map((optionId, index) => {
                             const option = sortedOptions.find(o => o.id === optionId);
                             if (!option) return null;
                             return (
                                 <div
                                     key={option.id}
-                                    className="flex items-center space-x-3 p-3 rounded-lg border border-slate-700 bg-slate-800/50"
+                                    className="flex items-center space-x-3 p-3 rounded-lg border bg-muted/50"
                                 >
-                                    <span className="w-6 h-6 rounded-full bg-teal-500/20 text-teal-400 text-sm font-medium flex items-center justify-center">
+                                    <span className="w-6 h-6 rounded-full bg-teal-500/20 text-teal-600 dark:text-teal-400 text-sm font-medium flex items-center justify-center">
                                         {index + 1}
                                     </span>
-                                    <GripVertical className="w-4 h-4 text-slate-500 cursor-move" />
-                                    <span className="flex-1 text-white">{option.option_text}</span>
+                                    <GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
+                                    <span className="flex-1 text-foreground">{option.option_text}</span>
                                     <div className="flex gap-1">
                                         {index > 0 && (
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => moveRankedOption(index, index - 1)}
-                                                className="text-slate-400 hover:text-white"
+                                                className="text-muted-foreground hover:text-foreground"
                                             >
                                                 ↑
                                             </Button>
@@ -304,7 +307,7 @@ export function VotingInterface({
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => moveRankedOption(index, index + 1)}
-                                                className="text-slate-400 hover:text-white"
+                                                className="text-muted-foreground hover:text-foreground"
                                             >
                                                 ↓
                                             </Button>
@@ -318,8 +321,8 @@ export function VotingInterface({
 
                 {/* Explanation */}
                 {poll.require_explanation && (
-                    <div className="space-y-2 pt-4 border-t border-slate-700">
-                        <Label className="text-white">
+                    <div className="space-y-2 pt-4 border-t">
+                        <Label>
                             Explain your choice {poll.require_explanation ? '*' : '(optional)'}
                         </Label>
                         <Textarea
@@ -327,30 +330,28 @@ export function VotingInterface({
                             onChange={(e) => setExplanation(e.target.value)}
                             placeholder="Why did you choose this option?"
                             rows={3}
-                            className="bg-slate-900 border-slate-600 text-white"
                         />
                     </div>
                 )}
 
                 {/* Anonymous email collection */}
                 {poll.allow_anonymous && (
-                    <div className="space-y-2 pt-4 border-t border-slate-700">
-                        <Label className="text-white">Email (optional)</Label>
+                    <div className="space-y-2 pt-4 border-t">
+                        <Label>Email (optional)</Label>
                         <Input
                             type="email"
                             value={voterEmail}
                             onChange={(e) => setVoterEmail(e.target.value)}
                             placeholder="your@email.com"
-                            className="bg-slate-900 border-slate-600 text-white"
                         />
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-muted-foreground">
                             Provide your email to be notified about results
                         </p>
                     </div>
                 )}
 
                 {error && (
-                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/50 text-red-400 text-sm">
+                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/50 text-destructive text-sm">
                         {error}
                     </div>
                 )}

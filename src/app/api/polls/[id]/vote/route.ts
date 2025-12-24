@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
-import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import crypto from 'crypto';
 import type { SubmitVoteInput } from '@/types/polls';
 
@@ -48,7 +47,7 @@ export async function POST(
             'unknown';
         const userAgent = request.headers.get('user-agent') || 'unknown';
 
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
         const serviceClient = getSupabaseServiceRoleClient();
 
         // Get current user (may be null for anonymous)
