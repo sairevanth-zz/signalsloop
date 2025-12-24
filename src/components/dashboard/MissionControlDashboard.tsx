@@ -211,6 +211,17 @@ export function MissionControlDashboard({
                             accentColor="#10b981"
                             isEmpty={!dashboardData?.outcome}
                         />
+
+                        {/* Anomaly Detection - Orange */}
+                        <ActionCard
+                            icon={<AlertTriangle style={{ width: '24px', height: '24px', color: '#f97316' }} />}
+                            title="Anomaly Detection"
+                            description="AI monitors your feedback for unusual patterns - sentiment spikes, volume surges, and emerging topics."
+                            buttonLabel="View Anomalies"
+                            href={`/${projectSlug}/anomalies`}
+                            accentColor="#f97316"
+                            isEmpty={false}
+                        />
                     </div>
                 </div>
 

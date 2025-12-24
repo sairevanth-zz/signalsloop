@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import type { PollWithOptions } from '@/types/polls';
+import { KnowledgeGapCard } from '@/components/polls/KnowledgeGapCard';
 
 export default function PollsListPage() {
     const params = useParams();
@@ -183,6 +184,13 @@ export default function PollsListPage() {
                         </TabsList>
                     </Tabs>
                 </div>
+
+                {/* Knowledge Gap Detection Card */}
+                {projectId && (
+                    <div className="mb-6">
+                        <KnowledgeGapCard projectId={projectId} projectSlug={slug} />
+                    </div>
+                )}
 
                 {/* Polls List */}
                 {loading ? (
