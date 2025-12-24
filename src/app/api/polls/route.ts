@@ -5,8 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
-import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import type { CreatePollInput, Poll, PollWithOptions } from '@/types/polls';
 
 // GET /api/polls?projectId=xxx
@@ -25,7 +24,7 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
 
         // Verify user has access to project
         const { data: { user } } = await supabase.auth.getUser();
@@ -112,7 +111,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
 
         // Verify user is authenticated and has project access
         const { data: { user } } = await supabase.auth.getUser();

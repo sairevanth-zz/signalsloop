@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
-import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import type { UpdatePollInput, PollWithOptions } from '@/types/polls';
 
 interface RouteContext {
@@ -22,7 +21,7 @@ export async function GET(
     try {
         const { id } = await context.params;
 
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
 
         // Fetch poll with options
         const { data: poll, error } = await supabase
@@ -66,7 +65,7 @@ export async function PATCH(
         const { id } = await context.params;
         const body = await request.json() as UpdatePollInput;
 
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
 
         // Verify user is authenticated
         const { data: { user } } = await supabase.auth.getUser();
@@ -164,7 +163,7 @@ export async function DELETE(
     try {
         const { id } = await context.params;
 
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
 
         // Verify user is authenticated
         const { data: { user } } = await supabase.auth.getUser();
