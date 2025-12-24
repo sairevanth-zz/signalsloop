@@ -54,7 +54,7 @@ export default function SurveysListPage() {
 
     const loadProject = async () => {
         try {
-            const res = await fetch('/api/projects?all=true');
+            const res = await fetch('/api/projects?all=true', { credentials: 'include' });
             if (!res.ok) throw new Error('Failed to load projects');
             const data = await res.json();
             const project = data.projects?.find((p: any) => p.slug === slug);
@@ -70,7 +70,7 @@ export default function SurveysListPage() {
             const params = new URLSearchParams({ projectId: projectId! });
             if (filter !== 'all') params.set('status', filter);
 
-            const res = await fetch(`/api/surveys?${params}`);
+            const res = await fetch(`/api/surveys?${params}`, { credentials: 'include' });
             if (!res.ok) throw new Error('Failed to load surveys');
 
             const data = await res.json();
@@ -86,7 +86,7 @@ export default function SurveysListPage() {
         if (!confirm('Are you sure you want to delete this survey?')) return;
 
         try {
-            const res = await fetch(`/api/surveys/${surveyId}`, { method: 'DELETE' });
+            const res = await fetch(`/api/surveys/${surveyId}`, { method: 'DELETE', credentials: 'include' });
             if (!res.ok) throw new Error('Failed to delete survey');
 
             toast.success('Survey deleted');
@@ -117,16 +117,16 @@ export default function SurveysListPage() {
     };
 
     return (
-        <div className="min-h-screen p-6" style={{ backgroundColor: '#1a1d23' }}>
+        <div className="min-h-screen p-6 bg-background">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                            <ClipboardList className="w-6 h-6 text-teal-400" />
+                        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                            <ClipboardList className="w-6 h-6 text-teal-500" />
                             Surveys
                         </h1>
-                        <p className="text-slate-400 mt-1">
+                        <p className="text-muted-foreground mt-1">
                             Create multi-question surveys for detailed feedback
                         </p>
                     </div>
@@ -142,16 +142,16 @@ export default function SurveysListPage() {
                 {/* Filters */}
                 <div className="flex items-center gap-4 mb-6">
                     <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search surveys..."
-                            className="pl-10 bg-slate-800 border-slate-700 text-white"
+                            className="pl-10"
                         />
                     </div>
                     <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
-                        <TabsList className="bg-slate-800">
+                        <TabsList>
                             <TabsTrigger value="all">All</TabsTrigger>
                             <TabsTrigger value="active">Active</TabsTrigger>
                             <TabsTrigger value="draft">Drafts</TabsTrigger>
@@ -162,18 +162,18 @@ export default function SurveysListPage() {
 
                 {/* Surveys List */}
                 {loading ? (
-                    <Card className="border-slate-700 bg-slate-800/50">
+                    <Card>
                         <CardContent className="py-12 text-center">
-                            <Loader2 className="w-8 h-8 animate-spin mx-auto text-teal-400" />
-                            <p className="mt-2 text-slate-400">Loading surveys...</p>
+                            <Loader2 className="w-8 h-8 animate-spin mx-auto text-teal-500" />
+                            <p className="mt-2 text-muted-foreground">Loading surveys...</p>
                         </CardContent>
                     </Card>
                 ) : filteredSurveys.length === 0 ? (
-                    <Card className="border-slate-700 bg-slate-800/50">
+                    <Card>
                         <CardContent className="py-12 text-center">
-                            <ClipboardList className="w-12 h-12 mx-auto text-slate-600 mb-4" />
-                            <h3 className="text-lg font-semibold text-white mb-2">No surveys yet</h3>
-                            <p className="text-slate-400 mb-4">
+                            <ClipboardList className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                            <h3 className="text-lg font-semibold text-foreground mb-2">No surveys yet</h3>
+                            <p className="text-muted-foreground mb-4">
                                 Create your first survey to start gathering detailed feedback
                             </p>
                             <Button
@@ -190,12 +190,12 @@ export default function SurveysListPage() {
                         {filteredSurveys.map((survey) => (
                             <Card
                                 key={survey.id}
-                                className="border-slate-700 bg-slate-800/50 hover:border-teal-500/50 transition-colors"
+                                className="hover:border-teal-500/50 transition-colors"
                             >
                                 <CardHeader className="pb-2">
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1 min-w-0">
-                                            <CardTitle className="text-white text-lg truncate">
+                                            <CardTitle className="text-foreground text-lg truncate">
                                                 {survey.title}
                                             </CardTitle>
                                             {survey.description && (
@@ -206,35 +206,32 @@ export default function SurveysListPage() {
                                         </div>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="sm" className="text-slate-400">
+                                                <Button variant="ghost" size="sm" className="text-muted-foreground">
                                                     <MoreVertical className="w-4 h-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                                            <DropdownMenuContent align="end">
                                                 <DropdownMenuItem
                                                     onClick={() => router.push(`/${slug}/surveys/${survey.id}`)}
-                                                    className="text-slate-200"
                                                 >
                                                     <BarChart3 className="w-4 h-4 mr-2" />
                                                     View Results
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onClick={() => copyShareLink(survey.id)}
-                                                    className="text-slate-200"
                                                 >
                                                     <Share2 className="w-4 h-4 mr-2" />
                                                     Copy Share Link
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onClick={() => window.open(`/${slug}/surveys/${survey.id}/respond`, '_blank')}
-                                                    className="text-slate-200"
                                                 >
                                                     <ExternalLink className="w-4 h-4 mr-2" />
                                                     Open Survey
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onClick={() => deleteSurvey(survey.id)}
-                                                    className="text-red-400"
+                                                    className="text-destructive"
                                                 >
                                                     <Trash2 className="w-4 h-4 mr-2" />
                                                     Delete
@@ -244,7 +241,7 @@ export default function SurveysListPage() {
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="flex items-center gap-4 text-sm text-slate-400 mb-3">
+                                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                                         <span className="flex items-center gap-1">
                                             <Users className="w-3.5 h-3.5" />
                                             {survey.response_count || 0} responses
@@ -259,7 +256,7 @@ export default function SurveysListPage() {
                                             {survey.status}
                                         </Badge>
                                         {survey.closes_at && (
-                                            <span className="text-xs text-slate-500 flex items-center gap-1">
+                                            <span className="text-xs text-muted-foreground flex items-center gap-1">
                                                 <Clock className="w-3 h-3" />
                                                 {new Date(survey.closes_at).toLocaleDateString()}
                                             </span>
