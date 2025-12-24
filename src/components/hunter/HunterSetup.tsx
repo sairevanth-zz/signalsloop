@@ -627,9 +627,15 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
         {/* Step 2: Platform Selection */}
         {currentStep === 2 && (
           <div className="space-y-4">
-            <p className="text-sm text-gray-600 dark:text-slate-300 mb-4">
+            <p className="text-sm text-gray-600 dark:text-slate-300 mb-2">
               Select the platforms where you want to discover feedback
             </p>
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-3 mb-4">
+              <p className="text-xs text-amber-800 dark:text-amber-300">
+                <strong>Pro plan:</strong> Reddit, HackerNews, PlayStore •
+                <strong className="text-purple-600 dark:text-purple-400 ml-1">Premium plan:</strong> All platforms including Twitter, G2, Capterra, Trustpilot, ProductHunt
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(PLATFORM_META)
                 .filter(([key]) => AVAILABLE_PLATFORMS.includes(key as PlatformType))
@@ -654,9 +660,9 @@ export function HunterSetup({ projectId, onComplete, className }: HunterSetupPro
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-2xl">{meta.icon}</span>
                           <span className="font-semibold dark:text-white">{meta.name}</span>
-                          {meta.costTier !== 'free' && (
-                            <span className="text-xs bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 px-2 py-0.5 rounded">
-                              {meta.costTier}
+                          {meta.costTier === 'premium' && (
+                            <span className="text-xs bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded font-medium">
+                              Premium
                             </span>
                           )}
                         </div>

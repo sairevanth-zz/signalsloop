@@ -769,7 +769,7 @@ export interface PlatformMeta {
   description: string;
   requiresAuth: boolean;
   rateLimitPerHour: number;
-  costTier: 'free' | 'paid' | 'enterprise';
+  costTier: 'free' | 'premium' | 'enterprise';
 }
 
 /**
@@ -792,7 +792,7 @@ export const PLATFORM_META: Record<PlatformType, PlatformMeta> = {
     description: 'Monitor Twitter mentions and hashtags',
     requiresAuth: true,
     rateLimitPerHour: 100,
-    costTier: 'paid',
+    costTier: 'premium',
   },
   hackernews: {
     name: 'Hacker News',
@@ -810,7 +810,7 @@ export const PLATFORM_META: Record<PlatformType, PlatformMeta> = {
     description: 'Collect reviews from G2',
     requiresAuth: false,
     rateLimitPerHour: 12,
-    costTier: 'paid',
+    costTier: 'premium',
   },
   capterra: {
     name: 'Capterra',
@@ -819,7 +819,7 @@ export const PLATFORM_META: Record<PlatformType, PlatformMeta> = {
     description: 'Collect reviews from Capterra',
     requiresAuth: false,
     rateLimitPerHour: 12,
-    costTier: 'paid',
+    costTier: 'premium',
   },
   trustpilot: {
     name: 'Trustpilot',
@@ -828,7 +828,7 @@ export const PLATFORM_META: Record<PlatformType, PlatformMeta> = {
     description: 'Collect reviews from Trustpilot',
     requiresAuth: false,
     rateLimitPerHour: 12,
-    costTier: 'paid',
+    costTier: 'premium',
   },
   producthunt: {
     name: 'Product Hunt',
@@ -837,7 +837,7 @@ export const PLATFORM_META: Record<PlatformType, PlatformMeta> = {
     description: 'Monitor Product Hunt comments',
     requiresAuth: false,
     rateLimitPerHour: 12,
-    costTier: 'paid',
+    costTier: 'premium',
   },
   appstore: {
     name: 'App Store',

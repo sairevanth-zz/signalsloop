@@ -123,8 +123,47 @@ export async function POST(request: NextRequest) {
     }
 
     // Get unique platforms
-    const platforms = [...new Set(integrations.map((i: any) => i.platform_type))] as string[];
-    console.log('[Hunter Trigger] Platforms to scan:', platforms);
+    let platforms = [...new Set(integrations.map((i: any) => i.platform_type))] as string[];
+    console.log('[Hunter Trigger] All platforms requested:', platforms);
+
+    // === Plan-based platform filtering ===
+    // Grok-powered platforms (expensive): twitter, g2, capterra, trustpilot, producthunt
+    // Non-Grok platforms (cheap): reddit, hackernews, playstore
+    const GROK_PLATFORMS = ['twitter', 'g2', 'capterra', 'trustpilot', 'producthunt'];
+    const NON_GROK_PLATFORMS = ['reddit', 'hackernews', 'playstore'];
+
+    // Get project plan
+    const { data: projectPlan } = await supabase
+      .from('projects')
+      .select('plan')
+      .eq('id', projectId)
+      .single();
+
+    const userPlan = projectPlan?.plan || 'free';
+
+    // Pro and Free users: filter out Grok platforms
+    if (userPlan !== 'premium') {
+      const filteredPlatforms = platforms.filter(p => NON_GROK_PLATFORMS.includes(p));
+      const removedPlatforms = platforms.filter(p => GROK_PLATFORMS.includes(p));
+
+      if (removedPlatforms.length > 0) {
+        console.log(`[Hunter Trigger] ${userPlan} plan - filtering out Grok platforms:`, removedPlatforms);
+      }
+
+      platforms = filteredPlatforms;
+
+      if (platforms.length === 0) {
+        return NextResponse.json<QueuedScanResponse>(
+          {
+            success: false,
+            error: 'The platforms you have enabled (Twitter, G2, Capterra, Trustpilot, ProductHunt) require Premium. Please upgrade or enable Reddit, HackerNews, or PlayStore.'
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    console.log('[Hunter Trigger] Platforms to scan (after plan filter):', platforms);
 
     // Create scan and queue discovery jobs
     try {
