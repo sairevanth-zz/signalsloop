@@ -24,16 +24,16 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+// Interface matches actual API response from /lib/polls/knowledge-gap-detection.ts
 interface KnowledgeGap {
-    theme: string;
-    reason: string;
-    specificity: number;
-    suggestion: {
-        title: string;
-        question: string;
-        poll_type: 'single' | 'multiple' | 'ranked';
-        options: string[];
-    };
+    theme_id?: string;
+    theme_name: string;
+    description?: string;
+    feedback_count?: number;
+    specificity_score: number; // 0-1, lower = less specific
+    suggested_poll_title: string;
+    suggested_options: string[];
+    reasoning: string;
 }
 
 interface Props {
@@ -108,10 +108,10 @@ export function KnowledgeGapCard({ projectId, projectSlug }: Props) {
     function createPollFromGap(gap: KnowledgeGap) {
         // Navigate to poll creation with pre-filled data
         const pollData = {
-            title: gap.suggestion.title,
-            question: gap.suggestion.question,
-            poll_type: gap.suggestion.poll_type,
-            options: gap.suggestion.options,
+            title: gap.suggested_poll_title,
+            question: gap.suggested_poll_title,
+            poll_type: 'single',
+            options: gap.suggested_options,
         };
 
         // Store in session for pre-filling
@@ -199,7 +199,7 @@ export function KnowledgeGapCard({ projectId, projectSlug }: Props) {
                 ) : (
                     <div className="space-y-3">
                         {gaps.map((gap, index) => {
-                            const specificity = getSpecificityLabel(gap.specificity);
+                            const specificity = getSpecificityLabel(gap.specificity_score);
                             const isExpanded = expandedIndex === index;
 
                             return (
@@ -215,9 +215,9 @@ export function KnowledgeGapCard({ projectId, projectSlug }: Props) {
                                         <div className="flex items-start gap-3">
                                             <HelpCircle className="h-5 w-5 text-purple-500 mt-0.5" />
                                             <div>
-                                                <p className="font-medium text-foreground">{gap.theme}</p>
+                                                <p className="font-medium text-foreground">{gap.theme_name}</p>
                                                 <p className="text-sm text-muted-foreground mt-1">
-                                                    {gap.reason}
+                                                    {gap.reasoning}
                                                 </p>
                                             </div>
                                         </div>
@@ -245,20 +245,22 @@ export function KnowledgeGapCard({ projectId, projectSlug }: Props) {
                                                     </span>
                                                 </div>
                                                 <p className="font-medium text-foreground mb-2">
-                                                    {gap.suggestion.title}
+                                                    {gap.suggested_poll_title}
                                                 </p>
-                                                <p className="text-sm text-muted-foreground mb-3">
-                                                    "{gap.suggestion.question}"
-                                                </p>
+                                                {gap.feedback_count && (
+                                                    <p className="text-sm text-muted-foreground mb-3">
+                                                        Based on {gap.feedback_count} feedback items
+                                                    </p>
+                                                )}
                                                 <div className="flex flex-wrap gap-2 mb-4">
-                                                    {gap.suggestion.options.slice(0, 4).map((opt, i) => (
+                                                    {gap.suggested_options.slice(0, 4).map((opt, i) => (
                                                         <Badge key={i} variant="secondary" className="text-xs">
                                                             {opt}
                                                         </Badge>
                                                     ))}
-                                                    {gap.suggestion.options.length > 4 && (
+                                                    {gap.suggested_options.length > 4 && (
                                                         <Badge variant="secondary" className="text-xs">
-                                                            +{gap.suggestion.options.length - 4} more
+                                                            +{gap.suggested_options.length - 4} more
                                                         </Badge>
                                                     )}
                                                 </div>
