@@ -127,16 +127,34 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
     }
 
     const { poll, results: pollResults, by_segment, total_votes, total_weighted } = results;
+    const uniqueVoters = (results as any).unique_voters || total_votes;
+    const isRankedPoll = poll.poll_type === 'ranked';
 
-    // Prepare chart data
-    const chartData = pollResults.map((r, i) => ({
-        name: r.option_text.length > 25 ? r.option_text.slice(0, 22) + '...' : r.option_text,
-        fullName: r.option_text,
-        votes: r.vote_count,
-        weighted: r.weighted_vote_count,
-        percentage: showWeighted ? r.weighted_percentage : r.percentage,
-        color: CHART_COLORS[i % CHART_COLORS.length]
-    }));
+    // For ranked polls, sort by avg_rank (lower = more preferred)
+    // For other polls, keep original order (sorted by vote count)
+    const sortedResults = isRankedPoll
+        ? [...pollResults].sort((a: any, b: any) => (a.avg_rank || 999) - (b.avg_rank || 999))
+        : pollResults;
+
+    // Prepare chart data - for ranked polls, use inverse of avg_rank for bar width (higher bar = more preferred)
+    const chartData = sortedResults.map((r: any, i) => {
+        const maxRank = pollResults.length;
+        // For ranked: convert avg_rank to "preference score" (higher = better)
+        // Score = (maxRank - avgRank + 1) / maxRank * 100
+        const preferenceScore = isRankedPoll && r.avg_rank
+            ? ((maxRank - r.avg_rank + 1) / maxRank) * 100
+            : r.percentage;
+
+        return {
+            name: r.option_text.length > 25 ? r.option_text.slice(0, 22) + '...' : r.option_text,
+            fullName: r.option_text,
+            votes: r.vote_count,
+            weighted: r.weighted_vote_count,
+            percentage: isRankedPoll ? preferenceScore : (showWeighted ? r.weighted_percentage : r.percentage),
+            avgRank: r.avg_rank,
+            color: CHART_COLORS[i % CHART_COLORS.length]
+        };
+    });
 
     return (
         <div className="space-y-6">
@@ -172,12 +190,23 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                     </div>
                 </CardHeader>
                 <CardContent>
+                    {/* Poll Type Badge for ranked */}
+                    {isRankedPoll && (
+                        <div className="mb-4 p-3 rounded-lg bg-teal-500/10 border border-teal-500/20">
+                            <p className="text-sm text-teal-600 dark:text-teal-400">
+                                <strong>Ranked Choice Poll:</strong> Results sorted by average rank. Lower rank = higher preference.
+                            </p>
+                        </div>
+                    )}
+
                     {/* Stats Row */}
                     <div className="grid grid-cols-3 gap-4 mb-6">
                         <div className="text-center p-4 rounded-lg bg-muted">
                             <Users className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
-                            <p className="text-2xl font-bold text-foreground">{total_votes}</p>
-                            <p className="text-xs text-muted-foreground">Total Votes</p>
+                            <p className="text-2xl font-bold text-foreground">{uniqueVoters}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {isRankedPoll ? 'Unique Voters' : 'Total Votes'}
+                            </p>
                         </div>
                         <div className="text-center p-4 rounded-lg bg-muted">
                             <BarChart3 className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
@@ -264,10 +293,15 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                                                     color: chartTextColor
                                                 }}
                                                 labelStyle={{ color: chartTextColor }}
-                                                formatter={(value: number, name: string) => [
-                                                    `${value.toFixed(1)}%`,
-                                                    showWeighted ? 'Weighted' : 'Votes'
-                                                ]}
+                                                formatter={(value: number, name: string, props: any) => {
+                                                    if (isRankedPoll && props.payload?.avgRank) {
+                                                        return [`Avg Rank: ${props.payload.avgRank.toFixed(1)}`, 'Preference'];
+                                                    }
+                                                    return [
+                                                        `${value.toFixed(1)}%`,
+                                                        showWeighted ? 'Weighted' : 'Votes'
+                                                    ];
+                                                }}
                                             />
                                             <Bar dataKey="percentage" radius={[0, 4, 4, 0]}>
                                                 {chartData.map((entry, index) => (
