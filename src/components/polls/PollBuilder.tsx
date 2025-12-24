@@ -100,6 +100,7 @@ export function PollBuilder({
             const res = await fetch('/api/polls/suggest-options', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     project_id: projectId,
                     theme_id: themeId,
@@ -168,6 +169,7 @@ export function PollBuilder({
             const res = await fetch('/api/polls', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     projectId,
                     title: title.trim(),
@@ -198,6 +200,7 @@ export function PollBuilder({
                 const publishRes = await fetch(`/api/polls/${pollId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ status: 'active' })
                 });
 
@@ -221,10 +224,10 @@ export function PollBuilder({
     return (
         <div className="space-y-6">
             {/* Header */}
-            <Card className="border-slate-700 bg-slate-800/50">
+            <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-white">
-                        <BarChart3 className="w-5 h-5 text-teal-400" />
+                    <CardTitle className="flex items-center gap-2 text-foreground">
+                        <BarChart3 className="w-5 h-5 text-teal-500" />
                         Create Poll
                     </CardTitle>
                     <CardDescription>
@@ -234,34 +237,32 @@ export function PollBuilder({
                 <CardContent className="space-y-4">
                     {/* Title */}
                     <div className="space-y-2">
-                        <Label htmlFor="title" className="text-white">Poll Question *</Label>
+                        <Label htmlFor="title">Poll Question *</Label>
                         <Input
                             id="title"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="What feature would you like us to prioritize?"
-                            className="bg-slate-900 border-slate-600 text-white"
                         />
                     </div>
 
                     {/* Description */}
                     <div className="space-y-2">
-                        <Label htmlFor="description" className="text-white">Description (optional)</Label>
+                        <Label htmlFor="description">Description (optional)</Label>
                         <Textarea
                             id="description"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Provide context for your poll..."
                             rows={2}
-                            className="bg-slate-900 border-slate-600 text-white"
                         />
                     </div>
 
                     {/* Poll Type */}
                     <div className="space-y-2">
-                        <Label className="text-white">Poll Type</Label>
+                        <Label>Poll Type</Label>
                         <Select value={pollType} onValueChange={(v) => setPollType(v as PollType)}>
-                            <SelectTrigger className="bg-slate-900 border-slate-600 text-white">
+                            <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -275,10 +276,10 @@ export function PollBuilder({
             </Card>
 
             {/* Options */}
-            <Card className="border-slate-700 bg-slate-800/50">
+            <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle className="text-white text-lg">Poll Options</CardTitle>
+                        <CardTitle className="text-foreground text-lg">Poll Options</CardTitle>
                         <CardDescription>Add at least 2 options for voters to choose from</CardDescription>
                     </div>
                     <Button
@@ -286,7 +287,7 @@ export function PollBuilder({
                         size="sm"
                         onClick={generateSuggestions}
                         disabled={isGenerating}
-                        className="border-teal-500 text-teal-400 hover:bg-teal-500/10"
+                        className="border-teal-500 text-teal-600 dark:text-teal-400 hover:bg-teal-500/10"
                     >
                         {isGenerating ? (
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -299,7 +300,7 @@ export function PollBuilder({
                 <CardContent className="space-y-3">
                     {options.map((option, index) => (
                         <div key={index} className="flex items-start gap-2 group">
-                            <div className="pt-2.5 text-slate-500 cursor-move">
+                            <div className="pt-2.5 text-muted-foreground cursor-move">
                                 <GripVertical className="w-4 h-4" />
                             </div>
                             <div className="flex-1 space-y-1">
@@ -307,14 +308,13 @@ export function PollBuilder({
                                     value={option.option_text}
                                     onChange={(e) => updateOption(index, 'option_text', e.target.value)}
                                     placeholder={`Option ${index + 1}`}
-                                    className="bg-slate-900 border-slate-600 text-white"
                                 />
                                 {option.description && (
-                                    <p className="text-xs text-slate-400 px-2">{option.description}</p>
+                                    <p className="text-xs text-muted-foreground px-2">{option.description}</p>
                                 )}
                             </div>
                             {option.ai_generated && (
-                                <Badge variant="outline" className="text-xs text-teal-400 border-teal-500/50 mt-2">
+                                <Badge variant="outline" className="text-xs text-teal-600 dark:text-teal-400 border-teal-500/50 mt-2">
                                     AI
                                 </Badge>
                             )}
@@ -322,7 +322,7 @@ export function PollBuilder({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => removeOption(index)}
-                                className="text-slate-400 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                                 <Trash2 className="w-4 h-4" />
                             </Button>
@@ -333,7 +333,7 @@ export function PollBuilder({
                         variant="outline"
                         size="sm"
                         onClick={addOption}
-                        className="w-full border-dashed border-slate-600 text-slate-400 hover:text-white"
+                        className="w-full border-dashed text-muted-foreground hover:text-foreground"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Option
@@ -341,9 +341,9 @@ export function PollBuilder({
 
                     {/* AI Suggestions */}
                     {suggestedOptions.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-slate-700">
-                            <p className="text-sm text-slate-400 mb-2 flex items-center gap-2">
-                                <Sparkles className="w-3 h-3 text-teal-400" />
+                        <div className="mt-4 pt-4 border-t">
+                            <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+                                <Sparkles className="w-3 h-3 text-teal-500" />
                                 AI Suggestions (click to add)
                             </p>
                             <div className="flex flex-wrap gap-2">
@@ -353,10 +353,10 @@ export function PollBuilder({
                                         variant="outline"
                                         size="sm"
                                         onClick={() => useSuggestion(suggestion)}
-                                        className="text-xs border-slate-600 text-slate-300 hover:border-teal-500 hover:text-teal-400"
+                                        className="text-xs hover:border-teal-500 hover:text-teal-600 dark:hover:text-teal-400"
                                     >
                                         {suggestion.option_text}
-                                        <span className="ml-1 text-slate-500">
+                                        <span className="ml-1 text-muted-foreground">
                                             ({Math.round(suggestion.confidence * 100)}%)
                                         </span>
                                     </Button>
@@ -368,32 +368,32 @@ export function PollBuilder({
             </Card>
 
             {/* Settings */}
-            <Card className="border-slate-700 bg-slate-800/50">
+            <Card>
                 <CardHeader>
-                    <CardTitle className="text-white text-lg">Settings</CardTitle>
+                    <CardTitle className="text-foreground text-lg">Settings</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {/* Close Date */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-slate-400" />
-                            <Label className="text-white">Close Date (optional)</Label>
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            <Label>Close Date (optional)</Label>
                         </div>
                         <Input
                             type="datetime-local"
                             value={closesAt}
                             onChange={(e) => setClosesAt(e.target.value)}
-                            className="w-56 bg-slate-900 border-slate-600 text-white"
+                            className="w-56"
                         />
                     </div>
 
                     {/* Anonymous Voting */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-slate-400" />
+                            <Users className="w-4 h-4 text-muted-foreground" />
                             <div>
-                                <Label className="text-white">Allow Anonymous Voting</Label>
-                                <p className="text-xs text-slate-400">Users can vote without logging in</p>
+                                <Label>Allow Anonymous Voting</Label>
+                                <p className="text-xs text-muted-foreground">Users can vote without logging in</p>
                             </div>
                         </div>
                         <Switch
@@ -405,8 +405,8 @@ export function PollBuilder({
                     {/* Require Explanation */}
                     <div className="flex items-center justify-between">
                         <div>
-                            <Label className="text-white">Require Explanation</Label>
-                            <p className="text-xs text-slate-400">Voters must explain their choice</p>
+                            <Label>Require Explanation</Label>
+                            <p className="text-xs text-muted-foreground">Voters must explain their choice</p>
                         </div>
                         <Switch
                             checked={requireExplanation}
@@ -417,8 +417,8 @@ export function PollBuilder({
                     {/* Show Results Before Vote */}
                     <div className="flex items-center justify-between">
                         <div>
-                            <Label className="text-white">Show Results Before Voting</Label>
-                            <p className="text-xs text-slate-400">Voters can see current results before deciding</p>
+                            <Label>Show Results Before Voting</Label>
+                            <p className="text-xs text-muted-foreground">Voters can see current results before deciding</p>
                         </div>
                         <Switch
                             checked={showResultsBeforeVote}

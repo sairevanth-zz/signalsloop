@@ -29,7 +29,7 @@ export default function PollDetailsPage() {
 
     const loadPoll = async () => {
         try {
-            const res = await fetch(`/api/polls/${pollId}`);
+            const res = await fetch(`/api/polls/${pollId}`, { credentials: 'include' });
             if (!res.ok) throw new Error('Failed to load poll');
             const data = await res.json();
             setPoll(data.poll);
@@ -50,6 +50,7 @@ export default function PollDetailsPage() {
             const res = await fetch(`/api/polls/${pollId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ status: newStatus })
             });
 
@@ -73,10 +74,10 @@ export default function PollDetailsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#1a1d23' }}>
+            <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="text-center">
-                    <div className="w-8 h-8 border-2 border-teal-400 border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="mt-2 text-slate-400">Loading poll...</p>
+                    <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="mt-2 text-muted-foreground">Loading poll...</p>
                 </div>
             </div>
         );
@@ -84,13 +85,13 @@ export default function PollDetailsPage() {
 
     if (!poll) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#1a1d23' }}>
+            <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="text-center">
-                    <p className="text-slate-400">Poll not found</p>
+                    <p className="text-muted-foreground">Poll not found</p>
                     <Button
                         variant="ghost"
                         onClick={() => router.push(`/${slug}/polls`)}
-                        className="mt-4 text-teal-400"
+                        className="mt-4 text-teal-600 dark:text-teal-400"
                     >
                         Back to Polls
                     </Button>
@@ -100,14 +101,14 @@ export default function PollDetailsPage() {
     }
 
     return (
-        <div className="min-h-screen p-6" style={{ backgroundColor: '#1a1d23' }}>
+        <div className="min-h-screen p-6 bg-background">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <Button
                         variant="ghost"
                         onClick={() => router.push(`/${slug}/polls`)}
-                        className="text-slate-400 hover:text-white"
+                        className="text-muted-foreground hover:text-foreground"
                     >
                         <ChevronLeft className="w-4 h-4 mr-1" />
                         Back to Polls
@@ -118,7 +119,6 @@ export default function PollDetailsPage() {
                             variant="outline"
                             size="sm"
                             onClick={copyShareLink}
-                            className="border-slate-600"
                         >
                             <Share2 className="w-4 h-4 mr-2" />
                             Share
@@ -127,7 +127,6 @@ export default function PollDetailsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => window.open(`/${slug}/polls/${pollId}/vote`, '_blank')}
-                            className="border-slate-600"
                         >
                             <ExternalLink className="w-4 h-4 mr-2" />
                             Voting Page

@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
-import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { getOpenAI } from '@/lib/openai-client';
 import type { PollSuggestionRequest, PollSuggestionResponse, SuggestedPollOption } from '@/types/polls';
 
@@ -47,7 +46,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
 
         // Verify user is authenticated
         const { data: { user } } = await supabase.auth.getUser();
