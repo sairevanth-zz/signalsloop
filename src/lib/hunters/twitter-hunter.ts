@@ -13,6 +13,7 @@ import {
   PlatformIntegrationError,
 } from '@/types/hunter';
 import { checkAIUsageLimit } from '@/lib/ai-rate-limit';
+import { checkGrokRateLimit } from './concurrency';
 
 /**
  * Structure of a post found via Grok's x_search
@@ -95,6 +96,13 @@ export class TwitterHunter extends BaseHunter {
           'twitter',
           { integration_id: integration.id }
         );
+      }
+
+      // Check Grok/xAI rate limit before proceeding
+      const grokRateLimitCheck = await checkGrokRateLimit();
+      if (!grokRateLimitCheck.allowed) {
+        console.warn(`[Twitter/Grok] Rate limit reached: ${grokRateLimitCheck.reason}`);
+        return []; // Return empty results, will be retried next scan
       }
 
       // Build search terms from config (limit to 5 to avoid timeout)

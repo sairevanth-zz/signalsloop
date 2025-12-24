@@ -13,6 +13,7 @@ import {
     PlatformIntegrationError,
 } from '@/types/hunter';
 import { checkAIUsageLimit } from '@/lib/ai-rate-limit';
+import { checkGrokRateLimit } from './concurrency';
 
 /**
  * Structure of a review found via Grok's web search
@@ -93,6 +94,13 @@ export class ReviewSiteHunter extends BaseHunter {
 
             // Get review site configuration
             const reviewConfig = this.getReviewSiteConfig(config, integration);
+
+            // Check Grok/xAI rate limit before proceeding
+            const grokRateLimitCheck = await checkGrokRateLimit();
+            if (!grokRateLimitCheck.allowed) {
+                console.warn(`[ReviewSite/Grok] Rate limit reached: ${grokRateLimitCheck.reason}`);
+                return []; // Return empty results, will be retried next scan
+            }
 
             console.log(`[ReviewSite/Grok] Starting hunt for ${reviewConfig.product_name} on ${reviewConfig.platform}`);
 

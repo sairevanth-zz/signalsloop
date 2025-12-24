@@ -28,6 +28,10 @@ const CONFIG = {
     OPENAI_RATE_LIMIT: 50,                // 50 requests per minute global
     OPENAI_RATE_WINDOW: 60,               // 60 second window
 
+    // Grok/xAI rate limits (more conservative - xAI has stricter limits)
+    GROK_RATE_LIMIT: 30,                  // 30 requests per minute global (xAI is stricter)
+    GROK_RATE_WINDOW: 60,                 // 60 second window
+
     // Circuit breaker config
     CIRCUIT_BREAKER_THRESHOLD: 3,         // Failures before opening circuit
     CIRCUIT_BREAKER_TIMEOUT: 300,         // Seconds before retry (5 min)
@@ -216,6 +220,71 @@ export async function recordOpenAIRequest(): Promise<void> {
         await redis.expire(key, CONFIG.OPENAI_RATE_WINDOW + 10);
     } catch (error) {
         console.error('[RateLimit] Error recording OpenAI request:', error);
+    }
+}
+
+// ============================================
+// Phase 2b: Grok/xAI Rate Limiting
+// ============================================
+
+/**
+ * Check Grok/xAI rate limit using sliding window
+ * xAI has stricter rate limits than OpenAI, so we use a lower threshold
+ */
+export async function checkGrokRateLimit(): Promise<ConcurrencyCheckResult> {
+    const redis = getRedis();
+    if (!redis) {
+        console.warn('[RateLimit] Redis not available, skipping Grok rate limit check');
+        return { allowed: true };
+    }
+
+    try {
+        const key = 'ratelimit:grok:global';
+        const now = Date.now();
+        const windowStart = now - (CONFIG.GROK_RATE_WINDOW * 1000);
+
+        // Use Redis sorted set for sliding window
+        await redis.zremrangebyscore(key, 0, windowStart);
+        const currentCount = await redis.zcard(key);
+
+        if (currentCount >= CONFIG.GROK_RATE_LIMIT) {
+            return {
+                allowed: false,
+                reason: `Grok/xAI rate limit reached (${currentCount}/${CONFIG.GROK_RATE_LIMIT} per minute). Retrying soon.`,
+                currentCount,
+                limit: CONFIG.GROK_RATE_LIMIT,
+            };
+        }
+
+        // Add this request
+        await redis.zadd(key, { score: now, member: `${now}-${Math.random()}` });
+        await redis.expire(key, CONFIG.GROK_RATE_WINDOW + 10);
+
+        return {
+            allowed: true,
+            currentCount: currentCount + 1,
+            limit: CONFIG.GROK_RATE_LIMIT
+        };
+    } catch (error) {
+        console.error('[RateLimit] Grok rate limit check error:', error);
+        return { allowed: true }; // Fail open
+    }
+}
+
+/**
+ * Record a Grok/xAI request (call after successful request)
+ */
+export async function recordGrokRequest(): Promise<void> {
+    const redis = getRedis();
+    if (!redis) return;
+
+    try {
+        const key = 'ratelimit:grok:global';
+        const now = Date.now();
+        await redis.zadd(key, { score: now, member: `${now}-${Math.random()}` });
+        await redis.expire(key, CONFIG.GROK_RATE_WINDOW + 10);
+    } catch (error) {
+        console.error('[RateLimit] Error recording Grok request:', error);
     }
 }
 

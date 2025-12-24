@@ -4,6 +4,8 @@
  * This eliminates false positives by providing disambiguation rules
  */
 
+import { checkGrokRateLimit } from './concurrency';
+
 /**
  * Product context interface - injected into all prompts
  */
@@ -229,6 +231,13 @@ ${websiteUrl ? `Website: ${websiteUrl}` : ''}
 Find information from the product's website and review sites.`;
 
     try {
+        // Check Grok rate limit before calling API
+        const rateLimitCheck = await checkGrokRateLimit();
+        if (!rateLimitCheck.allowed) {
+            console.warn(`[ProductContext] Grok rate limit reached: ${rateLimitCheck.reason}`);
+            return { name: companyName, websiteUrl: websiteUrl || '' };
+        }
+
         const response = await fetch('https://api.x.ai/v1/chat/completions', {
             method: 'POST',
             headers: {
