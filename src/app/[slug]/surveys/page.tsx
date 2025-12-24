@@ -130,13 +130,22 @@ export default function SurveysListPage() {
                             Create multi-question surveys for detailed feedback
                         </p>
                     </div>
-                    <Button
-                        onClick={() => router.push(`/${slug}/surveys/new`)}
-                        className="bg-teal-600 hover:bg-teal-700"
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Survey
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => router.push(`/${slug}/polls`)}
+                        >
+                            <BarChart3 className="w-4 h-4 mr-2" />
+                            View Polls
+                        </Button>
+                        <Button
+                            onClick={() => router.push(`/${slug}/surveys/new`)}
+                            className="bg-teal-600 hover:bg-teal-700"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create Survey
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Filters */}

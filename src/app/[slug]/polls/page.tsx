@@ -26,7 +26,8 @@ import {
     Edit,
     Share2,
     ExternalLink,
-    AlertCircle
+    AlertCircle,
+    ClipboardList
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -144,13 +145,22 @@ export default function PollsListPage() {
                             Gather structured feedback from your users
                         </p>
                     </div>
-                    <Button
-                        onClick={() => router.push(`/${slug}/polls/new`)}
-                        className="bg-teal-600 hover:bg-teal-700"
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Poll
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => router.push(`/${slug}/surveys`)}
+                        >
+                            <ClipboardList className="w-4 h-4 mr-2" />
+                            View Surveys
+                        </Button>
+                        <Button
+                            onClick={() => router.push(`/${slug}/polls/new`)}
+                            className="bg-teal-600 hover:bg-teal-700"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create Poll
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Filters */}
