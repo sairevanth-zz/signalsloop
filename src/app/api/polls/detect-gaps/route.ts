@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import { detectKnowledgeGaps, getPollSuggestions } from '@/lib/polls/knowledge-gap-detection';
 
 // POST /api/polls/detect-gaps
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
 
         // Verify user is authenticated
         const { data: { user } } = await supabase.auth.getUser();
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
 
         // Verify user is authenticated
         const { data: { user } } = await supabase.auth.getUser();
