@@ -134,10 +134,15 @@ export function PollBuilder({
         // Find first empty slot or add new
         const emptyIndex = options.findIndex(o => !o.option_text.trim());
         if (emptyIndex >= 0) {
-            updateOption(emptyIndex, 'option_text', suggestion.option_text);
-            if (suggestion.description) {
-                updateOption(emptyIndex, 'description', suggestion.description);
-            }
+            // Update both fields in a single state update to avoid race condition
+            const newOptions = [...options];
+            newOptions[emptyIndex] = {
+                ...newOptions[emptyIndex],
+                option_text: suggestion.option_text,
+                description: suggestion.description || newOptions[emptyIndex].description,
+                ai_generated: true
+            };
+            setOptions(newOptions);
         } else {
             setOptions([...options, {
                 option_text: suggestion.option_text,
@@ -149,6 +154,7 @@ export function PollBuilder({
 
         // Remove from suggestions
         setSuggestedOptions(suggestedOptions.filter(s => s.option_text !== suggestion.option_text));
+        toast.success(`Added: "${suggestion.option_text.slice(0, 30)}..."`);
     };
 
     // Save poll
