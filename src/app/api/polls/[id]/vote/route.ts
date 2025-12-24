@@ -14,7 +14,8 @@ interface RouteContext {
 
 /**
  * Generate voter hash for deduplication
- * Uses email if provided, otherwise IP + user agent
+ * Uses user ID or email for authenticated/email votes
+ * For anonymous IP-based votes, generate a unique ID (no deduplication)
  */
 function generateVoterHash(
     email?: string,
@@ -22,14 +23,18 @@ function generateVoterHash(
     userAgent?: string,
     userId?: string
 ): string {
+    // For logged-in users, hash by user ID to prevent duplicate votes
     if (userId) {
         return crypto.createHash('sha256').update(`user:${userId}`).digest('hex');
     }
+    // For email-based voters, hash by email to prevent duplicate votes
     if (email) {
         return crypto.createHash('sha256').update(`email:${email.toLowerCase()}`).digest('hex');
     }
-    const identifier = `${ip || 'unknown'}:${userAgent || 'unknown'}`;
-    return crypto.createHash('sha256').update(identifier).digest('hex');
+    // For anonymous IP-based votes, use a unique ID per vote
+    // This allows anonymous voting without duplicate key errors
+    // The trade-off is that IP-based voters can vote multiple times
+    return crypto.randomUUID();
 }
 
 // POST /api/polls/[id]/vote

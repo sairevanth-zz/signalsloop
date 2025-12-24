@@ -232,18 +232,28 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                                 <div className="h-[300px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={chartData} layout="vertical">
-                                            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                            <XAxis type="number" domain={[0, 100]} className="text-muted-foreground" />
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeOpacity={0.5} />
+                                            <XAxis
+                                                type="number"
+                                                domain={[0, 100]}
+                                                stroke="#6b7280"
+                                                tick={{ fill: '#374151', fontSize: 12 }}
+                                            />
                                             <YAxis
                                                 dataKey="name"
                                                 type="category"
                                                 width={120}
-                                                className="text-muted-foreground"
-                                                tick={{ fontSize: 12 }}
+                                                stroke="#6b7280"
+                                                tick={{ fill: '#374151', fontSize: 12 }}
                                             />
                                             <Tooltip
-                                                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
-                                                labelStyle={{ color: 'hsl(var(--foreground))' }}
+                                                contentStyle={{
+                                                    backgroundColor: '#fff',
+                                                    border: '1px solid #e5e7eb',
+                                                    borderRadius: '8px',
+                                                    color: '#111827'
+                                                }}
+                                                labelStyle={{ color: '#111827' }}
                                                 formatter={(value: number, name: string) => [
                                                     `${value.toFixed(1)}%`,
                                                     showWeighted ? 'Weighted' : 'Votes'
@@ -277,13 +287,19 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                                                 ))}
                                             </Pie>
                                             <Tooltip
-                                                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+                                                contentStyle={{
+                                                    backgroundColor: '#fff',
+                                                    border: '1px solid #e5e7eb',
+                                                    borderRadius: '8px',
+                                                    color: '#111827'
+                                                }}
                                                 formatter={(value: number) => [
                                                     showWeighted ? `$${value.toLocaleString()} MRR` : `${value} votes`
                                                 ]}
                                             />
                                             <Legend
-                                                formatter={(value) => <span className="text-foreground">{value}</span>}
+                                                wrapperStyle={{ color: '#374151' }}
+                                                formatter={(value) => <span style={{ color: '#374151' }}>{value}</span>}
                                             />
                                         </PieChart>
                                     </ResponsiveContainer>
