@@ -5,6 +5,7 @@
 
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { getProjectPriority } from './concurrency';
 
 function getSupabase(): SupabaseClient {
     const client = getServiceRoleClient();
@@ -48,6 +49,7 @@ export interface HunterJob {
     max_attempts: number;
     error: string | null;
     next_retry_at: string | null;
+    priority: number; // Higher = processed first (0=free, 10=pro, 20=premium)
     created_at: string;
     started_at: string | null;
     completed_at: string | null;
@@ -85,6 +87,10 @@ export async function createScan(
     platforms: string[],
     triggeredBy?: string
 ): Promise<{ scan: HunterScan; jobs: HunterJob[] }> {
+    // === Phase 4: Get priority based on subscription ===
+    const priority = await getProjectPriority(projectId);
+    console.log(`[JobQueue] Project ${projectId} priority: ${priority}`);
+
     // Create scan record
     const platformStatus: Record<string, string> = {};
     platforms.forEach(p => platformStatus[p] = 'pending');
@@ -103,7 +109,7 @@ export async function createScan(
         throw new Error(`Failed to create scan: ${scanError?.message}`);
     }
 
-    // Create discovery jobs for each platform
+    // Create discovery jobs for each platform with priority
     const jobs: HunterJob[] = [];
     for (const platform of platforms) {
         const { data: job, error: jobError } = await getSupabase()
@@ -113,6 +119,7 @@ export async function createScan(
                 project_id: projectId,
                 job_type: 'discovery',
                 platform,
+                priority, // Higher priority = processed first
             })
             .select()
             .single();
@@ -221,6 +228,7 @@ export async function createJob(params: {
     projectId: string;
     jobType: JobType;
     platform: string;
+    priority?: number;
 }): Promise<HunterJob | null> {
     const { data, error } = await getSupabase()
         .from('hunter_jobs')
@@ -229,6 +237,7 @@ export async function createJob(params: {
             project_id: params.projectId,
             job_type: params.jobType,
             platform: params.platform,
+            priority: params.priority ?? 0,
         })
         .select()
         .single();

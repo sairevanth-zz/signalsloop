@@ -9,6 +9,7 @@ import { createServerClient } from '@/lib/supabase-client';
 import { TriggerScanRequest } from '@/types/hunter';
 import { createScan } from '@/lib/hunters/job-queue';
 import { incrementAIUsage } from '@/lib/ai-rate-limit';
+import { runPreflightChecks } from '@/lib/hunters/concurrency';
 
 export const runtime = 'nodejs';
 export const maxDuration = 10; // Fast response, workers do the work
@@ -127,19 +128,17 @@ export async function POST(request: NextRequest) {
 
     // Create scan and queue discovery jobs
     try {
-      // Auto-cancel any running scans for this project (to prevent overlap)
-      const { data: runningScans } = await supabase
-        .from('hunter_scans')
-        .select('id')
-        .eq('project_id', projectId)
-        .eq('status', 'running');
-
-      if (runningScans && runningScans.length > 0) {
-        console.log(`[Hunter Trigger] Cancelling ${runningScans.length} previous running scans`);
-        await supabase
-          .from('hunter_scans')
-          .update({ status: 'cancelled', completed_at: new Date().toISOString() })
-          .in('id', runningScans.map(s => s.id));
+      // === Phase 1: Check project concurrency limits ===
+      const preflightResult = await runPreflightChecks(projectId);
+      if (!preflightResult.allowed) {
+        console.log(`[Hunter Trigger] Preflight check failed: ${preflightResult.reason}`);
+        return NextResponse.json<QueuedScanResponse>(
+          {
+            success: false,
+            error: preflightResult.reason || 'A scan is already in progress. Please wait.'
+          },
+          { status: 429 } // Too Many Requests
+        );
       }
 
       const { scan, jobs } = await createScan(projectId, platforms, user.id);

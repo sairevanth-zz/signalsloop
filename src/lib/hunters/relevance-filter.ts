@@ -7,6 +7,7 @@
 import { RawFeedback, PlatformType } from '@/types/hunter';
 import { ProductContext, formatContextBlock } from './product-context';
 import { createHash } from 'crypto';
+import { checkOpenAIRateLimit } from './concurrency';
 
 /**
  * Result of relevance filtering
@@ -525,6 +526,17 @@ overwhelmingly proves the item is actually about ${context.name}.
 Return a JSON object with an "evaluations" array.`;
 
     try {
+        // === Phase 2: OpenAI rate limiting ===
+        const rateLimitCheck = await checkOpenAIRateLimit();
+        if (!rateLimitCheck.allowed) {
+            console.warn(`[RelevanceFilter] OpenAI rate limit reached (${rateLimitCheck.currentCount}/${rateLimitCheck.limit}), deferring batch`);
+            // Return items as needing review instead of failing
+            return items.map(item => ({
+                ...createDefaultResult(item),
+                reasoning: 'Rate limited - deferred to human review',
+            }));
+        }
+
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {

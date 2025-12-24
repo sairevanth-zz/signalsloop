@@ -18,6 +18,12 @@ import {
 import { getHunter } from '@/lib/hunters';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import type { PlatformType, HunterConfig, PlatformIntegration } from '@/types/hunter';
+import {
+    runWorkerPreclaimChecks,
+    isCircuitOpen,
+    recordPlatformFailure,
+    recordPlatformSuccess,
+} from '@/lib/hunters/concurrency';
 
 export const maxDuration = 300; // Vercel Pro allows up to 300s
 export const dynamic = 'force-dynamic';
@@ -36,6 +42,18 @@ export async function POST() {
         if (!job) {
             console.log('[Discovery Worker] No pending jobs');
             return NextResponse.json({ processed: 0, message: 'No pending jobs' });
+        }
+
+        // === Phase 3: Global concurrency check ===
+        const concurrencyCheck = await runWorkerPreclaimChecks();
+        if (!concurrencyCheck.allowed) {
+            // Release the job back to pending (don't process it now)
+            console.log(`[Discovery Worker] Global concurrency limit reached, re-queuing job ${job.id}`);
+            // The job stays in 'processing' status but we'll let it timeout and retry
+            return NextResponse.json({
+                processed: 0,
+                message: 'Global concurrency limit reached, will retry'
+            });
         }
 
         console.log(`[Discovery Worker] Claimed job ${job.id} for ${job.platform}`);
@@ -107,9 +125,31 @@ export async function POST() {
 
         console.log(`[Discovery Worker] Running hunt for ${job.platform}...`);
 
-        // Wrap hunt in timeout to prevent Vercel timeout (max 55s)
+        // === Phase 5: Circuit breaker check ===
+        const circuitOpen = await isCircuitOpen(job.platform);
+        if (circuitOpen) {
+            console.warn(`[Discovery Worker] Circuit breaker OPEN for ${job.platform}, skipping`);
+            await completeJob(job.id);
+            await updatePlatformStatus(job.scan_id, job.platform, 'skipped');
+            await updateScanStats(job.scan_id, { discovered: 0 });
+            // Create relevance job anyway (with 0 items) to keep pipeline flowing
+            await createJob({
+                scanId: job.scan_id,
+                projectId: job.project_id,
+                jobType: 'relevance',
+                platform: job.platform,
+            });
+            return NextResponse.json({
+                processed: 1,
+                skipped: true,
+                reason: 'Circuit breaker open'
+            });
+        }
+
+        // Wrap hunt in timeout to prevent Vercel timeout
         const HUNT_TIMEOUT = 240000; // 240 seconds (4 min) - leave 1 min buffer for processing
         let rawFeedback: Awaited<ReturnType<typeof hunter.hunt>> = [];
+        let huntError: Error | null = null;
 
         try {
             const huntPromise = hunter.hunt(hunterConfig, platformIntegration);
@@ -117,11 +157,16 @@ export async function POST() {
                 setTimeout(() => reject(new Error('Hunt timeout')), HUNT_TIMEOUT)
             );
             rawFeedback = await Promise.race([huntPromise, timeoutPromise]);
+            // Record success for circuit breaker
+            await recordPlatformSuccess(job.platform);
         } catch (error) {
-            if (error instanceof Error && error.message === 'Hunt timeout') {
-                console.warn(`[Discovery Worker] Hunt for ${job.platform} timed out after 45s - proceeding with partial results`);
+            huntError = error instanceof Error ? error : new Error(String(error));
+            if (huntError.message === 'Hunt timeout') {
+                console.warn(`[Discovery Worker] Hunt for ${job.platform} timed out - proceeding with partial results`);
                 rawFeedback = []; // Continue with empty results rather than failing
             } else {
+                // Record failure for circuit breaker
+                await recordPlatformFailure(job.platform);
                 throw error;
             }
         }
