@@ -15,6 +15,8 @@ export type ActionType =
   | 'sentiment_drop'
   | 'feedback_spike'
   | 'pm_assignment_needed'
+  | 'poll_suggested'
+  | 'knowledge_gap_detected'
 
 export type ActionSeverity = 'critical' | 'warning' | 'info' | 'success'
 
@@ -30,6 +32,7 @@ export interface Action {
   relatedRoadmapId?: string
   relatedCompetitorId?: string
   relatedSpecId?: string
+  relatedPollId?: string
   metadata?: Record<string, any>
   requiresApproval?: boolean
   expiresAt?: Date

@@ -92,6 +92,7 @@ export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProp
             items: [
                 { label: 'Feedback Board', href: currentSlug ? `/${currentSlug}/board` : '#', icon: MessageSquare, requiresProject: true },
                 { label: 'Universal Inbox', href: currentSlug ? `/${currentSlug}/inbox` : '#', icon: Mail, requiresProject: true },
+                { label: 'Polls & Surveys', href: currentSlug ? `/${currentSlug}/polls` : '#', icon: BarChart3, requiresProject: true },
                 { label: 'Call Intelligence', href: currentSlug ? `/${currentSlug}/calls` : '#', icon: Phone, requiresProject: true },
                 { label: 'AI Feedback Hunter', href: currentSlug ? `/${currentSlug}/hunter` : '#', icon: Search, requiresProject: true },
             ]

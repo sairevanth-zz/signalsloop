@@ -176,6 +176,16 @@ async function DashboardContent({ slug }: { slug: string }) {
     .limit(1)
     .single();
 
+  // 6. Active polls - get most recent active poll with vote count
+  const { data: activePollData } = await supabase
+    .from('polls')
+    .select('id, title, vote_count, poll_options(count)')
+    .eq('project_id', project.id)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
   // Prepare dashboard data
   const dashboardData = {
     churnAlert: churnAlert ? {
@@ -194,6 +204,13 @@ async function DashboardContent({ slug }: { slug: string }) {
     outcome: recentOutcome ? {
       title: recentOutcome.title,
       featureName: recentOutcome.feature_name,
+    } : null,
+
+    activePoll: activePollData ? {
+      id: activePollData.id,
+      title: activePollData.title,
+      voteCount: activePollData.vote_count || 0,
+      optionCount: (activePollData.poll_options as any)?.length || 0,
     } : null,
 
     recentActivity: recentFeedback?.map(f => ({

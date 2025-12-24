@@ -16,7 +16,9 @@ import {
   Target,
   AlertTriangle,
   Rocket,
-  Activity
+  Activity,
+  BarChart3,
+  HelpCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -31,7 +33,9 @@ const ACTION_ICONS: Record<string, any> = {
   roadmap_adjustment: Target,
   opportunity_identified: Rocket,
   feedback_spike: Activity,
-  sentiment_drop: TrendingUp
+  sentiment_drop: TrendingUp,
+  poll_suggested: BarChart3,
+  knowledge_gap_detected: HelpCircle
 }
 
 const SEVERITY_CONFIG: Record<string, { color: string; variant: 'default' | 'destructive' | 'secondary' | 'outline' }> = {
@@ -169,13 +173,12 @@ export function ActionQueueCard({ projectId }: { projectId: string }) {
               return (
                 <div
                   key={action.id}
-                  className={`p-4 border rounded-lg transition-all ${
-                    action.severity === 'critical'
+                  className={`p-4 border rounded-lg transition-all ${action.severity === 'critical'
                       ? 'border-red-500 bg-red-50 dark:bg-red-950/20'
                       : action.severity === 'warning'
-                      ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20'
-                      : 'hover:bg-muted/50'
-                  }`}
+                        ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20'
+                        : 'hover:bg-muted/50'
+                    }`}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-start gap-3 flex-1">

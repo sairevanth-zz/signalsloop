@@ -17,7 +17,9 @@ import {
     TrendingUp,
     Activity,
     ChevronRight,
-    Inbox
+    Inbox,
+    BarChart3,
+    Vote
 } from 'lucide-react';
 
 // Dashboard data types
@@ -36,6 +38,12 @@ interface DashboardData {
     outcome: {
         title: string;
         featureName: string;
+    } | null;
+    activePoll: {
+        id: string;
+        title: string;
+        voteCount: number;
+        optionCount: number;
     } | null;
     recentActivity: Array<{
         id: string;
@@ -149,7 +157,7 @@ export function MissionControlDashboard({
                     </div>
 
                     {/* Action Cards Grid - responsive columns */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                         {/* Churn Risk Alert - Gold/Amber */}
                         <ActionCard
                             icon={<AlertTriangle style={{ width: '24px', height: '24px', color: '#fbbf24' }} />}
@@ -174,6 +182,21 @@ export function MissionControlDashboard({
                             href={`/${projectSlug}/ai-insights`}
                             accentColor="#14b8a6"
                             isEmpty={!dashboardData?.theme}
+                        />
+
+                        {/* Active Polls - Violet */}
+                        <ActionCard
+                            icon={<BarChart3 style={{ width: '24px', height: '24px', color: '#8b5cf6' }} />}
+                            title={dashboardData?.activePoll ? "Active Poll" : "No Active Polls"}
+                            description={dashboardData?.activePoll
+                                ? `"${dashboardData.activePoll.title}" has ${dashboardData.activePoll.voteCount} votes across ${dashboardData.activePoll.optionCount} options.`
+                                : "No polls are currently running. Create a poll to gather structured feedback."}
+                            buttonLabel={dashboardData?.activePoll ? "View Results" : "Create Poll"}
+                            href={dashboardData?.activePoll
+                                ? `/${projectSlug}/polls/${dashboardData.activePoll.id}`
+                                : `/${projectSlug}/polls/new`}
+                            accentColor="#8b5cf6"
+                            isEmpty={!dashboardData?.activePoll}
                         />
 
                         {/* Roadmap Outcome - Emerald */}
