@@ -116,14 +116,15 @@ export async function POST(
         // Only check for existing votes if user is logged in or provided an email
         // Anonymous IP-based voting cannot be reliably deduplicated on serverless
         if (user?.id || voterEmail) {
-            const { data: existingVote } = await serviceClient!
+            // Use LIKE pattern to find any votes starting with this voter's base hash
+            const { data: existingVotes } = await serviceClient!
                 .from('poll_votes')
                 .select('id')
                 .eq('poll_id', pollId)
-                .eq('voter_hash', voterHash)
-                .single();
+                .like('voter_hash', `${voterHash}:%`)
+                .limit(1);
 
-            if (existingVote) {
+            if (existingVotes && existingVotes.length > 0) {
                 return NextResponse.json(
                     { error: 'You have already voted on this poll' },
                     { status: 409 }
@@ -146,12 +147,15 @@ export async function POST(
                 );
             }
 
+            // Use composite hash: voterHash + option_id to ensure uniqueness per vote row
+            const compositeHash = `${voterHash}:${body.option_id}`;
+
             votesToInsert.push({
                 poll_id: pollId,
                 option_id: body.option_id,
                 voter_id: user?.id || null,
-                voter_email: body.voter_email || null,
-                voter_hash: voterHash,
+                voter_email: voterEmail || null,
+                voter_hash: compositeHash,
                 explanation_text: body.explanation || null,
                 ip_address: ip,
                 user_agent: userAgent
@@ -181,8 +185,8 @@ export async function POST(
                 poll_id: pollId,
                 option_id: optId,
                 voter_id: user?.id || null,
-                voter_email: body.voter_email || null,
-                voter_hash: voterHash,
+                voter_email: voterEmail || null,
+                voter_hash: `${voterHash}:${optId}`,
                 explanation_text: body.explanation || null,
                 ip_address: ip,
                 user_agent: userAgent
@@ -210,8 +214,8 @@ export async function POST(
                 poll_id: pollId,
                 option_id: ranked.option_id,
                 voter_id: user?.id || null,
-                voter_email: body.voter_email || null,
-                voter_hash: voterHash,
+                voter_email: voterEmail || null,
+                voter_hash: `${voterHash}:${ranked.option_id}`,
                 rank_position: ranked.rank,
                 explanation_text: body.explanation || null,
                 ip_address: ip,
