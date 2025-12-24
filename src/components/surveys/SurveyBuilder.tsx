@@ -245,10 +245,10 @@ export function SurveyBuilder({
     return (
         <div className="space-y-6">
             {/* Header */}
-            <Card className="border-slate-700 bg-slate-800/50">
+            <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-white">
-                        <ClipboardList className="w-5 h-5 text-teal-400" />
+                    <CardTitle className="flex items-center gap-2 text-foreground">
+                        <ClipboardList className="w-5 h-5 text-teal-500" />
                         Create Survey
                     </CardTitle>
                     <CardDescription>
@@ -258,40 +258,38 @@ export function SurveyBuilder({
                 <CardContent className="space-y-4">
                     {/* Title */}
                     <div className="space-y-2">
-                        <Label htmlFor="title" className="text-white">Survey Title *</Label>
+                        <Label htmlFor="title" className="text-foreground">Survey Title *</Label>
                         <Input
                             id="title"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="Customer Satisfaction Survey"
-                            className="bg-slate-900 border-slate-600 text-white"
                         />
                     </div>
 
                     {/* Description */}
                     <div className="space-y-2">
-                        <Label htmlFor="description" className="text-white">Description (optional)</Label>
+                        <Label htmlFor="description" className="text-foreground">Description (optional)</Label>
                         <Textarea
                             id="description"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Help us improve our product by sharing your feedback..."
                             rows={2}
-                            className="bg-slate-900 border-slate-600 text-white"
                         />
                     </div>
                 </CardContent>
             </Card>
 
             {/* Questions */}
-            <Card className="border-slate-700 bg-slate-800/50">
+            <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle className="text-white text-lg">Questions</CardTitle>
+                            <CardTitle className="text-foreground text-lg">Questions</CardTitle>
                             <CardDescription>Add and configure your survey questions</CardDescription>
                         </div>
-                        <Badge variant="outline" className="text-slate-400">
+                        <Badge variant="outline">
                             {questions.length} question{questions.length !== 1 ? 's' : ''}
                         </Badge>
                     </div>
@@ -304,24 +302,24 @@ export function SurveyBuilder({
                         return (
                             <div
                                 key={index}
-                                className="border border-slate-700 rounded-lg overflow-hidden"
+                                className="border rounded-lg overflow-hidden"
                             >
                                 {/* Question Header */}
                                 <div
-                                    className={`flex items-center gap-2 p-3 cursor-pointer transition-colors ${isExpanded ? 'bg-slate-700/50' : 'bg-slate-800/50 hover:bg-slate-700/30'
+                                    className={`flex items-center gap-2 p-3 cursor-pointer transition-colors ${isExpanded ? 'bg-muted' : 'bg-muted/50 hover:bg-muted'
                                         }`}
                                     onClick={() => setExpandedQuestion(isExpanded ? null : index)}
                                 >
-                                    <GripVertical className="w-4 h-4 text-slate-500" />
-                                    <span className="w-6 h-6 rounded-full bg-teal-500/20 text-teal-400 text-sm font-medium flex items-center justify-center">
+                                    <GripVertical className="w-4 h-4 text-muted-foreground" />
+                                    <span className="w-6 h-6 rounded-full bg-teal-500/20 text-teal-500 text-sm font-medium flex items-center justify-center">
                                         {index + 1}
                                     </span>
-                                    <QuestionIcon className="w-4 h-4 text-slate-400" />
-                                    <span className="flex-1 text-white truncate">
+                                    <QuestionIcon className="w-4 h-4 text-muted-foreground" />
+                                    <span className="flex-1 text-foreground truncate">
                                         {question.question_text || 'Untitled Question'}
                                     </span>
                                     {question.required && (
-                                        <Badge variant="outline" className="text-xs text-red-400 border-red-400/50">
+                                        <Badge variant="outline" className="text-xs text-red-500 border-red-500/50">
                                             Required
                                         </Badge>
                                     )}
@@ -331,7 +329,7 @@ export function SurveyBuilder({
                                             size="sm"
                                             onClick={(e) => { e.stopPropagation(); moveQuestion(index, 'up'); }}
                                             disabled={index === 0}
-                                            className="text-slate-400 hover:text-white p-1 h-auto"
+                                            className="text-muted-foreground hover:text-foreground p-1 h-auto"
                                         >
                                             <ChevronUp className="w-4 h-4" />
                                         </Button>
@@ -340,7 +338,7 @@ export function SurveyBuilder({
                                             size="sm"
                                             onClick={(e) => { e.stopPropagation(); moveQuestion(index, 'down'); }}
                                             disabled={index === questions.length - 1}
-                                            className="text-slate-400 hover:text-white p-1 h-auto"
+                                            className="text-muted-foreground hover:text-foreground p-1 h-auto"
                                         >
                                             <ChevronDown className="w-4 h-4" />
                                         </Button>
@@ -349,11 +347,11 @@ export function SurveyBuilder({
 
                                 {/* Question Editor */}
                                 {isExpanded && (
-                                    <div className="p-4 bg-slate-900/50 space-y-4 border-t border-slate-700">
+                                    <div className="p-4 bg-muted/50 space-y-4 border-t">
                                         {/* Question Type */}
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label className="text-white">Question Type</Label>
+                                                <Label className="text-foreground">Question Type</Label>
                                                 <Select
                                                     value={question.question_type}
                                                     onValueChange={(v) => updateQuestion(index, {
@@ -365,7 +363,7 @@ export function SurveyBuilder({
                                                         max_value: v === 'rating' ? 5 : v === 'nps' ? 10 : undefined,
                                                     })}
                                                 >
-                                                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                                                    <SelectTrigger>
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -386,26 +384,25 @@ export function SurveyBuilder({
                                                         checked={question.required}
                                                         onCheckedChange={(v) => updateQuestion(index, { required: v })}
                                                     />
-                                                    <Label className="text-white">Required</Label>
+                                                    <Label className="text-foreground">Required</Label>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Question Text */}
                                         <div className="space-y-2">
-                                            <Label className="text-white">Question Text *</Label>
+                                            <Label className="text-foreground">Question Text *</Label>
                                             <Input
                                                 value={question.question_text}
                                                 onChange={(e) => updateQuestion(index, { question_text: e.target.value })}
                                                 placeholder="Enter your question..."
-                                                className="bg-slate-800 border-slate-600 text-white"
                                             />
                                         </div>
 
                                         {/* Options for Select Types */}
                                         {(question.question_type === 'single_select' || question.question_type === 'multi_select') && (
                                             <div className="space-y-2">
-                                                <Label className="text-white">Options</Label>
+                                                <Label className="text-foreground">Options</Label>
                                                 <div className="space-y-2">
                                                     {(question.options || []).map((option, optIndex) => (
                                                         <div key={optIndex} className="flex items-center gap-2">
@@ -413,13 +410,12 @@ export function SurveyBuilder({
                                                                 value={option}
                                                                 onChange={(e) => updateOption(index, optIndex, e.target.value)}
                                                                 placeholder={`Option ${optIndex + 1}`}
-                                                                className="bg-slate-800 border-slate-600 text-white"
                                                             />
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 onClick={() => removeOption(index, optIndex)}
-                                                                className="text-slate-400 hover:text-red-400"
+                                                                className="text-muted-foreground hover:text-red-500"
                                                             >
                                                                 <Trash2 className="w-4 h-4" />
                                                             </Button>
@@ -429,7 +425,7 @@ export function SurveyBuilder({
                                                         variant="outline"
                                                         size="sm"
                                                         onClick={() => addOption(index)}
-                                                        className="w-full border-dashed border-slate-600 text-slate-400"
+                                                        className="w-full border-dashed"
                                                     >
                                                         <Plus className="w-4 h-4 mr-2" />
                                                         Add Option
@@ -442,33 +438,31 @@ export function SurveyBuilder({
                                         {question.question_type === 'rating' && (
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
-                                                    <Label className="text-white">Min Label (optional)</Label>
+                                                    <Label className="text-foreground">Min Label (optional)</Label>
                                                     <Input
                                                         value={question.min_label || ''}
                                                         onChange={(e) => updateQuestion(index, { min_label: e.target.value })}
                                                         placeholder="Not satisfied"
-                                                        className="bg-slate-800 border-slate-600 text-white"
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label className="text-white">Max Label (optional)</Label>
+                                                    <Label className="text-foreground">Max Label (optional)</Label>
                                                     <Input
                                                         value={question.max_label || ''}
                                                         onChange={(e) => updateQuestion(index, { max_label: e.target.value })}
                                                         placeholder="Very satisfied"
-                                                        className="bg-slate-800 border-slate-600 text-white"
                                                     />
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* Actions */}
-                                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-700">
+                                        <div className="flex items-center justify-end gap-2 pt-2 border-t">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => duplicateQuestion(index)}
-                                                className="text-slate-400 hover:text-white"
+                                                className="text-muted-foreground hover:text-foreground"
                                             >
                                                 <Copy className="w-4 h-4 mr-2" />
                                                 Duplicate
@@ -477,7 +471,7 @@ export function SurveyBuilder({
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => removeQuestion(index)}
-                                                className="text-red-400 hover:text-red-300"
+                                                className="text-red-500 hover:text-red-400"
                                             >
                                                 <Trash2 className="w-4 h-4 mr-2" />
                                                 Delete
@@ -491,7 +485,7 @@ export function SurveyBuilder({
 
                     {/* Add Question */}
                     <div className="pt-2">
-                        <p className="text-sm text-slate-400 mb-2">Add Question</p>
+                        <p className="text-sm text-muted-foreground mb-2">Add Question</p>
                         <div className="flex flex-wrap gap-2">
                             {QUESTION_TYPES.map(type => (
                                 <Button
@@ -499,7 +493,7 @@ export function SurveyBuilder({
                                     variant="outline"
                                     size="sm"
                                     onClick={() => addQuestion(type.value)}
-                                    className="border-slate-600 text-slate-300 hover:border-teal-500 hover:text-teal-400"
+                                    className="hover:border-teal-500 hover:text-teal-500"
                                 >
                                     <type.icon className="w-4 h-4 mr-2" />
                                     {type.label}
@@ -511,39 +505,38 @@ export function SurveyBuilder({
             </Card>
 
             {/* Settings */}
-            <Card className="border-slate-700 bg-slate-800/50">
+            <Card>
                 <CardHeader>
-                    <CardTitle className="text-white text-lg">Settings</CardTitle>
+                    <CardTitle className="text-foreground text-lg">Settings</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {/* Thank You Message */}
                     <div className="space-y-2">
-                        <Label className="text-white">Thank You Message</Label>
+                        <Label className="text-foreground">Thank You Message</Label>
                         <Textarea
                             value={thankYouMessage}
                             onChange={(e) => setThankYouMessage(e.target.value)}
                             placeholder="Thank you for your feedback!"
                             rows={2}
-                            className="bg-slate-900 border-slate-600 text-white"
                         />
                     </div>
 
                     {/* Close Date */}
                     <div className="flex items-center justify-between">
-                        <Label className="text-white">Close Date (optional)</Label>
+                        <Label className="text-foreground">Close Date (optional)</Label>
                         <Input
                             type="datetime-local"
                             value={closesAt}
                             onChange={(e) => setClosesAt(e.target.value)}
-                            className="w-56 bg-slate-900 border-slate-600 text-white"
+                            className="w-56"
                         />
                     </div>
 
                     {/* Anonymous */}
                     <div className="flex items-center justify-between">
                         <div>
-                            <Label className="text-white">Allow Anonymous Responses</Label>
-                            <p className="text-xs text-slate-400">Users can respond without logging in</p>
+                            <Label className="text-foreground">Allow Anonymous Responses</Label>
+                            <p className="text-xs text-muted-foreground">Users can respond without logging in</p>
                         </div>
                         <Switch
                             checked={allowAnonymous}
