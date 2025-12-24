@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTheme } from '@/components/theme-provider';
 import {
     BarChart3,
     DollarSign,
@@ -55,6 +56,15 @@ const CHART_COLORS = [
 ];
 
 export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
+    // Theme-aware chart colors
+    const chartTextColor = isDark ? '#e5e7eb' : '#374151';
+    const chartGridColor = isDark ? '#374151' : '#e5e7eb';
+    const chartTooltipBg = isDark ? '#1f2937' : '#ffffff';
+    const chartTooltipBorder = isDark ? '#374151' : '#e5e7eb';
+
     const [results, setResults] = useState<PollResultsType | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -232,28 +242,28 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                                 <div className="h-[300px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={chartData} layout="vertical">
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeOpacity={0.5} />
+                                            <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} strokeOpacity={0.5} />
                                             <XAxis
                                                 type="number"
                                                 domain={[0, 100]}
-                                                stroke="#6b7280"
-                                                tick={{ fill: '#374151', fontSize: 12 }}
+                                                stroke={chartTextColor}
+                                                tick={{ fill: chartTextColor, fontSize: 12 }}
                                             />
                                             <YAxis
                                                 dataKey="name"
                                                 type="category"
                                                 width={120}
-                                                stroke="#6b7280"
-                                                tick={{ fill: '#374151', fontSize: 12 }}
+                                                stroke={chartTextColor}
+                                                tick={{ fill: chartTextColor, fontSize: 12 }}
                                             />
                                             <Tooltip
                                                 contentStyle={{
-                                                    backgroundColor: '#fff',
-                                                    border: '1px solid #e5e7eb',
+                                                    backgroundColor: chartTooltipBg,
+                                                    border: `1px solid ${chartTooltipBorder}`,
                                                     borderRadius: '8px',
-                                                    color: '#111827'
+                                                    color: chartTextColor
                                                 }}
-                                                labelStyle={{ color: '#111827' }}
+                                                labelStyle={{ color: chartTextColor }}
                                                 formatter={(value: number, name: string) => [
                                                     `${value.toFixed(1)}%`,
                                                     showWeighted ? 'Weighted' : 'Votes'
@@ -288,18 +298,18 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                                             </Pie>
                                             <Tooltip
                                                 contentStyle={{
-                                                    backgroundColor: '#fff',
-                                                    border: '1px solid #e5e7eb',
+                                                    backgroundColor: chartTooltipBg,
+                                                    border: `1px solid ${chartTooltipBorder}`,
                                                     borderRadius: '8px',
-                                                    color: '#111827'
+                                                    color: chartTextColor
                                                 }}
                                                 formatter={(value: number) => [
                                                     showWeighted ? `$${value.toLocaleString()} MRR` : `${value} votes`
                                                 ]}
                                             />
                                             <Legend
-                                                wrapperStyle={{ color: '#374151' }}
-                                                formatter={(value) => <span style={{ color: '#374151' }}>{value}</span>}
+                                                wrapperStyle={{ color: chartTextColor }}
+                                                formatter={(value) => <span style={{ color: chartTextColor }}>{value}</span>}
                                             />
                                         </PieChart>
                                     </ResponsiveContainer>
