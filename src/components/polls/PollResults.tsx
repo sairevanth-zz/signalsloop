@@ -73,7 +73,7 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
             if (showSegments) params.set('segments', 'true');
             if (showWeighted) params.set('weighted', 'true');
 
-            const res = await fetch(`/api/polls/${pollId}/results?${params}`);
+            const res = await fetch(`/api/polls/${pollId}/results?${params}`, { credentials: 'include' });
             if (!res.ok) throw new Error('Failed to load results');
 
             const data = await res.json();
@@ -96,10 +96,10 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
 
     if (loading) {
         return (
-            <Card className="border-slate-700 bg-slate-800/50">
+            <Card>
                 <CardContent className="py-12 text-center">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-teal-400" />
-                    <p className="mt-2 text-slate-400">Loading results...</p>
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-teal-500" />
+                    <p className="mt-2 text-muted-foreground">Loading results...</p>
                 </CardContent>
             </Card>
         );
@@ -107,10 +107,10 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
 
     if (error || !results) {
         return (
-            <Card className="border-slate-700 bg-slate-800/50">
+            <Card>
                 <CardContent className="py-12 text-center">
-                    <AlertCircle className="w-12 h-12 mx-auto text-red-400" />
-                    <p className="mt-2 text-slate-400">{error || 'Failed to load results'}</p>
+                    <AlertCircle className="w-12 h-12 mx-auto text-destructive" />
+                    <p className="mt-2 text-muted-foreground">{error || 'Failed to load results'}</p>
                 </CardContent>
             </Card>
         );
@@ -131,12 +131,12 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <Card className="border-slate-700 bg-slate-800/50">
+            <Card>
                 <CardHeader>
                     <div className="flex items-start justify-between">
                         <div>
-                            <CardTitle className="text-white flex items-center gap-2">
-                                <BarChart3 className="w-5 h-5 text-teal-400" />
+                            <CardTitle className="text-foreground flex items-center gap-2">
+                                <BarChart3 className="w-5 h-5 text-teal-500" />
                                 {poll.title}
                             </CardTitle>
                             {poll.description && (
@@ -164,34 +164,34 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                 <CardContent>
                     {/* Stats Row */}
                     <div className="grid grid-cols-3 gap-4 mb-6">
-                        <div className="text-center p-4 rounded-lg bg-slate-900/50">
-                            <Users className="w-5 h-5 mx-auto text-slate-400 mb-1" />
-                            <p className="text-2xl font-bold text-white">{total_votes}</p>
-                            <p className="text-xs text-slate-400">Total Votes</p>
+                        <div className="text-center p-4 rounded-lg bg-muted">
+                            <Users className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
+                            <p className="text-2xl font-bold text-foreground">{total_votes}</p>
+                            <p className="text-xs text-muted-foreground">Total Votes</p>
                         </div>
-                        <div className="text-center p-4 rounded-lg bg-slate-900/50">
-                            <BarChart3 className="w-5 h-5 mx-auto text-slate-400 mb-1" />
-                            <p className="text-2xl font-bold text-white">{pollResults.length}</p>
-                            <p className="text-xs text-slate-400">Options</p>
+                        <div className="text-center p-4 rounded-lg bg-muted">
+                            <BarChart3 className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
+                            <p className="text-2xl font-bold text-foreground">{pollResults.length}</p>
+                            <p className="text-xs text-muted-foreground">Options</p>
                         </div>
-                        <div className="text-center p-4 rounded-lg bg-slate-900/50">
-                            <DollarSign className="w-5 h-5 mx-auto text-slate-400 mb-1" />
-                            <p className="text-2xl font-bold text-white">
+                        <div className="text-center p-4 rounded-lg bg-muted">
+                            <DollarSign className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
+                            <p className="text-2xl font-bold text-foreground">
                                 ${Math.round(total_weighted / 100).toLocaleString()}
                             </p>
-                            <p className="text-xs text-slate-400">Weighted MRR</p>
+                            <p className="text-xs text-muted-foreground">Weighted MRR</p>
                         </div>
                     </div>
 
                     {/* Controls */}
-                    <div className="flex items-center gap-6 mb-6 pb-4 border-b border-slate-700">
+                    <div className="flex items-center gap-6 mb-6 pb-4 border-b">
                         <div className="flex items-center gap-2">
                             <Switch
                                 id="weighted"
                                 checked={showWeighted}
                                 onCheckedChange={setShowWeighted}
                             />
-                            <Label htmlFor="weighted" className="text-slate-300">Revenue-Weighted</Label>
+                            <Label htmlFor="weighted">Revenue-Weighted</Label>
                         </div>
                         {isOwner && (
                             <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                                         if (v) loadResults();
                                     }}
                                 />
-                                <Label htmlFor="segments" className="text-slate-300">Show Segments</Label>
+                                <Label htmlFor="segments">Show Segments</Label>
                             </div>
                         )}
                     </div>
@@ -212,7 +212,7 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
 
             {/* Results */}
             <Tabs defaultValue="chart" className="space-y-4">
-                <TabsList className="bg-slate-800">
+                <TabsList>
                     <TabsTrigger value="chart">Chart View</TabsTrigger>
                     <TabsTrigger value="list">List View</TabsTrigger>
                     {by_segment && Object.keys(by_segment).length > 0 && (
@@ -225,25 +225,25 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
 
                 {/* Chart View */}
                 <TabsContent value="chart">
-                    <Card className="border-slate-700 bg-slate-800/50">
+                    <Card>
                         <CardContent className="pt-6">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {/* Bar Chart */}
                                 <div className="h-[300px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={chartData} layout="vertical">
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                                            <XAxis type="number" domain={[0, 100]} stroke="#9ca3af" />
+                                            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                                            <XAxis type="number" domain={[0, 100]} className="text-muted-foreground" />
                                             <YAxis
                                                 dataKey="name"
                                                 type="category"
                                                 width={120}
-                                                stroke="#9ca3af"
-                                                tick={{ fill: '#e5e7eb', fontSize: 12 }}
+                                                className="text-muted-foreground"
+                                                tick={{ fontSize: 12 }}
                                             />
                                             <Tooltip
-                                                contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }}
-                                                labelStyle={{ color: '#fff' }}
+                                                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+                                                labelStyle={{ color: 'hsl(var(--foreground))' }}
                                                 formatter={(value: number, name: string) => [
                                                     `${value.toFixed(1)}%`,
                                                     showWeighted ? 'Weighted' : 'Votes'
@@ -277,14 +277,13 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                                                 ))}
                                             </Pie>
                                             <Tooltip
-                                                contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }}
+                                                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
                                                 formatter={(value: number) => [
                                                     showWeighted ? `$${value.toLocaleString()} MRR` : `${value} votes`
                                                 ]}
                                             />
                                             <Legend
-                                                wrapperStyle={{ color: '#fff' }}
-                                                formatter={(value) => <span className="text-slate-300">{value}</span>}
+                                                formatter={(value) => <span className="text-foreground">{value}</span>}
                                             />
                                         </PieChart>
                                     </ResponsiveContainer>
@@ -296,16 +295,16 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
 
                 {/* List View */}
                 <TabsContent value="list">
-                    <Card className="border-slate-700 bg-slate-800/50">
+                    <Card>
                         <CardContent className="pt-6 space-y-3">
                             {pollResults.map((result, index) => (
                                 <div
                                     key={result.option_id}
-                                    className="p-4 rounded-lg bg-slate-900/50 border border-slate-700"
+                                    className="p-4 rounded-lg bg-muted border"
                                 >
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-white font-medium">{result.option_text}</span>
-                                        <span className="text-teal-400 font-bold">
+                                        <span className="text-foreground font-medium">{result.option_text}</span>
+                                        <span className="text-teal-600 dark:text-teal-400 font-bold">
                                             {showWeighted
                                                 ? `${result.weighted_percentage.toFixed(1)}%`
                                                 : `${result.percentage.toFixed(1)}%`
@@ -313,7 +312,7 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                                         </span>
                                     </div>
                                     {/* Progress bar */}
-                                    <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                                    <div className="h-2 bg-muted-foreground/20 rounded-full overflow-hidden">
                                         <div
                                             className="h-full rounded-full transition-all duration-500"
                                             style={{
@@ -322,7 +321,7 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                                             }}
                                         />
                                     </div>
-                                    <div className="flex items-center justify-between mt-2 text-xs text-slate-400">
+                                    <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
                                         <span>{result.vote_count} votes</span>
                                         {showWeighted && (
                                             <span>${(result.weighted_vote_count / 100).toLocaleString()} MRR</span>
@@ -339,10 +338,10 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                     <TabsContent value="segments">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {Object.entries(by_segment).map(([segment, segmentResults]) => (
-                                <Card key={segment} className="border-slate-700 bg-slate-800/50">
+                                <Card key={segment}>
                                     <CardHeader className="py-3">
-                                        <CardTitle className="text-sm text-white flex items-center gap-2">
-                                            <Users className="w-4 h-4 text-teal-400" />
+                                        <CardTitle className="text-sm text-foreground flex items-center gap-2">
+                                            <Users className="w-4 h-4 text-teal-500" />
                                             {segment}
                                         </CardTitle>
                                     </CardHeader>
@@ -351,10 +350,10 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                                             <div key={r.option_id} className="flex items-center gap-2">
                                                 <div className="flex-1">
                                                     <div className="flex items-center justify-between text-sm mb-1">
-                                                        <span className="text-slate-300 truncate">{r.option_text}</span>
-                                                        <span className="text-slate-400">{r.percentage.toFixed(0)}%</span>
+                                                        <span className="text-muted-foreground truncate">{r.option_text}</span>
+                                                        <span className="text-muted-foreground">{r.percentage.toFixed(0)}%</span>
                                                     </div>
-                                                    <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                                                         <div
                                                             className="h-full rounded-full"
                                                             style={{
@@ -376,30 +375,30 @@ export function PollResults({ pollId, isOwner = false }: PollResultsProps) {
                 {/* Explanations View */}
                 {explanations.length > 0 && (
                     <TabsContent value="explanations">
-                        <Card className="border-slate-700 bg-slate-800/50">
+                        <Card>
                             <CardContent className="pt-6 space-y-3">
                                 {explanations.map((exp, index) => {
                                     const option = pollResults.find(r => r.option_id === exp.option_id);
                                     return (
                                         <div
                                             key={index}
-                                            className="p-4 rounded-lg bg-slate-900/50 border border-slate-700"
+                                            className="p-4 rounded-lg bg-muted border"
                                         >
                                             <div className="flex items-center gap-2 mb-2">
-                                                <MessageSquare className="w-4 h-4 text-teal-400" />
+                                                <MessageSquare className="w-4 h-4 text-teal-500" />
                                                 <Badge variant="outline" className="text-xs">
                                                     {option?.option_text || 'Unknown option'}
                                                 </Badge>
                                                 {exp.sentiment !== null && (
                                                     <Badge
                                                         variant="outline"
-                                                        className={exp.sentiment > 0.2 ? 'text-green-400' : exp.sentiment < -0.2 ? 'text-red-400' : 'text-yellow-400'}
+                                                        className={exp.sentiment > 0.2 ? 'text-green-600 dark:text-green-400' : exp.sentiment < -0.2 ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400'}
                                                     >
                                                         {exp.sentiment > 0.2 ? 'Positive' : exp.sentiment < -0.2 ? 'Negative' : 'Neutral'}
                                                     </Badge>
                                                 )}
                                             </div>
-                                            <p className="text-slate-300 text-sm italic">"{exp.text}"</p>
+                                            <p className="text-muted-foreground text-sm italic">"{exp.text}"</p>
                                         </div>
                                     );
                                 })}

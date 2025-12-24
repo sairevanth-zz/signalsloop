@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
-import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { createServerClient, getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import type { PollResults, PollResult, PollResultBySegment } from '@/types/polls';
 
 interface RouteContext {
@@ -23,7 +22,7 @@ export async function GET(
         const includeSegments = searchParams.get('segments') === 'true';
         const weighted = searchParams.get('weighted') === 'true';
 
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
         const serviceClient = getSupabaseServiceRoleClient();
 
         // Get current user (may be null for anonymous)

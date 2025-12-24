@@ -94,7 +94,8 @@ export async function POST(
             );
         }
 
-        // Generate voter hash
+        // Generate voter hash - only use for logged-in users or email-based votes
+        // IP+UA based hashing is unreliable due to proxy changes on Vercel
         const voterHash = generateVoterHash(
             body.voter_email,
             ip,
@@ -102,19 +103,22 @@ export async function POST(
             user?.id
         );
 
-        // Check for existing vote
-        const { data: existingVote } = await serviceClient
-            .from('poll_votes')
-            .select('id')
-            .eq('poll_id', pollId)
-            .eq('voter_hash', voterHash)
-            .single();
+        // Only check for existing votes if user is logged in or provided an email
+        // Anonymous IP-based voting cannot be reliably deduplicated on serverless
+        if (user?.id || body.voter_email) {
+            const { data: existingVote } = await serviceClient!
+                .from('poll_votes')
+                .select('id')
+                .eq('poll_id', pollId)
+                .eq('voter_hash', voterHash)
+                .single();
 
-        if (existingVote) {
-            return NextResponse.json(
-                { error: 'You have already voted on this poll' },
-                { status: 409 }
-            );
+            if (existingVote) {
+                return NextResponse.json(
+                    { error: 'You have already voted on this poll' },
+                    { status: 409 }
+                );
+            }
         }
 
         // Get option IDs from poll
