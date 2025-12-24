@@ -1,7 +1,7 @@
 /**
- * Stage 2: Relevance Filter
- * Scores discovered feedback items 0-100 for relevance to the product
- * Filters out false positives before expensive classification
+ * Stage 2: Relevance Filter v6.0
+ * Production-ready universal relevance filter with edge case handling
+ * Targets >90% accuracy with instant disqualification checks
  */
 
 import { RawFeedback, PlatformType } from '@/types/hunter';
@@ -9,8 +9,20 @@ import { ProductContext, formatContextBlock } from './product-context';
 import { createHash } from 'crypto';
 import { checkOpenAIRateLimit } from './concurrency';
 
+// ============================================================================
+// TYPES
+// ============================================================================
+
 /**
- * Result of relevance filtering
+ * Filter result for secondary checks
+ */
+interface FilterResult {
+    triggered: boolean;
+    max_score: number | null;
+}
+
+/**
+ * Result of relevance filtering v6
  */
 export interface RelevanceResult {
     item: RawFeedback;
@@ -18,6 +30,22 @@ export interface RelevanceResult {
     confidence: 'high' | 'medium' | 'low';
     decision: 'include' | 'exclude' | 'human_review';
     reasoning: string;
+    // v6: Instant disqualification tracking
+    instantDisqualification: {
+        triggered: boolean;
+        reason: string | null;
+    };
+    // v6: Secondary filter tracking
+    filtersApplied: {
+        genericQuestion: FilterResult;
+        tangentialMention: FilterResult;
+        newsAnnouncement: FilterResult;
+        jobPosting: FilterResult;
+        promotional: FilterResult;
+    };
+    // v6: Positive signals found
+    positiveSignals: string[];
+    // Legacy quality signals (maintained for compatibility)
     falsePositiveFlags: string[];
     qualitySignals: {
         mentionsProductByName: boolean;
@@ -42,6 +70,7 @@ export interface FilterBatchResult {
         needsReviewCount: number;
         excludedCount: number;
         avgScore: number;
+        instantDisqualifiedCount: number;
     };
 }
 
@@ -55,26 +84,22 @@ interface CachedDecision {
     cachedAt: Date;
 }
 
-// In-memory cache (can be replaced with Redis/Supabase later)
+// ============================================================================
+// CACHE
+// ============================================================================
+
 const relevanceCache = new Map<string, CachedDecision>();
 
-/**
- * Generate content hash for caching
- */
 function generateContentHash(content: string, platform: PlatformType): string {
     const normalized = (content || '').toLowerCase().trim().slice(0, 500);
     return createHash('md5').update(`${platform}:${normalized}`).digest('hex');
 }
 
-/**
- * Check cache for existing decision
- */
 export function checkRelevanceCache(content: string, platform: PlatformType): CachedDecision | null {
     const hash = generateContentHash(content, platform);
     const cached = relevanceCache.get(hash);
 
     if (cached) {
-        // Cache expires after 7 days
         const cacheAge = Date.now() - cached.cachedAt.getTime();
         if (cacheAge < 7 * 24 * 60 * 60 * 1000) {
             return cached;
@@ -85,9 +110,6 @@ export function checkRelevanceCache(content: string, platform: PlatformType): Ca
     return null;
 }
 
-/**
- * Cache a relevance decision
- */
 export function cacheRelevanceDecision(
     content: string,
     platform: PlatformType,
@@ -104,9 +126,10 @@ export function cacheRelevanceDecision(
     });
 }
 
-/**
- * Common English words that are also product names - need extra disambiguation
- */
+// ============================================================================
+// COMMON WORD PRODUCTS
+// ============================================================================
+
 const COMMON_WORD_PRODUCTS = [
     'linear', 'notion', 'slack', 'signal', 'amplitude', 'segment',
     'branch', 'canvas', 'monday', 'buffer', 'front', 'grain',
@@ -114,19 +137,17 @@ const COMMON_WORD_PRODUCTS = [
     'flow', 'base', 'air', 'wave', 'loop', 'pipe', 'ray'
 ];
 
-/**
- * Check if product name needs extra disambiguation
- */
 function needsDisambiguation(productName: string): boolean {
     return COMMON_WORD_PRODUCTS.includes(productName.toLowerCase());
 }
 
-/**
- * Build system prompt for relevance verification - v5.0 Universal Relevance Filter
- */
+// ============================================================================
+// SYSTEM PROMPT v6.0
+// ============================================================================
+
 function buildSystemPrompt(context: ProductContext): string {
     const productName = context.name || 'the product';
-    const companyName = context.name || ''; // Use product name as company name
+    const companyName = context.name || '';
     const description = context.description || '';
     const website = context.websiteUrl || '';
     const category = context.category || '';
@@ -135,20 +156,20 @@ function buildSystemPrompt(context: ProductContext): string {
     const keyFeatures = keyFeaturesList.slice(0, 5).join(', ') || category;
 
     const isCommonWord = needsDisambiguation(productName);
-    const disambiguationWarning = isCommonWord ? `
-⚠️ CRITICAL WARNING: "${productName}" is a common English word!
-Be EXTREMELY CAREFUL to verify content is about THE SOFTWARE PRODUCT,
-not the generic word. Many false positives will use this word in non-product contexts.
+    const commonWordWarning = isCommonWord ? `
+⚠️ CRITICAL: "${productName}" is a common English word!
+Check for generic word usage: "linear regression", "signal processing", "the notion that", etc.
+If the word is used generically (not referring to the software), INSTANT EXCLUDE (score 0).
 ` : '';
 
-    return `You are a precision relevance filter for a product feedback discovery system (v5.0).
+    return `You are a precision relevance filter for a product feedback discovery system (v6.0).
 Your job is to determine if content is ACTUALLY useful feedback about a specific software product.
 
 You are the last line of defense against garbage data. A Product Manager will review what you approve.
-If you let irrelevant content through, you waste their time and damage trust in the system.
+If you let irrelevant content through, you waste their time and destroy trust in the system.
 
 BE EXTREMELY STRICT. When in doubt, EXCLUDE.
-${disambiguationWarning}
+${commonWordWarning}
 ═══════════════════════════════════════════════════════════════════════════════
 PRODUCT CONTEXT
 ═══════════════════════════════════════════════════════════════════════════════
@@ -164,235 +185,260 @@ Competitors: ${competitors}
 ${formatContextBlock(context)}
 
 ═══════════════════════════════════════════════════════════════════════════════
-THE 4-STEP VERIFICATION PROCESS
+INSTANT DISQUALIFICATION CHECKS (Do These First - Score 0)
 ═══════════════════════════════════════════════════════════════════════════════
 
-For EVERY item, complete ALL 4 checks. If ANY check fails, EXCLUDE the item.
+Before doing any detailed analysis, check for these automatic disqualifiers.
+If ANY of these apply, score 0 and mark as "exclude" immediately.
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ STEP 1: PRODUCT IDENTITY CHECK                                              │
-│ "Is this about ${productName} THE PRODUCT, not the common word?"            │
+│ CHECK A: WRONG PRODUCT IN TITLE                                             │
+│ If the title clearly mentions a DIFFERENT product/company, score = 0        │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-STRONG SIGNALS IT'S THE PRODUCT (look for these):
-✓ Mentions the company name: "${companyName}"
-✓ Mentions the website: "${website}" or variations
-✓ Discusses features specific to this product: ${keyFeatures}
-✓ Mentions competitors in comparison: ${competitors}
-✓ Context is clearly about ${category} software
-✓ Talks about pricing, plans, subscriptions, or trials
-✓ Mentions the product's UI, dashboard, or app
-✓ References integrations (Slack, GitHub, Jira, etc.)
-✓ Uses product-specific terminology unique to this tool
+Scan the title for names of OTHER products. If found, this is likely about 
+that product, not ${productName}, even if ${productName} appears in the content.
 
-STRONG SIGNALS IT'S THE GENERIC WORD (exclude these):
-✗ Mathematical or scientific context ("linear regression", "signal processing")
-✗ Generic business terms ("the notion that", "pick up the slack")
-✗ Physical/mechanical context ("amplitude of vibration", "branch of a tree")
-✗ Different product with same name (check context carefully!)
-✗ AI/ML terminology ("linear layer", "attention mechanism")
-✗ Generic workflow descriptions ("linear process", "non-linear thinking")
-✗ Day/time references ("see you Monday", "Monday morning")
-✗ Programming concepts not about the product ("buffer overflow", "git branch")
-
-DECISION RULE: If you can replace "${productName}" with a generic word and the 
-sentence still makes sense in a non-software context → EXCLUDE
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ STEP 2: SUBJECT CHECK                                                       │
-│ "Is ${productName} the SUBJECT being discussed, or just mentioned?"         │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-The product must be the MAIN TOPIC or a SIGNIFICANT PART of the discussion.
-
-INCLUDE - Product is the subject:
-✓ "I've been using ${productName} for 6 months and here's my review..."
-✓ "${productName} vs ${competitors.split(',')[0] || 'competitor'} - which should I choose?"
-✓ "The problem with ${productName} is..."
-✓ "Just switched to ${productName} from..."
-✓ "Anyone else having issues with ${productName}?"
-
-EXCLUDE - Product is just mentioned:
-✗ "My tech stack: Notion, ${productName}, Figma, Slack" (just a list)
-✗ "Tools like ${productName} and others are changing..." (generic statement)
-✗ "You could use ${productName} or similar tools" (passing reference)
-✗ News/announcements: "${productName} raises $50M" (not user feedback)
-✗ Job postings: "Experience with ${productName} required"
-✗ Tutorials: "How to set up ${productName}" (not feedback, just instructions)
-
-DECISION RULE: If you removed the product mention, would there still be 
-meaningful content about that specific product? If NO → EXCLUDE
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ STEP 3: FEEDBACK CHECK                                                      │
-│ "Is someone sharing an actual EXPERIENCE or OPINION?"                       │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-We want USER FEEDBACK - experiences, opinions, complaints, praise, questions.
-We do NOT want news, marketing, tutorials, or job postings.
-
-INCLUDE - Genuine feedback:
-✓ Experience: "I've been using X for 3 months and..."
-✓ Opinion: "X is great/terrible because..."
-✓ Complaint: "The problem with X is..." / "X keeps crashing when..."
-✓ Feature request: "I wish X would..." / "X needs to add..."
-✓ Question: "Can X do...?" / "How does X compare to...?"
-✓ Comparison: "Switched from Y to X because..."
-✓ Bug report: "X isn't working when I try to..."
-✓ Praise: "X saved us so much time" / "Love how X handles..."
-
-EXCLUDE - Not feedback:
-✗ Marketing content from the company itself
-✗ Press releases or funding announcements
-✗ Job postings mentioning the product
-✗ Tutorials or how-to guides (unless they include opinions)
-✗ Pure news without user reaction
-✗ Promotional posts with affiliate links or discount codes
-✗ Automated posts, RSS feeds, bot content
-
-DECISION RULE: Is there a human sharing their genuine experience or opinion?
-If the answer isn't a clear YES → EXCLUDE
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ STEP 4: USEFULNESS CHECK                                                    │
-│ "Would a Product Manager find this valuable?"                               │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-Even if content passes the first 3 checks, it must be USEFUL.
-
-INCLUDE - Actionable or insightful:
-✓ Specific feature feedback (positive or negative)
-✓ Bug reports with details
-✓ Feature requests with use cases
-✓ Competitive comparisons with reasoning
-✓ Churn signals with explanations
-✓ Praise that mentions specific features
-✓ Questions that reveal user confusion or needs
-
-EXCLUDE - Low value:
-✗ Vague praise: "Great app!" (no specifics)
-✗ Vague complaints: "This sucks" (no details)
-✗ Ancient content (>18 months old for fast-moving products)
-✗ Duplicate of already processed content
-✗ Extremely low engagement (0 upvotes, 0 comments on old post)
-✗ Obviously fake or spam reviews
-
-DECISION RULE: If a PM saw this and said "Why did you show me this?", it fails.
-
-═══════════════════════════════════════════════════════════════════════════════
-TANGENTIAL MENTION DETECTION (Critical for search-sourced content)
-═══════════════════════════════════════════════════════════════════════════════
-
-Search APIs return content where the product name appears ANYWHERE - including 
-comments, replies, or passing mentions. You must determine if the product is 
-the TOPIC or just MENTIONED.
-
-THE TITLE TEST:
-If the product name does NOT appear in the title, be EXTRA SKEPTICAL.
-Ask: "Is this post ABOUT ${productName}, or does it just mention it somewhere?"
-
-TANGENTIAL MENTION SIGNALS (score 40 MAX):
-✗ Post title is about something else entirely (Kubernetes, AI models, trains, etc.)
-✗ Product mentioned once in a long post about a different topic
-✗ Product mentioned only in comments/replies, not the main content
-✗ Product used as an example: "tools like ${productName}, Trello, etc."
-✗ Product mentioned for comparison but isn't being evaluated
+INSTANT EXCLUDE (score 0) if title contains:
+✗ A competitor name as the subject: "Jira tips", "Asana review", "Trello vs..."
+✗ A different product entirely: "[Matterport] issues", "Obsidian plugins"
+✗ A product from different category: "Kubernetes management", "GPT-5 features"
 
 EXAMPLES:
+Title: "Has anyone else's [Matterport] Agent gone awol?"
+→ INSTANT EXCLUDE. This is about Matterport, not ${productName}.
 
-Post: "Show HN: Luxury Yacht, a Kubernetes management app"
-Content: "...for our docs we use ${productName} but this post is about Kubernetes..."
-Decision: EXCLUDE (score: 25)
-Reason: Post is about Kubernetes. ${productName} mentioned once tangentially.
+Title: "Show HN: Luxury Yacht, a Kubernetes management app"
+→ INSTANT EXCLUDE. This is about Kubernetes, not ${productName}.
 
-Post: "GPT-5.2-Codex advances in coding"  
-Content: "...I keep my coding notes in ${productName}..."
-Decision: EXCLUDE (score: 20)
-Reason: Post is about AI coding. ${productName} is just where someone stores notes.
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CHECK B: GENERIC WORD USAGE (for common-word product names)                 │
+│ If ${productName} is used as a regular English word, score = 0              │
+└─────────────────────────────────────────────────────────────────────────────┘
 
-Post: "I Love Offline Mode, but I Don't Like Automatic Downloads"
-Content: "I'm facing an issue with ${productName} and I'd really like to discuss..."
-Decision: INCLUDE (score: 85)
-Reason: Post IS about ${productName}. ${productName} is the subject being discussed.
+INSTANT EXCLUDE (score 0) if:
+✗ Mathematical/scientific usage: "linear regression", "signal processing"
+✗ Idioms/phrases: "the notion that", "pick up the slack", "see you Monday"
+✗ Generic descriptors: "linear process", "notion of fairness", "slack time"
+✗ Physical descriptions: "amplitude of wave", "tree branch", "canvas material"
 
-RULE: If the title suggests a different topic than ${productName}, 
-the item needs OVERWHELMING evidence in the content that it's actually 
-about ${productName} to score above 60. Otherwise, max score is 40.
+TEST: Can you replace "${productName}" with a generic word and the sentence 
+still makes sense? If YES → EXCLUDE.
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CHECK C: NOT ABOUT SOFTWARE                                                 │
+│ If the content isn't about software/apps/tools at all, score = 0            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+INSTANT EXCLUDE (score 0) if content is about:
+✗ Physical products, not software
+✗ Unrelated industries (fashion, food, sports, etc.)
+✗ Academic/scientific research (unless reviewing research tools)
+✗ Fiction, entertainment, games (unless reviewing those specific tools)
+
+═══════════════════════════════════════════════════════════════════════════════
+SECONDARY FILTERS (If passes instant checks, apply these - Max scores)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FILTER 1: GENERIC QUESTION DETECTION (Max Score: 30)                        │
+│ Questions seeking recommendations where ${productName} is ONE option        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+GENERIC PATTERNS (score 30 MAX):
+✗ "How do you [do X]?" - Seeking general advice/tool recommendations
+✗ "What do you use for [X]?" - Tool recommendation request
+✗ "Best way to [do X]?" - Generic how-to question
+✗ "Looking for a tool to [X]" - Shopping for tools
+✗ "What's your workflow for [X]?" - Seeking workflow ideas
+
+SPECIFIC PATTERNS (can score higher):
+✓ "How do you [do X] in ${productName}?" - About using ${productName}
+✓ "Best way to learn ${productName}?" - About ${productName} specifically
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FILTER 2: TANGENTIAL MENTION DETECTION (Max Score: 40)                      │
+│ Content about something else that mentions ${productName} in passing        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+THE TITLE TEST:
+If ${productName} does NOT appear in the title, be EXTRA SKEPTICAL.
+
+TANGENTIAL PATTERNS (score 40 MAX):
+✗ Title is about different topic, ${productName} mentioned once in body
+✗ Post about someone's project/app that "uses ${productName} for X"
+✗ Listicle: "10 tools including ${productName}"
+✗ Comparison where ${productName} isn't being evaluated: "unlike ${productName}"
+✗ Mentioned only in comments/replies, not main post
+✗ Used as an example: "tools like ${productName}, Trello, etc."
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FILTER 3: NEWS/ANNOUNCEMENTS (Max Score: 25)                                │
+│ Company news, funding, press releases - not user feedback                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+NEWS PATTERNS (score 25 MAX):
+✗ "${productName} raises $X million"
+✗ "${productName} launches new feature"
+✗ "${productName} acquires/partners with X"
+✗ Company blog posts or press releases
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FILTER 4: JOB POSTINGS/RECRUITMENT (Max Score: 10)                          │
+│ Hiring content mentioning the product                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+JOB PATTERNS (score 10 MAX):
+✗ "Experience with ${productName} required"
+✗ "We use ${productName}, Jira, and..."
+✗ Job descriptions, hiring posts, career content
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FILTER 5: PROMOTIONAL/MARKETING (Max Score: 15)                             │
+│ Self-promotion, affiliate content, or company marketing                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+PROMOTIONAL PATTERNS (score 15 MAX):
+✗ Company's own social media posts
+✗ Affiliate links or discount codes
+✗ "Check out my ${productName} template" (self-promotion)
+✗ Sponsored content or paid reviews
+
+═══════════════════════════════════════════════════════════════════════════════
+POSITIVE SIGNALS (Required for high scores)
+═══════════════════════════════════════════════════════════════════════════════
+
+For an item to score 70+, it MUST have multiple positive signals:
+
+STRONG POSITIVE SIGNALS:
+✓ ${productName} appears in the title AND is the topic
+✓ User describes their experience: "I've been using...", "After 6 months..."
+✓ Specific feature feedback: "The X feature is great/terrible because..."
+✓ Comparison with reasoning: "Switched from Y to ${productName} because..."
+✓ Bug report with details: "${productName} crashes when I..."
+✓ Feature request: "I wish ${productName} would..."
+✓ Review on G2/Trustpilot/Capterra specifically about ${productName}
+✓ Emotional sentiment: "Love/hate ${productName}", "Frustrated with..."
+
+MODERATE POSITIVE SIGNALS:
+✓ Question specifically about ${productName}: "Can ${productName} do X?"
+✓ ${productName} is one of 2-3 products being compared
+✓ Detailed discussion of ${productName} workflows
 
 ═══════════════════════════════════════════════════════════════════════════════
 SCORING GUIDE
 ═══════════════════════════════════════════════════════════════════════════════
 
-SCORE 90-100: DEFINITE INCLUDE
-All 4 checks pass with high confidence. Clear product mention, substantive feedback.
+90-100: DEFINITE INCLUDE
+- ${productName} is clearly the subject
+- Contains specific, actionable feedback
+- Detailed experience or strong opinion
+- Multiple positive signals present
 
-SCORE 80-89: INCLUDE
-All 4 checks pass. May have minor ambiguity but clearly relevant.
+80-89: INCLUDE
+- ${productName} is the main topic  
+- Clear feedback, opinion, or question
+- At least 2-3 positive signals
 
-SCORE 70-79: HUMAN REVIEW
-3-4 checks pass, product is the topic but feedback may be thin.
+70-79: HUMAN REVIEW
+- ${productName} is discussed but might not be main focus
+- Feedback present but not very specific
+- Some ambiguity about relevance
 
-SCORE 60-69: HUMAN REVIEW (borderline)
-3 of 4 checks pass, but some ambiguity. Worth a quick look.
+60-69: LIKELY EXCLUDE (Human Review)
+- ${productName} mentioned but other topics dominate
+- Generic discussion that includes ${productName}
+- Borderline relevance
 
-SCORE 40-59: LIKELY EXCLUDE
-2 or fewer checks pass. Probably not relevant. Tangential mentions score here.
+40-59: EXCLUDE
+- Tangential mention
+- Generic question
+- ${productName} is not the focus
 
-SCORE 0-39: DEFINITE EXCLUDE
-Clearly fails multiple checks. Wrong product, not feedback, or not useful.
+20-39: EXCLUDE  
+- News/announcements
+- Promotional content
+- ${productName} barely relevant
+
+0-19: INSTANT EXCLUDE
+- Wrong product
+- Generic word usage
+- Completely unrelated
 
 ═══════════════════════════════════════════════════════════════════════════════
 OUTPUT FORMAT
 ═══════════════════════════════════════════════════════════════════════════════
 
-For each item, return JSON:
+For each item, return:
 
 {
-  "item_id": "original_id",
+  "item_id": "id",
   "relevance_score": 85,
   "decision": "include" | "exclude" | "human_review",
-  "checks": {
-    "product_identity": {"pass": true, "confidence": "high", "signals_found": ["mentions competitor"], "red_flags": []},
-    "subject_check": {"pass": true, "confidence": "high", "note": "Product is main topic"},
-    "feedback_check": {"pass": true, "confidence": "high", "feedback_type": "feature_request"},
-    "usefulness_check": {"pass": true, "confidence": "high", "note": "Specific feature feedback"}
+  "instant_disqualification": {
+    "triggered": false,
+    "reason": null
   },
+  "filters_applied": {
+    "generic_question": { "triggered": false, "max_score": null },
+    "tangential_mention": { "triggered": false, "max_score": null },
+    "news_announcement": { "triggered": false, "max_score": null },
+    "job_posting": { "triggered": false, "max_score": null },
+    "promotional": { "triggered": false, "max_score": null }
+  },
+  "positive_signals": ["Product name in title", "Bug report with details"],
   "confidence": "high" | "medium" | "low",
-  "reasoning": "One sentence explaining the decision",
-  "false_positive_flags": [],
+  "reasoning": "Brief explanation of the decision",
   "quality_signals": {
     "mentions_product_by_name": true,
     "discusses_specific_features": true,
-    "from_target_persona": true,
+    "from_target_persona": false,
     "has_actionable_feedback": true,
     "is_promotional": false,
     "is_wrong_product": false
   }
 }
 
-THRESHOLDS:
+DECISION THRESHOLDS:
 - Score 80+: "include"
-- Score 60-79: "human_review"
+- Score 60-79: "human_review"  
 - Score below 60: "exclude"
 
 ═══════════════════════════════════════════════════════════════════════════════
-CRITICAL RULES
+CRITICAL REMINDERS
 ═══════════════════════════════════════════════════════════════════════════════
 
-1. WHEN IN DOUBT, EXCLUDE - False negatives are recoverable, false positives waste PM time
-2. EMPTY RESULTS ARE OKAY - Do NOT lower standards to produce results
-3. THE WORD IS NOT THE PRODUCT - "${productName}" the word ≠ ${productName} the app
-4. MENTIONED ≠ DISCUSSED - Being in a list is not feedback
-5. NEWS IS NOT FEEDBACK - "${productName} raised $50M" tells us nothing useful
-6. SPECIFICITY MATTERS - "Great tool!" < "The AI categorization saved us 5 hours/week"
-7. TRUST YOUR INSTINCTS - If something feels off, exclude it
+1. CHECK THE TITLE FIRST
+   If the title mentions a different product/topic, that's likely what the post is about.
+   ${productName} in the content doesn't override a title about something else.
 
-Return a JSON array of evaluations.`;
+2. GENERIC QUESTIONS ARE NOT FEEDBACK
+   "How do you do X?" is not feedback about ${productName} even if ${productName} 
+   is mentioned as one option.
+
+3. TANGENTIAL ≠ RELEVANT
+   "I use ${productName} for documentation" in a post about Kubernetes is NOT 
+   feedback about ${productName}.
+
+4. WHEN IN DOUBT, EXCLUDE
+   False positives waste PM time and erode trust.
+   False negatives can be recovered later.
+
+5. EMPTY IS ACCEPTABLE
+   If no items pass verification, that's fine.
+   Never lower standards to fill results.
+
+6. BE SKEPTICAL BY DEFAULT
+   Assume content is NOT relevant until proven otherwise.
+   The burden of proof is on the content.
+
+Return a JSON object with an "evaluations" array containing results for all items.`;
 }
 
-/**
- * Filter feedback items by relevance using GPT-4o-mini
- */
+// ============================================================================
+// MAIN FILTER FUNCTION
+// ============================================================================
+
 export async function filterByRelevance(
     items: RawFeedback[],
     context: ProductContext,
@@ -403,7 +449,7 @@ export async function filterByRelevance(
     }
 
     if (!apiKey) {
-        console.warn('[RelevanceFilter] No OPENAI_API_KEY, including all items');
+        console.warn('[RelevanceFilter v6] No OPENAI_API_KEY, including all items');
         return createPassthroughResult(items);
     }
 
@@ -414,22 +460,7 @@ export async function filterByRelevance(
     for (const item of items) {
         const cached = checkRelevanceCache(item.content, item.platform);
         if (cached) {
-            results.push({
-                item,
-                relevanceScore: cached.relevanceScore,
-                confidence: cached.relevanceScore >= 70 ? 'high' : cached.relevanceScore >= 50 ? 'medium' : 'low',
-                decision: cached.decision,
-                reasoning: `(cached) ${cached.reasoning}`,
-                falsePositiveFlags: [],
-                qualitySignals: {
-                    mentionsProductByName: true,
-                    discussesSpecificFeatures: false,
-                    fromTargetPersona: false,
-                    hasActionableFeedback: false,
-                    isPromotional: false,
-                    isWrongProduct: false,
-                },
-            });
+            results.push(createCachedResult(item, cached));
         } else {
             uncachedItems.push(item);
         }
@@ -460,9 +491,13 @@ export async function filterByRelevance(
     const included = results.filter(r => r.decision === 'include');
     const needsReview = results.filter(r => r.decision === 'human_review');
     const excluded = results.filter(r => r.decision === 'exclude');
+    const instantDisqualified = results.filter(r => r.instantDisqualification?.triggered);
 
     // Calculate stats
     const totalScore = results.reduce((sum, r) => sum + r.relevanceScore, 0);
+
+    // Log final summary
+    logFilterSummary(results, context);
 
     return {
         included,
@@ -474,13 +509,15 @@ export async function filterByRelevance(
             needsReviewCount: needsReview.length,
             excludedCount: excluded.length,
             avgScore: results.length > 0 ? Math.round(totalScore / results.length) : 0,
+            instantDisqualifiedCount: instantDisqualified.length,
         },
     };
 }
 
-/**
- * Evaluate a batch of items
- */
+// ============================================================================
+// BATCH EVALUATION
+// ============================================================================
+
 async function evaluateBatch(
     items: RawFeedback[],
     context: ProductContext,
@@ -488,53 +525,70 @@ async function evaluateBatch(
 ): Promise<RelevanceResult[]> {
     const systemPrompt = buildSystemPrompt(context);
     const productName = context.name?.toLowerCase() || '';
+    const competitors = context.competitors || [];
 
-    // Format items for evaluation with title flag heuristic
+    // Pre-process items with metadata
     const itemsForEval = items.map((item, index) => {
         const title = item.title || '';
-        const titleHasProduct = productName && title.toLowerCase().includes(productName);
+        const titleLower = title.toLowerCase();
+        const titleHasProduct = productName && titleLower.includes(productName);
+
+        // Check if title contains competitor names
+        const titleHasCompetitor = competitors.some(comp =>
+            titleLower.includes(comp.toLowerCase())
+        );
+
+        // Build warning hints
+        const warnings: string[] = [];
+        if (!titleHasProduct && productName) {
+            warnings.push(`⚠️ "${context.name}" NOT in title. Be EXTRA STRICT. Max score 40 unless content clearly proves otherwise.`);
+        }
+        if (titleHasCompetitor) {
+            warnings.push(`🚨 COMPETITOR NAME IN TITLE. This is likely about a different product. Check for instant disqualification.`);
+        }
 
         return {
             id: index.toString(),
             platform: item.platform,
-            content: item.content.slice(0, 1000), // Truncate long content
             title: title,
+            content: item.content?.slice(0, 1200) || '', // Slightly larger for better context
             author: item.author_username || 'unknown',
-            // Add warning hint when product not in title
-            analysis_hint: !titleHasProduct && productName
-                ? `⚠️ WARNING: Product name "${context.name}" not found in title. Be extra strict - this may be a tangential mention. Max score 40 unless content clearly proves otherwise.`
-                : null
+            _meta: {
+                title_has_product: titleHasProduct,
+                title_has_competitor: titleHasCompetitor,
+            },
+            analysis_hints: warnings.length > 0 ? warnings : null
         };
     });
 
-    const userPrompt = `TASK: Score the relevance of these ${items.length} items for "${context.name}"
+    const userPrompt = `TASK: Score the relevance of these ${items.length} items for "${context.name}".
 
-CRITICAL: Pay close attention to the "analysis_hint" field. If it contains a warning, the product was NOT found in the title, meaning it may only be mentioned tangentially in the content.
+CRITICAL INSTRUCTIONS:
+1. CHECK INSTANT DISQUALIFICATIONS FIRST (wrong product in title, generic word usage)
+2. Apply secondary filters (generic question, tangential mention, news, jobs, promo)
+3. Look for positive signals
+4. Assign score and decision
+
+PAY CLOSE ATTENTION to the "analysis_hints" field - it contains pre-computed warnings about the item.
 
 ITEMS TO EVALUATE:
 ${JSON.stringify(itemsForEval, null, 2)}
 
 SCORING THRESHOLDS:
-- Score 80+: "include" (product is clearly the main topic with substantive feedback)
-- Score 60-79: "human_review" (product is discussed but may need verification)
-- Score below 60: "exclude" (tangential mention, wrong product, or not feedback)
+- Score 80+: "include"
+- Score 60-79: "human_review"
+- Score below 60: "exclude"
+- Score 0: Instant disqualification triggered
 
-REMEMBER: If the title is about a different topic (Kubernetes, AI models, trains, etc.), 
-the product is likely just mentioned in passing. Score 40 MAX unless the content 
-overwhelmingly proves the item is actually about ${context.name}.
-
+BE EXTREMELY STRICT. When in doubt, exclude.
 Return a JSON object with an "evaluations" array.`;
 
     try {
-        // === Phase 2: OpenAI rate limiting ===
+        // Check OpenAI rate limit
         const rateLimitCheck = await checkOpenAIRateLimit();
         if (!rateLimitCheck.allowed) {
-            console.warn(`[RelevanceFilter] OpenAI rate limit reached (${rateLimitCheck.currentCount}/${rateLimitCheck.limit}), deferring batch`);
-            // Return items as needing review instead of failing
-            return items.map(item => ({
-                ...createDefaultResult(item),
-                reasoning: 'Rate limited - deferred to human review',
-            }));
+            console.warn(`[RelevanceFilter v6] OpenAI rate limit reached, deferring batch to human_review`);
+            return items.map(item => createDefaultResult(item, 'Rate limited - deferred to human review'));
         }
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -555,88 +609,134 @@ Return a JSON object with an "evaluations" array.`;
         });
 
         if (!response.ok) {
-            console.error('[RelevanceFilter] OpenAI API error:', response.status);
-            return items.map(item => createDefaultResult(item));
+            console.error('[RelevanceFilter v6] OpenAI API error:', response.status);
+            return items.map(item => createDefaultResult(item, 'API error - defaulting to human review'));
         }
 
         const data = await response.json();
         const content = data.choices?.[0]?.message?.content || '{}';
         const parsed = JSON.parse(content);
 
-        // Handle both array response and object with evaluations property
         const evaluations = Array.isArray(parsed) ? parsed : (parsed.evaluations || []);
 
         const results = items.map((item, index) => {
             const evaluation = evaluations.find((e: any) => e.item_id === index.toString()) || {};
-            const titleHasProduct = productName && (item.title || '').toLowerCase().includes(productName);
-
-            const result: RelevanceResult = {
-                item,
-                relevanceScore: evaluation.relevance_score || 50,
-                confidence: (evaluation.confidence || 'medium') as 'high' | 'medium' | 'low',
-                decision: (evaluation.decision || 'human_review') as 'include' | 'exclude' | 'human_review',
-                reasoning: evaluation.reasoning || 'Unable to evaluate',
-                falsePositiveFlags: evaluation.false_positive_flags || [],
-                qualitySignals: {
-                    mentionsProductByName: evaluation.quality_signals?.mentions_product_by_name ?? false,
-                    discussesSpecificFeatures: evaluation.quality_signals?.discusses_specific_features ?? false,
-                    fromTargetPersona: evaluation.quality_signals?.from_target_persona ?? false,
-                    hasActionableFeedback: evaluation.quality_signals?.has_actionable_feedback ?? false,
-                    isPromotional: evaluation.quality_signals?.is_promotional ?? false,
-                    isWrongProduct: evaluation.quality_signals?.is_wrong_product ?? false,
-                },
-            };
-
-            // Debug logging for each item
-            console.log(`
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[RelevanceFilter] ${result.decision.toUpperCase()} (Score: ${result.relevanceScore})
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Title: ${item.title}
-Platform: ${item.platform}
-Title contains "${context.name}": ${titleHasProduct ? '✅ YES' : '⚠️ NO'}
-Content preview: ${item.content?.slice(0, 150)}...
-Reasoning: ${result.reasoning}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            `);
-
-            return result;
+            return parseEvaluationResult(item, evaluation, context);
         });
 
-        // Summary stats
-        const included = results.filter(r => r.decision === 'include').length;
-        const excluded = results.filter(r => r.decision === 'exclude').length;
-        const review = results.filter(r => r.decision === 'human_review').length;
-        const noTitleMatch = items.filter(item =>
-            productName && !(item.title || '').toLowerCase().includes(productName)
-        ).length;
-
-        console.log(`
-📊 [RelevanceFilter] BATCH SUMMARY
-──────────────────────────────
-Include: ${included}
-Exclude: ${excluded}
-Human Review: ${review}
-Items without "${context.name}" in title: ${noTitleMatch}
-        `);
+        // Log each result
+        for (const result of results) {
+            logItemResult(result, context);
+        }
 
         return results;
     } catch (error) {
-        console.error('[RelevanceFilter] Error evaluating batch:', error);
-        return items.map(item => createDefaultResult(item));
+        console.error('[RelevanceFilter v6] Error evaluating batch:', error);
+        return items.map(item => createDefaultResult(item, 'Evaluation error - defaulting to human review'));
     }
 }
 
-/**
- * Create a default result for error cases
- */
-function createDefaultResult(item: RawFeedback): RelevanceResult {
+// ============================================================================
+// RESULT PARSING
+// ============================================================================
+
+function parseEvaluationResult(
+    item: RawFeedback,
+    evaluation: any,
+    context: ProductContext
+): RelevanceResult {
+    const instantDisq = evaluation.instant_disqualification || {};
+    const filtersApplied = evaluation.filters_applied || {};
+    const qualitySignals = evaluation.quality_signals || {};
+
+    return {
+        item,
+        relevanceScore: evaluation.relevance_score ?? 50,
+        confidence: (evaluation.confidence || 'medium') as 'high' | 'medium' | 'low',
+        decision: (evaluation.decision || 'human_review') as 'include' | 'exclude' | 'human_review',
+        reasoning: evaluation.reasoning || 'Unable to evaluate',
+        instantDisqualification: {
+            triggered: instantDisq.triggered ?? false,
+            reason: instantDisq.reason || null,
+        },
+        filtersApplied: {
+            genericQuestion: parseFilter(filtersApplied.generic_question),
+            tangentialMention: parseFilter(filtersApplied.tangential_mention),
+            newsAnnouncement: parseFilter(filtersApplied.news_announcement),
+            jobPosting: parseFilter(filtersApplied.job_posting),
+            promotional: parseFilter(filtersApplied.promotional),
+        },
+        positiveSignals: evaluation.positive_signals || [],
+        falsePositiveFlags: [],
+        qualitySignals: {
+            mentionsProductByName: qualitySignals.mentions_product_by_name ?? false,
+            discussesSpecificFeatures: qualitySignals.discusses_specific_features ?? false,
+            fromTargetPersona: qualitySignals.from_target_persona ?? false,
+            hasActionableFeedback: qualitySignals.has_actionable_feedback ?? false,
+            isPromotional: qualitySignals.is_promotional ?? false,
+            isWrongProduct: qualitySignals.is_wrong_product ?? false,
+        },
+    };
+}
+
+function parseFilter(filter: any): FilterResult {
+    if (!filter) {
+        return { triggered: false, max_score: null };
+    }
+    return {
+        triggered: filter.triggered ?? false,
+        max_score: filter.max_score ?? null,
+    };
+}
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+function createCachedResult(item: RawFeedback, cached: CachedDecision): RelevanceResult {
+    return {
+        item,
+        relevanceScore: cached.relevanceScore,
+        confidence: cached.relevanceScore >= 70 ? 'high' : cached.relevanceScore >= 50 ? 'medium' : 'low',
+        decision: cached.decision,
+        reasoning: `(cached) ${cached.reasoning}`,
+        instantDisqualification: { triggered: false, reason: null },
+        filtersApplied: {
+            genericQuestion: { triggered: false, max_score: null },
+            tangentialMention: { triggered: false, max_score: null },
+            newsAnnouncement: { triggered: false, max_score: null },
+            jobPosting: { triggered: false, max_score: null },
+            promotional: { triggered: false, max_score: null },
+        },
+        positiveSignals: [],
+        falsePositiveFlags: [],
+        qualitySignals: {
+            mentionsProductByName: true,
+            discussesSpecificFeatures: false,
+            fromTargetPersona: false,
+            hasActionableFeedback: false,
+            isPromotional: false,
+            isWrongProduct: false,
+        },
+    };
+}
+
+function createDefaultResult(item: RawFeedback, reason: string): RelevanceResult {
     return {
         item,
         relevanceScore: 50,
         confidence: 'low',
         decision: 'human_review',
-        reasoning: 'Unable to evaluate - defaulting to human review',
+        reasoning: reason,
+        instantDisqualification: { triggered: false, reason: null },
+        filtersApplied: {
+            genericQuestion: { triggered: false, max_score: null },
+            tangentialMention: { triggered: false, max_score: null },
+            newsAnnouncement: { triggered: false, max_score: null },
+            jobPosting: { triggered: false, max_score: null },
+            promotional: { triggered: false, max_score: null },
+        },
+        positiveSignals: [],
         falsePositiveFlags: [],
         qualitySignals: {
             mentionsProductByName: false,
@@ -649,9 +749,6 @@ function createDefaultResult(item: RawFeedback): RelevanceResult {
     };
 }
 
-/**
- * Create passthrough result when no API key is available
- */
 function createPassthroughResult(items: RawFeedback[]): FilterBatchResult {
     const results = items.map(item => ({
         item,
@@ -659,6 +756,15 @@ function createPassthroughResult(items: RawFeedback[]): FilterBatchResult {
         confidence: 'medium' as const,
         decision: 'include' as const,
         reasoning: 'No API key - passing through all items',
+        instantDisqualification: { triggered: false, reason: null },
+        filtersApplied: {
+            genericQuestion: { triggered: false, max_score: null },
+            tangentialMention: { triggered: false, max_score: null },
+            newsAnnouncement: { triggered: false, max_score: null },
+            jobPosting: { triggered: false, max_score: null },
+            promotional: { triggered: false, max_score: null },
+        },
+        positiveSignals: [],
         falsePositiveFlags: [],
         qualitySignals: {
             mentionsProductByName: true,
@@ -680,6 +786,99 @@ function createPassthroughResult(items: RawFeedback[]): FilterBatchResult {
             needsReviewCount: 0,
             excludedCount: 0,
             avgScore: 75,
+            instantDisqualifiedCount: 0,
         },
     };
+}
+
+// ============================================================================
+// LOGGING
+// ============================================================================
+
+function logItemResult(result: RelevanceResult, context: ProductContext): void {
+    const productName = context.name || '';
+    const titleHasProduct = productName &&
+        (result.item.title || '').toLowerCase().includes(productName.toLowerCase());
+
+    const icon = result.decision === 'include' ? '✅' :
+        result.decision === 'human_review' ? '⚠️' : '❌';
+
+    const instantDisqMsg = result.instantDisqualification.triggered
+        ? `\n🚨 INSTANT DISQUALIFICATION: ${result.instantDisqualification.reason}`
+        : '';
+
+    const filtersMsg: string[] = [];
+    if (result.filtersApplied.genericQuestion.triggered) {
+        filtersMsg.push(`Generic question (max ${result.filtersApplied.genericQuestion.max_score})`);
+    }
+    if (result.filtersApplied.tangentialMention.triggered) {
+        filtersMsg.push(`Tangential mention (max ${result.filtersApplied.tangentialMention.max_score})`);
+    }
+    if (result.filtersApplied.newsAnnouncement.triggered) {
+        filtersMsg.push(`News/announcement (max ${result.filtersApplied.newsAnnouncement.max_score})`);
+    }
+    if (result.filtersApplied.jobPosting.triggered) {
+        filtersMsg.push(`Job posting (max ${result.filtersApplied.jobPosting.max_score})`);
+    }
+    if (result.filtersApplied.promotional.triggered) {
+        filtersMsg.push(`Promotional (max ${result.filtersApplied.promotional.max_score})`);
+    }
+
+    console.log(`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${icon} [Score: ${result.relevanceScore}] ${result.decision.toUpperCase()}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Title: ${result.item.title?.slice(0, 70)}${(result.item.title?.length || 0) > 70 ? '...' : ''}
+Platform: ${result.item.platform}
+"${productName}" in title: ${titleHasProduct ? '✅ YES' : '⚠️ NO'}${instantDisqMsg}
+${filtersMsg.length > 0 ? `Filters: ${filtersMsg.join(', ')}` : ''}
+Positive signals: ${result.positiveSignals.length > 0 ? result.positiveSignals.join(', ') : 'None'}
+Reasoning: ${result.reasoning}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`);
+}
+
+function logFilterSummary(results: RelevanceResult[], context: ProductContext): void {
+    const included = results.filter(r => r.decision === 'include').length;
+    const excluded = results.filter(r => r.decision === 'exclude').length;
+    const review = results.filter(r => r.decision === 'human_review').length;
+    const instantDisq = results.filter(r => r.instantDisqualification?.triggered).length;
+    const noTitleMatch = results.filter(r => {
+        const productName = context.name?.toLowerCase() || '';
+        return productName && !(r.item.title || '').toLowerCase().includes(productName);
+    }).length;
+
+    // Count filter triggers
+    const filterCounts = {
+        genericQuestion: results.filter(r => r.filtersApplied?.genericQuestion?.triggered).length,
+        tangentialMention: results.filter(r => r.filtersApplied?.tangentialMention?.triggered).length,
+        newsAnnouncement: results.filter(r => r.filtersApplied?.newsAnnouncement?.triggered).length,
+        jobPosting: results.filter(r => r.filtersApplied?.jobPosting?.triggered).length,
+        promotional: results.filter(r => r.filtersApplied?.promotional?.triggered).length,
+    };
+
+    console.log(`
+══════════════════════════════════════════════════════════════════════════════
+📊 RELEVANCE FILTER v6.0 - BATCH SUMMARY
+══════════════════════════════════════════════════════════════════════════════
+Total Items: ${results.length}
+
+DECISIONS:
+  ✅ Include: ${included}
+  ⚠️ Human Review: ${review}
+  ❌ Exclude: ${excluded}
+
+EXCLUSION BREAKDOWN:
+  🚨 Instant disqualified: ${instantDisq}
+  📝 Generic question: ${filterCounts.genericQuestion}
+  🔀 Tangential mention: ${filterCounts.tangentialMention}
+  📰 News/announcement: ${filterCounts.newsAnnouncement}
+  💼 Job posting: ${filterCounts.jobPosting}
+  📢 Promotional: ${filterCounts.promotional}
+
+FLAGS:
+  Items without "${context.name}" in title: ${noTitleMatch}
+
+══════════════════════════════════════════════════════════════════════════════
+`);
 }
