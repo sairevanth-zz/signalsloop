@@ -46,6 +46,8 @@ import {
     Activity,
     Zap,
     Command,
+    Rocket,
+    History,
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -126,7 +128,9 @@ export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProp
             label: 'Track',
             icon: BarChart3,
             items: [
+                { label: 'Launch Go/No-Go', href: currentSlug ? `/${currentSlug}/launch` : '#', icon: Rocket, requiresProject: true },
                 { label: 'Feature Outcomes', href: currentSlug ? `/${currentSlug}/outcomes` : '/app/outcomes', icon: Target },
+                { label: 'Retrospectives', href: currentSlug ? `/${currentSlug}/retro` : '#', icon: History, requiresProject: true },
                 { label: 'Analytics Dashboard', href: '/app/analytics', icon: BarChart3 },
                 { label: 'Executive Briefs', href: currentSlug ? `/${currentSlug}/briefs` : '#', icon: FileBarChart, requiresProject: true },
                 { label: 'Churn Radar', href: currentSlug ? `/${currentSlug}/churn-radar` : '#', icon: AlertTriangle, requiresProject: true },
