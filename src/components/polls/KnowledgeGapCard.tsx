@@ -86,7 +86,7 @@ export function KnowledgeGapCard({ projectId, projectSlug }: Props) {
                     projectId,
                     minFeedbackCount: 3,
                     maxSpecificity: 0.5,
-                    createActions: false,
+                    createActions: true, // Persist gaps to database
                 }),
             });
 

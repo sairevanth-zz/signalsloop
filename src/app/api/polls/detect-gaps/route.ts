@@ -89,8 +89,20 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Get existing poll suggestions
-        const suggestions = await getPollSuggestions(projectId);
+        // Get existing poll suggestions from action queue
+        const actions = await getPollSuggestions(projectId);
+
+        // Transform action queue format into KnowledgeGap format for component
+        const suggestions = actions.map((action: any) => ({
+            theme_id: action.metadata?.theme_id || '',
+            theme_name: action.metadata?.theme_name || action.title?.replace('Suggest Poll: ', '') || 'Unknown Theme',
+            description: action.description || '',
+            feedback_count: action.metadata?.feedback_count || 0,
+            specificity_score: action.metadata?.specificity_score || 0.3,
+            suggested_poll_title: action.metadata?.suggested_poll_title || action.title?.replace('Suggest Poll: ', '') || '',
+            suggested_options: action.metadata?.suggested_options || [],
+            reasoning: action.metadata?.reasoning || 'Previously detected knowledge gap',
+        }));
 
         return NextResponse.json({ suggestions });
 

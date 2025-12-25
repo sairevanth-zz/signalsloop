@@ -168,7 +168,8 @@ ${feedbackText}`
                         specificity_score: gap.specificity_score,
                         suggested_poll_title: gap.suggested_poll_title,
                         suggested_options: gap.suggested_options,
-                        feedback_count: gap.feedback_count
+                        feedback_count: gap.feedback_count,
+                        reasoning: gap.reasoning
                     },
                     requiresApproval: true
                 });
