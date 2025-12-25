@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import { getRetroBoard, updateRetroBoard } from '@/lib/retro/retro-board-service';
 import { generateAISummary } from '@/lib/retro/ai-population';
 
@@ -14,7 +14,7 @@ interface RouteParams {
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
         if (!supabase) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

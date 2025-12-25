@@ -4,12 +4,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import { toggleCardVote } from '@/lib/retro';
 
 export async function POST(request: NextRequest) {
     try {
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
         if (!supabase) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

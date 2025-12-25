@@ -3,7 +3,7 @@
  * AI-powered risk detection for Go/No-Go Dashboard
  */
 
-import { getSupabaseClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import type { LaunchRisk, LaunchChecklistItem } from '@/types/launch';
 
 // ============================================================================
@@ -15,7 +15,7 @@ export async function detectRisks(
     projectId: string,
     featureTitle: string
 ): Promise<LaunchRisk[]> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return [];
 
     const detectedRisks: Omit<LaunchRisk, 'id' | 'created_at' | 'updated_at'>[] = [];
@@ -77,7 +77,7 @@ async function gatherRiskContext(
     projectId: string,
     featureTitle: string
 ): Promise<RiskContext> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) {
         return {
             negativeFeedback: [],
@@ -236,7 +236,7 @@ export async function generateDefaultChecklist(
     boardId: string,
     featureTitle: string
 ): Promise<LaunchChecklistItem[]> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return [];
 
     const defaultItems = [

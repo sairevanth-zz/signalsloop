@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import { getLaunchBoard } from '@/lib/launch/launch-board-service';
 import { populateAllDimensions } from '@/lib/launch/dimension-scoring';
 import { detectRisks, generateDefaultChecklist } from '@/lib/launch/risk-detection';
@@ -15,7 +15,7 @@ interface RouteParams {
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
         if (!supabase) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

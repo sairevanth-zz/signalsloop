@@ -3,7 +3,7 @@
  * Generates AI cards from project outcomes and data
  */
 
-import { getSupabaseClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import type { RetroCard, RetroColumn, RetroPeriod, RetroMetric } from '@/types/retro';
 import { PERIOD_CONFIGS } from '@/types/retro';
 import { addCard } from './retro-board-service';
@@ -19,7 +19,7 @@ export async function populateRetroFromOutcomes(
     startDate: string,
     endDate: string
 ): Promise<{ cards: RetroCard[]; metrics: RetroMetric[] }> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return { cards: [], metrics: [] };
 
     // Get columns for this board
@@ -97,7 +97,7 @@ async function gatherPeriodData(
     startDate: string,
     endDate: string
 ): Promise<PeriodContext> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) {
         return {
             outcomes: [],

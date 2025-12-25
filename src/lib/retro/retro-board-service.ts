@@ -3,7 +3,7 @@
  * CRUD operations and utility functions for Retrospective Tool
  */
 
-import { getSupabaseClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import type {
     RetroBoard,
     RetroBoardWithDetails,
@@ -28,7 +28,7 @@ export async function createRetroBoard(
     request: CreateRetroBoardRequest,
     userId?: string
 ): Promise<RetroBoard | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     // Create board
@@ -64,7 +64,7 @@ async function initializeDefaultColumns(
     boardId: string,
     periodType: RetroPeriod
 ): Promise<void> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return;
 
     const defaultColumns = getDefaultColumnsForPeriod(periodType);
@@ -83,7 +83,7 @@ async function initializeDefaultColumns(
 export async function getRetroBoard(
     boardId: string
 ): Promise<RetroBoardWithDetails | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     // Fetch board
@@ -136,7 +136,7 @@ export async function getRetroBoard(
 export async function getRetroBoardsForProject(
     projectId: string
 ): Promise<RetroBoard[]> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return [];
 
     const { data, error } = await supabase
@@ -157,7 +157,7 @@ export async function updateRetroBoard(
     boardId: string,
     updates: UpdateRetroBoardRequest
 ): Promise<RetroBoard | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const { data, error } = await supabase
@@ -176,7 +176,7 @@ export async function updateRetroBoard(
 }
 
 export async function deleteRetroBoard(boardId: string): Promise<boolean> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return false;
 
     const { error } = await supabase
@@ -195,7 +195,7 @@ export async function addCard(
     request: CreateRetroCardRequest,
     userId?: string
 ): Promise<RetroCard | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const { data, error } = await supabase
@@ -226,7 +226,7 @@ export async function updateCard(
     cardId: string,
     updates: Partial<RetroCard>
 ): Promise<RetroCard | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const { data, error } = await supabase
@@ -245,7 +245,7 @@ export async function updateCard(
 }
 
 export async function deleteCard(cardId: string): Promise<boolean> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return false;
 
     const { error } = await supabase
@@ -264,7 +264,7 @@ export async function toggleCardVote(
     cardId: string,
     userId: string
 ): Promise<{ voted: boolean; newCount: number }> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return { voted: false, newCount: 0 };
 
     // Check if vote exists
@@ -309,7 +309,7 @@ export async function addAction(
     boardId: string,
     request: CreateRetroActionRequest
 ): Promise<RetroAction | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const { data, error } = await supabase
@@ -339,7 +339,7 @@ export async function updateAction(
     actionId: string,
     updates: UpdateRetroActionRequest
 ): Promise<RetroAction | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const updateData: Record<string, unknown> = { ...updates };
@@ -367,7 +367,7 @@ export async function updateAction(
 }
 
 export async function deleteAction(actionId: string): Promise<boolean> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return false;
 
     const { error } = await supabase

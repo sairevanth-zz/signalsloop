@@ -3,7 +3,7 @@
  * CRUD operations and utility functions for Go/No-Go Dashboard
  */
 
-import { getSupabaseClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import type {
     LaunchBoard,
     LaunchBoardWithDetails,
@@ -30,7 +30,7 @@ export async function createLaunchBoard(
     request: CreateLaunchBoardRequest,
     userId?: string
 ): Promise<LaunchBoard | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const { data, error } = await supabase
@@ -62,7 +62,7 @@ export async function createLaunchBoard(
 export async function getLaunchBoard(
     boardId: string
 ): Promise<LaunchBoardWithDetails | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     // Fetch board
@@ -97,7 +97,7 @@ export async function getLaunchBoard(
 export async function getLaunchBoardsForProject(
     projectId: string
 ): Promise<LaunchBoard[]> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return [];
 
     const { data, error } = await supabase
@@ -118,7 +118,7 @@ export async function updateLaunchBoard(
     boardId: string,
     updates: UpdateLaunchBoardRequest
 ): Promise<LaunchBoard | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const updateData: Record<string, unknown> = { ...updates };
@@ -144,7 +144,7 @@ export async function updateLaunchBoard(
 }
 
 export async function deleteLaunchBoard(boardId: string): Promise<boolean> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return false;
 
     const { error } = await supabase
@@ -165,7 +165,7 @@ export async function deleteLaunchBoard(boardId: string): Promise<boolean> {
 // ============================================================================
 
 async function initializeDefaultDimensions(boardId: string): Promise<void> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return;
 
     const dimensionTypes: DimensionType[] = [
@@ -189,7 +189,7 @@ export async function updateDimension(
     dimensionId: string,
     updates: Partial<LaunchDimension>
 ): Promise<LaunchDimension | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const { data, error } = await supabase
@@ -213,7 +213,7 @@ export async function updateDimension(
 }
 
 async function recalculateOverallScore(boardId: string): Promise<void> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return;
 
     const { data: dimensions } = await supabase
@@ -241,7 +241,7 @@ export async function addRisk(
     boardId: string,
     request: CreateRiskRequest
 ): Promise<LaunchRisk | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const { data, error } = await supabase
@@ -265,7 +265,7 @@ export async function updateRisk(
     riskId: string,
     updates: Partial<LaunchRisk>
 ): Promise<LaunchRisk | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const { data, error } = await supabase
@@ -284,7 +284,7 @@ export async function updateRisk(
 }
 
 export async function deleteRisk(riskId: string): Promise<boolean> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return false;
 
     const { error } = await supabase
@@ -303,7 +303,7 @@ export async function addStakeholder(
     boardId: string,
     request: AddStakeholderRequest
 ): Promise<LaunchVote | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const { data, error } = await supabase
@@ -328,7 +328,7 @@ export async function castVote(
     request: CastVoteRequest,
     userId?: string
 ): Promise<LaunchVote | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const { data, error } = await supabase
@@ -352,7 +352,7 @@ export async function castVote(
 }
 
 export async function removeStakeholder(voteId: string): Promise<boolean> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return false;
 
     const { error } = await supabase
@@ -371,7 +371,7 @@ export async function addChecklistItem(
     boardId: string,
     request: CreateChecklistItemRequest
 ): Promise<LaunchChecklistItem | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     // Get max sort order
@@ -409,7 +409,7 @@ export async function toggleChecklistItem(
     itemId: string,
     completed: boolean
 ): Promise<LaunchChecklistItem | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     const { data, error } = await supabase
@@ -431,7 +431,7 @@ export async function toggleChecklistItem(
 }
 
 export async function deleteChecklistItem(itemId: string): Promise<boolean> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return false;
 
     const { error } = await supabase

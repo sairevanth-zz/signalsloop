@@ -3,8 +3,7 @@
  * AI-powered scoring for Go/No-Go dimensions
  */
 
-import OpenAI from 'openai';
-import { getSupabaseClient } from '@/lib/supabase-client';
+import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import type {
     LaunchDimension,
     DimensionType,
@@ -12,10 +11,6 @@ import type {
     CustomerQuote,
     PredictionData,
 } from '@/types/launch';
-
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
 
 // ============================================================================
 // Main AI Population Function
@@ -26,7 +21,7 @@ export async function populateAllDimensions(
     projectId: string,
     featureTitle: string
 ): Promise<LaunchDimension[]> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return [];
 
     // Fetch all dimensions for this board
@@ -92,7 +87,7 @@ async function gatherProjectContext(
     projectId: string,
     featureTitle: string
 ): Promise<ProjectContext> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) {
         return {
             recentFeedback: [],
@@ -155,7 +150,7 @@ async function populateDimension(
     context: ProjectContext,
     featureTitle: string
 ): Promise<LaunchDimension | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return null;
 
     let result: {
@@ -461,7 +456,7 @@ async function scoreSuccessPrediction(
 // ============================================================================
 
 async function recalculateOverallScore(boardId: string): Promise<void> {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseServiceRoleClient();
     if (!supabase) return;
 
     const { data: dimensions } = await supabase

@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseServerClient } from '@/lib/supabase-client';
+import { createServerClient } from '@/lib/supabase-client';
 import { addAction, updateAction, deleteAction } from '@/lib/retro';
 import { CreateRetroActionSchema, UpdateRetroActionSchema } from '@/types/retro';
 
@@ -16,7 +16,7 @@ interface RouteParams {
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
         if (!supabase) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
 export async function PATCH(request: NextRequest) {
     try {
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
         if (!supabase) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -86,7 +86,7 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
     try {
-        const supabase = await getSupabaseServerClient();
+        const supabase = await createServerClient();
         if (!supabase) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
