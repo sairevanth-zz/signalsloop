@@ -209,7 +209,6 @@ export async function getPollSuggestions(projectId: string) {
         .select('*')
         .eq('project_id', projectId)
         .eq('action_type', 'poll_suggested')
-        .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
     if (error) {

@@ -53,7 +53,12 @@ export interface ActionQueueStats {
 export async function addAction(action: Action): Promise<string> {
   console.log(`[Action Queue] Adding action: ${action.title}`)
 
-  const { data, error } = await getSupabaseServiceRoleClient()
+  const supabase = getSupabaseServiceRoleClient()
+  if (!supabase) {
+    throw new Error('Service role client not available')
+  }
+
+  const { data, error } = await supabase
     .from('unified_action_queue')
     .insert({
       project_id: action.projectId,
