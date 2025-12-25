@@ -162,6 +162,7 @@ export interface RetroCard {
     is_success: boolean;
     is_alert: boolean;
     vote_count: number;
+    comments?: Array<{ id: string; text: string; author: string; created_at?: string }>;
     created_by?: string;
     created_at: string;
     updated_at: string;

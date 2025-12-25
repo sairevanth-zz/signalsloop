@@ -11,4 +11,5 @@ export { ActionsPanel } from './ActionsPanel';
 export { AISummaryPanel } from './AISummaryPanel';
 export { OutcomesTimeline } from './OutcomesTimeline';
 export { TemplateSelector } from './TemplateSelector';
+export { PublicRetroView } from './PublicRetroView';
 
