@@ -47,7 +47,7 @@ export function DimensionList({ dimensions, selected, onSelect }: DimensionListP
                             'text-xs font-medium flex-1',
                             isSelected ? 'text-teal-700 dark:text-teal-300' : 'text-gray-700 dark:text-gray-300'
                         )}>
-                            {config.label}
+                            {config.name}
                         </span>
                         <span className={cn(
                             'text-xs font-bold px-1.5 py-0.5 rounded',

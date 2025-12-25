@@ -47,10 +47,9 @@ export function DimensionDetails({ dimension, showAIContent, onUpdateNotes }: Di
             <div className="flex items-center gap-2 mb-3">
                 <span className="text-xl">{config.icon}</span>
                 <div>
-                    <h3 className="font-semibold text-sm text-gray-900 dark:text-white">{config.label}</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{config.description}</p>
+                    <h3 className="font-semibold text-sm text-gray-900 dark:text-white">{config.name}</h3>
                 </div>
-                {dimension.ai_score !== null && (
+                {dimension.ai_score !== undefined && dimension.ai_score !== null && (
                     <div className={cn(
                         'ml-auto px-2 py-1 rounded font-semibold text-sm',
                         dimension.ai_score >= 80 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :

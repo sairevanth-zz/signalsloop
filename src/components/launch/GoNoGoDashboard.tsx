@@ -8,7 +8,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Rocket, Share2, Sparkles, Plus, ArrowLeft } from 'lucide-react';
+import { Share2, Sparkles, ArrowLeft, FileDown, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +19,7 @@ import { LaunchChecklist } from './LaunchChecklist';
 import { RisksPanel } from './RisksPanel';
 import { StakeholderPanel } from './StakeholderPanel';
 import { DecisionPanel } from './DecisionPanel';
+import { exportToPDF, exportToExcel } from '@/lib/launch/export-utils';
 import type {
     LaunchBoardWithDetails,
     DimensionType,
@@ -360,6 +361,26 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
                             className={`border-gray-300 dark:border-gray-700 ${showAIContent ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' : 'text-gray-600 dark:text-gray-400'}`}
                         >
                             🤖 AI {showAIContent ? 'ON' : 'OFF'}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => exportToPDF(board)}
+                            className="border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400"
+                            title="Export to PDF"
+                        >
+                            <FileDown className="w-4 h-4 mr-1" />
+                            PDF
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => exportToExcel(board)}
+                            className="border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400"
+                            title="Export to Excel/CSV"
+                        >
+                            <FileSpreadsheet className="w-4 h-4 mr-1" />
+                            CSV
                         </Button>
                         <Button variant="outline" size="sm" className="border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400">
                             <Share2 className="w-4 h-4 mr-2" />
