@@ -70,6 +70,8 @@ export interface LaunchBoard {
     decision_at?: string;
     decision_notes?: string;
     overall_score?: number;
+    share_token?: string;
+    is_public?: boolean;
     created_by?: string;
     created_at: string;
     updated_at: string;

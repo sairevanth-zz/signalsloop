@@ -2,11 +2,11 @@
 
 /**
  * Risks Panel Component
- * Displays and manages launch risks and blockers
+ * Displays and manages launch risks and blockers with owner and ETA
  */
 
 import React, { useState } from 'react';
-import { AlertTriangle, ChevronDown, ChevronRight, Zap, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, Zap, Plus, Trash2, Calendar, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -17,7 +17,7 @@ import { getOpenRisksCount } from '@/lib/launch';
 interface RisksPanelProps {
     risks: LaunchRisk[];
     onUpdateStatus: (riskId: string, status: string) => void;
-    onAdd?: (title: string, severity: 'low' | 'medium' | 'high') => void;
+    onAdd?: (title: string, severity: 'low' | 'medium' | 'high', owner?: string, eta?: string) => void;
     onDelete?: (riskId: string) => void;
 }
 
@@ -26,6 +26,8 @@ export function RisksPanel({ risks, onUpdateStatus, onAdd, onDelete }: RisksPane
     const [showAdd, setShowAdd] = useState(false);
     const [newTitle, setNewTitle] = useState('');
     const [newSeverity, setNewSeverity] = useState<'low' | 'medium' | 'high'>('medium');
+    const [newOwner, setNewOwner] = useState('');
+    const [newEta, setNewEta] = useState('');
     const openCount = getOpenRisksCount(risks);
 
     const toggleExpand = (id: string) => {
@@ -42,9 +44,11 @@ export function RisksPanel({ risks, onUpdateStatus, onAdd, onDelete }: RisksPane
 
     const handleAdd = () => {
         if (newTitle.trim() && onAdd) {
-            onAdd(newTitle.trim(), newSeverity);
+            onAdd(newTitle.trim(), newSeverity, newOwner || undefined, newEta || undefined);
             setNewTitle('');
             setNewSeverity('medium');
+            setNewOwner('');
+            setNewEta('');
             setShowAdd(false);
         }
     };
@@ -79,16 +83,30 @@ export function RisksPanel({ risks, onUpdateStatus, onAdd, onDelete }: RisksPane
                         placeholder="Describe the risk..."
                         className="h-7 text-xs bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-700"
                     />
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                         <select
                             value={newSeverity}
                             onChange={(e) => setNewSeverity(e.target.value as 'low' | 'medium' | 'high')}
-                            className="flex-1 h-7 text-xs rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                            className="h-7 text-xs rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white px-2"
                         >
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
+                            <option value="low">Low Severity</option>
+                            <option value="medium">Medium Severity</option>
+                            <option value="high">High Severity</option>
                         </select>
+                        <Input
+                            value={newOwner}
+                            onChange={(e) => setNewOwner(e.target.value)}
+                            placeholder="Responsible party..."
+                            className="h-7 text-xs bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-700"
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <Input
+                            type="date"
+                            value={newEta}
+                            onChange={(e) => setNewEta(e.target.value)}
+                            className="flex-1 h-7 text-xs bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-700"
+                        />
                         <Button size="sm" onClick={handleAdd} className="h-7 text-xs bg-amber-600 hover:bg-amber-700">
                             Add Risk
                         </Button>
@@ -97,7 +115,7 @@ export function RisksPanel({ risks, onUpdateStatus, onAdd, onDelete }: RisksPane
             )}
 
             {/* Risks list */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
                 {risks.length === 0 ? (
                     <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">No risks identified yet</p>
                 ) : (
@@ -124,16 +142,20 @@ export function RisksPanel({ risks, onUpdateStatus, onAdd, onDelete }: RisksPane
                                         )}
                                     </button>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-1.5 mb-0.5">
+                                        <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
                                             <span className={cn(
                                                 'text-[9px] px-1 py-0.5 rounded font-medium',
-                                                getSeverityColor(risk.severity)
+                                                risk.severity === 'high' && 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+                                                risk.severity === 'medium' && 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
+                                                risk.severity === 'low' && 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                                             )}>
                                                 {risk.severity.toUpperCase()}
                                             </span>
                                             <span className={cn(
                                                 'text-[9px] px-1 py-0.5 rounded',
-                                                getStatusColor(risk.status)
+                                                risk.status === 'open' && 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
+                                                risk.status === 'mitigated' && 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+                                                risk.status === 'acknowledged' && 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
                                             )}>
                                                 {risk.status}
                                             </span>
@@ -143,7 +165,21 @@ export function RisksPanel({ risks, onUpdateStatus, onAdd, onDelete }: RisksPane
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{risk.title}</p>
+                                        <p className="text-xs font-medium text-gray-900 dark:text-white">{risk.title}</p>
+
+                                        {/* Owner and ETA row */}
+                                        <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-500 dark:text-gray-400">
+                                            {risk.owner && (
+                                                <span className="flex items-center gap-0.5">
+                                                    <User className="w-2.5 h-2.5" /> {risk.owner}
+                                                </span>
+                                            )}
+                                            {(risk as any).eta && (
+                                                <span className="flex items-center gap-0.5">
+                                                    <Calendar className="w-2.5 h-2.5" /> {new Date((risk as any).eta).toLocaleDateString()}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                     {onDelete && (
                                         <button

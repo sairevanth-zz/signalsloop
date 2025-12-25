@@ -83,12 +83,12 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
     };
 
     // Add checklist item
-    const handleAddChecklist = async (title: string) => {
+    const handleAddChecklist = async (title: string, owner?: string) => {
         try {
             const response = await fetch(`/api/launch/${boardId}/checklist`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title }),
+                body: JSON.stringify({ title, owner }),
             });
             if (!response.ok) throw new Error('Failed to add item');
             const data = await response.json();
@@ -140,12 +140,12 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
     };
 
     // Add risk
-    const handleAddRisk = async (title: string, severity: 'low' | 'medium' | 'high') => {
+    const handleAddRisk = async (title: string, severity: 'low' | 'medium' | 'high', owner?: string, eta?: string) => {
         try {
             const response = await fetch(`/api/launch/${boardId}/risks`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, severity }),
+                body: JSON.stringify({ title, severity, owner, eta }),
             });
             if (!response.ok) throw new Error('Failed to add risk');
             const data = await response.json();

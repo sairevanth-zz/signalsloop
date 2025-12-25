@@ -2,12 +2,12 @@
 
 /**
  * Stakeholder Panel Component
- * Displays stakeholder votes with comments and vote summary
- * Allows voting and changing votes
+ * Add and manage stakeholders with votes and comments
+ * Simplified - admin adds stakeholders directly (no invite flow)
  */
 
 import React, { useState } from 'react';
-import { CheckCircle, XCircle, AlertCircle, Clock, Plus, Trash2, Edit2, X, UserPlus } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, Plus, Trash2, Edit2, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,21 +18,22 @@ interface StakeholderPanelProps {
     votes: LaunchVote[];
     onCastVote: (voteId: string, vote: VoteType, comment?: string) => void;
     onAdd?: (name: string, role: string) => void;
+    onUpdate?: (voteId: string, name: string, role: string, comment?: string) => void;
     onDelete?: (voteId: string) => void;
 }
 
-export function StakeholderPanel({ votes, onCastVote, onAdd, onDelete }: StakeholderPanelProps) {
+export function StakeholderPanel({ votes, onCastVote, onAdd, onUpdate, onDelete }: StakeholderPanelProps) {
     const [showAdd, setShowAdd] = useState(false);
     const [newName, setNewName] = useState('');
     const [newRole, setNewRole] = useState('');
-    const [editingVote, setEditingVote] = useState<string | null>(null);
-    const [voteComment, setVoteComment] = useState('');
-    const [selectedVote, setSelectedVote] = useState<VoteType | null>(null);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editName, setEditName] = useState('');
+    const [editRole, setEditRole] = useState('');
+    const [editComment, setEditComment] = useState('');
 
     const goVotes = votes.filter(v => v.vote === 'go').length;
     const noGoVotes = votes.filter(v => v.vote === 'no_go').length;
     const conditionalVotes = votes.filter(v => v.vote === 'conditional').length;
-    const pendingVotes = votes.filter(v => !v.vote).length;
 
     const handleAdd = () => {
         if (newName.trim() && onAdd) {
@@ -43,38 +44,25 @@ export function StakeholderPanel({ votes, onCastVote, onAdd, onDelete }: Stakeho
         }
     };
 
-    const startVoting = (voteId: string, currentVote?: VoteType | null, currentComment?: string | null) => {
-        setEditingVote(voteId);
-        setSelectedVote(currentVote || null);
-        setVoteComment(currentComment || '');
+    const startEdit = (vote: LaunchVote) => {
+        setEditingId(vote.id);
+        setEditName(vote.name);
+        setEditRole(vote.role || '');
+        setEditComment(vote.comment || '');
     };
 
-    const submitVote = (voteId: string) => {
-        if (selectedVote) {
-            onCastVote(voteId, selectedVote, voteComment);
-            setEditingVote(null);
-            setSelectedVote(null);
-            setVoteComment('');
+    const saveEdit = (voteId: string) => {
+        if (onUpdate && editName.trim()) {
+            onUpdate(voteId, editName.trim(), editRole.trim(), editComment.trim() || undefined);
+            setEditingId(null);
         }
     };
 
-    const cancelVoting = () => {
-        setEditingVote(null);
-        setSelectedVote(null);
-        setVoteComment('');
-    };
-
-    const getVoteIcon = (vote: VoteType | null | undefined) => {
-        switch (vote) {
-            case 'go':
-                return <CheckCircle className="w-4 h-4 text-green-500" />;
-            case 'no_go':
-                return <XCircle className="w-4 h-4 text-red-500" />;
-            case 'conditional':
-                return <AlertCircle className="w-4 h-4 text-yellow-500" />;
-            default:
-                return <Clock className="w-4 h-4 text-gray-400" />;
-        }
+    const cancelEdit = () => {
+        setEditingId(null);
+        setEditName('');
+        setEditRole('');
+        setEditComment('');
     };
 
     const getAvatarColor = (name: string) => {
@@ -104,8 +92,8 @@ export function StakeholderPanel({ votes, onCastVote, onAdd, onDelete }: Stakeho
                         onClick={() => setShowAdd(!showAdd)}
                         className="h-6 px-2 text-xs border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400"
                     >
-                        <UserPlus className="w-3 h-3 mr-1" />
-                        Invite
+                        <Plus className="w-3 h-3 mr-1" />
+                        Add
                     </Button>
                 )}
             </div>
@@ -124,7 +112,7 @@ export function StakeholderPanel({ votes, onCastVote, onAdd, onDelete }: Stakeho
                             <Input
                                 value={newRole}
                                 onChange={(e) => setNewRole(e.target.value)}
-                                placeholder="Role (optional)"
+                                placeholder="Role (e.g., VP Product)"
                                 className="flex-1 h-7 text-xs bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-700"
                             />
                             <Button size="sm" onClick={handleAdd} className="h-7 text-xs">
@@ -145,83 +133,32 @@ export function StakeholderPanel({ votes, onCastVote, onAdd, onDelete }: Stakeho
                                     key={vote.id}
                                     className="p-2 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-gray-700 group"
                                 >
-                                    {editingVote === vote.id ? (
-                                        // Voting mode
+                                    {editingId === vote.id ? (
+                                        // Edit mode
                                         <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <div className={cn(
-                                                    'w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold',
-                                                    getAvatarColor(vote.name)
-                                                )}>
-                                                    {getInitials(vote.name)}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="text-xs font-medium text-gray-900 dark:text-white">{vote.name}</p>
-                                                    {vote.role && <p className="text-[10px] text-gray-500">{vote.role}</p>}
-                                                </div>
-                                            </div>
-
-                                            {/* Vote buttons */}
-                                            <div className="flex gap-1">
-                                                <button
-                                                    onClick={() => setSelectedVote('go')}
-                                                    className={cn(
-                                                        'flex-1 py-1.5 px-2 rounded text-xs font-medium transition-colors',
-                                                        selectedVote === 'go'
-                                                            ? 'bg-green-500 text-white'
-                                                            : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-green-100 dark:hover:bg-green-900/30'
-                                                    )}
-                                                >
-                                                    GO
-                                                </button>
-                                                <button
-                                                    onClick={() => setSelectedVote('no_go')}
-                                                    className={cn(
-                                                        'flex-1 py-1.5 px-2 rounded text-xs font-medium transition-colors',
-                                                        selectedVote === 'no_go'
-                                                            ? 'bg-red-500 text-white'
-                                                            : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-red-100 dark:hover:bg-red-900/30'
-                                                    )}
-                                                >
-                                                    NO-GO
-                                                </button>
-                                                <button
-                                                    onClick={() => setSelectedVote('conditional')}
-                                                    className={cn(
-                                                        'flex-1 py-1.5 px-2 rounded text-xs font-medium transition-colors',
-                                                        selectedVote === 'conditional'
-                                                            ? 'bg-yellow-500 text-white'
-                                                            : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/30'
-                                                    )}
-                                                >
-                                                    COND
-                                                </button>
-                                            </div>
-
-                                            {/* Comment */}
-                                            <Textarea
-                                                value={voteComment}
-                                                onChange={(e) => setVoteComment(e.target.value)}
-                                                placeholder="Add your reasoning..."
-                                                className="text-xs h-16 bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-700"
+                                            <Input
+                                                value={editName}
+                                                onChange={(e) => setEditName(e.target.value)}
+                                                placeholder="Name"
+                                                className="h-7 text-xs bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-700"
                                             />
-
-                                            {/* Submit/Cancel */}
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => submitVote(vote.id)}
-                                                    disabled={!selectedVote}
-                                                    className="flex-1 h-7 text-xs"
-                                                >
-                                                    Submit Vote
+                                            <Input
+                                                value={editRole}
+                                                onChange={(e) => setEditRole(e.target.value)}
+                                                placeholder="Role"
+                                                className="h-7 text-xs bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-700"
+                                            />
+                                            <Textarea
+                                                value={editComment}
+                                                onChange={(e) => setEditComment(e.target.value)}
+                                                placeholder="Comment on vote..."
+                                                className="text-xs h-12 bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-700"
+                                            />
+                                            <div className="flex gap-1">
+                                                <Button size="sm" onClick={() => saveEdit(vote.id)} className="h-6 text-xs">
+                                                    <Check className="w-3 h-3 mr-1" /> Save
                                                 </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={cancelVoting}
-                                                    className="h-7 text-xs"
-                                                >
+                                                <Button size="sm" variant="ghost" onClick={cancelEdit} className="h-6 text-xs">
                                                     <X className="w-3 h-3" />
                                                 </Button>
                                             </div>
@@ -231,7 +168,7 @@ export function StakeholderPanel({ votes, onCastVote, onAdd, onDelete }: Stakeho
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <div className={cn(
-                                                    'w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold',
+                                                    'w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0',
                                                     getAvatarColor(vote.name)
                                                 )}>
                                                     {getInitials(vote.name)}
@@ -241,33 +178,47 @@ export function StakeholderPanel({ votes, onCastVote, onAdd, onDelete }: Stakeho
                                                         <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
                                                             {vote.name}
                                                         </p>
-                                                        {vote.is_required && (
-                                                            <span className="text-[9px] bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-1 rounded">REQ</span>
-                                                        )}
                                                     </div>
                                                     {vote.role && (
                                                         <p className="text-[10px] text-gray-500 dark:text-gray-500 truncate">{vote.role}</p>
                                                     )}
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    {vote.vote ? (
-                                                        <span className={cn(
-                                                            'text-[10px] px-2 py-0.5 rounded font-medium',
-                                                            vote.vote === 'go' && 'bg-green-500 text-white',
-                                                            vote.vote === 'no_go' && 'bg-red-500 text-white',
-                                                            vote.vote === 'conditional' && 'bg-yellow-500 text-white'
-                                                        )}>
-                                                            {vote.vote === 'no_go' ? 'NO-GO' : vote.vote.toUpperCase()}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[10px] px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
-                                                            PENDING
-                                                        </span>
-                                                    )}
+                                                <div className="flex items-center gap-1 flex-shrink-0">
+                                                    {/* Vote buttons */}
                                                     <button
-                                                        onClick={() => startVoting(vote.id, vote.vote, vote.comment)}
+                                                        onClick={() => onCastVote(vote.id, 'go', vote.comment || undefined)}
+                                                        className={cn(
+                                                            'p-1 rounded transition-colors',
+                                                            vote.vote === 'go' ? 'bg-green-500 text-white' : 'text-gray-400 hover:text-green-500'
+                                                        )}
+                                                        title="GO"
+                                                    >
+                                                        <CheckCircle className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => onCastVote(vote.id, 'no_go', vote.comment || undefined)}
+                                                        className={cn(
+                                                            'p-1 rounded transition-colors',
+                                                            vote.vote === 'no_go' ? 'bg-red-500 text-white' : 'text-gray-400 hover:text-red-500'
+                                                        )}
+                                                        title="NO-GO"
+                                                    >
+                                                        <XCircle className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => onCastVote(vote.id, 'conditional', vote.comment || undefined)}
+                                                        className={cn(
+                                                            'p-1 rounded transition-colors',
+                                                            vote.vote === 'conditional' ? 'bg-yellow-500 text-white' : 'text-gray-400 hover:text-yellow-500'
+                                                        )}
+                                                        title="Conditional"
+                                                    >
+                                                        <AlertCircle className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => startEdit(vote)}
                                                         className="p-1 text-gray-400 hover:text-teal-500 transition-colors"
-                                                        title={vote.vote ? "Change vote" : "Cast vote"}
+                                                        title="Edit"
                                                     >
                                                         <Edit2 className="w-3 h-3" />
                                                     </button>
