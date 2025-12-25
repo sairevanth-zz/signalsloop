@@ -1,147 +1,186 @@
 'use client';
 
 /**
- * Stakeholder Panel
- * Stakeholder list with voting functionality
+ * Stakeholder Panel Component
+ * Displays stakeholder votes and allows voting
  */
 
-import React from 'react';
-import { Plus } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle, XCircle, AlertCircle, Clock, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { LaunchVote, VoteType } from '@/types/launch';
-import { getVoteSummary } from '@/types/launch';
 
 interface StakeholderPanelProps {
     votes: LaunchVote[];
     onCastVote: (voteId: string, vote: VoteType, comment?: string) => void;
-    onAddStakeholder?: () => void;
+    onAdd?: (name: string, role: string) => void;
+    onDelete?: (voteId: string) => void;
 }
 
-export function StakeholderPanel({ votes, onCastVote, onAddStakeholder }: StakeholderPanelProps) {
-    const summary = getVoteSummary(votes);
+export function StakeholderPanel({ votes, onCastVote, onAdd, onDelete }: StakeholderPanelProps) {
+    const [showAdd, setShowAdd] = useState(false);
+    const [newName, setNewName] = useState('');
+    const [newRole, setNewRole] = useState('');
 
-    const getVoteColor = (vote: VoteType | undefined) => {
-        switch (vote) {
-            case 'go': return '#10b981';
-            case 'conditional': return '#fbbf24';
-            case 'no_go': return '#ef4444';
-            default: return '#334155';
+    const goVotes = votes.filter(v => v.vote === 'go').length;
+    const noGoVotes = votes.filter(v => v.vote === 'no_go').length;
+    const conditionalVotes = votes.filter(v => v.vote === 'conditional').length;
+    const pendingVotes = votes.filter(v => !v.vote).length;
+
+    const handleAdd = () => {
+        if (newName.trim() && onAdd) {
+            onAdd(newName.trim(), newRole.trim() || 'Stakeholder');
+            setNewName('');
+            setNewRole('');
+            setShowAdd(false);
         }
     };
 
-    const getVoteLabel = (vote: VoteType | undefined) => {
+    const getVoteIcon = (vote: VoteType | null | undefined) => {
         switch (vote) {
-            case 'go': return 'GO';
-            case 'conditional': return 'COND';
-            case 'no_go': return 'NO-GO';
-            default: return 'PENDING';
+            case 'go':
+                return <CheckCircle className="w-4 h-4 text-green-500" />;
+            case 'no_go':
+                return <XCircle className="w-4 h-4 text-red-500" />;
+            case 'conditional':
+                return <AlertCircle className="w-4 h-4 text-yellow-500" />;
+            default:
+                return <Clock className="w-4 h-4 text-gray-400" />;
         }
-    };
-
-    const getInitials = (name: string) => {
-        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     };
 
     return (
-        <div className="bg-[#141b2d] rounded-xl p-3.5 border border-white/10">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-2.5">
-                <h4 className="text-[13px] font-semibold">👥 Stakeholders</h4>
-                {onAddStakeholder && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-gray-200 dark:border-white/10">
+            <div className="flex justify-between items-center mb-2">
+                <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                    👥 Stakeholders
+                </h3>
+                {onAdd && (
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        onClick={onAddStakeholder}
-                        className="h-6 px-2 text-[10px] border-gray-700"
+                        onClick={() => setShowAdd(!showAdd)}
+                        className="h-6 w-6 p-0 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
                     >
-                        <Plus className="w-3 h-3 mr-1" />
-                        Invite
+                        <Plus className="w-4 h-4" />
                     </Button>
                 )}
             </div>
 
-            {/* Stakeholder List */}
-            <div className="space-y-0">
-                {votes.map((stakeholder, i) => (
-                    <div
-                        key={stakeholder.id}
-                        className={cn(
-                            'py-2',
-                            i < votes.length - 1 && 'border-b border-white/5'
-                        )}
-                    >
-                        <div className="flex items-center gap-2">
-                            {/* Avatar */}
-                            <div
-                                className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-semibold"
-                                style={{
-                                    backgroundColor: getVoteColor(stakeholder.vote ?? undefined),
-                                    color: stakeholder.vote ? '#0a0f1a' : '#94a3b8',
-                                }}
-                            >
-                                {getInitials(stakeholder.name)}
-                            </div>
+            {/* Add form */}
+            {showAdd && onAdd && (
+                <div className="space-y-2 mb-2 p-2 bg-gray-50 dark:bg-slate-900 rounded-lg">
+                    <Input
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder="Stakeholder name..."
+                        className="h-7 text-xs bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-700"
+                    />
+                    <div className="flex gap-2">
+                        <Input
+                            value={newRole}
+                            onChange={(e) => setNewRole(e.target.value)}
+                            placeholder="Role (optional)"
+                            className="flex-1 h-7 text-xs bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-700"
+                        />
+                        <Button size="sm" onClick={handleAdd} className="h-7 text-xs">
+                            Add
+                        </Button>
+                    </div>
+                </div>
+            )}
 
-                            {/* Info */}
-                            <div className="flex-1 min-w-0">
+            {votes.length === 0 ? (
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">No stakeholders added yet</p>
+            ) : (
+                <>
+                    {/* Stakeholder list */}
+                    <div className="space-y-1.5 mb-3">
+                        {votes.map((vote) => (
+                            <div
+                                key={vote.id}
+                                className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-gray-700 group"
+                            >
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    {getVoteIcon(vote.vote)}
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                                            {vote.name}
+                                            {vote.is_required && (
+                                                <span className="text-red-500 ml-0.5">*</span>
+                                            )}
+                                        </p>
+                                        {vote.role && (
+                                            <p className="text-[10px] text-gray-500 dark:text-gray-500 truncate">{vote.role}</p>
+                                        )}
+                                    </div>
+                                </div>
                                 <div className="flex items-center gap-1">
-                                    <span className="text-[11px] font-medium truncate">{stakeholder.name}</span>
-                                    {stakeholder.is_required && (
-                                        <span className="text-[7px] px-1 py-0.5 rounded bg-purple-500/20 text-purple-400">
-                                            REQ
+                                    {!vote.vote ? (
+                                        <div className="flex gap-0.5">
+                                            <button
+                                                onClick={() => onCastVote(vote.id, 'go')}
+                                                className="p-1 text-gray-400 hover:text-green-500 transition-colors"
+                                                title="Vote GO"
+                                            >
+                                                <CheckCircle className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => onCastVote(vote.id, 'no_go')}
+                                                className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                                                title="Vote NO-GO"
+                                            >
+                                                <XCircle className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => onCastVote(vote.id, 'conditional')}
+                                                className="p-1 text-gray-400 hover:text-yellow-500 transition-colors"
+                                                title="Vote Conditional"
+                                            >
+                                                <AlertCircle className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <span className={cn(
+                                            'text-[10px] px-1.5 py-0.5 rounded font-medium',
+                                            vote.vote === 'go' && 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+                                            vote.vote === 'no_go' && 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+                                            vote.vote === 'conditional' && 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                                        )}>
+                                            {vote.vote.replace('_', '-').toUpperCase()}
                                         </span>
                                     )}
+                                    {onDelete && (
+                                        <button
+                                            onClick={() => onDelete(vote.id)}
+                                            className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-opacity ml-1"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                        </button>
+                                    )}
                                 </div>
-                                <div className="text-[9px] text-gray-500">{stakeholder.role}</div>
-                            </div>
-
-                            {/* Vote Badge */}
-                            <span
-                                className="text-[9px] font-semibold px-2 py-1 rounded"
-                                style={{
-                                    backgroundColor: `${getVoteColor(stakeholder.vote ?? undefined)}20`,
-                                    color: getVoteColor(stakeholder.vote ?? undefined),
-                                }}
-                            >
-                                {getVoteLabel(stakeholder.vote ?? undefined)}
-                            </span>
-                        </div>
-
-                        {/* Comment */}
-                        {stakeholder.comment && (
-                            <div className="ml-9 text-[10px] text-gray-500 italic mt-1">
-                                "{stakeholder.comment}"
-                            </div>
-                        )}
-                    </div>
-                ))}
-
-                {votes.length === 0 && (
-                    <div className="text-center py-3 text-gray-500 text-xs">
-                        No stakeholders added yet
-                    </div>
-                )}
-            </div>
-
-            {/* Vote Summary */}
-            {votes.length > 0 && (
-                <div className="bg-[#0a0f1a] rounded-lg p-3 mt-3">
-                    <div className="grid grid-cols-3 gap-1.5">
-                        {[
-                            { label: 'GO', count: summary.go, color: '#10b981' },
-                            { label: 'COND', count: summary.conditional, color: '#fbbf24' },
-                            { label: 'NO-GO', count: summary.no_go, color: '#ef4444' },
-                        ].map(item => (
-                            <div key={item.label} className="text-center py-2 rounded-md bg-[#141b2d]">
-                                <div className="text-lg font-bold" style={{ color: item.color }}>
-                                    {item.count}
-                                </div>
-                                <div className="text-[8px] text-gray-500">{item.label}</div>
                             </div>
                         ))}
                     </div>
-                </div>
+
+                    {/* Vote summary */}
+                    <div className="grid grid-cols-4 gap-1 text-center text-[10px]">
+                        <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 py-1 rounded">
+                            GO: {goVotes}
+                        </div>
+                        <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 py-1 rounded">
+                            NO: {noGoVotes}
+                        </div>
+                        <div className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 py-1 rounded">
+                            COND: {conditionalVotes}
+                        </div>
+                        <div className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 py-1 rounded">
+                            ⏳ {pendingVotes}
+                        </div>
+                    </div>
+                </>
             )}
         </div>
     );

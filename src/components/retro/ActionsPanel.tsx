@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * Actions Panel
- * Display and manage action items
+ * Actions Panel Component
+ * Displays and manages retrospective action items
  */
 
 import React, { useState } from 'react';
-import { Plus, Check, Clock, Circle } from 'lucide-react';
+import { Plus, Check, Clock, Circle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -18,136 +18,120 @@ interface ActionsPanelProps {
     actions: RetroAction[];
     onUpdateStatus: (actionId: string, status: string) => void;
     onAddAction: (title: string) => void;
+    onDeleteAction?: (actionId: string) => void;
 }
 
-export function ActionsPanel({ actions, onUpdateStatus, onAddAction }: ActionsPanelProps) {
-    const [isAdding, setIsAdding] = useState(false);
-    const [newActionTitle, setNewActionTitle] = useState('');
+export function ActionsPanel({ actions, onUpdateStatus, onAddAction, onDeleteAction }: ActionsPanelProps) {
+    const [showAdd, setShowAdd] = useState(false);
+    const [newTitle, setNewTitle] = useState('');
     const openCount = getOpenActionsCount(actions);
 
     const handleAdd = () => {
-        if (newActionTitle.trim()) {
-            onAddAction(newActionTitle.trim());
-            setNewActionTitle('');
-            setIsAdding(false);
+        if (newTitle.trim()) {
+            onAddAction(newTitle.trim());
+            setNewTitle('');
+            setShowAdd(false);
         }
     };
 
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case 'completed': return <Check className="w-3 h-3" />;
-            case 'in_progress': return <Clock className="w-3 h-3" />;
-            default: return <Circle className="w-3 h-3" />;
-        }
-    };
-
-    const cycleStatus = (currentStatus: string) => {
-        switch (currentStatus) {
-            case 'not_started': return 'in_progress';
-            case 'in_progress': return 'completed';
-            case 'completed': return 'not_started';
-            default: return 'not_started';
+            case 'completed':
+                return <Check className="w-3.5 h-3.5 text-green-500" />;
+            case 'in_progress':
+                return <Clock className="w-3.5 h-3.5 text-yellow-500" />;
+            default:
+                return <Circle className="w-3.5 h-3.5 text-gray-400" />;
         }
     };
 
     return (
-        <div className="bg-[#141b2d] rounded-xl p-4 border border-white/10">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-3">
-                <h4 className="text-sm font-semibold flex items-center gap-1.5">
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-gray-200 dark:border-white/10">
+            <div className="flex justify-between items-center mb-2">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1.5">
                     📋 Action Items
-                    <span
-                        className="text-[11px] px-2 py-0.5 rounded"
-                        style={{
-                            backgroundColor: openCount > 0 ? 'rgba(251, 191, 36, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                            color: openCount > 0 ? '#fbbf24' : '#10b981',
-                        }}
-                    >
+                    <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded text-[10px]">
                         {openCount} open
                     </span>
-                </h4>
+                </h3>
                 <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    onClick={() => setIsAdding(!isAdding)}
-                    className="h-6 px-2 text-[10px] border-gray-700"
+                    onClick={() => setShowAdd(!showAdd)}
+                    className="h-6 px-2 text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400"
                 >
-                    <Plus className="w-3 h-3 mr-1" />
+                    <Plus className="w-4 h-4 mr-1" />
                     Add
                 </Button>
             </div>
 
-            {/* Add Form */}
-            {isAdding && (
-                <div className="mb-3">
+            {/* Add form */}
+            {showAdd && (
+                <div className="flex gap-2 mb-2">
                     <Input
-                        value={newActionTitle}
-                        onChange={(e) => setNewActionTitle(e.target.value)}
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
                         placeholder="New action item..."
-                        className="bg-[#0a0f1a] border-gray-700 text-sm mb-1.5"
-                        autoFocus
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleAdd();
-                            if (e.key === 'Escape') setIsAdding(false);
-                        }}
+                        className="h-7 text-xs bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-gray-700"
+                        onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
                     />
-                    <div className="flex gap-1">
-                        <Button size="sm" onClick={handleAdd} className="h-6 text-[10px] bg-teal-600">
-                            Add Action
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setIsAdding(false)} className="h-6 text-[10px]">
-                            Cancel
-                        </Button>
-                    </div>
+                    <Button size="sm" onClick={handleAdd} className="h-7 text-xs">
+                        Add
+                    </Button>
                 </div>
             )}
 
-            {/* Action Items */}
-            <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
-                {actions.map(action => (
-                    <div
-                        key={action.id}
-                        className={cn(
-                            'flex items-start gap-2 p-2 bg-[#0a0f1a] rounded-md border',
-                            action.status === 'completed' ? 'border-emerald-500/30 opacity-60' : 'border-white/5'
-                        )}
-                    >
-                        {/* Status Button */}
-                        <button
-                            onClick={() => onUpdateStatus(action.id, cycleStatus(action.status))}
-                            className="mt-0.5 p-1 rounded hover:bg-white/10 transition-colors"
-                            style={{ color: getActionStatusColor(action.status) }}
+            {/* Actions list */}
+            <div className="space-y-1.5 max-h-[250px] overflow-y-auto">
+                {actions.length === 0 ? (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-3">No action items yet</p>
+                ) : (
+                    actions.map((action) => (
+                        <div
+                            key={action.id}
+                            className="flex items-start gap-2 p-2 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-gray-700 group"
                         >
-                            {getStatusIcon(action.status)}
-                        </button>
-
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                            <div
-                                className={cn(
-                                    'text-[11px]',
-                                    action.status === 'completed' ? 'line-through text-gray-500' : 'text-white'
-                                )}
+                            <button
+                                onClick={() => {
+                                    const nextStatus =
+                                        action.status === 'not_started' ? 'in_progress' :
+                                            action.status === 'in_progress' ? 'completed' :
+                                                'not_started';
+                                    onUpdateStatus(action.id, nextStatus);
+                                }}
+                                className="mt-0.5 flex-shrink-0"
                             >
-                                {action.title}
+                                {getStatusIcon(action.status)}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                                <p className={cn(
+                                    'text-xs font-medium',
+                                    action.status === 'completed' ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-white'
+                                )}>
+                                    {action.title}
+                                </p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                    {action.owner && (
+                                        <span className="text-[10px] text-gray-500 dark:text-gray-500">👤 {action.owner}</span>
+                                    )}
+                                    <span className={cn(
+                                        'text-[10px] px-1 py-0.5 rounded',
+                                        getActionStatusColor(action.status)
+                                    )}>
+                                        {action.status.replace('_', ' ')}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex gap-2 mt-1 text-[9px] text-gray-500">
-                                {action.owner && <span>👤 {action.owner}</span>}
-                                {action.due_date && (
-                                    <span>📅 {new Date(action.due_date).toLocaleDateString()}</span>
-                                )}
-                                {action.from_source && (
-                                    <span className="text-purple-400">{action.from_source}</span>
-                                )}
-                            </div>
+                            {onDeleteAction && (
+                                <button
+                                    onClick={() => onDeleteAction(action.id)}
+                                    className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-opacity"
+                                >
+                                    <Trash2 className="w-3 h-3" />
+                                </button>
+                            )}
                         </div>
-                    </div>
-                ))}
-
-                {actions.length === 0 && (
-                    <div className="text-center py-4 text-gray-500 text-xs">
-                        No action items yet
-                    </div>
+                    ))
                 )}
             </div>
         </div>

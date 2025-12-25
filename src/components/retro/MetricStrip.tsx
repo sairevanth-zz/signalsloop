@@ -1,16 +1,17 @@
 'use client';
 
 /**
- * Metric Strip
- * Display period-specific metrics
+ * Metric Strip Component
+ * Displays period-specific metrics
  */
 
 import React from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { RetroMetric } from '@/types/retro';
 
 interface MetricStripProps {
-    metrics: RetroMetric[];
+    metrics: RetroMetric[] | null | undefined;
 }
 
 export function MetricStrip({ metrics }: MetricStripProps) {
@@ -18,25 +19,46 @@ export function MetricStrip({ metrics }: MetricStripProps) {
         return null;
     }
 
+    const getTrendIcon = (trend?: 'up' | 'down' | 'neutral') => {
+        switch (trend) {
+            case 'up':
+                return <TrendingUp className="w-3 h-3 text-green-500" />;
+            case 'down':
+                return <TrendingDown className="w-3 h-3 text-red-500" />;
+            default:
+                return <Minus className="w-3 h-3 text-gray-400" />;
+        }
+    };
+
+    const getTrendColor = (trend?: 'up' | 'down' | 'neutral') => {
+        switch (trend) {
+            case 'up':
+                return 'text-green-600 dark:text-green-400';
+            case 'down':
+                return 'text-red-600 dark:text-red-400';
+            default:
+                return 'text-gray-600 dark:text-gray-400';
+        }
+    };
+
     return (
-        <div className="bg-[#141b2d] rounded-xl p-3 border border-white/10 mb-4">
-            <div className="flex gap-6 overflow-x-auto">
-                {metrics.map((metric, index) => (
-                    <div key={index} className="flex-shrink-0">
-                        <div className="text-[10px] text-gray-500 mb-0.5">{metric.label}</div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-lg font-bold text-white">{metric.value}</span>
-                            {metric.trend && (
-                                metric.trend === 'up' ? (
-                                    <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                                ) : (
-                                    <TrendingDown className="w-3.5 h-3.5 text-red-400" />
-                                )
-                            )}
-                        </div>
+        <div className="flex gap-3 mb-4 overflow-x-auto pb-1">
+            {metrics.map((metric, idx) => (
+                <div
+                    key={idx}
+                    className="flex-shrink-0 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700 min-w-[120px]"
+                >
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5 truncate">
+                        {metric.label}
                     </div>
-                ))}
-            </div>
+                    <div className="flex items-center gap-1.5">
+                        <span className={cn('text-sm font-bold', getTrendColor(metric.trend))}>
+                            {metric.value}
+                        </span>
+                        {getTrendIcon(metric.trend)}
+                    </div>
+                </div>
+            ))}
         </div>
     );
 }

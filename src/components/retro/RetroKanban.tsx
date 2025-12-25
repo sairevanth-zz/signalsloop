@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * Retro Kanban Board
- * Dynamic columns with cards
+ * Retro Kanban Component
+ * Dynamic columns with cards, voting, and actions
  */
 
 import React, { useState } from 'react';
-import { Plus, ThumbsUp, ArrowRight } from 'lucide-react';
+import { Plus, ThumbsUp, ArrowRight, Zap, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -16,95 +16,99 @@ interface RetroKanbanProps {
     columns: RetroColumnWithCards[];
     showAIContent: boolean;
     onAddCard: (columnId: string, content: string) => void;
+    onDeleteCard?: (cardId: string, columnId: string) => void;
     onVoteCard: (cardId: string) => void;
     onCreateAction: (cardId: string, content: string) => void;
 }
 
-export function RetroKanban({
-    columns,
-    showAIContent,
-    onAddCard,
-    onVoteCard,
-    onCreateAction,
-}: RetroKanbanProps) {
-    const [addingToColumn, setAddingToColumn] = useState<string | null>(null);
-    const [newCardContent, setNewCardContent] = useState('');
+export function RetroKanban({ columns, showAIContent, onAddCard, onDeleteCard, onVoteCard, onCreateAction }: RetroKanbanProps) {
+    const [addingTo, setAddingTo] = useState<string | null>(null);
+    const [newContent, setNewContent] = useState('');
 
-    const handleAddCard = (columnId: string) => {
-        if (newCardContent.trim()) {
-            onAddCard(columnId, newCardContent.trim());
-            setNewCardContent('');
-            setAddingToColumn(null);
+    const handleAdd = (columnId: string) => {
+        if (newContent.trim()) {
+            onAddCard(columnId, newContent.trim());
+            setNewContent('');
+            setAddingTo(null);
         }
     };
 
-    const filteredColumns = columns.map(col => ({
-        ...col,
-        cards: showAIContent ? col.cards : col.cards.filter(c => !c.is_ai),
-    }));
+    const getColumnColor = (color?: string): string => {
+        switch (color) {
+            case 'green': return 'border-green-500/50';
+            case 'red': return 'border-red-500/50';
+            case 'blue': return 'border-blue-500/50';
+            case 'purple': return 'border-purple-500/50';
+            case 'amber': return 'border-amber-500/50';
+            default: return 'border-gray-500/50';
+        }
+    };
+
+    const getHeaderColor = (color?: string): string => {
+        switch (color) {
+            case 'green': return 'text-green-600 dark:text-green-400';
+            case 'red': return 'text-red-600 dark:text-red-400';
+            case 'blue': return 'text-blue-600 dark:text-blue-400';
+            case 'purple': return 'text-purple-600 dark:text-purple-400';
+            case 'amber': return 'text-amber-600 dark:text-amber-400';
+            default: return 'text-gray-600 dark:text-gray-400';
+        }
+    };
 
     return (
-        <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}
-        >
-            {filteredColumns.map(column => (
+        <div className="grid grid-cols-4 gap-3">
+            {columns.map((column) => (
                 <div
                     key={column.id}
-                    className="bg-[#141b2d] rounded-xl border border-white/10 overflow-hidden"
+                    className={cn(
+                        'bg-white dark:bg-slate-800 rounded-xl border-t-2 min-h-[300px]',
+                        getColumnColor(column.color)
+                    )}
                 >
                     {/* Column Header */}
-                    <div
-                        className="px-3 py-2.5 border-b border-white/10 flex justify-between items-center"
-                        style={{ borderBottomColor: `${column.color}40` }}
-                    >
+                    <div className="flex justify-between items-center p-3 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-center gap-1.5">
                             <span>{column.emoji}</span>
-                            <span className="text-sm font-semibold">{column.title}</span>
-                            <span
-                                className="text-[10px] px-1.5 py-0.5 rounded"
-                                style={{ backgroundColor: `${column.color}20`, color: column.color }}
-                            >
+                            <h3 className={cn('text-sm font-semibold', getHeaderColor(column.color))}>
+                                {column.title}
+                            </h3>
+                            <span className="text-[10px] bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-600 dark:text-gray-400">
                                 {column.cards.length}
                             </span>
                         </div>
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setAddingToColumn(addingToColumn === column.id ? null : column.id)}
-                            className="h-6 w-6 p-0 text-gray-400 hover:text-white"
+                            onClick={() => setAddingTo(addingTo === column.id ? null : column.id)}
+                            className="h-6 w-6 p-0 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
                         >
                             <Plus className="w-4 h-4" />
                         </Button>
                     </div>
 
                     {/* Add Card Form */}
-                    {addingToColumn === column.id && (
-                        <div className="p-2 border-b border-white/10">
+                    {addingTo === column.id && (
+                        <div className="p-2 border-b border-gray-200 dark:border-gray-700">
                             <Input
-                                value={newCardContent}
-                                onChange={(e) => setNewCardContent(e.target.value)}
+                                value={newContent}
+                                onChange={(e) => setNewContent(e.target.value)}
                                 placeholder="Add a card..."
-                                className="bg-[#0a0f1a] border-gray-700 text-sm mb-1.5"
+                                className="text-xs bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-gray-700 mb-2"
                                 autoFocus
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleAddCard(column.id);
-                                    if (e.key === 'Escape') setAddingToColumn(null);
-                                }}
+                                onKeyDown={(e) => e.key === 'Enter' && handleAdd(column.id)}
                             />
                             <div className="flex gap-1">
-                                <Button
-                                    size="sm"
-                                    onClick={() => handleAddCard(column.id)}
-                                    className="h-6 text-[10px] bg-teal-600 hover:bg-teal-700"
-                                >
+                                <Button size="sm" className="h-6 text-xs" onClick={() => handleAdd(column.id)}>
                                     Add
                                 </Button>
                                 <Button
                                     size="sm"
                                     variant="ghost"
-                                    onClick={() => setAddingToColumn(null)}
-                                    className="h-6 text-[10px]"
+                                    className="h-6 text-xs"
+                                    onClick={() => {
+                                        setAddingTo(null);
+                                        setNewContent('');
+                                    }}
                                 >
                                     Cancel
                                 </Button>
@@ -113,21 +117,21 @@ export function RetroKanban({
                     )}
 
                     {/* Cards */}
-                    <div className="p-2 space-y-2 max-h-[500px] overflow-y-auto">
-                        {column.cards.map(card => (
-                            <RetroCardItem
-                                key={card.id}
-                                card={card}
-                                columnColor={column.color || '#6366f1'}
-                                onVote={() => onVoteCard(card.id)}
-                                onCreateAction={() => onCreateAction(card.id, card.content)}
-                            />
-                        ))}
-
-                        {column.cards.length === 0 && (
-                            <div className="text-center py-6 text-gray-600 text-xs">
-                                No cards yet
-                            </div>
+                    <div className="p-2 space-y-2">
+                        {column.cards.length === 0 ? (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">No cards yet</p>
+                        ) : (
+                            column.cards.map((card) => (
+                                <CardItem
+                                    key={card.id}
+                                    card={card}
+                                    columnId={column.id}
+                                    showAIContent={showAIContent}
+                                    onVote={() => onVoteCard(card.id)}
+                                    onDelete={onDeleteCard ? () => onDeleteCard(card.id, column.id) : undefined}
+                                    onCreateAction={(content) => onCreateAction(card.id, content)}
+                                />
+                            ))
                         )}
                     </div>
                 </div>
@@ -136,70 +140,90 @@ export function RetroKanban({
     );
 }
 
-interface RetroCardItemProps {
+interface CardItemProps {
     card: RetroCard;
-    columnColor: string;
+    columnId: string;
+    showAIContent: boolean;
     onVote: () => void;
-    onCreateAction: () => void;
+    onDelete?: () => void;
+    onCreateAction: (content: string) => void;
 }
 
-function RetroCardItem({ card, columnColor, onVote, onCreateAction }: RetroCardItemProps) {
+function CardItem({ card, columnId, showAIContent, onVote, onDelete, onCreateAction }: CardItemProps) {
+    const [showActions, setShowActions] = useState(false);
+
+    if (card.is_ai && !showAIContent) {
+        return null;
+    }
+
     return (
         <div
             className={cn(
-                'bg-[#0a0f1a] rounded-lg p-2.5 border transition-all hover:border-white/20',
-                card.is_success && 'border-emerald-500/30',
-                card.is_alert && 'border-amber-500/30',
-                !card.is_success && !card.is_alert && 'border-white/5'
+                'p-2 rounded-lg border transition-colors group',
+                'bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-gray-700',
+                'hover:border-gray-300 dark:hover:border-gray-600',
+                card.is_success && 'border-l-2 border-l-green-500',
+                card.is_alert && 'border-l-2 border-l-red-500'
             )}
+            onMouseEnter={() => setShowActions(true)}
+            onMouseLeave={() => setShowActions(false)}
         >
-            {/* Source Badge */}
-            {card.is_ai && (
-                <div className="flex gap-1 mb-1.5">
-                    <span className="text-[8px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400">
-                        🤖 AI
-                    </span>
-                    {card.source && (
-                        <span className="text-[8px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400">
-                            {card.source}
-                        </span>
-                    )}
-                </div>
-            )}
-
-            {/* Content */}
-            <p className="text-[11px] text-gray-200 leading-relaxed mb-2">{card.content}</p>
+            <p className="text-xs text-gray-800 dark:text-gray-200 mb-1.5">{card.content}</p>
 
             {/* Data Badge */}
             {card.data_badge && (
-                <div
-                    className="inline-block text-[9px] px-1.5 py-0.5 rounded mb-2"
-                    style={{
-                        backgroundColor: card.is_success ? 'rgba(16, 185, 129, 0.1)' : card.is_alert ? 'rgba(245, 158, 11, 0.1)' : `${columnColor}15`,
-                        color: card.is_success ? '#10b981' : card.is_alert ? '#f59e0b' : columnColor,
-                    }}
-                >
+                <span className={cn(
+                    'inline-block text-[10px] px-1.5 py-0.5 rounded mb-1.5 font-medium',
+                    card.is_success && 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+                    card.is_alert && 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+                    !card.is_success && !card.is_alert && 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                )}>
                     {card.data_badge}
-                </div>
+                </span>
             )}
 
             {/* Footer */}
             <div className="flex justify-between items-center mt-1">
-                <button
-                    onClick={onVote}
-                    className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-white transition-colors"
-                >
-                    <ThumbsUp className="w-3 h-3" />
-                    <span>{card.vote_count}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                    {card.is_ai && (
+                        <span className="text-[9px] text-teal-600 dark:text-teal-400 flex items-center gap-0.5">
+                            <Zap className="w-2.5 h-2.5" /> {card.source || 'AI'}
+                        </span>
+                    )}
+                </div>
 
-                <button
-                    onClick={onCreateAction}
-                    className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-teal-400 transition-colors"
-                >
-                    <ArrowRight className="w-3 h-3" />
-                    <span>→ Action</span>
-                </button>
+                <div className="flex items-center gap-1">
+                    {/* Vote button */}
+                    <button
+                        onClick={onVote}
+                        className="flex items-center gap-0.5 text-[10px] text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+                    >
+                        <ThumbsUp className="w-3 h-3" />
+                        <span>{card.vote_count}</span>
+                    </button>
+
+                    {/* Action buttons (shown on hover) */}
+                    {showActions && (
+                        <>
+                            <button
+                                onClick={() => onCreateAction(card.content)}
+                                className="p-1 text-gray-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
+                                title="Create action"
+                            >
+                                <ArrowRight className="w-3 h-3" />
+                            </button>
+                            {onDelete && (
+                                <button
+                                    onClick={onDelete}
+                                    className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                                    title="Delete card"
+                                >
+                                    <Trash2 className="w-3 h-3" />
+                                </button>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );

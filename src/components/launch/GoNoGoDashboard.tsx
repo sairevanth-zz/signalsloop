@@ -66,7 +66,6 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
                 method: 'POST',
             });
             if (!response.ok) throw new Error('Failed to populate');
-            const data = await response.json();
 
             // Refresh board data
             const boardResponse = await fetch(`/api/launch/${boardId}`);
@@ -79,6 +78,27 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
             toast.error('Failed to run AI analysis');
         } finally {
             setIsPopulating(false);
+        }
+    };
+
+    // Add checklist item
+    const handleAddChecklist = async (title: string) => {
+        try {
+            const response = await fetch(`/api/launch/${boardId}/checklist`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title }),
+            });
+            if (!response.ok) throw new Error('Failed to add item');
+            const data = await response.json();
+
+            setBoard(prev => prev ? {
+                ...prev,
+                checklist_items: [...prev.checklist_items, data.item],
+            } : null);
+            toast.success('Checklist item added');
+        } catch (error) {
+            toast.error('Failed to add checklist item');
         }
     };
 
@@ -102,6 +122,43 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
         }
     };
 
+    // Delete checklist item
+    const handleDeleteChecklist = async (itemId: string) => {
+        try {
+            await fetch(`/api/launch/${boardId}/checklist?itemId=${itemId}`, {
+                method: 'DELETE',
+            });
+
+            setBoard(prev => prev ? {
+                ...prev,
+                checklist_items: prev.checklist_items.filter(item => item.id !== itemId),
+            } : null);
+        } catch (error) {
+            toast.error('Failed to delete checklist item');
+        }
+    };
+
+    // Add risk
+    const handleAddRisk = async (title: string, severity: 'low' | 'medium' | 'high') => {
+        try {
+            const response = await fetch(`/api/launch/${boardId}/risks`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, severity }),
+            });
+            if (!response.ok) throw new Error('Failed to add risk');
+            const data = await response.json();
+
+            setBoard(prev => prev ? {
+                ...prev,
+                risks: [...prev.risks, data.risk],
+            } : null);
+            toast.success('Risk added');
+        } catch (error) {
+            toast.error('Failed to add risk');
+        }
+    };
+
     // Update risk status
     const handleUpdateRisk = async (riskId: string, status: string) => {
         try {
@@ -119,6 +176,43 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
             } : null);
         } catch (error) {
             toast.error('Failed to update risk');
+        }
+    };
+
+    // Delete risk
+    const handleDeleteRisk = async (riskId: string) => {
+        try {
+            await fetch(`/api/launch/${boardId}/risks?riskId=${riskId}`, {
+                method: 'DELETE',
+            });
+
+            setBoard(prev => prev ? {
+                ...prev,
+                risks: prev.risks.filter(risk => risk.id !== riskId),
+            } : null);
+        } catch (error) {
+            toast.error('Failed to delete risk');
+        }
+    };
+
+    // Add stakeholder
+    const handleAddStakeholder = async (name: string, role: string) => {
+        try {
+            const response = await fetch(`/api/launch/${boardId}/votes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, role }),
+            });
+            if (!response.ok) throw new Error('Failed to add stakeholder');
+            const data = await response.json();
+
+            setBoard(prev => prev ? {
+                ...prev,
+                votes: [...prev.votes, data.vote],
+            } : null);
+            toast.success('Stakeholder added');
+        } catch (error) {
+            toast.error('Failed to add stakeholder');
         }
     };
 
@@ -141,6 +235,22 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
             toast.success('Vote recorded');
         } catch (error) {
             toast.error('Failed to cast vote');
+        }
+    };
+
+    // Delete stakeholder
+    const handleDeleteStakeholder = async (voteId: string) => {
+        try {
+            await fetch(`/api/launch/${boardId}/votes?voteId=${voteId}`, {
+                method: 'DELETE',
+            });
+
+            setBoard(prev => prev ? {
+                ...prev,
+                votes: prev.votes.filter(v => v.id !== voteId),
+            } : null);
+        } catch (error) {
+            toast.error('Failed to remove stakeholder');
         }
     };
 
@@ -190,7 +300,7 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500" />
             </div>
         );
@@ -198,9 +308,9 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
 
     if (!board) {
         return (
-            <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center text-white">
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center text-gray-900 dark:text-white">
                 <div className="text-center">
-                    <p className="text-gray-400 mb-4">Launch board not found</p>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">Launch board not found</p>
                     <Button onClick={() => router.push(`/${projectSlug}/launch`)}>
                         Back to Launches
                     </Button>
@@ -213,21 +323,21 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
     const selectedDimensionData = board.dimensions.find(d => d.dimension_type === selectedDimension);
 
     return (
-        <div className="min-h-screen bg-[#0a0f1a] text-gray-50 font-sans">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-50 font-sans">
             {/* Header */}
-            <div className="bg-[#141b2d] border-b border-white/10 px-6 py-3.5">
+            <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-white/10 px-6 py-3.5">
                 <div className="max-w-[1800px] mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => router.push(`/${projectSlug}/launch`)}
-                            className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                         >
-                            <ArrowLeft className="w-5 h-5 text-gray-400" />
+                            <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         </button>
                         <span className="text-2xl">🚀</span>
                         <div>
                             <h1 className="text-lg font-bold">Go/No-Go: {board.title}</h1>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
                                 {board.target_date ? `Target: ${new Date(board.target_date).toLocaleDateString()}` : 'No target date set'}
                             </p>
                         </div>
@@ -238,7 +348,7 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
                             size="sm"
                             onClick={handleAIPopulate}
                             disabled={isPopulating}
-                            className={`border-gray-700 ${showAIContent ? 'bg-teal-500/10 text-teal-400 border-teal-500/50' : 'text-gray-400'}`}
+                            className={`border-gray-300 dark:border-gray-700 ${showAIContent ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/50' : 'text-gray-600 dark:text-gray-400'}`}
                         >
                             <Sparkles className="w-4 h-4 mr-2" />
                             {isPopulating ? 'Analyzing...' : 'AI Analyze'}
@@ -247,11 +357,11 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
                             variant="outline"
                             size="sm"
                             onClick={() => setShowAIContent(!showAIContent)}
-                            className={`border-gray-700 ${showAIContent ? 'bg-teal-500/10 text-teal-400' : 'text-gray-400'}`}
+                            className={`border-gray-300 dark:border-gray-700 ${showAIContent ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' : 'text-gray-600 dark:text-gray-400'}`}
                         >
                             🤖 AI {showAIContent ? 'ON' : 'OFF'}
                         </Button>
-                        <Button variant="outline" size="sm" className="border-gray-700 text-gray-400">
+                        <Button variant="outline" size="sm" className="border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400">
                             <Share2 className="w-4 h-4 mr-2" />
                             Share
                         </Button>
@@ -264,12 +374,12 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
                 <div className="grid grid-cols-[200px_1fr_340px_280px] gap-4">
                     {/* Column 1: Score & Dimensions */}
                     <div>
-                        <div className="bg-[#141b2d] rounded-xl p-5 border border-white/10 text-center mb-3">
+                        <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-white/10 text-center mb-3">
                             <OverallReadinessScore score={overallScore} />
-                            <div className="text-xs text-gray-500 mt-2">Overall Readiness</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-500 mt-2">Overall Readiness</div>
                         </div>
 
-                        <div className="text-[10px] text-gray-500 mb-1.5 font-semibold tracking-wide">
+                        <div className="text-[10px] text-gray-500 dark:text-gray-500 mb-1.5 font-semibold tracking-wide">
                             DIMENSIONS
                         </div>
                         <DimensionList
@@ -291,11 +401,15 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
                         <LaunchChecklist
                             items={board.checklist_items}
                             onToggle={handleToggleChecklist}
+                            onAdd={handleAddChecklist}
+                            onDelete={handleDeleteChecklist}
                         />
                         <div className="mt-3">
                             <RisksPanel
                                 risks={board.risks}
                                 onUpdateStatus={handleUpdateRisk}
+                                onAdd={handleAddRisk}
+                                onDelete={handleDeleteRisk}
                             />
                         </div>
                     </div>
@@ -305,18 +419,20 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
                         <StakeholderPanel
                             votes={board.votes}
                             onCastVote={handleCastVote}
+                            onAdd={handleAddStakeholder}
+                            onDelete={handleDeleteStakeholder}
                         />
 
                         {/* Notes Section */}
-                        <div className="bg-[#141b2d] rounded-xl p-3 border border-white/10 mt-3">
-                            <div className="text-[10px] text-gray-500 mb-1.5 font-semibold">
+                        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-gray-200 dark:border-white/10 mt-3">
+                            <div className="text-[10px] text-gray-500 dark:text-gray-500 mb-1.5 font-semibold">
                                 📝 NOTES & CONTEXT
                             </div>
                             <Textarea
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
                                 placeholder="Add launch context, dependencies, timing notes..."
-                                className="bg-[#0a0f1a] border-gray-700 text-sm min-h-[60px] resize-y"
+                                className="bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-sm min-h-[60px] resize-y"
                             />
                         </div>
 

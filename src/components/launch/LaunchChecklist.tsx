@@ -1,13 +1,14 @@
 'use client';
 
 /**
- * Launch Checklist
- * Pre-launch checklist with progress tracking
+ * Launch Checklist Component
+ * Tracks pre-launch tasks with progress
  */
 
-import React from 'react';
-import { Plus, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle2, Circle, Zap, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { LaunchChecklistItem } from '@/types/launch';
 import { getChecklistProgress } from '@/lib/launch';
@@ -15,104 +16,120 @@ import { getChecklistProgress } from '@/lib/launch';
 interface LaunchChecklistProps {
     items: LaunchChecklistItem[];
     onToggle: (itemId: string, completed: boolean) => void;
-    onAdd?: () => void;
+    onAdd?: (title: string) => void;
+    onDelete?: (itemId: string) => void;
 }
 
-export function LaunchChecklist({ items, onToggle, onAdd }: LaunchChecklistProps) {
+export function LaunchChecklist({ items, onToggle, onAdd, onDelete }: LaunchChecklistProps) {
+    const [showAdd, setShowAdd] = useState(false);
+    const [newTitle, setNewTitle] = useState('');
     const progress = getChecklistProgress(items);
 
+    const handleAdd = () => {
+        if (newTitle.trim() && onAdd) {
+            onAdd(newTitle.trim());
+            setNewTitle('');
+            setShowAdd(false);
+        }
+    };
+
     return (
-        <div className="bg-[#141b2d] rounded-xl p-4 border border-white/10">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-3">
-                <h4 className="text-sm font-semibold flex items-center gap-1.5">
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-gray-200 dark:border-white/10">
+            <div className="flex justify-between items-center mb-2">
+                <h3 className="text-xs font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
                     ✅ Launch Checklist
-                    <span
-                        className="text-[11px] px-2 py-0.5 rounded"
-                        style={{
-                            backgroundColor: progress.completed === progress.total ? 'rgba(16, 185, 129, 0.2)' : 'rgba(251, 191, 36, 0.2)',
-                            color: progress.completed === progress.total ? '#10b981' : '#fbbf24',
-                        }}
-                    >
-                        {progress.completed}/{progress.total}
+                    <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded text-[10px]">
+                        {progress.percentage}%
                     </span>
-                </h4>
+                </h3>
                 {onAdd && (
-                    <Button variant="outline" size="sm" onClick={onAdd} className="h-6 px-2 text-[10px] border-gray-700">
-                        <Plus className="w-3 h-3 mr-1" />
-                        Add
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowAdd(!showAdd)}
+                        className="h-6 w-6 p-0 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400"
+                    >
+                        <Plus className="w-4 h-4" />
                     </Button>
                 )}
             </div>
 
-            {/* Progress Bar */}
-            <div className="h-1.5 bg-[#1e293b] rounded-full mb-3 overflow-hidden">
+            {/* Progress bar */}
+            <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full mb-2 overflow-hidden">
                 <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{
-                        width: `${progress.percentage}%`,
-                        background: 'linear-gradient(90deg, #10b981, #06d6a0)',
-                    }}
+                    className="h-full bg-green-500 transition-all duration-300"
+                    style={{ width: `${progress.percentage}%` }}
                 />
             </div>
 
-            {/* Checklist Items */}
-            <div className="max-h-[280px] overflow-y-auto space-y-1.5">
-                {items.map(item => (
-                    <div
-                        key={item.id}
-                        onClick={() => onToggle(item.id, !item.completed)}
-                        className={cn(
-                            'flex items-start gap-2.5 p-2 bg-[#0a0f1a] rounded-md cursor-pointer transition-opacity',
-                            'border',
-                            item.completed ? 'border-emerald-500/30 opacity-70' : 'border-white/5',
-                        )}
-                    >
-                        {/* Checkbox */}
+            {/* Add form */}
+            {showAdd && onAdd && (
+                <div className="flex gap-2 mb-2">
+                    <Input
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
+                        placeholder="New checklist item..."
+                        className="h-7 text-xs bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-gray-700"
+                        onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+                    />
+                    <Button size="sm" onClick={handleAdd} className="h-7 text-xs bg-green-600 hover:bg-green-700">
+                        Add
+                    </Button>
+                </div>
+            )}
+
+            {/* Checklist items */}
+            <div className="space-y-1.5">
+                {items.length === 0 ? (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">No checklist items yet</p>
+                ) : (
+                    items.map((item) => (
                         <div
+                            key={item.id}
                             className={cn(
-                                'w-[18px] h-[18px] rounded flex-shrink-0 flex items-center justify-center mt-0.5',
-                                'border-2 transition-colors',
-                                item.completed
-                                    ? 'bg-emerald-500 border-emerald-500'
-                                    : 'border-gray-600 bg-transparent'
+                                'flex items-center gap-2 p-1.5 rounded-lg group',
+                                'hover:bg-gray-100 dark:hover:bg-white/5 transition-colors'
                             )}
                         >
-                            {item.completed && <Check className="w-2.5 h-2.5 text-[#0a0f1a]" />}
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                            <div
-                                className={cn(
-                                    'text-[11px] leading-snug',
-                                    item.completed ? 'line-through text-gray-500' : 'text-white'
-                                )}
+                            <button
+                                onClick={() => onToggle(item.id, !item.completed)}
+                                className="flex-shrink-0"
                             >
-                                {item.title}
-                            </div>
-                            <div className="flex gap-1 mt-1 flex-wrap">
-                                <span
-                                    className="text-[8px] px-1 py-0.5 rounded"
-                                    style={{
-                                        backgroundColor: item.is_ai ? 'rgba(6, 214, 160, 0.1)' : 'rgba(0, 194, 255, 0.1)',
-                                        color: item.is_ai ? '#06d6a0' : '#00c2ff',
-                                    }}
-                                >
-                                    {item.is_ai ? '🤖 AI' : '👤 User'}
-                                </span>
-                                {item.auto_verified && (
-                                    <span className="text-[8px] px-1 py-0.5 rounded bg-purple-500/10 text-purple-400">
-                                        ⚡ Auto
-                                    </span>
+                                {item.completed ? (
+                                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                ) : (
+                                    <Circle className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                 )}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                                <div className={cn(
+                                    'text-xs font-medium truncate',
+                                    item.completed ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-white'
+                                )}>
+                                    {item.title}
+                                </div>
                                 {item.owner && (
-                                    <span className="text-[8px] text-gray-600">{item.owner}</span>
+                                    <div className="text-[10px] text-gray-500 dark:text-gray-500 flex items-center gap-1">
+                                        👤 {item.owner}
+                                        {item.is_ai && (
+                                            <span className="flex items-center text-teal-500 dark:text-teal-400">
+                                                <Zap className="w-2.5 h-2.5" /> AI
+                                            </span>
+                                        )}
+                                    </div>
                                 )}
                             </div>
+                            {onDelete && (
+                                <button
+                                    onClick={() => onDelete(item.id)}
+                                    className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-opacity"
+                                >
+                                    <Trash2 className="w-3 h-3" />
+                                </button>
+                            )}
                         </div>
-                    </div>
-                ))}
+                    ))
+                )}
             </div>
         </div>
     );

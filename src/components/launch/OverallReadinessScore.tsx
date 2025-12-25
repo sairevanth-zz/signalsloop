@@ -1,65 +1,64 @@
 'use client';
 
 /**
- * Overall Readiness Score
- * Circular SVG progress ring for launch readiness
+ * Overall Readiness Score Component
+ * Circular SVG progress ring
  */
 
 import React from 'react';
-import { getScoreColor } from '@/types/launch';
 
 interface OverallReadinessScoreProps {
     score: number;
-    size?: number;
 }
 
-export function OverallReadinessScore({ score, size = 100 }: OverallReadinessScoreProps) {
-    const strokeWidth = 8;
-    const radius = (size - strokeWidth) / 2;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (score / 100) * circumference;
-    const color = getScoreColor(score);
+export function OverallReadinessScore({ score }: OverallReadinessScoreProps) {
+    const radius = 50;
+    const stroke = 8;
+    const normalizedRadius = radius - stroke / 2;
+    const circumference = normalizedRadius * 2 * Math.PI;
+    const strokeDashoffset = circumference - (score / 100) * circumference;
+
+    const getColor = (s: number) => {
+        if (s >= 80) return '#22c55e'; // green
+        if (s >= 60) return '#14b8a6'; // teal
+        if (s >= 40) return '#eab308'; // yellow
+        return '#ef4444'; // red
+    };
 
     return (
-        <div className="relative" style={{ width: size, height: size }}>
+        <div className="relative inline-flex items-center justify-center">
             <svg
-                width={size}
-                height={size}
-                style={{ transform: 'rotate(-90deg)' }}
+                height={radius * 2}
+                width={radius * 2}
+                className="transform -rotate-90"
             >
                 {/* Background circle */}
                 <circle
-                    cx={size / 2}
-                    cy={size / 2}
-                    r={radius}
-                    fill="none"
-                    stroke="#1e293b"
-                    strokeWidth={strokeWidth}
+                    stroke="currentColor"
+                    className="text-gray-200 dark:text-gray-700"
+                    fill="transparent"
+                    strokeWidth={stroke}
+                    r={normalizedRadius}
+                    cx={radius}
+                    cy={radius}
                 />
                 {/* Progress circle */}
                 <circle
-                    cx={size / 2}
-                    cy={size / 2}
-                    r={radius}
-                    fill="none"
-                    stroke={color}
-                    strokeWidth={strokeWidth}
-                    strokeDasharray={circumference}
-                    strokeDashoffset={offset}
+                    stroke={getColor(score)}
+                    fill="transparent"
+                    strokeWidth={stroke}
+                    strokeDasharray={circumference + ' ' + circumference}
+                    style={{ strokeDashoffset }}
                     strokeLinecap="round"
-                    style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+                    r={normalizedRadius}
+                    cx={radius}
+                    cy={radius}
+                    className="transition-all duration-500"
                 />
             </svg>
-            <div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center"
-            >
-                <div
-                    className="text-[28px] font-bold"
-                    style={{ color }}
-                >
-                    {score}
-                </div>
-                <div className="text-[9px] text-gray-400">READY</div>
+            <div className="absolute flex flex-col items-center">
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">{score}</span>
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">READY</span>
             </div>
         </div>
     );

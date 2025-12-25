@@ -7,15 +7,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Sparkles, Share2, Plus, FileDown } from 'lucide-react';
+import { ArrowLeft, Sparkles, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { PeriodSelector } from './PeriodSelector';
 import { MetricStrip } from './MetricStrip';
 import { RetroKanban } from './RetroKanban';
 import { ActionsPanel } from './ActionsPanel';
 import { AISummaryPanel } from './AISummaryPanel';
-import type { RetroBoardWithDetails, RetroPeriod, RetroCard } from '@/types/retro';
+import type { RetroBoardWithDetails } from '@/types/retro';
 import { PERIOD_CONFIGS, getPeriodAICallout } from '@/types/retro';
 
 interface RetrospectiveDashboardProps {
@@ -119,6 +118,29 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
         }
     };
 
+    // Delete card
+    const handleDeleteCard = async (cardId: string, columnId: string) => {
+        try {
+            await fetch(`/api/retro/${boardId}/cards?cardId=${cardId}`, {
+                method: 'DELETE',
+            });
+
+            setBoard(prev => {
+                if (!prev) return null;
+                return {
+                    ...prev,
+                    columns: prev.columns.map(col =>
+                        col.id === columnId
+                            ? { ...col, cards: col.cards.filter(c => c.id !== cardId) }
+                            : col
+                    ),
+                };
+            });
+        } catch (error) {
+            toast.error('Failed to delete card');
+        }
+    };
+
     // Vote on card
     const handleVoteCard = async (cardId: string) => {
         try {
@@ -197,9 +219,25 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
         }
     };
 
+    // Delete action
+    const handleDeleteAction = async (actionId: string) => {
+        try {
+            await fetch(`/api/retro/${boardId}/actions?actionId=${actionId}`, {
+                method: 'DELETE',
+            });
+
+            setBoard(prev => prev ? {
+                ...prev,
+                actions: prev.actions.filter(a => a.id !== actionId),
+            } : null);
+        } catch (error) {
+            toast.error('Failed to delete action');
+        }
+    };
+
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500" />
             </div>
         );
@@ -207,9 +245,9 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
 
     if (!board) {
         return (
-            <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center text-white">
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center text-gray-900 dark:text-white">
                 <div className="text-center">
-                    <p className="text-gray-400 mb-4">Retrospective not found</p>
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">Retrospective not found</p>
                     <Button onClick={() => router.push(`/${projectSlug}/retro`)}>
                         Back to Retrospectives
                     </Button>
@@ -221,21 +259,21 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
     const periodConfig = PERIOD_CONFIGS[board.period_type];
 
     return (
-        <div className="min-h-screen bg-[#0a0f1a] text-gray-50 font-sans">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-50 font-sans">
             {/* Header */}
-            <div className="bg-[#141b2d] border-b border-white/10 px-6 py-3.5">
+            <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-white/10 px-6 py-3.5">
                 <div className="max-w-[1800px] mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => router.push(`/${projectSlug}/retro`)}
-                            className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                         >
-                            <ArrowLeft className="w-5 h-5 text-gray-400" />
+                            <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         </button>
                         <span className="text-2xl">{periodConfig.icon}</span>
                         <div>
                             <h1 className="text-lg font-bold">{board.title}</h1>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
                                 {new Date(board.start_date).toLocaleDateString()} - {new Date(board.end_date).toLocaleDateString()}
                             </p>
                         </div>
@@ -246,7 +284,7 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
                             size="sm"
                             onClick={handleAIPopulate}
                             disabled={isPopulating}
-                            className="border-gray-700 bg-teal-500/10 text-teal-400 border-teal-500/50"
+                            className="border-gray-300 dark:border-gray-700 bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/50"
                         >
                             <Sparkles className="w-4 h-4 mr-2" />
                             {isPopulating ? 'Analyzing...' : 'AI Populate'}
@@ -255,11 +293,11 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
                             variant="outline"
                             size="sm"
                             onClick={() => setShowAIContent(!showAIContent)}
-                            className={`border-gray-700 ${showAIContent ? 'bg-teal-500/10 text-teal-400' : 'text-gray-400'}`}
+                            className={`border-gray-300 dark:border-gray-700 ${showAIContent ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' : 'text-gray-600 dark:text-gray-400'}`}
                         >
                             🤖 AI {showAIContent ? 'ON' : 'OFF'}
                         </Button>
-                        <Button variant="outline" size="sm" className="border-gray-700 text-gray-400">
+                        <Button variant="outline" size="sm" className="border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400">
                             <Share2 className="w-4 h-4 mr-2" />
                             Share
                         </Button>
@@ -278,7 +316,7 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
                         {/* AI Callout */}
                         {showAIContent && (
                             <div
-                                className="bg-teal-500/10 border border-teal-500/30 rounded-lg p-3 mb-4 text-xs text-teal-400"
+                                className="bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/30 rounded-lg p-3 mb-4 text-xs text-teal-700 dark:text-teal-400"
                             >
                                 💡 {getPeriodAICallout(board.period_type)}
                             </div>
@@ -289,6 +327,7 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
                             columns={board.columns}
                             showAIContent={showAIContent}
                             onAddCard={handleAddCard}
+                            onDeleteCard={handleDeleteCard}
                             onVoteCard={handleVoteCard}
                             onCreateAction={(cardId, content) => handleAddAction(content, cardId)}
                         />
@@ -300,6 +339,7 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
                             actions={board.actions}
                             onUpdateStatus={handleUpdateActionStatus}
                             onAddAction={handleAddAction}
+                            onDeleteAction={handleDeleteAction}
                         />
 
                         <AISummaryPanel
