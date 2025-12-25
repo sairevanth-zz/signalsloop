@@ -46,6 +46,11 @@ export async function detectKnowledgeGaps(
     const supabase = getSupabaseServiceRoleClient();
     const openai = getOpenAI();
 
+    if (!supabase) {
+        console.error('[Knowledge Gap] Service role client not available');
+        return { gaps: [], actions_created: 0 };
+    }
+
     console.log(`[Knowledge Gap] Analyzing project ${projectId}`);
 
     // Get themes with significant feedback volume
@@ -194,6 +199,11 @@ ${feedbackText}`
 export async function getPollSuggestions(projectId: string) {
     const supabase = getSupabaseServiceRoleClient();
 
+    if (!supabase) {
+        console.error('[Knowledge Gap] Service role client not available');
+        return [];
+    }
+
     const { data, error } = await supabase
         .from('unified_action_queue')
         .select('*')
@@ -207,5 +217,6 @@ export async function getPollSuggestions(projectId: string) {
         return [];
     }
 
+    console.log(`[Knowledge Gap] Found ${data?.length || 0} persisted gaps for project ${projectId}`);
     return data || [];
 }
