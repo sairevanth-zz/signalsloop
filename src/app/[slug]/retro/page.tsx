@@ -66,9 +66,9 @@ export default function RetrospectivesPage() {
 
     const getStatusBadge = (status: string) => {
         const statusColors = {
-            active: { bg: 'bg-blue-500/20', text: 'text-blue-400', label: 'Active' },
-            completed: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', label: 'Completed' },
-            archived: { bg: 'bg-gray-500/20', text: 'text-gray-400', label: 'Archived' },
+            active: { bg: 'bg-blue-100 dark:bg-blue-500/20', text: 'text-blue-700 dark:text-blue-400', label: 'Active' },
+            completed: { bg: 'bg-emerald-100 dark:bg-emerald-500/20', text: 'text-emerald-700 dark:text-emerald-400', label: 'Completed' },
+            archived: { bg: 'bg-gray-100 dark:bg-gray-500/20', text: 'text-gray-700 dark:text-gray-400', label: 'Archived' },
         };
         const config = statusColors[status as keyof typeof statusColors] || statusColors.active;
         return (
@@ -80,30 +80,30 @@ export default function RetrospectivesPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500" />
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#13151a]">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
             {/* Header */}
-            <div className="bg-[#141b2d] border-b border-white/10 px-6 py-4">
+            <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-white/10 px-6 py-4">
                 <div className="max-w-6xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => router.push(`/${projectSlug}/dashboard`)}
-                            className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                         >
-                            <ArrowLeft className="w-5 h-5 text-gray-400" />
+                            <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         </button>
                         <div>
-                            <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                                <History className="w-5 h-5 text-purple-400" />
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <History className="w-5 h-5 text-purple-500 dark:text-purple-400" />
                                 Retrospectives
                             </h1>
-                            <p className="text-sm text-gray-400">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Period-aware retrospectives with AI insights
                             </p>
                         </div>
@@ -122,9 +122,9 @@ export default function RetrospectivesPage() {
             <div className="max-w-6xl mx-auto p-6">
                 {boards.length === 0 ? (
                     <div className="text-center py-16">
-                        <History className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-white mb-2">No retrospectives yet</h3>
-                        <p className="text-gray-400 mb-6">
+                        <History className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No retrospectives yet</h3>
+                        <p className="text-gray-500 dark:text-gray-400 mb-6">
                             Create a retrospective to reflect on sprints, months, or quarters
                         </p>
                         <Button
@@ -144,20 +144,20 @@ export default function RetrospectivesPage() {
                                 <div
                                     key={board.id}
                                     onClick={() => router.push(`/${projectSlug}/retro/${board.id}`)}
-                                    className="bg-[#141b2d] rounded-xl p-5 border border-white/10 hover:border-purple-500/50 cursor-pointer transition-all group"
+                                    className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-white/10 hover:border-purple-500/50 cursor-pointer transition-all group"
                                 >
                                     <div className="flex justify-between items-start mb-3">
                                         <div className="flex items-center gap-2">
                                             <span className="text-xl">{periodConfig.icon}</span>
-                                            <h3 className="font-semibold text-white group-hover:text-purple-400 transition-colors">
+                                            <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors">
                                                 {board.title}
                                             </h3>
                                         </div>
                                         {getStatusBadge(board.status)}
                                     </div>
 
-                                    <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
-                                        <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400">
+                                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                        <span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400">
                                             {periodConfig.label}
                                         </span>
                                         <div className="flex items-center gap-1">
@@ -168,10 +168,10 @@ export default function RetrospectivesPage() {
 
                                     {/* Metrics Preview */}
                                     {board.metrics && board.metrics.length > 0 && (
-                                        <div className="flex gap-3 mt-3 pt-3 border-t border-white/5">
+                                        <div className="flex gap-3 mt-3 pt-3 border-t border-gray-200 dark:border-white/5">
                                             {board.metrics.slice(0, 3).map((m, i) => (
                                                 <div key={i} className="text-center">
-                                                    <div className="text-sm font-bold text-white">{m.value}</div>
+                                                    <div className="text-sm font-bold text-gray-900 dark:text-white">{m.value}</div>
                                                     <div className="text-[9px] text-gray-500">{m.label}</div>
                                                 </div>
                                             ))}

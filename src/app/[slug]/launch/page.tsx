@@ -67,15 +67,15 @@ export default function LaunchBoardsPage() {
         if (decision === 'go') return <CheckCircle className="w-4 h-4 text-emerald-500" />;
         if (decision === 'no_go') return <AlertCircle className="w-4 h-4 text-red-500" />;
         if (decision === 'conditional') return <Clock className="w-4 h-4 text-yellow-500" />;
-        return <Clock className="w-4 h-4 text-gray-500" />;
+        return <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />;
     };
 
     const getStatusBadge = (status: string, decision?: string) => {
         if (decision) {
             const colors = {
-                go: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', label: 'GO' },
-                no_go: { bg: 'bg-red-500/20', text: 'text-red-400', label: 'NO-GO' },
-                conditional: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', label: 'CONDITIONAL' },
+                go: { bg: 'bg-emerald-100 dark:bg-emerald-500/20', text: 'text-emerald-700 dark:text-emerald-400', label: 'GO' },
+                no_go: { bg: 'bg-red-100 dark:bg-red-500/20', text: 'text-red-700 dark:text-red-400', label: 'NO-GO' },
+                conditional: { bg: 'bg-yellow-100 dark:bg-yellow-500/20', text: 'text-yellow-700 dark:text-yellow-400', label: 'CONDITIONAL' },
             };
             const config = colors[decision as keyof typeof colors];
             return (
@@ -86,9 +86,9 @@ export default function LaunchBoardsPage() {
         }
 
         const statusColors = {
-            draft: { bg: 'bg-gray-500/20', text: 'text-gray-400', label: 'Draft' },
-            reviewing: { bg: 'bg-blue-500/20', text: 'text-blue-400', label: 'Reviewing' },
-            decided: { bg: 'bg-purple-500/20', text: 'text-purple-400', label: 'Decided' },
+            draft: { bg: 'bg-gray-100 dark:bg-gray-500/20', text: 'text-gray-700 dark:text-gray-400', label: 'Draft' },
+            reviewing: { bg: 'bg-blue-100 dark:bg-blue-500/20', text: 'text-blue-700 dark:text-blue-400', label: 'Reviewing' },
+            decided: { bg: 'bg-purple-100 dark:bg-purple-500/20', text: 'text-purple-700 dark:text-purple-400', label: 'Decided' },
         };
         const config = statusColors[status as keyof typeof statusColors] || statusColors.draft;
         return (
@@ -100,30 +100,30 @@ export default function LaunchBoardsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
+            <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#13151a]">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
             {/* Header */}
-            <div className="bg-[#141b2d] border-b border-white/10 px-6 py-4">
+            <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-white/10 px-6 py-4">
                 <div className="max-w-6xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => router.push(`/${projectSlug}/dashboard`)}
-                            className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                         >
-                            <ArrowLeft className="w-5 h-5 text-gray-400" />
+                            <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         </button>
                         <div>
-                            <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                                <Rocket className="w-5 h-5 text-teal-400" />
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <Rocket className="w-5 h-5 text-teal-500 dark:text-teal-400" />
                                 Launch Go/No-Go
                             </h1>
-                            <p className="text-sm text-gray-400">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 AI-powered launch readiness assessment
                             </p>
                         </div>
@@ -142,9 +142,9 @@ export default function LaunchBoardsPage() {
             <div className="max-w-6xl mx-auto p-6">
                 {boards.length === 0 ? (
                     <div className="text-center py-16">
-                        <Rocket className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-white mb-2">No launch boards yet</h3>
-                        <p className="text-gray-400 mb-6">
+                        <Rocket className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No launch boards yet</h3>
+                        <p className="text-gray-500 dark:text-gray-400 mb-6">
                             Create a Go/No-Go board to assess launch readiness with AI insights
                         </p>
                         <Button
@@ -161,12 +161,12 @@ export default function LaunchBoardsPage() {
                             <div
                                 key={board.id}
                                 onClick={() => router.push(`/${projectSlug}/launch/${board.id}`)}
-                                className="bg-[#141b2d] rounded-xl p-5 border border-white/10 hover:border-teal-500/50 cursor-pointer transition-all group"
+                                className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-white/10 hover:border-teal-500/50 cursor-pointer transition-all group"
                             >
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-2">
                                         {getStatusIcon(board.status, board.decision ?? undefined)}
-                                        <h3 className="font-semibold text-white group-hover:text-teal-400 transition-colors">
+                                        <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-teal-500 dark:group-hover:text-teal-400 transition-colors">
                                             {board.title}
                                         </h3>
                                     </div>
@@ -174,14 +174,14 @@ export default function LaunchBoardsPage() {
                                 </div>
 
                                 {board.description && (
-                                    <p className="text-sm text-gray-400 mb-3 line-clamp-2">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
                                         {board.description}
                                     </p>
                                 )}
 
                                 <div className="flex items-center justify-between">
                                     {board.target_date && (
-                                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                        <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
                                             <Calendar className="w-3.5 h-3.5" />
                                             {new Date(board.target_date).toLocaleDateString()}
                                         </div>

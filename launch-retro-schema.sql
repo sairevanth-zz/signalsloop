@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS launch_boards (
   decision_at TIMESTAMPTZ,
   decision_notes TEXT,
   overall_score INTEGER, -- Calculated 0-100
+  share_token TEXT UNIQUE, -- For public sharing
+  is_public BOOLEAN DEFAULT FALSE,
   created_by UUID REFERENCES auth.users(id),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
