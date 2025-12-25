@@ -2,14 +2,24 @@
 
 /**
  * Create New Poll Page
+ * Supports pre-filling from Knowledge Gap suggestions via sessionStorage
  */
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PollBuilder } from '@/components/polls/PollBuilder';
 import { toast } from 'sonner';
+import type { CreatePollInput } from '@/types/polls';
+
+interface PrefillData {
+    title?: string;
+    question?: string;
+    description?: string;
+    poll_type?: string;
+    options?: string[];
+}
 
 export default function NewPollPage() {
     const params = useParams();
@@ -18,13 +28,17 @@ export default function NewPollPage() {
     const slug = params?.slug as string;
 
     const themeId = searchParams?.get('themeId') || undefined;
+    const isPrefill = searchParams?.get('prefill') === 'true';
 
     const [projectId, setProjectId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [initialData, setInitialData] = useState<Partial<CreatePollInput> | null>(null);
+    const [showPrefillBanner, setShowPrefillBanner] = useState(false);
 
     useEffect(() => {
         loadProject();
-    }, [slug]);
+        loadPrefillData();
+    }, [slug, isPrefill]);
 
     const loadProject = async () => {
         try {
@@ -39,6 +53,39 @@ export default function NewPollPage() {
             toast.error('Failed to load project');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadPrefillData = () => {
+        if (!isPrefill) return;
+
+        try {
+            const prefillStr = sessionStorage.getItem('prefillPoll');
+            if (prefillStr) {
+                const prefill: PrefillData = JSON.parse(prefillStr);
+
+                // Convert to CreatePollInput format
+                const pollData: Partial<CreatePollInput> = {
+                    title: prefill.title || prefill.question || '',
+                    description: prefill.description || `Poll suggested by AI based on detected knowledge gaps.`,
+                    poll_type: (prefill.poll_type as any) || 'single_choice',
+                    options: prefill.options?.map(opt => ({
+                        option_text: opt,
+                        description: ''
+                    })) || [],
+                    allow_anonymous: true,
+                };
+
+                setInitialData(pollData);
+                setShowPrefillBanner(true);
+
+                // Clear the sessionStorage after reading
+                sessionStorage.removeItem('prefillPoll');
+
+                toast.success('Poll fields pre-filled from AI suggestion!');
+            }
+        } catch (error) {
+            console.error('Error loading prefill data:', error);
         }
     };
 
@@ -74,10 +121,27 @@ export default function NewPollPage() {
                     Back to Polls
                 </Button>
 
+                {/* AI Pre-fill Banner */}
+                {showPrefillBanner && (
+                    <div className="mb-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg flex items-start gap-3">
+                        <Sparkles className="w-5 h-5 text-purple-500 mt-0.5" />
+                        <div>
+                            <p className="font-medium text-purple-600 dark:text-purple-400">
+                                AI-Suggested Poll
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                This poll was pre-filled based on a detected knowledge gap.
+                                Review and adjust the options before publishing.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Poll Builder */}
                 <PollBuilder
                     projectId={projectId}
                     themeId={themeId}
+                    initialData={initialData || undefined}
                     onSave={handleSave}
                     onCancel={handleCancel}
                 />
@@ -85,3 +149,4 @@ export default function NewPollPage() {
         </div>
     );
 }
+
