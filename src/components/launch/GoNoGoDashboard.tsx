@@ -8,7 +8,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Share2, Sparkles, ArrowLeft, FileDown, FileSpreadsheet } from 'lucide-react';
+import { Share2, Sparkles, ArrowLeft, FileDown, FileSpreadsheet, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -299,6 +299,65 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
         }
     };
 
+    // Add customer quote
+    const handleAddQuote = async (dimensionId: string, text: string, customer: string, mrr?: string) => {
+        try {
+            const quote = { text, customer, mrr: mrr || 'N/A' };
+            const response = await fetch(`/api/launch/${boardId}/dimensions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dimensionId, quote }),
+            });
+
+            if (!response.ok) throw new Error('Failed to add quote');
+
+            setBoard(prev => prev ? {
+                ...prev,
+                dimensions: prev.dimensions.map(d =>
+                    d.id === dimensionId
+                        ? { ...d, customer_quotes: [...(d.customer_quotes || []), quote] }
+                        : d
+                ),
+            } : null);
+            toast.success('Quote added');
+        } catch (error) {
+            toast.error('Failed to add quote');
+        }
+    };
+
+    // Update target date
+    const handleUpdateTargetDate = async (newDate: string) => {
+        try {
+            await fetch(`/api/launch/${boardId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ target_date: newDate }),
+            });
+
+            setBoard(prev => prev ? { ...prev, target_date: newDate } : null);
+            toast.success('Target date updated');
+        } catch (error) {
+            toast.error('Failed to update target date');
+        }
+    };
+
+    // Share board
+    const handleShare = async () => {
+        try {
+            const response = await fetch(`/api/launch/${boardId}/share`, {
+                method: 'POST',
+            });
+            if (!response.ok) throw new Error('Failed to share');
+            const data = await response.json();
+
+            // Copy to clipboard
+            await navigator.clipboard.writeText(data.shareUrl);
+            toast.success('Share link copied to clipboard!');
+        } catch (error) {
+            toast.error('Failed to generate share link');
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
@@ -338,9 +397,18 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
                         <span className="text-2xl">🚀</span>
                         <div>
                             <h1 className="text-lg font-bold">Go/No-Go: {board.title}</h1>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {board.target_date ? `Target: ${new Date(board.target_date).toLocaleDateString()}` : 'No target date set'}
-                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                                <Calendar className="w-3 h-3 text-gray-400" />
+                                <input
+                                    type="date"
+                                    value={board.target_date?.split('T')[0] || ''}
+                                    onChange={(e) => handleUpdateTargetDate(e.target.value)}
+                                    className="text-xs text-gray-500 dark:text-gray-400 bg-transparent border-none p-0 focus:ring-0 cursor-pointer hover:text-teal-500 dark:hover:text-teal-400 transition-colors"
+                                />
+                                {!board.target_date && (
+                                    <span className="text-xs text-gray-400 dark:text-gray-500">Set target date</span>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <div className="flex gap-2">
@@ -382,7 +450,7 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
                             <FileSpreadsheet className="w-4 h-4 mr-1" />
                             CSV
                         </Button>
-                        <Button variant="outline" size="sm" className="border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400">
+                        <Button variant="outline" size="sm" onClick={handleShare} className="border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400">
                             <Share2 className="w-4 h-4 mr-2" />
                             Share
                         </Button>
@@ -415,6 +483,7 @@ export function GoNoGoDashboard({ boardId, projectSlug }: GoNoGoDashboardProps) 
                         dimension={selectedDimensionData}
                         showAIContent={showAIContent}
                         onUpdateNotes={handleUpdateDimensionNotes}
+                        onAddQuote={handleAddQuote}
                     />
 
                     {/* Column 3: Checklist & Risks */}
