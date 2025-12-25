@@ -7,13 +7,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Sparkles, Share2 } from 'lucide-react';
+import { ArrowLeft, Sparkles, Share2, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { MetricStrip } from './MetricStrip';
 import { RetroKanban } from './RetroKanban';
 import { ActionsPanel } from './ActionsPanel';
 import { AISummaryPanel } from './AISummaryPanel';
+import { OutcomesTimeline } from './OutcomesTimeline';
+import { TemplateSelector } from './TemplateSelector';
 import type { RetroBoardWithDetails } from '@/types/retro';
 import { PERIOD_CONFIGS, getPeriodAICallout } from '@/types/retro';
 
@@ -29,6 +31,15 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
     const [showAIContent, setShowAIContent] = useState(true);
     const [isPopulating, setIsPopulating] = useState(false);
     const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+    const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+    const [outcomeItems, setOutcomeItems] = useState<Array<{
+        feature: string;
+        shipped?: string;
+        status: 'success' | 'partial' | 'failed';
+        adoption?: string;
+        predicted?: string;
+        sentiment?: string;
+    }>>([]);
 
     // Fetch board data
     useEffect(() => {
@@ -88,6 +99,23 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
             toast.error('Failed to generate summary');
         } finally {
             setIsGeneratingSummary(false);
+        }
+    };
+
+    // Share board
+    const handleShare = async () => {
+        try {
+            const response = await fetch(`/api/retro/${boardId}/share`, {
+                method: 'POST',
+            });
+            if (!response.ok) throw new Error('Failed to share');
+            const data = await response.json();
+
+            // Copy to clipboard
+            await navigator.clipboard.writeText(data.shareUrl);
+            toast.success('Share link copied to clipboard!');
+        } catch (error) {
+            toast.error('Failed to generate share link');
         }
     };
 
@@ -297,17 +325,62 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
                         >
                             🤖 AI {showAIContent ? 'ON' : 'OFF'}
                         </Button>
-                        <Button variant="outline" size="sm" className="border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleGenerateSummary}
+                            disabled={isGeneratingSummary}
+                            className="border-gray-300 dark:border-gray-700 bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/50"
+                        >
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            {isGeneratingSummary ? 'Generating...' : 'Generate Summary'}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleShare}
+                            className="border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400"
+                        >
                             <Share2 className="w-4 h-4 mr-2" />
                             Share
                         </Button>
+                    </div>
+                </div>
+
+                {/* Team Happiness & Customer Sentiment - New Section */}
+                <div className="flex items-center gap-6 mt-3 pt-3 border-t border-gray-200 dark:border-white/10">
+                    <div className="flex items-center gap-2 text-xs">
+                        <span className="text-gray-500 dark:text-gray-400">TEAM HAPPINESS</span>
+                        <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                            {board.team_happiness?.toFixed(1) || 'N/A'}
+                            <span className="text-[10px] text-gray-400 ml-0.5">/10</span>
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                        <span className="text-gray-500 dark:text-gray-400">CUSTOMER SENTIMENT</span>
+                        <span className="text-lg font-bold text-teal-600 dark:text-teal-400">
+                            {board.customer_sentiment?.toFixed(2) || 'N/A'}
+                            <span className="text-[10px] text-gray-400 ml-0.5">correlation</span>
+                        </span>
                     </div>
                 </div>
             </div>
 
             {/* Main Content */}
             <div className="p-5 max-w-[1800px] mx-auto">
-                <div className="grid grid-cols-[1fr_300px] gap-4">
+                {/* Template Selector - New Section */}
+                <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold tracking-wide">TEMPLATE</span>
+                        <TemplateSelector
+                            templates={periodConfig.templates}
+                            selected={selectedTemplate}
+                            onSelect={setSelectedTemplate}
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-[1fr_320px] gap-4">
                     {/* Left Side - Kanban */}
                     <div>
                         {/* Metric Strip */}
@@ -333,7 +406,7 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
                         />
                     </div>
 
-                    {/* Right Side - Actions & Summary */}
+                    {/* Right Side - Actions, Outcomes & Summary */}
                     <div className="space-y-4">
                         <ActionsPanel
                             actions={board.actions}
@@ -341,6 +414,11 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
                             onAddAction={handleAddAction}
                             onDeleteAction={handleDeleteAction}
                         />
+
+                        {/* Outcomes Timeline - New Component */}
+                        {showAIContent && (
+                            <OutcomesTimeline items={outcomeItems} showAI={showAIContent} />
+                        )}
 
                         <AISummaryPanel
                             summary={board.ai_summary}

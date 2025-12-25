@@ -9,3 +9,6 @@ export { MetricStrip } from './MetricStrip';
 export { RetroKanban } from './RetroKanban';
 export { ActionsPanel } from './ActionsPanel';
 export { AISummaryPanel } from './AISummaryPanel';
+export { OutcomesTimeline } from './OutcomesTimeline';
+export { TemplateSelector } from './TemplateSelector';
+

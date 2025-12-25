@@ -161,22 +161,22 @@ export default function NewRetroPage() {
     const periodConfig = PERIOD_CONFIGS[formData.period_type];
 
     return (
-        <div className="min-h-screen bg-[#13151a]">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
             {/* Header */}
-            <div className="bg-[#141b2d] border-b border-white/10 px-6 py-4">
+            <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-white/10 px-6 py-4">
                 <div className="max-w-2xl mx-auto flex items-center gap-4">
                     <button
                         onClick={() => router.push(`/${projectSlug}/retro`)}
-                        className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5 text-gray-400" />
+                        <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                     </button>
                     <div>
-                        <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                            <History className="w-5 h-5 text-purple-400" />
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <History className="w-5 h-5 text-purple-500 dark:text-purple-400" />
                             New Retrospective
                         </h1>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                             Create a period-aware retrospective with AI insights
                         </p>
                     </div>
@@ -187,35 +187,35 @@ export default function NewRetroPage() {
             <div className="max-w-2xl mx-auto p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Period Selection */}
-                    <div className="bg-[#141b2d] rounded-xl p-6 border border-white/10">
-                        <Label className="text-white mb-3 block">Period Type</Label>
+                    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-200 dark:border-white/10">
+                        <Label className="text-gray-900 dark:text-white mb-3 block">Period Type</Label>
                         <PeriodSelector
-                            selected={formData.period_type}
-                            onSelect={(period) => setFormData({ ...formData, period_type: period })}
+                            value={formData.period_type}
+                            onChange={(period: RetroPeriod) => setFormData({ ...formData, period_type: period })}
                         />
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                             {periodConfig.duration} • Templates: {periodConfig.templates.slice(0, 2).join(', ')}
                         </p>
                     </div>
 
-                    <div className="bg-[#141b2d] rounded-xl p-6 border border-white/10">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-200 dark:border-white/10">
                         <div className="space-y-4">
                             <div>
-                                <Label htmlFor="title" className="text-white">
+                                <Label htmlFor="title" className="text-gray-900 dark:text-white">
                                     Title *
                                 </Label>
                                 <Input
                                     id="title"
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    placeholder="e.g., Q4 2024 QBR"
-                                    className="mt-1.5 bg-[#0a0f1a] border-gray-700"
+                                    placeholder={`e.g., Q4 2024 ${periodConfig.label}`}
+                                    className="mt-1.5 bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-gray-700"
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="start_date" className="text-white">
+                                    <Label htmlFor="start_date" className="text-gray-900 dark:text-white">
                                         Start Date *
                                     </Label>
                                     <Input
@@ -223,11 +223,11 @@ export default function NewRetroPage() {
                                         type="date"
                                         value={formData.start_date}
                                         onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                                        className="mt-1.5 bg-[#0a0f1a] border-gray-700"
+                                        className="mt-1.5 bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-gray-700"
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="end_date" className="text-white">
+                                    <Label htmlFor="end_date" className="text-gray-900 dark:text-white">
                                         End Date *
                                     </Label>
                                     <Input
@@ -235,29 +235,25 @@ export default function NewRetroPage() {
                                         type="date"
                                         value={formData.end_date}
                                         onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                                        className="mt-1.5 bg-[#0a0f1a] border-gray-700"
+                                        className="mt-1.5 bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-gray-700"
                                     />
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Info Card */}
+                    {/* Info Card - Dynamic based on period */}
                     <div
-                        className="rounded-xl p-4 border"
-                        style={{
-                            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.1))',
-                            borderColor: 'rgba(139, 92, 246, 0.3)',
-                        }}
+                        className="rounded-xl p-4 border bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-500/30"
                     >
                         <div className="flex items-start gap-3">
                             <span className="text-xl">{periodConfig.icon}</span>
                             <div>
-                                <h4 className="font-semibold text-white text-sm mb-1">{periodConfig.label} Retrospectives</h4>
-                                <p className="text-xs text-gray-400 mb-2">
+                                <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">{periodConfig.label} Retrospectives</h4>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                                     Columns: {PERIOD_CONFIGS[formData.period_type].defaultColumns.map(c => c.title).join(' • ')}
                                 </p>
-                                <p className="text-xs text-gray-400">
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
                                     Default Metrics: {periodConfig.defaultMetricLabels.join(', ')}
                                 </p>
                             </div>
@@ -270,7 +266,7 @@ export default function NewRetroPage() {
                             type="button"
                             variant="outline"
                             onClick={() => router.push(`/${projectSlug}/retro`)}
-                            className="flex-1 border-gray-700"
+                            className="flex-1 border-gray-300 dark:border-gray-700"
                         >
                             Cancel
                         </Button>
