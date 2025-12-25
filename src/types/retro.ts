@@ -119,6 +119,143 @@ export const PERIOD_AI_CALLOUTS: Record<RetroPeriod, string> = {
     custom: 'Custom periods let you analyze any timeframe. AI adapts insights based on the selected date range and available data.',
 };
 
+// Template configurations with focus areas and prompts
+export interface TemplateConfig {
+    id: string;
+    name: string;
+    description: string;
+    focusAreas: string[];
+    aiPromptHint: string;
+    columnHighlights?: string[]; // Which column keys to highlight for this template
+}
+
+export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
+    // QBR Templates
+    'OKR Review': {
+        id: 'okr-review',
+        name: 'OKR Review',
+        description: 'Review Objectives and Key Results progress',
+        focusAreas: ['Key Results achieved', 'OKR score', 'Blockers to goals'],
+        aiPromptHint: 'Focus on OKR progress, goal completion rates, and objective alignment',
+        columnHighlights: ['wins', 'misses'],
+    },
+    'Strategic Themes': {
+        id: 'strategic-themes',
+        name: 'Strategic Themes',
+        description: 'Analyze strategic initiatives and themes',
+        focusAreas: ['Theme progress', 'Strategic alignment', 'Resource allocation'],
+        aiPromptHint: 'Analyze strategic theme execution and cross-cutting initiatives',
+        columnHighlights: ['wins', 'insights'],
+    },
+    'Competitive Position': {
+        id: 'competitive-position',
+        name: 'Competitive Position',
+        description: 'Evaluate competitive landscape and positioning',
+        focusAreas: ['Competitor moves', 'Market share', 'Differentiation'],
+        aiPromptHint: 'Surface competitive intel, market movements, and positioning changes',
+        columnHighlights: ['insights', 'next'],
+    },
+    'Customer Journey': {
+        id: 'customer-journey',
+        name: 'Customer Journey',
+        description: 'Review customer experience and feedback',
+        focusAreas: ['Customer feedback themes', 'Journey friction points', 'NPS/CSAT trends'],
+        aiPromptHint: 'Focus on customer experience, feedback patterns, and journey improvements',
+        columnHighlights: ['misses', 'next'],
+    },
+    // Sprint Templates
+    'Start/Stop/Continue': {
+        id: 'start-stop-continue',
+        name: 'Start/Stop/Continue',
+        description: 'Classic retrospective format',
+        focusAreas: ['New practices to adopt', 'Practices to drop', 'Successful practices'],
+        aiPromptHint: 'Categorize insights into start, stop, and continue actions',
+    },
+    'Mad/Sad/Glad': {
+        id: 'mad-sad-glad',
+        name: 'Mad/Sad/Glad',
+        description: 'Emotion-based retrospective',
+        focusAreas: ['Frustrations', 'Disappointments', 'Celebrations'],
+        aiPromptHint: 'Categorize insights by emotional response and sentiment',
+    },
+    '4Ls': {
+        id: '4ls',
+        name: '4Ls',
+        description: 'Liked, Learned, Lacked, Longed For',
+        focusAreas: ['Liked', 'Learned', 'Lacked', 'Longed For'],
+        aiPromptHint: 'Organize feedback into the 4Ls framework',
+    },
+    'Sailboat': {
+        id: 'sailboat',
+        name: 'Sailboat',
+        description: 'Visual metaphor retrospective',
+        focusAreas: ['Wind (helps)', 'Anchor (slows)', 'Rocks (risks)', 'Island (goals)'],
+        aiPromptHint: 'Use sailboat metaphor: wind, anchors, rocks, and destination island',
+    },
+    // Monthly Templates
+    "What Worked/Didn't/Learned": {
+        id: 'what-worked',
+        name: "What Worked/Didn't/Learned",
+        description: 'Practical reflection format',
+        focusAreas: ['Successes', 'Failures', 'Lessons'],
+        aiPromptHint: 'Organize into what worked well, what failed, and key learnings',
+    },
+    'Goals Review': {
+        id: 'goals-review',
+        name: 'Goals Review',
+        description: 'Monthly goals assessment',
+        focusAreas: ['Goal completion', 'Blockers', 'Next month priorities'],
+        aiPromptHint: 'Review monthly goals, completion rates, and carry-over items',
+    },
+    'Customer Health': {
+        id: 'customer-health',
+        name: 'Customer Health',
+        description: 'Customer success metrics review',
+        focusAreas: ['At-risk accounts', 'Churn signals', 'Success stories'],
+        aiPromptHint: 'Focus on customer health scores, risk signals, and retention',
+    },
+    'Team Performance': {
+        id: 'team-performance',
+        name: 'Team Performance',
+        description: 'Team metrics and morale',
+        focusAreas: ['Velocity', 'Quality', 'Team sentiment'],
+        aiPromptHint: 'Review team metrics, burnout signals, and performance trends',
+    },
+    // Yearly Templates
+    'Year in Review': {
+        id: 'year-review',
+        name: 'Year in Review',
+        description: 'Annual accomplishments summary',
+        focusAreas: ['Major milestones', 'Growth metrics', 'Team evolution'],
+        aiPromptHint: 'Summarize yearly achievements, growth, and transformation',
+    },
+    'Strategic Wins/Misses': {
+        id: 'strategic-wins-misses',
+        name: 'Strategic Wins/Misses',
+        description: 'Year-long strategic assessment',
+        focusAreas: ['Strategic wins', 'Strategic misses', 'Pivot decisions'],
+        aiPromptHint: 'Evaluate major strategic decisions and their outcomes',
+    },
+    'Culture & Process': {
+        id: 'culture-process',
+        name: 'Culture & Process',
+        description: 'Team culture evolution',
+        focusAreas: ['Cultural strengths', 'Process improvements', 'Values alignment'],
+        aiPromptHint: 'Review cultural evolution and process maturity',
+    },
+    'Vision Alignment': {
+        id: 'vision-alignment',
+        name: 'Vision Alignment',
+        description: 'Vision and roadmap review',
+        focusAreas: ['Vision progress', 'Roadmap accuracy', 'Direction changes'],
+        aiPromptHint: 'Assess vision alignment and roadmap execution',
+    },
+};
+
+export function getTemplateConfig(templateName: string): TemplateConfig | undefined {
+    return TEMPLATE_CONFIGS[templateName];
+}
+
 // ============================================================================
 // Database Models
 // ============================================================================

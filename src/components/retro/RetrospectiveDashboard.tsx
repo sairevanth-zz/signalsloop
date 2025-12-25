@@ -5,9 +5,9 @@
  * Period-aware retrospective tool with dynamic columns and AI insights
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Sparkles, Share2, FileDown } from 'lucide-react';
+import { ArrowLeft, Sparkles, Share2, FileDown, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { MetricStrip } from './MetricStrip';
@@ -17,7 +17,7 @@ import { AISummaryPanel } from './AISummaryPanel';
 import { OutcomesTimeline } from './OutcomesTimeline';
 import { TemplateSelector } from './TemplateSelector';
 import type { RetroBoardWithDetails } from '@/types/retro';
-import { PERIOD_CONFIGS, getPeriodAICallout } from '@/types/retro';
+import { PERIOD_CONFIGS, getPeriodAICallout, getTemplateConfig } from '@/types/retro';
 
 interface RetrospectiveDashboardProps {
     boardId: string;
@@ -378,7 +378,43 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
                             onSelect={setSelectedTemplate}
                         />
                     </div>
+                    {selectedTemplate && getTemplateConfig(selectedTemplate) && (
+                        <div className="flex items-center gap-2 text-xs text-purple-600 dark:text-purple-400">
+                            <Target className="w-3.5 h-3.5" />
+                            <span className="font-medium">Focus:</span>
+                            <span className="text-gray-600 dark:text-gray-400">
+                                {getTemplateConfig(selectedTemplate)?.focusAreas.slice(0, 3).join(' • ')}
+                            </span>
+                        </div>
+                    )}
                 </div>
+
+                {/* Template Info Banner */}
+                {selectedTemplate && getTemplateConfig(selectedTemplate) && (
+                    <div className="mb-4 bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-500/30 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                            <Target className="w-4 h-4 text-purple-500 mt-0.5" />
+                            <div>
+                                <h4 className="text-sm font-semibold text-purple-700 dark:text-purple-400">
+                                    {getTemplateConfig(selectedTemplate)?.name} Template
+                                </h4>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                                    {getTemplateConfig(selectedTemplate)?.description}
+                                </p>
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                    {getTemplateConfig(selectedTemplate)?.focusAreas.map((area, idx) => (
+                                        <span
+                                            key={idx}
+                                            className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400"
+                                        >
+                                            {area}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-[1fr_320px] gap-4">
                     {/* Left Side - Kanban */}
@@ -402,7 +438,8 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
                             onAddCard={handleAddCard}
                             onDeleteCard={handleDeleteCard}
                             onVoteCard={handleVoteCard}
-                            onCreateAction={(cardId, content) => handleAddAction(content, cardId)}
+                            onCreateAction={(cardId: string, content: string) => handleAddAction(content, cardId)}
+                            highlightedColumnKeys={selectedTemplate ? getTemplateConfig(selectedTemplate)?.columnHighlights : undefined}
                         />
                     </div>
 

@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { Plus, ThumbsUp, ArrowRight, Zap, Trash2 } from 'lucide-react';
+import { Plus, ThumbsUp, ArrowRight, Zap, Trash2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -19,9 +19,10 @@ interface RetroKanbanProps {
     onDeleteCard?: (cardId: string, columnId: string) => void;
     onVoteCard: (cardId: string) => void;
     onCreateAction: (cardId: string, content: string) => void;
+    highlightedColumnKeys?: string[]; // Column keys to highlight based on selected template
 }
 
-export function RetroKanban({ columns, showAIContent, onAddCard, onDeleteCard, onVoteCard, onCreateAction }: RetroKanbanProps) {
+export function RetroKanban({ columns, showAIContent, onAddCard, onDeleteCard, onVoteCard, onCreateAction, highlightedColumnKeys }: RetroKanbanProps) {
     const [addingTo, setAddingTo] = useState<string | null>(null);
     const [newContent, setNewContent] = useState('');
 
@@ -55,14 +56,20 @@ export function RetroKanban({ columns, showAIContent, onAddCard, onDeleteCard, o
         }
     };
 
+    const isHighlighted = (columnKey: string): boolean => {
+        if (!highlightedColumnKeys || highlightedColumnKeys.length === 0) return false;
+        return highlightedColumnKeys.includes(columnKey);
+    };
+
     return (
         <div className="grid grid-cols-4 gap-3">
             {columns.map((column) => (
                 <div
                     key={column.id}
                     className={cn(
-                        'bg-white dark:bg-slate-800 rounded-xl border-t-2 min-h-[300px]',
-                        getColumnColor(column.color)
+                        'bg-white dark:bg-slate-800 rounded-xl border-t-2 min-h-[300px] transition-all',
+                        getColumnColor(column.color),
+                        isHighlighted(column.column_key) && 'ring-2 ring-purple-400 dark:ring-purple-500 ring-offset-2 dark:ring-offset-slate-900 shadow-lg shadow-purple-500/10'
                     )}
                 >
                     {/* Column Header */}
@@ -75,6 +82,11 @@ export function RetroKanban({ columns, showAIContent, onAddCard, onDeleteCard, o
                             <span className="text-[10px] bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-600 dark:text-gray-400">
                                 {column.cards.length}
                             </span>
+                            {isHighlighted(column.column_key) && (
+                                <span className="flex items-center gap-0.5 text-[9px] text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-1.5 py-0.5 rounded-full">
+                                    <Sparkles className="w-2.5 h-2.5" /> Focus
+                                </span>
+                            )}
                         </div>
                         <Button
                             variant="ghost"
