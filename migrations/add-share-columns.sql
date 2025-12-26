@@ -51,3 +51,31 @@ ON retro_card_comments(card_id);
 -- Add comments column to retro_cards for caching
 ALTER TABLE retro_cards
 ADD COLUMN IF NOT EXISTS comments JSONB DEFAULT '[]'::jsonb;
+
+-- =================================================================
+-- SUPABASE REALTIME: Enable for retro tables
+-- This enables real-time subscriptions for collaborative features
+-- =================================================================
+
+-- Enable realtime for retro_cards (for live card updates)
+ALTER PUBLICATION supabase_realtime ADD TABLE retro_cards;
+
+-- Enable realtime for retro_card_comments (for live comment updates)
+ALTER PUBLICATION supabase_realtime ADD TABLE retro_card_comments;
+
+-- Enable realtime for retro_actions (for live action updates)
+ALTER PUBLICATION supabase_realtime ADD TABLE retro_actions;
+
+-- =================================================================
+-- RLS POLICIES: Allow public access for shared boards
+-- These are needed for the service role client to work properly
+-- =================================================================
+
+-- Allow inserts from service role for public boards
+CREATE POLICY "Service role can insert cards" ON retro_cards
+  FOR INSERT TO service_role WITH CHECK (true);
+
+-- Allow updates from service role  
+CREATE POLICY "Service role can update cards" ON retro_cards
+  FOR UPDATE TO service_role USING (true) WITH CHECK (true);
+

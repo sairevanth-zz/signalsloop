@@ -3,11 +3,12 @@
 /**
  * Retrospective Dashboard
  * Period-aware retrospective tool with dynamic columns and AI insights
+ * Now with real-time collaboration via Supabase Realtime
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Sparkles, Share2, FileDown, Target } from 'lucide-react';
+import { ArrowLeft, Sparkles, Share2, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { MetricStrip } from './MetricStrip';
@@ -16,7 +17,8 @@ import { ActionsPanel } from './ActionsPanel';
 import { AISummaryPanel } from './AISummaryPanel';
 import { OutcomesTimeline } from './OutcomesTimeline';
 import { TemplateSelector } from './TemplateSelector';
-import type { RetroBoardWithDetails } from '@/types/retro';
+import { useRealtimeRetro } from '@/hooks/useRealtimeRetro';
+import type { RetroBoardWithDetails, RetroCard } from '@/types/retro';
 import { PERIOD_CONFIGS, getPeriodAICallout, getTemplateConfig } from '@/types/retro';
 
 interface RetrospectiveDashboardProps {
@@ -42,22 +44,105 @@ export function RetrospectiveDashboard({ boardId, projectSlug }: RetrospectiveDa
     }>>([]);
 
     // Fetch board data
-    useEffect(() => {
-        async function fetchBoard() {
-            try {
-                const response = await fetch(`/api/retro/${boardId}`);
-                if (!response.ok) throw new Error('Failed to fetch board');
-                const data = await response.json();
-                setBoard(data.board);
-            } catch (error) {
-                console.error('Error fetching board:', error);
-                toast.error('Failed to load retrospective');
-            } finally {
-                setLoading(false);
-            }
+    const fetchBoard = useCallback(async () => {
+        try {
+            const response = await fetch(`/api/retro/${boardId}`);
+            if (!response.ok) throw new Error('Failed to fetch board');
+            const data = await response.json();
+            setBoard(data.board);
+        } catch (error) {
+            console.error('Error fetching board:', error);
+            toast.error('Failed to load retrospective');
+        } finally {
+            setLoading(false);
         }
-        fetchBoard();
     }, [boardId]);
+
+    useEffect(() => {
+        fetchBoard();
+    }, [fetchBoard]);
+
+    // Real-time collaboration handlers
+    const handleRealtimeCardAdded = useCallback((card: Record<string, unknown>) => {
+        setBoard(prev => {
+            if (!prev) return null;
+            const columnId = card.column_id as string;
+            return {
+                ...prev,
+                columns: prev.columns.map(col =>
+                    col.id === columnId
+                        ? { ...col, cards: [card as unknown as RetroCard, ...col.cards] }
+                        : col
+                ),
+            };
+        });
+        toast.success('New card added', { duration: 2000 });
+    }, []);
+
+    const handleRealtimeVoteUpdated = useCallback((cardId: string, newCount: number) => {
+        setBoard(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                columns: prev.columns.map(col => ({
+                    ...col,
+                    cards: col.cards.map(card =>
+                        card.id === cardId
+                            ? { ...card, vote_count: newCount }
+                            : card
+                    ),
+                })),
+            };
+        });
+    }, []);
+
+    const handleRealtimeCommentAdded = useCallback((cardId: string, comment: Record<string, unknown>) => {
+        setBoard(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                columns: prev.columns.map(col => ({
+                    ...col,
+                    cards: col.cards.map(card =>
+                        card.id === cardId
+                            ? {
+                                ...card,
+                                comments: [...(card.comments || []), {
+                                    id: comment.id as string,
+                                    text: comment.text as string,
+                                    author: comment.author as string,
+                                }],
+                            }
+                            : card
+                    ),
+                })),
+            };
+        });
+        toast.info('New comment added', { duration: 2000 });
+    }, []);
+
+    const handleRealtimeCardDeleted = useCallback((cardId: string) => {
+        setBoard(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                columns: prev.columns.map(col => ({
+                    ...col,
+                    cards: col.cards.filter(card => card.id !== cardId),
+                })),
+            };
+        });
+    }, []);
+
+    // Connect to realtime
+    useRealtimeRetro({
+        boardId,
+        onCardAdded: handleRealtimeCardAdded,
+        onVoteUpdated: handleRealtimeVoteUpdated,
+        onCommentAdded: handleRealtimeCommentAdded,
+        onCardDeleted: handleRealtimeCardDeleted,
+        onRefresh: fetchBoard,
+    });
 
     // Trigger AI population
     const handleAIPopulate = async () => {

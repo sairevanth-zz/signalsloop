@@ -4,14 +4,16 @@
  * Public Retrospective View Component
  * Collaborative public view for shared retrospectives
  * Allows: add cards, vote, comment without login
+ * Real-time sync via Supabase Realtime
  */
 
-import React, { useState } from 'react';
-import { Plus, ThumbsUp, MessageSquare, Send, Calendar, Users } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Plus, ThumbsUp, MessageSquare, Send, Calendar, Users, Wifi } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 import { PERIOD_CONFIGS } from '@/types/retro';
+import { useRealtimeRetro } from '@/hooks/useRealtimeRetro';
 import type { RetroBoardWithDetails, RetroCard } from '@/types/retro';
 
 interface PublicRetroViewProps {
@@ -26,8 +28,89 @@ export function PublicRetroView({ board: initialBoard, token }: PublicRetroViewP
     const [newComment, setNewComment] = useState<Record<string, string>>({});
     const [participantName, setParticipantName] = useState('');
     const [showNamePrompt, setShowNamePrompt] = useState(true);
+    const [isConnected, setIsConnected] = useState(false);
 
     const periodConfig = PERIOD_CONFIGS[board.period_type];
+
+    // Real-time handlers
+    const handleRealtimeCardAdded = useCallback((card: Record<string, unknown>) => {
+        setBoard(prev => {
+            const columnId = card.column_id as string;
+            // Avoid duplicates
+            const columnCards = prev.columns.find(c => c.id === columnId)?.cards || [];
+            if (columnCards.some(c => c.id === card.id)) return prev;
+
+            return {
+                ...prev,
+                columns: prev.columns.map(col =>
+                    col.id === columnId
+                        ? { ...col, cards: [card as unknown as RetroCard, ...col.cards] }
+                        : col
+                ),
+            };
+        });
+        toast.success('New card added by collaborator', { duration: 2000 });
+    }, []);
+
+    const handleRealtimeVoteUpdated = useCallback((cardId: string, newCount: number) => {
+        setBoard(prev => ({
+            ...prev,
+            columns: prev.columns.map(col => ({
+                ...col,
+                cards: col.cards.map(card =>
+                    card.id === cardId
+                        ? { ...card, vote_count: newCount }
+                        : card
+                ),
+            })),
+        }));
+    }, []);
+
+    const handleRealtimeCommentAdded = useCallback((cardId: string, comment: Record<string, unknown>) => {
+        setBoard(prev => ({
+            ...prev,
+            columns: prev.columns.map(col => ({
+                ...col,
+                cards: col.cards.map(card =>
+                    card.id === cardId
+                        ? {
+                            ...card,
+                            comments: [...(card.comments || []), {
+                                id: comment.id as string,
+                                text: comment.text as string,
+                                author: comment.author as string,
+                            }],
+                        }
+                        : card
+                ),
+            })),
+        }));
+        toast.info('New comment added', { duration: 2000 });
+    }, []);
+
+    const handleRealtimeCardDeleted = useCallback((cardId: string) => {
+        setBoard(prev => ({
+            ...prev,
+            columns: prev.columns.map(col => ({
+                ...col,
+                cards: col.cards.filter(card => card.id !== cardId),
+            })),
+        }));
+    }, []);
+
+    // Connect to realtime
+    useRealtimeRetro({
+        boardId: board.id,
+        onCardAdded: handleRealtimeCardAdded,
+        onVoteUpdated: handleRealtimeVoteUpdated,
+        onCommentAdded: handleRealtimeCommentAdded,
+        onCardDeleted: handleRealtimeCardDeleted,
+    });
+
+    // Show connected status
+    useEffect(() => {
+        setIsConnected(true);
+    }, []);
 
     // Add a card
     const handleAddCard = async (columnId: string) => {
