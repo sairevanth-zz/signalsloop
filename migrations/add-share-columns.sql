@@ -36,6 +36,10 @@ CREATE TABLE IF NOT EXISTS retro_card_comments (
 -- Enable RLS but allow public access for shared boards
 ALTER TABLE retro_card_comments ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies first to avoid errors
+DROP POLICY IF EXISTS "Anyone can add comments to cards" ON retro_card_comments;
+DROP POLICY IF EXISTS "Anyone can view comments" ON retro_card_comments;
+
 -- Policy to allow anyone to insert comments (for public boards)
 CREATE POLICY "Anyone can add comments to cards" ON retro_card_comments
   FOR INSERT WITH CHECK (true);
@@ -58,18 +62,36 @@ ADD COLUMN IF NOT EXISTS comments JSONB DEFAULT '[]'::jsonb;
 -- =================================================================
 
 -- Enable realtime for retro_cards (for live card updates)
-ALTER PUBLICATION supabase_realtime ADD TABLE retro_cards;
+-- Note: These may fail if already added, safe to ignore
+DO $$ 
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE retro_cards;
+EXCEPTION WHEN duplicate_object THEN
+  RAISE NOTICE 'retro_cards already in publication';
+END $$;
 
--- Enable realtime for retro_card_comments (for live comment updates)
-ALTER PUBLICATION supabase_realtime ADD TABLE retro_card_comments;
+DO $$ 
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE retro_card_comments;
+EXCEPTION WHEN duplicate_object THEN
+  RAISE NOTICE 'retro_card_comments already in publication';
+END $$;
 
--- Enable realtime for retro_actions (for live action updates)
-ALTER PUBLICATION supabase_realtime ADD TABLE retro_actions;
+DO $$ 
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE retro_actions;
+EXCEPTION WHEN duplicate_object THEN
+  RAISE NOTICE 'retro_actions already in publication';
+END $$;
 
 -- =================================================================
 -- RLS POLICIES: Allow public access for shared boards
 -- These are needed for the service role client to work properly
 -- =================================================================
+
+-- Drop existing policies first
+DROP POLICY IF EXISTS "Service role can insert cards" ON retro_cards;
+DROP POLICY IF EXISTS "Service role can update cards" ON retro_cards;
 
 -- Allow inserts from service role for public boards
 CREATE POLICY "Service role can insert cards" ON retro_cards
@@ -78,4 +100,5 @@ CREATE POLICY "Service role can insert cards" ON retro_cards
 -- Allow updates from service role  
 CREATE POLICY "Service role can update cards" ON retro_cards
   FOR UPDATE TO service_role USING (true) WITH CHECK (true);
+
 
