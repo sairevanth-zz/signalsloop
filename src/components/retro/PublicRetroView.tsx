@@ -178,7 +178,7 @@ export function PublicRetroView({ board: initialBoard, token }: PublicRetroViewP
         }
     };
 
-    // Add a comment
+    // Add a comment - don't update local state, let realtime handle it
     const handleAddComment = async (cardId: string, columnId: string) => {
         const comment = newComment[cardId];
         if (!comment?.trim()) return;
@@ -195,27 +195,15 @@ export function PublicRetroView({ board: initialBoard, token }: PublicRetroViewP
             });
 
             if (!response.ok) throw new Error('Failed to add comment');
-            const data = await response.json();
 
-            setBoard(prev => ({
-                ...prev,
-                columns: prev.columns.map(col =>
-                    col.id === columnId
-                        ? {
-                            ...col,
-                            cards: col.cards.map(card =>
-                                card.id === cardId
-                                    ? { ...card, comments: [...(card.comments || []), data.comment] }
-                                    : card
-                            ),
-                        }
-                        : col
-                ),
-            }));
+            // Don't update local state - realtime will add the comment
+            // This prevents duplicates
 
             setNewComment(prev => ({ ...prev, [cardId]: '' }));
+            toast.success('Comment added!', { duration: 2000 });
         } catch (error) {
             console.error('Failed to add comment:', error);
+            toast.error('Failed to add comment');
         }
     };
 

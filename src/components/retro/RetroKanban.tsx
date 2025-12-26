@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { Plus, ThumbsUp, ArrowRight, Zap, Trash2, Sparkles } from 'lucide-react';
+import { Plus, ThumbsUp, ArrowRight, Zap, Trash2, Sparkles, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -214,6 +214,14 @@ function CardItem({ card, columnId, showAIContent, onVote, onDelete, onCreateAct
                         <span>{card.vote_count}</span>
                     </button>
 
+                    {/* Comment count */}
+                    {card.comments && card.comments.length > 0 && (
+                        <span className="flex items-center gap-0.5 text-[10px] text-purple-500 dark:text-purple-400">
+                            <MessageSquare className="w-3 h-3" />
+                            <span>{card.comments.length}</span>
+                        </span>
+                    )}
+
                     {/* Action buttons (shown on hover) */}
                     {showActions && (
                         <>
@@ -237,8 +245,21 @@ function CardItem({ card, columnId, showAIContent, onVote, onDelete, onCreateAct
                     )}
                 </div>
             </div>
+
+            {/* Comments Section */}
+            {card.comments && card.comments.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 space-y-1">
+                    {card.comments.map((comment: { id: string; text: string; author: string }) => (
+                        <div key={comment.id} className="text-[10px] bg-white dark:bg-slate-800 rounded px-2 py-1">
+                            <span className="font-medium text-purple-600 dark:text-purple-400">{comment.author}:</span>
+                            <span className="text-gray-600 dark:text-gray-300 ml-1">{comment.text}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
 
 export default RetroKanban;
+
