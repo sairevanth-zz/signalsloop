@@ -113,6 +113,14 @@ export async function getRetroBoard(
         .in('column_id', columnIds)
         .order('created_at', { ascending: false });
 
+    // Fetch comments for all cards
+    const cardIds = (cards || []).map(c => c.id);
+    const { data: comments } = await supabase
+        .from('retro_card_comments')
+        .select('*')
+        .in('card_id', cardIds)
+        .order('created_at', { ascending: true });
+
     // Fetch actions
     const { data: actions } = await supabase
         .from('retro_actions')
@@ -120,10 +128,18 @@ export async function getRetroBoard(
         .eq('board_id', boardId)
         .order('created_at', { ascending: false });
 
+    // Build cards with comments
+    const cardsWithComments = (cards || []).map(card => ({
+        ...card,
+        comments: (comments || [])
+            .filter(c => c.card_id === card.id)
+            .map(c => ({ id: c.id, text: c.text, author: c.author })),
+    }));
+
     // Build columns with cards
     const columnsWithCards = (columns || []).map(column => ({
         ...column,
-        cards: (cards || []).filter(card => card.column_id === column.id),
+        cards: cardsWithComments.filter(card => card.column_id === column.id),
     }));
 
     return {
