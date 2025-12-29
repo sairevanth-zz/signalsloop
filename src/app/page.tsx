@@ -77,14 +77,127 @@ export default function Homepage() {
 
             {/* Desktop Nav */}
             <div className="hidden lg:flex items-center gap-9">
-              <Link href="/products" className="text-[15px] font-medium text-[#5C5C57] hover:text-[#FF4F00] transition-colors flex items-center gap-1">
-                Products
-                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
-              </Link>
-              <Link href="/solutions" className="text-[15px] font-medium text-[#5C5C57] hover:text-[#FF4F00] transition-colors flex items-center gap-1">
-                Solutions
-                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
-              </Link>
+              {/* Products Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger className="text-[15px] font-medium text-[#5C5C57] hover:text-[#FF4F00] transition-colors flex items-center gap-1 outline-none">
+                  Products
+                  <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-64 p-2 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-xl rounded-xl">
+                  <Link href="/products">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-orange-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF4F00] to-[#FF6B26] flex items-center justify-center text-white">📋</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">All Products</div>
+                        <div className="text-xs text-gray-500">Overview of all 6 hubs</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuSeparator className="my-1" />
+                  <Link href="/products/feedback-hub">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-orange-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF4F00] to-[#FF6B26] flex items-center justify-center text-white">📬</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">Feedback Hub</div>
+                        <div className="text-xs text-gray-500">Hunt signals across 8 platforms</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/products/spec-hub">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-amber-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C2703D] to-[#D4886A] flex items-center justify-center text-white">✏️</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">Spec Hub</div>
+                        <div className="text-xs text-gray-500">PRDs in 30 seconds</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/products/prediction-hub">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-green-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A6741] to-[#6B8E6B] flex items-center justify-center text-white">🔮</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">Prediction Hub</div>
+                        <div className="text-xs text-gray-500">Know before you build</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/products/insights-hub">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-cyan-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0091AE] to-[#00BDA5] flex items-center justify-center text-white">📊</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">Insights Hub</div>
+                        <div className="text-xs text-gray-500">See patterns humans miss</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/products/advocate-hub">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-purple-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6A5ACD] to-[#9B8FD9] flex items-center justify-center text-white">😈</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">Advocate Hub</div>
+                        <div className="text-xs text-gray-500">Challenge assumptions</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/products/stakeholder-hub">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-slate-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#2E475D] to-[#516F90] flex items-center justify-center text-white">👥</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">Stakeholder Hub</div>
+                        <div className="text-xs text-gray-500">Keep everyone aligned</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Solutions Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger className="text-[15px] font-medium text-[#5C5C57] hover:text-[#FF4F00] transition-colors flex items-center gap-1 outline-none">
+                  Solutions
+                  <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-64 p-2 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-xl rounded-xl">
+                  <Link href="/solutions">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-orange-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF4F00] to-[#FF6B26] flex items-center justify-center text-white">🎯</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">All Solutions</div>
+                        <div className="text-xs text-gray-500">See all use cases</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuSeparator className="my-1" />
+                  <Link href="/solutions/startups">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-orange-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF4F00] to-[#FF6B26] flex items-center justify-center text-white">🚀</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">For Startups</div>
+                        <div className="text-xs text-gray-500">Ship faster, learn faster</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/solutions/scaleups">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-green-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4A6741] to-[#6B8E6B] flex items-center justify-center text-white">⚡</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">For Scale-ups</div>
+                        <div className="text-xs text-gray-500">Scale decisions, not chaos</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/solutions/enterprise">
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-slate-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#2E475D] to-[#516F90] flex items-center justify-center text-white">🏢</span>
+                      <div>
+                        <div className="font-semibold text-gray-900">For Enterprise</div>
+                        <div className="text-xs text-gray-500">Governance meets agility</div>
+                      </div>
+                    </DropdownMenuItem>
+                  </Link>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Link href="/pricing" className="text-[15px] font-medium text-[#5C5C57] hover:text-[#FF4F00] transition-colors">
                 Pricing
               </Link>
