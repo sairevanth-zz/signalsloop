@@ -82,12 +82,15 @@ export default function PricingPage() {
   const comparisonFeatures = [
     { name: 'Projects', free: '1', pro: '5', premium: 'Unlimited' },
     { name: 'Feedback Items', free: '50', pro: '1,200', premium: 'Unlimited' },
-    { name: 'Team Members', free: '1', pro: '2', premium: '10' },
+    { name: 'Team Members', free: '1', pro: '5', premium: '10' },
     { name: 'AI Agents', free: '3', pro: 'All 12', premium: 'All 12' },
     { name: 'Hunter Agent Scans', free: '4/mo', pro: '30/mo', premium: '90/mo + Twitter' },
     { name: 'AI Spec Generation', free: '—', pro: '10/mo', premium: '30/mo' },
     { name: "Devil's Advocate", free: '—', pro: '5/mo', premium: '15/mo' },
     { name: 'Ask SignalsLoop', free: '—', pro: '50/mo', premium: '100/mo' },
+    { name: 'Smart Replies', free: '5/day', pro: '200/mo', premium: '1,000/mo' },
+    { name: 'Executive Briefs', free: '—', pro: '1/mo', premium: '4/mo' },
+    { name: 'API Calls', free: '—', pro: '1,000/mo', premium: '5,000/mo' },
     { name: 'Go/No-Go Dashboard', free: '—', pro: '—', premium: '✓' },
     { name: 'Outcome Attribution', free: '—', pro: '—', premium: '✓' },
     { name: 'Custom Domain', free: '—', pro: '✓', premium: '✓' },
@@ -112,7 +115,7 @@ export default function PricingPage() {
         style={{ background: 'rgba(255, 250, 245, 0.9)', backdropFilter: 'blur(20px)' }}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-[72px]">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-[#FF4F00] rounded-xl flex items-center justify-center text-white text-lg">⚡</div>
+            <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-9 h-9 rounded-xl" />
             <span className="font-[family-name:var(--font-fraunces)] font-semibold text-[22px] text-[#2D2D2A]">SignalsLoop</span>
           </Link>
           <div className="hidden lg:flex items-center gap-8 text-[15px] font-medium text-[#5C5C57]">
@@ -229,8 +232,8 @@ export default function PricingPage() {
               <button
                 onClick={() => handleCheckout(plan.name.toLowerCase())}
                 className={`w-full py-4 text-[15px] font-semibold rounded-xl transition-all ${plan.highlight
-                    ? 'text-white bg-[#FF4F00] hover:bg-[#E64700] shadow-[0_2px_8px_rgba(255,79,0,0.25)]'
-                    : 'text-[#2D2D2A] bg-white border-[1.5px] border-[#E8E8E6] hover:border-[#FF4F00] hover:text-[#FF4F00]'
+                  ? 'text-white bg-[#FF4F00] hover:bg-[#E64700] shadow-[0_2px_8px_rgba(255,79,0,0.25)]'
+                  : 'text-[#2D2D2A] bg-white border-[1.5px] border-[#E8E8E6] hover:border-[#FF4F00] hover:text-[#FF4F00]'
                   }`}
               >
                 {plan.cta}
@@ -337,7 +340,7 @@ export default function PricingPage() {
       <footer className="py-12 px-6" style={{ background: '#1a1a18', color: 'rgba(255, 255, 255, 0.6)' }}>
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#FF4F00] rounded-lg flex items-center justify-center text-white text-sm">⚡</div>
+            <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-8 h-8 rounded-lg" />
             <span className="font-[family-name:var(--font-fraunces)] font-semibold text-lg text-white">SignalsLoop</span>
           </div>
           <div className="flex gap-6 text-sm">

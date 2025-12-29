@@ -88,13 +88,14 @@ export default function Homepage() {
               <Link href="/pricing" className="text-[15px] font-medium text-[#5C5C57] hover:text-[#FF4F00] transition-colors">
                 Pricing
               </Link>
+
+              {/* Try It Dropdown - Demos */}
               <DropdownMenu>
-                <DropdownMenuTrigger className="text-[15px] font-medium text-[#5C5C57] hover:text-[#FF4F00] transition-colors flex items-center gap-1 outline-none">
-                  Resources
+                <DropdownMenuTrigger className="text-[15px] font-medium text-[#FF4F00] hover:text-[#E64700] transition-colors flex items-center gap-1 outline-none">
+                  Try It
                   <ChevronDown className="w-3.5 h-3.5 opacity-60" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" className="w-64 p-2 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-xl rounded-xl">
-                  {/* Interactive Demos */}
                   <DropdownMenuLabel className="text-xs text-gray-400 uppercase tracking-wider px-2 py-1">
                     Interactive Demos
                   </DropdownMenuLabel>
@@ -146,15 +147,6 @@ export default function Homepage() {
                       </div>
                     </DropdownMenuItem>
                   </Link>
-                  <Link href="/demo/data-export">
-                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-cyan-50">
-                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white">📊</span>
-                      <div>
-                        <div className="font-semibold text-gray-900">Data Export</div>
-                        <div className="text-xs text-gray-500">Export & analyze data</div>
-                      </div>
-                    </DropdownMenuItem>
-                  </Link>
                   <Link href="/demo/board">
                     <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-amber-50">
                       <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white">📋</span>
@@ -164,18 +156,17 @@ export default function Homepage() {
                       </div>
                     </DropdownMenuItem>
                   </Link>
-                  <Link href="/demo/interactive">
-                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-pink-50">
-                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white">🎮</span>
-                      <div>
-                        <div className="font-semibold text-gray-900">Interactive Demo</div>
-                        <div className="text-xs text-gray-500">Full product walkthrough</div>
-                      </div>
-                    </DropdownMenuItem>
-                  </Link>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-                  {/* Documentation */}
-                  <DropdownMenuLabel className="text-xs text-gray-400 uppercase tracking-wider px-2 py-1 mt-2">
+              {/* Resources Dropdown - Docs + Learn More */}
+              <DropdownMenu>
+                <DropdownMenuTrigger className="text-[15px] font-medium text-[#5C5C57] hover:text-[#FF4F00] transition-colors flex items-center gap-1 outline-none">
+                  Resources
+                  <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-64 p-2 bg-white/95 backdrop-blur-xl border border-gray-100 shadow-xl rounded-xl">
+                  <DropdownMenuLabel className="text-xs text-gray-400 uppercase tracking-wider px-2 py-1">
                     Documentation
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="my-1" />
@@ -198,7 +189,6 @@ export default function Homepage() {
                     </DropdownMenuItem>
                   </Link>
 
-                  {/* Learn More */}
                   <DropdownMenuLabel className="text-xs text-gray-400 uppercase tracking-wider px-2 py-1 mt-2">
                     Learn More
                   </DropdownMenuLabel>

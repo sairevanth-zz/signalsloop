@@ -154,7 +154,7 @@ export default function ProductsPage() {
                 style={{ background: 'rgba(255, 250, 245, 0.9)', backdropFilter: 'blur(20px)' }}>
                 <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-[72px]">
                     <Link href="/" className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 bg-[#FF4F00] rounded-xl flex items-center justify-center text-white text-lg">⚡</div>
+                        <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-9 h-9 rounded-xl" />
                         <span className="font-[family-name:var(--font-fraunces)] font-semibold text-[22px] text-[#2D2D2A]">SignalsLoop</span>
                     </Link>
                     <div className="hidden lg:flex items-center gap-4">
@@ -201,8 +201,8 @@ export default function ProductsPage() {
                                     ))}
                                 </div>
 
-                                <Link href="/login" className="inline-flex items-center gap-2 px-6 py-3 text-[15px] font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">
-                                    Try {product.name} <ArrowRight className="w-4 h-4" />
+                                <Link href={`/products/${product.id}`} className="inline-flex items-center gap-2 px-6 py-3 text-[15px] font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">
+                                    Learn More <ArrowRight className="w-4 h-4" />
                                 </Link>
                             </div>
 
@@ -247,7 +247,7 @@ export default function ProductsPage() {
             <footer className="py-12 px-6 border-t border-black/[0.06]" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 bg-[#FF4F00] rounded-lg flex items-center justify-center text-white text-sm">⚡</div>
+                        <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-8 h-8 rounded-lg" />
                         <span className="font-[family-name:var(--font-fraunces)] font-semibold text-lg text-[#2D2D2A]">SignalsLoop</span>
                     </div>
                     <div className="text-sm text-[#8A8A85]">© 2025 SignalsLoop. All rights reserved.</div>
