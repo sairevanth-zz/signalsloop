@@ -18,6 +18,41 @@
   /* Border Colors */
   --sl-border: rgba(255, 255, 255, 0.1);
   --sl-border-teal: rgba(20, 184, 166, 0.3);
+
+  /* ========================================
+     Natural Modern Palette (Landing Pages)
+     ======================================== */
+  --cream: #FFFAF5;
+  --cream-dark: #FFF5EB;
+
+  /* Primary - Orange */
+  --orange: #FF4F00;
+  --orange-dark: #E64700;
+  --orange-light: #FF6B26;
+  --orange-pale: #FFECE0;
+
+  /* Secondary - Sage */
+  --sage: #4A6741;
+  --sage-light: #6B8E6B;
+  --sage-pale: #E8F0E8;
+
+  /* Tertiary - Terracotta */
+  --terracotta: #C2703D;
+  --terracotta-light: #D4886A;
+  --terracotta-pale: #FDF5F2;
+
+  /* Neutrals */
+  --charcoal: #2D2D2A;
+  --stone: #5C5C57;
+  --muted-gray: #8A8A85;
+  --gray-200: #E8E8E6;
+  --gray-100: #F5F5F3;
+
+  /* Warm Shadows */
+  --shadow-warm-sm: 0 1px 2px rgba(60, 50, 40, 0.04);
+  --shadow-warm-md: 0 4px 12px rgba(60, 50, 40, 0.06);
+  --shadow-warm-lg: 0 12px 24px rgba(60, 50, 40, 0.08);
+  --shadow-warm-xl: 0 20px 40px rgba(60, 50, 40, 0.1);
 }
 
 /* Light mode overrides */
@@ -123,6 +158,348 @@ div[data-dark-card] {
 
   .font-mono {
     font-family: var(--font-jetbrains), 'Courier New', monospace;
+  }
+
+  /* Natural Modern Typography */
+  .font-display-serif {
+    font-family: var(--font-fraunces), Georgia, serif;
+    letter-spacing: -0.02em;
+    font-weight: 500;
+    line-height: 1.15;
+  }
+
+  .font-body-inter {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    line-height: 1.6;
+  }
+
+  /* Natural Modern Buttons */
+  .btn-orange {
+    background: var(--orange);
+    color: white;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(255, 79, 0, 0.25);
+  }
+
+  .btn-orange:hover {
+    background: var(--orange-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 79, 0, 0.3);
+  }
+
+  .btn-orange-outline {
+    background: transparent;
+    color: var(--charcoal);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .btn-orange-outline:hover {
+    border-color: var(--orange);
+    color: var(--orange);
+  }
+
+  /* Natural Modern Backgrounds */
+  .bg-cream {
+    background-color: var(--cream);
+  }
+
+  .bg-cream-dark {
+    background-color: var(--cream-dark);
+  }
+
+  /* Orange Gradients */
+  .gradient-orange {
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 100%);
+  }
+
+  .shadow-orange {
+    box-shadow: 0 10px 40px -10px rgba(255, 79, 0, 0.4);
+  }
+
+  .shadow-orange-soft {
+    box-shadow: 0 8px 30px -8px rgba(255, 79, 0, 0.25);
+  }
+
+  /* 3D Card Flip Utilities */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .transform-style-preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  .group:hover .group-hover\:rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  /* ========================================
+     Agent Card Hover Effects - Slide-up Preview
+     ======================================== */
+  .agent-card {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    border: 1px solid transparent;
+  }
+
+  .agent-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0px 4px 8px rgba(0, 0, 0, 0.04),
+      0px 20px 40px rgba(0, 0, 0, 0.1);
+    border-color: rgba(255, 79, 0, 0.3);
+  }
+
+  .agent-preview {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.98) 80%, rgba(255, 255, 255, 0.9) 90%, transparent);
+    padding: 24px 16px 16px;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+  }
+
+  .agent-card:hover .agent-preview {
+    transform: translateY(0);
+  }
+
+  .preview-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8A8A85;
+    margin-bottom: 8px;
+  }
+
+  .preview-metric {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .preview-metric-value {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #E64700;
+  }
+
+  .preview-metric-unit {
+    font-size: 12px;
+    color: #5C5C57;
+  }
+
+  .preview-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 32px;
+  }
+
+  .preview-bars span {
+    width: 6px;
+    border-radius: 3px;
+    animation: bar-grow 1.5s ease-in-out infinite;
+  }
+
+  .preview-bars span:nth-child(1) {
+    background: #4A6741;
+    height: 40%;
+    animation-delay: 0s;
+  }
+
+  .preview-bars span:nth-child(2) {
+    background: #6B8E6B;
+    height: 65%;
+    animation-delay: 0.1s;
+  }
+
+  .preview-bars span:nth-child(3) {
+    background: #4A6741;
+    height: 50%;
+    animation-delay: 0.2s;
+  }
+
+  .preview-bars span:nth-child(4) {
+    background: #6B8E6B;
+    height: 85%;
+    animation-delay: 0.3s;
+  }
+
+  .preview-bars span:nth-child(5) {
+    background: #4A6741;
+    height: 70%;
+    animation-delay: 0.4s;
+  }
+
+  .preview-bars span:nth-child(6) {
+    background: #6B8E6B;
+    height: 55%;
+    animation-delay: 0.5s;
+  }
+
+  @keyframes bar-grow {
+
+    0%,
+    100% {
+      transform: scaleY(0.6);
+    }
+
+    50% {
+      transform: scaleY(1);
+    }
+  }
+
+  .preview-alert {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(230, 71, 0, 0.08);
+    border-radius: 10px;
+    border: 1px solid rgba(230, 71, 0, 0.15);
+  }
+
+  .preview-alert-icon {
+    font-size: 16px;
+  }
+
+  .preview-alert-text {
+    font-size: 11px;
+    font-weight: 600;
+    color: #E64700;
+  }
+
+  .preview-typing {
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 10px;
+    color: #5C5C57;
+    background: #FFF5EB;
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+
+  .preview-typing-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 12px;
+    background: #FF4F00;
+    animation: cursor-blink 0.8s infinite;
+    vertical-align: middle;
+    margin-left: 2px;
+  }
+
+  @keyframes cursor-blink {
+
+    0%,
+    50% {
+      opacity: 1;
+    }
+
+    51%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .preview-scan {
+    height: 6px;
+    background: #E8E8E6;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .preview-scan::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, #4A6741, transparent);
+    animation: scan-move 1.5s ease-in-out infinite;
+  }
+
+  @keyframes scan-move {
+    0% {
+      transform: translateX(-100%);
+    }
+
+    100% {
+      transform: translateX(350%);
+    }
+  }
+
+  .preview-pulse {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    height: 28px;
+  }
+
+  .preview-pulse span {
+    width: 5px;
+    background: #C2703D;
+    border-radius: 2px;
+    animation: pulse-bar 1s ease-in-out infinite;
+  }
+
+  .preview-pulse span:nth-child(1) {
+    height: 35%;
+    animation-delay: 0s;
+  }
+
+  .preview-pulse span:nth-child(2) {
+    height: 60%;
+    animation-delay: 0.1s;
+  }
+
+  .preview-pulse span:nth-child(3) {
+    height: 45%;
+    animation-delay: 0.2s;
+  }
+
+  .preview-pulse span:nth-child(4) {
+    height: 80%;
+    animation-delay: 0.3s;
+  }
+
+  .preview-pulse span:nth-child(5) {
+    height: 55%;
+    animation-delay: 0.4s;
+  }
+
+  @keyframes pulse-bar {
+
+    0%,
+    100% {
+      transform: scaleY(1);
+      opacity: 0.6;
+    }
+
+    50% {
+      transform: scaleY(0.5);
+      opacity: 1;
+    }
   }
 
   /* Vibrant Gradient Backgrounds - Matching Glide */

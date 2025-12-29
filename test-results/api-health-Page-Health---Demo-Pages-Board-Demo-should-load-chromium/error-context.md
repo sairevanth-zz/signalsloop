@@ -1,0 +1,89 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - img [ref=e6]
+        - generic [ref=e9]:
+          - generic [ref=e10]: 🎯 Interactive Demo - Explore All Features!
+          - generic [ref=e11]: Vote on features • Try AI analysis • Post comments • Experience the full platform
+      - button "✕" [ref=e12] [cursor=pointer]
+    - banner [ref=e13]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e18]: S
+          - generic [ref=e19]:
+            - heading "SignalsLoop Demo" [level=1] [ref=e20]
+            - paragraph [ref=e21]: Experience the complete dashboard
+        - generic [ref=e22]:
+          - link "← Back to Home" [ref=e23] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e24]:
+            - img
+            - text: Pro Demo
+          - link "Get Started" [ref=e25] [cursor=pointer]:
+            - /url: /login
+    - generic [ref=e27]:
+      - tablist [ref=e29]:
+        - tab "Feedback" [selected] [ref=e30] [cursor=pointer]:
+          - img [ref=e31]
+          - generic [ref=e33]: Feedback
+        - tab "Roadmap" [ref=e34] [cursor=pointer]:
+          - img [ref=e35]
+          - generic [ref=e37]: Roadmap
+        - tab "Analytics" [ref=e38] [cursor=pointer]:
+          - img [ref=e39]
+          - generic [ref=e41]: Analytics
+        - tab "AI Features New" [ref=e42] [cursor=pointer]:
+          - img [ref=e43]
+          - generic [ref=e46]: AI Features
+          - generic [ref=e47]: New
+        - tab "AI Test Lab" [ref=e48] [cursor=pointer]:
+          - img [ref=e49]
+          - generic [ref=e52]: AI Test Lab
+        - tab "Settings" [ref=e53] [cursor=pointer]:
+          - img [ref=e54]
+          - generic [ref=e57]: Settings
+      - tabpanel "Feedback" [ref=e58]:
+        - generic [ref=e60]:
+          - generic [ref=e62]:
+            - img [ref=e63]
+            - textbox "Search feedback..." [ref=e66]
+          - generic [ref=e67]:
+            - button "All Status" [ref=e68] [cursor=pointer]:
+              - img
+              - text: All Status
+            - button "Open" [ref=e69] [cursor=pointer]:
+              - img
+              - text: Open
+            - button "Planned" [ref=e70] [cursor=pointer]:
+              - img
+              - text: Planned
+            - button "In Progress" [ref=e71] [cursor=pointer]:
+              - img
+              - text: In Progress
+            - button "Done" [ref=e72] [cursor=pointer]:
+              - img
+              - text: Done
+          - combobox [ref=e73] [cursor=pointer]:
+            - option "Most Voted" [selected]
+            - option "Newest"
+            - option "Oldest"
+        - generic [ref=e74]:
+          - generic [ref=e75]: Demo limits
+          - generic [ref=e76]: Submit (0/5)
+          - generic [ref=e77]: AI categorize (0/10)
+          - generic [ref=e78]: AI writing (0/10)
+          - generic [ref=e79]: Votes (0/20)
+        - button "Admin Actions" [ref=e81] [cursor=pointer]:
+          - generic [ref=e82]: Admin Actions
+          - img
+        - paragraph [ref=e86]: Loading demo data...
+    - region "Notifications alt+T"
+  - region "Notifications alt+T"
+  - alert [ref=e87]
+  - iframe [ref=e88]:
+    - button "Feedback" [ref=f1e2] [cursor=pointer]
+```

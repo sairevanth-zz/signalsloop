@@ -1,0 +1,71 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - link "Back to Home" [ref=e4] [cursor=pointer]:
+      - /url: /
+      - img [ref=e5]
+      - text: Back to Home
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - img [ref=e9]
+        - generic [ref=e11]: Product Health Score
+      - heading "My Score is 78—What's Yours?" [level=1] [ref=e12]
+      - paragraph [ref=e13]: Calculate your product's health score based on feedback analysis. Share your badge and challenge other PMs!
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - text: Your Product Name
+        - textbox "e.g. MyApp, Acme Dashboard, etc." [ref=e18]
+      - generic [ref=e19]:
+        - generic [ref=e20]: Feedback Metrics
+        - generic [ref=e21]:
+          - generic [ref=e22]:
+            - generic [ref=e23]:
+              - img [ref=e24]
+              - text: Overall Sentiment
+            - generic [ref=e26]: +0.20 (Mixed)
+          - slider [ref=e30] [cursor=pointer]: "0.2"
+          - paragraph [ref=e31]: "-1 (very negative) to +1 (very positive)"
+        - generic [ref=e32]:
+          - generic [ref=e33]:
+            - img [ref=e34]
+            - text: Sentiment Trend
+          - generic [ref=e37]:
+            - button "Improving" [ref=e38] [cursor=pointer]:
+              - img
+              - text: Improving
+            - button "Stable" [ref=e39] [cursor=pointer]:
+              - img
+              - text: Stable
+            - button "Declining" [ref=e40] [cursor=pointer]:
+              - img
+              - text: Declining
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - text: Critical Issues
+            - spinbutton [ref=e43]: "3"
+          - generic [ref=e44]:
+            - text: Total Feedback Count
+            - spinbutton [ref=e45]: "100"
+        - generic [ref=e46]:
+          - generic [ref=e47]:
+            - generic [ref=e48]:
+              - img [ref=e49]
+              - text: User Love (Praise %)
+            - generic [ref=e51]: 35%
+          - slider [ref=e55] [cursor=pointer]: "35"
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - generic [ref=e58]: Feature Clarity (Theme Concentration)
+            - generic [ref=e59]: 65%
+          - slider [ref=e63] [cursor=pointer]: "65"
+          - paragraph [ref=e64]: How much of feedback focuses on top 3 themes
+      - button "Calculate My Health Score" [ref=e65] [cursor=pointer]:
+        - img
+        - text: Calculate My Health Score
+  - region "Notifications alt+T"
+  - alert [ref=e66]
+  - iframe [ref=e67]:
+    - button "Feedback" [ref=f1e2] [cursor=pointer]
+```

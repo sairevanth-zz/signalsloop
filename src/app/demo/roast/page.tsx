@@ -78,19 +78,19 @@ export default function RoastPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 py-12 px-4">
+        <div className="min-h-screen py-12 px-4" style={{ background: 'linear-gradient(180deg, #FFFAF5 0%, #FFF5EB 100%)' }}>
             <div className="max-w-4xl mx-auto space-y-8">
 
                 {/* Header */}
                 <div className="text-center space-y-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20 text-orange-600 text-xs font-medium mb-2">
-                        <Flame className="w-3 h-3" />
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF4F00]/10 border border-[#FF4F00]/20 text-[#FF4F00] text-sm font-semibold mb-2">
+                        <Flame className="w-4 h-4" />
                         <span>AI-Powered Roadmap Review</span>
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-slate-900 pb-2">
-                        Roast My <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600">Roadmap</span>
+                    <h1 className="font-[family-name:var(--font-fraunces)] text-4xl md:text-6xl font-bold tracking-tight text-[#2D2D2A] pb-2">
+                        Roast My <span className="text-[#FF4F00]">Roadmap</span>
                     </h1>
-                    <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                    <p className="text-lg text-[#5C5C57] max-w-2xl mx-auto">
                         Get your product roadmap reviewed by an AI Chief Product Officer.
                         Brutal, honest, and constructive feedback in 30 seconds.
                     </p>
@@ -102,7 +102,7 @@ export default function RoastPage() {
 
                         <div>
                             <div className="px-1 mb-2">
-                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Optional Context</h3>
+                                <h3 className="text-sm font-semibold text-[#8A8A85] uppercase tracking-wider">Optional Context</h3>
                             </div>
                             <ContextForm data={context} onChange={setContext} />
                         </div>
@@ -110,7 +110,7 @@ export default function RoastPage() {
                         <div className="flex justify-center">
                             <Button
                                 size="lg"
-                                className="text-lg px-8 py-6 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-lg transform transition hover:scale-105"
+                                className="text-lg px-8 py-6 bg-[#FF4F00] hover:bg-[#E64700] text-white shadow-lg shadow-[#FF4F00]/25 transform transition hover:scale-105 rounded-xl font-semibold"
                                 onClick={handleRoast}
                                 disabled={!inputValue}
                             >

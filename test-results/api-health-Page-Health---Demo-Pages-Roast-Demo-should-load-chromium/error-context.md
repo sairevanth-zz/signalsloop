@@ -1,0 +1,49 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - img [ref=e6]
+        - generic [ref=e8]: AI-Powered Roadmap Review
+      - heading "Roast My Roadmap" [level=1] [ref=e9]
+      - paragraph [ref=e10]: Get your product roadmap reviewed by an AI Chief Product Officer. Brutal, honest, and constructive feedback in 30 seconds.
+    - generic [ref=e11]:
+      - generic [ref=e13]:
+        - tablist [ref=e14]:
+          - tab "Paste Text" [selected] [ref=e15] [cursor=pointer]:
+            - img [ref=e16]
+            - text: Paste Text
+          - tab "Screenshot" [ref=e19] [cursor=pointer]:
+            - img [ref=e20]
+            - text: Screenshot
+          - tab "Upload File" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+            - text: Upload File
+        - tabpanel "Paste Text" [ref=e28]:
+          - textbox "Paste your roadmap here... (bullet points, copied from Notion/Jira, etc.)" [ref=e29]
+          - generic [ref=e30]: 0 characters
+      - generic [ref=e31]:
+        - heading "Optional Context" [level=3] [ref=e33]
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - text: Industry (Optional)
+            - textbox "e.g. Fintech, SaaS..." [ref=e36]
+          - generic [ref=e37]:
+            - text: Company Stage
+            - combobox [ref=e38] [cursor=pointer]:
+              - generic: Select stage
+              - img [ref=e39]
+          - generic [ref=e41]:
+            - text: Team Size
+            - combobox [ref=e42] [cursor=pointer]:
+              - generic: Select size
+              - img [ref=e43]
+      - generic [ref=e45]:
+        - button "🔥 Roast My Roadmap" [disabled]
+  - region "Notifications alt+T"
+  - alert [ref=e46]
+  - iframe [ref=e47]:
+    - button "Feedback" [ref=f1e2] [cursor=pointer]
+```

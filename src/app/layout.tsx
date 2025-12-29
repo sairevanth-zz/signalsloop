@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Geist, Geist_Mono, Manrope, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Manrope, Plus_Jakarta_Sans, JetBrains_Mono, Fraunces, Inter } from "next/font/google";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
@@ -33,6 +33,18 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
 export const metadata: Metadata = {
   title: {
     default: "AI Feedback Management - Auto-Categorize & Prioritize | SignalsLoop",
@@ -49,7 +61,7 @@ export const metadata: Metadata = {
     maximumScale: 5,
     userScalable: true,
   },
-  themeColor: "#3b82f6",
+  themeColor: "#FF4F00",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -166,7 +178,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} ${plusJakarta.variable} ${jetbrainsMono.variable} antialiased touch-manipulation overflow-x-hidden`}
+        className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} ${plusJakarta.variable} ${jetbrainsMono.variable} ${fraunces.variable} ${inter.variable} antialiased touch-manipulation overflow-x-hidden`}
       >
         <ThemeProvider>
           <PostHogProvider>

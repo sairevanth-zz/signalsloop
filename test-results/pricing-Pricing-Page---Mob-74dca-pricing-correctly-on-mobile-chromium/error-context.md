@@ -1,0 +1,536 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "SignalsLoop" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: SignalsLoop
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - generic [ref=e11]: 💎 Simple, Transparent Pricing
+          - heading "Effortlessly affordable pricing that scales with you" [level=2] [ref=e12]
+          - paragraph [ref=e13]: Start free forever. Upgrade for advanced AI features starting at $19/month. No setup fees or commitments.
+          - generic [ref=e14]:
+            - generic [ref=e15]:
+              - img [ref=e16]
+              - generic [ref=e18]: Enterprise Security
+            - generic [ref=e19]:
+              - generic [ref=e20]: 💳
+              - generic [ref=e21]: Secure Payments
+            - generic [ref=e22]:
+              - generic [ref=e23]: 🔄
+              - generic [ref=e24]: Cancel Anytime
+            - generic [ref=e25]:
+              - generic [ref=e26]: ✓
+              - generic [ref=e27]: API & Webhooks
+            - generic [ref=e28]:
+              - generic [ref=e29]: ✓
+              - generic [ref=e30]: SSL Encrypted
+        - generic [ref=e32]:
+          - generic [ref=e33]: Monthly
+          - switch [ref=e34] [cursor=pointer]
+          - generic [ref=e35]: Annual (20% off)
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]:
+              - generic [ref=e39]: Free Forever
+              - generic [ref=e40]: $0
+              - generic [ref=e41]: Test drive AI-powered feedback
+            - generic [ref=e42]:
+              - list [ref=e43]:
+                - listitem [ref=e44]:
+                  - img [ref=e45]
+                  - generic [ref=e48]: 1 feedback board
+                - listitem [ref=e49]:
+                  - img [ref=e50]
+                  - generic [ref=e53]: 50 posts maximum
+                - listitem [ref=e54]:
+                  - img [ref=e55]
+                  - generic [ref=e58]: 1 team member
+                - listitem [ref=e59]:
+                  - img [ref=e60]
+                  - generic [ref=e63]: AI Categorization (30/day)
+                - listitem [ref=e64]:
+                  - img [ref=e65]
+                  - generic [ref=e68]: AI Sentiment (30/day)
+                - listitem [ref=e69]:
+                  - img [ref=e70]
+                  - generic [ref=e73]: AI Duplicates (10/day)
+                - listitem [ref=e74]:
+                  - img [ref=e75]
+                  - generic [ref=e78]: AI Smart Replies (5/day)
+                - listitem [ref=e79]:
+                  - img [ref=e80]
+                  - generic [ref=e83]: "Hunter: 4 scans/mo (Reddit, HN)"
+                - listitem [ref=e84]:
+                  - img [ref=e85]
+                  - generic [ref=e88]: Public boards only
+                - listitem [ref=e89]:
+                  - img [ref=e90]
+                  - generic [ref=e93]: Community support
+                - listitem [ref=e94]:
+                  - img [ref=e95]
+                  - generic [ref=e98]: SignalsLoop branding
+              - generic [ref=e99]:
+                - link "Start Free" [ref=e100] [cursor=pointer]:
+                  - /url: /login
+                  - button "Start Free" [ref=e101]
+                - paragraph [ref=e102]: No credit card required
+          - generic [ref=e103]:
+            - generic [ref=e104]: Most Popular
+            - generic [ref=e105]:
+              - generic [ref=e106]: Pro
+              - generic [ref=e107]:
+                - text: $19/month
+                - generic [ref=e108]: Cancel anytime
+              - generic [ref=e109]: For indie makers & solo founders
+            - generic [ref=e110]:
+              - list [ref=e111]:
+                - listitem [ref=e112]:
+                  - img [ref=e113]
+                  - generic [ref=e116]: 5 feedback boards
+                - listitem [ref=e117]:
+                  - img [ref=e118]
+                  - generic [ref=e121]: 1,000 posts
+                - listitem [ref=e122]:
+                  - img [ref=e123]
+                  - generic [ref=e126]: 2 team members
+                - listitem [ref=e127]:
+                  - img [ref=e128]
+                  - generic [ref=e131]: "Hunter: 30 scans/mo (Reddit, HN)"
+                - listitem [ref=e132]:
+                  - img [ref=e133]
+                  - generic [ref=e136]: 10 AI Specs/month
+                - listitem [ref=e137]:
+                  - img [ref=e138]
+                  - generic [ref=e141]: 5 Devil's Advocate/month
+                - listitem [ref=e142]:
+                  - img [ref=e143]
+                  - generic [ref=e146]: 50 Ask SignalsLoop queries
+                - listitem [ref=e147]:
+                  - img [ref=e148]
+                  - generic [ref=e151]: 1 Executive Brief/month
+                - listitem [ref=e152]:
+                  - img [ref=e153]
+                  - generic [ref=e156]: 5 Call transcripts/month
+                - listitem [ref=e157]:
+                  - img [ref=e158]
+                  - generic [ref=e161]: Jira & Slack integration
+                - listitem [ref=e162]:
+                  - img [ref=e163]
+                  - generic [ref=e166]: 1,000 API calls/month
+                - listitem [ref=e167]:
+                  - img [ref=e168]
+                  - generic [ref=e171]: Custom domain
+                - listitem [ref=e172]:
+                  - img [ref=e173]
+                  - generic [ref=e176]: Remove branding
+                - listitem [ref=e177]:
+                  - img [ref=e178]
+                  - generic [ref=e181]: Email support (48hr)
+              - button "🚀 Start Free - Upgrade Anytime" [ref=e182] [cursor=pointer]
+          - generic [ref=e183]:
+            - generic [ref=e184]:
+              - img
+              - text: Team
+            - generic [ref=e185]:
+              - generic [ref=e186]: Premium
+              - generic [ref=e187]:
+                - text: $79/month
+                - generic [ref=e188]: For growing teams
+              - generic [ref=e189]: For PM teams (3-10 people)
+            - generic [ref=e190]:
+              - list [ref=e191]:
+                - listitem [ref=e192]:
+                  - img [ref=e193]
+                  - generic [ref=e196]: Unlimited boards & posts
+                - listitem [ref=e197]:
+                  - img [ref=e198]
+                  - generic [ref=e201]: 10 team members
+                - listitem [ref=e202]:
+                  - img [ref=e203]
+                  - generic [ref=e206]: "Hunter: 90 scans/mo + Twitter/X"
+                - listitem [ref=e207]:
+                  - img [ref=e208]
+                  - generic [ref=e211]: 30 AI Specs/month
+                - listitem [ref=e212]:
+                  - img [ref=e213]
+                  - generic [ref=e216]: 15 Devil's Advocate/month
+                - listitem [ref=e217]:
+                  - img [ref=e218]
+                  - generic [ref=e221]: 100 Ask SignalsLoop queries
+                - listitem [ref=e222]:
+                  - img [ref=e223]
+                  - generic [ref=e226]: 4 Executive Briefs/month
+                - listitem [ref=e227]:
+                  - img [ref=e228]
+                  - generic [ref=e231]: 20 Call transcripts/month
+                - listitem [ref=e232]:
+                  - img [ref=e233]
+                  - generic [ref=e236]: Full Competitive War Room
+                - listitem [ref=e237]:
+                  - img [ref=e238]
+                  - generic [ref=e241]: Linear & Webhooks
+                - listitem [ref=e242]:
+                  - img [ref=e243]
+                  - generic [ref=e246]: 5,000 API calls/month
+                - listitem [ref=e247]:
+                  - img [ref=e248]
+                  - generic [ref=e251]: Team permissions & roles
+                - listitem [ref=e252]:
+                  - img [ref=e253]
+                  - generic [ref=e256]: Priority support (24hr)
+              - link "🚀 Start with Premium" [ref=e258] [cursor=pointer]:
+                - /url: /login
+                - button "🚀 Start with Premium" [ref=e259]
+      - generic [ref=e260]:
+        - heading "Feature Comparison" [level=3] [ref=e261]
+        - generic [ref=e262]:
+          - generic [ref=e263]:
+            - generic [ref=e264]: Feature
+            - generic [ref=e265]: Free
+            - generic [ref=e266]: Pro $19
+            - generic [ref=e267]: Premium $79
+          - generic [ref=e268]:
+            - generic [ref=e269]: Feedback Boards
+            - generic [ref=e270]: "1"
+            - generic [ref=e271]: "5"
+            - generic [ref=e272]: Unlimited
+          - generic [ref=e273]:
+            - generic [ref=e274]: Posts
+            - generic [ref=e275]: "50"
+            - generic [ref=e276]: 1,000
+            - generic [ref=e277]: Unlimited
+          - generic [ref=e278]:
+            - generic [ref=e279]: Team Members
+            - generic [ref=e280]: "1"
+            - generic [ref=e281]: "2"
+            - generic [ref=e282]: "10"
+          - generic [ref=e283]:
+            - generic [ref=e284]: Hunter Agent
+            - generic [ref=e285]: 4/mo
+            - generic [ref=e286]: 30/mo
+            - generic [ref=e287]: 90/mo + Twitter
+          - generic [ref=e288]:
+            - generic [ref=e289]: AI Specs
+            - generic [ref=e290]: —
+            - generic [ref=e291]: 10/mo
+            - generic [ref=e292]: 30/mo
+          - generic [ref=e293]:
+            - generic [ref=e294]: Devil's Advocate
+            - generic [ref=e295]: —
+            - generic [ref=e296]: 5/mo
+            - generic [ref=e297]: 15/mo
+          - generic [ref=e298]:
+            - generic [ref=e299]: Ask SignalsLoop
+            - generic [ref=e300]: —
+            - generic [ref=e301]: 50/mo
+            - generic [ref=e302]: 100/mo
+          - generic [ref=e303]:
+            - generic [ref=e304]: Executive Briefs
+            - generic [ref=e305]: —
+            - generic [ref=e306]: 1/mo
+            - generic [ref=e307]: 4/mo
+          - generic [ref=e308]:
+            - generic [ref=e309]: Call Intelligence
+            - generic [ref=e310]: —
+            - generic [ref=e311]: 5/mo
+            - generic [ref=e312]: 20/mo
+          - generic [ref=e313]:
+            - generic [ref=e314]: AI Categorization
+            - generic [ref=e315]: 30/day
+            - generic [ref=e316]: 1K/mo
+            - generic [ref=e317]: Unlimited
+          - generic [ref=e318]:
+            - generic [ref=e319]: Competitive War Room
+            - generic [ref=e320]: —
+            - generic [ref=e321]: Basic
+            - generic [ref=e322]: Full
+          - generic [ref=e323]:
+            - generic [ref=e324]: Private Boards
+            - generic [ref=e325]: —
+            - img [ref=e327]
+            - img [ref=e331]
+          - generic [ref=e334]:
+            - generic [ref=e335]: Custom Domain
+            - generic [ref=e336]: —
+            - img [ref=e338]
+            - img [ref=e342]
+          - generic [ref=e345]:
+            - generic [ref=e346]: Jira Integration
+            - generic [ref=e347]: —
+            - img [ref=e349]
+            - img [ref=e353]
+          - generic [ref=e356]:
+            - generic [ref=e357]: Linear Integration
+            - generic [ref=e358]: —
+            - generic [ref=e359]: —
+            - img [ref=e361]
+          - generic [ref=e364]:
+            - generic [ref=e365]: Webhooks
+            - generic [ref=e366]: —
+            - generic [ref=e367]: —
+            - img [ref=e369]
+          - generic [ref=e372]:
+            - generic [ref=e373]: API Calls
+            - generic [ref=e374]: —
+            - generic [ref=e375]: 1K/mo
+            - generic [ref=e376]: 5K/mo
+          - generic [ref=e377]:
+            - generic [ref=e378]: Support
+            - generic [ref=e379]: Community
+            - generic [ref=e380]: Email 48hr
+            - generic [ref=e381]: Priority 24hr
+        - generic [ref=e382]:
+          - paragraph [ref=e383]: All plans include SSL encryption, uptime SLA, and data backups
+          - link "Start Free • Upgrade Anytime" [ref=e384] [cursor=pointer]:
+            - /url: /login
+            - button "Start Free • Upgrade Anytime" [ref=e385]:
+              - text: Start Free • Upgrade Anytime
+              - img
+    - generic [ref=e387]:
+      - generic [ref=e388]:
+        - generic [ref=e389]:
+          - img
+          - text: Modern AI-Powered Feedback Management
+        - heading "Why Pay Thousands Per Year for Legacy Tools? Get Advanced AI Features for $19/Month" [level=2] [ref=e390]:
+          - text: Why Pay Thousands Per Year for Legacy Tools?
+          - text: Get Advanced AI Features for $19/Month
+        - paragraph [ref=e391]:
+          - text: Most feedback tools charge
+          - strong [ref=e392]: $100-300/month (or per-user)
+          - text: with limited or no AI capabilities. We built SignalsLoop to deliver
+          - strong [ref=e393]: comprehensive AI automation
+          - text: at a fraction of the cost.
+        - generic [ref=e394]:
+          - generic [ref=e395]: 🚀
+          - paragraph [ref=e396]: Join hundreds of teams automating their feedback workflow with AI
+      - generic [ref=e397]:
+        - heading "Why Teams Choose SignalsLoop" [level=3] [ref=e398]:
+          - img [ref=e399]
+          - text: Why Teams Choose SignalsLoop
+        - generic [ref=e402]:
+          - generic [ref=e403]:
+            - generic [ref=e404]: 🤖
+            - generic [ref=e405]: 5 AI Features
+            - generic [ref=e406]: Auto-categorization, priority scoring, duplicate detection, smart replies, and writing assistant
+          - generic [ref=e407]:
+            - generic [ref=e408]: 💰
+            - generic [ref=e409]: No Per-User Pricing
+            - generic [ref=e410]: $19/month flat rate. No surprise bills as your team grows.
+          - generic [ref=e411]:
+            - generic [ref=e412]: ⚡
+            - generic [ref=e413]: Built for Speed
+            - generic [ref=e414]: Simple, fast interface. Start collecting feedback in 5 minutes.
+        - paragraph [ref=e415]:
+          - strong [ref=e416]: Comprehensive AI automation at 75-90% lower cost than traditional alternatives
+      - generic [ref=e417]: "*Pricing and features based on publicly available information as of January 2025. Subject to change. Visit competitor websites for current details."
+      - generic [ref=e418]:
+        - generic [ref=e419]:
+          - generic [ref=e420]:
+            - generic [ref=e421]: Legacy Tool A
+            - generic [ref=e422]: ~$99
+            - generic [ref=e423]: /month*
+            - generic [ref=e424]: ≈ $1,188/year
+          - list [ref=e425]:
+            - listitem [ref=e426]:
+              - generic [ref=e427]: ✗
+              - generic [ref=e428]: Limited/no AI features
+            - listitem [ref=e429]:
+              - generic [ref=e430]: ✗
+              - generic [ref=e431]: Manual categorization
+            - listitem [ref=e432]:
+              - generic [ref=e433]: ✓
+              - generic [ref=e434]: Roadmap
+            - listitem [ref=e435]:
+              - generic [ref=e436]: ✓
+              - generic [ref=e437]: Integrations
+        - generic [ref=e438]:
+          - generic [ref=e439]:
+            - generic [ref=e440]: Legacy Tool B
+            - generic [ref=e441]: ~$59
+            - generic [ref=e442]: /user/month*
+            - generic [ref=e443]: ≈ $3,540/year (5 users)
+          - list [ref=e444]:
+            - listitem [ref=e445]:
+              - generic [ref=e446]: ~
+              - generic [ref=e447]: Basic insights only
+            - listitem [ref=e448]:
+              - generic [ref=e449]: ✗
+              - generic [ref=e450]: No auto-categorization
+            - listitem [ref=e451]:
+              - generic [ref=e452]: ⚠
+              - generic [ref=e453]: Per-user pricing
+            - listitem [ref=e454]:
+              - generic [ref=e455]: ✓
+              - generic [ref=e456]: Customization
+        - generic [ref=e457]:
+          - generic [ref=e458]:
+            - generic [ref=e459]: Legacy Tool C
+            - generic [ref=e460]: ~$59
+            - generic [ref=e461]: /user/month*
+            - generic [ref=e462]: ≈ $2,124/year (3 users)
+          - list [ref=e463]:
+            - listitem [ref=e464]:
+              - generic [ref=e465]: ~
+              - generic [ref=e466]: Limited AI capabilities
+            - listitem [ref=e467]:
+              - generic [ref=e468]: ✗
+              - generic [ref=e469]: No comprehensive AI suite
+            - listitem [ref=e470]:
+              - generic [ref=e471]: ✓
+              - generic [ref=e472]: Portal features
+            - listitem [ref=e473]:
+              - generic [ref=e474]: ⚠
+              - generic [ref=e475]: Expensive per-user
+        - generic [ref=e476]:
+          - generic [ref=e477]: 🚀 AI-Powered Winner
+          - generic [ref=e478]:
+            - generic [ref=e479]: SignalsLoop
+            - generic [ref=e480]: $19
+            - generic [ref=e481]: /month (unlimited users)
+            - generic [ref=e482]: = Only $228/year
+          - list [ref=e483]:
+            - listitem [ref=e484]:
+              - generic [ref=e485]: ✓
+              - generic [ref=e486]: AI Auto-Categorization
+            - listitem [ref=e487]:
+              - generic [ref=e488]: ✓
+              - generic [ref=e489]: AI Priority Scoring
+            - listitem [ref=e490]:
+              - generic [ref=e491]: ✓
+              - generic [ref=e492]: AI Duplicate Detection
+            - listitem [ref=e493]:
+              - generic [ref=e494]: ✓
+              - generic [ref=e495]: AI Smart Replies
+            - listitem [ref=e496]:
+              - generic [ref=e497]: ✓
+              - generic [ref=e498]: ✍️ AI Writing Assistant
+            - listitem [ref=e499]:
+              - generic [ref=e500]: ✓
+              - generic [ref=e501]: Slack, Discord, Webhooks, API
+            - listitem [ref=e502]:
+              - generic [ref=e503]: ★
+              - generic [ref=e504]: FREE PLAN WITH AI!
+      - generic [ref=e505]:
+        - generic [ref=e506]:
+          - heading "💰 Your Team Could Save Thousands This Year" [level=3] [ref=e507]
+          - paragraph [ref=e508]:
+            - text: Same features (actually,
+            - strong [ref=e509]: way better with AI
+            - text: ). Fraction of the price.
+        - generic [ref=e510]:
+          - generic [ref=e511]:
+            - generic [ref=e512]: vs ~$99/mo Tools
+            - generic [ref=e513]: ~$960
+            - generic [ref=e514]: potential savings/year*
+            - generic [ref=e516]:
+              - strong [ref=e517]: Many lack comprehensive AI.
+              - text: You're paying for manual workflows.
+          - generic [ref=e518]:
+            - generic [ref=e519]: vs Per-User Tools (5 users @ ~$59)
+            - generic [ref=e520]: ~$3,300
+            - generic [ref=e521]: potential savings/year*
+            - generic [ref=e523]:
+              - strong [ref=e524]: Up to 93% cheaper!
+              - text: No per-user fees means predictable costs.
+          - generic [ref=e525]:
+            - generic [ref=e526]: vs Enterprise Tools
+            - generic [ref=e527]: ~$1,500+
+            - generic [ref=e528]: potential savings/year*
+            - generic [ref=e530]:
+              - strong [ref=e531]: Up to 89% cheaper!
+              - text: Get AI automation without enterprise cost.
+        - generic [ref=e533]:
+          - heading "Here's What Makes This a No-Brainer:" [level=4] [ref=e534]:
+            - img [ref=e535]
+            - text: "Here's What Makes This a No-Brainer:"
+          - generic [ref=e539]:
+            - generic [ref=e540]:
+              - generic [ref=e541]: ✅
+              - generic [ref=e542]:
+                - generic [ref=e543]: Comprehensive 5-Feature AI Suite
+                - generic [ref=e544]: Auto-categorization, priority scoring, duplicate detection, smart replies, writing assistant
+            - generic [ref=e545]:
+              - generic [ref=e546]: ✅
+              - generic [ref=e547]:
+                - generic [ref=e548]: 80-93% Lower Cost
+                - generic [ref=e549]: Flat $19/month. No per-user fees. No surprise charges.
+            - generic [ref=e550]:
+              - generic [ref=e551]: ✅
+              - generic [ref=e552]:
+                - generic [ref=e553]: Free Plan with AI Included
+                - generic [ref=e554]: Try all 5 AI features for free. Forever. No credit card.
+            - generic [ref=e555]:
+              - generic [ref=e556]: ✅
+              - generic [ref=e557]:
+                - generic [ref=e558]: Start Saving in 5 Minutes
+                - generic [ref=e559]: Import your feedback via CSV. AI sorts it instantly.
+          - generic [ref=e560]:
+            - paragraph [ref=e561]: Your competitors are already automating feedback with AI.
+            - paragraph [ref=e562]:
+              - text: Every week you wait, you're burning hours on manual categorization and missing what customers
+              - emphasis [ref=e563]: actually
+              - text: want.
+        - generic [ref=e564]: "*Comparisons based on publicly available pricing and feature information as of January 2025. Actual competitor pricing, features, and capabilities may vary and are subject to change. We recommend visiting competitor websites directly to verify current offerings. Savings calculations are estimates based on typical usage scenarios and may not reflect your specific needs."
+    - generic [ref=e566]:
+      - heading "Ready to transform how you manage feedback?" [level=2] [ref=e567]
+      - paragraph [ref=e568]: Start free forever. Upgrade when ready. No credit card required.
+      - button "🚀 Get Started in 2 Minutes" [ref=e570] [cursor=pointer]:
+        - text: 🚀 Get Started in 2 Minutes
+        - img
+      - generic [ref=e571]:
+        - generic [ref=e572]:
+          - generic [ref=e573]: ✓
+          - generic [ref=e574]: Free forever plan
+        - generic [ref=e575]:
+          - generic [ref=e576]: ✓
+          - generic [ref=e577]: No setup fees
+        - generic [ref=e578]:
+          - generic [ref=e579]: ✓
+          - generic [ref=e580]: Cancel anytime
+    - contentinfo [ref=e581]:
+      - generic [ref=e582]:
+        - generic [ref=e583]:
+          - generic [ref=e585]:
+            - generic [ref=e587]: S
+            - generic [ref=e588]: SignalsLoop
+          - generic [ref=e589]:
+            - heading "Product" [level=3] [ref=e590]
+            - list [ref=e591]:
+              - listitem [ref=e592]:
+                - link "Features" [ref=e593] [cursor=pointer]:
+                  - /url: /features
+              - listitem [ref=e594]:
+                - link "Pricing" [ref=e595] [cursor=pointer]:
+                  - /url: /pricing
+              - listitem [ref=e596]:
+                - link "Demo" [ref=e597] [cursor=pointer]:
+                  - /url: /demo/board
+              - listitem [ref=e598]:
+                - link "API Documentation" [ref=e599] [cursor=pointer]:
+                  - /url: /docs/api
+              - listitem [ref=e600]:
+                - link "Documentation" [ref=e601] [cursor=pointer]:
+                  - /url: /docs
+          - generic [ref=e602]:
+            - heading "Legal" [level=3] [ref=e603]
+            - list [ref=e604]:
+              - listitem [ref=e605]:
+                - link "Privacy" [ref=e606] [cursor=pointer]:
+                  - /url: /privacy
+              - listitem [ref=e607]:
+                - link "Terms" [ref=e608] [cursor=pointer]:
+                  - /url: /terms
+              - listitem [ref=e609]:
+                - link "Support" [ref=e610] [cursor=pointer]:
+                  - /url: /support
+        - paragraph [ref=e612]: © 2024 SignalsLoop. All rights reserved.
+  - region "Notifications alt+T"
+  - alert [ref=e613]
+  - iframe [ref=e614]:
+    - button "Feedback" [ref=f1e2] [cursor=pointer]
+```
