@@ -141,12 +141,12 @@ export default function SpecDemoPage() {
                                 onChange={handleInputChange}
                                 placeholder={isLoading ? "Generating..." : "Or type your feature request here..."}
                                 disabled={isLoading}
-                                className="w-full bg-slate-900/50 border border-slate-700 rounded-full px-6 py-4 pl-6 pr-14 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all shadow-lg backdrop-blur-sm"
+                                className="w-full bg-white border border-gray-200 rounded-full px-6 py-4 pl-6 pr-14 text-[#2D2D2A] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF4F00]/30 focus:border-[#FF4F00] transition-all shadow-lg"
                             />
                             <button
                                 type="submit"
                                 disabled={!input.trim() || isLoading}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full transition-colors disabled:opacity-0 disabled:scale-75 transform duration-200"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-[#FF4F00] hover:bg-[#E64700] text-white rounded-full transition-colors disabled:opacity-0 disabled:scale-75 transform duration-200"
                             >
                                 {isLoading ? (
                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -155,7 +155,7 @@ export default function SpecDemoPage() {
                                 )}
                             </button>
                             {!input && !isLoading && (
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none text-slate-600">
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none text-gray-400">
                                     <CornerDownLeft className="w-3 h-3" />
                                     <span className="text-xs font-medium">Enter</span>
                                 </div>
@@ -175,7 +175,7 @@ export default function SpecDemoPage() {
                                 <button
                                     key={prompt}
                                     onClick={() => handleChipClick(prompt)}
-                                    className="px-4 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-600 rounded-full text-sm text-slate-400 hover:text-indigo-300 transition-colors"
+                                    className="px-4 py-1.5 bg-white hover:bg-[#FFECE0] border border-gray-200 hover:border-[#FF4F00] rounded-full text-sm text-[#5C5C57] hover:text-[#FF4F00] transition-colors shadow-sm"
                                 >
                                     "{prompt}"
                                 </button>

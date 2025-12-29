@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, CheckCircle, ArrowLeft, Search, Tag, Zap, BarChart3, MessageSquare, Globe } from 'lucide-react';
+import { SiteNav, SiteFooter } from '@/components/SiteNav';
 
 export default function FeedbackHubPage() {
     const features = [
@@ -27,22 +28,7 @@ export default function FeedbackHubPage() {
 
     return (
         <div className="min-h-screen" style={{ background: '#FFFAF5' }}>
-            {/* Nav */}
-            <nav className="fixed top-0 left-0 right-0 z-50 border-b border-black/[0.04]"
-                style={{ background: 'rgba(255, 250, 245, 0.9)', backdropFilter: 'blur(20px)' }}>
-                <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-[72px]">
-                    <Link href="/" className="flex items-center gap-2.5">
-                        <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-9 h-9 rounded-xl" />
-                        <span className="font-[family-name:var(--font-fraunces)] font-semibold text-[22px] text-[#2D2D2A]">SignalsLoop</span>
-                    </Link>
-                    <div className="hidden lg:flex items-center gap-4">
-                        <Link href="/login" className="text-[15px] font-medium text-[#2D2D2A] hover:text-[#FF4F00] transition-colors">Log in</Link>
-                        <Link href="/signup" className="px-6 py-2.5 text-[15px] font-semibold text-white bg-[#FF4F00] rounded-lg hover:bg-[#E64700] transition-all">
-                            Start free
-                        </Link>
-                    </div>
-                </div>
-            </nav>
+            <SiteNav />
 
             <div className="relative z-10 pt-32 pb-20 px-6">
                 {/* Back Link */}
@@ -193,16 +179,7 @@ export default function FeedbackHubPage() {
                 </div>
             </div>
 
-            {/* Footer */}
-            <footer className="py-12 px-6 border-t border-black/[0.06]" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex items-center gap-2.5">
-                        <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-8 h-8 rounded-lg" />
-                        <span className="font-[family-name:var(--font-fraunces)] font-semibold text-lg text-[#2D2D2A]">SignalsLoop</span>
-                    </div>
-                    <div className="text-sm text-[#8A8A85]">© 2025 SignalsLoop. All rights reserved.</div>
-                </div>
-            </footer>
+            <SiteFooter />
         </div>
     );
 }
