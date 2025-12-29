@@ -822,7 +822,7 @@ export default function Homepage() {
                   <span className="text-lg text-[#8A8A85]">/mo</span>
                 </div>
                 <ul className="space-y-2.5 mb-7">
-                  {['Unlimited everything', 'Go/No-Go Dashboard', 'Outcome Attribution'].map((f, i) => (
+                  {['10 team members', 'Go/No-Go Dashboard', 'Outcome Attribution'].map((f, i) => (
                     <li key={i} className="text-[15px] text-[#5C5C57] flex items-center gap-2.5">
                       <CheckCircle className="w-4.5 h-4.5 text-[#4A6741]" />
                       {f}

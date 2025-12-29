@@ -112,19 +112,19 @@ export default function CompetitiveIntelDemoPage() {
     const allProducts = [userProduct, ...competitors.filter(c => c.trim().length > 0)];
 
     return (
-        <div className="min-h-screen bg-slate-50 p-6 md:p-12">
+        <div className="min-h-screen p-6 md:p-12" style={{ background: 'linear-gradient(180deg, #FFFAF5 0%, #FFF5EB 100%)' }}>
             <div className="max-w-5xl mx-auto space-y-12">
 
                 {/* Header */}
                 <div className="space-y-4 text-center">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 text-blue-600 text-xs font-medium mb-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF4F00]/10 border border-[#FF4F00]/20 text-[#FF4F00] text-xs font-medium mb-2">
                         <Target className="w-3 h-3" />
                         <span>AI-Powered Competitive Analysis</span>
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-slate-900 pb-2">
-                        Competitive Intel in <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">60 Seconds</span>
+                    <h1 className="font-[family-name:var(--font-fraunces)] text-4xl md:text-6xl font-bold tracking-tight text-[#2D2D2A] pb-2">
+                        Competitive Intel in <span className="text-[#FF4F00]">60 Seconds</span>
                     </h1>
-                    <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                    <p className="text-lg text-[#5C5C57] max-w-2xl mx-auto">
                         See what your competitors' users hate, and find exactly how to exploit it.
                     </p>
                 </div>

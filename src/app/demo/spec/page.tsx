@@ -69,12 +69,12 @@ export default function SpecDemoPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500/30">
+        <div className="min-h-screen text-slate-800 selection:bg-orange-500/30" style={{ background: 'linear-gradient(180deg, #FFFAF5 0%, #FFF5EB 100%)' }}>
 
             {/* Background Gradients */}
             <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[100px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[100px]" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-500/10 rounded-full blur-[100px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-amber-500/10 rounded-full blur-[100px]" />
             </div>
 
             <div className="relative z-10 container mx-auto px-4 py-12 md:py-20 flex flex-col items-center">
@@ -85,16 +85,16 @@ export default function SpecDemoPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center mb-12 space-y-4"
                 >
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium mb-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF4F00]/10 border border-[#FF4F00]/20 text-[#FF4F00] text-xs font-medium mb-2">
                         <Sparkles className="w-3 h-3" />
                         <span>AI-Powered Product Manager</span>
                     </div>
 
-                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-br from-white via-white to-slate-400 bg-clip-text text-transparent pb-2">
+                    <h1 className="font-[family-name:var(--font-fraunces)] text-4xl md:text-6xl font-bold tracking-tight text-[#2D2D2A] pb-2">
                         Describe a Feature.<br />
-                        Get a Spec in 30 Seconds.
+                        <span className="text-[#FF4F00]">Get a Spec in 30 Seconds.</span>
                     </h1>
-                    <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+                    <p className="text-lg text-[#5C5C57] max-w-2xl mx-auto">
                         Voice or text - we'll write the PRD while you watch.
                         <br className="hidden md:block" />
                         No login required for the demo.
