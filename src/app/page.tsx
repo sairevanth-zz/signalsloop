@@ -21,15 +21,7 @@ export default function Homepage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
   const [mobileSolutionsOpen, setMobileSolutionsOpen] = useState(false);
-  const [currentWord, setCurrentWord] = useState(0);
-  const words = ['grow', 'ship', 'win', 'scale'];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentWord((prev) => (prev + 1) % words.length);
-    }, 2500);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (user && !loading) {
@@ -441,28 +433,19 @@ export default function Homepage() {
           <div className="inline-flex items-center gap-2.5 px-5 py-2.5 mb-8 rounded-full text-[13px] font-semibold"
             style={{ background: '#FFECE0', border: '1px solid rgba(255, 79, 0, 0.15)', color: '#E64700' }}>
             <span className="w-2 h-2 bg-[#FF4F00] rounded-full animate-pulse"></span>
-            AI-Native Product OS
+            The only platform that closes the product loop
           </div>
 
           {/* Hero Title */}
           <h1 className="font-[family-name:var(--font-fraunces)] font-medium text-[#2D2D2A] tracking-tight mb-7 max-w-4xl mx-auto"
-            style={{ fontSize: 'clamp(44px, 6vw, 72px)', lineHeight: 1.1 }}>
-            Where product teams go to{' '}
-            <span className="text-[#FF4F00] relative inline-block min-w-[140px]">
-              {words.map((word, i) => (
-                <span
-                  key={word}
-                  className={`transition-all duration-500 ${i === currentWord ? 'opacity-100' : 'opacity-0 absolute left-0'}`}
-                >
-                  {word}
-                </span>
-              ))}
-            </span>
+            style={{ fontSize: 'clamp(40px, 5.5vw, 68px)', lineHeight: 1.1 }}>
+            Hunt. Decide. Ship. Prove.<br />
+            <span className="text-[#FF4F00]">One platform. No gaps.</span>
           </h1>
 
           {/* Hero Subtitle */}
           <p className="text-xl text-[#5C5C57] max-w-2xl mx-auto mb-10 leading-relaxed">
-            Unite product feedback, AI predictions, and roadmap execution in one platform that delivers results fast.
+            Other tools handle pieces. SignalsLoop handles the entire journey—from discovering what users need, to predicting what will work, to writing specs, to proving you were right.
           </p>
 
           {/* Prism Visual */}
@@ -545,12 +528,11 @@ export default function Homepage() {
               href="/signup"
               className="px-8 py-4 text-base font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all shadow-[0_2px_8px_rgba(255,79,0,0.25)] hover:shadow-[0_6px_16px_rgba(255,79,0,0.3)] hover:-translate-y-0.5"
             >
-              Start Free — No Credit Card →
+              Try the Complete Platform Free →
             </Link>
-            <button className="px-8 py-4 text-base font-semibold text-[#2D2D2A] bg-white border-[1.5px] border-[#E8E8E6] rounded-xl hover:border-[#FF4F00] hover:text-[#FF4F00] transition-all flex items-center gap-2">
-              <Play className="w-4 h-4" />
-              Watch Demo
-            </button>
+            <Link href="#platform" className="px-8 py-4 text-base font-semibold text-[#2D2D2A] bg-white border-[1.5px] border-[#E8E8E6] rounded-xl hover:border-[#FF4F00] hover:text-[#FF4F00] transition-all flex items-center gap-2">
+              See the Full Loop
+            </Link>
           </div>
         </section>
 
@@ -561,12 +543,12 @@ export default function Homepage() {
               {[...Array(2)].map((_, dupeIdx) => (
                 <div key={dupeIdx} className="flex items-center gap-16 px-8">
                   {[
-                    { value: '500+', label: 'product teams', color: '#2D2D2A' },
-                    { value: '30sec', label: 'PRD generation', color: '#FF4F00' },
-                    { value: '93%', label: 'time saved on specs', color: '#4A6741' },
-                    { value: '14,000+', label: 'signals hunted this week', color: '#C2703D' },
-                    { value: '12', label: 'AI agents', color: '#FF4F00' },
-                    { value: '8', label: 'platforms connected', color: '#2D2D2A' },
+                    { value: '4hrs → 30s', label: 'spec writing time', color: '#FF4F00' },
+                    { value: '0%', label: 'feedback missed', color: '#4A6741' },
+                    { value: '30 days', label: 'ahead on churn prediction', color: '#C2703D' },
+                    { value: '1 platform', label: 'instead of 5+', color: '#2D2D2A' },
+                    { value: '12', label: 'AI agents included', color: '#FF4F00' },
+                    { value: '8+', label: 'platforms scanned', color: '#2D2D2A' },
                   ].map((metric, i) => (
                     <div key={i} className="flex items-baseline gap-2.5 flex-shrink-0">
                       <span className="font-[family-name:var(--font-fraunces)] text-3xl md:text-4xl font-semibold" style={{ color: metric.color }}>
@@ -594,26 +576,42 @@ export default function Homepage() {
         <section className="py-24 px-6" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
             <div className="max-w-lg">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">Sound familiar?</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">The product management trap</span>
               <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-6"
                 style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
-                You're drowning in feedback.<br />But still shipping the wrong things.
+                You're paid to make decisions.<br />But you spend your week collecting data to make them.
               </h2>
               <p className="text-[17px] text-[#5C5C57] leading-relaxed mb-4">
-                Feedback lives in 12 different tools. Your Slack is chaos. G2 reviews go unread.
-                Support tickets pile up. You spend hours writing specs that nobody reads.
-                And after all that—40% of features still miss their targets.
+                Product management was supposed to be strategic. Instead:
               </p>
-              <p className="text-[17px] text-[#5C5C57] leading-relaxed">
-                It's not a process problem. It's a <strong className="text-[#FF4F00] font-semibold">signal problem</strong>.
+              <ul className="space-y-3 mb-6">
+                <li className="flex items-start gap-3 text-[16px] text-[#5C5C57]">
+                  <span className="text-[#FF4F00] mt-1">→</span>
+                  <span>You're a <strong className="text-[#2D2D2A]">feedback archaeologist</strong>—digging through 8 different tools to find what customers actually said</span>
+                </li>
+                <li className="flex items-start gap-3 text-[16px] text-[#5C5C57]">
+                  <span className="text-[#FF4F00] mt-1">→</span>
+                  <span>You're a <strong className="text-[#2D2D2A]">spec mill</strong>—spending hours formatting documents instead of thinking strategically</span>
+                </li>
+                <li className="flex items-start gap-3 text-[16px] text-[#5C5C57]">
+                  <span className="text-[#FF4F00] mt-1">→</span>
+                  <span>You're a <strong className="text-[#2D2D2A]">defense attorney</strong>—justifying roadmap decisions with whatever evidence you can find fast</span>
+                </li>
+                <li className="flex items-start gap-3 text-[16px] text-[#5C5C57]">
+                  <span className="text-[#FF4F00] mt-1">→</span>
+                  <span>You're a <strong className="text-[#2D2D2A]">fortune teller</strong>—guessing what will work because there's no time to analyze properly</span>
+                </li>
+              </ul>
+              <p className="text-[17px] text-[#2D2D2A] font-medium">
+                What if the collecting, analyzing, writing, and proving happened automatically—and you just made the decisions?
               </p>
             </div>
             <div className="relative min-h-[300px] hidden md:block">
               {[
-                { icon: '💬', text: '"Feature request buried in Slack"', top: '0', left: '0', rotate: '-3deg' },
-                { icon: '📧', text: '"Urgent support ticket - missed"', top: '60px', left: '40%', rotate: '2deg' },
-                { icon: '⭐', text: '"G2 review from enterprise lead"', top: '130px', left: '10%', rotate: '-1deg' },
-                { icon: '📝', text: '"Spec took 4 hours to write"', top: '200px', left: '35%', rotate: '3deg' },
+                { icon: '🔍', text: '"Feature request buried in Slack"', top: '0', left: '0', rotate: '-3deg' },
+                { icon: '⏰', text: '"Spec took 4 hours to write"', top: '60px', left: '40%', rotate: '2deg' },
+                { icon: '❓', text: '"Why are we building this?"', top: '130px', left: '10%', rotate: '-1deg' },
+                { icon: '🎲', text: '"Hope this feature works..."', top: '200px', left: '35%', rotate: '3deg' },
               ].map((card, i) => (
                 <div
                   key={i}
@@ -624,59 +622,63 @@ export default function Homepage() {
                   {card.text}
                 </div>
               ))}
-              <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-3xl text-[#8A8A85]">→</div>
+              <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-3xl text-[#8A8A85]">↓</div>
               <div className="absolute bottom-0 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-sm font-semibold"
                 style={{ background: '#FDF5F2', border: '1px solid #C2703D', color: '#C2703D' }}>
-                40% features miss target
+                The product management trap
               </div>
             </div>
           </div>
         </section>
 
         {/* Products Section */}
-        <section className="py-28 px-6" style={{ background: 'rgba(255, 255, 255, 0.6)' }}>
+        <section id="platform" className="py-28 px-6" style={{ background: 'rgba(255, 255, 255, 0.6)' }}>
           <div className="max-w-7xl mx-auto">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="flex items-center justify-center gap-2.5 mb-6">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6 text-[#FF4F00]">
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                 </svg>
-                <span className="text-sm font-semibold text-[#FF4F00]">Products for every PM</span>
+                <span className="text-sm font-semibold text-[#FF4F00]">The complete product loop</span>
               </div>
               <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-4"
                 style={{ fontSize: 'clamp(32px, 4vw, 48px)', lineHeight: 1.15 }}>
-                Building a product is hard.<br />SignalsLoop makes it easier.
+                One platform. Six powerful hubs.<br />Everything you need. Nothing you don't.
               </h2>
               <p className="text-lg text-[#5C5C57]">
-                Disconnected tools and scattered feedback slow you down. SignalsLoop connects everything and resurfaces insights—helping you ship with confidence.
+                Other tools give you a piece of the puzzle. A feedback board here. A spec template there. SignalsLoop is the first platform that handles the entire product intelligence loop—with AI doing the heavy lifting at every stage.
               </p>
               <div className="flex justify-center gap-4 mt-8">
-                <button className="px-6 py-3 text-[15px] font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">
-                  Get a demo
-                </button>
                 <Link
                   href="/signup"
+                  className="px-6 py-3 text-[15px] font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all"
+                >
+                  Try it free
+                </Link>
+                <Link
+                  href="/products"
                   className="px-6 py-3 text-[15px] font-semibold text-[#2D2D2A] bg-white border-[1.5px] border-[#E8E8E6] rounded-xl hover:border-[#FF4F00] hover:text-[#FF4F00] transition-all"
                 >
-                  Start free
+                  Explore all hubs
                 </Link>
               </div>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { icon: '📬', title: 'Feedback Hub', color: 'from-[#FF4F00] to-[#FF6B26]', features: ['Hunt signals from 8 platforms', 'AI-powered categorization', 'Revenue-weighted prioritization'] },
-                { icon: '✏️', title: 'Spec Hub', color: 'from-[#C2703D] to-[#D4886A]', features: ['Generate PRDs in 30 seconds', 'AI writes from your feedback', 'One-click Jira export'] },
-                { icon: '🔮', title: 'Prediction Hub', color: 'from-[#4A6741] to-[#6B8E6B]', features: ['Predict feature success', 'Forecast adoption 30+ days', 'Revenue impact estimates'] },
-                { icon: '📊', title: 'Insights Hub', color: 'from-[#0091AE] to-[#00BDA5]', features: ['Theme detection & clustering', 'Sentiment analysis', 'AI-powered weekly briefings'] },
-                { icon: '😈', title: 'Advocate Hub', color: 'from-[#6A5ACD] to-[#9B8FD9]', features: ['Devil\'s Advocate challenges', 'Proactive risk alerts', 'Competitive threat analysis'] },
-                { icon: '👥', title: 'Stakeholder Hub', color: 'from-[#2E475D] to-[#516F90]', features: ['Role-based reporting', 'Go/No-Go dashboards', 'Collaborative retrospectives'] },
+                { icon: '🎯', title: 'Feedback Hub', subtitle: 'The Signal Command Center', color: 'from-[#FF4F00] to-[#FF6B26]', features: ['AI agents scan 8+ platforms 24/7', 'Auto-categorize & deduplicate', 'Revenue-weighted prioritization'] },
+                { icon: '✏️', title: 'Spec Hub', subtitle: 'From Idea to PRD in 30 Seconds', color: 'from-[#C2703D] to-[#D4886A]', features: ['Complete specs with evidence citations', 'User stories & acceptance criteria', 'One-click Jira export'] },
+                { icon: '🔮', title: 'Prediction Hub', subtitle: 'Know Before You Build', color: 'from-[#4A6741] to-[#6B8E6B]', features: ['ML-based success prediction', 'Adoption rate forecasting', 'Revenue impact estimates'] },
+                { icon: '📊', title: 'Insights Hub', subtitle: 'See the Patterns You\'re Missing', color: 'from-[#0091AE] to-[#00BDA5]', features: ['Theme detection & clustering', 'Sentiment shift alerts', 'Auto-generated weekly briefings'] },
+                { icon: '😈', title: 'Advocate Hub', subtitle: 'Your Built-In Skeptic', color: 'from-[#6A5ACD] to-[#9B8FD9]', features: ['Devil\'s Advocate attacks your specs', 'Finds assumptions & risks', 'Contradictions in your data'] },
+                { icon: '👥', title: 'Stakeholder Hub', subtitle: 'Alignment Without Meetings', color: 'from-[#2E475D] to-[#516F90]', features: ['Role-based auto-reports', 'Go/No-Go dashboards', 'Outcome tracking & attribution'] },
               ].map((product, i) => (
                 <div key={i} className="bg-white rounded-2xl p-8 border border-black/[0.06] shadow-sm hover:shadow-xl hover:-translate-y-1.5 hover:border-[#FF4F00] transition-all duration-300">
                   <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${product.color} flex items-center justify-center text-2xl mb-5`}>
                     {product.icon}
                   </div>
-                  <h3 className="font-[family-name:var(--font-fraunces)] text-[22px] font-semibold text-[#2D2D2A] mb-2">{product.title}</h3>
+                  <h3 className="font-[family-name:var(--font-fraunces)] text-[22px] font-semibold text-[#2D2D2A] mb-1">{product.title}</h3>
+                  <p className="text-[14px] text-[#FF4F00] font-medium mb-3">{product.subtitle}</p>
                   <div className="w-10 h-0.5 bg-[#FF4F00] mb-4 rounded"></div>
                   <ul className="space-y-2 mb-6">
                     {product.features.map((f, j) => (
@@ -701,14 +703,14 @@ export default function Homepage() {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E8F0E8] rounded-full mb-6">
                 <span className="text-base">🤖</span>
-                <span className="text-[13px] font-semibold text-[#4A6741]">Work smarter, not harder</span>
+                <span className="text-[13px] font-semibold text-[#4A6741]">Your AI product team</span>
               </div>
               <h2 className="font-[family-name:var(--font-fraunces)] font-medium text-[#2D2D2A] mb-5"
                 style={{ fontSize: 'clamp(32px, 4.5vw, 48px)', lineHeight: 1.15 }}>
-                12 specialized AI agents.<br />One unified platform.
+                12 specialists. Working 24/7.<br /><span className="text-[#FF4F00]">$19/month.</span>
               </h2>
               <p className="text-lg text-[#5C5C57] leading-relaxed">
-                Each agent handles a specific part of the product lifecycle—from discovering signals to predicting outcomes to challenging your assumptions.
+                Imagine having 12 people on your team—each handling a specific piece of the product puzzle. That's what SignalsLoop delivers. Each agent does one thing exceptionally well.
               </p>
             </div>
 
@@ -1023,24 +1025,24 @@ export default function Homepage() {
           <div className="relative z-10 max-w-3xl mx-auto">
             <h2 className="font-[family-name:var(--font-fraunces)] font-medium text-white mb-6"
               style={{ fontSize: 'clamp(36px, 5vw, 60px)', lineHeight: 1.15 }}>
-              Ready to ship the right features?
+              Hunt. Decide. Ship. Prove.<br /><span className="text-[#FF4F00]">Close the loop.</span>
             </h2>
             <p className="text-xl text-white/60 mb-12">
-              Start free. No credit card required. See results in minutes.
+              No other platform takes you from scattered signals to shipped success with evidence at every step. Start free. No credit card required.
             </p>
             <div className="flex justify-center gap-4 flex-wrap">
               <Link
                 href="/signup"
                 className="px-10 py-5 text-[17px] font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all shadow-[0_2px_8px_rgba(255,79,0,0.25)]"
               >
-                Start free →
+                Try the Complete Platform Free →
               </Link>
-              <button className="px-10 py-5 text-[17px] font-semibold text-white bg-transparent border-2 border-white/30 rounded-xl hover:bg-white/10 hover:border-white/50 transition-all">
-                Book a demo
-              </button>
+              <Link href="/demo/roast" className="px-10 py-5 text-[17px] font-semibold text-white bg-transparent border-2 border-white/30 rounded-xl hover:bg-white/10 hover:border-white/50 transition-all">
+                See It in Action
+              </Link>
             </div>
             <p className="mt-8 text-sm text-white/50">
-              ✓ Free forever plan available  ·  ✓ Setup in 5 minutes  ·  ✓ Cancel anytime
+              ✓ Free forever plan  ·  ✓ Setup in 5 minutes  ·  ✓ Cancel anytime
             </p>
           </div>
         </section>
