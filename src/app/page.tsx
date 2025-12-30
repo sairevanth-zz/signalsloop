@@ -19,6 +19,8 @@ export default function Homepage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
+  const [mobileSolutionsOpen, setMobileSolutionsOpen] = useState(false);
   const [currentWord, setCurrentWord] = useState(0);
   const words = ['grow', 'ship', 'win', 'scale'];
 
@@ -354,15 +356,77 @@ export default function Homepage() {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="lg:hidden border-t border-black/[0.04] bg-[#FFFAF5]">
-              <div className="px-6 py-4 space-y-3">
-                <Link href="/products" className="block py-2 text-[15px] font-medium text-[#5C5C57]">Products</Link>
-                <Link href="/solutions" className="block py-2 text-[15px] font-medium text-[#5C5C57]">Solutions</Link>
-                <Link href="/pricing" className="block py-2 text-[15px] font-medium text-[#5C5C57]">Pricing</Link>
-                <Link href="/demo/roast" className="block py-2 text-[15px] font-medium text-[#5C5C57]">Try Demos</Link>
+            <div className="lg:hidden border-t border-black/[0.04] bg-[#FFFAF5] max-h-[calc(100vh-72px)] overflow-y-auto">
+              <div className="px-4 py-4 space-y-1">
+                {/* Products Accordion */}
+                <div className="border-b border-gray-100">
+                  <button
+                    onClick={() => setMobileProductsOpen(!mobileProductsOpen)}
+                    className="w-full flex items-center justify-between py-3 text-base font-semibold text-[#2D2D2A]"
+                  >
+                    Products
+                    <ChevronDown className={`w-5 h-5 transition-transform ${mobileProductsOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {mobileProductsOpen && (
+                    <div className="pb-3 space-y-1">
+                      <Link href="/products" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-orange-50 text-[#FF4F00] font-medium">
+                        <span>📋</span> All Products
+                      </Link>
+                      {[
+                        { href: '/products/feedback-hub', icon: '📬', name: 'Feedback Hub' },
+                        { href: '/products/spec-hub', icon: '✏️', name: 'Spec Hub' },
+                        { href: '/products/prediction-hub', icon: '🔮', name: 'Prediction Hub' },
+                        { href: '/products/insights-hub', icon: '📊', name: 'Insights Hub' },
+                        { href: '/products/advocate-hub', icon: '😈', name: 'Advocate Hub' },
+                        { href: '/products/stakeholder-hub', icon: '👥', name: 'Stakeholder Hub' },
+                      ].map((item) => (
+                        <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 text-[#2D2D2A]">
+                          <span>{item.icon}</span> {item.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Solutions Accordion */}
+                <div className="border-b border-gray-100">
+                  <button
+                    onClick={() => setMobileSolutionsOpen(!mobileSolutionsOpen)}
+                    className="w-full flex items-center justify-between py-3 text-base font-semibold text-[#2D2D2A]"
+                  >
+                    Solutions
+                    <ChevronDown className={`w-5 h-5 transition-transform ${mobileSolutionsOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {mobileSolutionsOpen && (
+                    <div className="pb-3 space-y-1">
+                      <Link href="/solutions" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-orange-50 text-[#FF4F00] font-medium">
+                        <span>🎯</span> All Solutions
+                      </Link>
+                      {[
+                        { href: '/solutions/startups', icon: '🚀', name: 'For Startups' },
+                        { href: '/solutions/scaleups', icon: '⚡', name: 'For Scale-ups' },
+                        { href: '/solutions/enterprise', icon: '🏢', name: 'For Enterprise' },
+                      ].map((item) => (
+                        <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 text-[#2D2D2A]">
+                          <span>{item.icon}</span> {item.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="block py-3 text-base font-semibold text-[#2D2D2A] border-b border-gray-100">
+                  Pricing
+                </Link>
+                <Link href="/demo/roast" onClick={() => setMobileMenuOpen(false)} className="block py-3 text-base font-semibold text-[#FF4F00] border-b border-gray-100">
+                  🔥 Try Demos
+                </Link>
+
                 <div className="pt-4 flex flex-col gap-3">
-                  <Link href="/login" className="w-full py-3 text-center text-[15px] font-semibold text-[#2D2D2A] border border-[#E8E8E6] rounded-lg">Log in</Link>
-                  <Link href="/signup" className="w-full py-3 text-center text-[15px] font-semibold text-white bg-[#FF4F00] rounded-lg block">
+                  <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="w-full py-3 text-center text-base font-semibold text-[#2D2D2A] border-2 border-gray-200 rounded-xl">
+                    Log in
+                  </Link>
+                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="w-full py-3 text-center text-base font-semibold text-white bg-[#FF4F00] rounded-xl">
                     Start free
                   </Link>
                 </div>
