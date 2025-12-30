@@ -544,7 +544,7 @@ export default function Homepage() {
                 <div key={dupeIdx} className="flex items-center gap-16 px-8">
                   {[
                     { value: '4hrs → 30s', label: 'spec writing time', color: '#FF4F00' },
-                    { value: '0%', label: 'feedback missed', color: '#4A6741' },
+                    { value: '43% → 0%', label: 'feedback missed', color: '#4A6741' },
                     { value: '30 days', label: 'ahead on churn prediction', color: '#C2703D' },
                     { value: '1 platform', label: 'instead of 5+', color: '#2D2D2A' },
                     { value: '12', label: 'AI agents included', color: '#FF4F00' },
@@ -631,6 +631,68 @@ export default function Homepage() {
           </div>
         </section>
 
+        {/* Four Stages Section */}
+        <section className="py-28 px-6" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">The complete product loop</span>
+              <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-4"
+                style={{ fontSize: 'clamp(32px, 4vw, 48px)', lineHeight: 1.15 }}>
+                Four stages. One platform. Zero gaps.
+              </h2>
+              <p className="text-lg text-[#5C5C57]">
+                Other tools give you a piece of the puzzle. A feedback board here. A spec template there. An analytics dashboard somewhere else. SignalsLoop is the first platform that handles the entire product intelligence loop—with AI doing the heavy lifting at every stage.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  stage: 'HUNT',
+                  icon: '🎯',
+                  title: 'Discover what you\'re missing',
+                  desc: 'AI agents scan Reddit, G2, Hacker News, app stores, and community forums 24/7. They find the signals you\'d never have time to hunt manually, categorize them instantly, and surface what matters.',
+                  color: '#FF4F00'
+                },
+                {
+                  stage: 'DECIDE',
+                  icon: '🔮',
+                  title: 'Know before you build',
+                  desc: 'Prediction engines analyze your historical data to forecast which features will succeed. Devil\'s Advocate AI challenges your assumptions before engineering starts. No more building and praying.',
+                  color: '#4A6741'
+                },
+                {
+                  stage: 'SHIP',
+                  icon: '✏️',
+                  title: 'From decision to spec in seconds',
+                  desc: 'One click turns prioritized signals into complete PRDs—problem statement, user stories, acceptance criteria, evidence citations. What took 4 hours now takes 30 seconds.',
+                  color: '#C2703D'
+                },
+                {
+                  stage: 'PROVE',
+                  icon: '📊',
+                  title: 'Know if it actually worked',
+                  desc: 'Outcome attribution tracks what happened after launch. Did sentiment improve? Did the theme volume drop? Did churn decrease? Finally, evidence that your decisions were right.',
+                  color: '#2E475D'
+                },
+              ].map((item, i) => (
+                <div key={i} className="bg-white rounded-2xl p-6 border border-black/[0.06] shadow-sm hover:shadow-lg transition-all">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-3xl">{item.icon}</span>
+                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color: item.color }}>{item.stage}</span>
+                  </div>
+                  <h3 className="font-[family-name:var(--font-fraunces)] text-lg font-semibold text-[#2D2D2A] mb-3">{item.title}</h3>
+                  <p className="text-[14px] text-[#5C5C57] leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-center mt-12 text-[17px] text-[#2D2D2A] font-medium max-w-3xl mx-auto">
+              Most teams use 5+ tools that don't talk to each other. SignalsLoop is one platform where every stage feeds into the next—and the whole system gets smarter with every decision.
+            </p>
+          </div>
+        </section>
+
         {/* Products Section */}
         <section id="platform" className="py-28 px-6" style={{ background: 'rgba(255, 255, 255, 0.6)' }}>
           <div className="max-w-7xl mx-auto">
@@ -714,212 +776,37 @@ export default function Homepage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-              {/* Hero Agents */}
-              <div className="agent-card col-span-2 p-8 rounded-2xl border border-[#FF4F00]/15"
-                style={{ background: 'linear-gradient(135deg, #FFF8F5 0%, #FFF0E8 100%)' }}>
-                <span className="inline-block px-3 py-1 bg-white/80 rounded-full text-[11px] font-bold text-[#8A8A85] uppercase tracking-wide mb-4">Core Agent</span>
-                <div className="text-5xl mb-4">🎯</div>
-                <h3 className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A] mb-3">Hunter Agent</h3>
-                <p className="text-[15px] text-[#5C5C57] leading-relaxed mb-5">
-                  Discovers feedback from Reddit, Hacker News, G2, App Store, and more. Runs on-demand or on your schedule.
-                </p>
-                <div className="flex gap-6">
-                  <div><span className="font-[family-name:var(--font-fraunces)] text-xl font-semibold text-[#2D2D2A]">8</span><span className="text-xs text-[#8A8A85] ml-1">platforms</span></div>
-                  <div><span className="font-[family-name:var(--font-fraunces)] text-xl font-semibold text-[#2D2D2A]">Auto</span><span className="text-xs text-[#8A8A85] ml-1">categorize</span></div>
-                </div>
-                <div className="agent-preview">
-                  <div className="preview-label">Live Scan</div>
-                  <div className="preview-scan"></div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22C55E' }}></span>
-                      Reddit: 12 new signals
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F59E0B' }}></span>
-                      Twitter: 8 mentions
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3B82F6' }}></span>
-                      G2: Processing...
-                    </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {[
+                { icon: '🎯', name: 'Hunter Agent', desc: 'Scans 8 platforms so you don\'t have to open Reddit, G2, or HN ever again', color: '#FF4F00' },
+                { icon: '🏷️', name: 'Smart Categorizer', desc: 'Auto-tags every signal (feature request, bug, praise, churn risk) with 93% accuracy', color: '#4A6741' },
+                { icon: '🔄', name: 'Deduplicator', desc: 'Finds semantic duplicates even when customers say the same thing 47 different ways', color: '#C2703D' },
+                { icon: '⚖️', name: 'Priority Scorer', desc: 'Weights by MRR, urgency, and strategic fit so enterprise requests don\'t drown in noise', color: '#2E475D' },
+                { icon: '✏️', name: 'Spec Writer', desc: 'Generates complete PRDs with evidence in 30 seconds—not 4 hours', color: '#FF4F00' },
+                { icon: '😈', name: 'Devil\'s Advocate', desc: 'Challenges your specs before engineering does. Finds the holes you missed.', color: '#6A5ACD' },
+                { icon: '🔮', name: 'Success Predictor', desc: 'ML-based forecasting so you know adoption probability before you build', color: '#4A6741' },
+                { icon: '🚨', name: 'Churn Radar', desc: 'Spots at-risk customers from feedback patterns—30 days before they leave', color: '#C2703D' },
+                { icon: '📈', name: 'Trend Forecaster', desc: 'Predicts sentiment shifts 7-30 days out so you\'re never caught off guard', color: '#0091AE' },
+                { icon: '💬', name: 'Smart Replier', desc: 'Drafts customer responses in your voice so you can respond 10x faster', color: '#5C5C57' },
+                { icon: '📋', name: 'Executive Brief', desc: 'Auto-generates stakeholder summaries so you stop writing status reports', color: '#2E475D' },
+                { icon: '🎯', name: 'Outcome Tracker', desc: 'Measures if shipped features actually worked—finally, proof you were right', color: '#FF4F00' },
+              ].map((agent, i) => (
+                <div key={i} className="bg-white p-5 rounded-2xl border border-black/[0.06] shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: `${agent.color}15` }}>
+                    <span className="text-2xl">{agent.icon}</span>
                   </div>
+                  <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2 text-base">{agent.name}</h4>
+                  <p className="text-[13px] text-[#5C5C57] leading-relaxed">{agent.desc}</p>
                 </div>
-              </div>
-              <div className="agent-card col-span-2 p-8 rounded-2xl border border-[#4A6741]/15"
-                style={{ background: 'linear-gradient(135deg, #F8FBF8 0%, #EDF5ED 100%)' }}>
-                <span className="inline-block px-3 py-1 bg-white/80 rounded-full text-[11px] font-bold text-[#8A8A85] uppercase tracking-wide mb-4">Core Agent</span>
-                <div className="text-5xl mb-4">✏️</div>
-                <h3 className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A] mb-3">Spec Writer Agent</h3>
-                <p className="text-[15px] text-[#5C5C57] leading-relaxed mb-5">
-                  Generates complete PRDs in 30 seconds. Problem statements, user stories, acceptance criteria—all ready for Jira.
-                </p>
-                <div className="flex gap-6">
-                  <div><span className="font-[family-name:var(--font-fraunces)] text-xl font-semibold text-[#2D2D2A]">30s</span><span className="text-xs text-[#8A8A85] ml-1">generation</span></div>
-                  <div><span className="font-[family-name:var(--font-fraunces)] text-xl font-semibold text-[#2D2D2A]">1-click</span><span className="text-xs text-[#8A8A85] ml-1">Jira export</span></div>
-                </div>
-                <div className="agent-preview">
-                  <div className="preview-label">Generating PRD</div>
-                  <div className="preview-typing">
-                    <span style={{ color: '#C2703D' }}># Dark Mode Feature</span><br />
-                    <span style={{ color: '#8A8A85' }}>## Problem Statement</span><br />
-                    <span style={{ color: '#5C5C57' }}>Users report eye strain...</span>
-                    <span className="preview-typing-cursor"></span>
-                  </div>
-                </div>
-              </div>
+              ))}
+            </div>
 
-              {/* Standard Agents - Slide-up Preview on Hover */}
-              {/* Devil's Advocate */}
-              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm">
-                <div className="w-12 h-12 rounded-xl bg-[#FF4F00] flex items-center justify-center mb-4">
-                  <span className="text-xl">😈</span>
-                </div>
-                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Devil&apos;s Advocate</h4>
-                <p className="text-sm text-[#5C5C57] leading-relaxed">Challenges assumptions before you waste resources</p>
-                <div className="agent-preview">
-                  <div className="preview-label">Risk Alert</div>
-                  <div className="preview-alert">
-                    <span className="preview-alert-icon">⚠️</span>
-                    <span className="preview-alert-text">Competitor X launched free tier yesterday</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Prediction Engine */}
-              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm">
-                <div className="w-12 h-12 rounded-xl bg-[#4A6741] flex items-center justify-center mb-4">
-                  <span className="text-xl">🔮</span>
-                </div>
-                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Prediction Engine</h4>
-                <p className="text-sm text-[#5C5C57] leading-relaxed">Forecasts feature success before you build</p>
-                <div className="agent-preview">
-                  <div className="preview-label">Adoption Forecast</div>
-                  <div className="preview-metric">
-                    <span className="preview-metric-value">67%</span>
-                    <span className="preview-metric-unit">predicted adoption</span>
-                  </div>
-                  <div className="preview-bars" style={{ marginTop: '8px' }}>
-                    <span></span><span></span><span></span><span></span><span></span><span></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Churn Radar */}
-              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm">
-                <div className="w-12 h-12 rounded-xl bg-[#C2703D] flex items-center justify-center mb-4">
-                  <span className="text-xl">📡</span>
-                </div>
-                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Churn Radar</h4>
-                <p className="text-sm text-[#5C5C57] leading-relaxed">Predicts at-risk customers 30 days out</p>
-                <div className="agent-preview">
-                  <div className="preview-label">Risk Detection</div>
-                  <div className="preview-metric">
-                    <span className="preview-metric-value" style={{ color: '#C2703D' }}>3</span>
-                    <span className="preview-metric-unit">accounts at risk</span>
-                  </div>
-                  <div className="preview-pulse" style={{ marginTop: '8px' }}>
-                    <span></span><span></span><span></span><span></span><span></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Competitive Intel */}
-              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm">
-                <div className="w-12 h-12 rounded-xl bg-[#5C5C57] flex items-center justify-center mb-4">
-                  <span className="text-xl">⚔️</span>
-                </div>
-                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Competitive Intel</h4>
-                <p className="text-sm text-[#5C5C57] leading-relaxed">Tracks competitor moves & threats</p>
-                <div className="agent-preview">
-                  <div className="preview-label">Tracking 8 Competitors</div>
-                  <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                    <span style={{ width: '32px', height: '32px', background: '#E8F0E8', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: '#4A6741' }}>V</span>
-                    <span style={{ width: '32px', height: '32px', background: '#E8F0E8', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: '#4A6741' }}>L</span>
-                    <span style={{ width: '32px', height: '32px', background: '#E8F0E8', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: '#4A6741' }}>N</span>
-                    <span style={{ width: '32px', height: '32px', background: '#FFF7ED', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: '#E64700' }}>!</span>
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#475569', marginTop: '8px' }}>1 new threat detected</div>
-                </div>
-              </div>
-
-              {/* Knowledge Gap - New */}
-              <div className="agent-card bg-[#E8F0E8]/30 border border-[#4A6741]/10 p-6 rounded-2xl">
-                <div className="absolute top-3 right-3">
-                  <span className="px-2 py-0.5 rounded-full bg-[#4A6741]/20 text-[#4A6741] text-[10px] font-bold uppercase">New</span>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-[#FF4F00] flex items-center justify-center mb-4">
-                  <span className="text-xl">🧠</span>
-                </div>
-                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Knowledge Gap</h4>
-                <p className="text-sm text-[#5C5C57] leading-relaxed">Identifies missing intel in decisions</p>
-                <div className="agent-preview">
-                  <div className="preview-label">Analysis Complete</div>
-                  <div className="preview-metric">
-                    <span className="preview-metric-value">3</span>
-                    <span className="preview-metric-unit">gaps found in Q4 roadmap</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Anomaly Detect - New */}
-              <div className="agent-card bg-[#E8F0E8]/30 border border-[#4A6741]/10 p-6 rounded-2xl">
-                <div className="absolute top-3 right-3">
-                  <span className="px-2 py-0.5 rounded-full bg-[#4A6741]/20 text-[#4A6741] text-[10px] font-bold uppercase">New</span>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-[#C2703D] flex items-center justify-center mb-4">
-                  <span className="text-xl">⚡</span>
-                </div>
-                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Anomaly Detect</h4>
-                <p className="text-sm text-[#5C5C57] leading-relaxed">Flags unusual patterns instantly</p>
-                <div className="agent-preview">
-                  <div className="preview-label">Pattern Detected</div>
-                  <div className="preview-alert" style={{ background: 'rgba(194, 112, 61, 0.08)', borderColor: 'rgba(194, 112, 61, 0.15)' }}>
-                    <span className="preview-alert-icon">📈</span>
-                    <span className="preview-alert-text" style={{ color: '#C2703D' }}>Feedback spike: +340% this week</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sentiment Forecast - New */}
-              <div className="agent-card bg-[#E8F0E8]/30 border border-[#4A6741]/10 p-6 rounded-2xl">
-                <div className="absolute top-3 right-3">
-                  <span className="px-2 py-0.5 rounded-full bg-[#4A6741]/20 text-[#4A6741] text-[10px] font-bold uppercase">New</span>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-[#4A6741] flex items-center justify-center mb-4">
-                  <span className="text-xl">📈</span>
-                </div>
-                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Sentiment Forecast</h4>
-                <p className="text-sm text-[#5C5C57] leading-relaxed">Predicts sentiment 30 days ahead</p>
-                <div className="agent-preview">
-                  <div className="preview-label">30-Day Forecast</div>
-                  <div className="preview-metric">
-                    <span className="preview-metric-value" style={{ color: '#4A6741' }}>+12%</span>
-                    <span className="preview-metric-unit">sentiment improvement</span>
-                  </div>
-                  <div className="preview-bars" style={{ marginTop: '8px' }}>
-                    <span></span><span></span><span></span><span></span><span></span><span></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Strategy Shifts - New */}
-              <div className="agent-card bg-[#E8F0E8]/30 border border-[#4A6741]/10 p-6 rounded-2xl">
-                <div className="absolute top-3 right-3">
-                  <span className="px-2 py-0.5 rounded-full bg-[#4A6741]/20 text-[#4A6741] text-[10px] font-bold uppercase">New</span>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-[#5C5C57] flex items-center justify-center mb-4">
-                  <span className="text-xl">🔄</span>
-                </div>
-                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Strategy Shifts</h4>
-                <p className="text-sm text-[#5C5C57] leading-relaxed">Detects market & competitor pivots</p>
-                <div className="agent-preview">
-                  <div className="preview-label">Market Watch</div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#4A6741', marginTop: '4px' }}>↗ 2 market shifts detected</div>
-                  <div style={{ fontSize: '11px', color: '#475569', marginTop: '4px' }}>• Enterprise focus increasing<br />• API-first trend emerging</div>
-                </div>
-              </div>
+            {/* Value Kicker */}
+            <div className="text-center mt-12 p-6 bg-gradient-to-r from-[#FF4F00]/10 via-[#FFECE0] to-[#FF4F00]/10 rounded-2xl border border-[#FF4F00]/20">
+              <p className="text-xl font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A]">
+                One specialist would cost you <span className="text-[#5C5C57] line-through">$5,000+/month</span>.
+                <span className="text-[#FF4F00]"> You get 12 for $19.</span>
+              </p>
             </div>
           </div>
         </section>
@@ -927,24 +814,32 @@ export default function Homepage() {
         {/* Pricing Section */}
         <section id="pricing" className="py-28 px-6" style={{ background: 'linear-gradient(180deg, #FFFAF5 0%, #FFF5EB 100%)' }}>
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">Simple Pricing</span>
+            <div className="text-center mb-12">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">Simple pricing. Obvious value.</span>
               <h2 className="font-[family-name:var(--font-fraunces)] font-medium text-[#2D2D2A] mb-4"
                 style={{ fontSize: 'clamp(36px, 5vw, 56px)' }}>
-                Start Free.<br /><span className="text-[#FF4F00]">Scale When Ready.</span>
+                Start free. Scale when ready.
               </h2>
-              <p className="text-lg text-[#5C5C57]">No credit card required. Cancel anytime.</p>
+              <p className="text-lg text-[#5C5C57]">The math makes sense at every tier.</p>
+            </div>
+
+            {/* Value Anchoring */}
+            <div className="max-w-3xl mx-auto mb-12 p-6 bg-white/80 border border-black/[0.06] rounded-2xl text-center">
+              <p className="text-[16px] text-[#5C5C57] leading-relaxed">
+                A typical PM spends <strong className="text-[#2D2D2A]">15-20 hours/week</strong> on tasks SignalsLoop handles automatically—feedback triage, spec writing, stakeholder reporting, pattern analysis. At average PM salary, that's <strong className="text-[#FF4F00]">$500-800/week</strong> of time recovered. Our Pro plan costs less than one hour of that time.
+              </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {/* Free */}
               <div className="bg-white rounded-2xl p-9 border border-black/[0.06] shadow-md hover:shadow-xl hover:-translate-y-1 transition-all">
                 <h3 className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A] mb-1">Free</h3>
-                <p className="text-sm text-[#8A8A85] mb-6">For solo makers</p>
+                <p className="text-sm text-[#8A8A85] mb-6">For solo explorers</p>
                 <div className="mb-5">
                   <span className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A]">$0</span>
                   <span className="text-lg text-[#8A8A85]">/mo</span>
                 </div>
+                <p className="text-sm text-[#5C5C57] mb-6">Try the complete platform. No credit card. No time limit.</p>
                 <ul className="space-y-2.5 mb-7">
                   {['1 project', '50 feedback items', '3 AI agents'].map((f, i) => (
                     <li key={i} className="text-[15px] text-[#5C5C57] flex items-center gap-2.5">
@@ -959,7 +854,6 @@ export default function Homepage() {
                 >
                   Start Free
                 </button>
-                <p className="text-center text-[13px] text-[#8A8A85] mt-3">No credit card needed</p>
               </div>
 
               {/* Pro */}
@@ -968,13 +862,13 @@ export default function Homepage() {
                   Most Popular
                 </div>
                 <h3 className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A] mb-1">Pro</h3>
-                <p className="text-sm text-[#FF4F00] font-semibold mb-6">For Builders</p>
+                <p className="text-sm text-[#FF4F00] font-semibold mb-6">For serious builders</p>
                 <div className="mb-5">
                   <span className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A]">$19</span>
                   <span className="text-lg text-[#8A8A85]">/mo</span>
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#E8F0E8] border border-[#4A6741]/20 rounded-full text-xs font-semibold text-[#4A6741] mb-6">
-                  💰 Replaces $200/mo of tools
+                <div className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#FFF5EB] border border-[#FF4F00]/20 rounded-full text-xs font-semibold text-[#FF4F00] mb-6">
+                  🔥 12 AI agents for less than a team lunch
                 </div>
                 <ul className="space-y-2.5 mb-7">
                   {['All 12 AI agents', '1,200 feedback items', 'AI Spec Writer'].map((f, i) => (
@@ -995,13 +889,16 @@ export default function Homepage() {
               {/* Premium */}
               <div className="bg-white rounded-2xl p-9 border border-black/[0.06] shadow-md hover:shadow-xl hover:-translate-y-1 transition-all">
                 <h3 className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A] mb-1">Premium</h3>
-                <p className="text-sm text-[#4A6741] font-semibold mb-6">For Teams</p>
+                <p className="text-sm text-[#4A6741] font-semibold mb-6">For growing teams</p>
                 <div className="mb-5">
                   <span className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A]">$79</span>
                   <span className="text-lg text-[#8A8A85]">/mo</span>
                 </div>
+                <div className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#E8F0E8] border border-[#4A6741]/20 rounded-full text-xs font-semibold text-[#4A6741] mb-6">
+                  The complete product intelligence system
+                </div>
                 <ul className="space-y-2.5 mb-7">
-                  {['10 team members', 'Go/No-Go Dashboard', 'Outcome Attribution'].map((f, i) => (
+                  {['Go/No-Go Dashboard', 'Outcome Attribution', 'Unlimited everything'].map((f, i) => (
                     <li key={i} className="text-[15px] text-[#5C5C57] flex items-center gap-2.5">
                       <CheckCircle className="w-4.5 h-4.5 text-[#4A6741]" />
                       {f}
@@ -1016,6 +913,11 @@ export default function Homepage() {
                 </button>
               </div>
             </div>
+
+            {/* Pricing CTA */}
+            <p className="text-center mt-10 text-[17px] text-[#5C5C57]">
+              Start with Free. Upgrade when you're addicted.
+            </p>
           </div>
         </section>
 
