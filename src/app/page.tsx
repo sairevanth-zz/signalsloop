@@ -433,19 +433,19 @@ export default function Homepage() {
           <div className="inline-flex items-center gap-2.5 px-5 py-2.5 mb-8 rounded-full text-[13px] font-semibold"
             style={{ background: '#FFECE0', border: '1px solid rgba(255, 79, 0, 0.15)', color: '#E64700' }}>
             <span className="w-2 h-2 bg-[#FF4F00] rounded-full animate-pulse"></span>
-            The only platform that closes the product loop
+            For product teams & founders
           </div>
 
           {/* Hero Title */}
           <h1 className="font-[family-name:var(--font-fraunces)] font-medium text-[#2D2D2A] tracking-tight mb-7 max-w-4xl mx-auto"
             style={{ fontSize: 'clamp(40px, 5.5vw, 68px)', lineHeight: 1.1 }}>
-            Hunt. Decide. Ship. Prove.<br />
-            <span className="text-[#FF4F00]">One platform. No gaps.</span>
+            From first signal to shipped feature—<br />
+            <span className="text-[#FF4F00]">everything in one place.</span>
           </h1>
 
           {/* Hero Subtitle */}
           <p className="text-xl text-[#5C5C57] max-w-2xl mx-auto mb-10 leading-relaxed">
-            Other tools handle pieces. SignalsLoop handles the entire journey—from discovering what users need, to predicting what will work, to writing specs, to proving you were right.
+            Capture feedback, validate with AI, ship specs, measure outcomes—no tool switching. The complete product development platform.
           </p>
 
           {/* Prism Visual */}
@@ -528,10 +528,10 @@ export default function Homepage() {
               href="/signup"
               className="px-8 py-4 text-base font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all shadow-[0_2px_8px_rgba(255,79,0,0.25)] hover:shadow-[0_6px_16px_rgba(255,79,0,0.3)] hover:-translate-y-0.5"
             >
-              Try the Complete Platform Free →
+              Get Started Free →
             </Link>
-            <Link href="#platform" className="px-8 py-4 text-base font-semibold text-[#2D2D2A] bg-white border-[1.5px] border-[#E8E8E6] rounded-xl hover:border-[#FF4F00] hover:text-[#FF4F00] transition-all flex items-center gap-2">
-              See the Full Loop
+            <Link href="/demo/roast" className="px-8 py-4 text-base font-semibold text-[#2D2D2A] bg-white border-[1.5px] border-[#E8E8E6] rounded-xl hover:border-[#FF4F00] hover:text-[#FF4F00] transition-all flex items-center gap-2">
+              See it in action
             </Link>
           </div>
         </section>
@@ -572,189 +572,349 @@ export default function Homepage() {
           `}</style>
         </section>
 
-        {/* Problem Section */}
+        {/* Section 1: Capture Feedback from Everywhere */}
         <section className="py-24 px-6" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-            <div className="max-w-lg">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">The product management trap</span>
-              <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-6"
-                style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
-                You're paid to make decisions.<br />But you spend your week collecting data to make them.
-              </h2>
-              <p className="text-[17px] text-[#5C5C57] leading-relaxed mb-4">
-                Product management was supposed to be strategic. Instead:
-              </p>
-              <ul className="space-y-3 mb-6">
-                <li className="flex items-start gap-3 text-[16px] text-[#5C5C57]">
-                  <span className="text-[#FF4F00] mt-1">→</span>
-                  <span>You're a <strong className="text-[#2D2D2A]">feedback archaeologist</strong>—digging through 8 different tools to find what customers actually said</span>
-                </li>
-                <li className="flex items-start gap-3 text-[16px] text-[#5C5C57]">
-                  <span className="text-[#FF4F00] mt-1">→</span>
-                  <span>You're a <strong className="text-[#2D2D2A]">spec mill</strong>—spending hours formatting documents instead of thinking strategically</span>
-                </li>
-                <li className="flex items-start gap-3 text-[16px] text-[#5C5C57]">
-                  <span className="text-[#FF4F00] mt-1">→</span>
-                  <span>You're a <strong className="text-[#2D2D2A]">defense attorney</strong>—justifying roadmap decisions with whatever evidence you can find fast</span>
-                </li>
-                <li className="flex items-start gap-3 text-[16px] text-[#5C5C57]">
-                  <span className="text-[#FF4F00] mt-1">→</span>
-                  <span>You're a <strong className="text-[#2D2D2A]">fortune teller</strong>—guessing what will work because there's no time to analyze properly</span>
-                </li>
-              </ul>
-              <p className="text-[17px] text-[#2D2D2A] font-medium">
-                What if the collecting, analyzing, writing, and proving happened automatically—and you just made the decisions?
-              </p>
-            </div>
-            <div className="relative min-h-[300px] hidden md:block">
-              {[
-                { icon: '🔍', text: '"Feature request buried in Slack"', top: '0', left: '0', rotate: '-3deg' },
-                { icon: '⏰', text: '"Spec took 4 hours to write"', top: '60px', left: '40%', rotate: '2deg' },
-                { icon: '❓', text: '"Why are we building this?"', top: '130px', left: '10%', rotate: '-1deg' },
-                { icon: '🎲', text: '"Hope this feature works..."', top: '200px', left: '35%', rotate: '3deg' },
-              ].map((card, i) => (
-                <div
-                  key={i}
-                  className="absolute bg-white rounded-xl px-4 py-3 shadow-md border border-black/[0.06] flex items-center gap-2.5 text-[13px] text-[#5C5C57] opacity-85"
-                  style={{ top: card.top, left: card.left, transform: `rotate(${card.rotate})` }}
-                >
-                  <span className="text-lg">{card.icon}</span>
-                  {card.text}
-                </div>
-              ))}
-              <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-3xl text-[#8A8A85]">↓</div>
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-sm font-semibold"
-                style={{ background: '#FDF5F2', border: '1px solid #C2703D', color: '#C2703D' }}>
-                The product management trap
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Four Stages Section */}
-        <section className="py-28 px-6" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
           <div className="max-w-6xl mx-auto">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">The complete product loop</span>
-              <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-4"
-                style={{ fontSize: 'clamp(32px, 4vw, 48px)', lineHeight: 1.15 }}>
-                Four stages. One platform. Zero gaps.
-              </h2>
-              <p className="text-lg text-[#5C5C57]">
-                Other tools give you a piece of the puzzle. A feedback board here. A spec template there. An analytics dashboard somewhere else. SignalsLoop is the first platform that handles the entire product intelligence loop—with AI doing the heavy lifting at every stage.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  stage: 'HUNT',
-                  icon: '🎯',
-                  title: 'Discover what you\'re missing',
-                  desc: 'AI agents scan Reddit, G2, Hacker News, app stores, and community forums 24/7. They find the signals you\'d never have time to hunt manually, categorize them instantly, and surface what matters.',
-                  color: '#FF4F00'
-                },
-                {
-                  stage: 'DECIDE',
-                  icon: '🔮',
-                  title: 'Know before you build',
-                  desc: 'Prediction engines analyze your historical data to forecast which features will succeed. Devil\'s Advocate AI challenges your assumptions before engineering starts. No more building and praying.',
-                  color: '#4A6741'
-                },
-                {
-                  stage: 'SHIP',
-                  icon: '✏️',
-                  title: 'From decision to spec in seconds',
-                  desc: 'One click turns prioritized signals into complete PRDs—problem statement, user stories, acceptance criteria, evidence citations. What took 4 hours now takes 30 seconds.',
-                  color: '#C2703D'
-                },
-                {
-                  stage: 'PROVE',
-                  icon: '📊',
-                  title: 'Know if it actually worked',
-                  desc: 'Outcome attribution tracks what happened after launch. Did sentiment improve? Did the theme volume drop? Did churn decrease? Finally, evidence that your decisions were right.',
-                  color: '#2E475D'
-                },
-              ].map((item, i) => (
-                <div key={i} className="bg-white rounded-2xl p-6 border border-black/[0.06] shadow-sm hover:shadow-lg transition-all">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="text-3xl">{item.icon}</span>
-                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color: item.color }}>{item.stage}</span>
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">Feedback Collection</span>
+                <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-5"
+                  style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
+                  Capture feedback from everywhere
+                </h2>
+                <p className="text-[17px] text-[#5C5C57] leading-relaxed mb-6">
+                  Stop checking 8 different tabs. SignalsLoop hunts feedback across Reddit, G2, Hacker News, app stores, Slack, Discord, and more—automatically.
+                </p>
+                <ul className="space-y-3">
+                  {[
+                    'Public feedback boards with voting',
+                    'Polls & surveys embedded anywhere',
+                    'AI agents scan 8+ platforms 24/7',
+                    'Widget embed for your app',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-[15px] text-[#5C5C57]">
+                      <span className="w-5 h-5 rounded-full bg-[#FF4F00]/10 flex items-center justify-center text-[#FF4F00] text-xs">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { icon: '📱', name: 'Reddit', color: '#FF4500' },
+                  { icon: '⭐', name: 'G2', color: '#FF5100' },
+                  { icon: '🟡', name: 'Hacker News', color: '#FF6600' },
+                  { icon: '🍎', name: 'App Store', color: '#0D84FF' },
+                  { icon: '💬', name: 'Slack', color: '#4A154B' },
+                  { icon: '🎮', name: 'Discord', color: '#5865F2' },
+                ].map((platform, i) => (
+                  <div key={i} className="bg-white rounded-xl p-4 border border-black/[0.06] shadow-sm text-center hover:shadow-md hover:-translate-y-0.5 transition-all">
+                    <div className="text-2xl mb-2">{platform.icon}</div>
+                    <div className="text-xs font-medium text-[#5C5C57]">{platform.name}</div>
                   </div>
-                  <h3 className="font-[family-name:var(--font-fraunces)] text-lg font-semibold text-[#2D2D2A] mb-3">{item.title}</h3>
-                  <p className="text-[14px] text-[#5C5C57] leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-
-            <p className="text-center mt-12 text-[17px] text-[#2D2D2A] font-medium max-w-3xl mx-auto">
-              Most teams use 5+ tools that don't talk to each other. SignalsLoop is one platform where every stage feeds into the next—and the whole system gets smarter with every decision.
-            </p>
           </div>
         </section>
 
-        {/* Products Section */}
-        <section id="platform" className="py-28 px-6" style={{ background: 'rgba(255, 255, 255, 0.6)' }}>
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <div className="flex items-center justify-center gap-2.5 mb-6">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6 text-[#FF4F00]">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
-                <span className="text-sm font-semibold text-[#FF4F00]">The complete product loop</span>
+        {/* Section 2: Test Ideas Before You Build */}
+        <section className="py-24 px-6" style={{ background: '#FFFAF5' }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div className="order-2 md:order-1 bg-white rounded-2xl p-6 border border-black/[0.06] shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-[#4A6741] flex items-center justify-center text-white text-lg">🔮</div>
+                  <span className="text-sm font-bold text-[#2D2D2A]">Success Prediction</span>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-[#E8F0E8] rounded-lg">
+                    <span className="text-sm text-[#2D2D2A]">Dark Mode Feature</span>
+                    <span className="text-sm font-bold text-[#4A6741]">89% likely to succeed</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-[#FFF5EB] rounded-lg">
+                    <span className="text-sm text-[#2D2D2A]">Team Collaboration</span>
+                    <span className="text-sm font-bold text-[#C2703D]">45% likely to succeed</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-[#F0F0F0] rounded-lg">
+                    <span className="text-sm text-[#2D2D2A]">Export to PDF</span>
+                    <span className="text-sm font-bold text-[#5C5C57]">23% likely to succeed</span>
+                  </div>
+                </div>
               </div>
-              <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-4"
-                style={{ fontSize: 'clamp(32px, 4vw, 48px)', lineHeight: 1.15 }}>
-                One platform. Six powerful hubs.<br />Everything you need. Nothing you don't.
-              </h2>
-              <p className="text-lg text-[#5C5C57]">
-                Other tools give you a piece of the puzzle. A feedback board here. A spec template there. SignalsLoop is the first platform that handles the entire product intelligence loop—with AI doing the heavy lifting at every stage.
-              </p>
-              <div className="flex justify-center gap-4 mt-8">
-                <Link
-                  href="/signup"
-                  className="px-6 py-3 text-[15px] font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all"
-                >
-                  Try it free
-                </Link>
-                <Link
-                  href="/products"
-                  className="px-6 py-3 text-[15px] font-semibold text-[#2D2D2A] bg-white border-[1.5px] border-[#E8E8E6] rounded-xl hover:border-[#FF4F00] hover:text-[#FF4F00] transition-all"
-                >
-                  Explore all hubs
-                </Link>
+              <div className="order-1 md:order-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#4A6741] mb-4 block">Validation</span>
+                <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-5"
+                  style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
+                  Test ideas before you build
+                </h2>
+                <p className="text-[17px] text-[#5C5C57] leading-relaxed mb-6">
+                  Stop building features that nobody uses. Our AI predicts adoption rates before you write a single line of code.
+                </p>
+                <ul className="space-y-3">
+                  {[
+                    'ML-based success prediction',
+                    'Sync with LaunchDarkly & Optimizely',
+                    'Compare against historical patterns',
+                    'Devil\'s Advocate challenges assumptions',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-[15px] text-[#5C5C57]">
+                      <span className="w-5 h-5 rounded-full bg-[#4A6741]/10 flex items-center justify-center text-[#4A6741] text-xs">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
+          </div>
+        </section>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { icon: '🎯', title: 'Feedback Hub', subtitle: 'The Signal Command Center', color: 'from-[#FF4F00] to-[#FF6B26]', features: ['AI agents scan 8+ platforms 24/7', 'Auto-categorize & deduplicate', 'Revenue-weighted prioritization'] },
-                { icon: '✏️', title: 'Spec Hub', subtitle: 'From Idea to PRD in 30 Seconds', color: 'from-[#C2703D] to-[#D4886A]', features: ['Complete specs with evidence citations', 'User stories & acceptance criteria', 'One-click Jira export'] },
-                { icon: '🔮', title: 'Prediction Hub', subtitle: 'Know Before You Build', color: 'from-[#4A6741] to-[#6B8E6B]', features: ['ML-based success prediction', 'Adoption rate forecasting', 'Revenue impact estimates'] },
-                { icon: '📊', title: 'Insights Hub', subtitle: 'See the Patterns You\'re Missing', color: 'from-[#0091AE] to-[#00BDA5]', features: ['Theme detection & clustering', 'Sentiment shift alerts', 'Auto-generated weekly briefings'] },
-                { icon: '😈', title: 'Advocate Hub', subtitle: 'Your Built-In Skeptic', color: 'from-[#6A5ACD] to-[#9B8FD9]', features: ['Devil\'s Advocate attacks your specs', 'Finds assumptions & risks', 'Contradictions in your data'] },
-                { icon: '👥', title: 'Stakeholder Hub', subtitle: 'Alignment Without Meetings', color: 'from-[#2E475D] to-[#516F90]', features: ['Role-based auto-reports', 'Go/No-Go dashboards', 'Outcome tracking & attribution'] },
-              ].map((product, i) => (
-                <div key={i} className="bg-white rounded-2xl p-8 border border-black/[0.06] shadow-sm hover:shadow-xl hover:-translate-y-1.5 hover:border-[#FF4F00] transition-all duration-300">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${product.color} flex items-center justify-center text-2xl mb-5`}>
-                    {product.icon}
+        {/* Section 3: Know Where to Build Next */}
+        <section className="py-24 px-6" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#C2703D] mb-4 block">Prioritization</span>
+                <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-5"
+                  style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
+                  Know where to build next
+                </h2>
+                <p className="text-[17px] text-[#5C5C57] leading-relaxed mb-6">
+                  Prioritize by what actually matters—not spreadsheet theater. Revenue-weight signals by connecting your CRM.
+                </p>
+                <ul className="space-y-3">
+                  {[
+                    'Connect Salesforce or HubSpot',
+                    'Weight feedback by customer MRR',
+                    'Auto-categorize themes with AI',
+                    'Generate specs with one click',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-[15px] text-[#5C5C57]">
+                      <span className="w-5 h-5 rounded-full bg-[#C2703D]/10 flex items-center justify-center text-[#C2703D] text-xs">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="bg-white rounded-2xl p-6 border border-black/[0.06] shadow-lg">
+                <div className="text-sm font-bold text-[#8A8A85] uppercase mb-4">Priority Score</div>
+                <div className="space-y-4">
+                  {[
+                    { feature: 'API Integrations', score: 94, mrr: '$45K MRR', requests: 127, color: '#FF4F00' },
+                    { feature: 'Dark Mode', score: 78, mrr: '$32K MRR', requests: 89, color: '#4A6741' },
+                    { feature: 'Export to CSV', score: 52, mrr: '$12K MRR', requests: 34, color: '#C2703D' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-[#2D2D2A]">{item.feature}</span>
+                          <span className="text-xs text-[#8A8A85]">{item.mrr} · {item.requests} requests</span>
+                        </div>
+                        <div className="h-2 bg-[#F0F0F0] rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${item.score}%`, background: item.color }}></div>
+                        </div>
+                      </div>
+                      <span className="text-lg font-bold" style={{ color: item.color }}>{item.score}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 4: Launch with Confidence */}
+        <section className="py-24 px-6" style={{ background: '#FFFAF5' }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div className="order-2 md:order-1 bg-white rounded-2xl p-6 border border-black/[0.06] shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-bold text-[#2D2D2A]">Go/No-Go Dashboard</span>
+                  <span className="px-3 py-1 bg-[#E8F0E8] text-[#4A6741] text-xs font-bold rounded-full">Ready to Launch</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  {[
+                    { label: 'Spec Complete', status: '✓', color: '#4A6741' },
+                    { label: 'Stakeholders Aligned', status: '✓', color: '#4A6741' },
+                    { label: 'Risks Reviewed', status: '✓', color: '#4A6741' },
+                    { label: 'Metrics Defined', status: '✓', color: '#4A6741' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 p-2 bg-[#F8FBF8] rounded-lg">
+                      <span className="text-sm" style={{ color: item.color }}>{item.status}</span>
+                      <span className="text-xs text-[#5C5C57]">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <button className="w-full py-3 bg-[#4A6741] text-white text-sm font-semibold rounded-xl">
+                  🚀 Approve Launch
+                </button>
+              </div>
+              <div className="order-1 md:order-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#0091AE] mb-4 block">Launch Confidence</span>
+                <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-5"
+                  style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
+                  Launch with confidence
+                </h2>
+                <p className="text-[17px] text-[#5C5C57] leading-relaxed mb-6">
+                  Go/No-Go dashboards keep everyone aligned. Changelogs auto-generate. Retrospectives capture what you learned.
+                </p>
+                <ul className="space-y-3">
+                  {[
+                    'Go/No-Go launch dashboards',
+                    'Auto-generated changelogs',
+                    'Retrospective templates',
+                    'Push to Jira & Linear',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-[15px] text-[#5C5C57]">
+                      <span className="w-5 h-5 rounded-full bg-[#0091AE]/10 flex items-center justify-center text-[#0091AE] text-xs">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 5: Measure What Matters */}
+        <section className="py-24 px-6" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#2E475D] mb-4 block">Outcome Attribution</span>
+                <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-5"
+                  style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
+                  Measure what matters
+                </h2>
+                <p className="text-[17px] text-[#5C5C57] leading-relaxed mb-6">
+                  Finally know if your features actually worked. Track adoption with Amplitude, monitor sentiment shifts, and prove ROI.
+                </p>
+                <ul className="space-y-3">
+                  {[
+                    'Connect Amplitude for adoption tracking',
+                    'Sentiment shift monitoring',
+                    'NPS & churn correlation',
+                    'Auto-generated outcome reports',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-[15px] text-[#5C5C57]">
+                      <span className="w-5 h-5 rounded-full bg-[#2E475D]/10 flex items-center justify-center text-[#2E475D] text-xs">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="bg-white rounded-2xl p-6 border border-black/[0.06] shadow-lg">
+                <div className="text-sm font-bold text-[#8A8A85] uppercase mb-4">Feature Impact</div>
+                <div className="space-y-4">
+                  <div className="p-4 bg-[#E8F0E8] rounded-xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-[#2D2D2A]">Dark Mode Launch</span>
+                      <span className="text-xs font-bold text-[#4A6741]">+23% adoption</span>
+                    </div>
+                    <div className="text-xs text-[#5C5C57]">Sentiment improved by 31% • NPS +8 pts</div>
                   </div>
-                  <h3 className="font-[family-name:var(--font-fraunces)] text-[22px] font-semibold text-[#2D2D2A] mb-1">{product.title}</h3>
-                  <p className="text-[14px] text-[#FF4F00] font-medium mb-3">{product.subtitle}</p>
-                  <div className="w-10 h-0.5 bg-[#FF4F00] mb-4 rounded"></div>
-                  <ul className="space-y-2 mb-6">
-                    {product.features.map((f, j) => (
-                      <li key={j} className="text-[15px] text-[#5C5C57] flex items-center gap-2">
-                        <span className="text-[#4A6741] font-bold">✓</span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href="/products" className="text-[15px] font-semibold text-[#FF4F00] hover:gap-3 transition-all flex items-center gap-2">
-                    Learn more <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <div className="p-4 bg-[#FFF5EB] rounded-xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-[#2D2D2A]">API v2 Release</span>
+                      <span className="text-xs font-bold text-[#C2703D]">+67% adoption</span>
+                    </div>
+                    <div className="text-xs text-[#5C5C57]">Churn reduced by 12% • Support tickets -45%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 6: Know What Competitors Are Doing */}
+        <section className="py-24 px-6" style={{ background: '#2D2D2A' }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">Competitive Intelligence</span>
+                <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-white mb-5"
+                  style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
+                  Know what competitors are doing
+                </h2>
+                <p className="text-[17px] text-white/70 leading-relaxed mb-6">
+                  Stay ahead of the market. Track competitor mentions, product launches, and feature gaps—all automatically.
+                </p>
+                <ul className="space-y-3">
+                  {[
+                    'Competitor mention tracking',
+                    'Feature gap analysis',
+                    'Market trend detection',
+                    'Auto-generated intel reports',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-[15px] text-white/80">
+                      <span className="w-5 h-5 rounded-full bg-[#FF4F00]/20 flex items-center justify-center text-[#FF4F00] text-xs">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                <div className="text-sm font-bold text-white/60 uppercase mb-4">Competitor Radar</div>
+                <div className="space-y-3">
+                  {[
+                    { name: 'Competitor A', event: 'Launched dark mode', time: '2 days ago' },
+                    { name: 'Competitor B', event: 'New API announced', time: '1 week ago' },
+                    { name: 'Competitor C', event: 'Pricing increase', time: '2 weeks ago' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                      <div>
+                        <div className="text-sm font-medium text-white">{item.name}</div>
+                        <div className="text-xs text-white/60">{item.event}</div>
+                      </div>
+                      <span className="text-xs text-white/40">{item.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 7: The Only Platform That Covers Every Phase */}
+        <section id="platform" className="py-28 px-6" style={{ background: 'rgba(255, 255, 255, 0.6)' }}>
+          <div className="max-w-6xl mx-auto text-center">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">The Complete Product Loop</span>
+            <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-6"
+              style={{ fontSize: 'clamp(32px, 4vw, 48px)', lineHeight: 1.15 }}>
+              The only platform that covers every phase
+            </h2>
+            <p className="text-lg text-[#5C5C57] max-w-3xl mx-auto mb-12">
+              Other tools give you a piece of the puzzle. SignalsLoop covers the entire product development lifecycle—from first signal to shipped success.
+            </p>
+
+            {/* Phase Diagram */}
+            <div className="flex flex-wrap justify-center gap-4 mb-12">
+              {[
+                { phase: 'Collect', icon: '📥', desc: 'Feedback & signals', color: '#FF4F00' },
+                { phase: 'Validate', icon: '🔮', desc: 'Test before build', color: '#4A6741' },
+                { phase: 'Decide', icon: '⚖️', desc: 'Prioritize by impact', color: '#C2703D' },
+                { phase: 'Ship', icon: '🚀', desc: 'Specs & launch', color: '#0091AE' },
+                { phase: 'Measure', icon: '📊', desc: 'Prove outcomes', color: '#2E475D' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <div className="bg-white rounded-2xl p-5 border border-black/[0.06] shadow-sm text-center min-w-[140px]">
+                    <div className="text-3xl mb-2">{item.icon}</div>
+                    <div className="text-sm font-bold" style={{ color: item.color }}>{item.phase}</div>
+                    <div className="text-xs text-[#8A8A85]">{item.desc}</div>
+                  </div>
+                  {i < 4 && <span className="text-2xl text-[#E8E8E6] hidden md:block">→</span>}
                 </div>
               ))}
+            </div>
+
+            {/* Value Comparison - My Suggestion */}
+            <div className="bg-gradient-to-r from-[#FF4F00]/10 via-[#FFECE0] to-[#FF4F00]/10 rounded-2xl p-8 border border-[#FF4F00]/20 max-w-4xl mx-auto">
+              <p className="text-xl font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-4">
+                The same features that cost <span className="text-[#5C5C57] line-through">$200+/mo</span> on Canny, ProductBoard, or Typeform...
+              </p>
+              <p className="text-2xl font-[family-name:var(--font-fraunces)] font-bold text-[#FF4F00]">
+                Just $19/month on SignalsLoop.
+              </p>
             </div>
           </div>
         </section>
@@ -993,6 +1153,115 @@ export default function Homepage() {
           </div>
         </section>
 
+        {/* Integrations Section */}
+        <section className="py-24 px-6" style={{ background: '#fff' }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">Connects to your stack</span>
+              <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-4"
+                style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
+                Works with the tools you already use
+              </h2>
+              <p className="text-lg text-[#5C5C57] max-w-2xl mx-auto">
+                Push specs to Jira, get alerts in Slack, sync customer data from Salesforce—all without leaving SignalsLoop.
+              </p>
+            </div>
+
+            {/* Integration Categories */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {/* Dev Tools */}
+              <div className="bg-[#FFFAF5] rounded-2xl p-6 border border-black/[0.04]">
+                <h3 className="text-sm font-bold text-[#8A8A85] uppercase tracking-wider mb-4">Dev & Collaboration</h3>
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    { name: 'Jira', icon: '🎯', color: '#0052CC' },
+                    { name: 'Linear', icon: '📊', color: '#5E6AD2' },
+                    { name: 'Slack', icon: '💬', color: '#4A154B' },
+                    { name: 'Discord', icon: '🎮', color: '#5865F2' },
+                  ].map((tool) => (
+                    <div key={tool.name} className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-black/[0.06] text-sm font-medium text-[#2D2D2A]">
+                      <span>{tool.icon}</span>
+                      {tool.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* CRM */}
+              <div className="bg-[#FFFAF5] rounded-2xl p-6 border border-black/[0.04]">
+                <h3 className="text-sm font-bold text-[#8A8A85] uppercase tracking-wider mb-4">CRM</h3>
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    { name: 'Salesforce', icon: '☁️' },
+                    { name: 'HubSpot', icon: '🧡' },
+                  ].map((tool) => (
+                    <div key={tool.name} className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-black/[0.06] text-sm font-medium text-[#2D2D2A]">
+                      <span>{tool.icon}</span>
+                      {tool.name}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-[#8A8A85] mt-3">Revenue-weighted feedback prioritization</p>
+              </div>
+
+              {/* A/B Testing */}
+              <div className="bg-[#FFFAF5] rounded-2xl p-6 border border-black/[0.04]">
+                <h3 className="text-sm font-bold text-[#8A8A85] uppercase tracking-wider mb-4">A/B Testing</h3>
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    { name: 'LaunchDarkly', icon: '🚀' },
+                    { name: 'Optimizely', icon: '🎯' },
+                  ].map((tool) => (
+                    <div key={tool.name} className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-black/[0.06] text-sm font-medium text-[#2D2D2A]">
+                      <span>{tool.icon}</span>
+                      {tool.name}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-[#8A8A85] mt-3">Sync experiment results automatically</p>
+              </div>
+
+              {/* Analytics & AI */}
+              <div className="bg-[#FFFAF5] rounded-2xl p-6 border border-black/[0.04]">
+                <h3 className="text-sm font-bold text-[#8A8A85] uppercase tracking-wider mb-4">Analytics & AI</h3>
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    { name: 'Amplitude', icon: '📈' },
+                    { name: 'Lovable', icon: '💜' },
+                  ].map((tool) => (
+                    <div key={tool.name} className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-black/[0.06] text-sm font-medium text-[#2D2D2A]">
+                      <span>{tool.icon}</span>
+                      {tool.name}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-[#8A8A85] mt-3">Track adoption + generate prototypes</p>
+              </div>
+            </div>
+
+            {/* API & Developer */}
+            <div className="bg-[#2D2D2A] rounded-2xl p-8 text-center">
+              <div className="flex items-center justify-center gap-6 flex-wrap mb-4">
+                <div className="flex items-center gap-2 text-white/80">
+                  <span className="text-lg">🔗</span>
+                  <span className="text-sm font-medium">Webhooks</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <span className="text-lg">🔑</span>
+                  <span className="text-sm font-medium">REST API</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <span className="text-lg">📦</span>
+                  <span className="text-sm font-medium">Widget Embed</span>
+                </div>
+              </div>
+              <p className="text-white/60 text-sm">
+                Build custom integrations with our API or embed feedback collection anywhere.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Pricing Section */}
         <section id="pricing" className="py-28 px-6" style={{ background: 'linear-gradient(180deg, #FFFAF5 0%, #FFF5EB 100%)' }}>
           <div className="max-w-6xl mx-auto">
@@ -1134,7 +1403,7 @@ export default function Homepage() {
         {/* Footer */}
         <footer className="py-20 px-6" style={{ background: '#1a1a18', color: 'rgba(255, 255, 255, 0.6)' }}>
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-12 mb-12">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-12">
               <div className="col-span-2">
                 <div className="flex items-center gap-2.5 mb-4">
                   <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-10 h-10 rounded-xl" />
@@ -1165,6 +1434,16 @@ export default function Homepage() {
                   <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
                   <li><Link href="/docs/api" className="hover:text-white transition-colors">API Reference</Link></li>
                   <li><Link href="/demo/roast" className="hover:text-white transition-colors">Demos</Link></li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-bold text-white uppercase tracking-wide mb-5">Integrations</h4>
+                <ul className="space-y-3 text-sm">
+                  <li><Link href="/docs" className="hover:text-white transition-colors">Jira & Linear</Link></li>
+                  <li><Link href="/docs" className="hover:text-white transition-colors">Slack & Discord</Link></li>
+                  <li><Link href="/docs" className="hover:text-white transition-colors">Salesforce & HubSpot</Link></li>
+                  <li><Link href="/docs/api" className="hover:text-white transition-colors">Webhooks & API</Link></li>
                 </ul>
               </div>
 

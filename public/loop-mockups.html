@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignalsLoop - Loop Using Existing Hero Styles</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #FFFAF5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 40px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: 'Fraunces', serif;
+    }
+
+    /* Same card styles as hero noise cards */
+    .source-card {
+      background: white;
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #5C5C57;
+    }
+
+    .source-card .icon {
+      width: 24px;
+      height: 24px;
+      background: #FFF5EB;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    /* Same spec card style */
+    .output-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      border: 2px solid rgba(255, 79, 0, 0.2);
+    }
+
+    /* Stage node style - matching hero aesthetic */
+    .stage-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stage-icon {
+      width: 72px;
+      height: 72px;
+      background: white;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      border: 2px solid rgba(255, 79, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .stage-node:hover .stage-icon {
+      transform: scale(1.05);
+      border-color: rgba(255, 79, 0, 0.25);
+      box-shadow: 0 12px 40px rgba(255, 79, 0, 0.12);
+    }
+
+    .stage-label {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: #2D2D2A;
+    }
+
+    .stage-sub {
+      font-size: 12px;
+      color: #5C5C57;
+    }
+
+    /* Beam connector - same as hero beam */
+    .beam {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #FF4F00, #FF6B26);
+      box-shadow: 0 0 12px rgba(255, 79, 0, 0.4), 0 0 24px rgba(255, 79, 0, 0.2);
+    }
+
+    /* Center prism glow style */
+    .center-glow {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 79, 0, 0.12) 0%, transparent 60%);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+      }
+
+      50% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 1;
+      }
+    }
+
+    /* ============ LOOP CONTAINER ============ */
+    .loop-container {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      height: 480px;
+    }
+
+    /* Infinity track using same gradient as hero */
+    .infinity-svg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    .track-bg {
+      fill: none;
+      stroke: #F0E8E0;
+      stroke-width: 80;
+      stroke-linecap: round;
+    }
+
+    .track-beam {
+      fill: none;
+      stroke: url(#beamGrad);
+      stroke-width: 6;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 8px rgba(255, 79, 0, 0.4));
+    }
+
+    .track-glow {
+      fill: none;
+      stroke: url(#beamGrad);
+      stroke-width: 24;
+      stroke-linecap: round;
+      opacity: 0.2;
+      filter: blur(10px);
+    }
+
+    /* Stage positions along infinity */
+    .stage.find {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .stage.validate {
+      position: absolute;
+      left: 25%;
+      top: 20px;
+    }
+
+    .stage.build {
+      position: absolute;
+      right: 25%;
+      top: 20px;
+    }
+
+    .stage.prove {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* Center element */
+    .center-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    .center-badge .inner {
+      background: linear-gradient(135deg, #FF4F00, #E64700);
+      border-radius: 16px;
+      padding: 16px 24px;
+      text-align: center;
+      box-shadow: 0 12px 40px rgba(255, 79, 0, 0.3);
+    }
+
+    .center-badge .symbol {
+      font-size: 28px;
+      color: white;
+      margin-bottom: 4px;
+    }
+
+    .center-badge h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+      white-space: nowrap;
+    }
+
+    /* Source indicators on Find */
+    .sources {
+      position: absolute;
+      left: -80px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sources .mini-card {
+      background: white;
+      border-radius: 8px;
+      padding: 6px 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      font-size: 11px;
+      color: #5C5C57;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      opacity: 0.7;
+      transform: translateX(-10px);
+    }
+
+    .sources .mini-card:nth-child(2) {
+      transform: translateX(-20px);
+      opacity: 0.5;
+    }
+
+    .sources .mini-card:nth-child(3) {
+      transform: translateX(-5px);
+      opacity: 0.6;
+    }
+
+    /* Output on Prove */
+    .output-mini {
+      position: absolute;
+      right: -100px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: white;
+      border-radius: 12px;
+      padding: 12px 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 2px solid rgba(74, 103, 65, 0.2);
+    }
+
+    .output-mini .status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #4A6741;
+    }
+
+    .output-mini .status .dot {
+      width: 6px;
+      height: 6px;
+      background: #4A6741;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .output-mini .metric {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #2D2D2A;
+      margin-top: 4px;
+    }
+
+    .output-mini .label {
+      font-size: 10px;
+      color: #5C5C57;
+    }
+
+    /* Return arrow at bottom */
+    .return-indicator {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      background: rgba(255, 79, 0, 0.06);
+      border: 1px solid rgba(255, 79, 0, 0.12);
+      border-radius: 999px;
+    }
+
+    .return-indicator .arrow {
+      font-size: 16px;
+      color: #FF4F00;
+    }
+
+    .return-indicator p {
+      font-size: 13px;
+      color: #5C5C57;
+    }
+
+    .return-indicator strong {
+      color: #FF4F00;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="loop-container">
+    <!-- SVG Infinity Track -->
+    <svg class="infinity-svg" viewBox="0 0 900 480" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="beamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#FF4F00" />
+          <stop offset="50%" stop-color="#FF6B26" />
+          <stop offset="100%" stop-color="#FF4F00" />
+        </linearGradient>
+      </defs>
+      <!-- Track background -->
+      <path class="track-bg"
+        d="M 150 240 C 150 100, 370 100, 450 240 C 530 380, 750 380, 750 240 C 750 100, 530 100, 450 240 C 370 380, 150 380, 150 240" />
+      <!-- Glow -->
+      <path class="track-glow"
+        d="M 150 240 C 150 100, 370 100, 450 240 C 530 380, 750 380, 750 240 C 750 100, 530 100, 450 240 C 370 380, 150 380, 150 240" />
+      <!-- Beam line -->
+      <path class="track-beam"
+        d="M 150 240 C 150 100, 370 100, 450 240 C 530 380, 750 380, 750 240 C 750 100, 530 100, 450 240 C 370 380, 150 380, 150 240" />
+    </svg>
+
+    <!-- Center glow -->
+    <div class="center-glow" style="top: 50%; left: 50%;"></div>
+
+    <!-- Center badge -->
+    <div class="center-badge">
+      <div class="inner">
+        <div class="symbol">∞</div>
+        <h3>AI Core</h3>
+      </div>
+    </div>
+
+    <!-- FIND stage -->
+    <div class="stage find">
+      <div class="stage-node">
+        <div class="stage-icon">📥</div>
+        <div class="stage-label">Find</div>
+        <div class="stage-sub">Collect signals</div>
+      </div>
+      <!-- Mini source cards -->
+      <div class="sources">
+        <div class="mini-card">💬 Slack</div>
+        <div class="mini-card">⭐ G2</div>
+        <div class="mini-card">📱 Reddit</div>
+      </div>
+    </div>
+
+    <!-- VALIDATE stage -->
+    <div class="stage validate">
+      <div class="stage-node">
+        <div class="stage-icon">🔮</div>
+        <div class="stage-label">Validate</div>
+        <div class="stage-sub">Predict success</div>
+      </div>
+    </div>
+
+    <!-- BUILD stage -->
+    <div class="stage build">
+      <div class="stage-node">
+        <div class="stage-icon">🛠️</div>
+        <div class="stage-label">Build</div>
+        <div class="stage-sub">AI specs in 30s</div>
+      </div>
+    </div>
+
+    <!-- PROVE stage -->
+    <div class="stage prove">
+      <div class="stage-node">
+        <div class="stage-icon">📊</div>
+        <div class="stage-label">Prove</div>
+        <div class="stage-sub">Track outcomes</div>
+      </div>
+      <!-- Mini output card -->
+      <div class="output-mini">
+        <div class="status">
+          <span class="dot"></span>
+          Measuring
+        </div>
+        <div class="metric">+23%</div>
+        <div class="label">adoption</div>
+      </div>
+    </div>
+
+    <!-- Return indicator -->
+    <div class="return-indicator">
+      <span class="arrow">↩</span>
+      <p>Outcomes feed back to <strong>Find</strong></p>
+    </div>
+  </div>
+
+</body>
+
+</html>
