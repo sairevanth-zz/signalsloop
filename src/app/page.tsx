@@ -776,29 +776,211 @@ export default function Homepage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {[
-                { icon: '🎯', name: 'Hunter Agent', desc: 'Scans 8 platforms so you don\'t have to open Reddit, G2, or HN ever again', color: '#FF4F00' },
-                { icon: '🏷️', name: 'Smart Categorizer', desc: 'Auto-tags every signal (feature request, bug, praise, churn risk) with 93% accuracy', color: '#4A6741' },
-                { icon: '🔄', name: 'Deduplicator', desc: 'Finds semantic duplicates even when customers say the same thing 47 different ways', color: '#C2703D' },
-                { icon: '⚖️', name: 'Priority Scorer', desc: 'Weights by MRR, urgency, and strategic fit so enterprise requests don\'t drown in noise', color: '#2E475D' },
-                { icon: '✏️', name: 'Spec Writer', desc: 'Generates complete PRDs with evidence in 30 seconds—not 4 hours', color: '#FF4F00' },
-                { icon: '😈', name: 'Devil\'s Advocate', desc: 'Challenges your specs before engineering does. Finds the holes you missed.', color: '#6A5ACD' },
-                { icon: '🔮', name: 'Success Predictor', desc: 'ML-based forecasting so you know adoption probability before you build', color: '#4A6741' },
-                { icon: '🚨', name: 'Churn Radar', desc: 'Spots at-risk customers from feedback patterns—30 days before they leave', color: '#C2703D' },
-                { icon: '📈', name: 'Trend Forecaster', desc: 'Predicts sentiment shifts 7-30 days out so you\'re never caught off guard', color: '#0091AE' },
-                { icon: '💬', name: 'Smart Replier', desc: 'Drafts customer responses in your voice so you can respond 10x faster', color: '#5C5C57' },
-                { icon: '📋', name: 'Executive Brief', desc: 'Auto-generates stakeholder summaries so you stop writing status reports', color: '#2E475D' },
-                { icon: '🎯', name: 'Outcome Tracker', desc: 'Measures if shipped features actually worked—finally, proof you were right', color: '#FF4F00' },
-              ].map((agent, i) => (
-                <div key={i} className="bg-white p-5 rounded-2xl border border-black/[0.06] shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: `${agent.color}15` }}>
-                    <span className="text-2xl">{agent.icon}</span>
-                  </div>
-                  <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2 text-base">{agent.name}</h4>
-                  <p className="text-[13px] text-[#5C5C57] leading-relaxed">{agent.desc}</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+              {/* Hero Agents - Hunter & Spec Writer */}
+              <div className="agent-card col-span-2 p-8 rounded-2xl border border-[#FF4F00]/15"
+                style={{ background: 'linear-gradient(135deg, #FFF8F5 0%, #FFF0E8 100%)' }}>
+                <span className="inline-block px-3 py-1 bg-white/80 rounded-full text-[11px] font-bold text-[#8A8A85] uppercase tracking-wide mb-4">Core Agent</span>
+                <div className="text-5xl mb-4">🎯</div>
+                <h3 className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A] mb-3">Hunter Agent</h3>
+                <p className="text-[15px] text-[#5C5C57] leading-relaxed mb-5">
+                  Scans 8 platforms so you don't have to open Reddit, G2, or HN ever again. Runs 24/7 on your schedule.
+                </p>
+                <div className="flex gap-6">
+                  <div><span className="font-[family-name:var(--font-fraunces)] text-xl font-semibold text-[#2D2D2A]">8</span><span className="text-xs text-[#8A8A85] ml-1">platforms</span></div>
+                  <div><span className="font-[family-name:var(--font-fraunces)] text-xl font-semibold text-[#2D2D2A]">Auto</span><span className="text-xs text-[#8A8A85] ml-1">categorize</span></div>
                 </div>
-              ))}
+                <div className="agent-preview">
+                  <div className="preview-label">Live Scan</div>
+                  <div className="preview-scan"></div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22C55E' }}></span>
+                      Reddit: 12 new signals
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F59E0B' }}></span>
+                      G2: 8 mentions
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3B82F6' }}></span>
+                      HN: Processing...
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="agent-card col-span-2 p-8 rounded-2xl border border-[#4A6741]/15"
+                style={{ background: 'linear-gradient(135deg, #F8FBF8 0%, #EDF5ED 100%)' }}>
+                <span className="inline-block px-3 py-1 bg-white/80 rounded-full text-[11px] font-bold text-[#8A8A85] uppercase tracking-wide mb-4">Core Agent</span>
+                <div className="text-5xl mb-4">✏️</div>
+                <h3 className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A] mb-3">Spec Writer</h3>
+                <p className="text-[15px] text-[#5C5C57] leading-relaxed mb-5">
+                  Generates complete PRDs with evidence in 30 seconds—not 4 hours. One-click Jira export.
+                </p>
+                <div className="flex gap-6">
+                  <div><span className="font-[family-name:var(--font-fraunces)] text-xl font-semibold text-[#2D2D2A]">30s</span><span className="text-xs text-[#8A8A85] ml-1">generation</span></div>
+                  <div><span className="font-[family-name:var(--font-fraunces)] text-xl font-semibold text-[#2D2D2A]">1-click</span><span className="text-xs text-[#8A8A85] ml-1">Jira export</span></div>
+                </div>
+                <div className="agent-preview">
+                  <div className="preview-label">Generating PRD</div>
+                  <div className="preview-typing">
+                    <span style={{ color: '#C2703D' }}># Dark Mode Feature</span><br />
+                    <span style={{ color: '#8A8A85' }}>## Problem Statement</span><br />
+                    <span style={{ color: '#5C5C57' }}>Users report eye strain...</span>
+                    <span className="preview-typing-cursor"></span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Standard Agent Cards */}
+              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm border border-black/[0.06]">
+                <div className="w-12 h-12 rounded-xl bg-[#4A6741]/10 flex items-center justify-center mb-4">
+                  <span className="text-xl">🏷️</span>
+                </div>
+                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Smart Categorizer</h4>
+                <p className="text-sm text-[#5C5C57] leading-relaxed">Auto-tags every signal with 93% accuracy</p>
+                <div className="agent-preview">
+                  <div className="preview-label">Categorizing</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px' }}>
+                    <span style={{ padding: '2px 8px', background: '#E8F0E8', borderRadius: '12px', fontSize: '10px', color: '#4A6741' }}>Feature Request</span>
+                    <span style={{ padding: '2px 8px', background: '#FFF5EB', borderRadius: '12px', fontSize: '10px', color: '#C2703D' }}>Bug</span>
+                    <span style={{ padding: '2px 8px', background: '#E8F0E8', borderRadius: '12px', fontSize: '10px', color: '#4A6741' }}>Praise</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm border border-black/[0.06]">
+                <div className="w-12 h-12 rounded-xl bg-[#C2703D]/10 flex items-center justify-center mb-4">
+                  <span className="text-xl">🔄</span>
+                </div>
+                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Deduplicator</h4>
+                <p className="text-sm text-[#5C5C57] leading-relaxed">Finds duplicates even with different wording</p>
+                <div className="agent-preview">
+                  <div className="preview-label">Merging</div>
+                  <div className="preview-metric">
+                    <span className="preview-metric-value">47</span>
+                    <span className="preview-metric-unit">→ 12 unique</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm border border-black/[0.06]">
+                <div className="w-12 h-12 rounded-xl bg-[#2E475D]/10 flex items-center justify-center mb-4">
+                  <span className="text-xl">⚖️</span>
+                </div>
+                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Priority Scorer</h4>
+                <p className="text-sm text-[#5C5C57] leading-relaxed">Weights by MRR, urgency, and strategic fit</p>
+                <div className="agent-preview">
+                  <div className="preview-label">Scoring</div>
+                  <div className="preview-bars" style={{ marginTop: '8px' }}>
+                    <span></span><span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm border border-black/[0.06]">
+                <div className="w-12 h-12 rounded-xl bg-[#6A5ACD]/10 flex items-center justify-center mb-4">
+                  <span className="text-xl">😈</span>
+                </div>
+                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Devil's Advocate</h4>
+                <p className="text-sm text-[#5C5C57] leading-relaxed">Challenges your specs before engineering does</p>
+                <div className="agent-preview">
+                  <div className="preview-label">Risk Alert</div>
+                  <div className="preview-alert">
+                    <span className="preview-alert-icon">⚠️</span>
+                    <span className="preview-alert-text">3 assumptions found</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm border border-black/[0.06]">
+                <div className="w-12 h-12 rounded-xl bg-[#4A6741]/10 flex items-center justify-center mb-4">
+                  <span className="text-xl">🔮</span>
+                </div>
+                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Success Predictor</h4>
+                <p className="text-sm text-[#5C5C57] leading-relaxed">Know adoption probability before you build</p>
+                <div className="agent-preview">
+                  <div className="preview-label">Adoption Forecast</div>
+                  <div className="preview-metric">
+                    <span className="preview-metric-value">67%</span>
+                    <span className="preview-metric-unit">predicted adoption</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm border border-black/[0.06]">
+                <div className="w-12 h-12 rounded-xl bg-[#C2703D]/10 flex items-center justify-center mb-4">
+                  <span className="text-xl">🚨</span>
+                </div>
+                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Churn Radar</h4>
+                <p className="text-sm text-[#5C5C57] leading-relaxed">Spots at-risk customers 30 days ahead</p>
+                <div className="agent-preview">
+                  <div className="preview-label">Risk Detection</div>
+                  <div className="preview-metric">
+                    <span className="preview-metric-value" style={{ color: '#C2703D' }}>3</span>
+                    <span className="preview-metric-unit">accounts at risk</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm border border-black/[0.06]">
+                <div className="w-12 h-12 rounded-xl bg-[#0091AE]/10 flex items-center justify-center mb-4">
+                  <span className="text-xl">📈</span>
+                </div>
+                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Trend Forecaster</h4>
+                <p className="text-sm text-[#5C5C57] leading-relaxed">Predicts sentiment shifts 7-30 days out</p>
+                <div className="agent-preview">
+                  <div className="preview-label">30-Day Forecast</div>
+                  <div className="preview-metric">
+                    <span className="preview-metric-value" style={{ color: '#4A6741' }}>+12%</span>
+                    <span className="preview-metric-unit">sentiment</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm border border-black/[0.06]">
+                <div className="w-12 h-12 rounded-xl bg-[#5C5C57]/10 flex items-center justify-center mb-4">
+                  <span className="text-xl">💬</span>
+                </div>
+                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Smart Replier</h4>
+                <p className="text-sm text-[#5C5C57] leading-relaxed">Drafts responses in your voice, 10x faster</p>
+                <div className="agent-preview">
+                  <div className="preview-label">Draft Ready</div>
+                  <div className="preview-typing" style={{ fontSize: '11px' }}>
+                    <span style={{ color: '#5C5C57' }}>Thanks for your feedback! We're...</span>
+                    <span className="preview-typing-cursor"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm border border-black/[0.06]">
+                <div className="w-12 h-12 rounded-xl bg-[#2E475D]/10 flex items-center justify-center mb-4">
+                  <span className="text-xl">📋</span>
+                </div>
+                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Executive Brief</h4>
+                <p className="text-sm text-[#5C5C57] leading-relaxed">Auto-generates stakeholder summaries</p>
+                <div className="agent-preview">
+                  <div className="preview-label">Weekly Brief</div>
+                  <div style={{ fontSize: '11px', color: '#5C5C57', marginTop: '6px' }}>
+                    📊 12 insights · 3 risks · 2 wins
+                  </div>
+                </div>
+              </div>
+
+              <div className="agent-card bg-white p-6 rounded-2xl shadow-sm border border-black/[0.06]">
+                <div className="w-12 h-12 rounded-xl bg-[#FF4F00]/10 flex items-center justify-center mb-4">
+                  <span className="text-xl">🎯</span>
+                </div>
+                <h4 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-2">Outcome Tracker</h4>
+                <p className="text-sm text-[#5C5C57] leading-relaxed">Proof that shipped features actually worked</p>
+                <div className="agent-preview">
+                  <div className="preview-label">Impact Measured</div>
+                  <div className="preview-metric">
+                    <span className="preview-metric-value" style={{ color: '#4A6741' }}>✓</span>
+                    <span className="preview-metric-unit">NPS +15 pts</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Value Kicker */}
