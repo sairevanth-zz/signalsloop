@@ -875,40 +875,10 @@ export default function Homepage() {
           </div>
         </section>
 
-        {/* Section 7: The Only Platform That Covers Every Phase */}
-        <section id="platform" className="py-28 px-6" style={{ background: 'rgba(255, 255, 255, 0.6)' }}>
-          <div className="max-w-6xl mx-auto text-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">The Complete Product Loop</span>
-            <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-6"
-              style={{ fontSize: 'clamp(32px, 4vw, 48px)', lineHeight: 1.15 }}>
-              The only platform that covers every phase
-            </h2>
-            <p className="text-lg text-[#5C5C57] max-w-3xl mx-auto mb-12">
-              Other tools give you a piece of the puzzle. SignalsLoop covers the entire product development lifecycle—from first signal to shipped success.
-            </p>
-
-            {/* Phase Diagram */}
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
-              {[
-                { phase: 'Collect', icon: '📥', desc: 'Feedback & signals', color: '#FF4F00' },
-                { phase: 'Validate', icon: '🔮', desc: 'Test before build', color: '#4A6741' },
-                { phase: 'Decide', icon: '⚖️', desc: 'Prioritize by impact', color: '#C2703D' },
-                { phase: 'Ship', icon: '🚀', desc: 'Specs & launch', color: '#0091AE' },
-                { phase: 'Measure', icon: '📊', desc: 'Prove outcomes', color: '#2E475D' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="bg-white rounded-2xl p-5 border border-black/[0.06] shadow-sm text-center min-w-[140px]">
-                    <div className="text-3xl mb-2">{item.icon}</div>
-                    <div className="text-sm font-bold" style={{ color: item.color }}>{item.phase}</div>
-                    <div className="text-xs text-[#8A8A85]">{item.desc}</div>
-                  </div>
-                  {i < 4 && <span className="text-2xl text-[#E8E8E6] hidden md:block">→</span>}
-                </div>
-              ))}
-            </div>
-
-            {/* Value Comparison - My Suggestion */}
-            <div className="bg-gradient-to-r from-[#FF4F00]/10 via-[#FFECE0] to-[#FF4F00]/10 rounded-2xl p-8 border border-[#FF4F00]/20 max-w-4xl mx-auto">
+        {/* Value Comparison Banner - Positioned after Competitor Intel */}
+        <section className="py-12 px-6" style={{ background: 'rgba(255, 255, 255, 0.6)' }}>
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-gradient-to-r from-[#FF4F00]/10 via-[#FFECE0] to-[#FF4F00]/10 rounded-2xl p-8 border border-[#FF4F00]/20 text-center">
               <p className="text-xl font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-4">
                 The same features that cost <span className="text-[#5C5C57] line-through">$200+/mo</span> on Canny, ProductBoard, or Typeform...
               </p>
@@ -1378,7 +1348,7 @@ export default function Homepage() {
           <div className="relative z-10 max-w-3xl mx-auto">
             <h2 className="font-[family-name:var(--font-fraunces)] font-medium text-white mb-6"
               style={{ fontSize: 'clamp(36px, 5vw, 60px)', lineHeight: 1.15 }}>
-              Hunt. Decide. Ship. Prove.<br /><span className="text-[#FF4F00]">Close the loop.</span>
+              Stop juggling tools.<br /><span className="text-[#FF4F00]">Start shipping features.</span>
             </h2>
             <p className="text-xl text-white/60 mb-12">
               No other platform takes you from scattered signals to shipped success with evidence at every step. Start free. No credit card required.
@@ -1388,7 +1358,7 @@ export default function Homepage() {
                 href="/signup"
                 className="px-10 py-5 text-[17px] font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all shadow-[0_2px_8px_rgba(255,79,0,0.25)]"
               >
-                Try the Complete Platform Free →
+                Get Started Free →
               </Link>
               <Link href="/demo/roast" className="px-10 py-5 text-[17px] font-semibold text-white bg-transparent border-2 border-white/30 rounded-xl hover:bg-white/10 hover:border-white/50 transition-all">
                 See It in Action
