@@ -572,12 +572,36 @@ export default function Homepage() {
           `}</style>
         </section>
 
+        {/* Social Proof Section */}
+        <section className="py-10 px-6" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
+          <div className="max-w-4xl mx-auto text-center">
+            <p className="text-sm text-[#8A8A85] mb-4">Built for product teams at</p>
+            <div className="flex flex-wrap justify-center gap-6 items-center opacity-60">
+              {[
+                { name: 'SaaS', icon: '☁️' },
+                { name: 'Fintech', icon: '💳' },
+                { name: 'Developer Tools', icon: '⚙️' },
+                { name: 'Marketplaces', icon: '🛒' },
+                { name: 'Health Tech', icon: '🏥' },
+              ].map((type, i) => (
+                <div key={i} className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-black/[0.06] text-sm text-[#5C5C57]">
+                  <span>{type.icon}</span>
+                  {type.name}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Section 1: Capture Feedback from Everywhere */}
         <section className="py-24 px-6" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">Feedback Collection</span>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00]">Feedback Collection</span>
+                  <span className="px-2 py-0.5 bg-[#E8F0E8] rounded-full text-[10px] font-bold text-[#4A6741]">🤖 AI-Powered</span>
+                </div>
                 <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-5"
                   style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
                   Capture feedback from everywhere
@@ -643,7 +667,10 @@ export default function Homepage() {
                 </div>
               </div>
               <div className="order-1 md:order-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#4A6741] mb-4 block">Validation</span>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#4A6741]">Validation</span>
+                  <span className="px-2 py-0.5 bg-[#E8F0E8] rounded-full text-[10px] font-bold text-[#4A6741]">🤖 AI-Powered</span>
+                </div>
                 <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-5"
                   style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
                   Test ideas before you build
@@ -674,7 +701,10 @@ export default function Homepage() {
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#C2703D] mb-4 block">Prioritization</span>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#C2703D]">Prioritization</span>
+                  <span className="px-2 py-0.5 bg-[#FFF5EB] rounded-full text-[10px] font-bold text-[#C2703D]">🤖 AI-Powered</span>
+                </div>
                 <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-5"
                   style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
                   Know where to build next
@@ -750,7 +780,10 @@ export default function Homepage() {
                 </button>
               </div>
               <div className="order-1 md:order-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#0091AE] mb-4 block">Launch Confidence</span>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#0091AE]">Launch Confidence</span>
+                  <span className="px-2 py-0.5 bg-[#E0F4F7] rounded-full text-[10px] font-bold text-[#0091AE]">🤖 Automated</span>
+                </div>
                 <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-5"
                   style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
                   Launch with confidence
@@ -781,7 +814,10 @@ export default function Homepage() {
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#2E475D] mb-4 block">Outcome Attribution</span>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#2E475D]">Outcome Attribution</span>
+                  <span className="px-2 py-0.5 bg-[#E8EEF3] rounded-full text-[10px] font-bold text-[#2E475D]">🤖 AI-Powered</span>
+                </div>
                 <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-5"
                   style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
                   Measure what matters
@@ -831,7 +867,10 @@ export default function Homepage() {
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">Competitive Intelligence</span>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00]">Competitive Intelligence</span>
+                  <span className="px-2 py-0.5 bg-[#FF4F00]/20 rounded-full text-[10px] font-bold text-[#FF4F00]">🤖 AI-Powered</span>
+                </div>
                 <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-white mb-5"
                   style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
                   Know what competitors are doing
