@@ -40,9 +40,9 @@ export default function SolutionsPage() {
         {
             id: 'enterprise',
             icon: <Building2 className="w-8 h-8" />,
-            name: 'For Enterprise',
-            tagline: 'Governance meets agility',
-            description: 'Large organizations need rigor without bureaucracy. Get audit trails, role-based access, and outcome attribution.',
+            name: 'For Larger Teams',
+            tagline: 'Alignment at scale',
+            description: 'Growing teams need structure without slowing down. Get audit trails, role-based access, and outcome attribution.',
             color: 'from-[#2E475D] to-[#516F90]',
             borderColor: 'border-t-[#2E475D]',
             taglineColor: 'text-[#2E475D]',

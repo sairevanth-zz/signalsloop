@@ -184,8 +184,8 @@ export default function Homepage() {
                     <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-slate-50">
                       <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#2E475D] to-[#516F90] flex items-center justify-center text-white">🏢</span>
                       <div>
-                        <div className="font-semibold text-gray-900">For Enterprise</div>
-                        <div className="text-xs text-gray-500">Governance meets agility</div>
+                        <div className="font-semibold text-gray-900">For Larger Teams</div>
+                        <div className="text-xs text-gray-500">Alignment at scale</div>
                       </div>
                     </DropdownMenuItem>
                   </Link>
@@ -397,7 +397,7 @@ export default function Homepage() {
                       {[
                         { href: '/solutions/startups', icon: '🚀', name: 'For Startups' },
                         { href: '/solutions/scaleups', icon: '⚡', name: 'For Scale-ups' },
-                        { href: '/solutions/enterprise', icon: '🏢', name: 'For Enterprise' },
+                        { href: '/solutions/enterprise', icon: '🏢', name: 'For Larger Teams' },
                       ].map((item) => (
                         <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 text-[#2D2D2A]">
                           <span>{item.icon}</span> {item.name}

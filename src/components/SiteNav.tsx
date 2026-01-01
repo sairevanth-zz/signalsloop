@@ -23,7 +23,7 @@ const productLinks = [
 const solutionLinks = [
     { href: '/solutions/startups', icon: '🚀', name: 'For Startups', desc: 'Ship faster, learn faster' },
     { href: '/solutions/scaleups', icon: '⚡', name: 'For Scale-ups', desc: 'Scale decisions, not chaos' },
-    { href: '/solutions/enterprise', icon: '🏢', name: 'For Enterprise', desc: 'Governance meets agility' },
+    { href: '/solutions/enterprise', icon: '🏢', name: 'For Larger Teams', desc: 'Alignment at scale' },
 ];
 
 export function SiteNav() {
