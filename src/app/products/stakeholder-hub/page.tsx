@@ -40,29 +40,87 @@ export default function StakeholderHubPage() {
                                 <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A]">Stakeholder Hub</h1>
                                 <span className="px-2 py-0.5 bg-[#E8EEF2] rounded-full text-[10px] font-bold text-[#2E475D]">🤖 Automated</span>
                             </div>
-                            <p className="text-2xl text-[#2E475D] font-medium mb-6">Keep everyone aligned</p>
+                            <p className="text-2xl text-[#2E475D] font-medium mb-6">One dashboard, four different views</p>
                             <p className="text-lg text-[#5C5C57] leading-relaxed mb-8">
-                                Role-based reporting for CEO, Sales, Engineering, and more. Go/No-Go dashboards, collaborative retrospectives, and real-time launch status—so stakeholders always know where things stand.
+                                Stop sending 4 different reports to 4 different people. SignalsLoop auto-generates role-specific dashboards—so your CEO sees revenue impact while Engineering sees technical specs. Same data, personalized views.
                             </p>
-                            <div className="flex gap-4 flex-wrap">
+                            <div className="flex gap-4 flex-wrap mb-6">
                                 <Link href="/signup" className="px-8 py-4 text-base font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">
-                                    Start Free <ArrowRight className="inline w-4 h-4 ml-2" />
+                                    See your dashboard →
+                                </Link>
+                                <Link href="/demo" className="px-8 py-4 text-base font-semibold text-[#2D2D2A] border-2 border-[#E8E8E6] rounded-xl hover:border-[#FF4F00] hover:text-[#FF4F00] transition-all">
+                                    Watch demo
                                 </Link>
                             </div>
+                            <p className="text-sm text-[#8A8A85]">✓ Go/No-Go dashboards available on Premium plans</p>
                         </div>
-                        <div className="bg-white rounded-3xl p-8 border border-black/[0.06] shadow-lg">
-                            <div className="text-center mb-6">
-                                <div className="font-[family-name:var(--font-fraunces)] text-4xl font-bold text-[#2E475D]">4+</div>
-                                <div className="text-[#5C5C57]">stakeholder roles supported</div>
+
+                        {/* Role-Based Views Mockup */}
+                        <div className="bg-white rounded-2xl border border-black/[0.06] shadow-lg overflow-hidden">
+                            <div className="flex items-center gap-1.5 px-4 py-2 bg-[#F8F8F8] border-b border-black/[0.06]">
+                                <span className="w-3 h-3 rounded-full bg-[#FF5F56]"></span>
+                                <span className="w-3 h-3 rounded-full bg-[#FFBD2E]"></span>
+                                <span className="w-3 h-3 rounded-full bg-[#27CA40]"></span>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 text-center">
-                                <div className="p-4 bg-[#E8EEF2] rounded-xl">
-                                    <div className="font-[family-name:var(--font-fraunces)] text-xl font-semibold text-[#2D2D2A]">Real-time</div>
-                                    <div className="text-xs text-[#8A8A85]">status updates</div>
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-5">
+                                    <h3 className="font-semibold text-[#2D2D2A]">Role-Based Views</h3>
+                                    <span className="px-2 py-1 bg-[#E8EEF2] rounded-full text-[10px] font-medium text-[#2E475D]">Auto-generated</span>
                                 </div>
-                                <div className="p-4 bg-[#E8EEF2] rounded-xl">
-                                    <div className="font-[family-name:var(--font-fraunces)] text-xl font-semibold text-[#2D2D2A]">Auto</div>
-                                    <div className="text-xs text-[#8A8A85]">changelog</div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {/* CEO View */}
+                                    <div className="p-4 bg-[#FFF8F5] rounded-lg border border-[#FF4F00]/10">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <div className="w-6 h-6 rounded bg-[#FF4F00] flex items-center justify-center text-white text-xs font-bold">C</div>
+                                            <span className="font-medium text-[#2D2D2A] text-sm">CEO View</span>
+                                        </div>
+                                        <div className="space-y-2 text-xs">
+                                            <div className="flex justify-between"><span className="text-[#5C5C57]">Revenue at risk</span><span className="font-semibold text-[#2D2D2A]">$47K MRR</span></div>
+                                            <div className="flex justify-between"><span className="text-[#5C5C57]">Strategic alignment</span><span className="font-semibold text-[#2D2D2A]">78%</span></div>
+                                            <div className="flex justify-between"><span className="text-[#5C5C57]">Competitive position</span><span className="font-semibold text-[#4A6741]">Strong</span></div>
+                                        </div>
+                                    </div>
+                                    {/* VP Sales View */}
+                                    <div className="p-4 bg-[#F0F5E8] rounded-lg border border-[#4A6741]/10">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <div className="w-6 h-6 rounded bg-[#4A6741] flex items-center justify-center text-white text-xs font-bold">V</div>
+                                            <span className="font-medium text-[#2D2D2A] text-sm">VP Sales View</span>
+                                        </div>
+                                        <div className="space-y-2 text-xs">
+                                            <div className="flex justify-between"><span className="text-[#5C5C57]">Top requests</span><span className="font-semibold text-[#2D2D2A]">API access</span></div>
+                                            <div className="flex justify-between"><span className="text-[#5C5C57]">Churn risk accounts</span><span className="font-semibold text-[#C2703D]">3</span></div>
+                                            <div className="flex justify-between"><span className="text-[#5C5C57]">Deal blockers</span><span className="font-semibold text-[#2D2D2A]">SSO, SOC2</span></div>
+                                        </div>
+                                    </div>
+                                    {/* Engineering View */}
+                                    <div className="p-4 bg-[#E8F4F7] rounded-lg border border-[#0091AE]/10">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <div className="w-6 h-6 rounded bg-[#0091AE] flex items-center justify-center text-white text-xs font-bold">E</div>
+                                            <span className="font-medium text-[#2D2D2A] text-sm">Engineering View</span>
+                                        </div>
+                                        <div className="space-y-2 text-xs">
+                                            <div className="flex justify-between"><span className="text-[#5C5C57]">P0 bugs</span><span className="font-semibold text-[#2D2D2A]">2</span></div>
+                                            <div className="flex justify-between"><span className="text-[#5C5C57]">Tech debt mentions</span><span className="font-semibold text-[#2D2D2A]">14</span></div>
+                                            <div className="flex justify-between"><span className="text-[#5C5C57]">API issues</span><span className="font-semibold text-[#C2703D]">↑ 23%</span></div>
+                                        </div>
+                                    </div>
+                                    {/* Support View */}
+                                    <div className="p-4 bg-[#F5F0F8] rounded-lg border border-[#6A5ACD]/10">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <div className="w-6 h-6 rounded bg-[#6A5ACD] flex items-center justify-center text-white text-xs font-bold">S</div>
+                                            <span className="font-medium text-[#2D2D2A] text-sm">Support View</span>
+                                        </div>
+                                        <div className="space-y-2 text-xs">
+                                            <div className="flex justify-between"><span className="text-[#5C5C57]">Trending issues</span><span className="font-semibold text-[#2D2D2A]">Login errors</span></div>
+                                            <div className="flex justify-between"><span className="text-[#5C5C57]">Sentiment</span><span className="font-semibold text-[#4A6741]">+0.12</span></div>
+                                            <div className="flex justify-between"><span className="text-[#5C5C57]">FAQ candidates</span><span className="font-semibold text-[#2D2D2A]">5 new</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-4 text-center">
+                                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#2D2D2A] rounded-full text-xs text-white">
+                                        <span>🎯</span> Each role sees what matters to them
+                                    </span>
                                 </div>
                             </div>
                         </div>

@@ -182,51 +182,67 @@ export default function ProductsPage() {
                     </p>
                 </div>
 
-                {/* Product Cards */}
-                <div className="max-w-7xl mx-auto space-y-24">
-                    {products.map((product, i) => (
-                        <div key={product.id} id={product.id} className={`flex flex-col ${i % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-12 items-center`}>
-                            <div className="flex-1 max-w-xl">
-                                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${product.color} flex items-center justify-center text-3xl mb-6`}>
+                {/* CORE HUBS — YOUR COMPETITIVE ADVANTAGE */}
+                <div className="max-w-7xl mx-auto mb-16">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#8A8A85] mb-8 flex items-center gap-2">
+                        <span>⭐</span> Core Hubs — Your Competitive Advantage
+                    </p>
+                    <div className="grid md:grid-cols-3 gap-6">
+                        {products.slice(0, 3).map((product) => (
+                            <div key={product.id} className="bg-white rounded-2xl p-8 border border-black/[0.06] shadow-sm hover:shadow-lg transition-all relative">
+                                <span className="absolute top-6 right-6 px-2 py-0.5 bg-[#FFECE0] rounded text-[10px] font-bold text-[#FF4F00] uppercase">Core</span>
+                                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${product.color} flex items-center justify-center text-2xl mb-5`}>
                                     {product.icon}
                                 </div>
-                                <h2 className="font-[family-name:var(--font-fraunces)] text-4xl font-semibold text-[#2D2D2A] mb-2">{product.name}</h2>
-                                <p className="text-lg text-[#FF4F00] font-medium mb-4">{product.tagline}</p>
-                                <p className="text-[17px] text-[#5C5C57] leading-relaxed mb-8">{product.description}</p>
+                                <h2 className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A] mb-2">{product.name}</h2>
+                                <p className="text-[#FF4F00] font-medium text-sm mb-3">{product.tagline}</p>
+                                <p className="text-[15px] text-[#5C5C57] leading-relaxed mb-6">{product.description}</p>
 
                                 {/* Metrics */}
-                                <div className="flex gap-8 mb-8">
+                                <div className="flex gap-6 mb-6">
                                     {product.metrics.map((m, j) => (
                                         <div key={j}>
-                                            <div className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A]">{m.value}</div>
-                                            <div className="text-sm text-[#8A8A85]">{m.label}</div>
+                                            <div className="font-[family-name:var(--font-fraunces)] text-xl font-semibold text-[#2D2D2A]">{m.value}</div>
+                                            <div className="text-xs text-[#8A8A85]">{m.label}</div>
                                         </div>
                                     ))}
                                 </div>
 
-                                <Link href={`/products/${product.id}`} className="inline-flex items-center gap-2 px-6 py-3 text-[15px] font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">
-                                    Learn More <ArrowRight className="w-4 h-4" />
+                                <Link href={`/products/${product.id}`} className="inline-flex items-center gap-1 text-[#FF4F00] font-semibold text-sm hover:gap-2 transition-all">
+                                    Learn more <ArrowRight className="w-4 h-4" />
                                 </Link>
                             </div>
+                        ))}
+                    </div>
+                </div>
 
-                            <div className="flex-1 bg-white rounded-3xl p-8 border border-black/[0.06] shadow-lg">
-                                <h3 className="text-sm font-bold text-[#8A8A85] uppercase tracking-wide mb-6">Key Features</h3>
-                                <div className="space-y-4">
-                                    {product.features.map((f, j) => (
-                                        <div key={j} className="flex gap-4">
-                                            <div className="w-8 h-8 rounded-lg bg-[#FFECE0] flex items-center justify-center text-[#FF4F00] font-bold text-sm flex-shrink-0">
-                                                {j + 1}
-                                            </div>
-                                            <div>
-                                                <div className="font-semibold text-[#2D2D2A] mb-0.5">{f.title}</div>
-                                                <div className="text-sm text-[#5C5C57]">{f.desc}</div>
-                                            </div>
-                                        </div>
-                                    ))}
+                {/* SUPPORTING HUBS */}
+                <div className="max-w-7xl mx-auto mb-16">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#8A8A85] mb-6">Supporting Hubs</p>
+                    <div className="grid md:grid-cols-3 gap-4">
+                        {products.slice(3).map((product) => (
+                            <div key={product.id} className="bg-white rounded-xl p-5 border border-black/[0.06] hover:shadow-md transition-all flex items-start gap-4">
+                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${product.color} flex items-center justify-center text-xl flex-shrink-0`}>
+                                    {product.icon}
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-[#2D2D2A] mb-1">{product.name}</h3>
+                                    <p className="text-sm text-[#5C5C57] mb-2">{product.tagline}</p>
+                                    <Link href={`/products/${product.id}`} className="inline-flex items-center gap-1 text-[#FF4F00] font-medium text-sm hover:gap-2 transition-all">
+                                        Learn more <ArrowRight className="w-3 h-3" />
+                                    </Link>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
+                </div>
+
+                {/* Works for teams banner */}
+                <div className="max-w-3xl mx-auto text-center mb-16">
+                    <div className="inline-flex items-center gap-2 px-6 py-3 bg-[#FFFAF5] rounded-full border border-black/[0.06]">
+                        <span className="text-[#4A6741]">✓</span>
+                        <span className="text-[15px] text-[#5C5C57]">Works for teams of <strong className="text-[#2D2D2A]">1 to 100</strong> . Start free, scale when ready.</span>
+                    </div>
                 </div>
 
                 {/* CTA */}

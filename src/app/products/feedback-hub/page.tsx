@@ -51,36 +51,76 @@ export default function FeedbackHubPage() {
                             <p className="text-lg text-[#5C5C57] leading-relaxed mb-8">
                                 Stop missing critical feedback buried across 12+ tools. Our Hunter Agent scans Reddit, HN, G2, App Store, Intercom, and more—automatically categorizing and deduplicating signals so you never miss what matters.
                             </p>
-                            <div className="flex gap-4 flex-wrap">
+                            <div className="flex gap-4 flex-wrap mb-6">
                                 <Link href="/signup" className="px-8 py-4 text-base font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">
-                                    Start Free <ArrowRight className="inline w-4 h-4 ml-2" />
+                                    Start hunting signals →
                                 </Link>
                                 <Link href="/demo/feedback" className="px-8 py-4 text-base font-semibold text-[#2D2D2A] border-2 border-[#E8E8E6] rounded-xl hover:border-[#FF4F00] hover:text-[#FF4F00] transition-all">
-                                    Try Demo
+                                    Watch demo
                                 </Link>
                             </div>
+                            <p className="text-sm text-[#8A8A85]">✓ Free plan includes 4 Hunter scans per month</p>
                         </div>
-                        <div className="bg-white rounded-3xl p-8 border border-black/[0.06] shadow-lg">
-                            <div className="text-center mb-6">
-                                <div className="font-[family-name:var(--font-fraunces)] text-6xl font-bold text-[#FF4F00]">14K+</div>
-                                <div className="text-[#5C5C57]">signals hunted weekly</div>
+                        {/* Signal Dashboard Mockup */}
+                        <div className="bg-white rounded-2xl border border-black/[0.06] shadow-lg overflow-hidden">
+                            <div className="flex items-center gap-1.5 px-4 py-2 bg-[#F8F8F8] border-b border-black/[0.06]">
+                                <span className="w-3 h-3 rounded-full bg-[#FF5F56]"></span>
+                                <span className="w-3 h-3 rounded-full bg-[#FFBD2E]"></span>
+                                <span className="w-3 h-3 rounded-full bg-[#27CA40]"></span>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 text-center">
-                                <div className="p-4 bg-[#FFFAF5] rounded-xl">
-                                    <div className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A]">8</div>
-                                    <div className="text-sm text-[#8A8A85]">platforms</div>
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="font-semibold text-[#2D2D2A]">Signal Dashboard</h3>
+                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#E8F0E8] rounded-full text-xs font-medium text-[#4A6741]"><span className="w-2 h-2 rounded-full bg-[#4A6741]"></span> Live</span>
                                 </div>
-                                <div className="p-4 bg-[#FFFAF5] rounded-xl">
-                                    <div className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A]">93%</div>
-                                    <div className="text-sm text-[#8A8A85]">accuracy</div>
+                                <div className="grid grid-cols-4 gap-3 mb-5">
+                                    <div className="text-center p-3 bg-[#FFFAF5] rounded-lg">
+                                        <div className="font-[family-name:var(--font-fraunces)] text-xl font-bold text-[#FF4F00]">147</div>
+                                        <div className="text-[10px] text-[#8A8A85]">New signals</div>
+                                    </div>
+                                    <div className="text-center p-3 bg-[#FFFAF5] rounded-lg">
+                                        <div className="font-[family-name:var(--font-fraunces)] text-xl font-bold text-[#2D2D2A]">8</div>
+                                        <div className="text-[10px] text-[#8A8A85]">Sources</div>
+                                    </div>
+                                    <div className="text-center p-3 bg-[#FFFAF5] rounded-lg">
+                                        <div className="font-[family-name:var(--font-fraunces)] text-xl font-bold text-[#2D2D2A]">93%</div>
+                                        <div className="text-[10px] text-[#8A8A85]">Categorized</div>
+                                    </div>
+                                    <div className="text-center p-3 bg-[#FFFAF5] rounded-lg">
+                                        <div className="font-[family-name:var(--font-fraunces)] text-xl font-bold text-[#2D2D2A]">12</div>
+                                        <div className="text-[10px] text-[#8A8A85]">Duplicates</div>
+                                    </div>
                                 </div>
-                                <div className="p-4 bg-[#FFFAF5] rounded-xl">
-                                    <div className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A]">30min</div>
-                                    <div className="text-sm text-[#8A8A85]">scan interval</div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3 p-3 bg-[#FFF8F5] rounded-lg border border-[#FF4F00]/10">
+                                        <span className="text-lg">🔴</span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-[#2D2D2A] truncate">&quot;API is throwing 500 errors since yesterday&quot;</p>
+                                            <p className="text-[10px] text-[#8A8A85]">Reddit • r/webdev • 2 hours ago</p>
+                                        </div>
+                                        <span className="px-2 py-0.5 bg-[#C2703D]/10 rounded text-[10px] font-medium text-[#C2703D] flex-shrink-0">Bug Report</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-black/[0.06]">
+                                        <span className="text-lg">⭐</span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-[#2D2D2A] truncate">&quot;Would love to see dark mode support&quot;</p>
+                                            <p className="text-[10px] text-[#8A8A85]">G2 Review • Enterprise • 5 hours ago</p>
+                                        </div>
+                                        <span className="px-2 py-0.5 bg-[#0091AE]/10 rounded text-[10px] font-medium text-[#0091AE] flex-shrink-0">Feature Request</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-black/[0.06]">
+                                        <span className="text-lg">💬</span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-[#2D2D2A] truncate">&quot;Best onboarding I&apos;ve experienced in a SaaS&quot;</p>
+                                            <p className="text-[10px] text-[#8A8A85]">Twitter • @productlead • 1 day ago</p>
+                                        </div>
+                                        <span className="px-2 py-0.5 bg-[#4A6741]/10 rounded text-[10px] font-medium text-[#4A6741] flex-shrink-0">Praise</span>
+                                    </div>
                                 </div>
-                                <div className="p-4 bg-[#FFFAF5] rounded-xl">
-                                    <div className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A]">$0</div>
-                                    <div className="text-sm text-[#8A8A85]">to start</div>
+                                <div className="mt-4 text-center">
+                                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#2D2D2A] rounded-full text-xs text-white">
+                                        <span className="text-[#FF4F00]">⚡</span> Updated 30 minutes ago
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -107,17 +147,32 @@ export default function FeedbackHubPage() {
                     </div>
                 </div>
 
-                {/* Features */}
+                {/* Features - Hero Features (large) + Standard Features (small) */}
                 <div className="max-w-6xl mx-auto mb-20">
                     <h2 className="font-[family-name:var(--font-fraunces)] text-3xl font-semibold text-[#2D2D2A] text-center mb-12">Key Features</h2>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {features.map((f, i) => (
-                            <div key={i} className="bg-white rounded-2xl p-6 border border-black/[0.06] hover:shadow-lg hover:-translate-y-1 transition-all">
-                                <div className="w-12 h-12 rounded-xl bg-[#FFECE0] flex items-center justify-center text-[#FF4F00] mb-4">
+
+                    {/* Hero Features - First 2 */}
+                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                        {features.slice(0, 2).map((f, i) => (
+                            <div key={i} className="bg-white rounded-2xl p-8 border border-black/[0.06] hover:shadow-lg transition-all">
+                                <div className="w-14 h-14 rounded-xl bg-[#FFECE0] flex items-center justify-center text-[#FF4F00] mb-5">
                                     {f.icon}
                                 </div>
-                                <h3 className="font-semibold text-lg text-[#2D2D2A] mb-2">{f.title}</h3>
+                                <h3 className="font-semibold text-xl text-[#2D2D2A] mb-3">{f.title}</h3>
                                 <p className="text-[15px] text-[#5C5C57] leading-relaxed">{f.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Standard Features - Remaining 4 */}
+                    <div className="grid md:grid-cols-4 gap-4">
+                        {features.slice(2).map((f, i) => (
+                            <div key={i} className="bg-white rounded-xl p-5 border border-black/[0.06] hover:shadow-md transition-all">
+                                <div className="w-10 h-10 rounded-lg bg-[#FFECE0] flex items-center justify-center text-[#FF4F00] mb-3">
+                                    {f.icon}
+                                </div>
+                                <h3 className="font-semibold text-[#2D2D2A] mb-2">{f.title}</h3>
+                                <p className="text-sm text-[#5C5C57] leading-relaxed">{f.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -159,6 +214,43 @@ export default function FeedbackHubPage() {
                         <div className="text-center">
                             <div className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A]">$40K</div>
                             <div className="text-xs text-[#8A8A85]">ARR saved</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Testimonials Section */}
+                <div className="max-w-6xl mx-auto mb-20">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#8A8A85] text-center mb-8">What Teams Are Saying</p>
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <div className="bg-white rounded-xl p-6 border border-black/[0.06]">
+                            <p className="text-[15px] text-[#5C5C57] italic mb-4">&quot;We discovered a critical bug from Reddit before any support tickets came in. Saved us from a potential PR disaster.&quot;</p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-[#FF4F00] flex items-center justify-center text-white font-bold">M</div>
+                                <div>
+                                    <div className="font-semibold text-[#2D2D2A]">Marcus Chen</div>
+                                    <div className="text-xs text-[#8A8A85]">PM at TechScale</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-xl p-6 border border-black/[0.06]">
+                            <p className="text-[15px] text-[#5C5C57] italic mb-4">&quot;Finally, one place for all our feedback. No more checking 8 different tools every morning.&quot;</p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-[#4A6741] flex items-center justify-center text-white font-bold">S</div>
+                                <div>
+                                    <div className="font-semibold text-[#2D2D2A]">Sarah Kim</div>
+                                    <div className="text-xs text-[#8A8A85]">Head of Product</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-xl p-6 border border-black/[0.06]">
+                            <p className="text-[15px] text-[#5C5C57] italic mb-4">&quot;The AI categorization is scary good. 93% accuracy matches what we&apos;d do manually, in seconds.&quot;</p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-[#0091AE] flex items-center justify-center text-white font-bold">J</div>
+                                <div>
+                                    <div className="font-semibold text-[#2D2D2A]">James Park</div>
+                                    <div className="text-xs text-[#8A8A85]">Founder, IndieApp</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

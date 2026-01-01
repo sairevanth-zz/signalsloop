@@ -33,33 +33,69 @@ export default function InsightsHubPage() {
                                 <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A]">Insights Hub</h1>
                                 <span className="px-2 py-0.5 bg-[#E0F7FA] rounded-full text-[10px] font-bold text-[#0091AE]">🤖 AI-Powered</span>
                             </div>
-                            <p className="text-2xl text-[#0091AE] font-medium mb-6">See the patterns humans miss</p>
+                            <p className="text-2xl text-[#0091AE] font-medium mb-6">Detect problems before they become crises</p>
                             <p className="text-lg text-[#5C5C57] leading-relaxed mb-8">
-                                Our Theme Detector and Sentiment Forecaster surface hidden patterns in your feedback—clustering themes, tracking trends, and generating weekly AI briefings.
+                                Our AI spots anomalies in real-time, forecasts sentiment 30 days ahead, and clusters emerging themes—so you catch issues 3 days before support tickets spike. Plus weekly AI briefings you can listen to on your commute.
                             </p>
-                            <div className="flex gap-4 flex-wrap">
+                            <div className="flex gap-4 flex-wrap mb-6">
                                 <Link href="/signup" className="px-8 py-4 text-base font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">
-                                    Start Free <ArrowRight className="inline w-4 h-4 ml-2" />
+                                    Start detecting anomalies →
+                                </Link>
+                                <Link href="/demo" className="px-8 py-4 text-base font-semibold text-[#2D2D2A] border-2 border-[#E8E8E6] rounded-xl hover:border-[#FF4F00] hover:text-[#FF4F00] transition-all">
+                                    Watch demo
                                 </Link>
                             </div>
+                            <p className="text-sm text-[#8A8A85]">✓ Available on all plans</p>
                         </div>
-                        <div className="bg-white rounded-3xl p-8 border border-black/[0.06] shadow-lg">
-                            <div className="text-center mb-6">
-                                <div className="font-[family-name:var(--font-fraunces)] text-4xl font-bold text-[#0091AE]">Weekly AI Briefings</div>
-                                <div className="text-[#5C5C57] mt-2">Audio summaries delivered every Monday</div>
+
+                        {/* Insights Dashboard Mockup */}
+                        <div className="bg-white rounded-2xl border border-black/[0.06] shadow-lg overflow-hidden">
+                            <div className="flex items-center gap-1.5 px-4 py-2 bg-[#F8F8F8] border-b border-black/[0.06]">
+                                <span className="w-3 h-3 rounded-full bg-[#FF5F56]"></span>
+                                <span className="w-3 h-3 rounded-full bg-[#FFBD2E]"></span>
+                                <span className="w-3 h-3 rounded-full bg-[#27CA40]"></span>
                             </div>
-                            <div className="grid grid-cols-3 gap-4 text-center">
-                                <div className="p-4 bg-[#E0F7FA] rounded-xl">
-                                    <div className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A]">7-30d</div>
-                                    <div className="text-xs text-[#8A8A85]">forecast</div>
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-5">
+                                    <h3 className="font-semibold text-[#2D2D2A]">Insights Dashboard</h3>
+                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#FFF0F0] rounded-full text-xs font-medium text-[#DC3545]"><span className="w-2 h-2 rounded-full bg-[#DC3545]"></span> 1 Alert</span>
                                 </div>
-                                <div className="p-4 bg-[#E0F7FA] rounded-xl">
-                                    <div className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A]">Real-time</div>
-                                    <div className="text-xs text-[#8A8A85]">anomalies</div>
+
+                                {/* Anomaly Alert */}
+                                <div className="p-4 bg-[#FFF8F5] rounded-lg border border-[#FF4F00]/20 mb-5">
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-lg">⚠️</span>
+                                        <div>
+                                            <p className="font-semibold text-[#C2703D] text-sm mb-1">Anomaly Detected: Sentiment Spike</p>
+                                            <p className="text-xs text-[#5C5C57]">&quot;Login errors&quot; theme up 340% in last 48 hours</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="p-4 bg-[#E0F7FA] rounded-xl">
-                                    <div className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A]">Auto</div>
-                                    <div className="text-xs text-[#8A8A85]">clustering</div>
+
+                                {/* Sentiment Forecast */}
+                                <div className="mb-4">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <p className="text-sm font-medium text-[#2D2D2A]">Sentiment Forecast (30 days)</p>
+                                        <span className="text-xs text-[#4A6741]">↑ +0.12 predicted</span>
+                                    </div>
+                                    <div className="flex gap-1 items-end h-16">
+                                        {[65, 70, 60, 75, 72, 80, 85, 82, 90].map((h, i) => (
+                                            <div key={i} className={`flex-1 rounded-t ${i >= 7 ? 'bg-[#0091AE]/30 border-2 border-dashed border-[#0091AE]' : 'bg-[#4A6741]'}`} style={{ height: `${h}%` }}></div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Theme Tags */}
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#DC3545]/10 rounded text-xs text-[#DC3545]">🔴 Login errors <span className="font-semibold">↑ 340%</span></span>
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#FFC107]/10 rounded text-xs text-[#886600]">⭐ Dark mode <span className="font-semibold">↑ 45%</span></span>
+                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#4A6741]/10 rounded text-xs text-[#4A6741]">💳 Pricing <span className="font-semibold">↓ 12%</span></span>
+                                </div>
+
+                                <div className="text-center">
+                                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#2D2D2A] rounded-full text-xs text-white">
+                                        <span>🚀</span> Caught 3 days before support tickets spiked
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -111,9 +147,9 @@ export default function InsightsHubPage() {
                         <Link href="/pricing" className="px-8 py-4 text-[15px] font-semibold text-white border-2 border-white/30 rounded-xl hover:bg-white/10 transition-all">View pricing</Link>
                     </div>
                 </div>
-            </div>
+            </div >
 
             <SiteFooter />
-        </div>
+        </div >
     );
 }
