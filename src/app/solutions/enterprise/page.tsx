@@ -48,11 +48,11 @@ export default function EnterprisePage() {
                                 <Building2 className="w-8 h-8 text-white" />
                             </div>
                             <h1 className="font-[family-name:var(--font-fraunces)] text-4xl font-semibold text-[#2D2D2A] mb-4">
-                                SignalsLoop for Enterprise
+                                SignalsLoop for Larger Teams
                             </h1>
-                            <p className="text-xl text-[#2E475D] font-medium mb-4">Governance meets agility</p>
+                            <p className="text-xl text-[#2E475D] font-medium mb-4">Alignment at scale</p>
                             <p className="text-[17px] text-[#5C5C57] leading-relaxed mb-6">
-                                Large organizations need rigor without bureaucracy. SignalsLoop provides the audit trails, role-based access, and outcome attribution that enterprise product teams need.
+                                Growing teams need structure without slowing down. SignalsLoop provides the audit trails, role-based access, and outcome attribution that help teams stay aligned as they scale.
                             </p>
 
                             {/* Premium Tier Callout */}
@@ -171,12 +171,12 @@ export default function EnterprisePage() {
 
                 {/* Case Study */}
                 <div className="max-w-4xl mx-auto mb-20 p-8 rounded-3xl bg-white border border-black/[0.06] shadow-lg">
-                    <div className="text-xs font-bold uppercase tracking-wider text-[#2E475D] mb-4">Case Study: Enterprise SaaS</div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-[#2E475D] mb-4">Case Study: Growth-Stage B2B</div>
                     <h3 className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A] mb-4">
-                        "Finally, we can show the board exactly how product decisions map to business outcomes"
+                        "Finally, we can show leadership exactly how product decisions map to business outcomes"
                     </h3>
                     <p className="text-[#5C5C57] leading-relaxed mb-6">
-                        A public enterprise SaaS company used SignalsLoop's outcome attribution to demonstrate $2.3M in retained revenue from features built based on feedback analysis. Their CPO now presents this data to the board quarterly.
+                        A Series C B2B SaaS company used SignalsLoop's outcome attribution to demonstrate $2.3M in retained revenue from features built based on feedback analysis. Their CPO now presents this data to leadership quarterly.
                     </p>
                     <div className="grid grid-cols-3 gap-6 p-4 rounded-xl bg-[#E8EEF2]">
                         <div className="text-center">
@@ -196,8 +196,8 @@ export default function EnterprisePage() {
 
                 {/* CTA */}
                 <div className="max-w-3xl mx-auto text-center p-12 rounded-3xl" style={{ background: 'linear-gradient(135deg, #2D2D2A 0%, #1a1a18 100%)' }}>
-                    <h2 className="font-[family-name:var(--font-fraunces)] text-3xl font-medium text-white mb-4">Ready for enterprise-grade product intelligence?</h2>
-                    <p className="text-lg text-white/60 mb-8">Premium plan at $79/mo. Contact us for custom enterprise plans.</p>
+                    <h2 className="font-[family-name:var(--font-fraunces)] text-3xl font-medium text-white mb-4">Ready for team-wide product intelligence?</h2>
+                    <p className="text-lg text-white/60 mb-8">Premium plan at $79/mo. Need more? Contact us for custom plans.</p>
                     <div className="flex gap-4 justify-center flex-wrap">
                         <Link href="/signup" className="px-8 py-4 text-[15px] font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">Try Premium →</Link>
                         <Link href="/support" className="px-8 py-4 text-[15px] font-semibold text-white border-2 border-white/30 rounded-xl hover:bg-white/10 transition-all">Contact Sales</Link>
