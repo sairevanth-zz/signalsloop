@@ -43,9 +43,10 @@ export default function FeedbackHubPage() {
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div>
                             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#FF4F00] to-[#FF6B26] flex items-center justify-center text-4xl mb-6">📬</div>
-                            <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A] mb-4">
-                                Feedback Hub
-                            </h1>
+                            <div className="flex items-center gap-2 mb-4">
+                                <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A]">Feedback Hub</h1>
+                                <span className="px-2 py-0.5 bg-[#E8F0E8] rounded-full text-[10px] font-bold text-[#4A6741]">🤖 AI-Powered</span>
+                            </div>
                             <p className="text-2xl text-[#FF4F00] font-medium mb-6">Discover what users actually want</p>
                             <p className="text-lg text-[#5C5C57] leading-relaxed mb-8">
                                 Stop missing critical feedback buried across 12+ tools. Our Hunter Agent scans Reddit, HN, G2, App Store, Intercom, and more—automatically categorizing and deduplicating signals so you never miss what matters.

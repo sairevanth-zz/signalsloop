@@ -29,7 +29,10 @@ export default function InsightsHubPage() {
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div>
                             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#0091AE] to-[#00BDA5] flex items-center justify-center text-4xl mb-6">📊</div>
-                            <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A] mb-4">Insights Hub</h1>
+                            <div className="flex items-center gap-2 mb-4">
+                                <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A]">Insights Hub</h1>
+                                <span className="px-2 py-0.5 bg-[#E0F7FA] rounded-full text-[10px] font-bold text-[#0091AE]">🤖 AI-Powered</span>
+                            </div>
                             <p className="text-2xl text-[#0091AE] font-medium mb-6">See the patterns humans miss</p>
                             <p className="text-lg text-[#5C5C57] leading-relaxed mb-8">
                                 Our Theme Detector and Sentiment Forecaster surface hidden patterns in your feedback—clustering themes, tracking trends, and generating weekly AI briefings.

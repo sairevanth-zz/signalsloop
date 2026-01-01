@@ -36,7 +36,10 @@ export default function AdvocateHubPage() {
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div>
                             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#6A5ACD] to-[#9B8FD9] flex items-center justify-center text-4xl mb-6">😈</div>
-                            <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A] mb-4">Advocate Hub</h1>
+                            <div className="flex items-center gap-2 mb-4">
+                                <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A]">Advocate Hub</h1>
+                                <span className="px-2 py-0.5 bg-[#EDE7F6] rounded-full text-[10px] font-bold text-[#6A5ACD]">🤖 AI-Powered</span>
+                            </div>
                             <p className="text-2xl text-[#6A5ACD] font-medium mb-6">Challenge your assumptions</p>
                             <p className="text-lg text-[#5C5C57] leading-relaxed mb-8">
                                 The Devil's Advocate Agent stress-tests your specs and roadmap decisions. It surfaces risks, data contradictions, and competitive threats you might have missed.

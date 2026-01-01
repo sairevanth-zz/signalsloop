@@ -38,9 +38,10 @@ export default function PredictionHubPage() {
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div>
                             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#4A6741] to-[#6B8E6B] flex items-center justify-center text-4xl mb-6">🔮</div>
-                            <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A] mb-4">
-                                Prediction Hub
-                            </h1>
+                            <div className="flex items-center gap-2 mb-4">
+                                <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A]">Prediction Hub</h1>
+                                <span className="px-2 py-0.5 bg-[#E8F0E8] rounded-full text-[10px] font-bold text-[#4A6741]">🤖 AI-Powered</span>
+                            </div>
                             <p className="text-2xl text-[#4A6741] font-medium mb-6">Know before you build</p>
                             <p className="text-lg text-[#5C5C57] leading-relaxed mb-8">
                                 Stop guessing which features will succeed. Our Predictor Agent forecasts adoption rates, churn impact, and revenue potential—so you can prioritize with confidence.
@@ -95,8 +96,8 @@ export default function PredictionHubPage() {
                                 </div>
                                 <div className="text-center">
                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${p.confidence === 'High' ? 'bg-green-100 text-green-700' :
-                                            p.confidence === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                                                'bg-red-100 text-red-700'
+                                        p.confidence === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                                            'bg-red-100 text-red-700'
                                         }`}>
                                         {p.confidence}
                                     </span>
@@ -104,8 +105,8 @@ export default function PredictionHubPage() {
                                 <div className="text-center text-[#4A6741] font-semibold">{p.revenue}</div>
                                 <div className="text-center">
                                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${p.status === 'Recommended' ? 'bg-green-100 text-green-700' :
-                                            p.status === 'Consider' ? 'bg-blue-100 text-blue-700' :
-                                                'bg-gray-100 text-gray-700'
+                                        p.status === 'Consider' ? 'bg-blue-100 text-blue-700' :
+                                            'bg-gray-100 text-gray-700'
                                         }`}>
                                         {p.status}
                                     </span>

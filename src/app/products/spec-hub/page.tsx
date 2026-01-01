@@ -39,9 +39,10 @@ export default function SpecHubPage() {
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div>
                             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#C2703D] to-[#D4886A] flex items-center justify-center text-4xl mb-6">✏️</div>
-                            <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A] mb-4">
-                                Spec Hub
-                            </h1>
+                            <div className="flex items-center gap-2 mb-4">
+                                <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A]">Spec Hub</h1>
+                                <span className="px-2 py-0.5 bg-[#FFF5EB] rounded-full text-[10px] font-bold text-[#C2703D]">🤖 AI-Powered</span>
+                            </div>
                             <p className="text-2xl text-[#C2703D] font-medium mb-6">PRDs in 30 seconds, not 4 hours</p>
                             <p className="text-lg text-[#5C5C57] leading-relaxed mb-8">
                                 Transform your feedback into shippable specifications instantly. Our Spec Writer Agent generates complete PRDs with problem statements, user stories, and acceptance criteria—ready for Jira export.

@@ -169,7 +169,10 @@ export default function ProductsPage() {
             <div className="relative z-10 pt-32 pb-20 px-6">
                 {/* Header */}
                 <div className="max-w-4xl mx-auto text-center mb-20">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00] mb-4 block">Products</span>
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00]">Products</span>
+                        <span className="px-2 py-0.5 bg-[#E8F0E8] rounded-full text-[10px] font-bold text-[#4A6741]">🤖 All AI-Powered</span>
+                    </div>
                     <h1 className="font-[family-name:var(--font-fraunces)] font-medium text-[#2D2D2A] mb-6"
                         style={{ fontSize: 'clamp(40px, 5vw, 64px)', lineHeight: 1.1 }}>
                         Six hubs. One platform.<br />Complete product intelligence.
@@ -229,12 +232,12 @@ export default function ProductsPage() {
                 {/* CTA */}
                 <div className="max-w-3xl mx-auto text-center mt-28 p-12 rounded-3xl" style={{ background: 'linear-gradient(135deg, #2D2D2A 0%, #1a1a18 100%)' }}>
                     <h2 className="font-[family-name:var(--font-fraunces)] text-3xl font-medium text-white mb-4">
-                        Ready to see SignalsLoop in action?
+                        Stop juggling tools.<br /><span className="text-[#FF4F00]">Start shipping features.</span>
                     </h2>
                     <p className="text-lg text-white/60 mb-8">Start free. No credit card required.</p>
                     <div className="flex justify-center gap-4">
-                        <Link href="/login" className="px-8 py-4 text-[15px] font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">
-                            Start free →
+                        <Link href="/signup" className="px-8 py-4 text-[15px] font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">
+                            Get Started Free →
                         </Link>
                         <Link href="/pricing" className="px-8 py-4 text-[15px] font-semibold text-white border-2 border-white/30 rounded-xl hover:bg-white/10 transition-all">
                             View pricing
