@@ -37,69 +37,110 @@ export default function ScaleupsPage() {
                     </Link>
                 </div>
 
-                {/* Hero */}
-                <div className="max-w-4xl mx-auto text-center mb-16">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#4A6741] to-[#6B8E6B] flex items-center justify-center mx-auto mb-6">
-                        <Zap className="w-10 h-10 text-white" />
-                    </div>
-                    <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold text-[#2D2D2A] mb-4">
-                        SignalsLoop for Scale-ups
-                    </h1>
-                    <p className="text-2xl text-[#4A6741] font-medium mb-6">Scale decisions, not just products</p>
-                    <p className="text-lg text-[#5C5C57] leading-relaxed max-w-2xl mx-auto mb-8">
-                        You've found product-market fit. Now you need to scale efficiently without losing the signal in the noise. SignalsLoop helps growing teams stay connected to customer reality.
-                    </p>
-                    <div className="flex gap-4 justify-center flex-wrap">
-                        <Link href="/signup" className="px-8 py-4 text-base font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">
-                            Try Pro Free <ArrowRight className="inline w-4 h-4 ml-2" />
-                        </Link>
-                        <Link href="/pricing" className="px-8 py-4 text-base font-semibold text-[#2D2D2A] border-2 border-[#E8E8E6] rounded-xl hover:border-[#FF4F00] hover:text-[#FF4F00] transition-all">
-                            View Pricing
-                        </Link>
-                    </div>
-                </div>
-
-                {/* Metrics */}
-                <div className="max-w-3xl mx-auto mb-20 p-8 rounded-2xl bg-white border border-black/[0.06] shadow-lg">
-                    <div className="grid grid-cols-3 gap-6 text-center">
-                        {metrics.map((m, i) => (
-                            <div key={i}>
-                                <div className="font-[family-name:var(--font-fraunces)] text-3xl font-bold text-[#4A6741]">{m.value}</div>
-                                <div className="font-medium text-[#2D2D2A]">{m.label}</div>
-                                <div className="text-xs text-[#8A8A85]">{m.desc}</div>
+                {/* Hero with UI Mockup */}
+                <div className="max-w-6xl mx-auto mb-16">
+                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#4A6741] to-[#6B8E6B] flex items-center justify-center mb-6">
+                                <Zap className="w-8 h-8 text-white" />
                             </div>
-                        ))}
-                    </div>
-                </div>
+                            <h1 className="font-[family-name:var(--font-fraunces)] text-4xl font-semibold text-[#2D2D2A] mb-4">
+                                SignalsLoop for Scale-ups
+                            </h1>
+                            <p className="text-xl text-[#4A6741] font-medium mb-4">Scale decisions, not just products</p>
+                            <p className="text-[17px] text-[#5C5C57] leading-relaxed mb-6">
+                                You&apos;ve found product-market fit. Now you need to scale efficiently without losing the signal in the noise. SignalsLoop helps growing teams stay connected to customer reality.
+                            </p>
 
-                {/* Challenges vs Solutions */}
-                <div className="max-w-5xl mx-auto mb-20 grid md:grid-cols-2 gap-8">
-                    <div className="p-8 rounded-2xl border-2 border-amber-200 bg-amber-50">
-                        <h2 className="text-lg font-bold text-amber-700 uppercase tracking-wider mb-6">⚠️ Scale-up Challenges</h2>
-                        <ul className="space-y-4">
-                            {challenges.map((c, i) => (
-                                <li key={i} className="flex items-start gap-3 text-[#5C5C57]">
-                                    <span className="text-amber-500 mt-1">•</span>
-                                    {c}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="p-8 rounded-2xl border-2 border-green-200 bg-green-50">
-                        <h2 className="text-lg font-bold text-green-600 uppercase tracking-wider mb-6">✅ How SignalsLoop Helps</h2>
-                        <ul className="space-y-4">
-                            {solutions.map((s, i) => (
-                                <li key={i} className="flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-green-200 flex items-center justify-center text-green-700 flex-shrink-0">
-                                        {s.icon}
+                            {/* Pro Tier Callout */}
+                            <div className="p-4 rounded-xl bg-[#E8F0E8] mb-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="font-[family-name:var(--font-fraunces)] text-3xl font-bold text-[#2D2D2A]">$19<span className="text-base font-normal text-[#5C5C57]">/mo</span></div>
+                                    <span className="px-2 py-1 bg-[#4A6741] rounded-lg text-white text-xs font-bold">Pro Plan</span>
+                                </div>
+                                <div className="flex gap-4 mt-2 text-sm text-[#5C5C57]">
+                                    <span>✓ All 12 AI agents</span>
+                                    <span>✓ 5 team members</span>
+                                    <span>✓ 1,200 feedback items</span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 flex-wrap">
+                                <Link href="/signup" className="px-8 py-4 text-base font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">
+                                    Try Pro Free →
+                                </Link>
+                                <Link href="/pricing" className="px-8 py-4 text-base font-semibold text-[#2D2D2A] border-2 border-[#E8E8E6] rounded-xl hover:border-[#FF4F00] hover:text-[#FF4F00] transition-all">
+                                    View Pricing
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Revenue-Weighted Priorities Mockup */}
+                        <div className="bg-white rounded-2xl border border-black/[0.06] shadow-lg overflow-hidden">
+                            <div className="flex items-center gap-1.5 px-4 py-2 bg-[#F8F8F8] border-b border-black/[0.06]">
+                                <span className="w-3 h-3 rounded-full bg-[#FF5F56]"></span>
+                                <span className="w-3 h-3 rounded-full bg-[#FFBD2E]"></span>
+                                <span className="w-3 h-3 rounded-full bg-[#27CA40]"></span>
+                            </div>
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-5">
+                                    <h3 className="font-semibold text-[#2D2D2A]">Revenue-Weighted Priorities</h3>
+                                    <div className="flex gap-2">
+                                        <span className="px-2 py-1 bg-[#2D2D2A] rounded text-[10px] font-medium text-white">All</span>
+                                        <span className="px-2 py-1 bg-[#F8F8F8] rounded text-[10px] font-medium text-[#8A8A85]">Enterprise</span>
+                                        <span className="px-2 py-1 bg-[#F8F8F8] rounded text-[10px] font-medium text-[#8A8A85]">SMB</span>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 mb-5">
+                                    <div>
+                                        <p className="text-[10px] text-[#8A8A85] uppercase tracking-wider mb-1">Total ARR at Risk</p>
+                                        <p className="font-[family-name:var(--font-fraunces)] text-2xl font-bold text-[#FF4F00]">$127K</p>
                                     </div>
                                     <div>
-                                        <div className="font-semibold text-[#2D2D2A]">{s.title}</div>
-                                        <div className="text-sm text-[#5C5C57]">{s.desc}</div>
+                                        <p className="text-[10px] text-[#8A8A85] uppercase tracking-wider mb-1">Roadmap Alignment</p>
+                                        <p className="font-[family-name:var(--font-fraunces)] text-2xl font-bold text-[#2D2D2A]">94%</p>
+                                        <p className="text-xs text-[#4A6741]">↑ 12% this month</p>
                                     </div>
-                                </li>
-                            ))}
-                        </ul>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between p-3 bg-[#FFFAF5] rounded-lg border border-[#FF4F00]/10">
+                                        <div className="flex items-center gap-3">
+                                            <span className="w-6 h-6 rounded bg-[#4A6741] flex items-center justify-center text-white text-xs font-bold">1</span>
+                                            <span className="text-sm text-[#2D2D2A]">API Rate Limiting</span>
+                                        </div>
+                                        <div className="text-right text-xs">
+                                            <span className="font-semibold text-[#2D2D2A]">Score: 94</span>
+                                            <span className="text-[#8A8A85] ml-2">$47K ARR</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-black/[0.06]">
+                                        <div className="flex items-center gap-3">
+                                            <span className="w-6 h-6 rounded bg-[#5C5C57] flex items-center justify-center text-white text-xs font-bold">2</span>
+                                            <span className="text-sm text-[#2D2D2A]">Bulk Export</span>
+                                        </div>
+                                        <div className="text-right text-xs">
+                                            <span className="font-semibold text-[#2D2D2A]">Score: 87</span>
+                                            <span className="text-[#8A8A85] ml-2">$38K ARR</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-black/[0.06]">
+                                        <div className="flex items-center gap-3">
+                                            <span className="w-6 h-6 rounded bg-[#8A8A85] flex items-center justify-center text-white text-xs font-bold">3</span>
+                                            <span className="text-sm text-[#2D2D2A]">Dark Mode</span>
+                                        </div>
+                                        <div className="text-right text-xs">
+                                            <span className="font-semibold text-[#2D2D2A]">Score: 72</span>
+                                            <span className="text-[#8A8A85] ml-2">$22K ARR</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-4 text-center">
+                                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#2D2D2A] rounded-full text-xs text-white">
+                                        <span>💰</span> Prioritized by revenue impact
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

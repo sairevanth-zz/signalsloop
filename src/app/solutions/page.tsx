@@ -10,75 +10,48 @@ export default function SolutionsPage() {
             icon: <Rocket className="w-8 h-8" />,
             name: 'For Startups',
             tagline: 'Ship faster, learn faster',
-            description: 'When you\'re pre-PMF, every user interaction matters. SignalsLoop helps you capture feedback from day one, validate ideas quickly, and build what users actually want—without spending hours on manual analysis.',
+            description: 'When you\'re pre-PMF, every user interaction matters. SignalsLoop helps you capture feedback from day one, validate ideas quickly, and build what users actually want.',
             color: 'from-[#FF4F00] to-[#FF6B26]',
-            challenges: [
-                'Feedback scattered across Slack, email, and support chats',
-                'No time to write proper specs before building',
-                'Guessing which features will drive retention',
-                'Can\'t afford expensive enterprise tools',
+            borderColor: 'border-t-[#FF4F00]',
+            taglineColor: 'text-[#FF4F00]',
+            checkColor: 'text-[#FF4F00]',
+            qualifiers: [
+                'You\'re pre-PMF or early-stage',
+                'Team of 1-10 people',
+                'Can\'t afford enterprise tools',
             ],
-            howWeHelp: [
-                { title: 'Free tier with AI', desc: 'Start with powerful AI features at $0/month' },
-                { title: 'Instant spec generation', desc: 'Go from idea to PRD in 30 seconds' },
-                { title: 'Early signal detection', desc: 'Catch problems before they become churn' },
-                { title: '5-minute setup', desc: 'Connect Slack or import CSV in minutes' },
-            ],
-            testimonial: {
-                quote: 'We went from guessing to knowing. SignalsLoop helped us find the feature that 10x\'d our activation rate.',
-                author: 'Solo Founder',
-                company: 'Pre-seed SaaS',
-            },
         },
         {
             id: 'scaleups',
             icon: <Zap className="w-8 h-8" />,
             name: 'For Scale-ups',
             tagline: 'Scale decisions, not just products',
-            description: 'You\'ve found product-market fit. Now you need to scale efficiently without losing the signal in the noise. SignalsLoop helps growing teams stay connected to customer reality.',
+            description: 'You\'ve found product-market fit. Now you need to scale efficiently without losing the signal in the noise.',
             color: 'from-[#4A6741] to-[#6B8E6B]',
-            challenges: [
-                'Team growing faster than processes',
-                'Sales and Product not aligned on priorities',
-                'Enterprise customers demanding roadmap visibility',
-                'Technical debt vs. feature requests tradeoffs',
+            borderColor: 'border-t-[#4A6741]',
+            taglineColor: 'text-[#4A6741]',
+            checkColor: 'text-[#4A6741]',
+            qualifiers: [
+                'You\'ve found PMF',
+                'PM team of 2-10 people',
+                'Sales wants roadmap visibility',
             ],
-            howWeHelp: [
-                { title: 'Revenue-weighted scoring', desc: 'Prioritize by actual business impact' },
-                { title: 'Stakeholder reports', desc: 'CEO, Sales, and Eng dashboards' },
-                { title: 'Go/No-Go decisions', desc: 'Collaborative launch readiness checks' },
-                { title: 'Competitive intel', desc: 'Track competitor moves in real-time' },
-            ],
-            testimonial: {
-                quote: 'SignalsLoop helped us scale our PM team from 2 to 8 while keeping everyone on the same page.',
-                author: 'VP Product',
-                company: 'Series B SaaS',
-            },
         },
         {
             id: 'enterprise',
             icon: <Building2 className="w-8 h-8" />,
             name: 'For Enterprise',
             tagline: 'Governance meets agility',
-            description: 'Large organizations need rigor without bureaucracy. SignalsLoop provides the audit trails, role-based access, and outcome attribution that enterprise product teams need.',
+            description: 'Large organizations need rigor without bureaucracy. Get audit trails, role-based access, and outcome attribution.',
             color: 'from-[#2E475D] to-[#516F90]',
-            challenges: [
-                'Multiple product lines with competing priorities',
-                'Justifying roadmap decisions to leadership',
-                'Measuring feature ROI after launch',
-                'Compliance and security requirements',
+            borderColor: 'border-t-[#2E475D]',
+            taglineColor: 'text-[#2E475D]',
+            checkColor: 'text-[#2E475D]',
+            qualifiers: [
+                'Multiple product lines',
+                'Need to justify ROI to leadership',
+                'Need board-level reporting',
             ],
-            howWeHelp: [
-                { title: 'Outcome attribution', desc: 'Connect launches to revenue and retention' },
-                { title: 'Decision audit trails', desc: 'Full history of why decisions were made' },
-                { title: 'Role-based permissions', desc: 'Fine-grained access control' },
-                { title: 'SSO & SOC2', desc: 'Enterprise-grade security (coming soon)' },
-            ],
-            testimonial: {
-                quote: 'Finally, we can show the board exactly how product decisions map to business outcomes.',
-                author: 'CPO',
-                company: 'Enterprise SaaS',
-            },
         },
     ];
 
@@ -131,63 +104,97 @@ export default function SolutionsPage() {
                     </p>
                 </div>
 
-                {/* Solution Cards */}
-                <div className="max-w-7xl mx-auto space-y-20 mb-28">
-                    {solutions.map((solution) => (
-                        <div key={solution.id} id={solution.id} className="bg-white rounded-3xl p-10 border border-black/[0.06] shadow-lg">
-                            <div className="grid lg:grid-cols-2 gap-12">
-                                <div>
-                                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${solution.color} flex items-center justify-center text-white mb-6`}>
+                {/* Solution Cards - Visual with Color-coded segments */}
+                <div className="max-w-7xl mx-auto mb-20">
+                    <div className="grid md:grid-cols-3 gap-6">
+                        {solutions.map((solution) => (
+                            <div key={solution.id} className={`bg-white rounded-2xl border-t-4 ${solution.borderColor} border border-black/[0.06] shadow-sm hover:shadow-lg transition-all`}>
+                                <div className="p-8">
+                                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${solution.color} flex items-center justify-center text-white mb-5`}>
                                         {solution.icon}
                                     </div>
-                                    <h2 className="font-[family-name:var(--font-fraunces)] text-4xl font-semibold text-[#2D2D2A] mb-2">{solution.name}</h2>
-                                    <p className="text-lg text-[#FF4F00] font-medium mb-4">{solution.tagline}</p>
-                                    <p className="text-[17px] text-[#5C5C57] leading-relaxed mb-8">{solution.description}</p>
+                                    <h2 className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-[#2D2D2A] mb-2">{solution.name}</h2>
+                                    <p className={`font-medium text-sm mb-4 ${solution.taglineColor}`}>{solution.tagline}</p>
+                                    <p className="text-[15px] text-[#5C5C57] leading-relaxed mb-6">{solution.description}</p>
 
-                                    <div className="mb-8">
-                                        <h3 className="text-sm font-bold text-[#8A8A85] uppercase tracking-wide mb-4">Common Challenges</h3>
-                                        <ul className="space-y-2">
-                                            {solution.challenges.map((c, i) => (
-                                                <li key={i} className="flex items-start gap-3 text-[15px] text-[#5C5C57]">
-                                                    <span className="text-[#C2703D] mt-0.5">×</span>
-                                                    {c}
-                                                </li>
+                                    {/* Is This For Me? */}
+                                    <div className="mb-6">
+                                        <p className="text-xs font-bold uppercase tracking-wider text-[#8A8A85] mb-3">Is this for me?</p>
+                                        <div className="space-y-2">
+                                            {solution.qualifiers.map((q, i) => (
+                                                <div key={i} className="flex items-center gap-2 text-sm text-[#5C5C57]">
+                                                    <CheckCircle className={`w-4 h-4 ${solution.checkColor} flex-shrink-0`} />
+                                                    {q}
+                                                </div>
                                             ))}
-                                        </ul>
-                                    </div>
-
-                                    <Link href={`/solutions/${solution.id}`} className="inline-flex items-center gap-2 px-6 py-3 text-[15px] font-semibold text-white bg-[#FF4F00] rounded-xl hover:bg-[#E64700] transition-all">
-                                        Learn More <ArrowRight className="w-4 h-4" />
-                                    </Link>
-                                </div>
-
-                                <div>
-                                    <h3 className="text-sm font-bold text-[#8A8A85] uppercase tracking-wide mb-6">How We Help</h3>
-                                    <div className="space-y-4 mb-10">
-                                        {solution.howWeHelp.map((h, i) => (
-                                            <div key={i} className="flex gap-4 p-4 rounded-xl bg-[#FFFAF5]">
-                                                <div className="w-8 h-8 rounded-lg bg-[#E8F0E8] flex items-center justify-center text-[#4A6741] flex-shrink-0">
-                                                    <CheckCircle className="w-5 h-5" />
-                                                </div>
-                                                <div>
-                                                    <div className="font-semibold text-[#2D2D2A] mb-0.5">{h.title}</div>
-                                                    <div className="text-sm text-[#5C5C57]">{h.desc}</div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="p-6 rounded-xl border border-[#E8E8E6]" style={{ background: 'linear-gradient(135deg, #FFFAF5 0%, #FFF5EB 100%)' }}>
-                                        <p className="text-[15px] text-[#5C5C57] italic mb-4">"{solution.testimonial.quote}"</p>
-                                        <div className="text-sm">
-                                            <span className="font-semibold text-[#2D2D2A]">{solution.testimonial.author}</span>
-                                            <span className="text-[#8A8A85]"> · {solution.testimonial.company}</span>
                                         </div>
                                     </div>
+
+                                    <Link href={`/solutions/${solution.id}`} className="inline-flex items-center gap-1 text-[#FF4F00] font-semibold text-sm hover:gap-2 transition-all">
+                                        Learn more <ArrowRight className="w-4 h-4" />
+                                    </Link>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
+                </div>
+
+                {/* What You Get at Each Stage - Plan Comparison Table */}
+                <div className="max-w-5xl mx-auto mb-28">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#8A8A85] text-center mb-8">What You Get at Each Stage</p>
+                    <div className="bg-white rounded-2xl border border-black/[0.06] overflow-hidden">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-black/[0.06]">
+                                    <th className="text-left p-4 text-sm font-semibold text-[#2D2D2A]">Feature</th>
+                                    <th className="text-center p-4">
+                                        <div className="text-sm font-semibold text-[#2D2D2A]">Free</div>
+                                        <div className="text-xs text-[#8A8A85]">$0/mo</div>
+                                    </th>
+                                    <th className="text-center p-4">
+                                        <div className="text-sm font-semibold text-[#2D2D2A]">Pro</div>
+                                        <div className="text-xs text-[#8A8A85]">$19/mo</div>
+                                    </th>
+                                    <th className="text-center p-4">
+                                        <div className="text-sm font-semibold text-[#2D2D2A]">Premium</div>
+                                        <div className="text-xs text-[#8A8A85]">$79/mo</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr className="border-b border-black/[0.04]">
+                                    <td className="p-4 text-sm text-[#5C5C57]">AI Agents</td>
+                                    <td className="p-4 text-center text-sm text-[#2D2D2A]">3</td>
+                                    <td className="p-4 text-center text-sm text-[#2D2D2A]">12</td>
+                                    <td className="p-4 text-center text-sm text-[#2D2D2A]">12</td>
+                                </tr>
+                                <tr className="border-b border-black/[0.04]">
+                                    <td className="p-4 text-sm text-[#5C5C57]">Feedback Items</td>
+                                    <td className="p-4 text-center text-sm text-[#2D2D2A]">50</td>
+                                    <td className="p-4 text-center text-sm text-[#2D2D2A]">1,200</td>
+                                    <td className="p-4 text-center text-sm text-[#2D2D2A]">Unlimited</td>
+                                </tr>
+                                <tr className="border-b border-black/[0.04]">
+                                    <td className="p-4 text-sm text-[#5C5C57]">Team Members</td>
+                                    <td className="p-4 text-center text-sm text-[#2D2D2A]">1</td>
+                                    <td className="p-4 text-center text-sm text-[#2D2D2A]">5</td>
+                                    <td className="p-4 text-center text-sm text-[#2D2D2A]">10</td>
+                                </tr>
+                                <tr className="border-b border-black/[0.04]">
+                                    <td className="p-4 text-sm text-[#5C5C57]">Go/No-Go Dashboards</td>
+                                    <td className="p-4 text-center text-sm text-[#8A8A85]">—</td>
+                                    <td className="p-4 text-center text-sm text-[#8A8A85]">—</td>
+                                    <td className="p-4 text-center text-sm text-[#4A6741]">✓</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-4 text-sm text-[#5C5C57]">Outcome Attribution</td>
+                                    <td className="p-4 text-center text-sm text-[#8A8A85]">—</td>
+                                    <td className="p-4 text-center text-sm text-[#8A8A85]">—</td>
+                                    <td className="p-4 text-center text-sm text-[#4A6741]">✓</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 {/* Use Cases Grid */}
