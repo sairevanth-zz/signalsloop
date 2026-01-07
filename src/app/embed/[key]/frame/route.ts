@@ -586,12 +586,11 @@ function generateFrameHTML(config) {
 </head>
 <body>
   <div class="container">
-    ${hideBranding ? '' : `
+    <!-- Header with project name - always shows regardless of plan -->
     <div class="header">
       <h1>${project.name}</h1>
       <p>Share your feedback and ideas</p>
     </div>
-    `}
 
     <div class="form-container">
       <form id="feedback-form">
