@@ -16,6 +16,7 @@ import {
   AnalyzeSentimentResponse,
   SentimentAnalysisInput,
 } from '@/types/sentiment';
+import { captureSentimentAnalysisReasoning } from '@/lib/reasoning/integrations';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Longer duration for batch processing
@@ -206,6 +207,27 @@ export async function POST(request: NextRequest) {
         console.log(
           `[SENTIMENT API] Successfully stored ${successfulResults.length} sentiment analyses`,
         );
+
+        // Capture reasoning traces for AI Reasoning Layer (sample up to 5 to avoid overwhelming)
+        if (projectId) {
+          const samplesToCapture = successfulResults.slice(0, 5);
+          for (const result of samplesToCapture) {
+            try {
+              await captureSentimentAnalysisReasoning({
+                projectId,
+                postId: result.postId,
+                sentiment: result.sentiment_score,
+                confidence: result.confidence_score,
+                keywords: [],
+                phrases: [result.emotional_tone || 'neutral'],
+              });
+            } catch (reasoningError) {
+              // Don't fail if reasoning capture fails
+              console.error('[SENTIMENT API] Reasoning capture failed:', reasoningError);
+            }
+          }
+          console.log(`[SENTIMENT API] Captured ${samplesToCapture.length} reasoning traces`);
+        }
       }
     }
 

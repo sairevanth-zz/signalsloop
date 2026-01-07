@@ -16,6 +16,7 @@ import {
   DetectThemesResponse,
   Theme,
 } from '@/types/themes';
+import { captureThemeDetectionReasoning } from '@/lib/reasoning/integrations';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes for processing
@@ -292,7 +293,7 @@ export async function POST(request: NextRequest) {
         theme_clusters(cluster_name)
       `)
       .eq('project_id', projectId)
-      .order('frequency', { ascending: false});
+      .order('frequency', { ascending: false });
 
     if (fetchError) {
       console.error('[THEME DETECTION] Error fetching final themes:', fetchError);
@@ -343,6 +344,29 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    // Capture reasoning traces for AI Reasoning Layer (sample up to 3 themes)
+    const themesToCapture = rankedThemes.slice(0, 3);
+    for (const theme of themesToCapture) {
+      try {
+        // Get the feedback items associated with this theme
+        const themeDetected = detectedThemes.find(d =>
+          d.theme_name.toLowerCase() === theme.theme_name.toLowerCase()
+        );
+        const sampleFeedbackId = themeDetected && feedbackItems[themeDetected.item_indices[0]]?.id;
+
+        await captureThemeDetectionReasoning({
+          projectId,
+          postId: sampleFeedbackId || theme.id,
+          themes: [{ name: theme.theme_name, confidence: theme.avg_sentiment || 0.8 }],
+          feedbackText: `Detected from ${theme.frequency} feedback items`,
+        });
+      } catch (reasoningError) {
+        // Don't fail if reasoning capture fails
+        console.error('[THEME DETECTION] Reasoning capture failed:', reasoningError);
+      }
+    }
+    console.log(`[THEME DETECTION] Captured ${themesToCapture.length} reasoning traces`);
 
     return NextResponse.json({
       success: true,
