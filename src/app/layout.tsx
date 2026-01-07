@@ -103,8 +103,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Widget script - uses signalsloop project by default, can be overridden via env var
-  const widgetScriptSrc = process.env.NEXT_PUBLIC_WIDGET_SCRIPT || "https://signalsloop.com/embed/signalsloop.js";
+  // Widget script - uses SignalsLoop project API key
+  const widgetScriptSrc = process.env.NEXT_PUBLIC_WIDGET_SCRIPT || "https://signalsloop.com/embed/sk_89efe32edf48184f641432ff26c6c5df.js";
 
   const structuredData = {
     "@context": "https://schema.org",
