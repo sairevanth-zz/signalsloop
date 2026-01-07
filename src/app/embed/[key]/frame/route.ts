@@ -115,7 +115,7 @@ export async function GET(
       posts: posts || [],
       theme,
       customColor,
-      hideBranding: isPro || isPremium || hideBranding,
+      hideBranding: isPro || isPremium || hideBranding || key === 'demo',  // Demo key always hides branding
       boardUrl: `${appUrl}/${boardSlug}/board`
     });
 

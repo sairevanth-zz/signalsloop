@@ -35,7 +35,9 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
   const isPublicPage = pathname === `/${projectSlug}` ||
     pathname?.includes('/post/') ||
     pathname?.endsWith('/vote') ||
-    pathname?.endsWith('/respond');
+    pathname?.endsWith('/respond') ||
+    pathname?.endsWith('/board') ||
+    pathname?.endsWith('/roadmap');
 
   // Fetch project ID from slug
   useEffect(() => {

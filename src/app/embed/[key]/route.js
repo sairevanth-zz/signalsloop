@@ -153,7 +153,7 @@ export async function GET(
       text,
       size,
       theme,
-      isPro: isPro || isPremium  // Treat premium same as pro for branding
+      isPro: isPro || isPremium || key === 'demo'  // Demo key always treated as pro for branding
     });
 
     console.log('Generated widget script for key:', key, 'project:', project?.name);
