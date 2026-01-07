@@ -22,10 +22,12 @@ import {
     BarChart3,
     TrendingUp,
     Loader2,
+    RefreshCw,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
     Select,
@@ -37,6 +39,7 @@ import {
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { ReasoningDrawer } from '@/components/reasoning/ReasoningDrawer';
 import { ReasoningTrace, ReasoningFeature } from '@/types/reasoning';
+import { toast } from 'sonner';
 
 const FEATURE_LABELS: Record<ReasoningFeature, string> = {
     devils_advocate: "Devil's Advocate",
@@ -83,6 +86,7 @@ export default function ProjectReasoningPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedTrace, setSelectedTrace] = useState<ReasoningTrace | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [backfilling, setBackfilling] = useState(false);
 
     useEffect(() => {
         if (projectSlug) {
@@ -172,6 +176,33 @@ export default function ProjectReasoningPage() {
         if (confidence >= 0.8) return 'text-green-500';
         if (confidence >= 0.6) return 'text-yellow-500';
         return 'text-red-500';
+    }
+
+    async function handleBackfill() {
+        if (!projectId) return;
+
+        setBackfilling(true);
+        try {
+            const response = await fetch('/api/reasoning/backfill', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ projectId }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success(`Imported ${data.total} historical AI decisions`);
+                fetchTraces(); // Refresh the list
+            } else {
+                toast.error(data.error || 'Backfill failed');
+            }
+        } catch (error) {
+            console.error('Backfill error:', error);
+            toast.error('Failed to import historical data');
+        } finally {
+            setBackfilling(false);
+        }
     }
 
     function openTraceDetails(trace: ReasoningTrace) {
@@ -312,9 +343,22 @@ export default function ProjectReasoningPage() {
                         <div className="text-center py-12">
                             <Brain className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                             <h3 className="font-medium">No AI Decisions Yet</h3>
-                            <p className="text-sm text-muted-foreground mt-2">
+                            <p className="text-sm text-muted-foreground mt-2 mb-6">
                                 AI reasoning will appear here as you use SignalsLoop's AI features.
                             </p>
+                            <Button
+                                onClick={handleBackfill}
+                                disabled={backfilling}
+                                variant="outline"
+                                className="gap-2"
+                            >
+                                {backfilling ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <RefreshCw className="w-4 h-4" />
+                                )}
+                                {backfilling ? 'Importing...' : 'Import Historical Data'}
+                            </Button>
                         </div>
                     ) : (
                         <div className="space-y-3">
