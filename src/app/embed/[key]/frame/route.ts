@@ -102,8 +102,12 @@ export async function GET(
     const planValue = typeof project.plan === 'string' ? project.plan.toLowerCase() : '';
     const isPro = planValue === 'pro' || planValue.startsWith('pro_');
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.signalsloop.com').replace(/\/+$/, '');
+
+    // Override project name for demo to show "SignalsLoop" instead of "SignalsLoop Demo"
+    const displayProject = key === 'demo' ? { ...project, name: 'SignalsLoop' } : project;
+
     const html = generateFrameHTML({
-      project,
+      project: displayProject,
       posts: posts || [],
       theme,
       customColor,

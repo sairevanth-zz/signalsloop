@@ -146,7 +146,7 @@ export async function GET(
     const widgetScript = generateWidgetScript({
       apiKey: key,
       projectSlug: projectSlug,
-      projectName: project?.name || 'SignalsLoop',
+      projectName: key === 'demo' ? 'SignalsLoop' : (project?.name || 'SignalsLoop'),
       position,
       color,
       text,
