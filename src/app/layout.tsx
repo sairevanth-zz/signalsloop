@@ -103,8 +103,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const widgetScriptSrc =
-    process.env.NEXT_PUBLIC_WIDGET_SCRIPT ?? "https://signalsloop.com/embed/demo.js";
+  // Only load widget script if explicitly configured via env var
+  const widgetScriptSrc = process.env.NEXT_PUBLIC_WIDGET_SCRIPT || null;
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -186,9 +186,8 @@ export default function RootLayout({
           </PostHogProvider>
         </ThemeProvider>
         <Toaster richColors position="top-right" />
-        <Script src={widgetScriptSrc} strategy="afterInteractive" />
+        {widgetScriptSrc && <Script src={widgetScriptSrc} strategy="afterInteractive" />}
       </body>
     </html>
   );
 }
-// Deployment trigger Mon Oct 28 22:34:00 CDT 2025
