@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, CheckCircle, Building2, Rocket, Users, Zap, Target, BarChart3 } from 'lucide-react';
+import { SiteNav } from '@/components/SiteNav';
 
 export default function SolutionsPage() {
     const solutions = [
@@ -74,22 +75,7 @@ export default function SolutionsPage() {
                     style={{ background: 'linear-gradient(180deg, #C8E6C9 0%, #E8F5E9 100%)', filter: 'blur(60px)' }} />
             </div>
 
-            {/* Nav */}
-            <nav className="fixed top-0 left-0 right-0 z-50 border-b border-black/[0.04]"
-                style={{ background: 'rgba(255, 250, 245, 0.9)', backdropFilter: 'blur(20px)' }}>
-                <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-[72px]">
-                    <Link href="/" className="flex items-center gap-2.5">
-                        <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-9 h-9 rounded-xl" />
-                        <span className="font-[family-name:var(--font-fraunces)] font-semibold text-[22px] text-[#2D2D2A]">SignalsLoop</span>
-                    </Link>
-                    <div className="hidden lg:flex items-center gap-4">
-                        <Link href="/login" className="text-[15px] font-medium text-[#2D2D2A] hover:text-[#FF4F00] transition-colors">Log in</Link>
-                        <Link href="/login" className="px-6 py-2.5 text-[15px] font-semibold text-white bg-[#FF4F00] rounded-lg hover:bg-[#E64700] transition-all">
-                            Start free
-                        </Link>
-                    </div>
-                </div>
-            </nav>
+            <SiteNav />
 
             <div className="relative z-10 pt-32 pb-20 px-6">
                 {/* Header */}
