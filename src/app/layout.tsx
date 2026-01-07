@@ -103,8 +103,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Only load widget script if explicitly configured via env var
-  const widgetScriptSrc = process.env.NEXT_PUBLIC_WIDGET_SCRIPT || null;
+  // Widget script - uses signalsloop project by default, can be overridden via env var
+  const widgetScriptSrc = process.env.NEXT_PUBLIC_WIDGET_SCRIPT || "https://signalsloop.com/embed/signalsloop.js";
 
   const structuredData = {
     "@context": "https://schema.org",
