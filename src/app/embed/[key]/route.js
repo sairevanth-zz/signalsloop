@@ -143,6 +143,7 @@ export async function GET(
     // Generate the widget JavaScript
     const planValue = typeof project?.plan === 'string' ? project.plan.toLowerCase() : '';
     const isPro = planValue === 'pro' || planValue.startsWith('pro_');
+    const isPremium = planValue === 'premium' || planValue.startsWith('premium_');
     const widgetScript = generateWidgetScript({
       apiKey: key,
       projectSlug: projectSlug,
@@ -152,7 +153,7 @@ export async function GET(
       text,
       size,
       theme,
-      isPro
+      isPro: isPro || isPremium  // Treat premium same as pro for branding
     });
 
     console.log('Generated widget script for key:', key, 'project:', project?.name);

@@ -101,18 +101,22 @@ export async function GET(
     // Generate the iframe HTML
     const planValue = typeof project.plan === 'string' ? project.plan.toLowerCase() : '';
     const isPro = planValue === 'pro' || planValue.startsWith('pro_');
+    const isPremium = planValue === 'premium' || planValue.startsWith('premium_');
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.signalsloop.com').replace(/\/+$/, '');
 
     // Override project name for demo to show "SignalsLoop" instead of "SignalsLoop Demo"
     const displayProject = key === 'demo' ? { ...project, name: 'SignalsLoop' } : project;
+
+    // Use 'signalsloop' slug for demo project's board link
+    const boardSlug = key === 'demo' ? 'signalsloop' : project.slug;
 
     const html = generateFrameHTML({
       project: displayProject,
       posts: posts || [],
       theme,
       customColor,
-      hideBranding: isPro || hideBranding,
-      boardUrl: `${appUrl}/${project.slug}/board`
+      hideBranding: isPro || isPremium || hideBranding,
+      boardUrl: `${appUrl}/${boardSlug}/board`
     });
 
     return new NextResponse(html, {

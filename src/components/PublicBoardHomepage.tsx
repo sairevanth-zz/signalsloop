@@ -552,21 +552,23 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
           )}
         </div>
 
-        {/* Footer */}
-        <div className="mt-16 pt-8 border-t border-slate-800 text-center">
-          <div className="flex items-center justify-center space-x-2 text-slate-500 mb-4">
-            <span>Powered by</span>
-            <Link href="/" className="font-semibold text-teal-400 hover:text-teal-300">
-              SignalsLoop
-            </Link>
+        {/* Footer - Hide branding for Pro/Premium plans */}
+        {!['pro', 'premium'].some(p => project.plan?.toLowerCase().startsWith(p)) && (
+          <div className="mt-16 pt-8 border-t border-slate-800 text-center">
+            <div className="flex items-center justify-center space-x-2 text-slate-500 mb-4">
+              <span>Powered by</span>
+              <Link href="/" className="font-semibold text-teal-400 hover:text-teal-300">
+                SignalsLoop
+              </Link>
+            </div>
+            <p className="text-sm text-slate-500">
+              Create your own feedback board in minutes.
+              <Link href="/" className="text-teal-400 hover:text-teal-300 ml-1">
+                Get started free →
+              </Link>
+            </p>
           </div>
-          <p className="text-sm text-slate-500">
-            Create your own feedback board in minutes.
-            <Link href="/" className="text-teal-400 hover:text-teal-300 ml-1">
-              Get started free →
-            </Link>
-          </p>
-        </div>
+        )}
       </main>
 
       {showPostForm && activeBoardId && (
