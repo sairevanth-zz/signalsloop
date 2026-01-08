@@ -19,9 +19,13 @@ import {
   ChevronUp,
   Edit,
   Trash2,
+  Loader2,
+  Upload,
 } from 'lucide-react';
 import { getPriorityColorScheme } from '@/types/user-stories';
 import { StoryEditor } from './StoryEditor';
+import { useJiraConnection } from '@/hooks/useJira';
+import { toast } from 'sonner';
 
 interface StoryCardProps {
   story: UserStoryWithDetails;
@@ -34,6 +38,8 @@ export function StoryCard({ story, showTheme = false, onUpdate, onDelete }: Stor
   const [expanded, setExpanded] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const { connection, isConnected } = useJiraConnection(story.project_id);
   const priorityColors = getPriorityColorScheme(story.priority_level);
 
   async function handleSave(updatedStory: Partial<typeof story>) {
@@ -76,6 +82,60 @@ export function StoryCard({ story, showTheme = false, onUpdate, onDelete }: Stor
       console.error('Error deleting story:', error);
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function handleExportToJira() {
+    if (!connection) {
+      toast.error('Please configure Jira integration in Project Settings first');
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const response = await fetch('/api/integrations/jira/create-issue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          connection_id: connection.id,
+          story_id: story.id,
+          project_key: connection.default_project_key,
+          issue_type: connection.default_issue_type || 'Story',
+          use_ai: false,
+          manual_summary: story.title,
+          manual_description: `${story.full_story}\n\n**Acceptance Criteria:**\n${story.acceptance_criteria?.map((ac, i) => `${i + 1}. ${ac.text}`).join('\n') || 'None'}\n\n**Technical Notes:**\n${story.technical_notes || 'None'}\n\n**Story Points:** ${story.story_points || 'Unestimated'}`,
+          manual_priority: story.priority_level === 'critical' ? 'Highest' :
+            story.priority_level === 'high' ? 'High' :
+              story.priority_level === 'medium' ? 'Medium' : 'Low',
+          manual_labels: story.labels || [],
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to export to Jira');
+      }
+
+      const data = await response.json();
+      toast.success(`Story exported to Jira: ${data.issue_key}`);
+
+      // Update the story with the Jira issue key
+      if (data.issue_key) {
+        await fetch(`/api/user-stories/${story.project_id}?story_id=${story.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            exported_to_jira: true,
+            jira_issue_key: data.issue_key,
+          }),
+        });
+        if (onUpdate) onUpdate();
+      }
+    } catch (error) {
+      console.error('Error exporting to Jira:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to export to Jira');
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -284,14 +344,30 @@ export function StoryCard({ story, showTheme = false, onUpdate, onDelete }: Stor
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open(story.jira_issue_key, '_blank')}
+                onClick={() => window.open(`https://jira.atlassian.com/browse/${story.jira_issue_key}`, '_blank')}
               >
                 <ExternalLink className="w-4 h-4 mr-1" />
-                View in Jira
+                View in Jira ({story.jira_issue_key})
               </Button>
             ) : (
-              <Button variant="outline" size="sm" disabled>
-                Export to Jira
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportToJira}
+                disabled={!isConnected || exporting}
+                title={!isConnected ? 'Configure Jira integration in Project Settings' : 'Export this story to Jira'}
+              >
+                {exporting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-1" />
+                    Export to Jira
+                  </>
+                )}
               </Button>
             )}
           </div>
