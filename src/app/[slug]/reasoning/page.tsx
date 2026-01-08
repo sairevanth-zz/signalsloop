@@ -343,22 +343,9 @@ export default function ProjectReasoningPage() {
                         <div className="text-center py-12">
                             <Brain className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                             <h3 className="font-medium">No AI Decisions Yet</h3>
-                            <p className="text-sm text-muted-foreground mt-2 mb-6">
+                            <p className="text-sm text-muted-foreground mt-2">
                                 AI reasoning will appear here as you use SignalsLoop's AI features.
                             </p>
-                            <Button
-                                onClick={handleBackfill}
-                                disabled={backfilling}
-                                variant="outline"
-                                className="gap-2"
-                            >
-                                {backfilling ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <RefreshCw className="w-4 h-4" />
-                                )}
-                                {backfilling ? 'Importing...' : 'Import Historical Data'}
-                            </Button>
                         </div>
                     ) : (
                         <div className="space-y-3">

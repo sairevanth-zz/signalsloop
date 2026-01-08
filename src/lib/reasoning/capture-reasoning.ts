@@ -6,7 +6,8 @@
  * Provides transparency into "Why?" for any AI recommendation
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import { getOpenAI } from '@/lib/openai-client';
 import {
   ReasoningTrace,
@@ -22,16 +23,9 @@ import {
   DataSource,
 } from '@/types/reasoning';
 
-// Lazy getter for Supabase client to avoid build-time initialization
-let _supabaseClient: SupabaseClient | null = null;
-function getSupabase(): SupabaseClient {
-  if (!_supabaseClient) {
-    _supabaseClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-  }
-  return _supabaseClient;
+// Use the singleton Supabase client that supports both env var names
+function getSupabase(): SupabaseClient | null {
+  return getServiceRoleClient();
 }
 
 /**
@@ -219,7 +213,12 @@ export async function storeReasoningTrace(trace: {
   entity_id?: string;
   triggered_by?: string;
 }): Promise<ReasoningTrace> {
-  const { data, error } = await getSupabase()
+  const supabase = getSupabase();
+  if (!supabase) {
+    throw new Error('Database connection not available');
+  }
+
+  const { data, error } = await supabase
     .from('reasoning_traces')
     .insert({
       project_id: trace.project_id,
@@ -252,7 +251,13 @@ export async function getReasoningForEntity(
   entityType: string,
   entityId: string
 ): Promise<ReasoningTrace[]> {
-  const { data, error } = await getSupabase()
+  const supabase = getSupabase();
+  if (!supabase) {
+    console.error('[ReasoningCapture] Database connection not available');
+    return [];
+  }
+
+  const { data, error } = await supabase
     .from('reasoning_traces')
     .select('*')
     .eq('entity_type', entityType)
@@ -276,7 +281,13 @@ export async function getProjectReasoningTraces(
   feature?: ReasoningFeature,
   limit: number = 50
 ): Promise<ReasoningTrace[]> {
-  let query = getSupabase()
+  const supabase = getSupabase();
+  if (!supabase) {
+    console.error('[ReasoningCapture] Database connection not available');
+    return [];
+  }
+
+  let query = supabase
     .from('reasoning_traces')
     .select('*')
     .eq('project_id', projectId)
@@ -301,7 +312,13 @@ export async function getProjectReasoningTraces(
  * Get a single reasoning trace by ID
  */
 export async function getReasoningTraceById(traceId: string): Promise<ReasoningTrace | null> {
-  const { data, error } = await getSupabase()
+  const supabase = getSupabase();
+  if (!supabase) {
+    console.error('[ReasoningCapture] Database connection not available');
+    return null;
+  }
+
+  const { data, error } = await supabase
     .from('reasoning_traces')
     .select('*')
     .eq('id', traceId)
@@ -376,7 +393,13 @@ export async function cleanupOldTraces(daysOld: number = 90): Promise<number> {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
-  const { data, error } = await getSupabase()
+  const supabase = getSupabase();
+  if (!supabase) {
+    console.error('[ReasoningCapture] Database connection not available');
+    return 0;
+  }
+
+  const { data, error } = await supabase
     .from('reasoning_traces')
     .delete()
     .lt('created_at', cutoffDate.toISOString())

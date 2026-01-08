@@ -6,15 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getServiceRoleClient } from '@/lib/supabase-singleton';
 import { createReasoningTrace } from '@/lib/reasoning/capture-reasoning';
-
-function getSupabase() {
-    return createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-}
 
 export async function POST(request: NextRequest) {
     try {
@@ -28,7 +21,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const supabase = getSupabase();
+        const supabase = getServiceRoleClient();
+        if (!supabase) {
+            return NextResponse.json(
+                { error: 'Database connection not available' },
+                { status: 500 }
+            );
+        }
+
         const stats = {
             sentiment: 0,
             themes: 0,
