@@ -41,16 +41,18 @@ export function UserStoriesDashboard({ projectId, slug }: UserStoriesDashboardPr
   async function loadData() {
     setLoading(true);
     try {
-      // Load user stories
+      // Load user stories first
+      let currentStories: UserStoryWithDetails[] = [];
       const storiesRes = await fetch(`/api/user-stories/${projectId}`);
       if (storiesRes.ok) {
         const storiesData = await storiesRes.json();
-        setStories(storiesData.stories || []);
+        currentStories = storiesData.stories || [];
+        setStories(currentStories);
 
         // Calculate stats
-        const total = storiesData.stories?.length || 0;
-        const aiGenerated = storiesData.stories?.filter((s: UserStory) => s.generated_by_ai).length || 0;
-        const exported = storiesData.stories?.filter((s: UserStory) => s.exported_to_jira).length || 0;
+        const total = currentStories.length;
+        const aiGenerated = currentStories.filter((s: UserStory) => s.generated_by_ai).length;
+        const exported = currentStories.filter((s: UserStory) => s.exported_to_jira).length;
 
         setStats({
           total,
@@ -63,10 +65,10 @@ export function UserStoriesDashboard({ projectId, slug }: UserStoriesDashboardPr
       const themesRes = await fetch(`/api/themes?projectId=${projectId}`);
       if (themesRes.ok) {
         const themesData = await themesRes.json();
-        // Filter themes that don't have stories yet
+        // Filter themes that don't have stories yet (use freshly fetched stories)
         const themesWithoutStories = (themesData.themes || []).filter(
           (theme: Theme) =>
-            !stories.some((story) => story.theme_id === theme.id)
+            !currentStories.some((story: UserStory) => story.theme_id === theme.id)
         );
         setThemes(themesWithoutStories);
       }
