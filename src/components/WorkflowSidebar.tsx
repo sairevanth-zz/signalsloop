@@ -106,7 +106,6 @@ export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProp
             icon: Lightbulb,
             items: [
                 { label: 'AI Insights & Themes', href: currentSlug ? `/${currentSlug}/ai-insights` : '#', icon: Lightbulb, requiresProject: true },
-                { label: 'Sentiment Analysis', href: currentSlug ? `/${currentSlug}/ai-insights?tab=sentiment` : '#', icon: Activity, requiresProject: true },
                 { label: 'Anomaly Detection', href: currentSlug ? `/${currentSlug}/anomalies` : '#', icon: AlertTriangle, requiresProject: true },
                 { label: 'Feature Predictions', href: currentSlug ? `/${currentSlug}/predictions` : '#', icon: TrendingUp, requiresProject: true },
                 { label: "Devil's Advocate", href: currentSlug ? `/${currentSlug}/devils-advocate` : '#', icon: Scale, requiresProject: true },
