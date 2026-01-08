@@ -31,6 +31,10 @@ export async function GET(
 
     const supabase = getSupabaseServiceRoleClient();
 
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
+    }
+
     let query = supabase
       .from('user_stories_with_details')
       .select('*')
@@ -85,6 +89,10 @@ export async function POST(
 
     const supabase = getSupabaseServiceRoleClient();
 
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
+    }
+
     const { data: story, error } = await supabase
       .from('user_stories')
       .insert({
@@ -132,6 +140,10 @@ export async function PATCH(
     const body = await request.json();
     const supabase = getSupabaseServiceRoleClient();
 
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
+    }
+
     const { data: story, error } = await supabase
       .from('user_stories')
       .update(body)
@@ -174,6 +186,10 @@ export async function DELETE(
     }
 
     const supabase = getSupabaseServiceRoleClient();
+
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 });
+    }
 
     const { error } = await supabase
       .from('user_stories')
