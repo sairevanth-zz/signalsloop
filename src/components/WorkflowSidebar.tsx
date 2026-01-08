@@ -119,7 +119,7 @@ export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProp
             items: [
                 { label: 'Roadmap', href: currentSlug ? `/${currentSlug}/roadmap` : '/app/roadmap', icon: Map },
                 { label: 'Specs / PRDs', href: currentSlug ? `/${currentSlug}/specs` : '#', icon: FileText, requiresProject: true },
-                { label: 'User Stories', href: '/app/user-stories', icon: FileText },
+                { label: 'User Stories', href: currentSlug ? `/${currentSlug}/user-stories` : '#', icon: FileText, requiresProject: true },
                 { label: 'Experiments', href: currentSlug ? `/${currentSlug}/experiments` : '#', icon: Beaker, requiresProject: true },
             ]
         },
