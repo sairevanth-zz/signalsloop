@@ -18,7 +18,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { usePathname, useParams } from 'next/navigation';
+import { usePathname, useParams, useSearchParams } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import {
     ChevronDown,
@@ -74,6 +74,7 @@ interface NavZone {
 export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProps) {
     const pathname = usePathname();
     const params = useParams();
+    const searchParams = useSearchParams();
     const currentSlug = projectSlug || (params?.slug as string) || '';
 
     // Track which zones are expanded
@@ -105,7 +106,7 @@ export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProp
             icon: Lightbulb,
             items: [
                 { label: 'AI Insights & Themes', href: currentSlug ? `/${currentSlug}/ai-insights` : '#', icon: Lightbulb, requiresProject: true },
-                { label: 'Sentiment Analysis', href: currentSlug ? `/${currentSlug}/ai-insights` : '#', icon: Activity, requiresProject: true },
+                { label: 'Sentiment Analysis', href: currentSlug ? `/${currentSlug}/ai-insights?tab=sentiment` : '#', icon: Activity, requiresProject: true },
                 { label: 'Anomaly Detection', href: currentSlug ? `/${currentSlug}/anomalies` : '#', icon: AlertTriangle, requiresProject: true },
                 { label: 'Feature Predictions', href: currentSlug ? `/${currentSlug}/predictions` : '#', icon: TrendingUp, requiresProject: true },
                 { label: "Devil's Advocate", href: currentSlug ? `/${currentSlug}/devils-advocate` : '#', icon: Scale, requiresProject: true },
@@ -159,7 +160,26 @@ export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProp
 
     const isActiveItem = (href: string) => {
         if (href === '#') return false;
-        return pathname === href || pathname?.startsWith(href + '/');
+
+        // Parse the href to separate path from query params
+        const [hrefPath, hrefQuery] = href.split('?');
+        const pathMatch = pathname === hrefPath || pathname?.startsWith(hrefPath + '/');
+
+        // If href has query params, also check those
+        if (hrefQuery) {
+            const hrefParams = new URLSearchParams(hrefQuery);
+            const currentTab = searchParams?.get('tab');
+            const hrefTab = hrefParams.get('tab');
+            return pathMatch && currentTab === hrefTab;
+        }
+
+        // For hrefs without query params, also verify no query param is set on current URL
+        // (so AI Insights doesn't stay highlighted when Sentiment Analysis is active)
+        if (hrefPath.endsWith('/ai-insights') && searchParams?.get('tab')) {
+            return false;
+        }
+
+        return pathMatch;
     };
 
     const isMissionControlActive = pathname?.includes('/dashboard') || pathname?.includes('/mission-control');
