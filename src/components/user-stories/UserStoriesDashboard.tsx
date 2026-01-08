@@ -17,9 +17,10 @@ import Link from 'next/link';
 
 interface UserStoriesDashboardProps {
   projectId: string;
+  slug?: string;
 }
 
-export function UserStoriesDashboard({ projectId }: UserStoriesDashboardProps) {
+export function UserStoriesDashboard({ projectId, slug }: UserStoriesDashboardProps) {
   const [stories, setStories] = useState<UserStoryWithDetails[]>([]);
   const [themes, setThemes] = useState<Theme[]>([]);
   const [loading, setLoading] = useState(true);
@@ -249,7 +250,7 @@ export function UserStoriesDashboard({ projectId }: UserStoriesDashboardProps) {
                           </li>
                         </ol>
                         <Button asChild className="w-full sm:w-auto">
-                          <Link href={`/app`}>
+                          <Link href={slug ? `/${slug}` : '/app'}>
                             <ArrowRight className="w-4 h-4 mr-2" />
                             Go to Dashboard
                           </Link>

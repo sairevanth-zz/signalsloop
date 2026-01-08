@@ -10,6 +10,7 @@ import { useParams } from 'next/navigation';
 import { UserStoriesDashboard } from '@/components/user-stories/UserStoriesDashboard';
 import { useEffect, useState } from 'react';
 import { getSupabaseClient } from '@/lib/supabase-client';
+import { Zap } from 'lucide-react';
 
 export default function UserStoriesPage() {
     const params = useParams();
@@ -59,13 +60,19 @@ export default function UserStoriesPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">Auto-Generated User Stories</h1>
-                <p className="text-muted-foreground mt-2">
-                    Transform feedback themes into sprint-ready development work
-                </p>
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
+                    <Zap className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                    <h1 className="text-2xl font-bold">Auto-Generated User Stories</h1>
+                    <p className="text-muted-foreground text-sm">
+                        Transform feedback themes into sprint-ready development work
+                    </p>
+                </div>
             </div>
-            <UserStoriesDashboard projectId={projectId} />
+            <UserStoriesDashboard projectId={projectId} slug={slug} />
         </div>
     );
 }
+
