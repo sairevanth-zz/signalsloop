@@ -54,14 +54,19 @@ export function AnalyticsDashboard({ projectId, slug }: AnalyticsDashboardProps)
 
   const fetchAnalytics = async () => {
     setLoading(true);
+    console.log('[AnalyticsDashboard] Fetching analytics for projectId:', projectId, 'timeRange:', timeRange);
     try {
       const response = await fetch(`/api/app/analytics/${projectId}?timeRange=${timeRange}`);
+      console.log('[AnalyticsDashboard] Response status:', response.status);
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[AnalyticsDashboard] API error:', errorText);
         throw new Error('Failed to fetch analytics data');
       }
 
       const data = await response.json();
+      console.log('[AnalyticsDashboard] Received data:', JSON.stringify(data.metrics, null, 2));
 
       setMetrics(data.metrics);
       setChartData(data.chartData);
