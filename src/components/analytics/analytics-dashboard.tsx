@@ -5,15 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  TrendingUp, 
-  Users, 
-  MessageSquare, 
-  Vote, 
-  Eye, 
-  CreditCard, 
-  ArrowUpRight, 
-  ArrowDownRight, 
+import {
+  TrendingUp,
+  Users,
+  MessageSquare,
+  Vote,
+  Eye,
+  CreditCard,
+  ArrowUpRight,
+  ArrowDownRight,
   Activity,
   Target,
   Zap,
@@ -23,6 +23,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 interface AnalyticsDashboardProps {
   projectId: string;
+  slug?: string;
 }
 
 interface MetricData {
@@ -40,7 +41,7 @@ interface ChartDataPoint {
 
 const COLORS = ['#6366F1', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981'];
 
-export function AnalyticsDashboard({ projectId }: AnalyticsDashboardProps) {
+export function AnalyticsDashboard({ projectId, slug }: AnalyticsDashboardProps) {
   const [timeRange, setTimeRange] = useState('7d');
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState<Record<string, MetricData>>({});
@@ -247,7 +248,7 @@ export function AnalyticsDashboard({ projectId }: AnalyticsDashboardProps) {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percentage }: {name: string, percentage: number}) => `${name} ${percentage}%`}
+                        label={({ name, percentage }: { name: string, percentage: number }) => `${name} ${percentage}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
@@ -387,7 +388,7 @@ export function AnalyticsDashboard({ projectId }: AnalyticsDashboardProps) {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-gray-200 rounded-full h-8 relative overflow-hidden">
-                          <div 
+                          <div
                             className={`${item.color} h-full rounded-full flex items-center justify-center text-white text-sm font-medium`}
                             style={{ width: `${item.percentage}%` }}
                           >
@@ -430,14 +431,30 @@ export function AnalyticsDashboard({ projectId }: AnalyticsDashboardProps) {
             <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
               <h4 className="font-medium text-yellow-900 mb-2">Improve Widget Conversion</h4>
               <p className="text-sm text-yellow-800">Only 28% of widget loads result in submissions. Consider A/B testing different call-to-action messages.</p>
-              <Button size="sm" className="mt-2">
+              <Button
+                size="sm"
+                className="mt-2"
+                onClick={() => {
+                  if (slug) {
+                    window.location.href = `/${slug}/widget`;
+                  }
+                }}
+              >
                 Test Widget Changes
               </Button>
             </div>
             <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
               <h4 className="font-medium text-blue-900 mb-2">Increase User Retention</h4>
               <p className="text-sm text-blue-800">Send follow-up emails to users who submit feedback to keep them engaged with your roadmap.</p>
-              <Button size="sm" className="mt-2">
+              <Button
+                size="sm"
+                className="mt-2"
+                onClick={() => {
+                  if (slug) {
+                    window.location.href = `/${slug}/settings`;
+                  }
+                }}
+              >
                 Set up Email Automation
               </Button>
             </div>

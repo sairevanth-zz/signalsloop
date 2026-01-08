@@ -108,7 +108,7 @@ export default function ProjectAnalyticsPage() {
 
             {/* Analytics Dashboard Component */}
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-6">
-                <AnalyticsDashboard projectId={projectId} />
+                <AnalyticsDashboard projectId={projectId} slug={slug} />
             </div>
         </div>
     );
