@@ -20,6 +20,7 @@ import {
   Globe
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 interface AnalyticsDashboardProps {
   projectId: string;
@@ -56,8 +57,19 @@ export function AnalyticsDashboard({ projectId, slug }: AnalyticsDashboardProps)
     setLoading(true);
     console.log('[AnalyticsDashboard] Fetching analytics for projectId:', projectId, 'timeRange:', timeRange);
     try {
+      // Get auth token from Supabase session
+      const supabase = getSupabaseClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        console.error('[AnalyticsDashboard] No auth token available');
+        throw new Error('Please sign in to view analytics');
+      }
+
       const response = await fetch(`/api/app/analytics/${projectId}?timeRange=${timeRange}`, {
-        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
       });
       console.log('[AnalyticsDashboard] Response status:', response.status);
 
