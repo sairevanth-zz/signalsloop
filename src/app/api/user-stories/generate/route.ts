@@ -45,6 +45,14 @@ export async function POST(request: NextRequest) {
     // Get Supabase client
     const supabase = getSupabaseServiceRoleClient();
 
+    if (!supabase) {
+      console.error('[USER-STORIES-API] Database connection not available');
+      return NextResponse.json(
+        { error: 'Database connection not available' },
+        { status: 500 }
+      );
+    }
+
     // Fetch theme data
     const { data: theme, error: themeError } = await supabase
       .from('themes')
@@ -206,15 +214,17 @@ export async function POST(request: NextRequest) {
     // Log the failure
     try {
       const supabase = getSupabaseServiceRoleClient();
-      const body = await request.clone().json();
-      await supabase.from('story_generation_logs').insert({
-        project_id: body.project_id,
-        theme_id: body.theme_id,
-        model_used: 'gpt-4',
-        generation_time_ms: generationTime,
-        success: false,
-        error_message: error instanceof Error ? error.message : 'Unknown error',
-      });
+      if (supabase) {
+        const body = await request.clone().json();
+        await supabase.from('story_generation_logs').insert({
+          project_id: body.project_id,
+          theme_id: body.theme_id,
+          model_used: 'gpt-4',
+          generation_time_ms: generationTime,
+          success: false,
+          error_message: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
     } catch (logError) {
       console.error('[USER-STORIES-API] Error logging failure:', logError);
     }
