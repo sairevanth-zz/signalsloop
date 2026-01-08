@@ -181,7 +181,12 @@ export async function POST(request: NextRequest) {
     // 2. Generate prediction
     let prediction;
     try {
-      prediction = await predictFeatureSuccess(validated.project_id, features);
+      prediction = await predictFeatureSuccess(
+        validated.project_id,
+        features,
+        validated.feature_name,
+        validated.feature_description
+      );
     } catch (error) {
       console.error('Prediction generation failed:', error);
       return NextResponse.json(
