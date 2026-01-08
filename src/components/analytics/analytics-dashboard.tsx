@@ -55,14 +55,12 @@ export function AnalyticsDashboard({ projectId, slug }: AnalyticsDashboardProps)
 
   const fetchAnalytics = async () => {
     setLoading(true);
-    console.log('[AnalyticsDashboard] Fetching analytics for projectId:', projectId, 'timeRange:', timeRange);
     try {
       // Get auth token from Supabase session
       const supabase = getSupabaseClient();
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session?.access_token) {
-        console.error('[AnalyticsDashboard] No auth token available');
         throw new Error('Please sign in to view analytics');
       }
 
@@ -71,16 +69,12 @@ export function AnalyticsDashboard({ projectId, slug }: AnalyticsDashboardProps)
           'Authorization': `Bearer ${session.access_token}`,
         },
       });
-      console.log('[AnalyticsDashboard] Response status:', response.status);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[AnalyticsDashboard] API error:', errorText);
         throw new Error('Failed to fetch analytics data');
       }
 
       const data = await response.json();
-      console.log('[AnalyticsDashboard] Received data:', JSON.stringify(data.metrics, null, 2));
 
       setMetrics(data.metrics);
       setChartData(data.chartData);
@@ -394,44 +388,53 @@ export function AnalyticsDashboard({ projectId, slug }: AnalyticsDashboardProps)
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {[
-                  { step: 'Page Visitors', count: 1823, percentage: 100, color: 'bg-blue-500' },
-                  { step: 'Board Viewers', count: 892, percentage: 49, color: 'bg-purple-500' },
-                  { step: 'Post Submitters', count: 156, percentage: 17, color: 'bg-green-500' },
-                  { step: 'Active Users', count: 67, percentage: 43, color: 'bg-orange-500' },
-                  { step: 'Pro Conversions', count: 7, percentage: 10, color: 'bg-pink-500' }
-                ].map((item, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div className="w-32 text-sm font-medium text-gray-700">{item.step}</div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-200 rounded-full h-8 relative overflow-hidden">
-                          <div
-                            className={`${item.color} h-full rounded-full flex items-center justify-center text-white text-sm font-medium`}
-                            style={{ width: `${item.percentage}%` }}
-                          >
-                            {item.percentage}%
+              {metrics.pageViews?.value > 0 ? (
+                <div className="space-y-4">
+                  {[
+                    { step: 'Page Visitors', count: metrics.pageViews?.value || 0, percentage: 100, color: 'bg-blue-500' },
+                    { step: 'Unique Visitors', count: metrics.uniqueVisitors?.value || 0, percentage: metrics.pageViews?.value ? Math.round((metrics.uniqueVisitors?.value || 0) / metrics.pageViews.value * 100) : 0, color: 'bg-purple-500' },
+                    { step: 'Post Submitters', count: metrics.newPosts?.value || 0, percentage: metrics.uniqueVisitors?.value ? Math.round((metrics.newPosts?.value || 0) / metrics.uniqueVisitors.value * 100) : 0, color: 'bg-green-500' },
+                    { step: 'Total Votes', count: metrics.totalVotes?.value || 0, percentage: metrics.newPosts?.value ? Math.min(100, Math.round((metrics.totalVotes?.value || 0) / Math.max(1, metrics.newPosts?.value || 1) * 10)) : 0, color: 'bg-orange-500' },
+                  ].map((item, index) => (
+                    <div key={index} className="flex items-center gap-4">
+                      <div className="w-32 text-sm font-medium text-gray-700">{item.step}</div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-gray-200 rounded-full h-8 relative overflow-hidden">
+                            <div
+                              className={`${item.color} h-full rounded-full flex items-center justify-center text-white text-sm font-medium`}
+                              style={{ width: `${Math.max(item.percentage, 5)}%` }}
+                            >
+                              {item.percentage}%
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-sm font-medium text-gray-900 w-16 text-right">
-                          {item.count.toLocaleString()}
+                          <div className="text-sm font-medium text-gray-900 w-16 text-right">
+                            {item.count.toLocaleString()}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">Key Insights</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• 49% of visitors view your feedback board</li>
-                  <li>• 17% of board viewers submit feedback</li>
-                  <li>• 43% of submitters become active users</li>
-                  <li>• 10% of active users convert to Pro</li>
-                </ul>
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Set Up Tracking to See Funnel Data</h3>
+                  <p className="text-gray-600 mb-4 max-w-md mx-auto">
+                    Install the SignalsLoop tracking widget on your website to capture page views,
+                    visitor journeys, and conversion funnels.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      if (slug) {
+                        window.location.href = `/${slug}/widget`;
+                      }
+                    }}
+                  >
+                    Set Up Tracking Widget
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

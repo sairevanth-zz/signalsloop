@@ -72,24 +72,20 @@ export const GET = secureAPI(
         .eq('project_id', projectId);
 
       if (postsError) {
-        console.error('[Analytics API] Error fetching posts:', postsError);
+        console.error('Error fetching posts:', postsError);
         return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
       }
 
       const allPosts = posts || [];
-      console.log('[Analytics API] Project:', projectId, 'Total posts:', allPosts.length);
-      console.log('[Analytics API] Date range:', startDate.toISOString(), 'to', now.toISOString());
 
       const currentPeriodPosts = allPosts.filter(p => new Date(p.created_at) >= startDate);
       const previousPeriodPosts = allPosts.filter(p => {
         const created = new Date(p.created_at);
         return created >= previousStartDate && created < startDate;
       });
-      console.log('[Analytics API] Current period posts:', currentPeriodPosts.length);
 
       // Fetch votes
       const postIds = allPosts.map(p => p.id);
-      console.log('[Analytics API] Post IDs to fetch votes for:', postIds.length);
 
       const { data: votes, error: votesError } = postIds.length > 0
         ? await supabase
@@ -99,15 +95,13 @@ export const GET = secureAPI(
         : { data: [], error: null };
 
       if (votesError) {
-        console.error('[Analytics API] Error fetching votes:', votesError);
+        console.error('Error fetching votes:', votesError);
         return NextResponse.json({ error: 'Failed to fetch votes' }, { status: 500 });
       }
 
       const allVotes = votes || [];
-      console.log('[Analytics API] Total votes:', allVotes.length);
 
       const currentPeriodVotes = allVotes.filter(v => new Date(v.created_at) >= startDate);
-      console.log('[Analytics API] Current period votes:', currentPeriodVotes.length);
 
       const previousPeriodVotes = allVotes.filter(v => {
         const created = new Date(v.created_at);
