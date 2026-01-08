@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { getSupabaseClient } from '@/lib/supabase-client';
@@ -14,11 +14,15 @@ import GlobalBanner from '@/components/GlobalBanner';
 
 export default function AIInsightsPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const [project, setProject] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const projectSlug = params?.slug as string;
   const supabase = getSupabaseClient();
+
+  // Read tab from URL query params, default to 'themes'
+  const tabFromUrl = searchParams?.get('tab') || 'themes';
 
   useEffect(() => {
     if (user && supabase && projectSlug) {
@@ -107,7 +111,7 @@ export default function AIInsightsPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="themes" className="space-y-6">
+        <Tabs defaultValue={tabFromUrl} className="space-y-6">
           <TabsList className="bg-white border border-gray-200">
             <TabsTrigger value="themes" className="gap-2">
               <TrendingUp className="w-4 h-4" />
