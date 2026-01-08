@@ -56,7 +56,9 @@ export function AnalyticsDashboard({ projectId, slug }: AnalyticsDashboardProps)
     setLoading(true);
     console.log('[AnalyticsDashboard] Fetching analytics for projectId:', projectId, 'timeRange:', timeRange);
     try {
-      const response = await fetch(`/api/app/analytics/${projectId}?timeRange=${timeRange}`);
+      const response = await fetch(`/api/app/analytics/${projectId}?timeRange=${timeRange}`, {
+        credentials: 'include',
+      });
       console.log('[AnalyticsDashboard] Response status:', response.status);
 
       if (!response.ok) {
