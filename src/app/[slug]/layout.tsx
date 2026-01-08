@@ -17,6 +17,7 @@ import { MobileSidebar } from '@/components/MobileSidebar';
 import GlobalBanner from '@/components/GlobalBanner';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { CommandPalette } from '@/components/CommandPalette';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProjectLayoutProps {
   children: React.ReactNode;
@@ -27,17 +28,21 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
   const pathname = usePathname();
   const projectSlug = params?.slug as string;
   const [projectId, setProjectId] = useState<string | null>(null);
+  const { user } = useAuth();
 
   // Only show notification prompt on dashboard page
   const showNotificationPrompt = pathname?.includes('/dashboard');
 
   // Check if we're on a public page (no auth required, no sidebar)
-  const isPublicPage = pathname === `/${projectSlug}` ||
+  // For board and roadmap, only treat as public if user is NOT logged in
+  const isPublicOnlyPath = pathname === `/${projectSlug}` ||
     pathname?.includes('/post/') ||
     pathname?.endsWith('/vote') ||
-    pathname?.endsWith('/respond') ||
-    pathname?.endsWith('/board') ||
-    pathname?.endsWith('/roadmap');
+    pathname?.endsWith('/respond');
+
+  // Board and roadmap should show sidebar for authenticated users
+  const isBoardOrRoadmap = pathname?.endsWith('/board') || pathname?.endsWith('/roadmap');
+  const isPublicPage = isPublicOnlyPath || (isBoardOrRoadmap && !user);
 
   // Fetch project ID from slug
   useEffect(() => {
