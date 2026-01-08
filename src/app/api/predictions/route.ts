@@ -30,6 +30,12 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerClient();
     const supabaseService = getServiceRoleClient();
+
+    if (!supabaseService) {
+      console.error('[Predictions API] Service role client not available');
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 });
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -100,6 +106,12 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerClient();
     const supabaseService = getServiceRoleClient();
+
+    if (!supabaseService) {
+      console.error('[Predictions API] Service role client not available');
+      return NextResponse.json({ error: 'Database connection error' }, { status: 500 });
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
