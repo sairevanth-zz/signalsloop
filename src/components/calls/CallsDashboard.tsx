@@ -1,16 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Upload, Download, Send, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Upload, Download, Send, RefreshCw, Play, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { CallMetricsCards } from './CallMetricsCards';
 import { CallRecordsTable } from './CallRecordsTable';
 import { FeatureHeatmap } from './FeatureHeatmap';
 import { IngestDialog } from './IngestDialog';
+import { toast } from 'sonner';
 
 interface Project {
   id: string;
@@ -40,6 +41,10 @@ export function CallsDashboard({ projectId }: { projectId: string }) {
   const [showIngestDialog, setShowIngestDialog] = useState(false);
   const [exporting, setExporting] = useState(false);
 
+  // Analysis state
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState({ completed: 0, total: 0, remaining: 0 });
+
   useEffect(() => {
     loadData();
   }, [projectId]);
@@ -66,10 +71,83 @@ export function CallsDashboard({ projectId }: { projectId: string }) {
 
       const data = await response.json();
       setSummary(data.summary);
+
+      // Update analysis progress from summary
+      if (data.summary) {
+        const pending = data.summary.total_calls - data.summary.analyzed_calls;
+        setAnalysisProgress({
+          completed: data.summary.analyzed_calls,
+          total: data.summary.total_calls,
+          remaining: pending,
+        });
+      }
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  // Analyze calls function
+  const analyzeNextBatch = useCallback(async () => {
+    try {
+      const response = await fetch('/api/calls/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, limit: 5 }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Analysis failed');
+      }
+
+      const data = await response.json();
+
+      // Update progress
+      setAnalysisProgress(prev => ({
+        completed: prev.total - data.remaining,
+        total: prev.total,
+        remaining: data.remaining,
+      }));
+
+      return data;
+    } catch (error) {
+      console.error('Analysis error:', error);
+      throw error;
+    }
+  }, [projectId]);
+
+  async function handleAnalyze() {
+    if (analyzing) return;
+
+    setAnalyzing(true);
+    toast.info('Starting call analysis...');
+
+    try {
+      let remaining = analysisProgress.remaining;
+
+      while (remaining > 0) {
+        const result = await analyzeNextBatch();
+        remaining = result.remaining;
+
+        if (result.analyzed > 0) {
+          toast.success(`Analyzed ${result.analyzed} call(s). ${remaining} remaining.`);
+        }
+
+        // Small delay between batches
+        if (remaining > 0) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+
+      toast.success('All calls analyzed successfully!');
+      loadData(); // Refresh data
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast.error('Analysis failed. Please try again.');
+    } finally {
+      setAnalyzing(false);
     }
   }
 
@@ -113,6 +191,10 @@ export function CallsDashboard({ projectId }: { projectId: string }) {
     }
   }
 
+  // Calculate estimated time
+  const estimatedSeconds = analysisProgress.remaining * 3; // ~3 seconds per call
+  const estimatedMinutes = Math.ceil(estimatedSeconds / 60);
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -141,6 +223,8 @@ export function CallsDashboard({ projectId }: { projectId: string }) {
       </div>
     );
   }
+
+  const hasPendingCalls = analysisProgress.remaining > 0;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -172,11 +256,52 @@ export function CallsDashboard({ projectId }: { projectId: string }) {
           </div>
         </div>
 
-        {summary.pending_processing && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-            <p className="text-yellow-800 text-sm">
-              ⏳ Call analysis in progress. Refresh to see updated results.
-            </p>
+        {/* Analysis Progress Banner */}
+        {hasPendingCalls && (
+          <div className="bg-gradient-to-r from-blue-50 to-teal-50 dark:from-blue-900/20 dark:to-teal-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {analyzing ? (
+                  <Loader2 className="w-6 h-6 text-blue-600 dark:text-blue-400 animate-spin" />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                    <span className="text-blue-600 dark:text-blue-400 text-sm font-bold">!</span>
+                  </div>
+                )}
+                <div>
+                  <p className="text-blue-900 dark:text-blue-100 font-medium">
+                    {analyzing
+                      ? `Analyzing calls... ${analysisProgress.completed}/${analysisProgress.total} complete`
+                      : `${analysisProgress.remaining} call(s) pending analysis`
+                    }
+                  </p>
+                  <p className="text-blue-700 dark:text-blue-300 text-sm">
+                    {analyzing
+                      ? `~${estimatedMinutes} minute${estimatedMinutes !== 1 ? 's' : ''} remaining`
+                      : `Estimated time: ~${estimatedMinutes} minute${estimatedMinutes !== 1 ? 's' : ''}`
+                    }
+                  </p>
+                </div>
+              </div>
+              {!analyzing && (
+                <Button onClick={handleAnalyze} className="bg-blue-600 hover:bg-blue-700">
+                  <Play className="w-4 h-4 mr-2" />
+                  Start Analysis
+                </Button>
+              )}
+            </div>
+
+            {/* Progress Bar */}
+            {analyzing && (
+              <div className="mt-3">
+                <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${(analysisProgress.completed / analysisProgress.total) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -198,7 +323,7 @@ export function CallsDashboard({ projectId }: { projectId: string }) {
                   <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                     {index + 1}
                   </span>
-                  <span className="text-gray-700">{insight}</span>
+                  <span className="text-gray-700 dark:text-gray-300">{insight}</span>
                 </li>
               ))}
             </ul>
@@ -260,3 +385,4 @@ export function CallsDashboard({ projectId }: { projectId: string }) {
     </div>
   );
 }
+
