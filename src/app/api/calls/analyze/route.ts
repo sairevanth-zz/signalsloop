@@ -142,18 +142,16 @@ export async function POST(request: NextRequest) {
                 const analysis = await analyzeTranscript(record.transcript, record.customer);
 
                 // Update the record with analysis results
+                // Only update columns that exist in the call_records table
                 const { error: updateError } = await supabase
                     .from('call_records')
                     .update({
                         sentiment: analysis.sentiment,
-                        sentiment_label: analysis.sentiment_label,
                         competitors: analysis.competitors,
                         objections: analysis.objections,
                         expansion_signals: analysis.expansion_signals,
                         churn_signals: analysis.churn_signals,
                         feature_requests: analysis.feature_requests,
-                        key_highlights: analysis.key_highlights,
-                        summary: analysis.summary,
                         analyzed_at: new Date().toISOString(),
                     })
                     .eq('id', record.id);
