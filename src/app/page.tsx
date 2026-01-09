@@ -439,13 +439,13 @@ export default function Homepage() {
           {/* Hero Title */}
           <h1 className="font-[family-name:var(--font-fraunces)] font-medium text-[#2D2D2A] tracking-tight mb-7 max-w-4xl mx-auto"
             style={{ fontSize: 'clamp(40px, 5.5vw, 68px)', lineHeight: 1.1 }}>
-            From first signal to shipped feature—<br />
-            <span className="text-[#FF4F00]">everything in one place.</span>
+            Your AI copilot for<br />
+            <span className="text-[#FF4F00]">product decisions.</span>
           </h1>
 
           {/* Hero Subtitle */}
           <p className="text-xl text-[#5C5C57] max-w-2xl mx-auto mb-10 leading-relaxed">
-            Capture feedback, validate with AI, ship specs, measure outcomes—no tool switching. The complete product development platform.
+            AI hunts feedback from 8 platforms. Predicts what will succeed. Writes specs in 30 seconds. You decide what ships.
           </p>
 
           {/* Prism Visual */}
