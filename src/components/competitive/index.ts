@@ -11,6 +11,7 @@ export { RecommendationCard } from './RecommendationCard';
 export { SentimentTrendChart } from './SentimentTrendChart';
 export { CompetitiveBadge } from './CompetitiveBadge';
 export { CompetitiveAdminPanel } from './CompetitiveAdminPanel';
+export { CompetitiveUsagePanel } from './CompetitiveUsagePanel';
 
 // External monitoring components
 export { CompetitorMonitoringSetup } from './CompetitorMonitoringSetup';

@@ -2,6 +2,8 @@
  * Classify Worker
  * Classifies filtered items and stores final feedback
  * Triggered by cron every minute
+ * 
+ * Also triggers Competitive Intelligence extraction for newly imported feedback.
  */
 
 import { NextResponse } from 'next/server';
@@ -17,6 +19,8 @@ import {
     createJob,
 } from '@/lib/hunters/job-queue';
 import { getServiceRoleClient } from '@/lib/supabase-singleton';
+import { extractCompetitorMentions } from '@/lib/competitive-intelligence';
+import { checkAIUsageLimit, incrementAIUsage } from '@/lib/ai-rate-limit';
 import OpenAI from 'openai';
 
 export const maxDuration = 300;
@@ -133,6 +137,9 @@ export async function POST() {
             await updatePlatformStatus(job.scan_id, job.platform, 'complete');
             await checkScanComplete(job.scan_id);
             console.log(`[Classify Worker] Platform ${job.platform} complete`);
+
+            // Auto-trigger competitive intelligence extraction for newly imported feedback
+            await triggerCompetitiveExtraction(job.project_id, classifiedCount);
         }
 
         console.log(`[Classify Worker] Classified ${classifiedCount} items for ${job.platform}`);
@@ -223,5 +230,65 @@ ${title ? `Title: ${title}\n` : ''}Content: ${content}`;
             tags: [],
             error: 'Classification failed',
         };
+    }
+}
+
+/**
+ * Trigger Competitive Intelligence extraction for newly imported feedback
+ * Runs in the background after Hunter completes - respects tier limits
+ */
+async function triggerCompetitiveExtraction(projectId: string, feedbackCount: number): Promise<void> {
+    try {
+        // Check if project has competitive extraction quota
+        const usageCheck = await checkAIUsageLimit(projectId, 'competitor_extraction');
+
+        if (!usageCheck.allowed || usageCheck.remaining === 0) {
+            console.log(`[Classify Worker] Skipping competitive extraction - no quota remaining (${usageCheck.current}/${usageCheck.limit})`);
+            return;
+        }
+
+        // Get recently imported feedback that needs competitive extraction
+        const supabase = getServiceRoleClient();
+        if (!supabase) return;
+
+        // Get feedback items from last 5 minutes that haven't been analyzed for competitors
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+        const { data: recentFeedback } = await supabase
+            .from('discovered_feedback')
+            .select('id')
+            .eq('project_id', projectId)
+            .gte('processed_at', fiveMinutesAgo)
+            .limit(Math.min(usageCheck.remaining, 10)); // Limit to available quota, max 10 per batch
+
+        if (!recentFeedback || recentFeedback.length === 0) {
+            console.log('[Classify Worker] No recent feedback to analyze for competitors');
+            return;
+        }
+
+        console.log(`[Classify Worker] Running competitive extraction on ${recentFeedback.length} newly imported feedback items`);
+
+        // Extract competitor mentions from each feedback item
+        let extractedCount = 0;
+        for (const feedback of recentFeedback) {
+            try {
+                const result = await extractCompetitorMentions(feedback.id);
+                if (result.success && result.mentionsFound > 0) {
+                    extractedCount++;
+                    console.log(`[Classify Worker] Found ${result.mentionsFound} competitor mentions in feedback ${feedback.id}`);
+                }
+            } catch (err) {
+                console.error(`[Classify Worker] Error extracting competitors from ${feedback.id}:`, err);
+            }
+        }
+
+        // Increment usage for successful extractions
+        if (extractedCount > 0) {
+            await incrementAIUsage(projectId, 'competitor_extraction', recentFeedback.length);
+            console.log(`[Classify Worker] Competitive extraction complete. Analyzed ${recentFeedback.length} items, found mentions in ${extractedCount}`);
+        }
+    } catch (error) {
+        // Don't throw - this is a background enhancement, not critical path
+        console.error('[Classify Worker] Competitive extraction failed (non-critical):', error);
     }
 }

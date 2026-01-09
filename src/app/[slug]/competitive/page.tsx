@@ -129,6 +129,7 @@ export default function CompetitiveIntelligencePage() {
         >
           <HybridCompetitiveDashboard
             projectId={projectId}
+            slug={params?.slug as string}
             onCompetitorClick={(competitorId) => {
               console.log('Competitor clicked:', competitorId);
               // Future: navigate to detailed competitor profile

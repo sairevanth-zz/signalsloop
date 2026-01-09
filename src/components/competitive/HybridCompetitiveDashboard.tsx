@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 // Internal tracking components
 import { CompetitiveOverview } from './CompetitiveOverview';
 import { CompetitiveAdminPanel } from './CompetitiveAdminPanel';
+import { CompetitiveUsagePanel } from './CompetitiveUsagePanel';
 
 // External monitoring components
 import { CompetitorMonitoringSetup } from './CompetitorMonitoringSetup';
@@ -17,6 +18,7 @@ import { StrengthsWeaknessesGrid } from './StrengthsWeaknessesGrid';
 
 interface HybridCompetitiveDashboardProps {
   projectId: string;
+  slug?: string;
   onCompetitorClick?: (competitorId: string) => void;
   onFeatureGapClick?: (gapId: string) => void;
   onRecommendationClick?: (recommendationId: string) => void;
@@ -24,6 +26,7 @@ interface HybridCompetitiveDashboardProps {
 
 export function HybridCompetitiveDashboard({
   projectId,
+  slug,
   onCompetitorClick,
   onFeatureGapClick,
   onRecommendationClick,
@@ -57,15 +60,22 @@ export function HybridCompetitiveDashboard({
 
   return (
     <div className="space-y-6">
+      {/* Usage Panel - Shows tier limits */}
+      <CompetitiveUsagePanel
+        projectId={projectId}
+        slug={slug}
+        onRefresh={() => setRefreshKey(prev => prev + 1)}
+      />
+
       {/* Info Banner */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 p-6">
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-700 p-6">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-            <Info className="w-5 h-5 text-blue-600" />
+          <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
+            <Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 mb-2">Hybrid Competitive Intelligence</h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Hybrid Competitive Intelligence</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
               <strong>Internal Mentions:</strong> Track competitors mentioned in YOUR feedback - understand why users switch to/from you.
               <br />
               <strong>External Reviews:</strong> Monitor competitor reviews on G2, Capterra, TrustRadius - identify their strengths, weaknesses, and feature gaps.

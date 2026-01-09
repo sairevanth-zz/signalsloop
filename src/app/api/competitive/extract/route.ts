@@ -1,11 +1,14 @@
 /**
  * Manual Competitive Extraction API
- * For testing/debugging - extracts competitors from feedback
+ * POST: Manually trigger competitive extraction for a project
+ * 
+ * Enforces tier limits based on project plan.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServerClient } from '@/lib/supabase-client';
 import { extractCompetitorMentionsBatch, getPendingFeedbackForExtraction } from '@/lib/competitive-intelligence';
+import { checkAIUsageLimit, incrementAIUsage, getUpgradeMessage } from '@/lib/ai-rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -23,30 +26,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'projectId is required' }, { status: 400 });
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE!,
-    );
-
-    // Verify user has access to this project
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: project } = await supabase
-        .from('projects')
-        .select('id')
-        .eq('id', projectId)
-        .eq('owner_id', user.id)
-        .single();
-
-      if (!project) {
-        return NextResponse.json({ success: false, error: 'Project not found or access denied' }, { status: 403 });
-      }
+    const supabase = getSupabaseServerClient();
+    if (!supabase) {
+      return NextResponse.json({ success: false, error: 'Database connection not available' }, { status: 500 });
     }
 
-    console.log(`[Manual Extraction] Starting extraction for project ${projectId}`);
+    // Verify project exists
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('id, name, plan')
+      .eq('id', projectId)
+      .single();
 
-    // Get pending feedback for extraction
-    const pendingFeedbackIds = await getPendingFeedbackForExtraction(projectId, limit);
+    if (projectError || !project) {
+      return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
+    }
+
+    // Check tier limit before proceeding
+    const usageCheck = await checkAIUsageLimit(projectId, 'competitor_extraction');
+
+    if (!usageCheck.allowed) {
+      const plan = usageCheck.plan || 'free';
+      return NextResponse.json({
+        success: false,
+        error: 'Limit reached',
+        message: getUpgradeMessage('competitor_extraction', usageCheck.limit, plan === 'premium' ? 'pro' : plan),
+        usage: {
+          current: usageCheck.current,
+          limit: usageCheck.limit,
+          remaining: usageCheck.remaining,
+          plan: usageCheck.plan,
+        },
+      }, { status: 429 });
+    }
+
+    console.log(`[Competitive Extraction] Starting extraction for project ${projectId} (${usageCheck.remaining} extractions remaining)`);
+
+    // Get pending feedback for extraction (limit by remaining quota)
+    const maxItems = Math.min(limit, usageCheck.remaining);
+    const pendingFeedbackIds = await getPendingFeedbackForExtraction(projectId, maxItems);
 
     if (pendingFeedbackIds.length === 0) {
       return NextResponse.json({
@@ -54,16 +72,25 @@ export async function POST(request: NextRequest) {
         message: 'No pending feedback to extract',
         processed: 0,
         mentionsFound: 0,
-        pendingFeedbackIds: [],
+        usage: {
+          current: usageCheck.current,
+          limit: usageCheck.limit,
+          remaining: usageCheck.remaining,
+        },
       });
     }
 
-    console.log(`[Manual Extraction] Found ${pendingFeedbackIds.length} pending feedback items`);
+    console.log(`[Competitive Extraction] Found ${pendingFeedbackIds.length} pending feedback items`);
 
     // Extract competitors from feedback batch
     const result = await extractCompetitorMentionsBatch(pendingFeedbackIds);
 
-    console.log(`[Manual Extraction] Completed. Processed: ${result.processed}, Mentions: ${result.totalMentions}`);
+    // Increment usage by number of items processed
+    if (result.successful > 0) {
+      await incrementAIUsage(projectId, 'competitor_extraction', result.successful);
+    }
+
+    console.log(`[Competitive Extraction] Completed. Processed: ${result.processed}, Mentions: ${result.totalMentions}`);
 
     return NextResponse.json({
       success: true,
@@ -72,10 +99,14 @@ export async function POST(request: NextRequest) {
       successful: result.successful,
       failed: result.failed,
       mentionsFound: result.totalMentions,
-      pendingFeedbackIds,
+      usage: {
+        current: usageCheck.current + result.successful,
+        limit: usageCheck.limit,
+        remaining: usageCheck.remaining - result.successful,
+      },
     });
   } catch (error) {
-    console.error('[Manual Extraction] Error:', error);
+    console.error('[Competitive Extraction] Error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -84,5 +115,39 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 },
     );
+  }
+}
+
+/**
+ * GET /api/competitive/extract?projectId=xxx
+ * Get extraction usage status
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const projectId = searchParams.get('projectId');
+
+    if (!projectId) {
+      return NextResponse.json({ success: false, error: 'projectId is required' }, { status: 400 });
+    }
+
+    // Check usage status
+    const usageCheck = await checkAIUsageLimit(projectId, 'competitor_extraction');
+    const pendingFeedback = await getPendingFeedbackForExtraction(projectId, 1000);
+
+    return NextResponse.json({
+      success: true,
+      usage: {
+        current: usageCheck.current,
+        limit: usageCheck.limit,
+        remaining: usageCheck.remaining,
+        plan: usageCheck.plan,
+        allowed: usageCheck.allowed,
+      },
+      pendingCount: pendingFeedback.length,
+    });
+  } catch (error) {
+    console.error('[Competitive Extraction] GET Error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to get usage' }, { status: 500 });
   }
 }
