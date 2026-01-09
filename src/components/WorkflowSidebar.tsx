@@ -184,15 +184,6 @@ export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProp
 
     return (
         <div className="w-64 h-full flex flex-col" style={{ backgroundColor: '#1e2228' }}>
-            {/* Logo */}
-            <div className="p-4 border-b border-white/10">
-                <Link href="/app" className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#14b8a6' }}>
-                        <Zap className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="text-lg font-semibold text-white">SignalsLoop</span>
-                </Link>
-            </div>
 
             {/* Mission Control - Prominent highlighted button */}
             <div className="p-3">

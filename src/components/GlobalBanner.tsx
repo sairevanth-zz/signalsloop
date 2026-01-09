@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getSupabaseClient } from '@/lib/supabase-client';
@@ -155,10 +156,10 @@ export default function GlobalBanner({
       <header style={{ backgroundColor: '#0d1117', borderBottom: '1px solid rgba(255,255,255,0.1)' }} className="sticky top-0 z-50 safe-top">
         <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-4">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+            <Link href="/app" className="flex items-center gap-2">
               <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-8 h-8 rounded-lg shadow-sm" />
               <span className="text-base sm:text-xl font-bold text-white hidden sm:block">SignalsLoop</span>
-            </div>
+            </Link>
             <div className="flex items-center">
               <div className="h-9 w-9 flex items-center justify-center">
                 <div className="animate-spin h-4 w-4 border-2 border-gray-600 border-t-teal-500 rounded-full"></div>
@@ -189,8 +190,10 @@ export default function GlobalBanner({
               </Button>
             )}
             <div className="flex items-center gap-2">
-              <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-8 h-8 rounded-lg shadow-sm flex-shrink-0" />
-              <span className="text-base sm:text-xl font-bold text-white hidden sm:block">SignalsLoop</span>
+              <Link href="/app" className="flex items-center gap-2">
+                <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-8 h-8 rounded-lg shadow-sm flex-shrink-0" />
+                <span className="text-base sm:text-xl font-bold text-white hidden sm:block">SignalsLoop</span>
+              </Link>
               {projectSlug && (
                 <Badge variant="outline" className="hidden lg:inline-flex text-xs text-white/80 border-white/30">
                   {projectSlug}
