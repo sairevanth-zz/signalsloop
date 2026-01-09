@@ -18,6 +18,11 @@ export const AI_LIMITS = {
     theme_detection: 0,
     executive_briefs: 0,
     call_intelligence: 0,
+    // Competitive Intelligence - Not available on free
+    competitor_extraction: 0,        // Extract competitors from feedback (GPT-4o-mini)
+    feature_gap_detection: 0,        // Detect feature gaps (GPT-4o)
+    strategic_recommendations: 0,    // Generate strategic recs (GPT-4o)
+    external_review_scrape: 0,       // Scrape G2/Capterra reviews (requires xAI)
     // Hunter (Reddit + HackerNews + PlayStore only - no Grok platforms)
     hunter_scan: 4,                  // 1 per week (4/month)
     // API
@@ -40,6 +45,11 @@ export const AI_LIMITS = {
     // Premium AI (taste test)
     executive_briefs: 1,            // 1 per month
     call_intelligence: 5,           // 5 transcripts per month
+    // Competitive Intelligence (GPT-4o-mini + GPT-4o)
+    competitor_extraction: 50,       // 50 feedback items analyzed per month (~$0.01)
+    feature_gap_detection: 3,        // 3 gap analyses per month (~$0.12)
+    strategic_recommendations: 3,    // 3 recommendation runs per month (~$0.15)
+    external_review_scrape: 0,       // Not available - requires Grok/xAI
     // Hunter (Reddit + HackerNews + PlayStore only - no Grok platforms to reduce costs)
     hunter_scan: 30,                // 1 per day (30/month)
     // API
@@ -62,12 +72,18 @@ export const AI_LIMITS = {
     // Premium AI
     executive_briefs: 4,            // 4 per month (weekly + monthly)
     call_intelligence: 20,          // 20 transcripts per month
+    // Competitive Intelligence (GPT-4o-mini + GPT-4o)
+    competitor_extraction: 500,      // 500 feedback items analyzed per month (~$0.10)
+    feature_gap_detection: 15,       // 15 gap analyses per month (~$0.60)
+    strategic_recommendations: 15,   // 15 recommendation runs per month (~$0.75)
+    external_review_scrape: 10,      // 10 competitor product scrapes per month (~$0.20)
     // Hunter (ALL platforms including Grok-powered: Twitter, G2, Capterra, Trustpilot, ProductHunt)
     hunter_scan: 30,                // 1 per day (30/month) - Grok is expensive!
     // API
     api_calls: 5000,                // 5,000 API calls per month
   }
 };
+
 
 export type AIFeatureType = keyof typeof AI_LIMITS.free;
 export type PlanType = 'free' | 'pro' | 'premium';
@@ -197,6 +213,12 @@ export function getFeatureName(featureType: AIFeatureType): string {
     theme_detection: 'Theme Detection',
     executive_briefs: 'Executive Briefs',
     call_intelligence: 'Call Intelligence',
+    // Competitive Intelligence
+    competitor_extraction: 'Competitor Extraction',
+    feature_gap_detection: 'Feature Gap Detection',
+    strategic_recommendations: 'Strategic Recommendations',
+    external_review_scrape: 'External Review Scraping',
+    // Hunter
     hunter_scan: 'X/Twitter Feedback Hunter',
     api_calls: 'API Calls',
   };
