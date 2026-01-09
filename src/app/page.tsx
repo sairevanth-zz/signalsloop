@@ -433,7 +433,7 @@ export default function Homepage() {
           <div className="inline-flex items-center gap-2.5 px-5 py-2.5 mb-8 rounded-full text-[13px] font-semibold"
             style={{ background: '#FFECE0', border: '1px solid rgba(255, 79, 0, 0.15)', color: '#E64700' }}>
             <span className="w-2 h-2 bg-[#FF4F00] rounded-full animate-pulse"></span>
-            For product teams & founders
+            ⚡ AI-native product platform
           </div>
 
           {/* Hero Title */}
