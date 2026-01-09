@@ -70,18 +70,18 @@ function SubFeatureCard({ name, icon, usage, loading, premiumOnly }: SubFeatureC
 
     return (
         <div className={`p-2 rounded-lg border ${isPremiumLocked
-                ? 'bg-purple-50/50 border-purple-200 dark:bg-purple-900/10 dark:border-purple-800'
-                : usage.remaining === 0
-                    ? 'bg-red-50/50 border-red-200 dark:bg-red-900/10 dark:border-red-800'
-                    : percentUsed >= 75
-                        ? 'bg-orange-50/50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-800'
-                        : 'bg-white/50 border-gray-200 dark:bg-slate-800/50 dark:border-slate-700'
+            ? 'bg-purple-50/50 border-purple-200 dark:bg-purple-900/10 dark:border-purple-800'
+            : usage.remaining === 0
+                ? 'bg-red-50/50 border-red-200 dark:bg-red-900/10 dark:border-red-800'
+                : percentUsed >= 75
+                    ? 'bg-orange-50/50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-800'
+                    : 'bg-white/50 border-gray-200 dark:bg-slate-800/50 dark:border-slate-700'
             }`}>
             <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
                     <div className={`w-5 h-5 rounded flex items-center justify-center ${isPremiumLocked
-                            ? 'bg-purple-100 dark:bg-purple-900/50'
-                            : 'bg-blue-100 dark:bg-blue-900/50'
+                        ? 'bg-purple-100 dark:bg-purple-900/50'
+                        : 'bg-blue-100 dark:bg-blue-900/50'
                         }`}>
                         {icon}
                     </div>
@@ -193,11 +193,6 @@ export function CompetitiveUsagePanel({ projectId, slug, onRefresh, defaultOpen 
                         <span className="font-medium text-sm text-gray-900 dark:text-white">
                             Usage
                         </span>
-                        {pendingCount > 0 && (
-                            <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] h-4 px-1.5">
-                                {pendingCount} pending
-                            </Badge>
-                        )}
                         {hasLimitReached && (
                             <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 dark:bg-red-900/30 dark:text-red-400 text-[10px] h-4 px-1.5">
                                 <AlertCircle className="w-2.5 h-2.5 mr-0.5" />
