@@ -63,10 +63,14 @@ export default function AIToolsPage() {
         fetchProject();
     }, [supabase, projectSlug]);
 
-    // Auto-run action from URL param
+    // Track if action was already executed to prevent duplicate runs
+    const actionExecutedRef = React.useRef<string | null>(null);
+
+    // Auto-run action from URL param (only once)
     useEffect(() => {
         const action = searchParams?.get('action');
-        if (action && projectId) {
+        if (action && projectId && actionExecutedRef.current !== action) {
+            actionExecutedRef.current = action;
             switch (action) {
                 case 'prioritize':
                     handleAutoPrioritize();
@@ -82,7 +86,8 @@ export default function AIToolsPage() {
                     break;
             }
         }
-    }, [searchParams, projectId]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [projectId]);
 
     const handleAutoPrioritize = useCallback(async () => {
         if (!supabase) {
@@ -199,18 +204,31 @@ export default function AIToolsPage() {
         }
         try {
             setAnalyzingSentiment(true);
-            const { data: sessionData } = await supabase.auth.getSession();
-            if (!sessionData.session?.access_token) {
-                toast.error('Please sign in.');
+
+            // First fetch posts that need sentiment analysis
+            const { data: posts, error: fetchError } = await supabase
+                .from('posts')
+                .select('id')
+                .eq('project_id', projectId)
+                .limit(50);
+
+            if (fetchError) {
+                throw new Error('Failed to fetch posts: ' + fetchError.message);
+            }
+
+            if (!posts || posts.length === 0) {
+                toast.info('No posts to analyze!');
                 return;
             }
+
+            const postIds = posts.map((p: { id: string }) => p.id);
+
             const response = await fetch('/api/analyze-sentiment', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${sessionData.session.access_token}`,
                 },
-                body: JSON.stringify({ projectId, limit: 50 }),
+                body: JSON.stringify({ postIds, projectId }),
             });
             const payload = await response.json().catch(() => ({}));
             if (!response.ok) throw new Error(payload?.error || 'Failed to analyze sentiment');
