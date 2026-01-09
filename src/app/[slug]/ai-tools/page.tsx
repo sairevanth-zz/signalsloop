@@ -12,6 +12,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { toast } from 'sonner';
 import GlobalBanner from '@/components/GlobalBanner';
@@ -27,6 +28,7 @@ import {
     Zap,
     CheckCircle,
     Play,
+    ArrowRight,
 } from 'lucide-react';
 
 export default function AIToolsPage() {
@@ -257,6 +259,8 @@ export default function AIToolsPage() {
             borderColor: 'border-blue-500/30',
             loading: autoPrioritizing,
             action: handleAutoPrioritize,
+            viewResultsHref: `/${projectSlug}/board`,
+            viewResultsLabel: 'View Feedback Board',
         },
         {
             id: 'categorize',
@@ -268,6 +272,8 @@ export default function AIToolsPage() {
             borderColor: 'border-purple-500/30',
             loading: autoCategorizing,
             action: handleAutoCategorize,
+            viewResultsHref: `/${projectSlug}/board`,
+            viewResultsLabel: 'View Feedback Board',
         },
         {
             id: 'duplicates',
@@ -279,6 +285,8 @@ export default function AIToolsPage() {
             borderColor: 'border-orange-500/30',
             loading: findingDuplicates,
             action: handleFindDuplicates,
+            viewResultsHref: `/${projectSlug}/board`,
+            viewResultsLabel: 'View Feedback Board',
         },
         {
             id: 'sentiment',
@@ -290,6 +298,8 @@ export default function AIToolsPage() {
             borderColor: 'border-pink-500/30',
             loading: analyzingSentiment,
             action: handleAnalyzeSentiment,
+            viewResultsHref: `/${projectSlug}/ai-insights?tab=sentiment`,
+            viewResultsLabel: 'View Sentiment Analysis',
         },
     ];
 
@@ -356,29 +366,38 @@ export default function AIToolsPage() {
                                     <CardDescription className="text-slate-400 mb-4">
                                         {tool.description}
                                     </CardDescription>
-                                    <Button
-                                        onClick={tool.action}
-                                        disabled={isAnyRunning}
-                                        className="w-full"
-                                        style={{
-                                            backgroundColor: tool.loading ? tool.color : `${tool.color}20`,
-                                            color: tool.loading ? 'white' : tool.color,
-                                            borderColor: tool.color,
-                                        }}
-                                        variant="outline"
-                                    >
-                                        {tool.loading ? (
-                                            <>
-                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                Processing...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Play className="w-4 h-4 mr-2" />
-                                                Run {tool.title}
-                                            </>
-                                        )}
-                                    </Button>
+                                    <div className="space-y-2">
+                                        <Button
+                                            onClick={tool.action}
+                                            disabled={isAnyRunning}
+                                            className="w-full"
+                                            style={{
+                                                backgroundColor: tool.loading ? tool.color : `${tool.color}20`,
+                                                color: tool.loading ? 'white' : tool.color,
+                                                borderColor: tool.color,
+                                            }}
+                                            variant="outline"
+                                        >
+                                            {tool.loading ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Play className="w-4 h-4 mr-2" />
+                                                    Run {tool.title}
+                                                </>
+                                            )}
+                                        </Button>
+                                        <Link
+                                            href={tool.viewResultsHref}
+                                            className="flex items-center justify-center gap-2 text-xs text-slate-400 hover:text-white transition-colors py-1"
+                                        >
+                                            <span>{tool.viewResultsLabel}</span>
+                                            <ArrowRight className="w-3 h-3" />
+                                        </Link>
+                                    </div>
                                 </CardContent>
                             </Card>
                         );
