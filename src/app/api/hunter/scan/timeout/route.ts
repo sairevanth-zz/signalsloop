@@ -66,7 +66,6 @@ export async function POST(request: NextRequest) {
             .update({
                 status: 'failed',
                 completed_at: new Date().toISOString(),
-                error: 'Scan timed out after 1 hour',
             })
             .eq('id', scanId);
 
