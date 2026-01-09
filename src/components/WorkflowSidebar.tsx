@@ -83,7 +83,6 @@ export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProp
         'understand': false,
         'plan': false,
         'track': false,
-        'ai-tools': false,
     });
 
     // Define 4 workflow zones matching implementation plan EXACTLY
@@ -136,17 +135,6 @@ export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProp
                 { label: 'Executive Briefs', href: currentSlug ? `/${currentSlug}/briefs` : '#', icon: FileBarChart, requiresProject: true },
                 { label: 'Churn Radar', href: currentSlug ? `/${currentSlug}/churn-radar` : '#', icon: AlertTriangle, requiresProject: true },
                 { label: 'War Room', href: currentSlug ? `/${currentSlug}/war-room` : '#', icon: Swords, requiresProject: true },
-            ]
-        },
-        {
-            id: 'ai-tools',
-            label: 'AI Tools',
-            icon: Zap,
-            items: [
-                { label: 'Auto-Prioritize', href: currentSlug ? `/${currentSlug}/ai-tools?action=prioritize` : '#', icon: Target, requiresProject: true },
-                { label: 'Smart Categorize', href: currentSlug ? `/${currentSlug}/ai-tools?action=categorize` : '#', icon: Sparkles, requiresProject: true },
-                { label: 'Find Duplicates', href: currentSlug ? `/${currentSlug}/ai-tools?action=duplicates` : '#', icon: Search, requiresProject: true },
-                { label: 'Analyze Sentiment', href: currentSlug ? `/${currentSlug}/ai-tools?action=sentiment` : '#', icon: Activity, requiresProject: true },
             ]
         },
     ];
@@ -311,6 +299,30 @@ export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProp
                         </div>
                     );
                 })}
+
+                {/* Standalone AI Tools Link */}
+                {currentSlug && (
+                    <Link
+                        href={`/${currentSlug}/ai-tools`}
+                        onClick={onNavigate}
+                        className={cn(
+                            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all mt-2",
+                            pathname?.includes('/ai-tools')
+                                ? "text-white"
+                                : "text-gray-400 hover:text-white hover:bg-white/5"
+                        )}
+                        style={pathname?.includes('/ai-tools') ? {
+                            backgroundColor: 'rgba(20, 184, 166, 0.15)',
+                            color: '#5eead4'
+                        } : {}}
+                    >
+                        <Zap
+                            className="w-5 h-5"
+                            style={pathname?.includes('/ai-tools') ? { color: '#14b8a6' } : {}}
+                        />
+                        <span>AI Tools</span>
+                    </Link>
+                )}
             </nav>
 
             {/* Bottom Section */}
