@@ -145,12 +145,6 @@ export default function ProjectDevilsAdvocatePage() {
                                 </p>
                             )}
                         </div>
-                        <Button asChild variant="outline">
-                            <Link href={`/${projectSlug}/competitive`}>
-                                <Sparkles className="w-4 h-4 mr-2" />
-                                Track Competitors
-                            </Link>
-                        </Button>
                     </div>
                 </CardHeader>
             </Card>

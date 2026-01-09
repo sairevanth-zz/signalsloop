@@ -109,6 +109,7 @@ export function WorkflowSidebar({ projectSlug, onNavigate }: WorkflowSidebarProp
                 { label: 'Anomaly Detection', href: currentSlug ? `/${currentSlug}/anomalies` : '#', icon: AlertTriangle, requiresProject: true },
                 { label: 'Feature Predictions', href: currentSlug ? `/${currentSlug}/predictions` : '#', icon: TrendingUp, requiresProject: true },
                 { label: "Devil's Advocate", href: currentSlug ? `/${currentSlug}/devils-advocate` : '#', icon: Scale, requiresProject: true },
+                { label: 'Competitive Intelligence', href: currentSlug ? `/${currentSlug}/competitive` : '#', icon: Target, requiresProject: true },
                 { label: 'AI Reasoning', href: currentSlug ? `/${currentSlug}/reasoning` : '#', icon: Brain, requiresProject: true },
             ]
         },
