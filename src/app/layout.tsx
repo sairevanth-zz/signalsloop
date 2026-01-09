@@ -47,11 +47,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "AI Feedback Management - Auto-Categorize & Prioritize | SignalsLoop",
+    default: "SignalsLoop - AI-Native Product OS for Modern PM Teams",
     template: "%s | SignalsLoop"
   },
-  description: "AI-powered feedback management for product teams. Auto-categorize user feedback, detect duplicates, score priorities with 5 AI models. From $19/mo vs $99-299/mo competitors. Free forever plan available.",
-  keywords: ["feedback management", "product feedback tool", "ai feedback analysis", "feature request management", "user feedback software", "canny alternative", "productboard alternative", "feedback categorization", "product management tool"],
+  description: "The AI-native operating system for product teams. Turn user signals into shipped features with automated feedback analysis, competitive intelligence, and AI-powered roadmapping. From $19/mo.",
+  keywords: ["product os", "ai product management", "product operations", "ai feedback analysis", "competitive intelligence", "product roadmap software", "canny alternative", "productboard alternative", "product management tool"],
   authors: [{ name: "SignalsLoop" }],
   creator: "SignalsLoop",
   publisher: "SignalsLoop",
@@ -71,14 +71,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://signalsloop.com",
-    title: "AI Feedback Management - Auto-Categorize & Prioritize | SignalsLoop",
-    description: "AI-powered feedback management for product teams. Auto-categorize, detect duplicates, score priorities. From $19/mo vs $99-299/mo competitors.",
+    title: "SignalsLoop - AI-Native Product OS for Modern PM Teams",
+    description: "The AI-native operating system for product teams. Turn user signals into shipped features with automated feedback analysis, competitive intelligence, and AI-powered roadmapping.",
     siteName: "SignalsLoop",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Feedback Management - Auto-Categorize & Prioritize | SignalsLoop",
-    description: "AI-powered feedback management for product teams. From $19/mo vs $99-299/mo competitors.",
+    title: "SignalsLoop - AI-Native Product OS for Modern PM Teams",
+    description: "Turn user signals into shipped features. AI-powered feedback analysis, competitive intelligence, and roadmapping.",
     creator: "@signalsloop",
   },
   robots: {
@@ -150,7 +150,7 @@ export default function RootLayout({
           "bestRating": "5",
           "worstRating": "1"
         },
-        "description": "AI-powered feedback management for product teams. Auto-categorize, detect duplicates, score priorities.",
+        "description": "The AI-native operating system for product teams. Turn user signals into shipped features.",
         "featureList": [
           "AI Auto-Categorization",
           "Duplicate Detection",
