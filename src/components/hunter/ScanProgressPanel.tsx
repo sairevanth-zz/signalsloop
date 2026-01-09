@@ -48,6 +48,27 @@ const STATUS_CONFIG: Record<PlatformStatus, { icon: React.ReactNode; color: stri
 export function ScanProgressPanel({ scanId, onClose, onRetry }: ScanProgressPanelProps) {
     const { scan, platforms, progress, allComplete, isLoading, error } = useScanProgress(scanId);
 
+    // Auto-close stale scans (running for > 1 hour)
+    const isStale = scan?.status === 'running' && scan?.startedAt &&
+        (new Date(scan.startedAt).getTime() < Date.now() - 60 * 60 * 1000);
+
+    // If scan is stale, auto-close and don't render
+    if (isStale) {
+        // Fire timeout cleanup in background
+        if (scanId) {
+            fetch('/api/hunter/scan/timeout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ scanId }),
+            }).catch(() => { });
+        }
+        // Call onClose after a short delay to avoid React state update issues
+        if (onClose) {
+            setTimeout(() => onClose(), 0);
+        }
+        return null;
+    }
+
     if (!scanId) return null;
 
     if (isLoading && !scan) {

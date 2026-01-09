@@ -76,10 +76,25 @@ export function HunterDashboard({ projectId }: HunterDashboardProps) {
       const data = await res.json();
 
       if (data.success && data.activeScan) {
-        // Only show if scan is running, not completed
+        // Only show if scan is running AND not stale (< 1 hour old)
         if (data.activeScan.status === 'running') {
-          setCurrentScanId(data.activeScan.id);
-          console.log('[Hunter Dashboard] Restored active scan:', data.activeScan.id);
+          const startedAt = new Date(data.activeScan.startedAt).getTime();
+          const oneHourAgo = Date.now() - 60 * 60 * 1000;
+
+          if (startedAt > oneHourAgo) {
+            // Scan is recent and still running - show progress
+            setCurrentScanId(data.activeScan.id);
+            console.log('[Hunter Dashboard] Restored active scan:', data.activeScan.id);
+          } else {
+            // Scan is stale (running for over 1 hour) - treat as stuck
+            console.log('[Hunter Dashboard] Ignoring stale scan (started:', data.activeScan.startedAt, ')');
+            // Optionally mark it as failed in the background
+            fetch('/api/hunter/scan/timeout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ scanId: data.activeScan.id }),
+            }).catch(() => { }); // Fire-and-forget
+          }
         }
       }
     } catch (error) {
