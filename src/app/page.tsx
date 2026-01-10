@@ -573,29 +573,29 @@ export default function Homepage() {
         </section>
 
         {/* Trust Badges - Enterprise Logos */}
-        <section className="py-12 px-6" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
+        <section className="py-14 px-6" style={{ background: 'linear-gradient(180deg, #FFFAF5 0%, #FFF5EB 100%)' }}>
           <div className="max-w-5xl mx-auto text-center">
-            <p className="text-sm text-[#8A8A85] mb-6 tracking-wide">Users from:</p>
-            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
+            <p className="text-base font-semibold text-[#5C5C57] mb-8 uppercase tracking-widest">Users from</p>
+            <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16">
               {/* AT&T */}
-              <div className="flex items-center gap-2 px-4 py-2">
-                <img src="https://logo.clearbit.com/att.com" alt="AT&T" className="h-8 md:h-10 object-contain" />
+              <div className="flex items-center justify-center">
+                <span className="text-2xl md:text-3xl font-bold tracking-tight text-[#2D2D2A]/70 hover:text-[#00A8E0] transition-colors">AT&T</span>
               </div>
               {/* Fannie Mae */}
-              <div className="flex items-center gap-2 px-4 py-2">
-                <img src="https://logo.clearbit.com/fanniemae.com" alt="Fannie Mae" className="h-8 md:h-10 object-contain" />
+              <div className="flex items-center justify-center">
+                <span className="text-xl md:text-2xl font-bold tracking-tight text-[#2D2D2A]/70 hover:text-[#00426B] transition-colors">Fannie Mae</span>
               </div>
               {/* John Deere */}
-              <div className="flex items-center gap-2 px-4 py-2">
-                <img src="https://logo.clearbit.com/deere.com" alt="John Deere" className="h-8 md:h-10 object-contain" />
+              <div className="flex items-center justify-center">
+                <span className="text-xl md:text-2xl font-bold tracking-tight text-[#2D2D2A]/70 hover:text-[#367C2B] transition-colors">John Deere</span>
               </div>
               {/* Ericsson */}
-              <div className="flex items-center gap-2 px-4 py-2">
-                <img src="https://logo.clearbit.com/ericsson.com" alt="Ericsson" className="h-8 md:h-10 object-contain" />
+              <div className="flex items-center justify-center">
+                <span className="text-xl md:text-2xl font-bold tracking-tight text-[#2D2D2A]/70 hover:text-[#0082C9] transition-colors">Ericsson</span>
               </div>
               {/* JP Morgan Chase */}
-              <div className="flex items-center gap-2 px-4 py-2">
-                <img src="https://logo.clearbit.com/jpmorganchase.com" alt="JP Morgan Chase" className="h-8 md:h-10 object-contain" />
+              <div className="flex items-center justify-center">
+                <span className="text-xl md:text-2xl font-bold tracking-tight text-[#2D2D2A]/70 hover:text-[#0A3468] transition-colors">JPMorgan Chase</span>
               </div>
             </div>
           </div>
