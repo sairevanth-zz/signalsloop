@@ -11,7 +11,6 @@ import {
   Search,
   Download,
   ExternalLink,
-  Github,
   Linkedin,
   Twitter,
   Globe,
@@ -69,7 +68,7 @@ export default function AdminUserIntelligencePage() {
   const [stats, setStats] = useState({
     total: 0,
     withCompany: 0,
-    withGithub: 0,
+    withTwitter: 0,
     withLinkedin: 0,
     avgConfidence: 0,
     pending: 0
@@ -113,7 +112,7 @@ export default function AdminUserIntelligencePage() {
         const total = data.data.length;
         const enriched = data.data.filter((u: UserIntelligence) => u.has_enrichment);
         const withCompany = data.data.filter((u: UserIntelligence) => u.company_name).length;
-        const withGithub = data.data.filter((u: UserIntelligence) => u.github_url).length;
+        const withTwitter = data.data.filter((u: UserIntelligence) => u.twitter_url).length;
         const withLinkedin = data.data.filter((u: UserIntelligence) => u.linkedin_url).length;
         const avgConfidence = enriched.length > 0
           ? enriched.reduce((sum: number, u: UserIntelligence) => sum + (u.confidence_score || 0), 0) / enriched.length
@@ -123,7 +122,7 @@ export default function AdminUserIntelligencePage() {
         setStats({
           total,
           withCompany,
-          withGithub,
+          withTwitter,
           withLinkedin,
           avgConfidence,
           pending
@@ -406,11 +405,11 @@ export default function AdminUserIntelligencePage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">With GitHub</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">With Twitter</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.withGithub}</div>
-            <p className="text-xs text-gray-500">{stats.total > 0 ? Math.round((stats.withGithub / stats.total) * 100) : 0}%</p>
+            <div className="text-2xl font-bold">{stats.withTwitter}</div>
+            <p className="text-xs text-gray-500">{stats.total > 0 ? Math.round((stats.withTwitter / stats.total) * 100) : 0}%</p>
           </CardContent>
         </Card>
         <Card>
@@ -605,13 +604,6 @@ export default function AdminUserIntelligencePage() {
                                 className="text-blue-600 hover:text-blue-800"
                                 onClick={(e) => e.stopPropagation()}>
                                 <Linkedin className="h-4 w-4" />
-                              </a>
-                            )}
-                            {user.github_url && (
-                              <a href={user.github_url} target="_blank" rel="noopener noreferrer"
-                                className="text-gray-700 hover:text-gray-900"
-                                onClick={(e) => e.stopPropagation()}>
-                                <Github className="h-4 w-4" />
                               </a>
                             )}
                             {user.twitter_url && (
