@@ -135,78 +135,17 @@ export function extractCompanyFromEmail(email: string): {
 }
 
 /**
- * Fetch GitHub profile by email or name
+ * NOTE: GitHub lookup is disabled - not relevant for PM/Founders target audience
+ * Keeping function for backwards compatibility but returns null
  */
 export async function fetchGitHubProfile(
   email: string,
   name?: string | null
 ): Promise<GitHubProfile | null> {
-  try {
-    const githubToken = process.env.GITHUB_TOKEN;
-    if (!githubToken) {
-      console.log('[GitHub] No token configured, skipping');
-      return null;
-    }
-
-    // Try to find user by email first
-    let username: string | null = null;
-
-    // Search by email
-    const emailSearchUrl = `https://api.github.com/search/users?q=${encodeURIComponent(email)}`;
-    const emailResponse = await fetch(emailSearchUrl, {
-      headers: {
-        'Authorization': `Bearer ${githubToken}`,
-        'Accept': 'application/vnd.github.v3+json',
-      },
-    });
-
-    if (emailResponse.ok) {
-      const emailData = await emailResponse.json();
-      if (emailData.items && emailData.items.length > 0) {
-        username = emailData.items[0].login;
-      }
-    }
-
-    // If not found by email and name is provided, search by name
-    if (!username && name) {
-      const nameSearchUrl = `https://api.github.com/search/users?q=${encodeURIComponent(name)}`;
-      const nameResponse = await fetch(nameSearchUrl, {
-        headers: {
-          'Authorization': `Bearer ${githubToken}`,
-          'Accept': 'application/vnd.github.v3+json',
-        },
-      });
-
-      if (nameResponse.ok) {
-        const nameData = await nameResponse.json();
-        if (nameData.items && nameData.items.length > 0) {
-          username = nameData.items[0].login;
-        }
-      }
-    }
-
-    if (!username) {
-      return null;
-    }
-
-    // Fetch full profile
-    const profileResponse = await fetch(`https://api.github.com/users/${username}`, {
-      headers: {
-        'Authorization': `Bearer ${githubToken}`,
-        'Accept': 'application/vnd.github.v3+json',
-      },
-    });
-
-    if (!profileResponse.ok) {
-      return null;
-    }
-
-    const profile = await profileResponse.json();
-    return profile;
-  } catch (error) {
-    console.error('[GitHub] Error fetching profile:', error);
-    return null;
-  }
+  // DISABLED: GitHub is not a relevant data source for Product Managers/Founders
+  // They are better identified via LinkedIn, Hunter.io, and company domain
+  console.log('[GitHub] Skipping - not relevant for PM/Founder audience');
+  return null;
 }
 
 // ============================================================================
@@ -372,44 +311,41 @@ export async function synthesizeWithLLM(
   const isPersonalEmail = collectedData.emailDomain.isPersonal;
 
   // Calculate a preliminary confidence based on data quality
+  // Focus on sources relevant for PM/Founders: Hunter.io, work email, LinkedIn
   let hasReliableData = false;
   const reliableSources: string[] = [];
 
-  // GitHub is only reliable if email matches OR if GitHub profile name closely matches input name
-  if (collectedData.github) {
-    const githubName = collectedData.github.name?.toLowerCase() || '';
-    const inputName = input.name?.toLowerCase() || '';
-    // Only count GitHub as reliable if names are very similar
-    if (inputName && githubName && (
-      githubName.includes(inputName) ||
-      inputName.includes(githubName) ||
-      githubName === inputName
-    )) {
-      hasReliableData = true;
-      reliableSources.push('github');
-    }
-  }
-
-  // Hunter.io data is reliable (they verify emails)
+  // Hunter.io data is the most reliable (they verify emails)
   if (collectedData.hunter?.data?.company) {
     hasReliableData = true;
     reliableSources.push('hunter');
   }
 
-  // Work email domain is reliable
+  // Work email domain is reliable for company identification
   if (!isPersonalEmail) {
     hasReliableData = true;
     reliableSources.push('email_domain');
   }
 
-  const prompt = `You are an EXTREMELY CAREFUL user intelligence analyst. Your job is to extract ACCURATE information about a specific person. 
+  // LinkedIn is valuable for role/seniority if found
+  if (collectedData.linkedinUrl) {
+    reliableSources.push('linkedin');
+  }
+
+  const prompt = `You are an EXTREMELY CAREFUL user intelligence analyst specializing in identifying PRODUCT MANAGERS, FOUNDERS, and BUSINESS PROFESSIONALS. 
 
 ⚠️ CRITICAL RULES - READ CAREFULLY:
 1. You MUST only include information that you are 100% CERTAIN belongs to THIS SPECIFIC PERSON
 2. Web search results often return DIFFERENT PEOPLE with similar names - DO NOT assume they are the same person
 3. For personal email domains (@gmail.com, @yahoo.com, etc), you CANNOT determine company/role from web search alone
-4. LinkedIn/Twitter/GitHub profiles found via search may belong to DIFFERENT people with similar names
+4. LinkedIn/Twitter profiles found via search may belong to DIFFERENT people with similar names
 5. A name match is NOT sufficient - you need MULTIPLE corroborating data points
+
+TARGET AUDIENCE: Product Managers, Founders, Business Professionals
+Look for indicators like:
+- Job titles: Product Manager, VP of Product, CPO, CEO, Founder, Co-founder, Head of Product
+- Industries: SaaS, Technology, Startups, Product, Software
+- Seniority: Executive, Senior, Lead roles
 
 PERSON TO ANALYZE:
 - Email: ${input.email}
@@ -424,16 +360,6 @@ Email Domain Analysis:
 - Is Personal Email: ${collectedData.emailDomain.isPersonal}
 - Company from Domain: ${collectedData.emailDomain.company || 'N/A (personal email)'}
 
-${collectedData.github ? `
-GitHub Profile (verify name match!):
-- Username: ${collectedData.github.login}
-- Profile Name: ${collectedData.github.name || 'N/A'}
-- Company: ${collectedData.github.company || 'N/A'}
-- Bio: ${collectedData.github.bio || 'N/A'}
-- Location: ${collectedData.github.location || 'N/A'}
-- Does profile name match input name "${input.name || 'Unknown'}"? CHECK THIS!
-` : 'GitHub Profile: Not found'}
-
 ${collectedData.webSearch?.organic ? `
 Web Search Results (⚠️ MAY BE DIFFERENT PEOPLE - verify carefully):
 ${collectedData.webSearch.organic.slice(0, 5).map((r, i) => `
@@ -447,22 +373,23 @@ LinkedIn URL Found: ${collectedData.linkedinUrl || 'Not found'}
 Twitter URL Found: ${collectedData.twitterUrl || 'Not found'}
 
 ${collectedData.hunter?.data ? `
-Hunter.io Data (✓ Verified by email):
+Hunter.io Data (✓ VERIFIED by email - Most Reliable Source):
 - Name: ${collectedData.hunter.data.first_name || ''} ${collectedData.hunter.data.last_name || ''}
 - Position: ${collectedData.hunter.data.position || 'N/A'}
 - Seniority: ${collectedData.hunter.data.seniority || 'N/A'}
 - Company: ${collectedData.hunter.data.company || 'N/A'}
+- LinkedIn: ${collectedData.hunter.data.linkedin || 'N/A'}
 ` : 'Hunter.io: No verified data'}
 
 CONFIDENCE SCORING RULES:
-- 0.8+ (High): Work email domain confirms company, OR Hunter.io verifies data, OR GitHub name matches exactly
+- 0.8+ (High): Work email domain confirms company, OR Hunter.io verifies data
 - 0.5-0.7 (Medium): Multiple sources corroborate each other for the same exact person
 - 0.3-0.4 (Low): Only web search results, may be a different person with similar name
 - 0.1-0.2 (Very Low): Personal email with web search only - HIGH chance of wrong person
 - 0.0: No reliable data at all
 
 For personal emails (@gmail, @yahoo, etc) with only web search data:
-- Set company_name, role, seniority_level to NULL unless you have VERIFIED sources (Hunter, GitHub with matching name)
+- Set company_name, role, seniority_level to NULL unless you have VERIFIED sources (Hunter.io)
 - Cap confidence at 0.3 maximum
 - In reasoning, explicitly state if you're uncertain
 
