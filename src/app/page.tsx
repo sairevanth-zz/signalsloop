@@ -572,23 +572,31 @@ export default function Homepage() {
           `}</style>
         </section>
 
-        {/* Social Proof Section */}
-        <section className="py-10 px-6" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
-          <div className="max-w-4xl mx-auto text-center">
-            <p className="text-sm text-[#8A8A85] mb-4">Built for product teams at</p>
-            <div className="flex flex-wrap justify-center gap-6 items-center opacity-60">
-              {[
-                { name: 'SaaS', icon: '☁️' },
-                { name: 'Fintech', icon: '💳' },
-                { name: 'Developer Tools', icon: '⚙️' },
-                { name: 'Marketplaces', icon: '🛒' },
-                { name: 'Health Tech', icon: '🏥' },
-              ].map((type, i) => (
-                <div key={i} className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-black/[0.06] text-sm text-[#5C5C57]">
-                  <span>{type.icon}</span>
-                  {type.name}
-                </div>
-              ))}
+        {/* Trust Badges - Enterprise Logos */}
+        <section className="py-12 px-6" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
+          <div className="max-w-5xl mx-auto text-center">
+            <p className="text-sm text-[#8A8A85] mb-6 tracking-wide">Trusted by product teams at leading enterprises</p>
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
+              {/* AT&T */}
+              <div className="flex items-center gap-2 px-4 py-2">
+                <img src="https://logo.clearbit.com/att.com" alt="AT&T" className="h-8 md:h-10 object-contain" />
+              </div>
+              {/* Fannie Mae */}
+              <div className="flex items-center gap-2 px-4 py-2">
+                <img src="https://logo.clearbit.com/fanniemae.com" alt="Fannie Mae" className="h-8 md:h-10 object-contain" />
+              </div>
+              {/* John Deere */}
+              <div className="flex items-center gap-2 px-4 py-2">
+                <img src="https://logo.clearbit.com/deere.com" alt="John Deere" className="h-8 md:h-10 object-contain" />
+              </div>
+              {/* Ericsson */}
+              <div className="flex items-center gap-2 px-4 py-2">
+                <img src="https://logo.clearbit.com/ericsson.com" alt="Ericsson" className="h-8 md:h-10 object-contain" />
+              </div>
+              {/* JP Morgan Chase */}
+              <div className="flex items-center gap-2 px-4 py-2">
+                <img src="https://logo.clearbit.com/jpmorganchase.com" alt="JP Morgan Chase" className="h-8 md:h-10 object-contain" />
+              </div>
             </div>
           </div>
         </section>
