@@ -25,7 +25,9 @@ import {
   ChevronUp,
   RefreshCw,
   Zap,
-  Loader2
+  Loader2,
+  Filter,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -73,6 +75,11 @@ export default function AdminUserIntelligencePage() {
     pending: 0
   });
   const [enriching, setEnriching] = useState(false);
+
+  // Filter states
+  const [filterStatus, setFilterStatus] = useState<'all' | 'enriched' | 'pending'>('all');
+  const [filterPlan, setFilterPlan] = useState<string>('all');
+  const [filterConfidence, setFilterConfidence] = useState<'all' | 'high' | 'medium' | 'low'>('all');
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -289,14 +296,48 @@ export default function AdminUserIntelligencePage() {
   };
 
   const filteredIntelligence = intelligence.filter(u => {
+    // Text search
     const search = searchTerm.toLowerCase();
-    return (
+    const matchesSearch = (
       u.email.toLowerCase().includes(search) ||
       u.name?.toLowerCase().includes(search) ||
       u.company_name?.toLowerCase().includes(search) ||
       u.role?.toLowerCase().includes(search)
     );
+    if (!matchesSearch) return false;
+
+    // Enrichment status filter
+    if (filterStatus === 'enriched' && !u.has_enrichment) return false;
+    if (filterStatus === 'pending' && u.has_enrichment) return false;
+
+    // Plan filter
+    if (filterPlan !== 'all') {
+      const userPlan = (u.plan || 'free').toLowerCase();
+      if (filterPlan === 'pro' && !userPlan.includes('pro')) return false;
+      if (filterPlan === 'free' && userPlan !== 'free') return false;
+      if (filterPlan === 'gift' && !userPlan.includes('gift')) return false;
+      if (filterPlan === 'discount' && !userPlan.includes('discount')) return false;
+    }
+
+    // Confidence filter
+    if (filterConfidence !== 'all') {
+      const score = u.confidence_score;
+      if (filterConfidence === 'high' && (score === null || score < 0.7)) return false;
+      if (filterConfidence === 'medium' && (score === null || score < 0.4 || score >= 0.7)) return false;
+      if (filterConfidence === 'low' && (score === null || score >= 0.4)) return false;
+    }
+
+    return true;
   });
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setFilterStatus('all');
+    setFilterPlan('all');
+    setFilterConfidence('all');
+  };
+
+  const hasActiveFilters = searchTerm || filterStatus !== 'all' || filterPlan !== 'all' || filterConfidence !== 'all';
 
   if (authLoading || loading) {
     return (
@@ -391,9 +432,10 @@ export default function AdminUserIntelligencePage() {
         </Card>
       </div>
 
-      {/* Search */}
+      {/* Search and Filters */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 space-y-4">
+          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -402,6 +444,68 @@ export default function AdminUserIntelligencePage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
+          </div>
+
+          {/* Filter Row */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Filter className="h-4 w-4" />
+              <span className="font-medium">Filters:</span>
+            </div>
+
+            {/* Enrichment Status */}
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as 'all' | 'enriched' | 'pending')}
+              className="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Status</option>
+              <option value="enriched">✅ Enriched</option>
+              <option value="pending">⏳ Pending</option>
+            </select>
+
+            {/* Plan Filter */}
+            <select
+              value={filterPlan}
+              onChange={(e) => setFilterPlan(e.target.value)}
+              className="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Plans</option>
+              <option value="pro">💎 Pro</option>
+              <option value="gift">🎁 Gift</option>
+              <option value="discount">🎟️ Discount</option>
+              <option value="free">🆓 Free</option>
+            </select>
+
+            {/* Confidence Filter */}
+            <select
+              value={filterConfidence}
+              onChange={(e) => setFilterConfidence(e.target.value as 'all' | 'high' | 'medium' | 'low')}
+              className="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Confidence</option>
+              <option value="high">🟢 High (70%+)</option>
+              <option value="medium">🟡 Medium (40-70%)</option>
+              <option value="low">🔴 Low (&lt;40%)</option>
+            </select>
+
+            {/* Clear Filters */}
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Clear
+              </Button>
+            )}
+
+            {/* Results count */}
+            <span className="text-sm text-gray-500 ml-auto">
+              Showing {filteredIntelligence.length} of {intelligence.length} users
+            </span>
           </div>
         </CardContent>
       </Card>
