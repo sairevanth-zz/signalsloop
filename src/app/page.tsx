@@ -575,7 +575,7 @@ export default function Homepage() {
         {/* Trust Badges - Enterprise Logos */}
         <section className="py-12 px-6" style={{ background: 'rgba(255, 255, 255, 0.5)' }}>
           <div className="max-w-5xl mx-auto text-center">
-            <p className="text-sm text-[#8A8A85] mb-6 tracking-wide">Trusted by product teams at leading enterprises</p>
+            <p className="text-sm text-[#8A8A85] mb-6 tracking-wide">Users from:</p>
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
               {/* AT&T */}
               <div className="flex items-center gap-2 px-4 py-2">
