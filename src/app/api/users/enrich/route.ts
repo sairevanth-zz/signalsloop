@@ -24,8 +24,8 @@ let pendingEnrichments: Promise<void>[] = [];
 export async function POST(request: NextRequest) {
   try {
     console.log('[Enrich] ========== Enrichment Request Started ==========');
-    const { userId, runAsync = false } = await request.json();
-    console.log('[Enrich] Request params:', { userId, runAsync });
+    const { userId, runAsync = false, forceRefresh = false } = await request.json();
+    console.log('[Enrich] Request params:', { userId, runAsync, forceRefresh });
 
     if (!userId) {
       console.error('[Enrich] Missing userId in request');
@@ -70,24 +70,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if already enriched
-    console.log('[Enrich] Checking if user already enriched...');
-    const { data: existingIntelligence } = await supabase
-      .from('user_intelligence')
-      .select('id, enriched_at')
-      .eq('user_id', userId)
-      .maybeSingle();
+    // Check if already enriched (skip if forceRefresh is true)
+    if (!forceRefresh) {
+      console.log('[Enrich] Checking if user already enriched...');
+      const { data: existingIntelligence } = await supabase
+        .from('user_intelligence')
+        .select('id, enriched_at')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-    if (existingIntelligence?.enriched_at) {
-      console.log('[Enrich] ⏭️  User already enriched at:', existingIntelligence.enriched_at);
-      return NextResponse.json({
-        success: true,
-        skipped: true,
-        message: 'User already enriched'
-      });
+      if (existingIntelligence?.enriched_at) {
+        console.log('[Enrich] ⏭️  User already enriched at:', existingIntelligence.enriched_at);
+        return NextResponse.json({
+          success: true,
+          skipped: true,
+          message: 'User already enriched'
+        });
+      }
+    } else {
+      console.log('[Enrich] Force refresh enabled, skipping already-enriched check');
     }
 
-    console.log('[Enrich] User not yet enriched, proceeding...');
+    console.log('[Enrich] Proceeding with enrichment...');
 
     // ALWAYS run enrichment synchronously to ensure completion in serverless
     // runAsync is kept for backwards compatibility but effectively ignored

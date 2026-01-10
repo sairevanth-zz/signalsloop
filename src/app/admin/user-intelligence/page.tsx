@@ -63,6 +63,7 @@ export default function AdminUserIntelligencePage() {
   const [sortField, setSortField] = useState<string>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [reEnrichingUser, setReEnrichingUser] = useState<string | null>(null);
   const [stats, setStats] = useState({
     total: 0,
     withCompany: 0,
@@ -187,6 +188,33 @@ export default function AdminUserIntelligencePage() {
     }
     if (errorCount > 0) {
       toast.error(`Failed to enrich ${errorCount} users`);
+    }
+  };
+
+  const reEnrichSingleUser = async (userId: string, email: string) => {
+    setReEnrichingUser(userId);
+    toast.info(`Re-enriching ${email}...`);
+
+    try {
+      // First, delete existing enrichment data to force re-enrichment
+      const response = await fetch('/api/users/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, runAsync: false, forceRefresh: true })
+      });
+
+      if (response.ok) {
+        toast.success(`Successfully re-enriched ${email}`);
+        loadData(); // Refresh the data
+      } else {
+        const error = await response.text();
+        toast.error(`Failed to re-enrich: ${error}`);
+      }
+    } catch (error) {
+      console.error('Re-enrich error:', error);
+      toast.error('Failed to re-enrich user');
+    } finally {
+      setReEnrichingUser(null);
     }
   };
 
@@ -551,6 +579,25 @@ export default function AdminUserIntelligencePage() {
                                 <p className="text-sm text-gray-600">
                                   {user.enriched_at ? new Date(user.enriched_at).toLocaleString() : 'N/A'}
                                 </p>
+                              </div>
+                              <div className="md:col-span-2 pt-2 border-t">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={reEnrichingUser === user.user_id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    reEnrichSingleUser(user.user_id, user.email);
+                                  }}
+                                  className="bg-amber-50 border-amber-300 hover:bg-amber-100"
+                                >
+                                  {reEnrichingUser === user.user_id ? (
+                                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  ) : (
+                                    <RefreshCw className="h-3 w-3 mr-1" />
+                                  )}
+                                  {reEnrichingUser === user.user_id ? 'Re-enriching...' : 'Re-enrich This User'}
+                                </Button>
                               </div>
                             </div>
                           </td>
