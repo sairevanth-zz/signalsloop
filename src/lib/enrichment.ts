@@ -350,12 +350,9 @@ export async function fetchHunterData(email: string): Promise<HunterResult | nul
   }
 }
 
-// ============================================================================
-// LLM Synthesis
-// ============================================================================
-
 /**
  * Use LLM to synthesize all collected data into structured output
+ * IMPORTANT: This uses strict matching criteria to avoid false positives
  */
 export async function synthesizeWithLLM(
   input: EnrichmentInput,
@@ -369,34 +366,76 @@ export async function synthesizeWithLLM(
     hunter: HunterResult | null;
   }
 ): Promise<EnrichmentResult> {
-  const prompt = `You are a user intelligence analyst. Analyze the following data about a user and extract structured information.
 
-User Email: ${input.email}
-User Name: ${input.name || 'Unknown'}
-Plan: ${input.plan || 'free'}
+  // IMPORTANT: For personal email domains, we cannot reliably enrich
+  // Web search results are highly unreliable for common names
+  const isPersonalEmail = collectedData.emailDomain.isPersonal;
+
+  // Calculate a preliminary confidence based on data quality
+  let hasReliableData = false;
+  const reliableSources: string[] = [];
+
+  // GitHub is only reliable if email matches OR if GitHub profile name closely matches input name
+  if (collectedData.github) {
+    const githubName = collectedData.github.name?.toLowerCase() || '';
+    const inputName = input.name?.toLowerCase() || '';
+    // Only count GitHub as reliable if names are very similar
+    if (inputName && githubName && (
+      githubName.includes(inputName) ||
+      inputName.includes(githubName) ||
+      githubName === inputName
+    )) {
+      hasReliableData = true;
+      reliableSources.push('github');
+    }
+  }
+
+  // Hunter.io data is reliable (they verify emails)
+  if (collectedData.hunter?.data?.company) {
+    hasReliableData = true;
+    reliableSources.push('hunter');
+  }
+
+  // Work email domain is reliable
+  if (!isPersonalEmail) {
+    hasReliableData = true;
+    reliableSources.push('email_domain');
+  }
+
+  const prompt = `You are an EXTREMELY CAREFUL user intelligence analyst. Your job is to extract ACCURATE information about a specific person. 
+
+⚠️ CRITICAL RULES - READ CAREFULLY:
+1. You MUST only include information that you are 100% CERTAIN belongs to THIS SPECIFIC PERSON
+2. Web search results often return DIFFERENT PEOPLE with similar names - DO NOT assume they are the same person
+3. For personal email domains (@gmail.com, @yahoo.com, etc), you CANNOT determine company/role from web search alone
+4. LinkedIn/Twitter/GitHub profiles found via search may belong to DIFFERENT people with similar names
+5. A name match is NOT sufficient - you need MULTIPLE corroborating data points
+
+PERSON TO ANALYZE:
+- Email: ${input.email}
+- Name: ${input.name || 'Unknown'}
+- Plan: ${input.plan || 'free'}
+- Email Type: ${isPersonalEmail ? '⚠️ PERSONAL EMAIL - BE EXTRA CAUTIOUS' : 'Work email - domain can be trusted'}
 
 COLLECTED DATA:
 
 Email Domain Analysis:
 - Domain: ${collectedData.emailDomain.domain}
 - Is Personal Email: ${collectedData.emailDomain.isPersonal}
-- Extracted Company: ${collectedData.emailDomain.company || 'N/A'}
+- Company from Domain: ${collectedData.emailDomain.company || 'N/A (personal email)'}
 
 ${collectedData.github ? `
-GitHub Profile:
+GitHub Profile (verify name match!):
 - Username: ${collectedData.github.login}
-- Name: ${collectedData.github.name || 'N/A'}
+- Profile Name: ${collectedData.github.name || 'N/A'}
 - Company: ${collectedData.github.company || 'N/A'}
 - Bio: ${collectedData.github.bio || 'N/A'}
 - Location: ${collectedData.github.location || 'N/A'}
-- Website: ${collectedData.github.blog || 'N/A'}
-- Twitter: ${collectedData.github.twitter_username || 'N/A'}
-- Repos: ${collectedData.github.public_repos}
-- Followers: ${collectedData.github.followers}
+- Does profile name match input name "${input.name || 'Unknown'}"? CHECK THIS!
 ` : 'GitHub Profile: Not found'}
 
 ${collectedData.webSearch?.organic ? `
-Web Search Results:
+Web Search Results (⚠️ MAY BE DIFFERENT PEOPLE - verify carefully):
 ${collectedData.webSearch.organic.slice(0, 5).map((r, i) => `
 ${i + 1}. ${r.title}
    ${r.snippet}
@@ -404,42 +443,46 @@ ${i + 1}. ${r.title}
 `).join('\n')}
 ` : 'Web Search: No results'}
 
-LinkedIn URL: ${collectedData.linkedinUrl || 'Not found'}
-Twitter URL: ${collectedData.twitterUrl || 'Not found'}
-
-${collectedData.emailRep ? `
-EmailRep Data:
-- Reputation: ${collectedData.emailRep.reputation}
-- Profiles: ${collectedData.emailRep.details?.profiles?.join(', ') || 'None'}
-` : 'EmailRep: No data'}
+LinkedIn URL Found: ${collectedData.linkedinUrl || 'Not found'}
+Twitter URL Found: ${collectedData.twitterUrl || 'Not found'}
 
 ${collectedData.hunter?.data ? `
-Hunter.io Data:
+Hunter.io Data (✓ Verified by email):
 - Name: ${collectedData.hunter.data.first_name || ''} ${collectedData.hunter.data.last_name || ''}
 - Position: ${collectedData.hunter.data.position || 'N/A'}
 - Seniority: ${collectedData.hunter.data.seniority || 'N/A'}
 - Company: ${collectedData.hunter.data.company || 'N/A'}
-` : 'Hunter.io: No data'}
+` : 'Hunter.io: No verified data'}
 
-TASK:
-Extract the following information in JSON format. Use null for unknown fields. Be conservative - only include information you're confident about.
+CONFIDENCE SCORING RULES:
+- 0.8+ (High): Work email domain confirms company, OR Hunter.io verifies data, OR GitHub name matches exactly
+- 0.5-0.7 (Medium): Multiple sources corroborate each other for the same exact person
+- 0.3-0.4 (Low): Only web search results, may be a different person with similar name
+- 0.1-0.2 (Very Low): Personal email with web search only - HIGH chance of wrong person
+- 0.0: No reliable data at all
 
-Return JSON with these exact fields:
+For personal emails (@gmail, @yahoo, etc) with only web search data:
+- Set company_name, role, seniority_level to NULL unless you have VERIFIED sources (Hunter, GitHub with matching name)
+- Cap confidence at 0.3 maximum
+- In reasoning, explicitly state if you're uncertain
+
+Return JSON:
 {
-  "company_name": "string or null",
+  "company_name": "string or null - ONLY if verified",
   "company_domain": "string or null",
   "company_size": "string or null (small/medium/large/enterprise)",
   "industry": "string or null",
-  "role": "string or null (job title)",
+  "role": "string or null - ONLY if verified",
   "seniority_level": "string or null (junior/mid/senior/lead/executive)",
-  "bio": "string or null (brief professional summary)",
+  "bio": "string or null",
   "location": "string or null",
   "website": "string or null",
   "confidence_score": number (0.0 to 1.0),
-  "reasoning": "string explaining your confidence score and data quality"
+  "is_likely_wrong_person": boolean,
+  "reasoning": "explain your confidence and any concerns about data accuracy"
 }
 
-IMPORTANT: Return ONLY valid JSON, no markdown formatting or code blocks.`;
+IMPORTANT: Return ONLY valid JSON. Err on the side of NULL values rather than guessing!`;
 
   try {
     const response = await getOpenAI().chat.completions.create({
@@ -447,14 +490,14 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting or code blocks.`;
       messages: [
         {
           role: 'system',
-          content: 'You are a data extraction expert. You analyze user data from multiple sources and extract structured information with confidence scores. Always return valid JSON only, no markdown.'
+          content: 'You are a data verification expert. Your PRIMARY goal is ACCURACY over completeness. Never guess. When in doubt, return null. A false positive (wrong person) is MUCH WORSE than a false negative (missing data).'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      temperature: 0.3,
+      temperature: 0.1, // Lower temperature for more conservative responses
       response_format: { type: 'json_object' }
     });
 
@@ -465,7 +508,7 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting or code blocks.`;
 
     const synthesized = JSON.parse(content);
 
-    // Build data sources array
+    // Build data sources array (only include truly used sources)
     const dataSources: string[] = [];
     if (collectedData.github) dataSources.push('github');
     if (collectedData.webSearch) dataSources.push('web_search');
@@ -475,13 +518,28 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting or code blocks.`;
     if (collectedData.hunter) dataSources.push('hunter');
     if (!collectedData.emailDomain.isPersonal) dataSources.push('email_domain');
 
+    // Apply additional confidence penalties for unreliable scenarios
+    let finalConfidence = Math.min(Math.max(synthesized.confidence_score || 0, 0), 1);
+
+    // If it's a personal email and we only have web search, cap confidence at 0.3
+    if (isPersonalEmail && !hasReliableData) {
+      finalConfidence = Math.min(finalConfidence, 0.3);
+      console.log('[Enrichment] Personal email with unreliable data - capping confidence at 0.3');
+    }
+
+    // If LLM flagged potential wrong person, cap at 0.25
+    if (synthesized.is_likely_wrong_person) {
+      finalConfidence = Math.min(finalConfidence, 0.25);
+      console.log('[Enrichment] LLM flagged potential wrong person match');
+    }
+
     return {
-      company_name: synthesized.company_name || null,
+      company_name: synthesized.is_likely_wrong_person ? null : (synthesized.company_name || null),
       company_domain: collectedData.emailDomain.isPersonal ? null : collectedData.emailDomain.domain,
-      company_size: synthesized.company_size || null,
-      industry: synthesized.industry || null,
-      role: synthesized.role || null,
-      seniority_level: synthesized.seniority_level || null,
+      company_size: synthesized.is_likely_wrong_person ? null : (synthesized.company_size || null),
+      industry: synthesized.is_likely_wrong_person ? null : (synthesized.industry || null),
+      role: synthesized.is_likely_wrong_person ? null : (synthesized.role || null),
+      seniority_level: synthesized.is_likely_wrong_person ? null : (synthesized.seniority_level || null),
       linkedin_url: collectedData.linkedinUrl || null,
       twitter_url: collectedData.twitterUrl || null,
       github_url: collectedData.github ? `https://github.com/${collectedData.github.login}` : null,
@@ -489,7 +547,7 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting or code blocks.`;
       bio: synthesized.bio || null,
       location: synthesized.location || collectedData.github?.location || null,
       website: synthesized.website || collectedData.github?.blog || null,
-      confidence_score: Math.min(Math.max(synthesized.confidence_score || 0, 0), 1),
+      confidence_score: finalConfidence,
       data_sources: dataSources,
       raw_data: {
         emailDomain: collectedData.emailDomain,
@@ -499,7 +557,9 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting or code blocks.`;
         emailRep: collectedData.emailRep,
         twitterUrl: collectedData.twitterUrl,
         hunter: collectedData.hunter,
-        llm_reasoning: synthesized.reasoning
+        llm_reasoning: synthesized.reasoning,
+        is_likely_wrong_person: synthesized.is_likely_wrong_person,
+        reliable_sources: reliableSources
       }
     };
   } catch (error) {
