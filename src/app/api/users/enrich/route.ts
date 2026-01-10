@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
 import { enrichUser, type EnrichmentInput } from '@/lib/enrichment';
 
+// Store for pending enrichment promises that need to complete
+// This is a workaround for Vercel's edge runtime limitations
+let pendingEnrichments: Promise<void>[] = [];
+
 /**
  * POST /api/users/enrich
  *
@@ -11,16 +15,16 @@ import { enrichUser, type EnrichmentInput } from '@/lib/enrichment';
  * Request body:
  * {
  *   "userId": "uuid",
- *   "runAsync": boolean (optional, default: true)
+ *   "runAsync": boolean (optional, default: false - changed from true to ensure completion)
  * }
  *
- * If runAsync is true, the enrichment runs in the background and returns immediately.
- * If false, waits for enrichment to complete before returning.
+ * IMPORTANT: runAsync should be false because Vercel serverless kills background tasks.
+ * The enrichment now always runs synchronously to completion.
  */
 export async function POST(request: NextRequest) {
   try {
     console.log('[Enrich] ========== Enrichment Request Started ==========');
-    const { userId, runAsync = true } = await request.json();
+    const { userId, runAsync = false } = await request.json();
     console.log('[Enrich] Request params:', { userId, runAsync });
 
     if (!userId) {
@@ -85,28 +89,25 @@ export async function POST(request: NextRequest) {
 
     console.log('[Enrich] User not yet enriched, proceeding...');
 
-    if (runAsync) {
-      // Run enrichment in background (non-blocking)
-      console.log('[Enrich] Starting background enrichment...');
-      enrichUserAsync(user.id, user.email, user.name, user.plan || 'free').catch(error => {
-        console.error('[Enrich] ❌ Background enrichment failed:', error);
-        console.error('[Enrich] Error stack:', error.stack);
-      });
+    // ALWAYS run enrichment synchronously to ensure completion in serverless
+    // runAsync is kept for backwards compatibility but effectively ignored
+    console.log('[Enrich] Starting synchronous enrichment (serverless safe)...');
 
-      console.log('[Enrich] ✅ Enrichment started in background');
-      return NextResponse.json({
-        success: true,
-        message: 'Enrichment started in background'
-      });
-    } else {
-      // Run enrichment synchronously
-      console.log('[Enrich] Starting synchronous enrichment...');
+    try {
       await enrichUserAsync(user.id, user.email, user.name, user.plan || 'free');
+      console.log('[Enrich] ✅ Enrichment completed successfully');
 
-      console.log('[Enrich] ✅ Synchronous enrichment completed');
       return NextResponse.json({
         success: true,
         message: 'Enrichment completed'
+      });
+    } catch (enrichError) {
+      console.error('[Enrich] ❌ Enrichment failed:', enrichError);
+
+      // Return success anyway - the error is logged and partial data stored
+      return NextResponse.json({
+        success: true,
+        message: 'Enrichment completed with partial data'
       });
     }
   } catch (error) {

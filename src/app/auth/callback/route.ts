@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
   // Handle OAuth errors
   if (error) {
     console.error('OAuth error:', error);
-    
+
     // Audit log: Failed login attempt
     const forwarded = request.headers.get('x-forwarded-for');
     logAuditEvent({
@@ -43,13 +43,13 @@ export async function GET(request: NextRequest) {
         errorDescription: searchParams.get('error_description') || undefined,
       },
     }).catch(err => console.error('[AUDIT] Failed to log failed login:', err));
-    
+
     return NextResponse.redirect(`${origin}/login?error=oauth_error&details=${error}`);
   }
 
   if (code) {
     // Use SSR client so session cookies are issued back to the browser
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
@@ -62,11 +62,11 @@ export async function GET(request: NextRequest) {
         },
       },
     });
-    
+
     try {
       console.log('Exchanging code for session:', code.substring(0, 10) + '...');
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-      
+
       if (error) {
         console.error('Auth callback error:', error);
         return NextResponse.redirect(`${origin}/login?error=auth_callback_error`);
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
         // Audit log: User login success
         const forwarded = request.headers.get('x-forwarded-for');
         const ipAddress = forwarded ? forwarded.split(',')[0].trim() : undefined;
-        
+
         logAuditEvent({
           eventType: AuditEventTypes.USER_LOGIN,
           eventCategory: 'auth',
@@ -184,33 +184,29 @@ export async function GET(request: NextRequest) {
                   plan: userRecord.plan
                 });
 
-                // Call enrichment API asynchronously with proper error handling
-                fetch(`${origin}/api/users/enrich`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    userId: data.user.id,
-                    runAsync: true
-                  })
-                })
-                  .then(async (response) => {
-                    const responseText = await response.text();
-                    console.log('[ENRICHMENT] API Response Status:', response.status);
-                    console.log('[ENRICHMENT] API Response Body:', responseText);
-
-                    if (!response.ok) {
-                      console.error('[ENRICHMENT] API returned error:', response.status, responseText);
-                    } else {
-                      console.log('[ENRICHMENT] ✅ Enrichment request accepted');
-                    }
-                  })
-                  .catch(enrichError => {
-                    console.error('[ENRICHMENT] ❌ Failed to call enrichment API:', enrichError);
-                    console.error('[ENRICHMENT] Error details:', {
-                      message: enrichError.message,
-                      stack: enrichError.stack
-                    });
+                // Call enrichment API synchronously to ensure it completes
+                // Vercel serverless kills async background tasks, so we must await
+                try {
+                  const enrichResponse = await fetch(`${origin}/api/users/enrich`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      userId: data.user.id,
+                      runAsync: false  // IMPORTANT: sync to ensure completion in serverless
+                    })
                   });
+
+                  if (enrichResponse.ok) {
+                    const enrichResult = await enrichResponse.json();
+                    console.log('[ENRICHMENT] ✅ Enrichment completed:', enrichResult.message);
+                  } else {
+                    const errorText = await enrichResponse.text();
+                    console.error('[ENRICHMENT] API returned error:', enrichResponse.status, errorText);
+                  }
+                } catch (enrichError) {
+                  console.error('[ENRICHMENT] ❌ Failed to call enrichment API:', enrichError);
+                  // Don't block signup flow on enrichment errors
+                }
               }
             } catch (recordError) {
               console.error('[WELCOME EMAIL] Failed to ensure user record before welcome email:', recordError);
@@ -221,7 +217,7 @@ export async function GET(request: NextRequest) {
           console.error('[WELCOME EMAIL] Unexpected error during welcome email processing:', welcomeInitError);
           console.error('[WELCOME EMAIL] Init error details:', JSON.stringify(welcomeInitError, null, 2));
         }
-        
+
         // Check if this is a new user
         // Use a more reliable check: compare created_at with current time
         const userCreatedAt = new Date(data.user.created_at);
