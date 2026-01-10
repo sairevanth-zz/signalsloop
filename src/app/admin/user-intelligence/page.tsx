@@ -23,7 +23,9 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
-  RefreshCw
+  RefreshCw,
+  Zap,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -66,8 +68,10 @@ export default function AdminUserIntelligencePage() {
     withCompany: 0,
     withGithub: 0,
     withLinkedin: 0,
-    avgConfidence: 0
+    avgConfidence: 0,
+    pending: 0
   });
+  const [enriching, setEnriching] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -106,13 +110,15 @@ export default function AdminUserIntelligencePage() {
         const avgConfidence = enriched.length > 0
           ? enriched.reduce((sum: number, u: UserIntelligence) => sum + (u.confidence_score || 0), 0) / enriched.length
           : 0;
+        const pending = data.data.filter((u: UserIntelligence) => !u.has_enrichment).length;
 
         setStats({
           total,
           withCompany,
           withGithub,
           withLinkedin,
-          avgConfidence
+          avgConfidence,
+          pending
         });
       } else {
         toast.error('Failed to load user intelligence data');
@@ -137,6 +143,50 @@ export default function AdminUserIntelligencePage() {
     } else {
       setSortField(field);
       setSortOrder('desc');
+    }
+  };
+
+  const runEnrichmentForPending = async () => {
+    const pendingUsers = intelligence.filter(u => !u.has_enrichment);
+    if (pendingUsers.length === 0) {
+      toast.info('No pending users to enrich');
+      return;
+    }
+
+    setEnriching(true);
+    toast.info(`Starting enrichment for ${pendingUsers.length} users...`);
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const user of pendingUsers.slice(0, 10)) { // Limit to 10 at a time to avoid overload
+      try {
+        const response = await fetch('/api/users/enrich', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.user_id, runAsync: false })
+        });
+
+        if (response.ok) {
+          successCount++;
+        } else {
+          errorCount++;
+          console.error('Enrichment failed for:', user.email, await response.text());
+        }
+      } catch (error) {
+        errorCount++;
+        console.error('Enrichment error for:', user.email, error);
+      }
+    }
+
+    setEnriching(false);
+
+    if (successCount > 0) {
+      toast.success(`Enriched ${successCount} users successfully`);
+      loadData(); // Refresh the data
+    }
+    if (errorCount > 0) {
+      toast.error(`Failed to enrich ${errorCount} users`);
     }
   };
 
@@ -242,6 +292,19 @@ export default function AdminUserIntelligencePage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            onClick={runEnrichmentForPending}
+            variant="outline"
+            disabled={enriching || stats.pending === 0}
+            className="bg-amber-50 border-amber-200 hover:bg-amber-100"
+          >
+            {enriching ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Zap className="h-4 w-4 mr-2" />
+            )}
+            {enriching ? 'Enriching...' : `Run Enrichment (${stats.pending})`}
+          </Button>
           <Button onClick={loadData} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
@@ -335,21 +398,21 @@ export default function AdminUserIntelligencePage() {
                 <thead className="bg-gray-50 border-b">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort('email')}>
+                      onClick={() => handleSort('email')}>
                       <div className="flex items-center gap-1">
                         User
                         {sortField === 'email' && (sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
                       </div>
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort('company_name')}>
+                      onClick={() => handleSort('company_name')}>
                       <div className="flex items-center gap-1">
                         Company
                         {sortField === 'company_name' && (sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
                       </div>
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort('role')}>
+                      onClick={() => handleSort('role')}>
                       <div className="flex items-center gap-1">
                         Role
                         {sortField === 'role' && (sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
@@ -359,7 +422,7 @@ export default function AdminUserIntelligencePage() {
                       Profiles
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                        onClick={() => handleSort('confidence_score')}>
+                      onClick={() => handleSort('confidence_score')}>
                       <div className="flex items-center gap-1">
                         Confidence
                         {sortField === 'confidence_score' && (sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
@@ -407,29 +470,29 @@ export default function AdminUserIntelligencePage() {
                           <div className="flex gap-2">
                             {user.linkedin_url && (
                               <a href={user.linkedin_url} target="_blank" rel="noopener noreferrer"
-                                 className="text-blue-600 hover:text-blue-800"
-                                 onClick={(e) => e.stopPropagation()}>
+                                className="text-blue-600 hover:text-blue-800"
+                                onClick={(e) => e.stopPropagation()}>
                                 <Linkedin className="h-4 w-4" />
                               </a>
                             )}
                             {user.github_url && (
                               <a href={user.github_url} target="_blank" rel="noopener noreferrer"
-                                 className="text-gray-700 hover:text-gray-900"
-                                 onClick={(e) => e.stopPropagation()}>
+                                className="text-gray-700 hover:text-gray-900"
+                                onClick={(e) => e.stopPropagation()}>
                                 <Github className="h-4 w-4" />
                               </a>
                             )}
                             {user.twitter_url && (
                               <a href={user.twitter_url} target="_blank" rel="noopener noreferrer"
-                                 className="text-blue-400 hover:text-blue-600"
-                                 onClick={(e) => e.stopPropagation()}>
+                                className="text-blue-400 hover:text-blue-600"
+                                onClick={(e) => e.stopPropagation()}>
                                 <Twitter className="h-4 w-4" />
                               </a>
                             )}
                             {user.website && (
                               <a href={user.website} target="_blank" rel="noopener noreferrer"
-                                 className="text-gray-600 hover:text-gray-800"
-                                 onClick={(e) => e.stopPropagation()}>
+                                className="text-gray-600 hover:text-gray-800"
+                                onClick={(e) => e.stopPropagation()}>
                                 <Globe className="h-4 w-4" />
                               </a>
                             )}
