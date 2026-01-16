@@ -83,7 +83,7 @@ export default function FeedbackDemoPage() {
     };
 
     return (
-        <div className="min-h-screen p-6 md:p-12" style={{ background: 'linear-gradient(180deg, #FFFAF5 0%, #FFF5EB 100%)' }}>
+        <div className="min-h-screen p-6 md:p-12 bg-gradient-to-b from-[#FFFAF5] to-[#FFF5EB] dark:from-slate-900 dark:to-slate-950">
             <div className="max-w-6xl mx-auto space-y-12">
 
                 {/* Header */}
@@ -92,10 +92,10 @@ export default function FeedbackDemoPage() {
                         <Sparkles className="w-3 h-3" />
                         <span>AI-Powered Feedback Analysis</span>
                     </div>
-                    <h1 className="font-[family-name:var(--font-fraunces)] text-4xl md:text-6xl font-bold tracking-tight text-[#2D2D2A] pb-2">
+                    <h1 className="font-[family-name:var(--font-fraunces)] text-4xl md:text-6xl font-bold tracking-tight text-[#2D2D2A] dark:text-white pb-2">
                         What Do Your Users<br /><span className="text-[#FF4F00]">Actually Want?</span>
                     </h1>
-                    <p className="text-lg text-[#5C5C57] max-w-2xl mx-auto">
+                    <p className="text-lg text-[#5C5C57] dark:text-slate-300 max-w-2xl mx-auto">
                         Stop guessing. We'll aggregate your scattered feedback and organize it into actionable strategy in 60 seconds.
                     </p>
                 </div>
@@ -163,7 +163,7 @@ export default function FeedbackDemoPage() {
                                         </TabsContent>
 
                                         <TabsContent value="upload">
-                                            <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-12 text-center hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer">
+                                            <div className="relative border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-12 text-center hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer">
                                                 <Upload className="w-10 h-10 mx-auto text-slate-400 mb-4" />
                                                 <p className="font-medium">Click to upload CSV</p>
                                                 <p className="text-xs text-muted-foreground mt-2">Column must be named &quot;text&quot; or be the first column.</p>
