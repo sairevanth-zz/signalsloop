@@ -39,7 +39,7 @@ export function SentimentComparison({ data }: SentimentComparisonProps) {
                             />
                         </div>
 
-                        <div className="flex justify-between text-xs text-muted-foreground px-1">
+                        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
                             <span>{item.review_count} reviews analyzed</span>
                             <div className="flex gap-3">
                                 <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500" /> Pos</span>

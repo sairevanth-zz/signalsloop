@@ -112,7 +112,7 @@ export default function CompetitiveIntelDemoPage() {
     const allProducts = [userProduct, ...competitors.filter(c => c.trim().length > 0)];
 
     return (
-        <div className="min-h-screen p-6 md:p-12" style={{ background: 'linear-gradient(180deg, #FFFAF5 0%, #FFF5EB 100%)' }}>
+        <div className="min-h-screen p-6 md:p-12 bg-gradient-to-b from-[#FFFAF5] to-[#FFF5EB] dark:from-slate-900 dark:to-slate-950">
             <div className="max-w-5xl mx-auto space-y-12">
 
                 {/* Header */}
@@ -121,10 +121,10 @@ export default function CompetitiveIntelDemoPage() {
                         <Target className="w-3 h-3" />
                         <span>AI-Powered Competitive Analysis</span>
                     </div>
-                    <h1 className="font-[family-name:var(--font-fraunces)] text-4xl md:text-6xl font-bold tracking-tight text-[#2D2D2A] pb-2">
+                    <h1 className="font-[family-name:var(--font-fraunces)] text-4xl md:text-6xl font-bold tracking-tight text-[#2D2D2A] dark:text-white pb-2">
                         Competitive Intel in <span className="text-[#FF4F00]">60 Seconds</span>
                     </h1>
-                    <p className="text-lg text-[#5C5C57] max-w-2xl mx-auto">
+                    <p className="text-lg text-[#5C5C57] dark:text-slate-300 max-w-2xl mx-auto">
                         See what your competitors' users hate, and find exactly how to exploit it.
                     </p>
                 </div>

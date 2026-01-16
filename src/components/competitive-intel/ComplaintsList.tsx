@@ -36,9 +36,9 @@ export function ComplaintsList({ complaints }: ComplaintsListProps) {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-3 text-sm">
-                                    <div className="flex gap-4 text-muted-foreground">
-                                        <span>Frequency: <span className="font-medium text-foreground">{item.frequency}</span></span>
-                                        <span>Severity: <span className="font-medium text-foreground uppercase text-xs border px-1 rounded bg-background">{item.severity}</span></span>
+                                    <div className="flex gap-4 text-slate-500 dark:text-slate-400">
+                                        <span>Frequency: <span className="font-medium text-slate-700 dark:text-slate-200">{item.frequency}</span></span>
+                                        <span>Severity: <span className="font-medium text-slate-700 dark:text-slate-200 uppercase text-xs border border-slate-300 dark:border-slate-600 px-1 rounded bg-white dark:bg-slate-800">{item.severity}</span></span>
                                     </div>
 
                                     {item.sample_quotes.length > 0 && (
