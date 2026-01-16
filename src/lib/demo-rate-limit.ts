@@ -19,6 +19,8 @@ const DEMO_LIMITS = {
   duplicate_detection: 5,
   smart_replies: 10,
   cache_stats: 50, // Higher limit for cache stats since it's read-only
+  feedback_analysis: 5, // Expensive GPT-4o call
+  competitive_intel: 3, // Very expensive - scraping + GPT-4o
 } as const;
 
 type DemoFeatureType = keyof typeof DEMO_LIMITS;

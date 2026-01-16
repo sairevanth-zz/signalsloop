@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkDemoRateLimit, incrementDemoUsage, getTimeUntilReset } from '@/lib/demo-rate-limit';
 
 // Lazy getter for Supabase client to avoid build-time initialization
 function getSupabase() {
@@ -8,8 +9,30 @@ function getSupabase() {
     return createClient(supabaseUrl, supabaseKey);
 }
 
+// Get client IP from request headers
+function getClientIP(req: Request): string {
+    const forwarded = req.headers.get('x-forwarded-for');
+    const realIP = req.headers.get('x-real-ip');
+    if (forwarded) return forwarded.split(',')[0].trim();
+    if (realIP) return realIP;
+    return 'unknown';
+}
+
 export async function POST(req: Request) {
     try {
+        // Rate limiting for demo users
+        const clientIP = getClientIP(req);
+        const rateCheck = checkDemoRateLimit(clientIP, 'competitive_intel');
+
+        if (!rateCheck.allowed) {
+            return NextResponse.json({
+                error: `Rate limit exceeded. You can run ${rateCheck.limit} competitive analyses per hour. Try again in ${getTimeUntilReset(rateCheck.resetAt)}.`,
+                remaining: 0,
+                limit: rateCheck.limit,
+                resetAt: rateCheck.resetAt
+            }, { status: 429 });
+        }
+
         const body = await req.json();
         const { userProduct, competitors } = body;
 
@@ -33,9 +56,17 @@ export async function POST(req: Request) {
 
         if (error) throw error;
 
+        // Increment usage after successful session creation
+        incrementDemoUsage(clientIP, 'competitive_intel');
+
         return NextResponse.json({
             sessionId: data.id,
-            sessionToken: data.session_token
+            sessionToken: data.session_token,
+            _rateLimit: {
+                remaining: rateCheck.remaining,
+                limit: rateCheck.limit,
+                resetAt: rateCheck.resetAt
+            }
         });
     } catch (error) {
         console.error('Error creating session:', error);
