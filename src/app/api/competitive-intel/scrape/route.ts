@@ -14,6 +14,8 @@ function getSupabase(): SupabaseClient {
 export const maxDuration = 300; // 5 minutes max for scraping
 
 export async function POST(req: Request) {
+    const supabase = getSupabase();
+
     try {
         const body = await req.json();
         const { sessionId, sources } = body;
