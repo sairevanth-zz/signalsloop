@@ -2,6 +2,8 @@
  * Demo Rate Limiting
  * Simple in-memory rate limiting for demo/unauthenticated users
  * Prevents abuse of AI features on public demo pages
+ * 
+ * Uses 24-hour windows to limit daily usage
  */
 
 interface RateLimitEntry {
@@ -12,16 +14,22 @@ interface RateLimitEntry {
 // In-memory storage for demo rate limits (resets on server restart)
 const demoLimits = new Map<string, RateLimitEntry>();
 
-// Rate limits for demo users (per IP per hour)
+// Rate limits for demo users (per IP per DAY)
 const DEMO_LIMITS = {
-  categorization: 10,
-  priority_scoring: 10,
-  duplicate_detection: 5,
-  smart_replies: 10,
-  cache_stats: 50, // Higher limit for cache stats since it's read-only
-  feedback_analysis: 5, // Expensive GPT-4o call
-  competitive_intel: 3, // Very expensive - scraping + GPT-4o
+  // Cheap features (GPT-4o-mini) - more generous
+  categorization: 5,      // Was 10/hr
+  priority_scoring: 5,    // Was 10/hr
+  smart_replies: 5,       // Was 10/hr
+  duplicate_detection: 3, // Was 5/hr
+  cache_stats: 20,        // Read-only, still generous
+
+  // Expensive features (GPT-4o) - strict limits
+  feedback_analysis: 2,   // ~$0.036/day max
+  competitive_intel: 2,   // ~$0.05/day max
 } as const;
+
+// Time window: 24 hours
+const RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 type DemoFeatureType = keyof typeof DEMO_LIMITS;
 
@@ -55,7 +63,7 @@ export function checkDemoRateLimit(
   const key = `${ip}:${feature}`;
   const limit = DEMO_LIMITS[feature];
 
-  // Clean up expired entries (older than 1 hour)
+  // Clean up expired entries
   for (const [entryKey, entry] of demoLimits.entries()) {
     if (entry.resetAt < now) {
       demoLimits.delete(entryKey);
@@ -66,7 +74,7 @@ export function checkDemoRateLimit(
 
   // No entry or expired entry
   if (!entry || entry.resetAt < now) {
-    const resetAt = now + 60 * 60 * 1000; // 1 hour from now
+    const resetAt = now + RATE_LIMIT_WINDOW_MS;
     demoLimits.set(key, { count: 0, resetAt });
     return {
       allowed: true,
@@ -103,7 +111,7 @@ export function incrementDemoUsage(ip: string, feature: DemoFeatureType, count: 
   const entry = demoLimits.get(key);
 
   if (!entry || entry.resetAt < now) {
-    const resetAt = now + 60 * 60 * 1000; // 1 hour from now
+    const resetAt = now + RATE_LIMIT_WINDOW_MS;
     demoLimits.set(key, { count, resetAt });
   } else {
     entry.count += count;
@@ -119,12 +127,16 @@ export function getTimeUntilReset(resetAt: number): string {
 
   if (diff <= 0) return '0 minutes';
 
-  const minutes = Math.ceil(diff / (60 * 1000));
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
+  const totalMinutes = Math.ceil(diff / (60 * 1000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours >= 24) {
+    return 'tomorrow';
+  }
 
   if (hours > 0) {
-    return `${hours} hour${hours > 1 ? 's' : ''} ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}`;
+    return `${hours} hour${hours > 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`;
   }
 
   return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
