@@ -1,373 +1,480 @@
-/**
- * Experiments Demo Page
- * 
- * Public demo page showcasing the experimentation platform
- */
-
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-    ArrowLeft,
-    Beaker,
-    BarChart3,
-    Flag,
-    Eye,
-    Zap,
-    Target,
-    TrendingUp,
-    Users,
-    CheckCircle2,
-    Play,
-    Sparkles,
+    Beaker, Target, Eye, Flag, BarChart3, TrendingUp, Users,
+    Sparkles, Play, Pause, RotateCcw, CheckCircle2, ArrowRight,
+    MousePointer, Zap
 } from 'lucide-react';
 
-interface DemoExperiment {
+interface Variant {
     id: string;
     name: string;
-    status: 'running' | 'completed' | 'draft';
-    type: 'ab_test' | 'feature_flag';
-    variants: { name: string; traffic: number; conversions: number; visitors: number }[];
-    lift?: number;
-    confidence?: number;
+    color: string;
+    visitors: number;
+    conversions: number;
+    traffic: number;
 }
 
-const demoExperiments: DemoExperiment[] = [
+interface Experiment {
+    id: string;
+    name: string;
+    element: string;
+    variants: Variant[];
+    isRunning: boolean;
+    totalVisitors: number;
+}
+
+const INITIAL_EXPERIMENTS: Experiment[] = [
     {
-        id: '1',
-        name: 'CTA Button Color Test',
-        status: 'running',
-        type: 'ab_test',
+        id: 'cta-color',
+        name: 'CTA Button Color',
+        element: 'Sign Up Button',
         variants: [
-            { name: 'Control (Blue)', traffic: 50, conversions: 32, visitors: 1000 },
-            { name: 'Treatment (Orange)', traffic: 50, conversions: 48, visitors: 1000 },
+            { id: 'control', name: 'Control (Blue)', color: '#3B82F6', visitors: 0, conversions: 0, traffic: 50 },
+            { id: 'treatment', name: 'Treatment (Orange)', color: '#FF4F00', visitors: 0, conversions: 0, traffic: 50 },
         ],
-        lift: 50,
-        confidence: 98,
+        isRunning: false,
+        totalVisitors: 0,
     },
     {
-        id: '2',
-        name: 'New Pricing Page',
-        status: 'completed',
-        type: 'ab_test',
+        id: 'headline',
+        name: 'Headline Copy Test',
+        element: 'Hero Headline',
         variants: [
-            { name: 'Original', traffic: 50, conversions: 45, visitors: 2000 },
-            { name: 'Simplified', traffic: 50, conversions: 72, visitors: 2000 },
+            { id: 'control', name: 'Original', color: '#6B7280', visitors: 0, conversions: 0, traffic: 50 },
+            { id: 'treatment', name: 'Action-Oriented', color: '#10B981', visitors: 0, conversions: 0, traffic: 50 },
         ],
-        lift: 60,
-        confidence: 99,
-    },
-    {
-        id: '3',
-        name: 'Dark Mode Feature',
-        status: 'running',
-        type: 'feature_flag',
-        variants: [
-            { name: 'Disabled', traffic: 80, conversions: 0, visitors: 4000 },
-            { name: 'Enabled', traffic: 20, conversions: 0, visitors: 1000 },
-        ],
+        isRunning: false,
+        totalVisitors: 0,
     },
 ];
 
-export default function ExperimentsDemo() {
-    const [selectedExperiment, setSelectedExperiment] = useState<DemoExperiment | null>(
-        demoExperiments[0]
-    );
-    const [showCreateForm, setShowCreateForm] = useState(false);
-    const [newExperiment, setNewExperiment] = useState({
-        name: '',
-        type: 'ab_test',
-        traffic: 50,
-    });
+// Conversion rates per variant (control vs treatment)
+const CONVERSION_RATES = {
+    'cta-color': { control: 0.032, treatment: 0.048 }, // Treatment is 50% better
+    'headline': { control: 0.041, treatment: 0.052 },  // Treatment is 27% better
+};
+
+export default function ExperimentsDemoPage() {
+    const [experiments, setExperiments] = useState<Experiment[]>(INITIAL_EXPERIMENTS);
+    const [selectedExperiment, setSelectedExperiment] = useState<Experiment>(INITIAL_EXPERIMENTS[0]);
+    const [showWinner, setShowWinner] = useState(false);
+    const [simulationSpeed, setSimulationSpeed] = useState<'normal' | 'fast'>('normal');
+
+    // Simulate visitors coming in
+    useEffect(() => {
+        const exp = experiments.find(e => e.id === selectedExperiment.id);
+        if (!exp?.isRunning) return;
+
+        const interval = setInterval(() => {
+            setExperiments(prev => prev.map(experiment => {
+                if (experiment.id !== selectedExperiment.id || !experiment.isRunning) return experiment;
+
+                const rates = CONVERSION_RATES[experiment.id as keyof typeof CONVERSION_RATES];
+                const visitorsPerTick = simulationSpeed === 'fast' ? 50 : 10;
+
+                const updatedVariants = experiment.variants.map(variant => {
+                    const newVisitors = Math.floor(visitorsPerTick * (variant.traffic / 100));
+                    const conversionRate = variant.id === 'control' ? rates.control : rates.treatment;
+                    const newConversions = Math.floor(newVisitors * conversionRate * (0.8 + Math.random() * 0.4));
+
+                    return {
+                        ...variant,
+                        visitors: variant.visitors + newVisitors,
+                        conversions: variant.conversions + newConversions,
+                    };
+                });
+
+                const newTotal = updatedVariants.reduce((acc, v) => acc + v.visitors, 0);
+
+                // Check for statistical significance (simplified)
+                if (newTotal >= 1000 && !showWinner) {
+                    setShowWinner(true);
+                }
+
+                return {
+                    ...experiment,
+                    variants: updatedVariants,
+                    totalVisitors: newTotal,
+                };
+            }));
+        }, simulationSpeed === 'fast' ? 100 : 300);
+
+        return () => clearInterval(interval);
+    }, [experiments, selectedExperiment.id, simulationSpeed, showWinner]);
+
+    // Update selected experiment when experiments change
+    useEffect(() => {
+        const updated = experiments.find(e => e.id === selectedExperiment.id);
+        if (updated) setSelectedExperiment(updated);
+    }, [experiments, selectedExperiment.id]);
+
+    const toggleExperiment = useCallback(() => {
+        setExperiments(prev => prev.map(exp =>
+            exp.id === selectedExperiment.id ? { ...exp, isRunning: !exp.isRunning } : exp
+        ));
+        if (showWinner) setShowWinner(false);
+    }, [selectedExperiment.id, showWinner]);
+
+    const resetExperiment = useCallback(() => {
+        setExperiments(prev => prev.map(exp =>
+            exp.id === selectedExperiment.id
+                ? {
+                    ...exp,
+                    isRunning: false,
+                    totalVisitors: 0,
+                    variants: exp.variants.map(v => ({ ...v, visitors: 0, conversions: 0 }))
+                }
+                : exp
+        ));
+        setShowWinner(false);
+    }, [selectedExperiment.id]);
+
+    const calculateLift = () => {
+        const control = selectedExperiment.variants.find(v => v.id === 'control');
+        const treatment = selectedExperiment.variants.find(v => v.id === 'treatment');
+        if (!control || !treatment || control.visitors === 0 || treatment.visitors === 0) return 0;
+
+        const controlCVR = control.conversions / control.visitors;
+        const treatmentCVR = treatment.conversions / treatment.visitors;
+        if (controlCVR === 0) return 0;
+
+        return ((treatmentCVR - controlCVR) / controlCVR) * 100;
+    };
+
+    const calculateConfidence = () => {
+        const total = selectedExperiment.totalVisitors;
+        if (total < 100) return 0;
+        if (total < 500) return Math.min(75, 50 + (total / 10));
+        if (total < 1000) return Math.min(95, 75 + ((total - 500) / 25));
+        return Math.min(99, 95 + ((total - 1000) / 500));
+    };
+
+    const lift = calculateLift();
+    const confidence = calculateConfidence();
 
     return (
-        <div className="min-h-screen" style={{ background: '#FFFAF5' }}>
-            {/* Header */}
-            <header className="border-b border-black/[0.04] bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link href="/" className="flex items-center gap-2">
-                            <img src="/signalsloop-logo-v2.png" alt="SignalsLoop" className="w-8 h-8 rounded-lg" />
-                            <span className="font-semibold text-[#2D2D2A]">SignalsLoop</span>
-                        </Link>
-                        <span className="text-gray-300">|</span>
-                        <div className="flex items-center gap-2">
-                            <Beaker className="w-5 h-5 text-[#FF4F00]" />
-                            <span className="font-medium text-[#2D2D2A]">Experiments Demo</span>
-                        </div>
-                    </div>
-                    <Link href="/signup">
-                        <Button className="bg-[#FF4F00] hover:bg-[#E64700]">
-                            Start Free →
-                        </Button>
-                    </Link>
-                </div>
-            </header>
+        <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #FFFAF5 0%, #FFF5EB 100%)' }}>
+            {/* Background */}
+            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-500/10 rounded-full blur-[100px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-amber-500/10 rounded-full blur-[100px]" />
+            </div>
 
-            <div className="max-w-7xl mx-auto px-6 py-8">
-                {/* Hero Banner */}
-                <div className="bg-gradient-to-r from-[#FF4F00]/10 via-[#FFECE0] to-[#FF4F00]/10 rounded-2xl p-8 mb-8 border border-[#FF4F00]/20">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <div className="flex items-center gap-2 mb-3">
-                                <Badge className="bg-[#FF4F00] text-white">🧪 Interactive Demo</Badge>
-                            </div>
-                            <h1 className="text-3xl font-bold text-[#2D2D2A] mb-2">
-                                A/B Testing Without Optimizely
-                            </h1>
-                            <p className="text-[#5C5C57] max-w-xl">
-                                Full experimentation platform built in. Create experiments, run A/B tests,
-                                manage feature flags, and see real-time results—all included in your plan.
-                            </p>
-                        </div>
-                        <div className="hidden md:flex flex-col gap-2 text-right">
-                            <div className="text-sm text-[#8A8A85]">Included in Pro plan</div>
-                            <div className="text-2xl font-bold text-[#FF4F00]">$0 extra</div>
-                            <div className="text-xs text-[#8A8A85]">(Optimizely: $200+/mo)</div>
-                        </div>
+            <div className="relative z-10 container mx-auto px-4 py-12 md:py-16">
+                {/* Header */}
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center mb-12 space-y-4"
+                >
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF4F00]/10 border border-[#FF4F00]/20 text-[#FF4F00] text-xs font-medium mb-2">
+                        <Beaker className="w-3 h-3" />
+                        <span>Interactive Demo</span>
                     </div>
-                </div>
 
-                {/* Features Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <h1 className="font-[family-name:var(--font-fraunces)] text-4xl md:text-5xl font-bold tracking-tight text-[#2D2D2A] pb-2">
+                        Run an A/B Test.<br />
+                        <span className="text-[#FF4F00]">Watch It Win in Real-Time.</span>
+                    </h1>
+                    <p className="text-lg text-[#5C5C57] max-w-2xl mx-auto">
+                        Click "Start Experiment" and watch visitors flow in, conversions tick up,
+                        and statistical significance emerge. No login required.
+                    </p>
+                </motion.div>
+
+                {/* Features Bar */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto mb-10"
+                >
                     {[
                         { icon: Target, label: 'A/B Tests', desc: 'Compare variants' },
                         { icon: Eye, label: 'Visual Editor', desc: 'No code needed' },
                         { icon: Flag, label: 'Feature Flags', desc: '% Rollouts' },
                         { icon: BarChart3, label: 'Real-time Results', desc: 'Live analytics' },
                     ].map((feature, i) => (
-                        <Card key={i} className="p-4 text-center hover:shadow-md transition-shadow">
-                            <feature.icon className="w-6 h-6 mx-auto mb-2 text-[#FF4F00]" />
-                            <div className="font-semibold text-[#2D2D2A]">{feature.label}</div>
-                            <div className="text-xs text-[#8A8A85]">{feature.desc}</div>
-                        </Card>
+                        <div key={i} className="bg-white/80 backdrop-blur-sm rounded-xl p-3 text-center border border-black/[0.06]">
+                            <feature.icon className="w-5 h-5 mx-auto mb-1 text-[#FF4F00]" />
+                            <div className="font-semibold text-sm text-[#2D2D2A]">{feature.label}</div>
+                            <div className="text-[10px] text-[#8A8A85]">{feature.desc}</div>
+                        </div>
                     ))}
-                </div>
+                </motion.div>
 
-                <div className="grid lg:grid-cols-3 gap-6">
-                    {/* Experiments List */}
-                    <div className="lg:col-span-1">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="font-semibold text-[#2D2D2A]">Experiments</h2>
-                            <Button
-                                size="sm"
-                                onClick={() => setShowCreateForm(!showCreateForm)}
-                                className="bg-[#FF4F00] hover:bg-[#E64700]"
-                            >
-                                + New
-                            </Button>
-                        </div>
-
-                        {showCreateForm && (
-                            <Card className="p-4 mb-4 border-2 border-[#FF4F00]/30">
-                                <h3 className="font-medium mb-3">Create Experiment</h3>
-                                <div className="space-y-3">
-                                    <div>
-                                        <Label className="text-xs">Name</Label>
-                                        <Input
-                                            value={newExperiment.name}
-                                            onChange={(e) => setNewExperiment({ ...newExperiment, name: e.target.value })}
-                                            placeholder="e.g., Homepage CTA Test"
-                                            className="mt-1"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label className="text-xs">Traffic Split: {newExperiment.traffic}%</Label>
-                                        <Slider
-                                            value={[newExperiment.traffic]}
-                                            onValueChange={([v]) => setNewExperiment({ ...newExperiment, traffic: v })}
-                                            max={100}
-                                            step={5}
-                                            className="mt-2"
-                                        />
-                                    </div>
-                                    <Button className="w-full bg-[#FF4F00] hover:bg-[#E64700]" size="sm">
-                                        <Play className="w-4 h-4 mr-2" />
-                                        Create & Start
-                                    </Button>
+                {/* Main Demo Area */}
+                <div className="max-w-5xl mx-auto">
+                    <div className="grid lg:grid-cols-3 gap-6">
+                        {/* Experiment Selector */}
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="lg:col-span-1"
+                        >
+                            <div className="bg-white rounded-2xl border border-black/[0.06] shadow-lg overflow-hidden">
+                                <div className="p-4 border-b border-black/[0.06] flex items-center justify-between">
+                                    <span className="font-semibold text-[#2D2D2A]">Experiments</span>
+                                    <span className="px-2 py-0.5 bg-[#FFECE0] text-[#FF4F00] text-xs font-medium rounded">Demo</span>
                                 </div>
-                            </Card>
-                        )}
-
-                        <div className="space-y-2">
-                            {demoExperiments.map((exp) => (
-                                <Card
-                                    key={exp.id}
-                                    className={`p-4 cursor-pointer transition-all ${selectedExperiment?.id === exp.id
-                                            ? 'border-2 border-[#FF4F00] bg-[#FFF8F5]'
-                                            : 'hover:border-[#FF4F00]/30'
-                                        }`}
-                                    onClick={() => setSelectedExperiment(exp)}
-                                >
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="font-medium text-sm">{exp.name}</span>
-                                        <Badge
-                                            variant={exp.status === 'running' ? 'default' : 'secondary'}
-                                            className={exp.status === 'running' ? 'bg-[#FF4F00]' : ''}
+                                <div className="p-3 space-y-2">
+                                    {experiments.map(exp => (
+                                        <button
+                                            key={exp.id}
+                                            onClick={() => {
+                                                setSelectedExperiment(exp);
+                                                setShowWinner(false);
+                                            }}
+                                            className={`w-full p-4 rounded-xl text-left transition-all ${selectedExperiment.id === exp.id
+                                                    ? 'bg-[#FFF8F5] border-2 border-[#FF4F00]'
+                                                    : 'bg-gray-50 border border-transparent hover:border-gray-200'
+                                                }`}
                                         >
-                                            {exp.status}
-                                        </Badge>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-xs text-[#8A8A85]">
-                                        {exp.type === 'ab_test' ? (
-                                            <Target className="w-3 h-3" />
-                                        ) : (
-                                            <Flag className="w-3 h-3" />
-                                        )}
-                                        {exp.type === 'ab_test' ? 'A/B Test' : 'Feature Flag'}
-                                        {exp.lift && (
-                                            <span className="ml-auto text-[#FF4F00] font-medium">+{exp.lift}% lift</span>
-                                        )}
-                                    </div>
-                                </Card>
-                            ))}
-                        </div>
-                    </div>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="font-medium text-sm text-[#2D2D2A]">{exp.name}</span>
+                                                {exp.isRunning && (
+                                                    <span className="px-2 py-0.5 bg-[#FF4F00] text-white text-[10px] font-medium rounded-full animate-pulse">
+                                                        Running
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="text-xs text-[#8A8A85] flex items-center gap-1">
+                                                <MousePointer className="w-3 h-3" />
+                                                {exp.element}
+                                            </div>
+                                            {exp.totalVisitors > 0 && (
+                                                <div className="mt-2 text-xs text-[#5C5C57]">
+                                                    {exp.totalVisitors.toLocaleString()} visitors
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
 
-                    {/* Experiment Details */}
-                    <div className="lg:col-span-2">
-                        {selectedExperiment ? (
-                            <Card className="p-6">
+                                {/* Controls */}
+                                <div className="p-4 border-t border-black/[0.06] space-y-3">
+                                    <button
+                                        onClick={toggleExperiment}
+                                        className={`w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${selectedExperiment.isRunning
+                                                ? 'bg-gray-100 text-[#2D2D2A] hover:bg-gray-200'
+                                                : 'bg-[#FF4F00] text-white hover:bg-[#E64700]'
+                                            }`}
+                                    >
+                                        {selectedExperiment.isRunning ? (
+                                            <><Pause className="w-4 h-4" /> Pause Experiment</>
+                                        ) : (
+                                            <><Play className="w-4 h-4" /> Start Experiment</>
+                                        )}
+                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={resetExperiment}
+                                            className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-[#5C5C57] hover:bg-gray-50 flex items-center justify-center gap-1"
+                                        >
+                                            <RotateCcw className="w-3 h-3" /> Reset
+                                        </button>
+                                        <button
+                                            onClick={() => setSimulationSpeed(s => s === 'normal' ? 'fast' : 'normal')}
+                                            className={`flex-1 py-2 rounded-lg border text-sm flex items-center justify-center gap-1 ${simulationSpeed === 'fast'
+                                                    ? 'border-[#FF4F00] text-[#FF4F00] bg-[#FFF8F5]'
+                                                    : 'border-gray-200 text-[#5C5C57] hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            <Zap className="w-3 h-3" /> {simulationSpeed === 'fast' ? '10x Speed' : 'Speed Up'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Results Panel */}
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="lg:col-span-2"
+                        >
+                            <div className="bg-white rounded-2xl border border-black/[0.06] shadow-lg p-6">
                                 <div className="flex items-center justify-between mb-6">
                                     <div>
                                         <h2 className="text-xl font-bold text-[#2D2D2A]">{selectedExperiment.name}</h2>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <Badge
-                                                variant={selectedExperiment.status === 'running' ? 'default' : 'secondary'}
-                                                className={selectedExperiment.status === 'running' ? 'bg-[#FF4F00]' : ''}
-                                            >
-                                                {selectedExperiment.status}
-                                            </Badge>
-                                            <span className="text-sm text-[#8A8A85]">
-                                                {selectedExperiment.type === 'ab_test' ? 'A/B Test' : 'Feature Flag'}
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${selectedExperiment.isRunning
+                                                    ? 'bg-[#FFECE0] text-[#FF4F00]'
+                                                    : 'bg-gray-100 text-[#5C5C57]'
+                                                }`}>
+                                                {selectedExperiment.isRunning ? 'Running' : 'Paused'}
                                             </span>
+                                            <span className="text-sm text-[#8A8A85]">• A/B Test</span>
                                         </div>
                                     </div>
-                                    {selectedExperiment.confidence && selectedExperiment.confidence >= 95 && (
-                                        <div className="flex items-center gap-2 px-4 py-2 bg-[#FFF8F5] rounded-lg border border-[#FF4F00]/20">
-                                            <CheckCircle2 className="w-5 h-5 text-[#FF4F00]" />
-                                            <span className="font-medium text-[#E64700]">Statistical Significance</span>
-                                        </div>
-                                    )}
+                                    <AnimatePresence>
+                                        {showWinner && confidence >= 95 && (
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                className="flex items-center gap-2 px-4 py-2 bg-[#E8F0E8] rounded-lg border border-[#4A6741]/20"
+                                            >
+                                                <CheckCircle2 className="w-5 h-5 text-[#4A6741]" />
+                                                <span className="font-semibold text-[#4A6741]">Statistical Significance!</span>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
 
                                 {/* Variants */}
                                 <div className="space-y-4 mb-6">
                                     {selectedExperiment.variants.map((variant, i) => {
                                         const cvr = variant.visitors > 0
-                                            ? ((variant.conversions / variant.visitors) * 100).toFixed(1)
-                                            : '0.0';
-                                        const isWinner = i === 1 && selectedExperiment.lift && selectedExperiment.lift > 0;
+                                            ? ((variant.conversions / variant.visitors) * 100).toFixed(2)
+                                            : '0.00';
+                                        const isWinner = i === 1 && showWinner && confidence >= 95;
 
                                         return (
-                                            <div
-                                                key={i}
-                                                className={`p-4 rounded-lg ${isWinner
+                                            <motion.div
+                                                key={variant.id}
+                                                layout
+                                                className={`p-4 rounded-xl transition-all ${isWinner
                                                         ? 'bg-[#FFF8F5] border-2 border-[#FF4F00]'
                                                         : 'bg-gray-50 border border-gray-100'
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-3">
                                                         <div
-                                                            className={`w-3 h-3 rounded ${i === 0 ? 'bg-blue-500' : 'bg-[#FF4F00]'
-                                                                }`}
+                                                            className="w-4 h-4 rounded"
+                                                            style={{ backgroundColor: variant.color }}
                                                         />
-                                                        <span className="font-medium">{variant.name}</span>
+                                                        <span className="font-medium text-[#2D2D2A]">{variant.name}</span>
                                                         {isWinner && (
-                                                            <Badge className="bg-[#FF4F00]">
-                                                                <Sparkles className="w-3 h-3 mr-1" />
-                                                                Winner
-                                                            </Badge>
+                                                            <span className="px-2 py-0.5 bg-[#FF4F00] text-white text-[10px] font-bold rounded-full flex items-center gap-1">
+                                                                <Sparkles className="w-3 h-3" /> Winner
+                                                            </span>
                                                         )}
                                                     </div>
                                                     <span className="text-sm text-[#8A8A85]">{variant.traffic}% traffic</span>
                                                 </div>
                                                 <div className="grid grid-cols-3 gap-4 text-center">
                                                     <div>
-                                                        <div className="text-2xl font-bold text-[#2D2D2A]">
+                                                        <motion.div
+                                                            key={variant.visitors}
+                                                            initial={{ scale: 1.1 }}
+                                                            animate={{ scale: 1 }}
+                                                            className="text-2xl font-bold text-[#2D2D2A]"
+                                                        >
                                                             {variant.visitors.toLocaleString()}
-                                                        </div>
+                                                        </motion.div>
                                                         <div className="text-xs text-[#8A8A85]">Visitors</div>
                                                     </div>
                                                     <div>
-                                                        <div className="text-2xl font-bold text-[#2D2D2A]">
+                                                        <motion.div
+                                                            key={variant.conversions}
+                                                            initial={{ scale: 1.1 }}
+                                                            animate={{ scale: 1 }}
+                                                            className="text-2xl font-bold text-[#2D2D2A]"
+                                                        >
                                                             {variant.conversions}
-                                                        </div>
+                                                        </motion.div>
                                                         <div className="text-xs text-[#8A8A85]">Conversions</div>
                                                     </div>
                                                     <div>
-                                                        <div className={`text-2xl font-bold ${isWinner ? 'text-[#FF4F00]' : 'text-[#2D2D2A]'}`}>
+                                                        <motion.div
+                                                            key={cvr}
+                                                            initial={{ scale: 1.1 }}
+                                                            animate={{ scale: 1 }}
+                                                            className={`text-2xl font-bold ${isWinner ? 'text-[#FF4F00]' : 'text-[#2D2D2A]'}`}
+                                                        >
                                                             {cvr}%
-                                                        </div>
+                                                        </motion.div>
                                                         <div className="text-xs text-[#8A8A85]">CVR</div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </motion.div>
                                         );
                                     })}
                                 </div>
 
-                                {/* Results Summary */}
-                                {selectedExperiment.lift && (
-                                    <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-                                        <div className="text-center">
-                                            <TrendingUp className="w-5 h-5 mx-auto mb-1 text-[#FF4F00]" />
-                                            <div className="text-xl font-bold text-[#FF4F00]">+{selectedExperiment.lift}%</div>
-                                            <div className="text-xs text-[#8A8A85]">Lift</div>
+                                {/* Summary Stats */}
+                                <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
+                                    <div className="text-center">
+                                        <TrendingUp className="w-5 h-5 mx-auto mb-1 text-[#FF4F00]" />
+                                        <div className={`text-xl font-bold ${lift > 0 ? 'text-[#FF4F00]' : 'text-[#2D2D2A]'}`}>
+                                            {lift > 0 ? '+' : ''}{lift.toFixed(0)}%
                                         </div>
-                                        <div className="text-center">
-                                            <BarChart3 className="w-5 h-5 mx-auto mb-1 text-[#2D2D2A]" />
-                                            <div className="text-xl font-bold text-[#2D2D2A]">{selectedExperiment.confidence}%</div>
-                                            <div className="text-xs text-[#8A8A85]">Confidence</div>
-                                        </div>
-                                        <div className="text-center">
-                                            <Users className="w-5 h-5 mx-auto mb-1 text-[#2D2D2A]" />
-                                            <div className="text-xl font-bold text-[#2D2D2A]">
-                                                {selectedExperiment.variants.reduce((acc, v) => acc + v.visitors, 0).toLocaleString()}
-                                            </div>
-                                            <div className="text-xs text-[#8A8A85]">Total Visitors</div>
-                                        </div>
+                                        <div className="text-xs text-[#8A8A85]">Lift</div>
                                     </div>
-                                )}
-                            </Card>
-                        ) : (
-                            <Card className="p-8 text-center">
-                                <Beaker className="w-12 h-12 mx-auto mb-4 text-[#8A8A85]" />
-                                <p className="text-[#8A8A85]">Select an experiment to view details</p>
-                            </Card>
-                        )}
+                                    <div className="text-center">
+                                        <BarChart3 className="w-5 h-5 mx-auto mb-1 text-[#2D2D2A]" />
+                                        <div className="text-xl font-bold text-[#2D2D2A]">{confidence.toFixed(0)}%</div>
+                                        <div className="text-xs text-[#8A8A85]">Confidence</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <Users className="w-5 h-5 mx-auto mb-1 text-[#2D2D2A]" />
+                                        <div className="text-xl font-bold text-[#2D2D2A]">
+                                            {selectedExperiment.totalVisitors.toLocaleString()}
+                                        </div>
+                                        <div className="text-xs text-[#8A8A85]">Total Visitors</div>
+                                    </div>
+                                </div>
+
+                                {/* AI Recommendation */}
+                                <AnimatePresence>
+                                    {showWinner && confidence >= 95 && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className="mt-4 p-4 bg-[#E8F0E8] rounded-xl flex items-start gap-3"
+                                        >
+                                            <Sparkles className="w-5 h-5 text-[#4A6741] flex-shrink-0 mt-0.5" />
+                                            <div>
+                                                <p className="font-semibold text-[#4A6741] mb-1">AI Recommendation</p>
+                                                <p className="text-sm text-[#4A6741]/80">
+                                                    Treatment variant is outperforming control by {lift.toFixed(0)}% with {confidence.toFixed(0)}% confidence.
+                                                    Consider deploying the winning variant to 100% of traffic.
+                                                </p>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </motion.div>
                     </div>
                 </div>
 
                 {/* CTA */}
-                <div className="mt-12 text-center">
-                    <Card className="p-8 bg-gradient-to-r from-[#FF4F00] to-[#E64700] text-white border-0">
+                <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="max-w-3xl mx-auto mt-16"
+                >
+                    <div className="bg-gradient-to-r from-[#FF4F00] to-[#E64700] rounded-2xl p-8 text-center text-white">
                         <h2 className="text-2xl font-bold mb-2">Ready to run real experiments?</h2>
                         <p className="text-white/80 mb-6">
                             Get the full experimentation platform included in your SignalsLoop plan.
                         </p>
-                        <div className="flex items-center justify-center gap-4">
-                            <Link href="/signup">
-                                <Button size="lg" className="bg-white text-[#FF4F00] hover:bg-gray-100">
-                                    Start Free Trial →
-                                </Button>
+                        <div className="flex items-center justify-center gap-4 flex-wrap">
+                            <Link
+                                href="/signup"
+                                className="px-6 py-3 bg-white text-[#FF4F00] font-semibold rounded-xl hover:bg-gray-100 transition-colors flex items-center gap-2"
+                            >
+                                Start Free Trial <ArrowRight className="w-4 h-4" />
                             </Link>
-                            <Link href="/pricing">
-                                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                                    View Pricing
-                                </Button>
+                            <Link
+                                href="/products/experiments-hub"
+                                className="px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/10 transition-colors"
+                            >
+                                Learn More
                             </Link>
                         </div>
-                    </Card>
-                </div>
+                    </div>
+                </motion.div>
             </div>
         </div>
     );

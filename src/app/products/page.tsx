@@ -73,6 +73,28 @@ export default function ProductsPage() {
             ],
         },
         {
+            id: 'experiments-hub',
+            icon: '🧪',
+            emoji: '🎯',
+            name: 'Experiments Hub',
+            tagline: 'Ship with confidence, not guesswork',
+            description: 'Full A/B testing and experimentation platform built right in. Run tests, manage feature flags, track real-time results—all without paying $200+/month for a separate tool.',
+            color: 'from-[#FF4F00] to-[#FF6B26]',
+            features: [
+                { title: 'A/B & Multivariate Testing', desc: 'Test any element—headlines, CTAs, layouts, pricing' },
+                { title: 'Visual Editor', desc: 'Point-and-click changes without writing code' },
+                { title: 'Feature Flags', desc: 'Roll out gradually with percentage-based targeting' },
+                { title: 'Real-time Results', desc: 'Watch conversions and confidence update live' },
+                { title: 'User Targeting', desc: 'Target by plan, country, device, or custom attribute' },
+                { title: 'JavaScript SDK', desc: 'One script tag, auto-tracking built in' },
+            ],
+            metrics: [
+                { value: '+34%', label: 'avg conversion lift' },
+                { value: '2 min', label: 'setup time' },
+                { value: '$0', label: 'extra cost' },
+            ],
+        },
+        {
             id: 'insights-hub',
             icon: '📊',
             emoji: '💡',
@@ -161,7 +183,7 @@ export default function ProductsPage() {
                     </div>
                     <h1 className="font-[family-name:var(--font-fraunces)] font-medium text-[#2D2D2A] mb-6"
                         style={{ fontSize: 'clamp(40px, 5vw, 64px)', lineHeight: 1.1 }}>
-                        Six hubs. One platform.<br />Complete product intelligence.
+                        Seven hubs. One platform.<br />Complete product intelligence.
                     </h1>
                     <p className="text-xl text-[#5C5C57] max-w-2xl mx-auto">
                         Each hub handles a critical part of the product lifecycle—from discovering signals to predicting outcomes to shipping with confidence.
@@ -173,8 +195,8 @@ export default function ProductsPage() {
                     <p className="text-xs font-bold uppercase tracking-wider text-[#8A8A85] mb-8 flex items-center gap-2">
                         <span>⭐</span> Core Hubs — Your Competitive Advantage
                     </p>
-                    <div className="grid md:grid-cols-3 gap-6">
-                        {products.slice(0, 3).map((product) => (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {products.slice(0, 4).map((product) => (
                             <div key={product.id} className="bg-white rounded-2xl p-8 border border-black/[0.06] shadow-sm hover:shadow-lg transition-all relative">
                                 <span className="absolute top-6 right-6 px-2 py-0.5 bg-[#FFECE0] rounded text-[10px] font-bold text-[#FF4F00] uppercase">Core</span>
                                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${product.color} flex items-center justify-center text-2xl mb-5`}>
@@ -206,7 +228,7 @@ export default function ProductsPage() {
                 <div className="max-w-7xl mx-auto mb-16">
                     <p className="text-xs font-bold uppercase tracking-wider text-[#8A8A85] mb-6">Supporting Hubs</p>
                     <div className="grid md:grid-cols-3 gap-4">
-                        {products.slice(3).map((product) => (
+                        {products.slice(4).map((product) => (
                             <div key={product.id} className="bg-white rounded-xl p-5 border border-black/[0.06] hover:shadow-md transition-all flex items-start gap-4">
                                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${product.color} flex items-center justify-center text-xl flex-shrink-0`}>
                                     {product.icon}
