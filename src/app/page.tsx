@@ -143,8 +143,8 @@ export default function Homepage() {
                     </DropdownMenuItem>
                   </Link>
                   <Link href="/products/experiments-hub">
-                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-emerald-50">
-                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#10b981] to-[#059669] flex items-center justify-center text-white">🧪</span>
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-orange-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF4F00] to-[#E64700] flex items-center justify-center text-white">🧪</span>
                       <div>
                         <div className="font-semibold text-gray-900">Experiments Hub</div>
                         <div className="text-xs text-gray-500">A/B tests without Optimizely</div>
@@ -273,8 +273,8 @@ export default function Homepage() {
                     </DropdownMenuItem>
                   </Link>
                   <Link href="/demo/experiments">
-                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-emerald-50">
-                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-white">🧪</span>
+                    <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-orange-50">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF4F00] to-[#E64700] flex items-center justify-center text-white">🧪</span>
                       <div>
                         <div className="font-semibold text-gray-900">A/B Testing</div>
                         <div className="text-xs text-gray-500">Create and run experiments</div>
@@ -563,7 +563,7 @@ export default function Homepage() {
                   {[
                     { value: '4hrs → 30s', label: 'spec writing time', color: '#FF4F00' },
                     { value: '43% → 0%', label: 'feedback missed', color: '#4A6741' },
-                    { value: 'A/B Testing', label: 'built-in, no Optimizely', color: '#10b981' },
+                    { value: 'A/B Testing', label: 'built-in, no Optimizely', color: '#FF4F00' },
                     { value: '1 platform', label: 'instead of 5+', color: '#2D2D2A' },
                     { value: '12', label: 'AI agents included', color: '#FF4F00' },
                     { value: '8+', label: 'platforms scanned', color: '#2D2D2A' },
@@ -836,13 +836,13 @@ export default function Homepage() {
         </section>
 
         {/* Section 4.5: Run A/B Tests Without Optimizely */}
-        <section className="py-24 px-6" style={{ background: 'linear-gradient(180deg, #ECFDF5 0%, #D1FAE5 100%)' }}>
+        <section className="py-24 px-6" style={{ background: 'linear-gradient(180deg, #FFF8F5 0%, #FFECE0 100%)' }}>
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#059669]">Experimentation</span>
-                  <span className="px-2 py-0.5 bg-[#10b981]/20 rounded-full text-[10px] font-bold text-[#059669]">🧪 Built-in</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#FF4F00]">Experimentation</span>
+                  <span className="px-2 py-0.5 bg-[#FF4F00]/20 rounded-full text-[10px] font-bold text-[#E64700]">🧪 Built-in</span>
                 </div>
                 <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-5"
                   style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
@@ -859,21 +859,21 @@ export default function Homepage() {
                     'Real-time results + AI recommendations',
                   ].map((item, i) => (
                     <li key={i} className="flex items-center gap-3 text-[15px] text-[#5C5C57]">
-                      <span className="w-5 h-5 rounded-full bg-[#10b981]/20 flex items-center justify-center text-[#059669] text-xs">✓</span>
+                      <span className="w-5 h-5 rounded-full bg-[#FF4F00]/10 flex items-center justify-center text-[#FF4F00] text-xs">✓</span>
                       {item}
                     </li>
                   ))}
                 </ul>
                 <div className="mt-8">
-                  <Link href="/demo/experiments" className="inline-flex items-center gap-2 px-6 py-3 bg-[#10b981] text-white font-semibold rounded-xl hover:bg-[#059669] transition-all shadow-lg">
+                  <Link href="/demo/experiments" className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF4F00] text-white font-semibold rounded-xl hover:bg-[#E64700] transition-all shadow-lg">
                     Try A/B Testing Demo →
                   </Link>
                 </div>
               </div>
-              <div className="bg-white rounded-2xl p-6 border border-[#10b981]/20 shadow-lg">
+              <div className="bg-white rounded-2xl p-6 border border-[#FF4F00]/20 shadow-lg">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-bold text-[#2D2D2A]">Live Experiment</span>
-                  <span className="px-3 py-1 bg-[#10b981]/20 text-[#059669] text-xs font-bold rounded-full animate-pulse">Running</span>
+                  <span className="px-3 py-1 bg-[#FF4F00]/20 text-[#E64700] text-xs font-bold rounded-full animate-pulse">Running</span>
                 </div>
                 <div className="text-xs text-[#8A8A85] uppercase mb-3">CTA Button Color Test</div>
                 <div className="space-y-3">
@@ -884,18 +884,18 @@ export default function Homepage() {
                     </div>
                     <span className="text-sm font-medium">3.2% CVR</span>
                   </div>
-                  <div className="p-3 bg-[#ECFDF5] rounded-lg flex items-center justify-between border-2 border-[#10b981]">
+                  <div className="p-3 bg-[#FFF8F5] rounded-lg flex items-center justify-between border-2 border-[#FF4F00]">
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-green-500"></div>
-                      <span className="text-sm font-medium">Treatment (Green)</span>
-                      <span className="px-2 py-0.5 bg-[#10b981] text-white text-[10px] rounded-full">Winner</span>
+                      <div className="w-4 h-4 rounded bg-[#FF4F00]"></div>
+                      <span className="text-sm font-medium">Treatment (Orange)</span>
+                      <span className="px-2 py-0.5 bg-[#FF4F00] text-white text-[10px] rounded-full">Winner</span>
                     </div>
-                    <span className="text-sm font-bold text-[#059669]">4.8% CVR</span>
+                    <span className="text-sm font-bold text-[#E64700]">4.8% CVR</span>
                   </div>
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
                   <div className="text-xs text-[#5C5C57]">
-                    <span className="font-semibold text-[#059669]">+50% lift</span> · 98% confidence
+                    <span className="font-semibold text-[#FF4F00]">+50% lift</span> · 98% confidence
                   </div>
                   <div className="text-xs text-[#8A8A85]">
                     2,340 visitors
