@@ -24,6 +24,7 @@ import { AppStoreSyncer } from './syncers/appstore-syncer';
 import { PlayStoreSyncer } from './syncers/playstore-syncer';
 import { HackerNewsSyncer } from './syncers/hackernews-syncer';
 import { ProductHuntSyncer } from './syncers/producthunt-syncer';
+import { OutlookSyncer } from './syncers/outlook-syncer';
 
 export class SyncOrchestrator {
   private supabase: SupabaseClient;
@@ -48,6 +49,7 @@ export class SyncOrchestrator {
     this.syncers.set('play_store', new PlayStoreSyncer());
     this.syncers.set('hackernews', new HackerNewsSyncer());
     this.syncers.set('producthunt', new ProductHuntSyncer());
+    this.syncers.set('email_outlook', new OutlookSyncer());
   }
 
   /**

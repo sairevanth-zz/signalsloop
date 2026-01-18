@@ -376,6 +376,7 @@ export const HIDDEN_INTEGRATIONS: IntegrationType[] = [
   'typeform',      // Requires paid Typeform plan for API
   'twitter',       // Twitter API now costs $100+/month
   'g2',            // Enterprise-only API access
+  'producthunt',   // Requires API token that's difficult to obtain
 ];
 
 export const INTEGRATION_CONFIGS: Record<IntegrationType, IntegrationSetupConfig> = {
