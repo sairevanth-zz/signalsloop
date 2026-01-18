@@ -235,10 +235,25 @@ export const config = {
      * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - robots.txt (robots file)
-     * - sitemap.xml (sitemap file)
+     * - favicon.ico, robots.txt, sitemap.xml
      */
     '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
+    // Explicitly match dashboard routes to ensure middleware runs
+    '/:slug/experiments/:path*',
+    '/:slug/settings/:path*',
+    '/:slug/inbox/:path*',
+    '/:slug/polls/:path*',
+    '/:slug/specs/:path*',
+    '/:slug/user-stories/:path*',
+    '/:slug/ai-tools/:path*',
+    '/:slug/churn/:path*',
+    '/:slug/briefs/:path*',
+    '/:slug/competitive/:path*',
+    '/:slug/insights/:path*',
+    '/:slug/anomaly/:path*',
+    '/:slug/predictions/:path*',
+    '/:slug/reasoning/:path*',
+    '/:slug/advocate/:path*',
+    '/:slug/mission-control/:path*',
   ],
 };
