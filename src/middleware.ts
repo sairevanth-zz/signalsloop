@@ -63,6 +63,12 @@ export async function middleware(request: NextRequest) {
 
   // For protected routes, check authentication
   if (needsAuth) {
+    // TEMPORARY DEBUG: Always redirect protected routes to test if middleware runs
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    loginUrl.searchParams.set('middleware_test', 'true');
+    return NextResponse.redirect(loginUrl);
+
     // Quick check: if no Supabase cookies at all, redirect immediately
     const allCookies = request.cookies.getAll();
     const hasAnyCookies = allCookies.some(c => c.name.startsWith('sb-'));
