@@ -5,7 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FlaskConical, Plus, TrendingUp, CheckCircle, Clock, Play } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { ExperimentSuggestions } from '@/components/experiments/ExperimentSuggestions';
+import { FlaskConical, Plus, TrendingUp, CheckCircle, Clock, Play, Sparkles, Zap, Target, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
 
@@ -98,6 +100,7 @@ export default function ExperimentsPage() {
     running: experiments.filter((e) => e.experiment.status === 'running').length,
     completed: experiments.filter((e) => e.experiment.status === 'completed').length,
     significant: experiments.reduce((sum, e) => sum + e.significant_results, 0),
+    winRate: experiments.filter(e => e.significant_results > 0).length / Math.max(1, experiments.filter(e => e.experiment.status === 'completed').length) * 100,
   };
 
   const statusColors: Record<string, string> = {
@@ -131,10 +134,16 @@ export default function ExperimentsPage() {
             AI-powered experiment design and automated tracking
           </p>
         </div>
-        <Button onClick={() => router.push(`/${projectSlug}/experiments/new`)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Experiment
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => router.push(`/${projectSlug}/experiments/new`)}>
+            <Sparkles className="h-4 w-4 mr-2" />
+            AI Experiment Designer
+          </Button>
+          <Button variant="outline" onClick={() => router.push(`/${projectSlug}/experiments/new`)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Manual Create
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}

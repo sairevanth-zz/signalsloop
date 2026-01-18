@@ -21,6 +21,7 @@ import {
 import { toast } from 'sonner';
 import { ResultsChart } from '@/components/experiments/ResultsChart';
 import { LearningsPanel } from '@/components/experiments/LearningsPanel';
+import { AIExperimentWatchdog } from '@/components/experiments/AIExperimentWatchdog';
 
 interface Experiment {
   id: string;
@@ -231,6 +232,9 @@ export default function ExperimentDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* AI Watchdog - Shows for running/paused experiments */}
+      <AIExperimentWatchdog experimentId={experiment.id} experimentStatus={experiment.status} />
 
       {/* Progress & Significance Alert */}
       {experiment.status === 'running' && (
