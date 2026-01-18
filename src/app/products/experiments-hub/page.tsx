@@ -211,43 +211,6 @@ export default function ExperimentsHubPage() {
                     </div>
                 </div>
 
-                {/* Testimonials Section */}
-                <div className="max-w-6xl mx-auto mb-20">
-                    <p className="text-xs font-bold uppercase tracking-wider text-[#8A8A85] text-center mb-8">What Teams Are Saying</p>
-                    <div className="grid md:grid-cols-3 gap-6">
-                        <div className="bg-white rounded-xl p-6 border border-black/[0.06]">
-                            <p className="text-[15px] text-[#5C5C57] italic mb-4">&quot;Finally, A/B testing that doesn&apos;t require a separate $200/month subscription. The visual editor makes it so easy.&quot;</p>
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-[#FF4F00] flex items-center justify-center text-white font-bold">A</div>
-                                <div>
-                                    <div className="font-semibold text-[#2D2D2A]">Alex Rivera</div>
-                                    <div className="text-xs text-[#8A8A85]">Growth Lead</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-xl p-6 border border-black/[0.06]">
-                            <p className="text-[15px] text-[#5C5C57] italic mb-4">&quot;Feature flags + A/B testing in one platform. We can roll out safely and measure impact all in one place.&quot;</p>
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-[#4A6741] flex items-center justify-center text-white font-bold">T</div>
-                                <div>
-                                    <div className="font-semibold text-[#2D2D2A]">Tom Bradley</div>
-                                    <div className="text-xs text-[#8A8A85]">Engineering Manager</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-xl p-6 border border-black/[0.06]">
-                            <p className="text-[15px] text-[#5C5C57] italic mb-4">&quot;The AI recommendations are gold. It told us when we had statistical significance and suggested when to end tests.&quot;</p>
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-[#0091AE] flex items-center justify-center text-white font-bold">L</div>
-                                <div>
-                                    <div className="font-semibold text-[#2D2D2A]">Lisa Chen</div>
-                                    <div className="text-xs text-[#8A8A85]">Product Manager</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 {/* Why SignalsLoop Section */}
                 <div className="max-w-4xl mx-auto mb-20">
                     <h2 className="font-[family-name:var(--font-fraunces)] text-3xl font-semibold text-[#2D2D2A] text-center mb-12">Why Choose Built-in Experimentation?</h2>

@@ -14,6 +14,7 @@ import {
 const productLinks = [
     { href: '/products/feedback-hub', icon: '📬', name: 'Feedback Hub', desc: 'Hunt signals across 8 platforms' },
     { href: '/products/spec-hub', icon: '✏️', name: 'Spec Hub', desc: 'PRDs in 30 seconds' },
+    { href: '/products/experiments-hub', icon: '🧪', name: 'Experiments Hub', desc: 'Built-in A/B testing' },
     { href: '/products/prediction-hub', icon: '🔮', name: 'Prediction Hub', desc: 'Know before you build' },
     { href: '/products/insights-hub', icon: '📊', name: 'Insights Hub', desc: 'See patterns humans miss' },
     { href: '/products/advocate-hub', icon: '😈', name: 'Advocate Hub', desc: 'Challenge assumptions' },
@@ -55,7 +56,7 @@ export function SiteNav() {
                                         <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF4F00] to-[#FF6B26] flex items-center justify-center text-white">📋</span>
                                         <div>
                                             <div className="font-semibold text-gray-900">All Products</div>
-                                            <div className="text-xs text-gray-500">Overview of all 6 hubs</div>
+                                            <div className="text-xs text-gray-500">Overview of all 7 hubs</div>
                                         </div>
                                     </DropdownMenuItem>
                                 </Link>
