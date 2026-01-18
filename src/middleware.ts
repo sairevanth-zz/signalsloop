@@ -61,45 +61,80 @@ export async function middleware(request: NextRequest) {
   const isPublicPath = publicPaths.some(path => pathname === path || pathname.startsWith(path + '/'));
   const needsAuth = isProtectedSlugRoute(pathname);
 
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    try {
-      const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        {
-          cookies: {
-            getAll() {
-              return request.cookies.getAll();
+  // For protected routes, check authentication
+  if (needsAuth) {
+    // Check for Supabase auth cookies
+    const hasAuthCookies = request.cookies.getAll().some(
+      cookie => cookie.name.includes('sb-') && cookie.name.includes('-auth-token')
+    );
+
+    if (!hasAuthCookies) {
+      // No auth cookies present - redirect to login immediately
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      const response = NextResponse.redirect(loginUrl);
+      return finalize(response);
+    }
+
+    // Verify the session is valid with Supabase
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      try {
+        const supabase = createServerClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          {
+            cookies: {
+              getAll() {
+                return request.cookies.getAll();
+              },
+              setAll(cookies) {
+                supabaseCookies.splice(0, supabaseCookies.length, ...cookies);
+              },
             },
-            setAll(cookies) {
-              supabaseCookies.splice(0, supabaseCookies.length, ...cookies);
-            },
-          },
+          }
+        );
+
+        const { data: { user }, error } = await supabase.auth.getUser();
+
+        if (error || !user) {
+          // Invalid session - redirect to login
+          const loginUrl = new URL('/login', request.url);
+          loginUrl.searchParams.set('redirect', pathname);
+          const response = NextResponse.redirect(loginUrl);
+          return finalize(response);
         }
-      );
-
-      const { data: { user } } = await supabase.auth.getUser();
-
-      // If route needs auth and user is not authenticated, redirect to login
-      if (needsAuth && !user) {
-        const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.set('redirect', pathname);
-        const response = NextResponse.redirect(loginUrl);
-        return finalize(response);
-      }
-    } catch (error) {
-      console.error('Supabase middleware error:', error);
-      // On auth error for protected routes, redirect to login
-      if (needsAuth) {
+      } catch (error) {
+        console.error('Supabase middleware auth error:', error);
+        // On error, redirect to login for protected routes
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('redirect', pathname);
         const response = NextResponse.redirect(loginUrl);
         return finalize(response);
       }
     }
-  } else if (!supabaseEnvWarningLogged) {
-    console.warn('Supabase environment variables are missing; SSR auth disabled in middleware.');
-    supabaseEnvWarningLogged = true;
+  } else {
+    // For non-protected routes, just refresh the session if cookies exist
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      try {
+        const supabase = createServerClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          {
+            cookies: {
+              getAll() {
+                return request.cookies.getAll();
+              },
+              setAll(cookies) {
+                supabaseCookies.splice(0, supabaseCookies.length, ...cookies);
+              },
+            },
+          }
+        );
+        await supabase.auth.getUser();
+      } catch (error) {
+        // Silently ignore for non-protected routes
+      }
+    }
   }
 
   // Apply rate limiting to all API routes
