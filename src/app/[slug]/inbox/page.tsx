@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InboxList, InboxItemDetail, IntegrationWizard } from '@/components/inbox';
+import { CSVImport } from '@/components/inbox/CSVImport';
 import {
   UnifiedFeedbackItem,
   FeedbackIntegration,
@@ -28,6 +29,7 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 export default function InboxPage() {
@@ -41,6 +43,7 @@ export default function InboxPage() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
+  const [showCSVImport, setShowCSVImport] = useState(false);
 
   // Fetch project ID from slug
   useEffect(() => {
@@ -173,9 +176,9 @@ export default function InboxPage() {
                 <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-3">
                   <Plug className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">15+ Integrations</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">8 Integrations</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Connect Slack, Intercom, Gmail, Twitter, G2, App Store, and more.
+                  Connect Slack, Discord, Gmail, Outlook, App Store, Google Play, Reddit, and more.
                 </p>
               </div>
               <div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
@@ -205,6 +208,16 @@ export default function InboxPage() {
           open={showWizard}
           onClose={() => setShowWizard(false)}
           onComplete={handleIntegrationComplete}
+        />
+
+        <CSVImport
+          projectId={projectId || ''}
+          open={showCSVImport}
+          onClose={() => setShowCSVImport(false)}
+          onComplete={(result) => {
+            setShowCSVImport(false);
+            window.location.reload();
+          }}
         />
       </div>
     );
@@ -261,6 +274,11 @@ export default function InboxPage() {
               <Plus className="h-4 w-4 mr-2" />
               Add Integration
             </Button>
+
+            <Button variant="outline" size="sm" onClick={() => setShowCSVImport(true)}>
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Import CSV
+            </Button>
           </div>
         </div>
       </div>
@@ -300,6 +318,17 @@ export default function InboxPage() {
         open={showWizard}
         onClose={() => setShowWizard(false)}
         onComplete={handleIntegrationComplete}
+      />
+
+      {/* CSV Import */}
+      <CSVImport
+        projectId={projectId || ''}
+        open={showCSVImport}
+        onClose={() => setShowCSVImport(false)}
+        onComplete={(result) => {
+          setShowCSVImport(false);
+          window.location.reload();
+        }}
       />
     </div>
   );
