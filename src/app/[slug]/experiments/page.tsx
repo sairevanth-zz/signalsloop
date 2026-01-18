@@ -189,6 +189,17 @@ export default function ExperimentsPage() {
         </Card>
       </div>
 
+      {/* AI Experiment Suggestions */}
+      {projectId && (
+        <ExperimentSuggestions
+          projectId={projectId}
+          onCreateExperiment={(suggestion) => {
+            // Navigate to experiment creation with the suggestion prefilled
+            router.push(`/${projectSlug}/experiments/new?hypothesis=${encodeURIComponent(suggestion.hypothesis)}&title=${encodeURIComponent(suggestion.title)}`);
+          }}
+        />
+      )}
+
       {/* Filters */}
       <div className="flex gap-2">
         {['all', 'draft', 'running', 'completed'].map((status) => (
