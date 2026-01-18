@@ -35,6 +35,25 @@ export async function middleware(request: NextRequest) {
     '/hunter',
   ];
 
+  // Public paths that don't require auth (even if they match protected patterns)
+  const publicPaths = [
+    '/demo',          // All demo pages are public
+    '/products',      // All product pages are public
+    '/pricing',       // Pricing page
+    '/login',         // Login page
+    '/signup',        // Signup page
+    '/agents',        // Agents page
+    '/features',      // Features page
+    '/solutions',     // Solutions page
+    '/docs',          // Documentation
+  ];
+
+  // Check if this is a public path first
+  const isPublicPath = publicPaths.some(p => pathname.startsWith(p));
+  if (isPublicPath) {
+    return NextResponse.next();
+  }
+
   // Check if this is a protected [slug] route
   const pathParts = pathname.split('/');
   const isProtectedRoute = pathParts.length >= 3 &&
