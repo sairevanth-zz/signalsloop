@@ -160,7 +160,7 @@ CREATE POLICY "Users can view experiment variants for their projects" ON experim
       SELECT 1 FROM experiments e
       JOIN projects p ON e.project_id = p.id
       WHERE e.id = experiment_variants.experiment_id
-      AND p.user_id = auth.uid()
+      AND p.owner_id = auth.uid()
     )
   );
 
@@ -170,7 +170,7 @@ CREATE POLICY "Users can manage experiment variants for their projects" ON exper
       SELECT 1 FROM experiments e
       JOIN projects p ON e.project_id = p.id
       WHERE e.id = experiment_variants.experiment_id
-      AND p.user_id = auth.uid()
+      AND p.owner_id = auth.uid()
     )
   );
 
@@ -190,7 +190,7 @@ CREATE POLICY "Users can view experiment events for their projects" ON experimen
       SELECT 1 FROM experiments e
       JOIN projects p ON e.project_id = p.id
       WHERE e.id = experiment_events.experiment_id
-      AND p.user_id = auth.uid()
+      AND p.owner_id = auth.uid()
     )
   );
 
@@ -200,7 +200,7 @@ CREATE POLICY "Users can manage experiment goals for their projects" ON experime
       SELECT 1 FROM experiments e
       JOIN projects p ON e.project_id = p.id
       WHERE e.id = experiment_goals.experiment_id
-      AND p.user_id = auth.uid()
+      AND p.owner_id = auth.uid()
     )
   );
 
@@ -210,7 +210,7 @@ CREATE POLICY "Users can view experiment results for their projects" ON experime
       SELECT 1 FROM experiments e
       JOIN projects p ON e.project_id = p.id
       WHERE e.id = experiment_results.experiment_id
-      AND p.user_id = auth.uid()
+      AND p.owner_id = auth.uid()
     )
   );
 

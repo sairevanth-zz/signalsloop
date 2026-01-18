@@ -106,7 +106,7 @@ CREATE POLICY "Users can manage feature flags for their projects" ON feature_fla
     EXISTS (
       SELECT 1 FROM projects p
       WHERE p.id = feature_flags.project_id
-      AND p.user_id = auth.uid()
+      AND p.owner_id = auth.uid()
     )
   );
 
@@ -116,7 +116,7 @@ CREATE POLICY "Users can manage flag environments for their projects" ON feature
       SELECT 1 FROM feature_flags ff
       JOIN projects p ON ff.project_id = p.id
       WHERE ff.id = feature_flag_environments.flag_id
-      AND p.user_id = auth.uid()
+      AND p.owner_id = auth.uid()
     )
   );
 
@@ -126,7 +126,7 @@ CREATE POLICY "Users can view flag history for their projects" ON feature_flag_h
       SELECT 1 FROM feature_flags ff
       JOIN projects p ON ff.project_id = p.id
       WHERE ff.id = feature_flag_history.flag_id
-      AND p.user_id = auth.uid()
+      AND p.owner_id = auth.uid()
     )
   );
 
@@ -140,6 +140,6 @@ CREATE POLICY "Users can view flag evaluations for their projects" ON feature_fl
       SELECT 1 FROM feature_flags ff
       JOIN projects p ON ff.project_id = p.id
       WHERE ff.id = feature_flag_evaluations.flag_id
-      AND p.user_id = auth.uid()
+      AND p.owner_id = auth.uid()
     )
   );
