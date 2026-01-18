@@ -10,6 +10,17 @@ export async function middleware(request: NextRequest) {
   const host = request.headers.get('host');
   const pathname = request.nextUrl.pathname;
 
+  // TEMPORARY DEBUG: Test if middleware runs AT ALL
+  // Check for protected paths using simple string matching
+  const protectedPaths = ['/experiments', '/settings', '/inbox', '/polls', '/specs', '/user-stories', '/ai-tools', '/churn', '/briefs', '/competitive', '/insights', '/anomaly', '/predictions', '/reasoning', '/advocate', '/mission-control'];
+  const pathParts = pathname.split('/');
+  if (pathParts.length >= 3 && protectedPaths.some(p => pathname.includes(p))) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    loginUrl.searchParams.set('test', 'middleware-runs');
+    return NextResponse.redirect(loginUrl);
+  }
+
   const supabaseCookies: CookieOptionsWithName[] = [];
 
   const applySupabaseCookies = (response: NextResponse) => {
