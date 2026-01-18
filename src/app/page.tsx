@@ -147,7 +147,7 @@ export default function Homepage() {
                       <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF4F00] to-[#E64700] flex items-center justify-center text-white">🧪</span>
                       <div>
                         <div className="font-semibold text-gray-900">Experiments Hub</div>
-                        <div className="text-xs text-gray-500">A/B tests without Optimizely</div>
+                        <div className="text-xs text-gray-500">Built-in A/B testing</div>
                       </div>
                     </DropdownMenuItem>
                   </Link>
@@ -463,7 +463,7 @@ export default function Homepage() {
 
           {/* Hero Subtitle */}
           <p className="text-xl text-[#5C5C57] max-w-2xl mx-auto mb-10 leading-relaxed">
-            AI hunts feedback from 8 platforms. Runs A/B tests like Optimizely. Writes specs in 30 seconds. You decide what ships.
+            AI hunts feedback from 8 platforms. Runs A/B tests built-in. Writes specs in 30 seconds. You decide what ships.
           </p>
 
           {/* Prism Visual */}
@@ -563,7 +563,7 @@ export default function Homepage() {
                   {[
                     { value: '4hrs → 30s', label: 'spec writing time', color: '#FF4F00' },
                     { value: '43% → 0%', label: 'feedback missed', color: '#4A6741' },
-                    { value: 'A/B Testing', label: 'built-in, no Optimizely', color: '#FF4F00' },
+                    { value: 'A/B Testing', label: 'built-in experimentation', color: '#FF4F00' },
                     { value: '1 platform', label: 'instead of 5+', color: '#2D2D2A' },
                     { value: '12', label: 'AI agents included', color: '#FF4F00' },
                     { value: '8+', label: 'platforms scanned', color: '#2D2D2A' },
@@ -707,7 +707,7 @@ export default function Homepage() {
                 <ul className="space-y-3">
                   {[
                     'ML-based success prediction',
-                    'Sync with LaunchDarkly & Optimizely',
+                    'Sync with feature flag providers',
                     'Compare against historical patterns',
                     'Devil\'s Advocate challenges assumptions',
                   ].map((item, i) => (
@@ -835,7 +835,7 @@ export default function Homepage() {
           </div>
         </section>
 
-        {/* Section 4.5: Run A/B Tests Without Optimizely */}
+        {/* Section 4.5: Run A/B Tests Built-in */}
         <section className="py-24 px-6" style={{ background: 'linear-gradient(180deg, #FFF8F5 0%, #FFECE0 100%)' }}>
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -846,7 +846,7 @@ export default function Homepage() {
                 </div>
                 <h2 className="font-[family-name:var(--font-fraunces)] font-semibold text-[#2D2D2A] mb-5"
                   style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', lineHeight: 1.2 }}>
-                  Run A/B tests without Optimizely
+                  Run A/B tests—built right in
                 </h2>
                 <p className="text-[17px] text-[#5C5C57] leading-relaxed mb-6">
                   Full experimentation platform built right in. Feature flags, visual editor, real-time results—all included in your plan. No extra $200/month tool required.
@@ -1315,8 +1315,8 @@ export default function Homepage() {
                 <h3 className="text-sm font-bold text-[#8A8A85] uppercase tracking-wider mb-4">A/B Testing</h3>
                 <div className="flex flex-wrap gap-3">
                   {[
-                    { name: 'LaunchDarkly', icon: '🚀' },
-                    { name: 'Optimizely', icon: '🎯' },
+                    { name: 'Built-in Experiments', icon: '🧪' },
+                    { name: 'Feature Flags', icon: '🚩' },
                   ].map((tool) => (
                     <div key={tool.name} className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-black/[0.06] text-sm font-medium text-[#2D2D2A]">
                       <span>{tool.icon}</span>
@@ -1324,7 +1324,7 @@ export default function Homepage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-[#8A8A85] mt-3">Sync experiment results automatically</p>
+                <p className="text-xs text-[#8A8A85] mt-3">No external tools needed—included free</p>
               </div>
 
               {/* Analytics & AI */}
