@@ -63,7 +63,18 @@ export async function middleware(request: NextRequest) {
 
   // For protected routes, check authentication
   if (needsAuth) {
-    // Create Supabase client to check session
+    // Quick check: if no Supabase cookies at all, redirect immediately
+    const allCookies = request.cookies.getAll();
+    const hasAnyCookies = allCookies.some(c => c.name.startsWith('sb-'));
+
+    if (!hasAnyCookies) {
+      // No Supabase cookies = definitely not authenticated
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Create Supabase client to verify the session
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       try {
         const supabase = createServerClient(
