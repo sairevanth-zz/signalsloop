@@ -22,7 +22,8 @@ export type IntegrationType =
   | 'producthunt'
   | 'hackernews'
   | 'typeform'
-  | 'widget';
+  | 'widget'
+  | 'csv_import';
 
 export interface IntegrationConfig {
   // Common config
@@ -554,6 +555,17 @@ export const INTEGRATION_CONFIGS: Record<IntegrationType, IntegrationSetupConfig
     category: 'custom',
     setupSteps: [
       { id: 'installed', title: 'Widget Installed', description: 'Your widget is automatically connected', completed: true },
+    ],
+  },
+  csv_import: {
+    type: 'csv_import',
+    name: 'CSV Import',
+    description: 'Import feedback from any CSV file',
+    icon: '/integrations/csv.svg',
+    authType: 'none',
+    category: 'custom',
+    setupSteps: [
+      { id: 'upload', title: 'Upload CSV', description: 'Upload a CSV file with feedback data', completed: false },
     ],
   },
 };
