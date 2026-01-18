@@ -23,6 +23,44 @@ export async function middleware(request: NextRequest) {
     return response;
   };
 
+  // List of public paths that don't require authentication
+  const publicPaths = [
+    '/',
+    '/login',
+    '/signup',
+    '/auth',
+    '/pricing',
+    '/features',
+    '/about',
+    '/support',
+    '/terms',
+    '/privacy',
+    '/demo',
+    '/board',       // Public boards are accessible
+    '/roadmap',     // Public roadmaps are accessible  
+    '/changelog',   // Public changelogs are accessible
+    '/post',        // Individual posts are public
+    '/widget-test',
+    '/test-board',
+    '/welcome',
+    '/unsubscribe',
+    '/solutions',
+    '/embed',
+  ];
+
+  const finalize = (response: NextResponse) => applySecurityHeaders(applySupabaseCookies(response));
+
+  // Check if the path is a protected [slug] route (dashboard routes)
+  const isProtectedSlugRoute = (path: string) => {
+    // Match pattern like /[slug]/experiments, /[slug]/settings, etc.
+    const slugRoutePattern = /^\/[^\/]+\/(experiments|settings|inbox|polls|specs|user-stories|ai-tools|churn|briefs|competitive|insights|anomaly|predictions|reasoning|advocate|mission-control|roadmap-admin|feedback)/;
+    return slugRoutePattern.test(path);
+  };
+
+  // Check if the current path requires authentication
+  const isPublicPath = publicPaths.some(path => pathname === path || pathname.startsWith(path + '/'));
+  const needsAuth = isProtectedSlugRoute(pathname);
+
   if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     try {
       const supabase = createServerClient(
@@ -40,16 +78,29 @@ export async function middleware(request: NextRequest) {
         }
       );
 
-      await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // If route needs auth and user is not authenticated, redirect to login
+      if (needsAuth && !user) {
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('redirect', pathname);
+        const response = NextResponse.redirect(loginUrl);
+        return finalize(response);
+      }
     } catch (error) {
       console.error('Supabase middleware error:', error);
+      // On auth error for protected routes, redirect to login
+      if (needsAuth) {
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('redirect', pathname);
+        const response = NextResponse.redirect(loginUrl);
+        return finalize(response);
+      }
     }
   } else if (!supabaseEnvWarningLogged) {
     console.warn('Supabase environment variables are missing; SSR auth disabled in middleware.');
     supabaseEnvWarningLogged = true;
   }
-
-  const finalize = (response: NextResponse) => applySecurityHeaders(applySupabaseCookies(response));
 
   // Apply rate limiting to all API routes
   if (pathname.startsWith('/api/')) {
@@ -91,7 +142,7 @@ export async function middleware(request: NextRequest) {
   try {
     // Create a new URL with the custom domain resolution
     const url = request.nextUrl.clone();
-    
+
     // If it's a custom domain, we need to resolve it to the project slug
     // For now, we'll redirect to a special handler that will resolve the domain
     if (pathname === '/') {
