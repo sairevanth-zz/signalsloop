@@ -63,20 +63,7 @@ export async function middleware(request: NextRequest) {
 
   // For protected routes, check authentication
   if (needsAuth) {
-    // Check for Supabase auth cookies
-    const hasAuthCookies = request.cookies.getAll().some(
-      cookie => cookie.name.includes('sb-') && cookie.name.includes('-auth-token')
-    );
-
-    if (!hasAuthCookies) {
-      // No auth cookies present - redirect to login immediately
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      const response = NextResponse.redirect(loginUrl);
-      return finalize(response);
-    }
-
-    // Verify the session is valid with Supabase
+    // Create Supabase client to check session
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       try {
         const supabase = createServerClient(
@@ -94,26 +81,35 @@ export async function middleware(request: NextRequest) {
           }
         );
 
-        const { data: { user }, error } = await supabase.auth.getUser();
+        // Get user - this validates the session
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (error || !user) {
-          // Invalid session - redirect to login
+        if (!user) {
+          // No valid user session - redirect to login
+          console.log('[Middleware] No user session for protected route:', pathname);
           const loginUrl = new URL('/login', request.url);
           loginUrl.searchParams.set('redirect', pathname);
-          const response = NextResponse.redirect(loginUrl);
-          return finalize(response);
+          return NextResponse.redirect(loginUrl);
         }
+
+        // User is authenticated - continue
+        console.log('[Middleware] User authenticated:', user.email);
       } catch (error) {
-        console.error('Supabase middleware auth error:', error);
-        // On error, redirect to login for protected routes
+        // Auth error - redirect to login for safety
+        console.error('[Middleware] Auth error:', error);
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('redirect', pathname);
-        const response = NextResponse.redirect(loginUrl);
-        return finalize(response);
+        return NextResponse.redirect(loginUrl);
       }
+    } else {
+      // No Supabase env vars - redirect to login as fallback
+      console.error('[Middleware] Missing Supabase env vars for auth check');
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(loginUrl);
     }
   } else {
-    // For non-protected routes, just refresh the session if cookies exist
+    // For non-protected routes, just refresh the session if possible
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       try {
         const supabase = createServerClient(
@@ -131,7 +127,7 @@ export async function middleware(request: NextRequest) {
           }
         );
         await supabase.auth.getUser();
-      } catch (error) {
+      } catch {
         // Silently ignore for non-protected routes
       }
     }
