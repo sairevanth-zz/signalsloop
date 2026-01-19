@@ -24,6 +24,7 @@ import { LearningsPanel } from '@/components/experiments/LearningsPanel';
 import { AIExperimentWatchdog } from '@/components/experiments/AIExperimentWatchdog';
 import { ExperimentResultsDashboard } from '@/components/experiments/ExperimentResultsDashboard';
 import { ExperimentSetup } from '@/components/experiments/ExperimentSetup';
+import { VisualEditor } from '@/components/experiments/VisualEditor';
 
 interface Experiment {
   id: string;
@@ -79,6 +80,8 @@ export default function ExperimentDetailsPage() {
   const [results, setResults] = useState<ExperimentResult[]>([]);
   const [learnings, setLearnings] = useState<Learning[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showVisualEditor, setShowVisualEditor] = useState(false);
+  const [visualEditorUrl, setVisualEditorUrl] = useState('');
 
   // Fetch experiment data
   useEffect(() => {
@@ -259,7 +262,7 @@ export default function ExperimentDetailsPage() {
       </div>
 
       {/* Setup Flow - Shows for draft experiments */}
-      {experiment.status === 'draft' && (
+      {experiment.status === 'draft' && !showVisualEditor && (
         <ExperimentSetup
           experiment={{
             id: experiment.id,
@@ -269,7 +272,36 @@ export default function ExperimentDetailsPage() {
           }}
           projectSlug={projectSlug}
           onStart={() => handleUpdateStatus('running')}
+          onStartVisualEditor={(url) => {
+            setVisualEditorUrl(url);
+            setShowVisualEditor(true);
+          }}
           onGenerateKey={handleGenerateFeatureFlagKey}
+        />
+      )}
+
+      {/* Visual Editor - Shows when user chooses no-code option */}
+      {experiment.status === 'draft' && showVisualEditor && (
+        <VisualEditor
+          experimentId={experiment.id}
+          variantKey="treatment"
+          targetUrl={visualEditorUrl}
+          onSave={async (changes) => {
+            // Save changes to the experiment
+            try {
+              await fetch(`/api/experiments/${experimentId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ visual_changes: changes }),
+              });
+              toast.success('Visual changes saved!');
+              setShowVisualEditor(false);
+              handleUpdateStatus('running');
+            } catch {
+              toast.error('Failed to save changes');
+            }
+          }}
+          onCancel={() => setShowVisualEditor(false)}
         />
       )}
 
