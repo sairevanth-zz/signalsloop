@@ -23,6 +23,7 @@ import { ResultsChart } from '@/components/experiments/ResultsChart';
 import { LearningsPanel } from '@/components/experiments/LearningsPanel';
 import { AIExperimentWatchdog } from '@/components/experiments/AIExperimentWatchdog';
 import { ExperimentResultsDashboard } from '@/components/experiments/ExperimentResultsDashboard';
+import { ExperimentSetup } from '@/components/experiments/ExperimentSetup';
 
 interface Experiment {
   id: string;
@@ -72,8 +73,8 @@ interface Learning {
 export default function ExperimentDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const experimentId = params.id as string;
-  const projectSlug = params.slug as string;
+  const experimentId = (params?.id as string) || '';
+  const projectSlug = (params?.slug as string) || '';
   const [experiment, setExperiment] = useState<Experiment | null>(null);
   const [results, setResults] = useState<ExperimentResult[]>([]);
   const [learnings, setLearnings] = useState<Learning[]>([]);
@@ -113,7 +114,8 @@ export default function ExperimentDetailsPage() {
       });
 
       if (response.ok) {
-        setExperiment({ ...experiment, status: newStatus as any });
+        const data = await response.json();
+        setExperiment(data.experiment || { ...experiment, status: newStatus as any });
         toast.success(`Experiment ${newStatus}`);
       } else {
         toast.error('Failed to update status');
@@ -122,6 +124,34 @@ export default function ExperimentDetailsPage() {
       console.error('Error updating status:', error);
       toast.error('Failed to update status');
     }
+  };
+
+  const handleGenerateFeatureFlagKey = async (): Promise<string> => {
+    // Generate a slug-friendly key from experiment name
+    const baseKey = experiment?.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+      .substring(0, 40);
+
+    const key = `${baseKey}-${Date.now().toString(36)}`;
+
+    // Save the feature flag key to the experiment
+    try {
+      const response = await fetch(`/api/experiments/${experimentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feature_flag_key: key }),
+      });
+
+      if (response.ok && experiment) {
+        setExperiment({ ...experiment, feature_flag_key: key });
+      }
+    } catch (error) {
+      console.error('Error saving feature flag key:', error);
+    }
+
+    return key;
   };
 
   const handleExtractLearnings = async () => {
@@ -204,14 +234,8 @@ export default function ExperimentDetailsPage() {
             <p className="text-muted-foreground">{experiment.description}</p>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons - Only show for non-draft experiments */}
           <div className="flex gap-2">
-            {experiment.status === 'draft' && (
-              <Button onClick={() => handleUpdateStatus('running')}>
-                <Play className="h-4 w-4 mr-2" />
-                Start Experiment
-              </Button>
-            )}
             {experiment.status === 'running' && (
               <>
                 <Button variant="outline" onClick={() => handleUpdateStatus('paused')}>
@@ -233,6 +257,21 @@ export default function ExperimentDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Setup Flow - Shows for draft experiments */}
+      {experiment.status === 'draft' && (
+        <ExperimentSetup
+          experiment={{
+            id: experiment.id,
+            name: experiment.name,
+            feature_flag_key: experiment.feature_flag_key,
+            primary_metric: experiment.primary_metric,
+          }}
+          projectSlug={projectSlug}
+          onStart={() => handleUpdateStatus('running')}
+          onGenerateKey={handleGenerateFeatureFlagKey}
+        />
+      )}
 
       {/* AI Watchdog - Shows for running/paused experiments */}
       <AIExperimentWatchdog experimentId={experiment.id} experimentStatus={experiment.status} />

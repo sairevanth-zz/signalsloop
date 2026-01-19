@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ExperimentSuggestions } from '@/components/experiments/ExperimentSuggestions';
-import { FlaskConical, Plus, TrendingUp, CheckCircle, Clock, Play, Sparkles, Zap, Target, BarChart3 } from 'lucide-react';
+import { FlaskConical, Plus, TrendingUp, CheckCircle, Clock, Play, Sparkles, Zap, Target, BarChart3, Trophy, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
 
@@ -34,7 +34,7 @@ interface ExperimentWithStats {
 export default function ExperimentsPage() {
   const params = useParams();
   const router = useRouter();
-  const projectSlug = params.slug as string;
+  const projectSlug = (params?.slug as string) || '';
   const [experiments, setExperiments] = useState<ExperimentWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
@@ -147,7 +147,7 @@ export default function ExperimentsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -185,6 +185,16 @@ export default function ExperimentsPage() {
               <p className="text-3xl font-bold mt-1">{stats.significant}</p>
             </div>
             <TrendingUp className="h-8 w-8 text-orange-500" />
+          </div>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Win Rate</p>
+              <p className="text-3xl font-bold mt-1 text-green-600">{stats.winRate.toFixed(0)}%</p>
+            </div>
+            <Trophy className="h-8 w-8 text-green-500" />
           </div>
         </Card>
       </div>

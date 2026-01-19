@@ -59,6 +59,11 @@ interface ExperimentConfig {
     goals: Goal[];
     trafficAllocation: number;
     targetingRules: Record<string, unknown>;
+    // New parameters for Step 5
+    successCriteria: string;
+    minimumDetectableEffect: number;
+    sampleSizeTarget: number;
+    secondaryMetrics: string[];
 }
 
 interface Props {
@@ -102,6 +107,7 @@ const goalTypes: { type: GoalType; name: string; icon: typeof Eye }[] = [
 export function ExperimentWizard({ projectId, onComplete, onCancel }: Props) {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [newMetric, setNewMetric] = useState('');
     const [config, setConfig] = useState<ExperimentConfig>({
         name: '',
         hypothesis: '',
@@ -115,9 +121,14 @@ export function ExperimentWizard({ projectId, onComplete, onCancel }: Props) {
         ],
         trafficAllocation: 100,
         targetingRules: {},
+        // New parameters
+        successCriteria: 'Ship if primary metric improves >10% with p<0.05',
+        minimumDetectableEffect: 10,
+        sampleSizeTarget: 5000,
+        secondaryMetrics: [],
     });
 
-    const totalSteps = 4;
+    const totalSteps = 5;
 
     const updateConfig = (updates: Partial<ExperimentConfig>) => {
         setConfig(prev => ({ ...prev, ...updates }));
@@ -182,7 +193,11 @@ export function ExperimentWizard({ projectId, onComplete, onCancel }: Props) {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            // Create experiment
+            // Find control and treatment descriptions from variants
+            const controlVariant = config.variants.find(v => v.isControl);
+            const treatmentVariant = config.variants.find(v => !v.isControl);
+
+            // Create experiment with all parameters
             const expResponse = await fetch('/api/experiments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -193,8 +208,15 @@ export function ExperimentWizard({ projectId, onComplete, onCancel }: Props) {
                     experimentType: config.type,
                     experimentMode: config.type,
                     primaryMetric: config.goals.find(g => g.isPrimary)?.name || 'conversion',
+                    secondaryMetrics: config.secondaryMetrics,
                     trafficAllocation: config.trafficAllocation,
                     targetingRules: config.targetingRules,
+                    // New parameters from Step 5
+                    successCriteria: config.successCriteria,
+                    minimumDetectableEffect: config.minimumDetectableEffect / 100, // Convert to decimal
+                    sampleSizeTarget: config.sampleSizeTarget,
+                    controlDescription: controlVariant?.description || '',
+                    treatmentDescription: treatmentVariant?.description || '',
                 }),
             });
 
@@ -228,18 +250,18 @@ export function ExperimentWizard({ projectId, onComplete, onCancel }: Props) {
         <div className="max-w-3xl mx-auto">
             {/* Progress Steps */}
             <div className="flex items-center justify-between mb-8">
-                {['Type', 'Details', 'Variants', 'Goals'].map((label, i) => (
+                {['Type', 'Details', 'Variants', 'Goals', 'Parameters'].map((label, i) => (
                     <div key={label} className="flex items-center">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step > i + 1 ? 'bg-green-500 text-white' :
-                                step === i + 1 ? 'bg-blue-500 text-white' :
-                                    'bg-gray-200 text-gray-500 dark:bg-gray-700'
+                            step === i + 1 ? 'bg-blue-500 text-white' :
+                                'bg-gray-200 text-gray-500 dark:bg-gray-700'
                             }`}>
                             {step > i + 1 ? <CheckCircle className="h-4 w-4" /> : i + 1}
                         </div>
                         <span className={`ml-2 text-sm ${step === i + 1 ? 'font-medium' : 'text-muted-foreground'}`}>
                             {label}
                         </span>
-                        {i < 3 && <div className="w-12 h-0.5 bg-gray-200 dark:bg-gray-700 mx-4" />}
+                        {i < 4 && <div className="w-8 h-0.5 bg-gray-200 dark:bg-gray-700 mx-2" />}
                     </div>
                 ))}
             </div>
@@ -462,6 +484,105 @@ export function ExperimentWizard({ projectId, onComplete, onCancel }: Props) {
                                 </div>
                             </Card>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Step 5: Parameters */}
+            {step === 5 && (
+                <div className="space-y-6">
+                    <h2 className="text-xl font-semibold">Experiment Parameters</h2>
+
+                    <div className="space-y-4">
+                        <div>
+                            <Label htmlFor="successCriteria">Success Criteria</Label>
+                            <Textarea
+                                id="successCriteria"
+                                value={config.successCriteria}
+                                onChange={(e) => updateConfig({ successCriteria: e.target.value })}
+                                placeholder="e.g., Ship if primary metric improves >10% with p<0.05"
+                                rows={2}
+                                className="mt-2"
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Minimum Detectable Effect (MDE)</Label>
+                            <p className="text-sm text-muted-foreground mb-2">
+                                Smallest improvement worth detecting. Smaller MDE = larger sample size needed.
+                            </p>
+                            <div className="flex items-center gap-4">
+                                <Slider
+                                    value={[config.minimumDetectableEffect]}
+                                    onValueChange={([value]) => updateConfig({ minimumDetectableEffect: value })}
+                                    min={5}
+                                    max={50}
+                                    step={5}
+                                    className="flex-1"
+                                />
+                                <span className="w-16 text-center font-medium">{config.minimumDetectableEffect}%</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <Label htmlFor="sampleSize">Sample Size Target (per variant)</Label>
+                            <Input
+                                id="sampleSize"
+                                type="number"
+                                value={config.sampleSizeTarget}
+                                onChange={(e) => updateConfig({ sampleSizeTarget: parseInt(e.target.value) || 5000 })}
+                                className="mt-2"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Recommended: 500-20,000 users per variant
+                            </p>
+                        </div>
+
+                        <div>
+                            <Label>Secondary Metrics</Label>
+                            <p className="text-sm text-muted-foreground mb-2">
+                                Additional metrics to track (guardrails, supporting metrics)
+                            </p>
+                            <div className="flex gap-2 mb-2">
+                                <Input
+                                    value={newMetric}
+                                    onChange={(e) => setNewMetric(e.target.value)}
+                                    placeholder="e.g., Time on page, Bounce rate"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && newMetric.trim()) {
+                                            updateConfig({ secondaryMetrics: [...config.secondaryMetrics, newMetric.trim()] });
+                                            setNewMetric('');
+                                        }
+                                    }}
+                                />
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        if (newMetric.trim()) {
+                                            updateConfig({ secondaryMetrics: [...config.secondaryMetrics, newMetric.trim()] });
+                                            setNewMetric('');
+                                        }
+                                    }}
+                                >
+                                    <Plus className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {config.secondaryMetrics.map((metric, i) => (
+                                    <Badge key={i} variant="secondary" className="flex items-center gap-1">
+                                        {metric}
+                                        <button
+                                            onClick={() => updateConfig({
+                                                secondaryMetrics: config.secondaryMetrics.filter((_, idx) => idx !== i)
+                                            })}
+                                            className="ml-1 hover:text-red-500"
+                                        >
+                                            ×
+                                        </button>
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
