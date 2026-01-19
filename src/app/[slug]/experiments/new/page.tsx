@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Sparkles, Loader2, AlertTriangle, CheckCircle, ArrowLeft, Split } from 'lucide-react';
+import { Sparkles, Loader2, AlertTriangle, CheckCircle, ArrowLeft, Split, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
 import { getSupabaseClient } from '@/lib/supabase-client';
 import { ExperimentWizard } from '@/components/experiments/ExperimentWizard';
@@ -37,12 +37,31 @@ interface Validation {
 export default function NewExperimentPage() {
   const params = useParams();
   const router = useRouter();
-  const projectSlug = params.slug as string;
+  const searchParams = useSearchParams();
+  const projectSlug = (params?.slug as string) || '';
   const [featureIdea, setFeatureIdea] = useState('');
   const [loading, setLoading] = useState(false);
   const [design, setDesign] = useState<ExperimentDesign | null>(null);
   const [validation, setValidation] = useState<Validation | null>(null);
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [prefillSource, setPrefillSource] = useState<string | null>(null);
+
+  // Check for URL parameters from AI suggestions
+  useEffect(() => {
+    if (!searchParams) return;
+
+    const hypothesis = searchParams.get('hypothesis');
+    const title = searchParams.get('title');
+
+    if (hypothesis) {
+      // Combine title and hypothesis for a richer prompt
+      const prefillText = title
+        ? `${title}: ${hypothesis}`
+        : hypothesis;
+      setFeatureIdea(prefillText);
+      setPrefillSource(title || 'AI Suggestion');
+    }
+  }, [searchParams]);
 
   // Get project ID
   useEffect(() => {
@@ -187,6 +206,20 @@ export default function NewExperimentPage() {
           {!design ? (
             <Card className="p-8">
               <div className="space-y-4">
+                {/* Pre-fill banner from AI suggestions */}
+                {prefillSource && (
+                  <div className="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800 mb-4">
+                    <Lightbulb className="h-5 w-5 text-purple-500 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-purple-900 dark:text-purple-100">
+                        Pre-filled from AI Suggestion: {prefillSource}
+                      </p>
+                      <p className="text-sm text-purple-700 dark:text-purple-300">
+                        Review and edit the hypothesis below, then generate your experiment design.
+                      </p>
+                    </div>
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="featureIdea">Feature Idea or Hypothesis</Label>
                   <Textarea
@@ -375,7 +408,7 @@ export default function NewExperimentPage() {
                 </Button>
                 <Button
                   onClick={handleSaveExperiment}
-                  disabled={validation && !validation.valid}
+                  disabled={validation !== null && !validation.valid}
                   className="flex-1"
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
