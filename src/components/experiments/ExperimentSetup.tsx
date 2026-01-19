@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -25,6 +25,8 @@ import {
     Globe,
     ArrowRight,
     Sparkles,
+    Download,
+    ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -59,6 +61,35 @@ export function ExperimentSetup({
     const [generating, setGenerating] = useState(false);
     const [targetUrl, setTargetUrl] = useState('');
     const [visualReady, setVisualReady] = useState(false);
+    const [extensionInstalled, setExtensionInstalled] = useState<boolean | null>(null);
+
+    // Check for extension installation
+    useEffect(() => {
+        // Listen for extension message
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data?.type === 'SIGNALSLOOP_EXTENSION_INSTALLED' ||
+                event.data?.type === 'SIGNALSLOOP_EXTENSION_STATUS') {
+                setExtensionInstalled(true);
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+
+        // Request extension status
+        window.postMessage({ type: 'CHECK_EXTENSION' }, '*');
+
+        // Timeout - assume not installed if no response
+        const timeout = setTimeout(() => {
+            if (extensionInstalled === null) {
+                setExtensionInstalled(false);
+            }
+        }, 1000);
+
+        return () => {
+            window.removeEventListener('message', handleMessage);
+            clearTimeout(timeout);
+        };
+    }, [extensionInstalled]);
 
     // Generate feature flag key if not exists
     const handleGenerateKey = async () => {
@@ -146,6 +177,51 @@ window._slq.push(['trackGoal', '${experiment.primary_metric.toLowerCase().replac
                 {/* Visual Editor Tab */}
                 <TabsContent value="visual" className="mt-6">
                     <div className="space-y-6">
+                        {/* Extension Install Prompt */}
+                        {extensionInstalled === false && (
+                            <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                <div className="flex items-start gap-3">
+                                    <Download className="h-6 w-6 text-amber-600 shrink-0 mt-0.5" />
+                                    <div className="flex-1">
+                                        <h4 className="font-semibold text-amber-800 dark:text-amber-200">
+                                            Browser Extension Required
+                                        </h4>
+                                        <p className="text-sm text-amber-700 dark:text-amber-300 mt-1 mb-3">
+                                            Install the SignalsLoop Visual Editor extension to load any website in our editor.
+                                            This is a one-time setup (like Optimizely).
+                                        </p>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                className="bg-amber-600 hover:bg-amber-700"
+                                                onClick={() => window.open('https://chrome.google.com/webstore/detail/signalsloop-visual-editor', '_blank')}
+                                            >
+                                                <Download className="h-4 w-4 mr-2" />
+                                                Install Chrome Extension
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => window.open('https://signalsloop.com/docs/visual-editor-extension', '_blank')}
+                                            >
+                                                <ExternalLink className="h-4 w-4 mr-2" />
+                                                Learn More
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {extensionInstalled === true && (
+                            <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
+                                <Check className="h-5 w-5 text-green-600" />
+                                <span className="text-sm text-green-700 dark:text-green-300 font-medium">
+                                    Visual Editor Extension installed ✓
+                                </span>
+                            </div>
+                        )}
+
                         {/* Benefits */}
                         <div className="grid grid-cols-3 gap-4">
                             <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
