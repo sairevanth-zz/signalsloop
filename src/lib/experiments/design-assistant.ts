@@ -70,7 +70,7 @@ async function generateDesignWithAI(
   featureIdea: string,
   context: ExperimentContext
 ): Promise<ExperimentDesign> {
-  const prompt = `You are an expert product experimentation specialist. Design a rigorous A/B test for this feature idea:
+  const prompt = `You are an expert product experimentation specialist. Design a rigorous but PRACTICAL A/B test for this feature idea:
 
 Feature Idea: ${featureIdea}
 
@@ -81,7 +81,7 @@ Context:
 
 Generate a comprehensive experiment design including:
 
-1. **Hypothesis**: A clear If/Then statement (e.g., "If we add dark mode, then user engagement will increase by 15%")
+1. **Hypothesis**: A clear If/Then statement with a REALISTIC expected improvement (e.g., "If we add dark mode, then user engagement will increase by 15%")
 
 2. **Expected Outcome**: What specific result you expect to see
 
@@ -95,13 +95,15 @@ Generate a comprehensive experiment design including:
 
 7. **Treatment Description**: Detailed description of the proposed change (what users will see in the experiment)
 
-8. **Minimum Detectable Effect**: Smallest improvement worth detecting (as percentage, e.g., 5%)
+8. **Minimum Detectable Effect**: Set this to approximately 50% of the expected improvement stated in the hypothesis. For example, if expecting 20% improvement, set MDE to 10%. This ensures we can detect meaningful effects without requiring excessive sample sizes. Return as a percentage number (e.g., 10 for 10%).
 
-9. **Estimated Duration**: How long the experiment should run (e.g., "2 weeks" or "until 10,000 users per variant")
+9. **Estimated Duration**: How long the experiment should run. For most SaaS products with moderate traffic (100-1000 daily users), aim for 1-3 weeks. Base this on a realistic sample size of 1,000-5,000 users per variant.
 
 10. **Potential Risks**: List 2-3 potential risks or concerns
 
 11. **Implementation Notes**: High-level technical considerations
+
+IMPORTANT: Be PRACTICAL. Most SaaS products can't reach 50,000+ users in a reasonable timeframe. Optimize for decisions that can be made in 1-4 weeks with sample sizes of 2,000-10,000 total users.
 
 Return ONLY a valid JSON object with these exact keys (camelCase):
 {
@@ -112,7 +114,7 @@ Return ONLY a valid JSON object with these exact keys (camelCase):
   "successCriteria": "...",
   "controlDescription": "...",
   "treatmentDescription": "...",
-  "minimumDetectableEffect": 5.0,
+  "minimumDetectableEffect": 10.0,
   "estimatedDuration": "...",
   "risks": ["...", "..."],
   "implementation": "..."
@@ -265,9 +267,10 @@ async function getExperimentContext(
 /**
  * Calculate required sample size for experiment
  * Based on minimum detectable effect, statistical power, and significance level
+ * Optimized for practical SaaS experiments
  */
 export function calculateSampleSize(
-  mde: number, // minimum detectable effect (as percentage, e.g., 5 for 5%)
+  mde: number, // minimum detectable effect (as percentage, e.g., 10 for 10%)
   power: number = 0.8, // probability of detecting true effect (typically 0.8)
   alpha: number = 0.05 // significance level (typically 0.05)
 ): number {
@@ -275,8 +278,9 @@ export function calculateSampleSize(
   const z_alpha = getZScore(1 - alpha / 2); // Two-tailed test
   const z_beta = getZScore(power);
 
-  // Assumed baseline conversion rate (conservative estimate)
-  const p1 = 0.1; // 10% baseline
+  // Use a more realistic baseline conversion rate for SaaS
+  // Higher baseline = smaller sample size needed
+  const p1 = 0.15; // 15% baseline (more typical for SaaS activation/conversion)
   const p2 = p1 * (1 + mde / 100);
 
   // Pooled probability
@@ -287,8 +291,12 @@ export function calculateSampleSize(
     2 * Math.pow(z_alpha + z_beta, 2) * pooled_p * (1 - pooled_p) / Math.pow(p2 - p1, 2)
   );
 
-  // Return reasonable bounds (min 100, max 1,000,000)
-  return Math.max(100, Math.min(1000000, n));
+  // Apply practical bounds for SaaS experiments:
+  // - Minimum: 500 users per variant (for basic reliability)
+  // - Maximum: 20,000 users per variant (practical limit for most SaaS)
+  const practicalN = Math.max(500, Math.min(20000, n));
+
+  return practicalN;
 }
 
 /**
