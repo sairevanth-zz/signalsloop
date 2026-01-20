@@ -2,12 +2,12 @@
  * Visual Editor Component
  * 
  * Provides a point-and-click interface for creating experiment variants.
- * Users can select elements, modify text/styles, and preview changes.
+ * Uses postMessage to communicate with injected script in iframe.
  */
 
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,10 +22,11 @@ import {
     EyeOff,
     Save,
     Trash2,
-    Undo,
     Plus,
     X,
     ExternalLink,
+    AlertCircle,
+    Loader2,
 } from 'lucide-react';
 
 interface ElementChange {
@@ -47,9 +48,11 @@ interface Props {
 
 export function VisualEditor({ experimentId, variantKey, targetUrl, onSave, onCancel }: Props) {
     const [isSelecting, setIsSelecting] = useState(false);
-    const [selectedElement, setSelectedElement] = useState<string | null>(null);
+    const [selectedElement, setSelectedElement] = useState<{ selector: string; textContent: string } | null>(null);
     const [changes, setChanges] = useState<ElementChange[]>([]);
-    const [previewEnabled, setPreviewEnabled] = useState(true);
+    const [editorReady, setEditorReady] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
     // Current edit state
@@ -58,148 +61,82 @@ export function VisualEditor({ experimentId, variantKey, targetUrl, onSave, onCa
     const [styleProperty, setStyleProperty] = useState('backgroundColor');
     const [styleValue, setStyleValue] = useState('');
 
-    // Inject editor script into iframe
+    // Listen for messages from iframe
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            const { type, selector, textContent } = event.data;
+
+            switch (type) {
+                case 'SL_EDITOR_READY':
+                    setEditorReady(true);
+                    setLoading(false);
+                    setError(null);
+                    break;
+
+                case 'SL_ELEMENT_SELECTED':
+                    setSelectedElement({ selector, textContent: textContent || '' });
+                    setTextValue(textContent || '');
+                    setIsSelecting(false);
+                    break;
+
+                case 'SL_PONG':
+                    // Editor is responding
+                    setEditorReady(true);
+                    break;
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, []);
+
+    // Handle iframe load
     useEffect(() => {
         const iframe = iframeRef.current;
         if (!iframe) return;
 
         const handleLoad = () => {
-            try {
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-                if (!iframeDoc) return;
+            // Try to ping the injected script
+            setTimeout(() => {
+                iframe.contentWindow?.postMessage({ type: 'SL_PING' }, '*');
+            }, 500);
 
-                // Inject editor overlay styles
-                const style = iframeDoc.createElement('style');
-                style.textContent = `
-          .sl-editor-highlight {
-            outline: 2px solid #3b82f6 !important;
-            outline-offset: 2px !important;
-            cursor: pointer !important;
-          }
-          .sl-editor-selected {
-            outline: 3px solid #10b981 !important;
-            outline-offset: 2px !important;
-          }
-          .sl-editor-modified {
-            outline: 2px dashed #f59e0b !important;
-            outline-offset: 1px !important;
-          }
-        `;
-                iframeDoc.head.appendChild(style);
-
-                // Add hover listener for element selection
-                iframeDoc.body.addEventListener('mouseover', handleMouseOver);
-                iframeDoc.body.addEventListener('mouseout', handleMouseOut);
-                iframeDoc.body.addEventListener('click', handleClick);
-
-            } catch (e) {
-                console.error('[VisualEditor] Cannot access iframe:', e);
-            }
+            // Set timeout for editor not responding
+            setTimeout(() => {
+                if (!editorReady) {
+                    setLoading(false);
+                    setError('Could not connect to page. Make sure the SignalsLoop extension is installed and enabled.');
+                }
+            }, 3000);
         };
 
         iframe.addEventListener('load', handleLoad);
         return () => iframe.removeEventListener('load', handleLoad);
-    }, [isSelecting]);
+    }, [editorReady]);
 
-    const handleMouseOver = useCallback((e: Event) => {
-        if (!isSelecting) return;
-        const target = e.target as HTMLElement;
-        if (target.tagName !== 'HTML' && target.tagName !== 'BODY') {
-            target.classList.add('sl-editor-highlight');
-        }
-    }, [isSelecting]);
-
-    const handleMouseOut = useCallback((e: Event) => {
-        const target = e.target as HTMLElement;
-        target.classList.remove('sl-editor-highlight');
-    }, []);
-
-    const handleClick = useCallback((e: Event) => {
-        if (!isSelecting) return;
-        e.preventDefault();
-        e.stopPropagation();
-
-        const target = e.target as HTMLElement;
-        const selector = generateSelector(target);
-
-        setSelectedElement(selector);
-        setTextValue(target.textContent || '');
-        setIsSelecting(false);
-
-        // Add selected class
-        target.classList.remove('sl-editor-highlight');
-        target.classList.add('sl-editor-selected');
-    }, [isSelecting]);
-
-    // Generate unique CSS selector for an element
-    const generateSelector = (element: HTMLElement): string => {
-        if (element.id) {
-            return `#${element.id}`;
-        }
-
-        const path: string[] = [];
-        let current: HTMLElement | null = element;
-
-        while (current && current.tagName !== 'HTML') {
-            let selector = current.tagName.toLowerCase();
-
-            if (current.className && typeof current.className === 'string') {
-                const classes = current.className.split(' ').filter(c =>
-                    c && !c.startsWith('sl-editor')
-                ).slice(0, 2);
-                if (classes.length > 0) {
-                    selector += '.' + classes.join('.');
-                }
-            }
-
-            path.unshift(selector);
-            current = current.parentElement;
-
-            if (path.length >= 3) break;
-        }
-
-        return path.join(' > ');
+    // Start selecting mode
+    const startSelecting = () => {
+        setIsSelecting(true);
+        iframeRef.current?.contentWindow?.postMessage({ type: 'SL_START_SELECTING' }, '*');
     };
 
-    // Apply a change to the iframe
+    // Stop selecting mode
+    const stopSelecting = () => {
+        setIsSelecting(false);
+        iframeRef.current?.contentWindow?.postMessage({ type: 'SL_STOP_SELECTING' }, '*');
+    };
+
+    // Apply a change
     const applyChange = (change: ElementChange) => {
-        const iframe = iframeRef.current;
-        if (!iframe) return;
-
-        try {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-            if (!iframeDoc) return;
-
-            const element = iframeDoc.querySelector(change.selector) as HTMLElement;
-            if (!element) return;
-
-            switch (change.changeType) {
-                case 'text':
-                    element.textContent = change.newValue;
-                    break;
-                case 'style':
-                    if (change.property) {
-                        (element.style as unknown as Record<string, string>)[change.property] = change.newValue;
-                    }
-                    break;
-                case 'visibility':
-                    element.style.display = change.newValue === 'hidden' ? 'none' : '';
-                    break;
-            }
-
-            element.classList.add('sl-editor-modified');
-        } catch (e) {
-            console.error('[VisualEditor] Error applying change:', e);
-        }
+        iframeRef.current?.contentWindow?.postMessage({
+            type: 'SL_APPLY_CHANGE',
+            data: change
+        }, '*');
     };
 
     // Add a new change
     const addChange = () => {
         if (!selectedElement) return;
-
-        const iframe = iframeRef.current;
-        const iframeDoc = iframe?.contentDocument || iframe?.contentWindow?.document;
-        const element = iframeDoc?.querySelector(selectedElement) as HTMLElement;
 
         let change: ElementChange | null = null;
 
@@ -207,8 +144,8 @@ export function VisualEditor({ experimentId, variantKey, targetUrl, onSave, onCa
             case 'text':
                 change = {
                     id: Date.now().toString(),
-                    selector: selectedElement,
-                    originalValue: element?.textContent || '',
+                    selector: selectedElement.selector,
+                    originalValue: selectedElement.textContent,
                     newValue: textValue,
                     changeType: 'text',
                 };
@@ -216,8 +153,8 @@ export function VisualEditor({ experimentId, variantKey, targetUrl, onSave, onCa
             case 'style':
                 change = {
                     id: Date.now().toString(),
-                    selector: selectedElement,
-                    originalValue: element?.style.getPropertyValue(styleProperty) || '',
+                    selector: selectedElement.selector,
+                    originalValue: '',
                     newValue: styleValue,
                     changeType: 'style',
                     property: styleProperty,
@@ -226,7 +163,7 @@ export function VisualEditor({ experimentId, variantKey, targetUrl, onSave, onCa
             case 'visibility':
                 change = {
                     id: Date.now().toString(),
-                    selector: selectedElement,
+                    selector: selectedElement.selector,
                     originalValue: 'visible',
                     newValue: 'hidden',
                     changeType: 'visibility',
@@ -243,7 +180,6 @@ export function VisualEditor({ experimentId, variantKey, targetUrl, onSave, onCa
     // Remove a change
     const removeChange = (changeId: string) => {
         setChanges(prev => prev.filter(c => c.id !== changeId));
-        // Would need to revert the change in iframe - simplified for now
     };
 
     // Style property options
@@ -268,106 +204,126 @@ export function VisualEditor({ experimentId, variantKey, targetUrl, onSave, onCa
                         <Badge variant="secondary">{variantKey}</Badge>
                     </div>
 
-                    <div className="flex gap-2 mb-4">
-                        <Button
-                            variant={isSelecting ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setIsSelecting(!isSelecting)}
-                            className="flex-1"
-                        >
-                            <MousePointer className="h-4 w-4 mr-2" />
-                            {isSelecting ? 'Selecting...' : 'Select Element'}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPreviewEnabled(!previewEnabled)}
-                        >
-                            {previewEnabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                        </Button>
-                    </div>
-
-                    {selectedElement && (
-                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg mb-4">
-                            <p className="text-xs text-muted-foreground mb-1">Selected Element</p>
-                            <code className="text-xs break-all">{selectedElement}</code>
+                    {error && (
+                        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg mb-4">
+                            <div className="flex items-start gap-2">
+                                <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+                                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                            </div>
                         </div>
                     )}
 
-                    {/* Edit Controls */}
-                    {selectedElement && (
-                        <Tabs value={editMode} onValueChange={(v) => setEditMode(v as typeof editMode)}>
-                            <TabsList className="w-full mb-4">
-                                <TabsTrigger value="text" className="flex-1">
-                                    <Type className="h-4 w-4 mr-1" />
-                                    Text
-                                </TabsTrigger>
-                                <TabsTrigger value="style" className="flex-1">
-                                    <Palette className="h-4 w-4 mr-1" />
-                                    Style
-                                </TabsTrigger>
-                                <TabsTrigger value="visibility" className="flex-1">
-                                    <EyeOff className="h-4 w-4 mr-1" />
-                                    Hide
-                                </TabsTrigger>
-                            </TabsList>
+                    {loading && (
+                        <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-sm">Loading page...</span>
+                        </div>
+                    )}
 
-                            <TabsContent value="text" className="space-y-3">
-                                <div>
-                                    <Label htmlFor="textValue">New Text</Label>
-                                    <Input
-                                        id="textValue"
-                                        value={textValue}
-                                        onChange={(e) => setTextValue(e.target.value)}
-                                        className="mt-1"
-                                    />
-                                </div>
-                                <Button onClick={addChange} className="w-full" size="sm">
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Apply Text Change
+                    {editorReady && (
+                        <>
+                            <div className="flex gap-2 mb-4">
+                                <Button
+                                    variant={isSelecting ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={isSelecting ? stopSelecting : startSelecting}
+                                    className="flex-1"
+                                >
+                                    <MousePointer className="h-4 w-4 mr-2" />
+                                    {isSelecting ? 'Selecting...' : 'Select Element'}
                                 </Button>
-                            </TabsContent>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => iframeRef.current?.contentWindow?.location.reload()}
+                                >
+                                    <Eye className="h-4 w-4" />
+                                </Button>
+                            </div>
 
-                            <TabsContent value="style" className="space-y-3">
-                                <div>
-                                    <Label htmlFor="styleProperty">Property</Label>
-                                    <select
-                                        id="styleProperty"
-                                        value={styleProperty}
-                                        onChange={(e) => setStyleProperty(e.target.value)}
-                                        className="w-full mt-1 p-2 border rounded-md bg-background"
-                                    >
-                                        {styleProperties.map(({ value, label }) => (
-                                            <option key={value} value={value}>{label}</option>
-                                        ))}
-                                    </select>
+                            {selectedElement && (
+                                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg mb-4">
+                                    <p className="text-xs text-muted-foreground mb-1">Selected Element</p>
+                                    <code className="text-xs break-all">{selectedElement.selector}</code>
                                 </div>
-                                <div>
-                                    <Label htmlFor="styleValue">Value</Label>
-                                    <Input
-                                        id="styleValue"
-                                        value={styleValue}
-                                        onChange={(e) => setStyleValue(e.target.value)}
-                                        placeholder={styleProperty === 'backgroundColor' ? '#3b82f6' : ''}
-                                        className="mt-1"
-                                    />
-                                </div>
-                                <Button onClick={addChange} className="w-full" size="sm">
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Apply Style Change
-                                </Button>
-                            </TabsContent>
+                            )}
 
-                            <TabsContent value="visibility" className="space-y-3">
-                                <p className="text-sm text-muted-foreground">
-                                    Hide this element in the treatment variant.
-                                </p>
-                                <Button onClick={addChange} className="w-full" size="sm">
-                                    <EyeOff className="h-4 w-4 mr-2" />
-                                    Hide Element
-                                </Button>
-                            </TabsContent>
-                        </Tabs>
+                            {/* Edit Controls */}
+                            {selectedElement && (
+                                <Tabs value={editMode} onValueChange={(v) => setEditMode(v as typeof editMode)}>
+                                    <TabsList className="w-full mb-4">
+                                        <TabsTrigger value="text" className="flex-1">
+                                            <Type className="h-4 w-4 mr-1" />
+                                            Text
+                                        </TabsTrigger>
+                                        <TabsTrigger value="style" className="flex-1">
+                                            <Palette className="h-4 w-4 mr-1" />
+                                            Style
+                                        </TabsTrigger>
+                                        <TabsTrigger value="visibility" className="flex-1">
+                                            <EyeOff className="h-4 w-4 mr-1" />
+                                            Hide
+                                        </TabsTrigger>
+                                    </TabsList>
+
+                                    <TabsContent value="text" className="space-y-3">
+                                        <div>
+                                            <Label htmlFor="textValue">New Text</Label>
+                                            <Input
+                                                id="textValue"
+                                                value={textValue}
+                                                onChange={(e) => setTextValue(e.target.value)}
+                                                className="mt-1"
+                                            />
+                                        </div>
+                                        <Button onClick={addChange} className="w-full" size="sm">
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            Apply Text Change
+                                        </Button>
+                                    </TabsContent>
+
+                                    <TabsContent value="style" className="space-y-3">
+                                        <div>
+                                            <Label htmlFor="styleProperty">Property</Label>
+                                            <select
+                                                id="styleProperty"
+                                                value={styleProperty}
+                                                onChange={(e) => setStyleProperty(e.target.value)}
+                                                className="w-full mt-1 p-2 border rounded-md bg-background"
+                                            >
+                                                {styleProperties.map(({ value, label }) => (
+                                                    <option key={value} value={value}>{label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="styleValue">Value</Label>
+                                            <Input
+                                                id="styleValue"
+                                                value={styleValue}
+                                                onChange={(e) => setStyleValue(e.target.value)}
+                                                placeholder={styleProperty === 'backgroundColor' ? '#3b82f6' : ''}
+                                                className="mt-1"
+                                            />
+                                        </div>
+                                        <Button onClick={addChange} className="w-full" size="sm">
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            Apply Style Change
+                                        </Button>
+                                    </TabsContent>
+
+                                    <TabsContent value="visibility" className="space-y-3">
+                                        <p className="text-sm text-muted-foreground">
+                                            Hide this element in the treatment variant.
+                                        </p>
+                                        <Button onClick={addChange} className="w-full" size="sm">
+                                            <EyeOff className="h-4 w-4 mr-2" />
+                                            Hide Element
+                                        </Button>
+                                    </TabsContent>
+                                </Tabs>
+                            )}
+                        </>
                     )}
                 </Card>
 
@@ -440,7 +396,7 @@ export function VisualEditor({ experimentId, variantKey, targetUrl, onSave, onCa
                     ref={iframeRef}
                     src={targetUrl}
                     className="w-full h-full border-0"
-                    sandbox="allow-same-origin allow-scripts"
+                    sandbox="allow-same-origin allow-scripts allow-forms"
                 />
             </Card>
         </div>

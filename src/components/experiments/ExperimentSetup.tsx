@@ -143,8 +143,8 @@ window._slq.push(['trackExperiment', {
 }]);`;
 
     // Goal tracking code
-    const goalCode = `// Track goal: ${experiment.primary_metric}
-window._slq.push(['trackGoal', '${experiment.primary_metric.toLowerCase().replace(/\s+/g, '_')}']);`;
+    const goalCode = `// Track goal: ${experiment.primary_metric || 'conversion'}
+window._slq.push(['trackGoal', '${(experiment.primary_metric || 'conversion').toLowerCase().replace(/\s+/g, '_')}']);`;
 
     return (
         <Card className="p-6 border-2 border-dashed border-blue-300 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">

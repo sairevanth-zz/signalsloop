@@ -10,6 +10,7 @@ let isEnabled = true;
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'GET_STATUS') {
         sendResponse({ enabled: isEnabled });
+        return false;
     } else if (message.type === 'SET_STATUS') {
         isEnabled = message.enabled;
         // Update rules based on status
@@ -23,8 +24,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             });
         }
         sendResponse({ success: true });
+        return false;
+    } else if (message.type === 'INJECT_EDITOR') {
+        // Inject editor script into iframe
+        if (message.tabId && message.frameId !== undefined) {
+            chrome.scripting.executeScript({
+                target: { tabId: message.tabId, frameIds: [message.frameId] },
+                files: ['editor-inject.js']
+            }).then(() => {
+                sendResponse({ success: true });
+            }).catch((error) => {
+                console.error('[SignalsLoop] Failed to inject editor:', error);
+                sendResponse({ success: false, error: error.message });
+            });
+            return true; // Keep channel open for async response
+        }
+        sendResponse({ success: false, error: 'Missing tabId or frameId' });
+        return false;
     }
-    return true;
+    return false;
 });
 
 // Listen for installation
@@ -37,9 +55,11 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Listen for tab updates to notify content script
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.status === 'complete' && tab.url?.includes('signalsloop.com')) {
-        chrome.tabs.sendMessage(tabId, { type: 'EXTENSION_READY' }).catch(() => {
-            // Tab might not have content script, ignore
-        });
+    if (changeInfo.status === 'complete' && tab.url) {
+        if (tab.url.includes('signalsloop.com') || tab.url.includes('localhost:3000')) {
+            chrome.tabs.sendMessage(tabId, { type: 'EXTENSION_READY' }).catch(() => {
+                // Tab might not have content script, ignore
+            });
+        }
     }
 });
