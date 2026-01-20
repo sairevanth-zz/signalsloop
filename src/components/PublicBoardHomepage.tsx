@@ -553,7 +553,7 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
         </div>
 
         {/* Footer - Hide branding for Pro/Premium plans */}
-        {!['pro', 'premium'].some(p => project.plan?.toLowerCase().startsWith(p)) && (
+        {!['pro', 'premium'].some(p => (project.plan || '').toLowerCase().startsWith(p)) && (
           <div className="mt-16 pt-8 border-t border-slate-800 text-center">
             <div className="flex items-center justify-center space-x-2 text-slate-500 mb-4">
               <span>Powered by</span>
