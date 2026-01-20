@@ -95,34 +95,34 @@ function generateRecommendations(outcome: FeatureOutcomeDetailed): string[] {
   // Add default recommendations based on classification
   switch (outcome.outcome_classification) {
     case 'success':
-      if (!recommendations.some(r => r.toLowerCase().includes('document'))) {
+      if (!recommendations.some(r => r && r.toLowerCase().includes('document'))) {
         recommendations.push('Document the approach used for this feature as a playbook for future launches.');
       }
-      if (!recommendations.some(r => r.toLowerCase().includes('share'))) {
+      if (!recommendations.some(r => r && r.toLowerCase().includes('share'))) {
         recommendations.push('Share the success metrics with stakeholders to build confidence in the product strategy.');
       }
       break;
     case 'partial_success':
-      if (!recommendations.some(r => r.toLowerCase().includes('iterate'))) {
+      if (!recommendations.some(r => r && r.toLowerCase().includes('iterate'))) {
         recommendations.push('Plan a follow-up iteration to address gaps identified in the launch.');
       }
-      if (!recommendations.some(r => r.toLowerCase().includes('feedback'))) {
+      if (!recommendations.some(r => r && r.toLowerCase().includes('feedback'))) {
         recommendations.push('Collect targeted feedback from power users to understand what could be improved.');
       }
       break;
     case 'no_impact':
-      if (!recommendations.some(r => r.toLowerCase().includes('hypothesis'))) {
+      if (!recommendations.some(r => r && r.toLowerCase().includes('hypothesis'))) {
         recommendations.push('Revisit the original hypothesis and validate with user interviews.');
       }
-      if (!recommendations.some(r => r.toLowerCase().includes('adoption'))) {
+      if (!recommendations.some(r => r && r.toLowerCase().includes('adoption'))) {
         recommendations.push('Check feature discoverability and consider adding user education.');
       }
       break;
     case 'negative_impact':
-      if (!recommendations.some(r => r.toLowerCase().includes('analysis'))) {
+      if (!recommendations.some(r => r && r.toLowerCase().includes('analysis'))) {
         recommendations.push('Conduct immediate root cause analysis to understand what went wrong.');
       }
-      if (!recommendations.some(r => r.toLowerCase().includes('rollback'))) {
+      if (!recommendations.some(r => r && r.toLowerCase().includes('rollback'))) {
         recommendations.push('Consider partial or full rollback if negative impact persists.');
       }
       break;
