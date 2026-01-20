@@ -242,7 +242,7 @@ function validateThemeDetectionResult(
   // Remove duplicate themes (same name)
   const uniqueThemes = validThemes.filter(
     (theme, index, self) =>
-      index === self.findIndex((t) => t.theme_name.toLowerCase() === theme.theme_name.toLowerCase()),
+      index === self.findIndex((t) => (t.theme_name || '').toLowerCase() === (theme.theme_name || '').toLowerCase()),
   );
 
   // Limit to configured max themes

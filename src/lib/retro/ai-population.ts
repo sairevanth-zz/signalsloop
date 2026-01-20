@@ -359,12 +359,12 @@ export async function generateAISummary(
     metrics: RetroMetric[]
 ): Promise<string> {
     // Generate a text summary based on the data
-    const winCards = columns.find(c => ['wins', 'achieved'].includes(c.title.toLowerCase()))?.cards || [];
-    const missCards = columns.find(c => ['misses', 'challenges'].includes(c.title.toLowerCase()))?.cards || [];
-    const insightCards = columns.find(c => ['insights', 'learned'].includes(c.title.toLowerCase()))?.cards || [];
+    const winCards = columns.find(c => ['wins', 'achieved'].includes((c.title || '').toLowerCase()))?.cards || [];
+    const missCards = columns.find(c => ['misses', 'challenges'].includes((c.title || '').toLowerCase()))?.cards || [];
+    const insightCards = columns.find(c => ['insights', 'learned'].includes((c.title || '').toLowerCase()))?.cards || [];
 
-    const shippedMetric = metrics.find(m => m.label.toLowerCase() === 'shipped');
-    const sentimentMetric = metrics.find(m => m.label.toLowerCase() === 'sentiment');
+    const shippedMetric = metrics.find(m => (m.label || '').toLowerCase() === 'shipped');
+    const sentimentMetric = metrics.find(m => (m.label || '').toLowerCase() === 'sentiment');
 
     let summary = `**${board.title} Summary:**\n\n`;
 
