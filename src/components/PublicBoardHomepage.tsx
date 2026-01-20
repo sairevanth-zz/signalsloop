@@ -105,9 +105,10 @@ export default function PublicBoardHomepage({ project, posts: initialPosts, boar
 
     // Filter by search term
     if (searchTerm) {
+      const searchLower = (searchTerm || '').toLowerCase();
       filtered = filtered.filter(post =>
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.description.toLowerCase().includes(searchTerm.toLowerCase())
+        (post.title || '').toLowerCase().includes(searchLower) ||
+        (post.description || '').toLowerCase().includes(searchLower)
       );
     }
 

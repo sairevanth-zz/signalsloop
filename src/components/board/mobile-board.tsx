@@ -28,7 +28,7 @@ interface MobileBoardProps {
 
 const statusColors = {
   open: 'bg-blue-100 text-blue-800',
-  planned: 'bg-yellow-100 text-yellow-800', 
+  planned: 'bg-yellow-100 text-yellow-800',
   in_progress: 'bg-purple-100 text-purple-800',
   done: 'bg-green-100 text-green-800',
   declined: 'bg-gray-100 text-gray-800'
@@ -37,7 +37,7 @@ const statusColors = {
 const statusLabels = {
   open: 'Open',
   planned: 'Planned',
-  in_progress: 'In Progress', 
+  in_progress: 'In Progress',
   done: 'Done',
   declined: 'Declined'
 };
@@ -48,8 +48,9 @@ export function MobileBoard({ posts, onVote, onNewPost, onPostClick }: MobileBoa
   const [showFilters, setShowFilters] = useState(false);
 
   const filteredPosts = posts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchLower = (searchTerm || '').toLowerCase();
+    const matchesSearch = (post.title || '').toLowerCase().includes(searchLower) ||
+      (post.description || '').toLowerCase().includes(searchLower);
     const matchesStatus = statusFilter === 'all' || post.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -76,10 +77,10 @@ export function MobileBoard({ posts, onVote, onNewPost, onPostClick }: MobileBoa
             className="pl-9 w-full"
           />
         </div>
-        
+
         {/* Filter Toggle (Mobile) */}
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => setShowFilters(!showFilters)}
           className="sm:hidden flex items-center gap-2"
@@ -89,7 +90,7 @@ export function MobileBoard({ posts, onVote, onNewPost, onPostClick }: MobileBoa
         </Button>
 
         {/* New Post Button */}
-        <Button 
+        <Button
           onClick={onNewPost}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium rounded-lg transition-colors"
         >
@@ -140,8 +141,8 @@ export function MobileBoard({ posts, onVote, onNewPost, onPostClick }: MobileBoa
           </Card>
         ) : (
           filteredPosts.map((post) => (
-            <Card 
-              key={post.id} 
+            <Card
+              key={post.id}
               className="cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => onPostClick(post.id)}
             >
@@ -154,11 +155,10 @@ export function MobileBoard({ posts, onVote, onNewPost, onPostClick }: MobileBoa
                         e.stopPropagation();
                         onVote(post.id);
                       }}
-                      className={`flex flex-col items-center p-2 rounded-lg min-w-[48px] transition-colors ${
-                        post.user_voted 
-                          ? 'bg-blue-100 text-blue-600 border-2 border-blue-200' 
+                      className={`flex flex-col items-center p-2 rounded-lg min-w-[48px] transition-colors ${post.user_voted
+                          ? 'bg-blue-100 text-blue-600 border-2 border-blue-200'
                           : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-2 border-transparent'
-                      }`}
+                        }`}
                     >
                       <ChevronUp className="w-4 h-4" />
                       <span className="text-xs font-medium">{post.votes}</span>
@@ -171,18 +171,18 @@ export function MobileBoard({ posts, onVote, onNewPost, onPostClick }: MobileBoa
                       <h3 className="font-medium text-gray-900 text-sm line-clamp-2 flex-1">
                         {post.title}
                       </h3>
-                      <Badge 
-                        variant="secondary" 
+                      <Badge
+                        variant="secondary"
                         className={`${statusColors[post.status]} text-xs flex-shrink-0`}
                       >
                         {statusLabels[post.status]}
                       </Badge>
                     </div>
-                    
+
                     <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                       {post.description}
                     </p>
-                    
+
                     {/* Post Meta */}
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <div className="flex items-center gap-3">
