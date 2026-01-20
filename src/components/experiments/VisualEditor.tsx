@@ -82,6 +82,19 @@ export function VisualEditor({ experimentId, variantKey, targetUrl, onSave, onCa
                 case 'SL_PONG':
                     // Editor is responding
                     setEditorReady(true);
+                    setLoading(false);
+                    setError(null);
+                    break;
+
+                case 'SL_INJECT_RESPONSE':
+                    // Extension responded to injection request
+                    if (event.data.success) {
+                        console.log('[VisualEditor] Injection successful, pinging...');
+                        // Give time for injected script to initialize
+                        setTimeout(() => {
+                            iframeRef.current?.contentWindow?.postMessage({ type: 'SL_PING' }, '*');
+                        }, 500);
+                    }
                     break;
             }
         };
@@ -96,18 +109,26 @@ export function VisualEditor({ experimentId, variantKey, targetUrl, onSave, onCa
         if (!iframe) return;
 
         const handleLoad = () => {
-            // Try to ping the injected script
+            console.log('[VisualEditor] Iframe loaded, requesting injection...');
+
+            // Request extension to inject editor script
+            window.postMessage({
+                type: 'SL_REQUEST_INJECT',
+                data: { url: targetUrl }
+            }, '*');
+
+            // Also try pinging directly (works if already injected)
             setTimeout(() => {
                 iframe.contentWindow?.postMessage({ type: 'SL_PING' }, '*');
-            }, 500);
+            }, 1000);
 
             // Set timeout for editor not responding
             setTimeout(() => {
                 if (!editorReady) {
                     setLoading(false);
-                    setError('Could not connect to page. Make sure the SignalsLoop extension is installed and enabled.');
+                    setError('Could not connect to page. Make sure the SignalsLoop extension is installed and enabled, then try refreshing.');
                 }
-            }, 3000);
+            }, 5000);
         };
 
         iframe.addEventListener('load', handleLoad);

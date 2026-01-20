@@ -1,14 +1,16 @@
 {
     "manifest_version": 3,
     "name": "SignalsLoop Visual Editor",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Enable the SignalsLoop Visual Editor to create A/B test variants on any website without code.",
     "permissions": [
         "declarativeNetRequest",
         "declarativeNetRequestWithHostAccess",
         "storage",
         "activeTab",
-        "scripting"
+        "scripting",
+        "tabs",
+        "webNavigation"
     ],
     "host_permissions": [
         "<all_urls>"
@@ -50,7 +52,8 @@
             "js": [
                 "content.js"
             ],
-            "run_at": "document_start"
+            "run_at": "document_start",
+            "all_frames": true
         }
     ],
     "web_accessible_resources": [
