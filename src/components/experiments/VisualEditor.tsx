@@ -108,6 +108,9 @@ export function VisualEditor({ experimentId, variantKey, targetUrl, onSave, onCa
         const iframe = iframeRef.current;
         if (!iframe) return;
 
+        let timeoutId: NodeJS.Timeout | null = null;
+        let mounted = true;
+
         const handleLoad = () => {
             console.log('[VisualEditor] Iframe loaded, requesting injection...');
 
@@ -119,21 +122,31 @@ export function VisualEditor({ experimentId, variantKey, targetUrl, onSave, onCa
 
             // Also try pinging directly (works if already injected)
             setTimeout(() => {
-                iframe.contentWindow?.postMessage({ type: 'SL_PING' }, '*');
+                if (mounted) {
+                    iframe.contentWindow?.postMessage({ type: 'SL_PING' }, '*');
+                }
             }, 1000);
 
             // Set timeout for editor not responding
-            setTimeout(() => {
-                if (!editorReady) {
-                    setLoading(false);
-                    setError('Could not connect to page. Make sure the SignalsLoop extension is installed and enabled, then try refreshing.');
-                }
+            timeoutId = setTimeout(() => {
+                // Use a function to check the current state at execution time
+                setEditorReady((currentEditorReady) => {
+                    if (!currentEditorReady && mounted) {
+                        setLoading(false);
+                        setError('Could not connect to page. Make sure the SignalsLoop extension is installed and enabled, then try refreshing.');
+                    }
+                    return currentEditorReady;
+                });
             }, 5000);
         };
 
         iframe.addEventListener('load', handleLoad);
-        return () => iframe.removeEventListener('load', handleLoad);
-    }, [editorReady]);
+        return () => {
+            mounted = false;
+            iframe.removeEventListener('load', handleLoad);
+            if (timeoutId) clearTimeout(timeoutId);
+        };
+    }, [targetUrl]);
 
     // Start selecting mode
     const startSelecting = () => {
