@@ -144,8 +144,8 @@ export function FeatureFlagsManager({ projectId }: Props) {
 
     const filteredFlags = flags.filter(
         flag =>
-            flag.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            flag.key.toLowerCase().includes(searchQuery.toLowerCase())
+            (flag.name || '').toLowerCase().includes((searchQuery || '').toLowerCase()) ||
+            (flag.key || '').toLowerCase().includes((searchQuery || '').toLowerCase())
     );
 
     if (loading) {

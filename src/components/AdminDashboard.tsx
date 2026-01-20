@@ -436,10 +436,11 @@ export default function AdminDashboard({ projectSlug, onShowNotification }: Admi
 
     // Apply search filter
     if (searchTerm) {
+      const searchLower = (searchTerm || '').toLowerCase();
       filtered = filtered.filter(post =>
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.author_email?.toLowerCase().includes(searchTerm.toLowerCase())
+        (post.title || '').toLowerCase().includes(searchLower) ||
+        (post.description || '').toLowerCase().includes(searchLower) ||
+        (post.author_email || '').toLowerCase().includes(searchLower)
       );
     }
 
