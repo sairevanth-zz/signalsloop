@@ -268,7 +268,7 @@ export default function ExperimentDetailsPage() {
             id: experiment.id,
             name: experiment.name,
             feature_flag_key: experiment.feature_flag_key,
-            primary_metric: experiment.primary_metric,
+            primary_metric: experiment.primary_metric || 'Conversion',
           }}
           projectSlug={projectSlug}
           onStart={() => handleUpdateStatus('running')}
