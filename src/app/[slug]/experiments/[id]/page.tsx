@@ -131,7 +131,7 @@ export default function ExperimentDetailsPage() {
 
   const handleGenerateFeatureFlagKey = async (): Promise<string> => {
     // Generate a slug-friendly key from experiment name
-    const baseKey = experiment?.name
+    const baseKey = (experiment?.name || 'experiment')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '')
