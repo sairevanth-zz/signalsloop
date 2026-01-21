@@ -57,7 +57,6 @@ const customJestConfig = {
     '/.next/',
     '/__tests__/mocks/',
     '/e2e/',
-    '/signalsloop/',
     '/__tests__/utils/',
     '/__tests__/integration/sentiment-flow.test.ts',
     '/__tests__/sentiment.test.ts',
