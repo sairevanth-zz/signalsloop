@@ -318,8 +318,8 @@ export default function ExperimentDetailsPage() {
       {/* AI Watchdog - Shows for running/paused experiments */}
       <AIExperimentWatchdog experimentId={experiment.id} experimentStatus={experiment.status} />
 
-      {/* Real-time Results Dashboard - Shows for running experiments */}
-      {(experiment.status === 'running' || experiment.status === 'paused') && (
+      {/* Real-time Results Dashboard - Shows for running, paused, and completed experiments */}
+      {(experiment.status === 'running' || experiment.status === 'paused' || experiment.status === 'completed') && (
         <ExperimentResultsDashboard experimentId={experiment.id} />
       )}
 
