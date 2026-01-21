@@ -2,10 +2,12 @@
  * Experiment Results API
  *
  * GET /api/experiments/[id]/results - Get real-time results for an experiment
+ * Now with Bayesian statistics for probability to beat control
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServiceRoleClient } from '@/lib/supabase-client';
+import { computeBayesianResults } from '@/lib/experiments/bayesian-stats';
 
 export const runtime = 'nodejs';
 
@@ -94,59 +96,63 @@ export async function GET(request: NextRequest, context: RouteContext) {
             .eq('experiment_id', experimentId)
             .eq('event_type', 'conversion');
 
-        // Calculate results per variant
-        const variantResults: VariantResult[] = (variants || []).map(variant => {
+        // Calculate results per variant using Bayesian statistics
+        const variantDataForBayes = (variants || []).map(variant => {
             const visitors = (assignmentCounts || []).filter(a => a.variant_id === variant.id).length;
             const conversions = (conversionEvents || []).filter(e => e.variant_id === variant.id).length;
-            const conversionRate = visitors > 0 ? (conversions / visitors) * 100 : 0;
-
             return {
-                variantId: variant.id,
-                variantKey: variant.variant_key,
-                variantName: variant.name,
-                isControl: variant.is_control,
+                key: variant.variant_key,
                 visitors,
                 conversions,
-                conversionRate,
-                lift: null, // Calculated below
-                confidence: 0, // Calculated below
-                isWinner: false,
-                isSignificant: false,
+                isControl: variant.is_control || false,
+                variantId: variant.id,
+                variantName: variant.name,
             };
         });
 
-        // Calculate lift and confidence relative to control
-        const controlVariant = variantResults.find(v => v.isControl);
-        if (controlVariant) {
-            variantResults.forEach(variant => {
-                if (!variant.isControl && controlVariant.conversionRate > 0) {
-                    variant.lift = ((variant.conversionRate - controlVariant.conversionRate) / controlVariant.conversionRate) * 100;
+        // Compute Bayesian results
+        const bayesianResults = computeBayesianResults(
+            variantDataForBayes.map(v => ({
+                key: v.key,
+                visitors: v.visitors,
+                conversions: v.conversions,
+                isControl: v.isControl,
+            }))
+        );
 
-                    // Simple confidence calculation based on sample size
-                    const minSamples = Math.min(variant.visitors, controlVariant.visitors);
-                    if (minSamples >= 100) {
-                        // Z-test approximation
-                        const p1 = variant.conversionRate / 100;
-                        const p2 = controlVariant.conversionRate / 100;
-                        const pooled = (variant.conversions + controlVariant.conversions) /
-                            (variant.visitors + controlVariant.visitors);
-                        const se = Math.sqrt(pooled * (1 - pooled) * (1 / variant.visitors + 1 / controlVariant.visitors));
-                        const z = se > 0 ? Math.abs(p1 - p2) / se : 0;
+        // Map Bayesian results to variant results
+        const variantResults: VariantResult[] = variantDataForBayes.map(variant => {
+            const bayesian = bayesianResults.find(b => b.variantKey === variant.key);
+            const controlResult = bayesianResults.find(b =>
+                variantDataForBayes.find(v => v.key === b.variantKey)?.isControl
+            );
 
-                        // Convert z-score to confidence percentage (simplified)
-                        variant.confidence = Math.min(99.9, Math.max(0, (1 - Math.exp(-z * 0.7)) * 100));
-                        variant.isSignificant = variant.confidence >= 95;
-                    }
-                }
-            });
-
-            // Determine winner
-            const significantVariants = variantResults.filter(v => v.isSignificant && v.lift !== null && v.lift > 0);
-            if (significantVariants.length > 0) {
-                const winner = significantVariants.reduce((a, b) => (a.lift || 0) > (b.lift || 0) ? a : b);
-                winner.isWinner = true;
+            // Calculate lift relative to control
+            let lift: number | null = null;
+            if (!variant.isControl && controlResult && controlResult.conversionRate > 0) {
+                lift = ((bayesian?.conversionRate || 0) - controlResult.conversionRate) / controlResult.conversionRate * 100;
             }
-        }
+
+            return {
+                variantId: variant.variantId,
+                variantKey: variant.key,
+                variantName: variant.variantName,
+                isControl: variant.isControl,
+                visitors: variant.visitors,
+                conversions: variant.conversions,
+                conversionRate: (bayesian?.conversionRate || 0) * 100,
+                lift,
+                confidence: (bayesian?.probabilityToBeatControl || 0) * 100, // Bayesian probability
+                probabilityToBeatControl: bayesian?.probabilityToBeatControl || 0,
+                credibleInterval: {
+                    low: (bayesian?.credibleIntervalLow || 0) * 100,
+                    high: (bayesian?.credibleIntervalHigh || 0) * 100,
+                },
+                expectedLoss: (bayesian?.expectedLoss || 0) * 100,
+                isWinner: bayesian?.isWinner || false,
+                isSignificant: bayesian?.isSignificant || false,
+            };
+        });
 
         // Calculate summary stats
         const totalVisitors = variantResults.reduce((sum, v) => sum + v.visitors, 0);

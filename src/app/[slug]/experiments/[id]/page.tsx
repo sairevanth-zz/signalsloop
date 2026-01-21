@@ -287,18 +287,28 @@ export default function ExperimentDetailsPage() {
           variantKey="treatment"
           targetUrl={visualEditorUrl}
           onSave={async (changes) => {
-            // Save changes to the experiment
+            // Save visual changes to the experiment variant
             try {
-              await fetch(`/api/experiments/${experimentId}`, {
+              const response = await fetch(`/api/experiments/${experimentId}/variants`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ visual_changes: changes }),
+                body: JSON.stringify({
+                  variant_key: 'treatment',
+                  visual_changes: changes,
+                  page_url: visualEditorUrl,
+                }),
               });
-              toast.success('Visual changes saved!');
+
+              if (!response.ok) {
+                throw new Error('Failed to save');
+              }
+
+              toast.success(`Saved ${changes.length} visual changes!`);
               setShowVisualEditor(false);
-              handleUpdateStatus('running');
+              // Optionally start the experiment
+              // handleUpdateStatus('running');
             } catch {
-              toast.error('Failed to save changes');
+              toast.error('Failed to save visual changes');
             }
           }}
           onCancel={() => setShowVisualEditor(false)}
