@@ -177,130 +177,156 @@ window._slq.push(['trackGoal', '${(experiment.primary_metric || 'conversion').to
                 {/* Visual Editor Tab */}
                 <TabsContent value="visual" className="mt-6">
                     <div className="space-y-6">
-                        {/* Extension Install Prompt */}
-                        {extensionInstalled === false && (
-                            <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                                <div className="flex items-start gap-3">
-                                    <Download className="h-6 w-6 text-amber-600 shrink-0 mt-0.5" />
-                                    <div className="flex-1">
-                                        <h4 className="font-semibold text-amber-800 dark:text-amber-200">
-                                            Browser Extension Required
-                                        </h4>
-                                        <p className="text-sm text-amber-700 dark:text-amber-300 mt-1 mb-3">
-                                            Install the SignalsLoop Visual Editor extension to load any website in our editor.
-                                            This is a one-time setup (like Optimizely).
-                                        </p>
-                                        <div className="flex gap-2">
+                        {/* One-liner script snippet for no-code */}
+                        {(() => {
+                            const noCodeScript = `<!-- SignalsLoop Experiments (add to <head>) -->
+<script src="https://signalsloop.com/api/sdk/bundle.js" data-project="${projectSlug}"></script>`;
+                            return null;
+                        })()}
+
+                        {/* Step 1: Install Script */}
+                        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</span>
+                                <span className="font-semibold text-lg">Add Tracking Script</span>
+                                <Badge variant="outline" className="ml-2">One-time setup</Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-3">
+                                Add this script to your website's <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">&lt;head&gt;</code> tag.
+                                This enables visual changes and automatic tracking.
+                            </p>
+                            <pre className="p-3 bg-gray-900 text-gray-100 rounded text-xs overflow-x-auto relative">
+                                <code>{`<!-- SignalsLoop Experiments -->
+<script src="https://signalsloop.com/api/sdk/bundle.js" 
+        data-project="${projectSlug}"></script>`}</code>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute top-1 right-1 text-gray-400 hover:text-white"
+                                    onClick={() => copyToClipboard(`<script src="https://signalsloop.com/api/sdk/bundle.js" data-project="${projectSlug}"></script>`, 'nocode-sdk')}
+                                >
+                                    {copied === 'nocode-sdk' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                                </Button>
+                            </pre>
+                            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                                <p className="text-sm text-blue-800 dark:text-blue-200">
+                                    <strong>What this script does:</strong>
+                                </p>
+                                <ul className="text-xs text-blue-700 dark:text-blue-300 mt-1 space-y-1">
+                                    <li>• Automatically applies your visual changes to 50% of visitors</li>
+                                    <li>• Tracks pageviews and conversions</li>
+                                    <li>• Prevents page flicker during variant assignment</li>
+                                </ul>
+                            </div>
+                            <div className="flex items-center gap-2 mt-3">
+                                <Checkbox
+                                    id="scriptInstalled"
+                                    checked={visualReady}
+                                    onCheckedChange={(checked) => setVisualReady(!!checked)}
+                                />
+                                <label htmlFor="scriptInstalled" className="text-sm cursor-pointer">
+                                    I've added this script to my website
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Step 2: Visual Editor */}
+                        <div className={`p-4 bg-white dark:bg-gray-800 rounded-lg border ${visualReady ? 'border-2 border-purple-200 dark:border-purple-800' : 'border-gray-200 dark:border-gray-700 opacity-70'}`}>
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className={`rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold ${visualReady ? 'bg-purple-600 text-white' : 'bg-gray-300 text-gray-600'}`}>2</span>
+                                <span className="font-semibold text-lg">Design Your Treatment</span>
+                            </div>
+
+                            {/* Extension Install Prompt */}
+                            {extensionInstalled === false && (
+                                <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                    <div className="flex items-start gap-3">
+                                        <Download className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm text-amber-700 dark:text-amber-300">
+                                                <strong>Browser extension required</strong> - Install once to enable visual editing.
+                                            </p>
                                             <Button
                                                 size="sm"
-                                                className="bg-amber-600 hover:bg-amber-700"
+                                                variant="outline"
+                                                className="mt-2"
                                                 onClick={() => window.open('https://chrome.google.com/webstore/detail/signalsloop-visual-editor', '_blank')}
                                             >
                                                 <Download className="h-4 w-4 mr-2" />
                                                 Install Chrome Extension
                                             </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => window.open('https://signalsloop.com/docs/visual-editor-extension', '_blank')}
-                                            >
-                                                <ExternalLink className="h-4 w-4 mr-2" />
-                                                Learn More
-                                            </Button>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {extensionInstalled === true && (
-                            <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
-                                <Check className="h-5 w-5 text-green-600" />
-                                <span className="text-sm text-green-700 dark:text-green-300 font-medium">
-                                    Visual Editor Extension installed ✓
-                                </span>
-                            </div>
-                        )}
+                            {extensionInstalled === true && (
+                                <div className="mb-4 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
+                                    <Check className="h-4 w-4 text-green-600" />
+                                    <span className="text-sm text-green-700 dark:text-green-300">Extension installed ✓</span>
+                                </div>
+                            )}
 
-                        {/* Benefits */}
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
-                                <Palette className="h-8 w-8 mx-auto text-purple-600 mb-2" />
-                                <p className="font-medium text-sm">Point & Click</p>
-                                <p className="text-xs text-muted-foreground">No code needed</p>
+                            {/* URL Input */}
+                            <div className="space-y-3">
+                                <Label htmlFor="targetUrl" className="text-sm font-medium">
+                                    Enter the page URL to edit:
+                                </Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="targetUrl"
+                                        type="url"
+                                        value={targetUrl}
+                                        onChange={(e) => setTargetUrl(e.target.value)}
+                                        placeholder="https://yoursite.com/page-to-test"
+                                        className="flex-1"
+                                        disabled={!visualReady}
+                                    />
+                                    <Button
+                                        onClick={handleLaunchVisualEditor}
+                                        disabled={!targetUrl || !visualReady}
+                                        className="bg-purple-600 hover:bg-purple-700"
+                                    >
+                                        <MousePointer className="h-4 w-4 mr-2" />
+                                        Open Editor
+                                    </Button>
+                                </div>
                             </div>
-                            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
-                                <Sparkles className="h-8 w-8 mx-auto text-purple-600 mb-2" />
-                                <p className="font-medium text-sm">Instant Preview</p>
-                                <p className="text-xs text-muted-foreground">See changes live</p>
-                            </div>
-                            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
-                                <Globe className="h-8 w-8 mx-auto text-purple-600 mb-2" />
-                                <p className="font-medium text-sm">Works Anywhere</p>
-                                <p className="text-xs text-muted-foreground">Any website</p>
+
+                            {/* What you can do */}
+                            <div className="mt-4 grid grid-cols-3 gap-3">
+                                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
+                                    <Palette className="h-6 w-6 mx-auto text-purple-600 mb-1" />
+                                    <p className="text-xs font-medium">Change Colors</p>
+                                </div>
+                                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
+                                    <Code className="h-6 w-6 mx-auto text-purple-600 mb-1" />
+                                    <p className="text-xs font-medium">Edit Text</p>
+                                </div>
+                                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
+                                    <Target className="h-6 w-6 mx-auto text-purple-600 mb-1" />
+                                    <p className="text-xs font-medium">Hide/Show</p>
+                                </div>
                             </div>
                         </div>
 
-                        {/* URL Input */}
-                        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border">
-                            <Label htmlFor="targetUrl" className="text-base font-medium">
-                                Enter the page URL to test
-                            </Label>
-                            <p className="text-sm text-muted-foreground mb-3">
-                                We'll load your page and let you make changes visually
-                            </p>
-                            <div className="flex gap-2">
-                                <Input
-                                    id="targetUrl"
-                                    type="url"
-                                    value={targetUrl}
-                                    onChange={(e) => setTargetUrl(e.target.value)}
-                                    placeholder="https://yoursite.com/page-to-test"
-                                    className="flex-1"
-                                />
-                                <Button
-                                    onClick={handleLaunchVisualEditor}
-                                    disabled={!targetUrl}
-                                >
-                                    <MousePointer className="h-4 w-4 mr-2" />
-                                    Open Editor
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* How it works */}
-                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                            <h4 className="font-medium mb-3">How the Visual Editor Works</h4>
-                            <ol className="space-y-2 text-sm">
+                        {/* How It Works Summary */}
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                            <h4 className="font-medium mb-2 text-sm">How No-Code Experiments Work</h4>
+                            <ol className="space-y-1.5 text-xs text-muted-foreground">
                                 <li className="flex items-start gap-2">
-                                    <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0">1</span>
-                                    <span>Click any element on your page to select it</span>
+                                    <Check className="h-3 w-3 text-green-500 mt-0.5 shrink-0" />
+                                    <span>Script splits visitors 50/50 between control and treatment</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0">2</span>
-                                    <span>Change text, colors, visibility - no code needed</span>
+                                    <Check className="h-3 w-3 text-green-500 mt-0.5 shrink-0" />
+                                    <span>Treatment visitors see your visual changes automatically</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0">3</span>
-                                    <span>Preview changes in real-time</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0">4</span>
-                                    <span>Save and start your experiment instantly</span>
+                                    <Check className="h-3 w-3 text-green-500 mt-0.5 shrink-0" />
+                                    <span>Conversions tracked automatically - view results in the dashboard</span>
                                 </li>
                             </ol>
-                        </div>
-
-                        {/* Quick start checkbox */}
-                        <div className="flex items-center gap-2">
-                            <Checkbox
-                                id="visualReady"
-                                checked={visualReady}
-                                onCheckedChange={(checked) => setVisualReady(!!checked)}
-                            />
-                            <label htmlFor="visualReady" className="text-sm cursor-pointer">
-                                I understand this requires adding a small script to my site for tracking (provided after editor setup)
-                            </label>
                         </div>
 
                         {/* Start Button for Visual */}
