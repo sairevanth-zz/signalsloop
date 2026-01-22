@@ -455,16 +455,23 @@ export default function ExperimentDetailsPage() {
         />
       )}
 
-      {/* Feature Flag Link */}
+      {/* Feature Flag Key */}
       {experiment.feature_flag_key && (
-        <Card className="p-4 bg-blue-50 border-blue-200">
+        <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ExternalLink className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium">Feature Flag: {experiment.feature_flag_key}</span>
+              <ExternalLink className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Feature Flag: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-0.5 rounded">{experiment.feature_flag_key}</code></span>
             </div>
-            <Button variant="outline" size="sm">
-              View in LaunchDarkly
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                navigator.clipboard.writeText(experiment.feature_flag_key || '');
+                toast.success('Feature flag key copied!');
+              }}
+            >
+              Copy Key
             </Button>
           </div>
         </Card>
