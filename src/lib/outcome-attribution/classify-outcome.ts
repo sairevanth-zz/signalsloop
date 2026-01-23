@@ -175,11 +175,14 @@ export async function classifyOutcome(
     .from('feature_outcomes')
     .select(`
       *,
-      roadmap_suggestions!inner (
+      roadmap_suggestions (
         id,
-        themes!inner (
+        themes (
           theme_name
         )
+      ),
+      posts (
+        title
       )
     `)
     .eq('id', outcomeId)
@@ -195,7 +198,7 @@ export async function classifyOutcome(
   }
 
   // 3. Build prompt and call GPT-4o
-  const themeName = outcome.roadmap_suggestions?.themes?.theme_name || 'Unknown Feature';
+  const themeName = outcome.roadmap_suggestions?.themes?.theme_name || outcome.posts?.title || 'Unknown Feature';
   const userPrompt = buildClassificationPrompt(outcome as FeatureOutcome, themeName);
 
   const completion = await openai.chat.completions.create({
