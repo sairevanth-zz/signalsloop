@@ -11,7 +11,7 @@ export const maxDuration = 30;
 export async function PATCH(request: NextRequest) {
   try {
     const { postId, newStatus, projectId, adminNote } = await request.json();
-    
+
     if (!postId || !newStatus || !projectId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
@@ -25,6 +25,10 @@ export async function PATCH(request: NextRequest) {
 
     // Use service role client for direct database access
     const supabase = getServiceRoleClient();
+
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+    }
 
     // Get the post details before updating
     const { data: post, error: fetchError } = await supabase
@@ -43,7 +47,7 @@ export async function PATCH(request: NextRequest) {
     // Update the post status directly (bypassing auth for now)
     const { error: updateError } = await supabase
       .from('posts')
-      .update({ 
+      .update({
         status: normalizedStatus,
         updated_at: new Date().toISOString()
       })
@@ -142,6 +146,18 @@ export async function PATCH(request: NextRequest) {
       });
     }
 
+    // If status changed to 'done', trigger outcome creation
+    if (normalizedStatus === 'done' && oldStatus !== 'done') {
+      try {
+        // Create outcome monitor for this completed feature
+        await createOutcomeFromPost(post.id, projectId, post.title, post.category);
+        console.log(`✅ Feature outcome created for post: ${post.id}`);
+      } catch (outcomeError) {
+        // Don't fail the status update if outcome creation fails
+        console.error('Failed to create feature outcome:', outcomeError);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Post status updated successfully'
@@ -151,4 +167,58 @@ export async function PATCH(request: NextRequest) {
     console.error('Update post status error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+/**
+ * Helper to create an outcome monitor from a roadmap post
+ */
+async function createOutcomeFromPost(
+  postId: string,
+  projectId: string,
+  featureName: string,
+  category: string | null
+) {
+  const supabase = getServiceRoleClient();
+
+  if (!supabase) return; // Cannot create outcome without db access
+
+  // Check if outcome already exists
+  const { data: existing } = await supabase
+    .from('feature_outcomes')
+    .select('id')
+    .eq('post_id', postId)
+    .single();
+
+  if (existing) return; // Already tracked
+
+  // Create new outcome record
+  const monitorEnd = new Date();
+  monitorEnd.setDate(monitorEnd.getDate() + 30); // 30 day monitoring window
+
+  // Basic pre-ship metrics (placeholder until proper calculation)
+  // In a real implementation, we would calculate these from history
+  const preShipMetrics = {
+    sentiment: 0,
+    themeVolume: 0,
+    churnRisk: 0,
+    relatedThemes: category ? [category] : [],
+    relatedFeedbackIds: [],
+    sampleFeedback: []
+  };
+
+  await supabase.from('feature_outcomes').insert({
+    project_id: projectId,
+    post_id: postId,
+    shipped_at: new Date().toISOString(),
+    monitor_start: new Date().toISOString(),
+    monitor_end: monitorEnd.toISOString(),
+    pre_ship_sentiment: preShipMetrics.sentiment,
+    pre_ship_theme_volume: preShipMetrics.themeVolume,
+    pre_ship_churn_risk: preShipMetrics.churnRisk,
+    related_themes: preShipMetrics.relatedThemes,
+    related_feedback_ids: preShipMetrics.relatedFeedbackIds,
+    sample_feedback: preShipMetrics.sampleFeedback,
+    status: 'monitoring',
+    outcome_classification: 'pending',
+  });
 }

@@ -34,7 +34,8 @@ export type OutcomeMonitorStatus = 'monitoring' | 'completed' | 'cancelled';
 export interface FeatureOutcome {
   id: string;
   project_id: string;
-  suggestion_id: string;
+  suggestion_id?: string | null;
+  post_id?: string | null;
 
   // Timestamps
   shipped_at: string;
