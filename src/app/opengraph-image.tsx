@@ -1,7 +1,9 @@
 import { ImageResponse } from 'next/og';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 
-export const runtime = 'edge';
-export const alt = 'SignalsLoop - AI Feedback Management Platform';
+export const runtime = 'nodejs';
+export const alt = 'SignalsLoop - AI-Native Product OS for Modern Product Teams';
 export const size = {
   width: 1200,
   height: 630,
@@ -9,67 +11,29 @@ export const size = {
 export const contentType = 'image/png';
 
 export default async function Image() {
+  // Read the static OG image from public folder
+  const imageData = await readFile(join(process.cwd(), 'public', 'og-image.png'));
+  const base64Image = imageData.toString('base64');
+  const imageSrc = `data:image/png;base64,${base64Image}`;
+
   return new ImageResponse(
     (
       <div
         style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           width: '100%',
           height: '100%',
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: 'system-ui, sans-serif',
-          color: 'white',
-          padding: '80px',
         }}
       >
-        <div
+        <img
+          src={imageSrc}
+          alt="SignalsLoop"
           style={{
-            fontSize: 72,
-            fontWeight: 'bold',
-            marginBottom: 24,
-            textAlign: 'center',
-            letterSpacing: '-0.025em',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
           }}
-        >
-          SignalsLoop
-        </div>
-        <div
-          style={{
-            fontSize: 36,
-            fontWeight: 'normal',
-            textAlign: 'center',
-            opacity: 0.95,
-            maxWidth: 900,
-            lineHeight: 1.4,
-          }}
-        >
-          AI-Powered Feedback Management Platform
-        </div>
-        <div
-          style={{
-            fontSize: 28,
-            fontWeight: 'normal',
-            textAlign: 'center',
-            opacity: 0.9,
-            marginTop: 32,
-          }}
-        >
-          Auto-categorize • Prioritize • Smart Replies
-        </div>
-        <div
-          style={{
-            fontSize: 24,
-            fontWeight: 'normal',
-            textAlign: 'center',
-            opacity: 0.8,
-            marginTop: 48,
-          }}
-        >
-          From $19/mo • 80% cheaper than competitors
-        </div>
+        />
       </div>
     ),
     {
