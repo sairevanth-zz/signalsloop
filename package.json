@@ -86,7 +86,7 @@
     "framer-motion": "^12.23.15",
     "google-play-scraper": "^10.1.2",
     "html2canvas": "^1.4.1",
-    "jspdf": "^3.0.4",
+    "jspdf": "^4.1.0",
     "lucide-react": "^0.544.0",
     "micro": "^10.0.1",
     "next": "^15.5.7",
