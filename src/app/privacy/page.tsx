@@ -1,15 +1,16 @@
 import React from 'react';
-import { MetaHead } from '@/components/seo/meta-head';
+import { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: "SignalsLoop's privacy policy explaining how we collect, use, and protect your data.",
+  alternates: { canonical: 'https://signalsloop.com/privacy' },
+};
 
 export default function PrivacyPolicy() {
   return (
     <>
-      <MetaHead
-        title="Privacy Policy - SignalsLoop"
-        description="SignalsLoop's privacy policy explaining how we collect, use, and protect your data."
-        noIndex={true}
-      />
       
       <div className="min-h-screen bg-gray-50">
         {/* Header */}

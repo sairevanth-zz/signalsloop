@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono, Manrope, Plus_Jakarta_Sans, JetBrains_Mono, Fraunces, Inter } from "next/font/google";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
@@ -45,23 +45,25 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: "#FF4F00",
+};
+
 export const metadata: Metadata = {
   title: {
     default: "SignalsLoop - AI-Native Product OS for Modern PM Teams",
     template: "%s | SignalsLoop"
   },
   description: "The AI-native operating system for product teams. Turn user signals into shipped features with automated feedback analysis, competitive intelligence, and AI-powered roadmapping. From $19/mo.",
-  keywords: ["product os", "ai product management", "product operations", "ai feedback analysis", "competitive intelligence", "product roadmap software", "canny alternative", "productboard alternative", "product management tool"],
+  keywords: ["product os", "ai product management", "product operations", "ai feedback analysis", "competitive intelligence", "product roadmap software", "canny alternative", "productboard alternative", "product management tool", "user voice alternative", "feature upvote board"],
   authors: [{ name: "SignalsLoop" }],
   creator: "SignalsLoop",
   publisher: "SignalsLoop",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
-  themeColor: "#FF4F00",
+  metadataBase: new URL("https://signalsloop.com"),
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -95,6 +97,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icon.png",
     apple: "/icon.png",
+  },
+  alternates: {
+    canonical: "https://signalsloop.com",
   },
 };
 

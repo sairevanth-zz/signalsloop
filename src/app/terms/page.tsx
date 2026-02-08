@@ -1,15 +1,16 @@
 import React from 'react';
-import { MetaHead } from '@/components/seo/meta-head';
+import { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service',
+  description: "SignalsLoop's terms of service outlining the rules and guidelines for using our feedback management platform.",
+  alternates: { canonical: 'https://signalsloop.com/terms' },
+};
 
 export default function TermsOfService() {
   return (
     <>
-      <MetaHead
-        title="Terms of Service - SignalsLoop"
-        description="SignalsLoop's terms of service outlining the rules and guidelines for using our feedback management platform."
-        noIndex={true}
-      />
       
       <div className="min-h-screen bg-gray-50">
         {/* Header */}

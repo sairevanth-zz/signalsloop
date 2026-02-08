@@ -10,7 +10,11 @@ export default function robots(): MetadataRoute.Robots {
         allow: [
           '/',
           '/pricing',
+          '/features',
           '/docs',
+          '/support',
+          '/terms',
+          '/privacy',
           '/demo/board',
           '/demo/roadmap',
           '/demo/changelog',
