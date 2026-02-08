@@ -689,36 +689,235 @@ Comprehensive security tooling (`withSecurity`, `secureAPIRoute`, `sanitizeObjec
 
 ---
 
+## Breakage Risk Assessment
+
+Each finding's proposed fix has been cross-referenced against the codebase to determine what would break if implemented. This helps plan retesting scope.
+
+### Risk Summary
+
+| Category | Count | Findings |
+|----------|-------|----------|
+| **SAFE** — No retesting needed | 17 | C1, C4, C7, C8, C11, C12, I7, I12, I14, I18, I20, I23, I25, N1, N3, N5, N7 |
+| **LOW RISK** — Minimal retesting | 17 | C6, C9, C10, I4, I6, I9, I10, I11, I13, I15, I22, I24, I26, I28, N2, N4, N6 |
+| **MEDIUM RISK** — Targeted retesting | 6 | C2, C3, C5, I1, I3, I5, I8, I17, I19, I21 |
+| **HIGH RISK** — Broad retesting | 3 | I2, I16, I27 |
+
+---
+
+### SAFE — Deploy Without Retesting (17 findings)
+
+| Finding | Fix Action | Why It's Safe |
+|---------|------------|---------------|
+| **C1** — Debug/test endpoints | Delete all `debug-*`, `test-*` routes | No production code calls them. **Exception:** Keep `/api/integrations/slack/test` — it already has auth and is used by `ChannelSelector.tsx` |
+| **C4** — `exec_sql`/`exec` RPC | Remove DB functions + delete endpoint | Only called from `migrate-email-columns` (also being deleted) |
+| **C7** — Stripe test checkout | Delete endpoint | Only called from `payment-test/page.tsx` (test page) |
+| **C8** — Admin migration endpoint | Delete endpoint | Zero frontend references |
+| **C11** — `.env.local.bak` | Delete file, rotate keys | Purely operational. After rotation, verify integrations connect |
+| **C12** — Seed production endpoint | Delete endpoint | Zero frontend references |
+| **I7** — Admin emails client-side | Move to server-only env var | Same logic, just server-side |
+| **I12** — Header injection filenames | Sanitize to `[a-zA-Z0-9._-]` | Only affects download filename, not content |
+| **I14** — TS/ESLint suppressed | Enable checks | No runtime impact (build may surface existing errors) |
+| **I18** — Sensitive data in logs | Remove PII from `console.log` | Zero runtime impact |
+| **I20** — Path traversal backup | Tighten filename regex | Only rejects malicious input |
+| **I23** — `disable-rls-temporarily.sql` | Delete file | Not referenced by any code |
+| **I25** — Debug frontend pages | Delete 6 pages | No production callers |
+| **N1** — CSRF timing comparison | Use `timingSafeEqual` | Drop-in behavioral equivalent |
+| **N3** — `document.write` print | Escape data | Transparent to users |
+| **N5** — Inconsistent X-Frame-Options | Standardize to `DENY` | Embed widget has its own headers |
+| **N7** — `health_scores` RLS | Uncomment + add policies | All access is via service role in cron |
+
+---
+
+### LOW RISK — Minimal Retesting (17 findings)
+
+| Finding | Fix Action | What to Retest | Watch Out For |
+|---------|------------|----------------|---------------|
+| **C6** — Cron hardcoded secrets | Remove fallbacks, mandatory auth | All cron jobs | Verify `CRON_SECRET` is set in Vercel. Orchestrator already passes auth to sub-crons |
+| **C9** — Email spam endpoints | Delete test endpoints, add auth | Feedback on-behalf email flow | `/api/emails/feedback-on-behalf` is called server-to-server from `/api/feedback/on-behalf` — internal call needs credentials |
+| **C10** — Webhook sig bypasses | Make verification mandatory | Jira, LaunchDarkly, Optimizely, Linear webhooks | Secrets MUST be configured or events get rejected |
+| **I4** — SSRF in webhooks | Validate against private IPs | Webhook delivery | Check existing webhook URL configs |
+| **I6** — Open redirect `next` | Validate single `/` prefix | Login redirect, OAuth callback | Only blocks malicious values |
+| **I9** — SOQL injection | Use parameterized queries | Salesforce CRM sync | Transparent change |
+| **I10** — Unsanitized `ilike` | Use `buildSafeLikePattern()` | Roadmap search, Discord, specs | `%`/`_` in search get escaped |
+| **I11** — Unvalidated sort columns | Allowlist valid columns | Admin user intelligence, roadmap suggestions | Ensure allowlist includes columns frontend sends |
+| **I13** — 50MB body limit | Reduce to 2-5MB | File uploads via server actions | No server action currently uses large payloads |
+| **I15** — Missing CSP/HSTS | Add headers | Full app smoke test | CSP misconfiguration can break the entire app — **start with report-only mode**. HSTS requires HTTPS commitment |
+| **I22** — Stripe mock on failure | Return proper error | Billing page success flow | Frontend must handle error response gracefully |
+| **I24** — Middleware path bypass | Fix `includes()` to `startsWith()` | Protected route access | Verify no public pages match protected path substrings |
+| **I26** — Slack OAuth redirect | Validate no `//` | Slack connection flow | Only blocks malicious values |
+| **I28** — Notification API key bypass | Check env var defined | Push notifications | No change if `INTERNAL_API_KEY` already set |
+| **N2** — Cookie `sameSite` | — | — | **DO NOT CHANGE.** `'strict'` breaks OAuth callback and email link navigation. Keep `'lax'` |
+| **N4** — Apply security middleware | Wrap routes with `secureAPI` | Each route individually | Meta-finding — do incrementally |
+| **N6** — SDK wildcard CORS | — | — | **DO NOT CHANGE.** Restricting would break all customer SDK widgets |
+
+---
+
+### MEDIUM RISK — Targeted Retesting Required (10 findings)
+
+#### C2. Middleware Excludes ALL API Routes
+- **Breakage Risk:** MEDIUM
+- **What breaks:** Missing an endpoint from the allowlist breaks it silently.
+- **Must remain unauthenticated (allowlist):**
+  - `/api/feedback` — public widget submission
+  - `/api/posts` (POST) — public board post creation via `PostSubmissionForm.tsx`
+  - `/api/ai/categorize` — called during public post submission
+  - `/api/sdk/*` — customer-embedded SDK (all 4 routes)
+  - `/api/embed/*` — embeddable widget
+  - `/api/v1/posts` — public API
+  - `/api/stripe/webhook` — Stripe webhook
+  - `/api/integrations/slack/events` — Slack webhook
+  - `/api/integrations/discord/events` — Discord webhook
+  - `/api/integrations/jira/webhooks` — Jira webhook
+  - `/api/integrations/linear/webhooks` — Linear webhook
+  - `/api/experiments/webhooks/*` — LaunchDarkly, Optimizely
+  - `/api/auth/callback`, `/api/auth-handler` — auth flow
+  - `/api/cron/*` — Vercel cron
+  - `/api/csrf-token` — needs to be accessible pre-auth
+- **Retest scope:** Every API route. Full E2E of public features, webhooks, SDK, embed, OAuth, billing.
+
+#### C3. Stored XSS via `dangerouslySetInnerHTML`
+- **Breakage Risk:** MEDIUM
+- **What breaks:**
+  - `board.custom_css`: Users actively configure custom CSS via `BoardSettings.tsx`. Over-aggressive CSS sanitization will strip legitimate styles.
+  - `release.content`: Rich-text changelog content. Sanitization must preserve bold, italic, links, lists, images, code blocks.
+  - `item.contentHtml`: Slack/Discord formatting may get stripped.
+- **Retest scope:** All public boards with custom CSS. Changelog display. Inbox detail view for Slack/Discord/email content.
+
+#### C5. Mass Assignment in Bulk Update
+- **Breakage Risk:** MEDIUM
+- **What breaks:** `RoadmapPhaseManager.tsx` sends `status`, `phase`, `estimated_completion`, `completion_date`. If allowlist is too restrictive (only `['status', 'category', 'priority']`), roadmap phase updates break.
+- **Retest scope:** Roadmap phase manager bulk update flow.
+
+#### I1. No CSRF Protection
+- **Breakage Risk:** MEDIUM (highest effort)
+- **What breaks:** Enabling CSRF requires EVERY frontend component making POST/PATCH/DELETE calls to fetch and include a CSRF token. Currently **zero components** do this. Dozens need updating: `BillingDashboard`, `PostSubmissionForm`, `RoadmapPhaseManager`, `FeedbackOnBehalfModal`, `CustomDomainSettings`, `ApiKeySettings`, `BoardSettings`, `WebhooksSettings`, `VoteButton`, `IngestDialog`, `FeedbackExport`, `ExportDialog`, etc.
+- **Must exclude from CSRF:** Webhooks, SDK, public widget endpoints.
+- **Retest scope:** Every component that makes POST/PATCH/DELETE API calls.
+
+#### I3. No Rate Limiting
+- **Breakage Risk:** MEDIUM
+- **What breaks:** Too-aggressive rate limits cause legitimate users to get 429s. Must tune limits per endpoint.
+- **Retest scope:** Each rate-limited endpoint under normal and burst usage.
+
+#### I5. XSS in Embed Iframe
+- **Breakage Risk:** MEDIUM
+- **What breaks:** Double-encoding risk if `project.name` has `&` or quotes. Must use `escapeHtml()` for HTML context, `JSON.stringify()` for JS context.
+- **Retest scope:** Embed widget for projects with special characters in name/slug.
+
+#### I8. Stripe Checkout No Auth
+- **Breakage Risk:** MEDIUM
+- **What breaks:** `priceId` allowlist must include ALL valid Stripe price IDs (monthly, yearly, premium monthly, premium yearly). `successUrl`/`cancelUrl` construction must match frontend expectations.
+- **Retest scope:** Full billing upgrade flow for all plan types and billing cycles.
+
+#### I17. Service Role Client Misuse
+- **Breakage Risk:** MEDIUM
+- **What breaks:** Switching to user-scoped client means RLS policies apply. If RLS policies are missing or incorrect, queries return empty results. `/api/feedback` is PUBLIC — cannot use user-scoped client there.
+- **Retest scope:** Each migrated route individually.
+
+#### I19. V1 API Exposes `author_email`
+- **Breakage Risk:** MEDIUM
+- **What breaks:** Removing `author_email` is a **breaking API change** for external consumers relying on this field.
+- **Retest scope:** All V1 API consumers. Public roadmap/board displays showing author info.
+
+#### I21. File Upload No Validation
+- **Breakage Risk:** MEDIUM
+- **What breaks:** Too-narrow file type allowlist rejects legitimate uploads. Size limit too low rejects large call recordings.
+- **Retest scope:** Call recording ingest via `IngestDialog`.
+
+---
+
+### HIGH RISK — Significant Effort, Broad Retesting (3 findings)
+
+#### I2. Replace `.select('*')` (281 occurrences, 178 files)
+- **Breakage Risk:** HIGH
+- **What breaks:** Every instance requires knowing exactly which fields downstream consumers read. A single omitted field causes **silent breakage** — undefined values, blank UI elements, JS errors. Affects virtually every page: boards, posts, settings, admin, billing, competitive intel, roadmap, inbox.
+- **Approach:** Do incrementally, one module at a time. Add TypeScript types to API responses so missing fields surface at build time.
+- **Retest scope:** **Entire application.**
+
+#### I16. Embed Widget CSP (`unsafe-inline`/`unsafe-eval`)
+- **Breakage Risk:** HIGH
+- **What breaks:** The embed widget generates a complete inline HTML page with inline scripts, inline styles, and dynamically constructed JavaScript. Removing `unsafe-inline`/`unsafe-eval` requires **rewriting the entire embed widget** to use external script files and nonce-based CSP.
+- **Retest scope:** **All embed widget deployments across all customer sites.**
+
+#### I27. Unauthenticated Business API Endpoints
+- **Breakage Risk:** HIGH
+- **What breaks:** Several endpoints **must** remain unauthenticated:
+  - `/api/posts` (POST) — called from `PostSubmissionForm` on **public boards**. Adding auth **breaks public feedback submission entirely**.
+  - `/api/ai/categorize` — called during public post submission flow.
+  - `/api/integrations/analytics/ingest` — SDK-like ingest, auth optional by design.
+  - `/api/competitive-intel/*` — called from demo page (must stay unauth if demo is public).
+- **Each of the 10 endpoints needs individual analysis.** Blanket auth addition breaks public-facing features.
+- **Retest scope:** Public board submission, demo pages, custom domain settings, competitive intel, analytics ingest, sentiment analysis.
+
+---
+
+### Key Warnings
+
+1. **Do NOT change `sameSite` to `'strict'` (N2)** — it will break OAuth callback and email link navigation.
+2. **Do NOT restrict SDK wildcard CORS (N6)** — it will break all customer SDK widget deployments.
+3. **Do NOT add blanket auth to `/api/posts` POST or `/api/ai/categorize`** — these serve public boards.
+4. **Keep `/api/integrations/slack/test`** when deleting debug/test endpoints — it has auth and is used by `ChannelSelector.tsx`.
+
+---
+
 ## Remediation Priority
 
-### Immediate (This Week)
+### Phase 1 — SAFE fixes (ship immediately, no retesting needed)
 
-1. Delete all `debug-*` and `test-*` API routes and frontend pages
-2. Delete `.env.local.bak` and rotate all API keys
-3. Remove `exec_sql` and `exec` RPC functions from database
-4. Delete `disable-rls-temporarily.sql`, `seed-production` endpoint, `test-checkout` endpoint, `migrate-email-columns` endpoint
-5. Fix mass assignment in `posts/bulk-update`
-6. Fix all cron routes — mandatory `CRON_SECRET`, no fallbacks
+All 17 SAFE findings. No functional breakage risk.
 
-### Short-Term (This Month)
+1. Delete all `debug-*` and `test-*` API routes (keep `/api/integrations/slack/test` — it has auth)
+2. Delete all debug/test frontend pages (`debug/`, `debug-gifts/`, `debug-oauth/`, `auth-debug/`, `oauth-debug/`, `env-test/`)
+3. Delete `.env.local.bak` and rotate all API keys
+4. Remove `exec_sql` and `exec` RPC functions from database
+5. Delete `disable-rls-temporarily.sql`, `seed-production` endpoint, `test-checkout` endpoint, `migrate-email-columns` endpoint
+6. Remove PII from console.log statements
+7. Sanitize Content-Disposition filenames
+8. Tighten backup download filename regex
+9. Standardize X-Frame-Options to `DENY`
+10. Use `timingSafeEqual` for CSRF comparison
+11. Uncomment `health_scores` RLS
 
-7. Add API route middleware or migrate all routes to `secureAPI` wrapper
-8. Sanitize all `dangerouslySetInnerHTML` usage
-9. Add webhook signature verification (Jira) and make it mandatory (LaunchDarkly, Optimizely, Linear)
-10. Enable CSRF protection on state-changing endpoints
-11. Add rate limiting to sensitive endpoints
-12. Fix open redirect vulnerabilities
-13. Add SSRF protections to webhook URL delivery
+### Phase 2 — LOW RISK fixes (minimal, targeted retesting)
 
-### Medium-Term (This Quarter)
+All 17 LOW RISK findings. Each has a small, well-defined retest scope.
 
-14. Replace all `.select('*')` with explicit column lists
-15. Add CSP, HSTS, Permissions-Policy headers
-16. Fix TypeScript/ESLint build suppression
-17. Reduce server actions body size limit
-18. Sanitize all ILIKE patterns and sort columns
-19. Move admin auth to server-side only
-20. Remove sensitive data from console logs
+12. Fix all cron routes — mandatory `CRON_SECRET`, no fallbacks → **retest: all cron jobs**
+13. Make webhook signature verification mandatory → **retest: Jira, LaunchDarkly, Optimizely, Linear webhooks**
+14. Fix open redirect in auth callback and Slack OAuth → **retest: login flow, Slack connection**
+15. Add auth to email-sending endpoints → **retest: feedback on-behalf email flow**
+16. Add SSRF protections to webhook URLs → **retest: webhook delivery**
+17. Use `buildSafeLikePattern()` for ILIKE searches → **retest: search features**
+18. Validate sort columns → **retest: admin user intelligence, roadmap suggestions**
+19. Reduce server actions body limit to 5MB → **retest: any file upload server actions**
+20. Add HSTS header (safe), CSP in **report-only mode** first → **retest: full app smoke test**
+21. Fix Stripe mock data on failure → **retest: billing page error handling**
+22. Fix middleware path matching (`startsWith` instead of `includes`) → **retest: protected route access**
+23. Fix notification API key bypass → **retest: push notifications**
+
+### Phase 3 — MEDIUM RISK fixes (targeted retesting per feature)
+
+10 MEDIUM RISK findings. Each fix has specific features that need retesting.
+
+24. Fix mass assignment in `posts/bulk-update` (include `estimated_completion`, `completion_date` in allowlist) → **retest: roadmap bulk update**
+25. Sanitize `dangerouslySetInnerHTML` (CSS sanitizer for `custom_css`, HTML sanitizer for changelog/inbox) → **retest: boards with custom CSS, changelog, inbox**
+26. Add auth to Stripe checkout + validate `priceId` allowlist → **retest: all billing upgrade flows**
+27. Fix XSS in embed iframe template interpolation → **retest: embed widget with special chars in project name**
+28. Move admin auth server-side, remove hardcoded emails → **retest: admin panel login**
+29. Add auth to file upload + type/size validation → **retest: call recording ingest**
+30. Switch service role to user-scoped client (route by route) → **retest: each migrated route**
+31. Remove `author_email` from V1 API (breaking API change — may need deprecation period) → **retest: all V1 API consumers**
+32. Add rate limiting (tune limits per endpoint) → **retest: each rate-limited endpoint**
+33. Enable CSRF (requires updating dozens of frontend components) → **retest: every form/button that mutates data**
+34. Add API middleware with unauthenticated allowlist → **retest: every API route, full E2E**
+
+### Phase 4 — HIGH RISK fixes (broad retesting, do last)
+
+3 HIGH RISK findings. Significant effort and broad retesting required.
+
+35. Replace `.select('*')` with explicit columns (281 occurrences, 178 files) → **retest: entire application** — do incrementally, one module at a time
+36. Rewrite embed widget CSP (remove `unsafe-inline`/`unsafe-eval`) → **retest: all embed deployments across customer sites**
+37. Individually assess 10 unauthenticated business endpoints (some MUST stay unauth for public boards/SDK) → **retest: public submission, demo, custom domains, competitive intel, analytics**
 
 ---
 
